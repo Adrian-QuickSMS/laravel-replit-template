@@ -14,19 +14,19 @@
     
     <div class="row align-items-start">
         <div class="col-lg-8">
-            <div class="card mb-1">
-                <div class="card-body p-2">
-                    <h6 class="mb-1" style="font-size: 13px;"><i class="fas fa-clipboard-list text-primary me-1"></i>1. Campaign Details</h6>
-                    <input type="text" class="form-control form-control-sm" id="campaignName" placeholder="Campaign name (auto-generated if blank)" maxlength="100">
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <h6 class="mb-3"><i class="fas fa-clipboard-list text-primary me-2"></i>1. Campaign Details</h6>
+                    <input type="text" class="form-control" id="campaignName" placeholder="Campaign name (auto-generated if blank)" maxlength="100">
                 </div>
             </div>
             
-            <div class="card mb-1">
-                <div class="card-body p-2">
-                    <h6 class="mb-1" style="font-size: 13px;"><i class="fas fa-broadcast-tower text-primary me-1"></i>2. Channel & Sender</h6>
-                    <div class="row mb-1">
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <h6 class="mb-3"><i class="fas fa-broadcast-tower text-primary me-2"></i>2. Channel & Sender</h6>
+                    <div class="row mb-3">
                         <div class="col-12">
-                            <div class="btn-group btn-group-sm w-100" role="group">
+                            <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="channel" id="channelSMS" value="sms" checked>
                                 <label class="btn btn-outline-primary" for="channelSMS"><i class="fas fa-sms me-1"></i>SMS only</label>
                                 <input type="radio" class="btn-check" name="channel" id="channelRCSBasic" value="rcs_basic">
@@ -38,7 +38,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6" id="senderIdSection">
-                            <select class="form-select form-select-sm" id="senderId" onchange="updatePreview()">
+                            <select class="form-select" id="senderId" onchange="updatePreview()">
                                 <option value="">SMS Sender ID *</option>
                                 @foreach($sender_ids as $sender)
                                 <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
@@ -46,7 +46,7 @@
                             </select>
                         </div>
                         <div class="col-md-6 d-none" id="rcsAgentSection">
-                            <select class="form-select form-select-sm" id="rcsAgent" onchange="updatePreview()">
+                            <select class="form-select" id="rcsAgent" onchange="updatePreview()">
                                 <option value="">RCS Agent *</option>
                                 @foreach($rcs_agents as $agent)
                                 <option value="{{ $agent['id'] }}">{{ $agent['name'] }}</option>
@@ -57,66 +57,66 @@
                 </div>
             </div>
             
-            <div class="card mb-1">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h6 class="mb-1" style="font-size: 14px; font-weight: 600;">Recipients</h6>
-                            <p class="text-muted mb-0" style="font-size: 12px;">Add recipients via manual entry, CSV upload, or from your contact book</p>
+                            <h6 class="mb-2">Recipients</h6>
+                            <p class="text-muted mb-0">Add recipients via manual entry, CSV upload, or from your contact book</p>
                         </div>
-                        <div class="form-check form-switch mb-0" style="font-size: 11px;">
+                        <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" id="ukNumbersOnly" checked onchange="toggleUkMode()">
                             <label class="form-check-label" for="ukNumbersOnly">UK only</label>
                         </div>
                     </div>
                     
-                    <label class="form-label mb-1" style="font-size: 12px; font-weight: 500;">Enter mobile numbers</label>
-                    <textarea class="form-control mb-2" id="manualNumbers" rows="3" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()" style="font-size: 13px;"></textarea>
+                    <label class="form-label mb-2">Enter mobile numbers</label>
+                    <textarea class="form-control mb-3" id="manualNumbers" rows="4" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()"></textarea>
                     
-                    <div class="d-none mb-2" id="manualValidation" style="font-size: 11px;">
+                    <div class="d-none mb-3" id="manualValidation">
                         <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="manualValid">0</span> valid</span>
                         <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="manualInvalid">0</span> invalid</span>
                         <a href="#" class="ms-2 d-none" id="manualInvalidLink" onclick="showInvalidNumbers('manual')">View</a>
                     </div>
                     
-                    <div class="d-flex gap-2 mb-3">
-                        <button type="button" class="btn btn-light btn-sm" onclick="triggerFileUpload()">
+                    <div class="d-flex gap-2 mb-4">
+                        <button type="button" class="btn btn-light" onclick="triggerFileUpload()">
                             <i class="fas fa-upload me-1"></i>Upload CSV
                         </button>
-                        <button type="button" class="btn btn-light btn-sm" onclick="openContactBookModal()">
+                        <button type="button" class="btn btn-light" onclick="openContactBookModal()">
                             <i class="fas fa-users me-1"></i>Select from Contact Book
                         </button>
                         <input type="file" class="d-none" id="recipientFile" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
                     </div>
                     
-                    <div class="d-none mb-2" id="uploadProgress" style="font-size: 11px;">
-                        <div class="progress mb-1" style="height: 4px;"><div class="progress-bar" id="uploadProgressBar" style="width: 0%;"></div></div>
+                    <div class="d-none mb-3" id="uploadProgress">
+                        <div class="progress mb-2" style="height: 6px;"><div class="progress-bar" id="uploadProgressBar" style="width: 0%;"></div></div>
                         <span id="uploadStatus" class="text-muted">Processing...</span>
                     </div>
-                    <div class="d-none mb-2" id="uploadResult" style="font-size: 11px;">
-                        <span class="badge bg-light text-dark me-1"><i class="fas fa-file-csv me-1"></i>File uploaded</span>
+                    <div class="d-none mb-3" id="uploadResult">
+                        <span class="badge bg-light text-dark me-2"><i class="fas fa-file-csv me-1"></i>File uploaded</span>
                         <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="uploadValid">0</span> valid</span>
                         <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="uploadInvalid">0</span> invalid</span>
                         <a href="#" class="ms-2 d-none" id="uploadInvalidLink" onclick="showInvalidNumbers('upload')">View</a>
                     </div>
                     
-                    <div class="d-none mb-2" id="contactBookSelection" style="font-size: 11px;">
+                    <div class="d-none mb-3" id="contactBookSelection">
                         <div id="contactBookChips"></div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                        <span style="font-size: 13px; font-weight: 500;">Total Recipients</span>
-                        <span class="badge bg-primary" id="recipientCount" style="font-size: 12px;">0</span>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span class="fw-medium">Total Recipients</span>
+                        <span class="badge bg-primary" id="recipientCount">0</span>
                     </div>
                 </div>
             </div>
             
-            <div class="card mb-1">
-                <div class="card-body p-2">
-                    <h6 class="mb-1" style="font-size: 13px;"><i class="fas fa-edit text-primary me-1"></i>4. Content</h6>
-                    <div class="row mb-1">
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <h6 class="mb-3"><i class="fas fa-edit text-primary me-2"></i>4. Content</h6>
+                    <div class="row mb-3">
                         <div class="col-8">
-                            <select class="form-select form-select-sm" id="templateSelect" onchange="applyTemplate()">
+                            <select class="form-select" id="templateSelect" onchange="applyTemplate()">
                                 <option value="">Select template...</option>
                                 @foreach($templates as $template)
                                 <option value="{{ $template['id'] }}" data-content="{{ $template['content'] }}">{{ $template['name'] }}</option>
@@ -124,64 +124,64 @@
                             </select>
                         </div>
                         <div class="col-4">
-                            <div class="btn-group btn-group-sm w-100">
+                            <div class="btn-group w-100">
                                 <button type="button" class="btn btn-outline-secondary" onclick="insertMergeField()" title="Insert merge field"><i class="fas fa-code"></i></button>
                                 <button type="button" class="btn btn-outline-secondary" onclick="insertTrackingUrl()" title="Insert tracking URL"><i class="fas fa-link"></i></button>
                             </div>
                         </div>
                     </div>
-                    <textarea class="form-control form-control-sm" id="smsContent" rows="2" placeholder="Type your message..." onkeyup="updatePreview(); updateCharCount();"></textarea>
-                    <div class="d-flex justify-content-between align-items-center" style="font-size: 10px;">
+                    <textarea class="form-control mb-2" id="smsContent" rows="3" placeholder="Type your message..." onkeyup="updatePreview(); updateCharCount();"></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="text-muted"><span id="charCount">0</span>/160 | <span id="smsPartCount">1</span> part(s)</span>
                         <div>
-                            <span class="form-check form-check-inline mb-0"><input class="form-check-input" type="radio" name="scheduling" id="sendNow" value="now" checked style="margin-top: 0;"><label class="form-check-label" for="sendNow">Now</label></span>
-                            <span class="form-check form-check-inline mb-0"><input class="form-check-input" type="radio" name="scheduling" id="sendLater" value="scheduled" style="margin-top: 0;"><label class="form-check-label" for="sendLater">Later</label></span>
+                            <span class="form-check form-check-inline mb-0"><input class="form-check-input" type="radio" name="scheduling" id="sendNow" value="now" checked><label class="form-check-label" for="sendNow">Now</label></span>
+                            <span class="form-check form-check-inline mb-0"><input class="form-check-input" type="radio" name="scheduling" id="sendLater" value="scheduled"><label class="form-check-label" for="sendLater">Later</label></span>
                         </div>
                     </div>
-                    <div class="d-none mt-1" id="schedulingOptions">
-                        <input type="datetime-local" class="form-control form-control-sm" id="scheduledTime">
+                    <div class="d-none mt-2" id="schedulingOptions">
+                        <input type="datetime-local" class="form-control" id="scheduledTime">
                     </div>
-                    <div class="d-none mt-1" id="rcsContentSection">
-                        <div class="border rounded p-1 bg-light" style="font-size: 10px;">
-                            <div class="row mb-1">
-                                <div class="col-6"><input type="text" class="form-control form-control-sm" id="rcsTitle" placeholder="Card title"></div>
-                                <div class="col-6"><input type="file" class="form-control form-control-sm" id="rcsImage" accept="image/*"></div>
+                    <div class="d-none mt-3" id="rcsContentSection">
+                        <div class="border rounded p-3 bg-light">
+                            <div class="row mb-3">
+                                <div class="col-6"><input type="text" class="form-control" id="rcsTitle" placeholder="Card title"></div>
+                                <div class="col-6"><input type="file" class="form-control" id="rcsImage" accept="image/*"></div>
                             </div>
-                            <textarea class="form-control form-control-sm mb-1" id="rcsDescription" rows="1" placeholder="Description"></textarea>
+                            <textarea class="form-control mb-3" id="rcsDescription" rows="2" placeholder="Description"></textarea>
                             <div id="rcsButtons">
-                                <div class="input-group input-group-sm mb-1">
+                                <div class="input-group mb-2">
                                     <input type="text" class="form-control" placeholder="Button">
                                     <input type="text" class="form-control" placeholder="URL">
-                                    <button class="btn btn-outline-danger btn-sm" type="button"><i class="fas fa-times"></i></button>
+                                    <button class="btn btn-outline-danger" type="button"><i class="fas fa-times"></i></button>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-link btn-sm p-0" onclick="addRcsButton()" style="font-size: 9px;">+ Button</button>
+                            <button type="button" class="btn btn-link p-0" onclick="addRcsButton()">+ Add Button</button>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="card mb-1">
-                <div class="card-body p-2">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <h6 class="mb-0" style="font-size: 13px;"><i class="fas fa-ban text-primary me-1"></i>5. Opt-outs</h6>
-                        <span class="text-muted" style="font-size: 10px;"><span id="totalExcluded">2,847</span> excluded</span>
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0"><i class="fas fa-ban text-primary me-2"></i>5. Opt-outs</h6>
+                        <span class="text-muted"><span id="totalExcluded">2,847</span> excluded</span>
                     </div>
-                    <div class="row" style="font-size: 11px;">
+                    <div class="row">
                         @foreach($opt_out_lists as $list)
-                        <div class="col-6">
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $list['id'] }}" id="optout{{ $list['id'] }}" {{ $list['id'] === 1 ? 'checked disabled' : 'checked' }}><label class="form-check-label" for="optout{{ $list['id'] }}">{{ $list['name'] }} @if($list['id'] === 1)<span class="badge bg-secondary" style="font-size: 8px;">Req</span>@endif</label></div>
+                        <div class="col-6 mb-2">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $list['id'] }}" id="optout{{ $list['id'] }}" {{ $list['id'] === 1 ? 'checked disabled' : 'checked' }}><label class="form-check-label" for="optout{{ $list['id'] }}">{{ $list['name'] }} @if($list['id'] === 1)<span class="badge bg-secondary ms-1">Required</span>@endif</label></div>
                         </div>
                         @endforeach
                     </div>
                 </div>
             </div>
             
-            <div class="card mb-1">
-                <div class="card-body p-2">
+            <div class="card mb-3">
+                <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="saveDraft()"><i class="fas fa-save me-1"></i>Draft</button>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="continueToConfirmation()">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()"><i class="fas fa-save me-1"></i>Save Draft</button>
+                        <button type="button" class="btn btn-primary" onclick="continueToConfirmation()">Continue <i class="fas fa-arrow-right ms-1"></i></button>
                     </div>
                 </div>
             </div>
@@ -189,57 +189,57 @@
         
         <div class="col-lg-4">
             <div class="card sticky-top" style="top: 20px;">
-                <div class="card-header bg-primary text-white py-2">
+                <div class="card-header bg-primary text-white py-3">
                     <h6 class="card-title mb-0"><i class="fas fa-mobile-alt me-2"></i>6. Preview</h6>
                 </div>
-                <div class="card-body p-2">
-                    <div class="text-center mb-2">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary active btn-sm" id="previewSMSBtn" onclick="showPreview('sms')">SMS</button>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="previewRCSBtn" onclick="showPreview('rcs')">RCS</button>
+                <div class="card-body p-4">
+                    <div class="text-center mb-3">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary active" id="previewSMSBtn" onclick="showPreview('sms')">SMS</button>
+                            <button type="button" class="btn btn-outline-primary" id="previewRCSBtn" onclick="showPreview('rcs')">RCS</button>
                         </div>
                     </div>
                     
-                    <div class="phone-mockup mx-auto" style="max-width: 200px;">
-                        <div class="bg-dark rounded-top p-1 text-center">
-                            <small class="text-white" style="font-size: 9px;">Preview</small>
+                    <div class="phone-mockup mx-auto" style="max-width: 220px;">
+                        <div class="bg-dark rounded-top p-2 text-center">
+                            <small class="text-white">Preview</small>
                         </div>
-                        <div class="bg-light p-2" style="min-height: 180px; border-radius: 0 0 12px 12px;">
+                        <div class="bg-light p-3" style="min-height: 200px; border-radius: 0 0 12px 12px;">
                             <div id="smsPreview">
-                                <div class="text-center mb-1">
-                                    <small class="text-muted" style="font-size: 9px;" id="previewSenderId">From: Select Sender</small>
+                                <div class="text-center mb-2">
+                                    <small class="text-muted" id="previewSenderId">From: Select Sender</small>
                                 </div>
-                                <div class="bg-primary text-white p-2 rounded mb-1" style="max-width: 90%; margin-left: auto; font-size: 10px;">
+                                <div class="bg-primary text-white p-2 rounded mb-2" style="max-width: 90%; margin-left: auto;">
                                     <p class="mb-0" id="previewMessage">Your message...</p>
                                 </div>
-                                <div class="text-end"><small class="text-muted" style="font-size: 8px;">Now</small></div>
+                                <div class="text-end"><small class="text-muted">Now</small></div>
                             </div>
                             
                             <div id="rcsPreview" class="d-none">
-                                <div class="d-flex align-items-center mb-1">
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-1" style="width: 20px; height: 20px; font-size: 9px;" id="previewRcsLogo"><i class="fas fa-building"></i></div>
-                                    <strong style="font-size: 9px;" id="previewRcsAgent">Agent</strong>
-                                    <span class="badge bg-success ms-1" style="font-size: 6px;">✓</span>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;" id="previewRcsLogo"><i class="fas fa-building"></i></div>
+                                    <strong id="previewRcsAgent">Agent</strong>
+                                    <span class="badge bg-success ms-1">✓</span>
                                 </div>
                                 <div class="card shadow-sm">
-                                    <div class="bg-secondary" style="height: 60px;" id="previewRcsImageArea">
+                                    <div class="bg-secondary" style="height: 80px;" id="previewRcsImageArea">
                                         <div class="d-flex align-items-center justify-content-center h-100 text-white"><i class="fas fa-image"></i></div>
                                     </div>
-                                    <div class="card-body p-1">
-                                        <h6 class="card-title mb-0" style="font-size: 10px;" id="previewRcsTitle">Title</h6>
-                                        <p class="card-text mb-1" style="font-size: 8px;" id="previewRcsDescription">Description</p>
-                                        <button class="btn btn-outline-primary btn-sm w-100 py-0" style="font-size: 8px;">Action</button>
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1" id="previewRcsTitle">Title</h6>
+                                        <p class="card-text mb-2" id="previewRcsDescription">Description</p>
+                                        <button class="btn btn-outline-primary btn-sm w-100">Action</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mt-2 border-top pt-2" style="font-size: 10px;">
+                    <div class="mt-4 border-top pt-3">
                         <div class="row text-center">
-                            <div class="col-4"><small class="text-muted d-block">Channel</small><strong id="previewChannel">SMS</strong></div>
-                            <div class="col-4"><small class="text-muted d-block">Recipients</small><strong id="previewRecipients">0</strong></div>
-                            <div class="col-4"><small class="text-muted d-block">Cost</small><strong id="previewCost">0 cr</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel">SMS</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients">0</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost">0 cr</strong></div>
                         </div>
                     </div>
                 </div>
