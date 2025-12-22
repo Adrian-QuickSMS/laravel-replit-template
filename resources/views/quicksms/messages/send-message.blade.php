@@ -20,10 +20,13 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Campaign Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="campaignName" placeholder="Enter campaign name for reporting and audit" onchange="updatePreview()">
-                        <div class="invalid-feedback" id="campaignNameError"></div>
-                        <small class="text-muted">Used for reporting, audit, campaign history, and message exports</small>
+                        <label class="form-label fw-bold">Campaign Name</label>
+                        <input type="text" class="form-control" id="campaignName" placeholder="e.g. Flu Clinic Reminder – October" maxlength="100" oninput="updateCampaignNameCount()">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">Used for reporting, audit, campaign history, and message exports</small>
+                            <small class="text-muted"><span id="campaignNameCount">0</span>/100</small>
+                        </div>
+                        <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>If left blank, a name will be auto-generated (e.g. Campaign - 2025-12-10 14:05)</small>
                     </div>
                 </div>
             </div>
@@ -429,7 +432,30 @@ var templates = @json($templates);
 document.addEventListener('DOMContentLoaded', function() {
     updatePreview();
     updateCharCount();
+    updateCampaignNameCount();
 });
+
+function updateCampaignNameCount() {
+    var input = document.getElementById('campaignName');
+    var count = input.value.length;
+    document.getElementById('campaignNameCount').textContent = count;
+    
+    if (count > 100) {
+        document.getElementById('campaignNameCount').classList.add('text-danger');
+    } else {
+        document.getElementById('campaignNameCount').classList.remove('text-danger');
+    }
+}
+
+function generateCampaignName() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day = String(now.getDate()).padStart(2, '0');
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    return 'Campaign - ' + year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+}
 
 function selectChannel(channel) {
     campaignState.channel = channel;
@@ -667,14 +693,15 @@ function continueToConfirmation() {
     // TODO: Validate all fields and navigate to confirmation screen
     var valid = true;
     
-    // Validate campaign name
-    if (!document.getElementById('campaignName').value.trim()) {
-        document.getElementById('campaignName').classList.add('is-invalid');
-        document.getElementById('campaignNameError').textContent = 'Campaign name is required';
-        valid = false;
-    } else {
-        document.getElementById('campaignName').classList.remove('is-invalid');
+    // Handle campaign name - auto-generate if blank
+    var campaignNameInput = document.getElementById('campaignName');
+    var campaignName = campaignNameInput.value.trim();
+    if (!campaignName) {
+        campaignName = generateCampaignName();
+        campaignNameInput.value = campaignName;
+        updateCampaignNameCount();
     }
+    campaignState.name = campaignName;
     
     // Validate sender ID
     if (!document.getElementById('senderId').value) {
@@ -710,7 +737,6 @@ function continueToConfirmation() {
 }
 
 // Clear validation on input
-document.getElementById('campaignName').addEventListener('input', function() { this.classList.remove('is-invalid'); });
 document.getElementById('senderId').addEventListener('change', function() { this.classList.remove('is-invalid'); });
 document.getElementById('smsContent').addEventListener('input', function() { this.classList.remove('is-invalid'); });
 </script>
