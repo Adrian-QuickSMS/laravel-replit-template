@@ -21,7 +21,7 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                         </button>
-                        <button type="button" class="btn btn-primary btn-sm" id="btnAddContact" disabled title="Coming soon">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnAddContact" data-bs-toggle="modal" data-bs-target="#addContactModal">
                             <i class="fas fa-plus me-1"></i> Add Contact
                         </button>
                     </div>
@@ -94,7 +94,7 @@
                         </div>
                     </div>
 
-                    <div id="bulkActionBar" class="alert alert-primary d-none mb-3">
+                    <div id="bulkActionBar" class="alert alert-light border d-none mb-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <span><strong id="selectedCount">0</strong> contact(s) selected</span>
                             <div class="d-flex gap-2 flex-wrap mt-2 mt-md-0">
@@ -157,9 +157,6 @@
                                             </div>
                                             <div>
                                                 <h6 class="mb-0 fs-6">{{ $contact['first_name'] }} {{ $contact['last_name'] }}</h6>
-                                                @if($contact['email'])
-                                                <small class="text-muted">{{ $contact['email'] }}</small>
-                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -340,6 +337,123 @@ function deleteContact(id) {
         console.log('TODO: Show success/error notification');
         alert('Delete Contact\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- Permission check\n- API endpoint: DELETE /api/contacts/{id}\n- Cascade delete or soft delete logic');
     }
+}
+</script>
+
+<div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContactModalLabel">Add New Contact</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addContactForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="contactFirstName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="contactLastName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="contactMobile" placeholder="+44 7700 900000" required>
+                            <small class="text-muted">E.164 format preferred</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="contactEmail">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="contactDOB">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Postcode</label>
+                            <input type="text" class="form-control" id="contactPostcode">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City / Town</label>
+                            <input type="text" class="form-control" id="contactCity">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Country</label>
+                            <select class="form-select" id="contactCountry">
+                                <option value="">Select Country</option>
+                                <option value="UK">United Kingdom</option>
+                                <option value="US">United States</option>
+                                <option value="CA">Canada</option>
+                                <option value="AU">Australia</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tags</label>
+                            <select class="form-select" id="contactTags" multiple>
+                                @foreach($available_tags as $tag)
+                                <option value="{{ $tag }}">{{ $tag }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Lists</label>
+                            <select class="form-select" id="contactLists" multiple>
+                                @foreach($available_lists as $list)
+                                <option value="{{ $list }}">{{ $list }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+                    </div>
+                    <div id="formValidationMessage" class="alert alert-danger mt-3 d-none"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveContact()">
+                    <i class="fas fa-save me-1"></i> Save Contact
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveContact() {
+    const form = document.getElementById('addContactForm');
+    const mobile = document.getElementById('contactMobile').value.trim();
+    const firstName = document.getElementById('contactFirstName').value.trim();
+    const lastName = document.getElementById('contactLastName').value.trim();
+    const validationMsg = document.getElementById('formValidationMessage');
+    
+    validationMsg.classList.add('d-none');
+    
+    if (!mobile) {
+        validationMsg.textContent = 'Mobile number is required.';
+        validationMsg.classList.remove('d-none');
+        return;
+    }
+    
+    if (!mobile.match(/^\+?[0-9\s\-]{10,}$/)) {
+        validationMsg.textContent = 'Please enter a valid mobile number (E.164 format preferred, e.g., +44 7700 900000).';
+        validationMsg.classList.remove('d-none');
+        return;
+    }
+    
+    console.log('TODO: saveContact - Submit to API');
+    console.log('TODO: POST /api/contacts with form data');
+    console.log('TODO: Validate mobile number format on server');
+    console.log('TODO: Check for duplicate mobile numbers');
+    console.log('TODO: Persist to database and refresh table');
+    
+    alert('Contact Validated Successfully!\n\nFirst Name: ' + firstName + '\nLast Name: ' + lastName + '\nMobile: ' + mobile + '\n\nThis feature requires backend implementation:\n- API endpoint: POST /api/contacts\n- Database persistence\n- Duplicate check');
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
+    modal.hide();
+    form.reset();
 }
 </script>
 @endsection
