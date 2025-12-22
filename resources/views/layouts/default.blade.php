@@ -42,20 +42,12 @@
     <!--*******************
         Preloader start
     ********************-->
-    <div id="preloader">
+    <div id="preloader" style="display: none;">
                 <div class="lds-ripple">
                         <div></div>
                         <div></div>
                 </div>
     </div>
-    <script>
-        setTimeout(function() {
-            var preloader = document.getElementById('preloader');
-            if (preloader) preloader.style.display = 'none';
-            var mainWrapper = document.getElementById('main-wrapper');
-            if (mainWrapper) mainWrapper.classList.add('show');
-        }, 1500);
-    </script>
     <!--*******************
         Preloader end
     ********************-->
@@ -63,7 +55,7 @@
     <!--**********************************
         Main wrapper start
     ***********************************-->
-    <div id="main-wrapper">
+    <div id="main-wrapper" class="show">
         <!--**********************************
             Nav header start
         ***********************************-->
@@ -107,7 +99,7 @@
         <!--**********************************
             Sidebar start
         ***********************************-->
-        @include('elements.sidebar')
+        @yield('sidebar', View::make('elements.sidebar'))
         <!--**********************************
             Sidebar end
         ***********************************-->
