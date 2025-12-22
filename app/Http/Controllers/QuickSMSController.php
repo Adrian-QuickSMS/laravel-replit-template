@@ -401,10 +401,127 @@ class QuickSMSController extends Controller
 
     public function optOutLists()
     {
-        return view('quicksms.placeholder', [
+        // TODO: Replace with database query - GET /api/opt-out-lists
+        $opt_out_lists = [
+            [
+                'id' => 1,
+                'name' => 'Master Opt-Out List',
+                'description' => 'Global suppression list for all campaigns',
+                'is_master' => true,
+                'count' => 2847,
+                'created_at' => '2024-01-15',
+                'updated_at' => '2024-12-21',
+            ],
+            [
+                'id' => 2,
+                'name' => 'Marketing Opt-Outs',
+                'description' => 'Contacts who opted out of marketing messages',
+                'is_master' => false,
+                'count' => 1245,
+                'created_at' => '2024-03-10',
+                'updated_at' => '2024-12-20',
+            ],
+            [
+                'id' => 3,
+                'name' => 'Promotions Opt-Outs',
+                'description' => 'Contacts who opted out of promotional offers',
+                'is_master' => false,
+                'count' => 892,
+                'created_at' => '2024-05-22',
+                'updated_at' => '2024-12-18',
+            ],
+            [
+                'id' => 4,
+                'name' => 'Newsletter Opt-Outs',
+                'description' => 'Unsubscribed from newsletter communications',
+                'is_master' => false,
+                'count' => 456,
+                'created_at' => '2024-07-08',
+                'updated_at' => '2024-12-15',
+            ],
+        ];
+
+        // TODO: Replace with database query - GET /api/opt-outs
+        $opt_outs = [
+            [
+                'id' => 1,
+                'mobile' => '+447700900123',
+                'source' => 'sms_reply',
+                'timestamp' => '2024-12-21 14:32:15',
+                'campaign_ref' => 'XMAS2024',
+                'list_id' => 1,
+                'list_name' => 'Master Opt-Out List',
+            ],
+            [
+                'id' => 2,
+                'mobile' => '+447700900456',
+                'source' => 'url_click',
+                'timestamp' => '2024-12-20 09:15:42',
+                'campaign_ref' => 'WINTER_SALE',
+                'list_id' => 2,
+                'list_name' => 'Marketing Opt-Outs',
+            ],
+            [
+                'id' => 3,
+                'mobile' => '+447700900789',
+                'source' => 'api',
+                'timestamp' => '2024-12-19 16:45:00',
+                'campaign_ref' => null,
+                'list_id' => 1,
+                'list_name' => 'Master Opt-Out List',
+            ],
+            [
+                'id' => 4,
+                'mobile' => '+447700900321',
+                'source' => 'manual',
+                'timestamp' => '2024-12-18 11:20:33',
+                'campaign_ref' => 'BLACK_FRIDAY',
+                'list_id' => 3,
+                'list_name' => 'Promotions Opt-Outs',
+            ],
+            [
+                'id' => 5,
+                'mobile' => '+447700900654',
+                'source' => 'sms_reply',
+                'timestamp' => '2024-12-17 08:55:12',
+                'campaign_ref' => 'WEEKLY_UPDATE',
+                'list_id' => 4,
+                'list_name' => 'Newsletter Opt-Outs',
+            ],
+            [
+                'id' => 6,
+                'mobile' => '+447700900987',
+                'source' => 'url_click',
+                'timestamp' => '2024-12-16 13:10:45',
+                'campaign_ref' => 'LOYALTY_PROG',
+                'list_id' => 2,
+                'list_name' => 'Marketing Opt-Outs',
+            ],
+            [
+                'id' => 7,
+                'mobile' => '+447700900111',
+                'source' => 'api',
+                'timestamp' => '2024-12-15 17:30:00',
+                'campaign_ref' => 'CRM_SYNC',
+                'list_id' => 1,
+                'list_name' => 'Master Opt-Out List',
+            ],
+            [
+                'id' => 8,
+                'mobile' => '+447700900222',
+                'source' => 'manual',
+                'timestamp' => '2024-12-14 10:05:22',
+                'campaign_ref' => null,
+                'list_id' => 1,
+                'list_name' => 'Master Opt-Out List',
+            ],
+        ];
+
+        return view('quicksms.contacts.opt-out-lists', [
             'page_title' => 'Opt-Out Lists',
-            'purpose' => 'Manage contacts who have opted out of receiving messages.',
-            'sub_modules' => []
+            'opt_out_lists' => $opt_out_lists,
+            'opt_outs' => $opt_outs,
+            'total_opt_outs' => 2847,
         ]);
     }
 

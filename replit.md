@@ -12,6 +12,7 @@ QuickSMS is a Laravel-based SMS messaging platform with a comprehensive navigati
 - `resources/views/quicksms/contacts/all-contacts.blade.php` - All Contacts page (implemented)
 - `resources/views/quicksms/contacts/lists.blade.php` - Lists page (implemented)
 - `resources/views/quicksms/contacts/tags.blade.php` - Tags page (implemented)
+- `resources/views/quicksms/contacts/opt-out-lists.blade.php` - Opt-Out Lists page (implemented)
 - `routes/web.php` - All route definitions
 - `database/` - Database (uses SQLite)
 - `public/` - Static assets (Fillow template CSS/JS)
@@ -62,6 +63,7 @@ php artisan serve --host=0.0.0.0 --port=5000
 - **All Contacts page: Implemented (UI only, mock data)**
 - **Lists page: Implemented (UI only, mock data)**
 - **Tags page: Implemented (UI only, mock data)**
+- **Opt-Out Lists page: Implemented (UI only, mock data)**
 - Business logic: Not yet implemented
 
 ## All Contacts Page Features (UI Only)
@@ -136,7 +138,65 @@ php artisan serve --host=0.0.0.0 --port=5000
   - API-driven tag management
   - Tag usage analytics
 
+## Opt-Out Lists Page Features (UI Only)
+- Purpose: Centralised suppression management with brand-level flexibility
+- Tabbed interface: Manage Lists, View Opt-Outs, API Integration
+- **Manage Lists Tab:**
+  - Master Opt-Out List (global suppression, cannot be deleted)
+  - Secondary Opt-Out Lists (brand/campaign-specific)
+  - Table with: list name, description, opt-out count, created/updated dates
+  - Actions: View Opt-Outs, Export, Import, Rename (secondary only), Delete (secondary only)
+  - Create Opt-Out List modal with name and description
+  - Rename modal for secondary lists
+- **View Opt-Outs Tab:**
+  - Table with: checkbox, mobile (masked), source, timestamp, campaign ref, list
+  - Mobile number masking toggle (click to reveal/hide)
+  - Search bar with client-side filtering
+  - Filter by source (SMS Reply, URL Click, API, Manual)
+  - Filter by list
+  - Source badges with icons (SMS Reply=info, URL Click=success, API=secondary, Manual=warning)
+  - Bulk action bar (Move to List, Export Selected, Remove Selected)
+  - Row actions: View History, Move to List, Remove
+  - Add Opt-Out modal with mobile, list, source, campaign ref fields
+  - Mobile number validation (international format)
+  - Duplicate detection (in-memory validation)
+- **Import Flow (3-step wizard):**
+  - Step 1: Upload File - select target list, CSV/Excel upload
+  - Excel zero-strip detection with correction option
+  - Step 2: Map Columns - detected column mapping UI
+  - Step 3: Confirm - validation summary (total, valid, duplicates, invalid)
+  - De-duplication and UK format normalization indicators
+- **Export Modal:**
+  - Format selection (CSV/Excel)
+  - Field selection (Mobile, Source, Timestamp, Campaign Reference)
+- **API Integration Tab:**
+  - Opt-Out List Management: POST/PUT/DELETE /api/opt-out-lists
+  - Opt-Out Management: POST/DELETE /api/opt-outs
+  - Check opt-out status: GET /api/opt-outs/check
+  - Bulk import: POST /api/opt-outs/bulk
+- **Captured Metadata (Mandatory):**
+  - Mobile number
+  - Opt-out source (sms_reply, url_click, api, manual)
+  - Timestamp
+  - Campaign reference (optional)
+- **Local in-memory state** for validation demonstrations
+- **TODO markers placed for:**
+  - Backend API integration (CRUD /api/opt-out-lists, /api/opt-outs endpoints)
+  - Database persistence for opt-out lists and opt-out records
+  - Streaming/chunked import for millions of rows
+  - Audit logging for all opt-out changes
+  - Integration with campaign sending (suppression checks)
+
 ## Recent Changes
+- December 22, 2025: Implemented Opt-Out Lists page UI
+  - Created opt-out-lists.blade.php with Master and Secondary lists structure
+  - Added mock opt-out data with all metadata (mobile, source, timestamp, campaign ref)
+  - Implemented three-tab interface: Manage Lists, View Opt-Outs, API Integration
+  - 3-step import wizard with Excel zero-strip detection
+  - Export modal with format and field selection
+  - Search, filter by source and list, bulk actions
+  - Mobile number masking and validation
+  - All actions have TODO markers for future backend integration
 - December 22, 2025: Implemented All Contacts page UI
   - Created all-contacts.blade.php with Fillow table patterns
   - Added mock contact data in controller
