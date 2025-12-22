@@ -67,9 +67,21 @@ class QuickSMSController extends Controller
 
         // TODO: Replace with database query - GET /api/opt-out-lists
         $opt_out_lists = [
-            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847],
-            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245],
-            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892],
+            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
+            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
+            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
+        ];
+
+        // TODO: Replace with database query - GET /api/virtual-numbers
+        $virtual_numbers = [
+            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main'],
+            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
+        ];
+
+        // TODO: Replace with database query - GET /api/optout-domains
+        $optout_domains = [
+            ['id' => 1, 'domain' => 'stop.uk', 'is_default' => true],
+            ['id' => 2, 'domain' => 'unsubscribe.quicksms.uk', 'is_default' => false],
         ];
 
         return view('quicksms.messages.send-message', [
@@ -80,6 +92,8 @@ class QuickSMSController extends Controller
             'lists' => $lists,
             'tags' => $tags,
             'opt_out_lists' => $opt_out_lists,
+            'virtual_numbers' => $virtual_numbers,
+            'optout_domains' => $optout_domains,
         ]);
     }
 

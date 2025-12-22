@@ -1,0 +1,172 @@
+Implement Opt-out Management for the campaign composer using the EXISTING UI template and components only.
+
+This section must be explicit, configurable, auditable, and disabled by default.
+
+────────────────────────────────
+2.8 Opt-out Management – Overview
+
+Purpose:
+- Define how recipients are excluded from campaigns.
+- Allow recipients to opt out of future communications.
+- All opt-out behaviour must be explicitly enabled by the user.
+- No opt-out logic or content applies unless selected.
+- All actions must be auditable.
+
+────────────────────────────────
+2.8.1 Enable Opt-out Management
+
+Control:
+- Type: Toggle
+- Label: Enable opt-out management
+- Default: OFF
+
+Behaviour:
+- When OFF:
+  - No opt-out logic is applied
+  - No opt-out content is appended to messages
+  - Opt-out section remains collapsed
+- When ON:
+  - Open a modal or expandable configuration panel
+  - No opt-out options are applied until explicitly configured
+
+────────────────────────────────
+2.8.2 Opt-out List Selection
+
+Control:
+- Type: Dropdown
+- Label: Opt-out list
+- Source: Contact Book → Opt-out Lists
+
+Behaviour:
+- Optional field
+- If a default opt-out list exists at account level:
+  - Pre-select it
+- At send time:
+  - Any number present in the selected opt-out list is excluded from the campaign
+
+Helper text:
+“Numbers in this list will be excluded from this campaign.”
+
+────────────────────────────────
+2.8.3 Enhanced Opt-out Options
+
+Below the opt-out list selector, allow configuration of one or both opt-out mechanisms.
+Each mechanism is independent and optional.
+
+────────────────────────────────
+A. Reply-based Opt-out (Virtual Number Required)
+
+Availability:
+- Only show this option if the account has one or more virtual mobile numbers assigned
+
+Control:
+- Type: Toggle
+- Label: Enable reply-to-opt-out
+
+Configuration (when enabled):
+- Virtual Number Selector
+  - Dropdown of available virtual numbers
+- Custom Opt-out Text
+  - Text input
+  - Default example:
+    “Opt-out: Reply STOP {{number}}”
+  - Fully customisable
+  - {{number}} token resolves to the selected virtual number
+
+Behaviour:
+- Opt-out text is automatically appended to message content
+- Replies containing recognised opt-out keywords (e.g. STOP) are:
+  - Logged
+  - Added to the selected opt-out list
+- Processing occurs in real time or near-real time
+
+────────────────────────────────
+B. URL-based Opt-out (Click-to-opt-out)
+
+Control:
+- Type: Toggle
+- Label: Enable click-to-opt-out
+
+Configuration (when enabled):
+- URL Domain Selector
+  - Default: QuickSMS-provided domain (e.g. stop.uk)
+  - Customer-registered domains (if available)
+- Unique URL Generation
+  - System generates a unique URL per message
+- Custom Opt-out Text
+  - Text input
+  - Default example:
+    “Opt-out: Click {{unique_url}}”
+  - Fully customisable
+
+Behaviour:
+- Opt-out text is automatically appended to message content
+- When the URL is clicked:
+  - Event is logged
+  - Recipient is added to the selected opt-out list
+- URL-based opt-out must work for both SMS and RCS
+
+────────────────────────────────
+2.8.4 Opt-out List Targeting
+
+For each enabled opt-out mechanism, require the user to choose where opt-outs are stored.
+
+Control:
+- Type: Radio buttons
+- Label: Store opt-outs in
+
+Options:
+1. Existing opt-out list
+   - Select from Contact Book
+2. Create new opt-out list
+   - Inline creation:
+     - List name (required)
+     - Optional description
+   - Newly created list becomes immediately available in Contact Book
+
+────────────────────────────────
+2.8.5 Validation Rules
+
+If Enable opt-out management is ON:
+- At least one opt-out mechanism must be configured
+
+If reply-based opt-out is enabled:
+- A virtual number must be selected
+- Opt-out text must not be empty
+
+If URL-based opt-out is enabled:
+- A domain must be selected
+- Opt-out text must include the {{unique_url}} token
+
+Validation behaviour:
+- Validation errors must block progression to Screen 2
+
+────────────────────────────────
+2.8.6 Persistence & Audit
+
+Persist the following:
+- Whether opt-out management was enabled
+- Selected opt-out list(s)
+- Opt-out mechanism(s) used (reply / URL)
+- Virtual number and/or domain used
+- Custom opt-out text
+- Timestamp and user ID
+
+This data must feed into:
+- Compliance reporting
+- Campaign audit trails
+- Regulatory review (e.g. NHS, ICO)
+- Customer dispute handling
+
+────────────────────────────────
+Constraints:
+- Do NOT redesign the UI.
+- Reuse existing toggle, modal, dropdown, and input components.
+- Do NOT invent backend logic; add TODOs if wiring is missing.
+- Limit changes strictly to opt-out management functionality.
+
+Acceptance criteria:
+- Opt-out logic is disabled by default.
+- All opt-out behaviour is explicit and validated.
+- Opt-out actions are auditable and persisted.
+- No opt-out content appears unless enabled.
