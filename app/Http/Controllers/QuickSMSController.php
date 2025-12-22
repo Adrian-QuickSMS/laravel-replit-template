@@ -30,10 +30,56 @@ class QuickSMSController extends Controller
 
     public function sendMessage()
     {
-        return view('quicksms.placeholder', [
+        // TODO: Replace with database query - GET /api/sender-ids
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        // TODO: Replace with database query - GET /api/rcs-agents
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => 'https://via.placeholder.com/40'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => 'https://via.placeholder.com/40'],
+        ];
+
+        // TODO: Replace with database query - GET /api/templates
+        $templates = [
+            ['id' => 1, 'name' => 'Welcome Message', 'content' => 'Welcome to QuickSMS! Reply STOP to opt out.'],
+            ['id' => 2, 'name' => 'Appointment Reminder', 'content' => 'Reminder: Your appointment is on {date} at {time}.'],
+            ['id' => 3, 'name' => 'Promotional Offer', 'content' => 'Special offer! Get 20% off with code {code}. T&Cs apply.'],
+        ];
+
+        // TODO: Replace with database query - GET /api/lists
+        $lists = [
+            ['id' => 1, 'name' => 'Marketing', 'count' => 1247],
+            ['id' => 2, 'name' => 'Promotions', 'count' => 856],
+            ['id' => 3, 'name' => 'Updates', 'count' => 2103],
+            ['id' => 4, 'name' => 'Newsletter', 'count' => 3421],
+        ];
+
+        // TODO: Replace with database query - GET /api/tags
+        $tags = [
+            ['id' => 1, 'name' => 'VIP', 'color' => '#6f42c1', 'count' => 234],
+            ['id' => 2, 'name' => 'Customer', 'color' => '#198754', 'count' => 1892],
+            ['id' => 3, 'name' => 'Newsletter', 'color' => '#0d6efd', 'count' => 567],
+        ];
+
+        // TODO: Replace with database query - GET /api/opt-out-lists
+        $opt_out_lists = [
+            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847],
+            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245],
+            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892],
+        ];
+
+        return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
-            'purpose' => 'Compose and send SMS or RCS messages to individuals or groups.',
-            'sub_modules' => []
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents,
+            'templates' => $templates,
+            'lists' => $lists,
+            'tags' => $tags,
+            'opt_out_lists' => $opt_out_lists,
         ]);
     }
 

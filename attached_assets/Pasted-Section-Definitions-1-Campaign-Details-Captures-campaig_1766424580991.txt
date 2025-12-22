@@ -1,0 +1,92 @@
+Section Definitions
+1. Campaign Details
+Captures campaign identification metadata.
+Includes:
+•	Campaign Name
+Purpose:
+•	Reporting
+•	Audit
+•	Campaign history
+•	Message exports
+________________________________________
+2. Channel & Sender
+Defines how the message is delivered and who it appears to come from.
+Includes:
+•	Channel selection:
+o	SMS
+o	Basic RCS with SMS fallback
+o	Rich RCS with SMS fallback
+•	SMS SenderID selection
+•	RCS Agent selection (with brand logo)
+Purpose:
+•	Operator compliance
+•	Brand clarity
+•	Correct routing and fallback behaviour
+________________________________________
+3. Recipients
+Defines who will receive the message.
+Includes:
+•	Manual number entry
+•	CSV / Excel upload
+•	Contact Book selector:
+o	Contacts
+o	Lists
+o	Dynamic Lists
+o	Tags
+•	Validation and de-duplication logic
+•	Real-time recipient summary
+Purpose:
+•	Accurate audience definition
+•	Prevention of duplicate or invalid sends
+________________________________________
+4. Content
+Consolidated message configuration area.
+Includes:
+•	Message template selection
+•	SMS content editor (used by all channels)
+•	RCS rich content editor (Rich RCS only):
+o	Cards
+o	Images
+o	Buttons
+•	Scheduling options
+•	Sending window / unsociable hours
+•	Tracking URL insertion
+Purpose:
+•	Single cohesive authoring area
+•	Reduced fragmentation
+•	Improved usability and scanability
+________________________________________
+5. Opt-out Management
+Explicit compliance-focused section.
+Includes:
+•	Opt-out list selection
+•	Exclusion rules
+•	Compliance messaging
+Purpose:
+•	Clear regulatory separation
+•	Reduced risk of non-compliance
+•	Explicit, auditable opt-out behaviour
+________________________________________
+6. Message Preview (Persistent)
+A fixed or sticky preview panel that is always visible on screen.
+Includes:
+•	SMS preview
+•	RCS preview (context-aware)
+•	SenderID and RCS agent branding
+•	Button rendering (Rich RCS only)
+Behaviour:
+•	Updates in real time
+•	Cannot be fully collapsed
+•	Reflects actual delivery channel used
+Purpose:
+•	Immediate feedback
+•	Reduced errors
+•	Faster iteration
+•	Higher sender confidence
+________________________________________
+Primary Action
+Continue → Screen 2
+Behaviour:
+•	Validates all required inputs
+•	Persists campaign configuration
+•	Transitions to final confirmation screen
