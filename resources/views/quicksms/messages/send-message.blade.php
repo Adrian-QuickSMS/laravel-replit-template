@@ -16,14 +16,14 @@
         <div class="col-lg-8">
             <div class="card mb-3">
                 <div class="card-body p-4">
-                    <h6 class="mb-3"><i class="fas fa-clipboard-list text-primary me-2"></i>1. Campaign Details</h6>
+                    <h6 class="mb-3">Campaign Details</h6>
                     <input type="text" class="form-control" id="campaignName" placeholder="Campaign name (auto-generated if blank)" maxlength="100">
                 </div>
             </div>
             
             <div class="card mb-3">
                 <div class="card-body p-4">
-                    <h6 class="mb-3"><i class="fas fa-broadcast-tower text-primary me-2"></i>2. Channel & Sender</h6>
+                    <h6 class="mb-3">Channel & Sender</h6>
                     <div class="row mb-3">
                         <div class="col-12">
                             <div class="btn-group w-100" role="group">
@@ -113,7 +113,7 @@
             
             <div class="card mb-3">
                 <div class="card-body p-4">
-                    <h6 class="mb-3"><i class="fas fa-edit text-primary me-2"></i>4. Content</h6>
+                    <h6 class="mb-3">Content</h6>
                     
                     <div class="row align-items-center mb-3">
                         <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
@@ -234,7 +234,7 @@
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0"><i class="fas fa-ban text-primary me-2"></i>5. Opt-outs</h6>
+                        <h6 class="mb-0">Opt-outs</h6>
                         <span class="text-muted"><span id="totalExcluded">2,847</span> excluded</span>
                     </div>
                     <div class="row">
@@ -260,7 +260,7 @@
         <div class="col-lg-4">
             <div class="card sticky-top" style="top: 20px;">
                 <div class="card-header bg-primary text-white py-3">
-                    <h6 class="card-title mb-0"><i class="fas fa-mobile-alt me-2"></i>6. Preview</h6>
+                    <h6 class="card-title mb-0">Preview</h6>
                 </div>
                 <div class="card-body p-4">
                     <div class="text-center mb-3">
