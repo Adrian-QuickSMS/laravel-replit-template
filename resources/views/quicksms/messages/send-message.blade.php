@@ -1158,15 +1158,55 @@
                                     </div>
                                 </div>
                                 <div class="mb-4">
-                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Title & Description</h6>
-                                    <div class="border rounded p-3 bg-light">
-                                        <p class="text-muted mb-0 small">Title and description inputs will appear here.</p>
+                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Description</h6>
+                                    <div class="border rounded p-3">
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm fw-bold" id="rcsDescription" 
+                                                placeholder="Enter card description (bold text)" maxlength="150"
+                                                oninput="updateRcsDescriptionCount()">
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsPlaceholderPicker('description')" title="Add placeholder">
+                                                    <i class="fas fa-user-tag"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsEmojiPicker('description')" title="Add emoji">
+                                                    <i class="far fa-smile"></i>
+                                                </button>
+                                            </div>
+                                            <small class="text-muted">
+                                                <span id="rcsDescriptionCount">0</span> / <span class="text-warning">120</span> chars
+                                            </small>
+                                        </div>
+                                        <div id="rcsDescriptionWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Description exceeds recommended 120 characters.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mb-4">
                                     <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-align-left me-2"></i>Text Body</h6>
-                                    <div class="border rounded p-3 bg-light">
-                                        <p class="text-muted mb-0 small">Message body content will appear here.</p>
+                                    <div class="border rounded p-3">
+                                        <div class="mb-2">
+                                            <textarea class="form-control form-control-sm" id="rcsTextBody" rows="4" 
+                                                placeholder="Enter message body content..." maxlength="2100"
+                                                oninput="updateRcsTextBodyCount()"></textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsPlaceholderPicker('textBody')" title="Add placeholder">
+                                                    <i class="fas fa-user-tag"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsEmojiPicker('textBody')" title="Add emoji">
+                                                    <i class="far fa-smile"></i>
+                                                </button>
+                                            </div>
+                                            <small class="text-muted">
+                                                <span id="rcsTextBodyCount">0</span> / <span class="text-warning">2000</span> chars
+                                            </small>
+                                        </div>
+                                        <div id="rcsTextBodyWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Text body exceeds recommended 2000 characters.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mb-4">
@@ -1316,6 +1356,10 @@ function openPersonalisationModal() {
 }
 
 function insertPlaceholder(field) {
+    if (rcsActiveTextField) {
+        insertRcsPlaceholder(field);
+        return;
+    }
     var textarea = document.getElementById('smsContent');
     var start = textarea.selectionStart;
     var end = textarea.selectionEnd;
@@ -1334,6 +1378,10 @@ function openEmojiPicker() {
 }
 
 function insertEmoji(emoji) {
+    if (rcsActiveTextField) {
+        insertRcsEmoji(emoji);
+        return;
+    }
     var textarea = document.getElementById('smsContent');
     var start = textarea.selectionStart;
     var end = textarea.selectionEnd;
@@ -1892,6 +1940,79 @@ function updateCarouselOrientationWarning() {
     }
 }
 
+var rcsActiveTextField = null;
+
+function updateRcsDescriptionCount() {
+    var input = document.getElementById('rcsDescription');
+    var count = input.value.length;
+    document.getElementById('rcsDescriptionCount').textContent = count;
+    var warning = document.getElementById('rcsDescriptionWarning');
+    warning.classList.toggle('d-none', count <= 120);
+}
+
+function updateRcsTextBodyCount() {
+    var textarea = document.getElementById('rcsTextBody');
+    var count = textarea.value.length;
+    document.getElementById('rcsTextBodyCount').textContent = count;
+    var warning = document.getElementById('rcsTextBodyWarning');
+    warning.classList.toggle('d-none', count <= 2000);
+}
+
+function openRcsPlaceholderPicker(field) {
+    rcsActiveTextField = field;
+    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    modal.show();
+}
+
+function openRcsEmojiPicker(field) {
+    rcsActiveTextField = field;
+    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
+    modal.show();
+}
+
+function getRcsTextElement(field) {
+    if (field === 'description') return document.getElementById('rcsDescription');
+    if (field === 'textBody') return document.getElementById('rcsTextBody');
+    return null;
+}
+
+function insertRcsPlaceholder(field) {
+    var el = getRcsTextElement(rcsActiveTextField);
+    if (!el) return;
+    
+    var start = el.selectionStart;
+    var end = el.selectionEnd;
+    var text = el.value;
+    var placeholder = '{{' + field + '}}';
+    el.value = text.substring(0, start) + placeholder + text.substring(end);
+    el.selectionStart = el.selectionEnd = start + placeholder.length;
+    el.focus();
+    
+    if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
+    if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
+    
+    bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
+    rcsActiveTextField = null;
+}
+
+function insertRcsEmoji(emoji) {
+    var el = getRcsTextElement(rcsActiveTextField);
+    if (!el) return;
+    
+    var start = el.selectionStart;
+    var end = el.selectionEnd;
+    var text = el.value;
+    el.value = text.substring(0, start) + emoji + text.substring(end);
+    el.selectionStart = el.selectionEnd = start + emoji.length;
+    el.focus();
+    
+    if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
+    if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
+    
+    bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
+    rcsActiveTextField = null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -1926,6 +2047,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.dataTransfer.files.length > 0) {
             handleRcsFileUpload(e.dataTransfer.files[0]);
         }
+    });
+    
+    document.getElementById('personalisationModal').addEventListener('hidden.bs.modal', function() {
+        rcsActiveTextField = null;
+    });
+    document.getElementById('emojiPickerModal').addEventListener('hidden.bs.modal', function() {
+        rcsActiveTextField = null;
     });
 });
 
