@@ -249,6 +249,8 @@
 </div>
 
 <script>
+var contactsData = @json($contacts);
+
 document.addEventListener('DOMContentLoaded', function() {
     const checkAll = document.getElementById('checkAll');
     const contactCheckboxes = document.querySelectorAll('.contact-checkbox');
@@ -302,17 +304,48 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function viewContact(id) {
-    console.log('TODO: viewContact - Navigate to contact detail view');
-    console.log('TODO: Fetch contact data from API: GET /api/contacts/' + id);
-    console.log('TODO: Display contact fields, tags, lists, opt-out status, activity timeline');
-    alert('View Contact Details\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- API endpoint: GET /api/contacts/{id}\n- Contact detail view component');
+    console.log('TODO: viewContact - Fetch from API: GET /api/contacts/' + id);
+    var contact = contactsData.find(c => c.id === id);
+    if (!contact) return;
+    
+    document.getElementById('viewContactName').textContent = contact.first_name + ' ' + contact.last_name;
+    document.getElementById('viewContactInitials').textContent = contact.initials;
+    document.getElementById('viewContactMobile').textContent = contact.mobile;
+    document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
+    document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
+        ? '<span class="badge bg-success">Active</span>' 
+        : '<span class="badge bg-danger">Opted Out</span>';
+    document.getElementById('viewContactSource').textContent = contact.source;
+    document.getElementById('viewContactCreated').textContent = contact.created_at;
+    
+    var tagsHtml = contact.tags.length > 0 
+        ? contact.tags.map(t => '<span class="badge bg-light text-dark border me-1">' + t + '</span>').join('') 
+        : '<span class="text-muted">No tags</span>';
+    document.getElementById('viewContactTags').innerHTML = tagsHtml;
+    
+    var listsHtml = contact.lists.length > 0 
+        ? contact.lists.map(l => '<span class="badge bg-info text-white me-1">' + l + '</span>').join('') 
+        : '<span class="text-muted">No lists</span>';
+    document.getElementById('viewContactLists').innerHTML = listsHtml;
+    
+    var modal = new bootstrap.Modal(document.getElementById('viewContactModal'));
+    modal.show();
 }
 
 function editContact(id) {
-    console.log('TODO: editContact - Open edit form/modal');
-    console.log('TODO: Fetch contact data from API: GET /api/contacts/' + id);
-    console.log('TODO: Submit updates via API: PUT /api/contacts/' + id);
-    alert('Edit Contact\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- API endpoint: PUT /api/contacts/{id}\n- Form validation\n- Database persistence');
+    console.log('TODO: editContact - Submit updates via API: PUT /api/contacts/' + id);
+    var contact = contactsData.find(c => c.id === id);
+    if (!contact) return;
+    
+    document.getElementById('editContactId').value = contact.id;
+    document.getElementById('editContactFirstName').value = contact.first_name;
+    document.getElementById('editContactLastName').value = contact.last_name;
+    document.getElementById('editContactMobile').value = contact.mobile;
+    document.getElementById('editContactEmail').value = contact.email || '';
+    document.getElementById('editContactStatus').value = contact.status;
+    
+    var modal = new bootstrap.Modal(document.getElementById('editContactModal'));
+    modal.show();
 }
 
 function sendMessage(id) {
@@ -420,6 +453,186 @@ function deleteContact(id) {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="viewContactModal" tabindex="-1" aria-labelledby="viewContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewContactModalLabel">Contact Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;">
+                        <span id="viewContactInitials"></span>
+                    </div>
+                    <h4 class="mt-3 mb-1" id="viewContactName"></h4>
+                    <div id="viewContactStatus"></div>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <small class="text-muted d-block">Mobile Number</small>
+                                <strong id="viewContactMobile"></strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <small class="text-muted d-block">Email</small>
+                                <strong id="viewContactEmail"></strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <small class="text-muted d-block">Source</small>
+                                <strong id="viewContactSource"></strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <small class="text-muted d-block">Created Date</small>
+                                <strong id="viewContactCreated"></strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <small class="text-muted d-block mb-2">Tags</small>
+                                <div id="viewContactTags"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card bg-light border-0">
+                            <div class="card-body">
+                                <small class="text-muted d-block mb-2">Lists</small>
+                                <div id="viewContactLists"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Activity Timeline:</strong> Campaign history, replies, and opt-out events will appear here when backend is implemented.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editContactModal" tabindex="-1" aria-labelledby="editContactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editContactModalLabel">Edit Contact</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editContactForm">
+                    <input type="hidden" id="editContactId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="editContactFirstName">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="editContactLastName">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="editContactMobile" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editContactEmail">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editContactStatus">
+                                <option value="active">Active</option>
+                                <option value="opted-out">Opted Out</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="editContactDOB">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Postcode</label>
+                            <input type="text" class="form-control" id="editContactPostcode">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City / Town</label>
+                            <input type="text" class="form-control" id="editContactCity">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tags</label>
+                            <select class="form-select" id="editContactTags" multiple>
+                                @foreach($available_tags as $tag)
+                                <option value="{{ $tag }}">{{ $tag }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Lists</label>
+                            <select class="form-select" id="editContactLists" multiple>
+                                @foreach($available_lists as $list)
+                                <option value="{{ $list }}">{{ $list }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+                    </div>
+                    <div id="editFormValidationMessage" class="alert alert-danger mt-3 d-none"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateContact()">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateContact() {
+    var id = document.getElementById('editContactId').value;
+    var mobile = document.getElementById('editContactMobile').value.trim();
+    var validationMsg = document.getElementById('editFormValidationMessage');
+    
+    validationMsg.classList.add('d-none');
+    
+    if (!mobile) {
+        validationMsg.textContent = 'Mobile number is required.';
+        validationMsg.classList.remove('d-none');
+        return;
+    }
+    
+    console.log('TODO: updateContact - Submit to API: PUT /api/contacts/' + id);
+    
+    alert('Contact Updated!\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- API endpoint: PUT /api/contacts/{id}\n- Database persistence');
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
+    modal.hide();
+}
+</script>
 
 <script>
 function saveContact() {
