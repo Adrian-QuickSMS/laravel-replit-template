@@ -110,10 +110,10 @@
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkRemoveTags()">
                                     <i class="fas fa-times me-1"></i> Remove Tags
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-success" onclick="bulkSendMessage()">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkSendMessage()">
                                     <i class="fas fa-paper-plane me-1"></i> Send Message
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkExport()">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="openExportModal()">
                                     <i class="fas fa-download me-1"></i> Export
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDelete()">
@@ -735,27 +735,122 @@ function bulkSendMessage() {
     console.log('TODO: Navigate to Send Message with contact IDs: ' + ids.join(', '));
 }
 
-function bulkExport() {
+function openExportModal() {
     var ids = getSelectedContactIds();
-    var names = getSelectedContactNames();
+    document.getElementById('exportContactCount').textContent = ids.length;
+    var modal = new bootstrap.Modal(document.getElementById('bulkExportModal'));
+    modal.show();
+}
+
+function formatMobileInternational(mobile) {
+    var cleaned = mobile.replace(/[^0-9]/g, '');
+    if (cleaned.startsWith('0')) {
+        cleaned = '44' + cleaned.substring(1);
+    }
+    return cleaned;
+}
+
+function performExport() {
+    var ids = getSelectedContactIds();
+    var format = document.querySelector('input[name="exportFormat"]:checked').value;
     
-    var csvContent = 'Name,Mobile,Status\n';
+    var selectedFields = [];
+    document.querySelectorAll('.export-field-checkbox:checked').forEach(cb => {
+        selectedFields.push(cb.value);
+    });
+    
+    if (selectedFields.length === 0) {
+        alert('Please select at least one field to export.');
+        return;
+    }
+    
+    var fieldLabels = {
+        'name': 'Name',
+        'first_name': 'First Name',
+        'last_name': 'Last Name',
+        'email': 'Email',
+        'mobile': 'Mobile Number',
+        'tags': 'Tags',
+        'lists': 'Lists',
+        'status': 'Status',
+        'source': 'Source',
+        'created_date': 'Created Date'
+    };
+    
+    var header = selectedFields.map(f => fieldLabels[f] || f).join(',');
+    var rows = [header];
+    
     ids.forEach(id => {
         var contact = contactsData.find(c => c.id === id);
         if (contact) {
-            csvContent += '"' + contact.first_name + ' ' + contact.last_name + '","' + contact.mobile + '","' + contact.status + '"\n';
+            var row = selectedFields.map(field => {
+                var value = '';
+                switch(field) {
+                    case 'name':
+                        value = contact.first_name + ' ' + contact.last_name;
+                        break;
+                    case 'first_name':
+                        value = contact.first_name;
+                        break;
+                    case 'last_name':
+                        value = contact.last_name;
+                        break;
+                    case 'email':
+                        value = contact.email;
+                        break;
+                    case 'mobile':
+                        value = formatMobileInternational(contact.mobile);
+                        break;
+                    case 'tags':
+                        value = contact.tags.join('; ');
+                        break;
+                    case 'lists':
+                        value = contact.lists.join('; ');
+                        break;
+                    case 'status':
+                        value = contact.status;
+                        break;
+                    case 'source':
+                        value = contact.source || '';
+                        break;
+                    case 'created_date':
+                        value = contact.created_date || '';
+                        break;
+                    default:
+                        value = '';
+                }
+                return '"' + String(value).replace(/"/g, '""') + '"';
+            });
+            rows.push(row.join(','));
         }
     });
     
-    var blob = new Blob([csvContent], { type: 'text/csv' });
-    var url = window.URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'contacts_export_' + new Date().toISOString().slice(0,10) + '.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+    var csvContent = rows.join('\n');
+    var filename = 'contacts_export_' + new Date().toISOString().slice(0,10);
     
-    alert('Exported ' + ids.length + ' contact(s) to CSV!');
+    if (format === 'csv') {
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename + '.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } else {
+        var blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename + '.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        console.log('Note: True XLSX export requires a library like SheetJS. This is a CSV with .xlsx extension.');
+    }
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkExportModal'));
+    modal.hide();
+    
+    alert('Exported ' + ids.length + ' contact(s) to ' + format.toUpperCase() + '!');
 }
 
 function bulkDelete() {
@@ -1284,6 +1379,99 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkRemoveTags()">Remove Tags</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkExportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-download me-2"></i>Export Contacts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Export <strong id="exportContactCount">0</strong> contact(s)</p>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Fields to Export</label>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="name" id="exportName" checked>
+                                <label class="form-check-label" for="exportName">Full Name</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="first_name" id="exportFirstName">
+                                <label class="form-check-label" for="exportFirstName">First Name</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="last_name" id="exportLastName">
+                                <label class="form-check-label" for="exportLastName">Last Name</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="email" id="exportEmail" checked>
+                                <label class="form-check-label" for="exportEmail">Email</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="mobile" id="exportMobile" checked>
+                                <label class="form-check-label" for="exportMobile">Mobile Number</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="tags" id="exportTags">
+                                <label class="form-check-label" for="exportTags">Tags</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="lists" id="exportLists">
+                                <label class="form-check-label" for="exportLists">Lists</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="status" id="exportStatus" checked>
+                                <label class="form-check-label" for="exportStatus">Status</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="source" id="exportSource">
+                                <label class="form-check-label" for="exportSource">Source</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input export-field-checkbox" type="checkbox" value="created_date" id="exportCreatedDate">
+                                <label class="form-check-label" for="exportCreatedDate">Created Date</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Export Format</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="exportFormat" id="formatCSV" value="csv" checked>
+                            <label class="form-check-label" for="formatCSV">
+                                <i class="fas fa-file-csv me-1"></i> CSV
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="exportFormat" id="formatXLSX" value="xlsx">
+                            <label class="form-check-label" for="formatXLSX">
+                                <i class="fas fa-file-excel me-1"></i> XLSX
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Mobile numbers will be exported in international format (e.g., 447712345678)
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="performExport()">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
             </div>
         </div>
     </div>
