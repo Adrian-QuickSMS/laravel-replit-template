@@ -14,46 +14,61 @@
     
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="card-title mb-1">Tags</h4>
-                        <small class="text-muted">Lightweight, flexible classification for contacts</small>
-                    </div>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTagModal">
-                        <i class="fas fa-plus me-1"></i> Create Tag
+            <ul class="nav nav-tabs" id="tagsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button" role="tab">
+                        <i class="fas fa-tags me-2"></i>Manage Tags <span class="badge bg-primary ms-1">{{ count($tags) }}</span>
                     </button>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-light border mb-4">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-info-circle text-info me-3 mt-1"></i>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="api-tab" data-bs-toggle="tab" data-bs-target="#api" type="button" role="tab">
+                        <i class="fas fa-code me-2"></i>API Integration
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="tagsTabContent">
+                <div class="tab-pane fade show active" id="manage" role="tabpanel">
+                    <div class="card border-top-0 rounded-top-0">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>Tags are labels, not audience definitions.</strong>
-                                <p class="mb-0 mt-1 small text-muted">
-                                    Tags provide flexible classification for filtering, campaign targeting, and API-driven state markers. 
-                                    Unlike lists, tags do not store ordering or membership history. Use Lists for managing audiences.
-                                </p>
+                                <h5 class="card-title mb-0">Manage Tags</h5>
+                                <small class="text-muted">Lightweight, flexible classification for contacts</small>
                             </div>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTagModal">
+                                <i class="fas fa-plus me-1"></i> Create Tag
+                            </button>
                         </div>
-                    </div>
+                        <div class="card-body">
+                            <div class="alert alert-light border mb-4">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-info-circle text-info me-3 mt-1"></i>
+                                    <div>
+                                        <strong>Tags are labels, not audience definitions.</strong>
+                                        <p class="mb-0 mt-1 small text-muted">
+                                            Tags provide flexible classification for filtering, campaign targeting, and API-driven state markers. 
+                                            Unlike lists, tags do not store ordering or membership history. Use Lists for managing audiences.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="tagSearch" placeholder="Search tags...">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="tagSearch" placeholder="Search tags...">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="sourceFilter">
+                                        <option value="">All Sources</option>
+                                        <option value="manual">Manual</option>
+                                        <option value="campaign">Campaign Auto-tag</option>
+                                        <option value="api">API</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="sourceFilter">
-                                <option value="">All Sources</option>
-                                <option value="manual">Manual</option>
-                                <option value="campaign">Campaign Auto-tag</option>
-                                <option value="api">API</option>
-                            </select>
-                        </div>
-                    </div>
 
                     <div class="table-responsive">
                         <table class="table table-hover mb-0" id="tagsTable">
@@ -125,39 +140,76 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-4">
-                        <div class="text-muted small">
-                            Showing <span id="visibleCount">{{ count($tags) }}</span> of {{ count($tags) }} tags
+                                <div class="text-muted small">
+                                    Showing <span id="visibleCount">{{ count($tags) }}</span> of {{ count($tags) }} tags
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="fas fa-code me-2"></i>API Integration</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3">External systems can manage tags via the API:</p>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="border rounded p-3 h-100">
-                                <h6><i class="fas fa-plus-circle text-success me-2"></i>Apply Tags</h6>
-                                <p class="small text-muted mb-2">Add tags to contacts programmatically</p>
-                                <code class="small">POST /api/contacts/{id}/tags</code>
-                            </div>
+                
+                <div class="tab-pane fade" id="api" role="tabpanel">
+                    <div class="card border-top-0 rounded-top-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">API Integration</h5>
+                            <small class="text-muted">External systems can manage tags via the API</small>
                         </div>
-                        <div class="col-md-4">
-                            <div class="border rounded p-3 h-100">
-                                <h6><i class="fas fa-minus-circle text-danger me-2"></i>Remove Tags</h6>
-                                <p class="small text-muted mb-2">Remove tags from contacts</p>
-                                <code class="small">DELETE /api/contacts/{id}/tags/{tag}</code>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Use these API endpoints to programmatically manage tags from external systems, CRMs, or automation workflows.
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="border rounded p-3 h-100">
-                                <h6><i class="fas fa-rocket text-primary me-2"></i>Trigger Campaigns</h6>
-                                <p class="small text-muted mb-2">Start campaigns based on tags</p>
-                                <code class="small">POST /api/campaigns/trigger?tag={tag}</code>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-plus-circle text-success me-2"></i>Apply Tags</h6>
+                                        <p class="small text-muted mb-2">Add tags to contacts programmatically</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/contacts/{id}/tags</code>
+                                        <p class="small text-muted mt-2 mb-0">Body: <code>{"tags": ["vip", "customer"]}</code></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-minus-circle text-danger me-2"></i>Remove Tags</h6>
+                                        <p class="small text-muted mb-2">Remove tags from contacts</p>
+                                        <code class="small d-block bg-light p-2 rounded">DELETE /api/contacts/{id}/tags/{tag}</code>
+                                        <p class="small text-muted mt-2 mb-0">Returns: <code>204 No Content</code></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-rocket text-primary me-2"></i>Trigger Campaigns</h6>
+                                        <p class="small text-muted mb-2">Start campaigns based on tags</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/campaigns/trigger?tag={tag}</code>
+                                        <p class="small text-muted mt-2 mb-0">Sends to all contacts with tag</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-list text-info me-2"></i>List All Tags</h6>
+                                        <p class="small text-muted mb-2">Get all tags with contact counts</p>
+                                        <code class="small d-block bg-light p-2 rounded">GET /api/tags</code>
+                                        <p class="small text-muted mt-2 mb-0">Returns: Array of tag objects</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-tag text-warning me-2"></i>Create Tag</h6>
+                                        <p class="small text-muted mb-2">Create a new tag via API</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/tags</code>
+                                        <p class="small text-muted mt-2 mb-0">Body: <code>{"name": "new-tag"}</code></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-users text-secondary me-2"></i>Get Tagged Contacts</h6>
+                                        <p class="small text-muted mb-2">List contacts with specific tag</p>
+                                        <code class="small d-block bg-light p-2 rounded">GET /api/tags/{tag}/contacts</code>
+                                        <p class="small text-muted mt-2 mb-0">Supports pagination</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
