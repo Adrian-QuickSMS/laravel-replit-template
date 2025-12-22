@@ -250,7 +250,7 @@
                                 <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Optionally exclude numbers from a list. Opt-out events are still captured even without a list selected.</small>
+                            <small class="text-muted">Select a list to exclude numbers. If no list is selected, you must enable an opt-out method below.</small>
                         </div>
                         
                         <div class="border-top pt-3 mb-3">
@@ -1440,6 +1440,8 @@ function toggleOptoutManagement() {
     document.getElementById('optoutDisabledMessage').classList.toggle('d-none', isEnabled);
     if (!isEnabled) {
         document.getElementById('optoutValidationError').classList.add('d-none');
+    } else {
+        validateOptoutConfig();
     }
 }
 
@@ -1573,6 +1575,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlOptoutText) {
         urlOptoutText.addEventListener('input', validateOptoutConfig);
     }
+    
+    var optoutListSelect = document.getElementById('optoutListSelect');
+    if (optoutListSelect) {
+        optoutListSelect.addEventListener('change', validateOptoutConfig);
+    }
 });
 
 function validateOptoutConfig() {
@@ -1582,13 +1589,15 @@ function validateOptoutConfig() {
         return true;
     }
     
+    var optoutListValue = document.getElementById('optoutListSelect').value;
+    var hasListSelected = optoutListValue !== '';
     var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var errorDiv = document.getElementById('optoutValidationError');
     var errorMsg = document.getElementById('optoutValidationMessage');
     
-    if (!replyEnabled && !urlEnabled) {
-        errorMsg.textContent = 'Please select an opt-out method: Reply-based or Click-to-opt-out.';
+    if (!hasListSelected && !replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'When no opt-out list is selected, you must enable an opt-out method (Reply-based or Click-to-opt-out).';
         errorDiv.classList.remove('d-none');
         return false;
     }
