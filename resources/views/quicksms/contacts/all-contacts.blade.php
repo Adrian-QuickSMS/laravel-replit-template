@@ -270,24 +270,30 @@
 
 <script>
 var contactsData = @json($contacts);
+var customFieldDefinitions = [
+    { id: 1, name: 'Company', slug: 'company', type: 'text', defaultValue: '' },
+    { id: 2, name: 'Job Title', slug: 'job_title', type: 'text', defaultValue: '' }
+];
 
 document.addEventListener('DOMContentLoaded', function() {
     const checkAll = document.getElementById('checkAll');
-    const contactCheckboxes = document.querySelectorAll('.contact-checkbox');
     const bulkActionBar = document.getElementById('bulkActionBar');
     const selectedCount = document.getElementById('selectedCount');
     const searchInput = document.getElementById('contactSearch');
 
     checkAll.addEventListener('change', function() {
-        contactCheckboxes.forEach(cb => cb.checked = this.checked);
+        document.querySelectorAll('.contact-checkbox').forEach(cb => cb.checked = this.checked);
         updateBulkActionBar();
     });
 
-    contactCheckboxes.forEach(cb => {
-        cb.addEventListener('change', updateBulkActionBar);
+    document.getElementById('contactsTableBody').addEventListener('change', function(e) {
+        if (e.target.classList.contains('contact-checkbox')) {
+            updateBulkActionBar();
+        }
     });
 
     function updateBulkActionBar() {
+        const allCheckboxes = document.querySelectorAll('.contact-checkbox');
         const checkedCount = document.querySelectorAll('.contact-checkbox:checked').length;
         selectedCount.textContent = checkedCount;
         
@@ -297,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
             bulkActionBar.classList.add('d-none');
         }
 
-        const allChecked = checkedCount === contactCheckboxes.length;
+        const allChecked = checkedCount === allCheckboxes.length && allCheckboxes.length > 0;
         checkAll.checked = allChecked;
         checkAll.indeterminate = checkedCount > 0 && !allChecked;
     }
@@ -657,6 +663,18 @@ function deleteContact(id) {
                             </select>
                             <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                         </div>
+                        
+                        <div class="col-12">
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Custom Fields</h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="openManageCustomFields()">
+                                    <i class="fas fa-cog me-1"></i> Manage Fields
+                                </button>
+                            </div>
+                            <div id="customFieldsContainer" class="row g-3">
+                            </div>
+                        </div>
                     </div>
                     <div id="formValidationMessage" class="alert alert-danger mt-3 d-none"></div>
                 </form>
@@ -885,5 +903,164 @@ function saveContact() {
     modal.hide();
     form.reset();
 }
+
+function renderCustomFields() {
+    const container = document.getElementById('customFieldsContainer');
+    if (customFieldDefinitions.length === 0) {
+        container.innerHTML = '<div class="col-12"><p class="text-muted small mb-0"><i class="fas fa-info-circle me-1"></i>No custom fields defined. Click "Manage Fields" to create custom fields.</p></div>';
+        return;
+    }
+    
+    container.innerHTML = customFieldDefinitions.map(field => `
+        <div class="col-md-6">
+            <label class="form-label">${field.name}</label>
+            ${field.type === 'text' ? `<input type="text" class="form-control" id="custom_${field.slug}" placeholder="${field.defaultValue || ''}">` : ''}
+            ${field.type === 'number' ? `<input type="number" class="form-control" id="custom_${field.slug}">` : ''}
+            ${field.type === 'date' ? `<input type="date" class="form-control" id="custom_${field.slug}">` : ''}
+            ${field.type === 'dropdown' ? `<select class="form-select" id="custom_${field.slug}"><option value="">Select...</option>${(field.options || []).map(o => `<option value="${o}">${o}</option>`).join('')}</select>` : ''}
+        </div>
+    `).join('');
+}
+
+function openManageCustomFields() {
+    renderCustomFieldsList();
+    var modal = new bootstrap.Modal(document.getElementById('manageCustomFieldsModal'));
+    modal.show();
+}
+
+function renderCustomFieldsList() {
+    const list = document.getElementById('customFieldsList');
+    if (customFieldDefinitions.length === 0) {
+        list.innerHTML = '<p class="text-muted text-center py-3"><i class="fas fa-info-circle me-1"></i>No custom fields defined yet.</p>';
+        return;
+    }
+    
+    list.innerHTML = `
+        <table class="table table-sm table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Type</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${customFieldDefinitions.map(field => `
+                    <tr>
+                        <td>${field.name}</td>
+                        <td><span class="badge bg-light text-dark">${field.type}</span></td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomField(${field.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function addCustomField() {
+    const nameInput = document.getElementById('newFieldName');
+    const typeSelect = document.getElementById('newFieldType');
+    const name = nameInput.value.trim();
+    const type = typeSelect.value;
+    
+    if (!name) {
+        alert('Please enter a field name.');
+        return;
+    }
+    
+    const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    
+    if (customFieldDefinitions.some(f => f.slug === slug)) {
+        alert('A field with this name already exists.');
+        return;
+    }
+    
+    const newField = {
+        id: Date.now(),
+        name: name,
+        slug: slug,
+        type: type,
+        defaultValue: '',
+        options: type === 'dropdown' ? ['Option 1', 'Option 2'] : []
+    };
+    
+    customFieldDefinitions.push(newField);
+    renderCustomFieldsList();
+    renderCustomFields();
+    
+    nameInput.value = '';
+    typeSelect.value = 'text';
+    
+    console.log('TODO: Persist custom field to database');
+}
+
+function deleteCustomField(id) {
+    if (confirm('Are you sure you want to delete this custom field? This will remove it from all contacts.')) {
+        customFieldDefinitions = customFieldDefinitions.filter(f => f.id !== id);
+        renderCustomFieldsList();
+        renderCustomFields();
+        console.log('TODO: Delete custom field from database');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderCustomFields();
+    
+    document.getElementById('addContactModal').addEventListener('show.bs.modal', function() {
+        renderCustomFields();
+    });
+});
 </script>
+
+<div class="modal fade" id="manageCustomFieldsModal" tabindex="-1" aria-labelledby="manageCustomFieldsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageCustomFieldsModalLabel"><i class="fas fa-sliders-h me-2"></i>Manage Custom Fields</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">Add New Field</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="newFieldName" placeholder="Field name">
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select form-select-sm" id="newFieldType">
+                                    <option value="text">Text</option>
+                                    <option value="number">Number</option>
+                                    <option value="date">Date</option>
+                                    <option value="dropdown">Dropdown</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-primary btn-sm w-100" onclick="addCustomField()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6>Existing Fields</h6>
+                <div id="customFieldsList" class="border rounded">
+                </div>
+                
+                <div class="alert alert-info mt-3 mb-0 small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Custom fields will appear in all contact forms and can be used for filtering and searching.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
