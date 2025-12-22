@@ -1019,27 +1019,61 @@
                     <div class="col-lg-7 p-4">
                         <div class="rcs-config-panel">
                             <div class="mb-4">
-                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-image me-2"></i>Media</h6>
-                                <div class="border rounded p-3 bg-light">
-                                    <p class="text-muted mb-0 small">Media upload configuration will appear here.</p>
+                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-layer-group me-2"></i>Message Type</h6>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="rcsMessageType" id="rcsTypeSingle" value="single" checked>
+                                    <label class="btn btn-outline-success" for="rcsTypeSingle">
+                                        <i class="fas fa-square me-1"></i>Single Rich Card
+                                    </label>
+                                    <input type="radio" class="btn-check" name="rcsMessageType" id="rcsTypeCarousel" value="carousel">
+                                    <label class="btn btn-outline-success" for="rcsTypeCarousel">
+                                        <i class="fas fa-images me-1"></i>Carousel
+                                    </label>
                                 </div>
                             </div>
-                            <div class="mb-4">
-                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Title & Description</h6>
-                                <div class="border rounded p-3 bg-light">
-                                    <p class="text-muted mb-0 small">Title and description inputs will appear here.</p>
+                            
+                            <div class="d-none mb-4" id="rcsCarouselNav">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="text-muted text-uppercase small mb-0"><i class="fas fa-th-list me-2"></i>Cards</h6>
+                                    <span class="badge bg-secondary" id="rcsCardCount">1 / 10</span>
                                 </div>
-                            </div>
-                            <div class="mb-4">
-                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-align-left me-2"></i>Text Body</h6>
-                                <div class="border rounded p-3 bg-light">
-                                    <p class="text-muted mb-0 small">Message body content will appear here.</p>
+                                <div class="d-flex flex-wrap gap-2 align-items-center" id="rcsCardTabs">
+                                    <button type="button" class="btn btn-success btn-sm rcs-card-tab active" data-card="1" onclick="selectRcsCard(1)">Card 1</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="rcsAddCardBtn" onclick="addRcsCard()">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
                                 </div>
+                                <small class="text-muted d-block mt-2">Cards display left to right in sent message order.</small>
                             </div>
-                            <div class="mb-4">
-                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-mouse-pointer me-2"></i>Action Buttons</h6>
-                                <div class="border rounded p-3 bg-light">
-                                    <p class="text-muted mb-0 small">Interactive button configuration will appear here.</p>
+                            
+                            <div id="rcsCardConfig">
+                                <div class="d-none mb-2" id="rcsCurrentCardLabel">
+                                    <span class="badge bg-success"><i class="fas fa-square me-1"></i>Editing: <span id="rcsCurrentCardName">Card 1</span></span>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-image me-2"></i>Media</h6>
+                                    <div class="border rounded p-3 bg-light">
+                                        <p class="text-muted mb-0 small">Media upload configuration will appear here.</p>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Title & Description</h6>
+                                    <div class="border rounded p-3 bg-light">
+                                        <p class="text-muted mb-0 small">Title and description inputs will appear here.</p>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-align-left me-2"></i>Text Body</h6>
+                                    <div class="border rounded p-3 bg-light">
+                                        <p class="text-muted mb-0 small">Message body content will appear here.</p>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-mouse-pointer me-2"></i>Action Buttons</h6>
+                                    <div class="border rounded p-3 bg-light">
+                                        <p class="text-muted mb-0 small">Interactive button configuration will appear here.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1522,6 +1556,90 @@ function applyRcsContent() {
     document.getElementById('rcsConfiguredSummary').classList.remove('d-none');
     bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
 }
+
+var rcsCardCount = 1;
+var rcsCurrentCard = 1;
+var rcsMaxCards = 10;
+
+function toggleRcsMessageType() {
+    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
+    document.getElementById('rcsCarouselNav').classList.toggle('d-none', !isCarousel);
+    document.getElementById('rcsCurrentCardLabel').classList.toggle('d-none', !isCarousel);
+    
+    if (!isCarousel) {
+        rcsCardCount = 1;
+        rcsCurrentCard = 1;
+        resetRcsCardTabs();
+    }
+    updateRcsCardCount();
+}
+
+function resetRcsCardTabs() {
+    var tabsContainer = document.getElementById('rcsCardTabs');
+    var addBtn = document.getElementById('rcsAddCardBtn');
+    tabsContainer.querySelectorAll('.rcs-card-tab').forEach(function(tab, index) {
+        if (index > 0) tab.remove();
+    });
+    var firstTab = tabsContainer.querySelector('.rcs-card-tab');
+    if (firstTab) {
+        firstTab.classList.add('active');
+        firstTab.classList.remove('btn-outline-success');
+        firstTab.classList.add('btn-success');
+    }
+    addBtn.disabled = false;
+}
+
+function addRcsCard() {
+    if (rcsCardCount >= rcsMaxCards) return;
+    
+    rcsCardCount++;
+    var tabsContainer = document.getElementById('rcsCardTabs');
+    var addBtn = document.getElementById('rcsAddCardBtn');
+    
+    var newTab = document.createElement('button');
+    newTab.type = 'button';
+    newTab.className = 'btn btn-outline-success btn-sm rcs-card-tab';
+    newTab.setAttribute('data-card', rcsCardCount);
+    newTab.textContent = 'Card ' + rcsCardCount;
+    newTab.onclick = function() { selectRcsCard(rcsCardCount); };
+    
+    tabsContainer.insertBefore(newTab, addBtn);
+    
+    updateRcsCardCount();
+    selectRcsCard(rcsCardCount);
+    
+    if (rcsCardCount >= rcsMaxCards) {
+        addBtn.disabled = true;
+    }
+}
+
+function selectRcsCard(cardNum) {
+    rcsCurrentCard = cardNum;
+    
+    document.querySelectorAll('.rcs-card-tab').forEach(function(tab) {
+        var tabCard = parseInt(tab.getAttribute('data-card'));
+        if (tabCard === cardNum) {
+            tab.classList.remove('btn-outline-success');
+            tab.classList.add('btn-success', 'active');
+        } else {
+            tab.classList.remove('btn-success', 'active');
+            tab.classList.add('btn-outline-success');
+        }
+    });
+    
+    document.getElementById('rcsCurrentCardName').textContent = 'Card ' + cardNum;
+    console.log('TODO: Load card ' + cardNum + ' configuration');
+}
+
+function updateRcsCardCount() {
+    document.getElementById('rcsCardCount').textContent = rcsCardCount + ' / ' + rcsMaxCards;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
+        radio.addEventListener('change', toggleRcsMessageType);
+    });
+});
 
 function showPreview(type) {
     document.getElementById('smsPreview').classList.toggle('d-none', type !== 'sms');
