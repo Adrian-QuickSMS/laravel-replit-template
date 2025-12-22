@@ -36,59 +36,68 @@
                     <h5 class="card-title mb-0"><i class="fas fa-broadcast-tower me-2"></i>2. Channel & Sender</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label fw-bold">Channel <span class="text-danger">*</span></label>
                         <div class="row">
                             <div class="col-md-4 mb-2">
                                 <div class="form-check card p-3 border channel-option" onclick="selectChannel('sms')">
                                     <input class="form-check-input" type="radio" name="channel" id="channelSMS" value="sms" checked>
                                     <label class="form-check-label w-100" for="channelSMS">
-                                        <strong><i class="fas fa-sms text-primary me-2"></i>SMS</strong>
-                                        <small class="d-block text-muted">Standard text message</small>
+                                        <strong><i class="fas fa-sms text-primary me-2"></i>SMS only</strong>
+                                        <small class="d-block text-muted">Standard text messaging</small>
                                     </label>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <div class="form-check card p-3 border channel-option" onclick="selectChannel('rcs_basic')">
+                                <div class="form-check card p-3 border channel-option" onclick="selectChannel('rcs_basic')" data-bs-toggle="tooltip" data-bs-placement="top" title="Text-only messaging. Messages over 160 characters will be automatically delivered as a single RCS message where supported.">
                                     <input class="form-check-input" type="radio" name="channel" id="channelRCSBasic" value="rcs_basic">
                                     <label class="form-check-label w-100" for="channelRCSBasic">
                                         <strong><i class="fas fa-comment-dots text-info me-2"></i>Basic RCS</strong>
-                                        <small class="d-block text-muted">With SMS fallback</small>
+                                        <small class="d-block text-muted">With SMS fallback <i class="fas fa-info-circle text-muted"></i></small>
                                     </label>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <div class="form-check card p-3 border channel-option" onclick="selectChannel('rcs_rich')">
+                                <div class="form-check card p-3 border channel-option" onclick="selectChannel('rcs_rich')" data-bs-toggle="tooltip" data-bs-placement="top" title="Supports rich cards, images, buttons and branded messaging. SMS is used as a fallback where RCS is not supported.">
                                     <input class="form-check-input" type="radio" name="channel" id="channelRCSRich" value="rcs_rich">
                                     <label class="form-check-label w-100" for="channelRCSRich">
                                         <strong><i class="fas fa-image text-success me-2"></i>Rich RCS</strong>
-                                        <small class="d-block text-muted">Cards, images, buttons + SMS fallback</small>
+                                        <small class="d-block text-muted">Cards, images, buttons <i class="fas fa-info-circle text-muted"></i></small>
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3" id="senderIdSection">
-                        <label class="form-label fw-bold">SMS Sender ID <span class="text-danger">*</span></label>
-                        <select class="form-select" id="senderId" onchange="updatePreview()">
-                            <option value="">Select Sender ID</option>
-                            @foreach($sender_ids as $sender)
-                            <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
-                            @endforeach
-                        </select>
-                        <div class="invalid-feedback" id="senderIdError"></div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3" id="senderIdSection">
+                            <label class="form-label fw-bold">SMS Sender ID <span class="text-danger">*</span></label>
+                            <select class="form-select" id="senderId" onchange="updatePreview()">
+                                <option value="">Select Sender ID</option>
+                                @foreach($sender_ids as $sender)
+                                <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback" id="senderIdError"></div>
+                            <small class="text-muted">Used for SMS delivery and fallback</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3 d-none" id="rcsAgentSection">
+                            <label class="form-label fw-bold">RCS Agent <span class="text-danger">*</span></label>
+                            <select class="form-select" id="rcsAgent" onchange="updatePreview()">
+                                <option value="">Select RCS Agent</option>
+                                @foreach($rcs_agents as $agent)
+                                <option value="{{ $agent['id'] }}" data-logo="{{ $agent['logo'] }}">{{ $agent['name'] }}</option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback" id="rcsAgentError"></div>
+                            <small class="text-muted">Branded agent for RCS delivery</small>
+                        </div>
                     </div>
                     
-                    <div class="mb-3 d-none" id="rcsAgentSection">
-                        <label class="form-label fw-bold">RCS Agent <span class="text-danger">*</span></label>
-                        <select class="form-select" id="rcsAgent" onchange="updatePreview()">
-                            <option value="">Select RCS Agent</option>
-                            @foreach($rcs_agents as $agent)
-                            <option value="{{ $agent['id'] }}" data-logo="{{ $agent['logo'] }}">{{ $agent['name'] }}</option>
-                            @endforeach
-                        </select>
-                        <div class="invalid-feedback" id="rcsAgentError"></div>
+                    <div class="alert alert-light border d-none" id="channelBehaviourInfo">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        <span id="channelBehaviourText"></span>
                     </div>
                 </div>
             </div>
@@ -433,6 +442,12 @@ document.addEventListener('DOMContentLoaded', function() {
     updatePreview();
     updateCharCount();
     updateCampaignNameCount();
+    
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 
 function updateCampaignNameCount() {
@@ -461,17 +476,30 @@ function selectChannel(channel) {
     campaignState.channel = channel;
     document.getElementById('channel' + (channel === 'sms' ? 'SMS' : channel === 'rcs_basic' ? 'RCSBasic' : 'RCSRich')).checked = true;
     
-    // Show/hide RCS sections
-    if (channel === 'rcs_basic' || channel === 'rcs_rich') {
-        document.getElementById('rcsAgentSection').classList.remove('d-none');
-    } else {
-        document.getElementById('rcsAgentSection').classList.add('d-none');
-    }
+    var rcsAgentSection = document.getElementById('rcsAgentSection');
+    var rcsContentSection = document.getElementById('rcsContentSection');
+    var channelBehaviourInfo = document.getElementById('channelBehaviourInfo');
+    var channelBehaviourText = document.getElementById('channelBehaviourText');
     
-    if (channel === 'rcs_rich') {
-        document.getElementById('rcsContentSection').classList.remove('d-none');
-    } else {
-        document.getElementById('rcsContentSection').classList.add('d-none');
+    // SMS only: Show SMS SenderID, hide RCS Agent and RCS content
+    if (channel === 'sms') {
+        rcsAgentSection.classList.add('d-none');
+        rcsContentSection.classList.add('d-none');
+        channelBehaviourInfo.classList.add('d-none');
+    }
+    // Basic RCS: Show SMS SenderID + RCS Agent, hide RCS rich content
+    else if (channel === 'rcs_basic') {
+        rcsAgentSection.classList.remove('d-none');
+        rcsContentSection.classList.add('d-none');
+        channelBehaviourInfo.classList.remove('d-none');
+        channelBehaviourText.innerHTML = '<strong>Basic RCS Delivery:</strong> Messages ≤160 characters may be sent as SMS. Messages >160 characters are automatically sent as a single RCS text message where supported. SMS is used as fallback if RCS is not supported.';
+    }
+    // Rich RCS: Show SMS SenderID + RCS Agent + RCS rich content
+    else if (channel === 'rcs_rich') {
+        rcsAgentSection.classList.remove('d-none');
+        rcsContentSection.classList.remove('d-none');
+        channelBehaviourInfo.classList.remove('d-none');
+        channelBehaviourText.innerHTML = '<strong>Rich RCS Delivery:</strong> Rich cards, images, and buttons are delivered via RCS where supported. SMS content is used as fallback where RCS is not supported.';
     }
     
     updatePreview();
