@@ -521,6 +521,11 @@
     </div>
 </div>
 
+{{-- TODO: Backend Integration Required
+    - Contact Book Fields: Fetch available fields from GET /api/contacts/fields
+    - Custom Fields: Fetch user-defined custom fields from GET /api/custom-fields
+    - CSV Columns: Populated dynamically from file upload column mapping (already implemented client-side)
+--}}
 <div class="modal fade" id="personalisationModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -937,7 +942,7 @@ function insertPlaceholder(field) {
     var start = textarea.selectionStart;
     var end = textarea.selectionEnd;
     var text = textarea.value;
-    var placeholder = '{{' + field + '}}';
+    var placeholder = '{' + '{' + field + '}' + '}';
     textarea.value = text.substring(0, start) + placeholder + text.substring(end);
     textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
     textarea.focus();
@@ -1027,7 +1032,7 @@ function insertPlaceholderDirect(field) {
     var textarea = document.getElementById('smsContent');
     var start = textarea.selectionStart;
     var text = textarea.value;
-    var placeholder = '{{' + field + '}}';
+    var placeholder = '{' + '{' + field + '}' + '}';
     textarea.value = text.substring(0, start) + placeholder + text.substring(start);
     handleContentChange();
 }
