@@ -1624,20 +1624,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         </table>
                     </div>
                     
+                    <input type="hidden" id="excelCorrectionApplied" value="">
                     <div id="excelZeroWarning" class="alert alert-warning d-none">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Excel Number Detection</strong>
-                        <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-                        <p class="mb-2">Should these be treated as UK numbers and converted to international format (+447...)?</p>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-primary" onclick="setExcelCorrection(true)">
-                                <i class="fas fa-check me-1"></i> Yes, convert to UK format
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
-                                <i class="fas fa-times me-1"></i> No, leave as-is
-                            </button>
+                        <div id="excelZeroWarningContent">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Excel Number Detection</strong>
+                            <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
+                            <p class="mb-2">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="setExcelCorrection(true)">
+                                    <i class="fas fa-check me-1"></i> Yes, convert to UK format
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
+                                    <i class="fas fa-times me-1"></i> No, leave as-is
+                                </button>
+                            </div>
                         </div>
-                        <input type="hidden" id="excelCorrectionApplied" value="">
                     </div>
                 </div>
 
@@ -1894,9 +1896,12 @@ function simulateColumnDetection() {
             <td><strong>${col}</strong></td>
             <td class="text-muted small">${mockSamples[idx] || ''}</td>
             <td>
-                <select class="form-select form-select-sm column-mapping" data-column="${idx}">
-                    ${mappingOptions}
-                </select>
+                <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select form-select-sm column-mapping" data-column="${idx}" onchange="handleMappingChange(this)">
+                        ${mappingOptions}
+                    </select>
+                    <input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="${idx}" placeholder="Field name" style="width: 120px;">
+                </div>
             </td>
         `;
         tbody.appendChild(row);
@@ -1913,10 +1918,23 @@ function simulateColumnDetection() {
     }
 }
 
+function handleMappingChange(select) {
+    var colIdx = select.dataset.column;
+    var customInput = document.querySelector('.custom-field-name[data-column="' + colIdx + '"]');
+    
+    if (select.value === 'custom') {
+        customInput.classList.remove('d-none');
+        customInput.focus();
+    } else {
+        customInput.classList.add('d-none');
+        customInput.value = '';
+    }
+}
+
 function setExcelCorrection(apply) {
     document.getElementById('excelCorrectionApplied').value = apply ? 'yes' : 'no';
-    var warning = document.getElementById('excelZeroWarning');
-    warning.innerHTML = `
+    var content = document.getElementById('excelZeroWarningContent');
+    content.innerHTML = `
         <i class="fas fa-check-circle text-success me-2"></i>
         <strong>${apply ? 'UK number conversion will be applied' : 'Numbers will be left as-is'}</strong>
         <button type="button" class="btn btn-sm btn-link" onclick="resetExcelCorrection()">Change</button>
@@ -1925,7 +1943,7 @@ function setExcelCorrection(apply) {
 
 function resetExcelCorrection() {
     document.getElementById('excelCorrectionApplied').value = '';
-    document.getElementById('excelZeroWarning').innerHTML = `
+    document.getElementById('excelZeroWarningContent').innerHTML = `
         <i class="fas fa-exclamation-triangle me-2"></i>
         <strong>Excel Number Detection</strong>
         <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
@@ -1943,12 +1961,30 @@ function resetExcelCorrection() {
 
 function validateMappings() {
     var hasMobile = false;
+    var customFieldsValid = true;
+    
     document.querySelectorAll('.column-mapping').forEach(function(select) {
         if (select.value === 'mobile') hasMobile = true;
+        
+        if (select.value === 'custom') {
+            var colIdx = select.dataset.column;
+            var customInput = document.querySelector('.custom-field-name[data-column="' + colIdx + '"]');
+            if (!customInput.value.trim()) {
+                customFieldsValid = false;
+                customInput.classList.add('is-invalid');
+            } else {
+                customInput.classList.remove('is-invalid');
+            }
+        }
     });
     
     if (!hasMobile) {
         alert('Please map at least one column to Mobile Number.');
+        return false;
+    }
+    
+    if (!customFieldsValid) {
+        alert('Please provide a name for all custom fields.');
         return false;
     }
     
