@@ -115,13 +115,27 @@
                 <div class="card-body p-4">
                     <h6 class="mb-3"><i class="fas fa-edit text-primary me-2"></i>4. Content</h6>
                     
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="form-label mb-0 text-nowrap">Template</label>
+                                <select class="form-select form-select-sm" id="templateSelector" onchange="applySelectedTemplate()">
+                                    <option value="">-- None --</option>
+                                    @foreach($templates as $template)
+                                    <option value="{{ $template['id'] }}" data-content="{{ addslashes($template['content']) }}">{{ $template['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-7 text-md-end">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
+                                <i class="fas fa-magic me-1"></i>Improve with AI
+                            </button>
+                        </div>
+                    </div>
+                    
                     <label class="form-label mb-2" id="contentLabel">SMS Content</label>
                     
-                    <div class="d-flex justify-content-end mb-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
-                            <i class="fas fa-magic me-1"></i>Improve with AI
-                        </button>
-                    </div>
                     <div class="position-relative border rounded mb-2">
                         <textarea class="form-control border-0" id="smsContent" rows="5" placeholder="Type your message here..." oninput="handleContentChange()" style="padding-bottom: 40px;"></textarea>
                         <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
@@ -134,7 +148,7 @@
                         </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
                             <span class="text-muted me-3">Characters: <strong id="charCount">0</strong></span>
                             <span class="text-muted me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
@@ -145,7 +159,7 @@
                         </span>
                     </div>
                     
-                    <div class="d-none mb-3" id="rcsTextHelper">
+                    <div class="d-none mb-2" id="rcsTextHelper">
                         <div class="alert alert-info py-2 mb-0">
                             <i class="fas fa-info-circle me-1"></i>
                             <span id="rcsHelperText">Messages over 160 characters will be automatically sent as a single RCS message where supported.</span>
@@ -156,14 +170,14 @@
                         <div class="row">
                             <div class="col-md-4 mb-2">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="useTemplate" onchange="toggleTemplateSelection()">
-                                    <label class="form-check-label" for="useTemplate">Use template</label>
+                                    <input class="form-check-input" type="checkbox" id="includeTrackableLink" onchange="toggleTrackableLinkModal()">
+                                    <label class="form-check-label" for="includeTrackableLink">Include trackable link</label>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-2">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="includeTrackableLink" onchange="toggleTrackableLinkModal()">
-                                    <label class="form-check-label" for="includeTrackableLink">Include trackable link</label>
+                                    <input class="form-check-input" type="checkbox" id="messageExpiry" onchange="toggleMessageExpiryModal()">
+                                    <label class="form-check-label" for="messageExpiry">Message expiry</label>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-2">
@@ -175,17 +189,24 @@
                         </div>
                     </div>
                     
-                    <div class="d-none mb-3" id="scheduleSummary">
+                    <div class="d-none mb-2" id="trackableLinkSummary">
                         <div class="alert alert-secondary py-2 mb-0">
-                            <i class="fas fa-clock me-2"></i><span id="scheduleSummaryText">Scheduled for: --</span>
-                            <a href="#" class="ms-2" onclick="openScheduleRulesModal()">Edit</a>
+                            <i class="fas fa-link me-2"></i>Trackable link: <strong id="trackableLinkDomain">qsms.uk</strong>
+                            <a href="#" class="ms-2" onclick="openTrackableLinkModal(); return false;">Edit</a>
                         </div>
                     </div>
                     
-                    <div class="d-none mb-3" id="trackableLinkSummary">
+                    <div class="d-none mb-2" id="messageExpirySummary">
                         <div class="alert alert-secondary py-2 mb-0">
-                            <i class="fas fa-link me-2"></i>Trackable link: <strong id="trackableLinkDomain">qsms.uk</strong>
-                            <a href="#" class="ms-2" onclick="openTrackableLinkModal()">Edit</a>
+                            <i class="fas fa-hourglass-half me-2"></i>Message expiry: <strong id="messageExpiryValue">24 Hours</strong>
+                            <a href="#" class="ms-2" onclick="openMessageExpiryModal(); return false;">Edit</a>
+                        </div>
+                    </div>
+                    
+                    <div class="d-none mb-2" id="scheduleSummary">
+                        <div class="alert alert-secondary py-2 mb-0">
+                            <i class="fas fa-clock me-2"></i><span id="scheduleSummaryText">Scheduled for: --</span>
+                            <a href="#" class="ms-2" onclick="openScheduleRulesModal(); return false;">Edit</a>
                         </div>
                     </div>
                     
@@ -735,12 +756,30 @@
                     </div>
                 </div>
                 
-                <div class="border-top pt-4">
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmScheduleRules()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="messageExpiryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-hourglass-half me-2"></i>Message Expiry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Define how long the platform should attempt delivery before expiring a message.</p>
+                <div class="mb-3">
                     <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="validityToggle" onchange="toggleValidityFields()">
+                        <input class="form-check-input" type="checkbox" id="validityToggle" onchange="toggleValidityFields()" checked>
                         <label class="form-check-label fw-medium" for="validityToggle">Set message validity period</label>
                     </div>
-                    <div class="d-none ps-4" id="validityFields">
+                    <div class="ps-4" id="validityFields">
                         <p class="text-muted small mb-3">If a message cannot be delivered within this period, it will expire and no further attempts will be made.</p>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -758,10 +797,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="alert alert-info py-2 mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <small>When off, operator/platform defaults apply (typically 24-72 hours for SMS, configurable for RCS).</small>
+                </div>
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="confirmScheduleRules()">Apply</button>
+                <button type="button" class="btn btn-primary" onclick="confirmMessageExpiry()">Apply</button>
             </div>
         </div>
     </div>
@@ -989,13 +1032,30 @@ function filterTemplates() {
     });
 }
 
+var trackableLinkConfirmed = false;
+var messageExpiryConfirmed = false;
+var scheduleRulesConfirmed = false;
+
 function toggleTrackableLinkModal() {
     var isChecked = document.getElementById('includeTrackableLink').checked;
     if (isChecked) {
-        var modal = new bootstrap.Modal(document.getElementById('trackableLinkModal'));
+        trackableLinkConfirmed = false;
+        var modalEl = document.getElementById('trackableLinkModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onTrackableLinkModalHidden, { once: true });
         modal.show();
     } else {
         document.getElementById('trackableLinkSummary').classList.add('d-none');
+    }
+}
+
+function onTrackableLinkModalHidden() {
+    if (!trackableLinkConfirmed) {
+        var hasUrl = document.getElementById('destinationUrl').value.trim() !== '';
+        if (!hasUrl) {
+            document.getElementById('includeTrackableLink').checked = false;
+            document.getElementById('trackableLinkSummary').classList.add('d-none');
+        }
     }
 }
 
@@ -1006,23 +1066,27 @@ function openTrackableLinkModal() {
 
 function confirmTrackableLink() {
     var domain = document.getElementById('shortUrlDomain').value;
-    var url = document.getElementById('destinationUrl').value;
+    var url = document.getElementById('destinationUrl').value.trim();
     var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
     
-    if (url) {
-        document.getElementById('trackableLinkDomain').textContent = domain;
-        document.getElementById('trackableLinkSummary').classList.remove('d-none');
-        
-        if (method === 'cursor') {
-            var textarea = document.getElementById('smsContent');
-            var start = textarea.selectionStart;
-            var text = textarea.value;
-            var shortUrl = 'https://' + domain + '/abc123';
-            textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
-            handleContentChange();
-        } else {
-            insertPlaceholderDirect('trackingUrl');
-        }
+    if (!url) {
+        alert('Please enter a destination URL');
+        return;
+    }
+    
+    trackableLinkConfirmed = true;
+    document.getElementById('trackableLinkDomain').textContent = domain;
+    document.getElementById('trackableLinkSummary').classList.remove('d-none');
+    
+    if (method === 'cursor') {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var text = textarea.value;
+        var shortUrl = 'https://' + domain + '/abc123';
+        textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
+        handleContentChange();
+    } else {
+        insertPlaceholderDirect('trackingUrl');
     }
     
     bootstrap.Modal.getInstance(document.getElementById('trackableLinkModal')).hide();
@@ -1040,15 +1104,86 @@ function insertPlaceholderDirect(field) {
 function toggleScheduleRulesModal() {
     var isChecked = document.getElementById('scheduleRules').checked;
     if (isChecked) {
-        openScheduleRulesModal();
+        scheduleRulesConfirmed = false;
+        var modalEl = document.getElementById('scheduleRulesModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onScheduleRulesModalHidden, { once: true });
+        modal.show();
     } else {
         document.getElementById('scheduleSummary').classList.add('d-none');
+    }
+}
+
+function onScheduleRulesModalHidden() {
+    if (!scheduleRulesConfirmed) {
+        var hasSchedule = document.getElementById('scheduleToggle').checked;
+        var hasUnsociable = document.getElementById('unsociableToggle').checked;
+        if (!hasSchedule && !hasUnsociable) {
+            document.getElementById('scheduleRules').checked = false;
+            document.getElementById('scheduleSummary').classList.add('d-none');
+        }
     }
 }
 
 function openScheduleRulesModal() {
     var modal = new bootstrap.Modal(document.getElementById('scheduleRulesModal'));
     modal.show();
+}
+
+function toggleMessageExpiryModal() {
+    var isChecked = document.getElementById('messageExpiry').checked;
+    if (isChecked) {
+        messageExpiryConfirmed = false;
+        var modalEl = document.getElementById('messageExpiryModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onMessageExpiryModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+    }
+}
+
+function onMessageExpiryModalHidden() {
+    if (!messageExpiryConfirmed) {
+        document.getElementById('messageExpiry').checked = false;
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+    }
+}
+
+function openMessageExpiryModal() {
+    var modal = new bootstrap.Modal(document.getElementById('messageExpiryModal'));
+    modal.show();
+}
+
+function confirmMessageExpiry() {
+    var isEnabled = document.getElementById('validityToggle').checked;
+    if (isEnabled) {
+        var duration = document.getElementById('validityDuration').value;
+        var unit = document.getElementById('validityUnit').value;
+        var unitLabel = unit.charAt(0).toUpperCase() + unit.slice(1);
+        document.getElementById('messageExpiryValue').textContent = duration + ' ' + unitLabel;
+        document.getElementById('messageExpirySummary').classList.remove('d-none');
+        messageExpiryConfirmed = true;
+    } else {
+        document.getElementById('messageExpiry').checked = false;
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+        messageExpiryConfirmed = true;
+    }
+    var modal = bootstrap.Modal.getInstance(document.getElementById('messageExpiryModal'));
+    if (modal) modal.hide();
+}
+
+function applySelectedTemplate() {
+    var selector = document.getElementById('templateSelector');
+    var selectedOption = selector.options[selector.selectedIndex];
+    if (selectedOption.value) {
+        var content = selectedOption.getAttribute('data-content');
+        if (content) {
+            content = content.replace(/\\'/g, "'");
+            document.getElementById('smsContent').value = content;
+            handleContentChange();
+        }
+    }
 }
 
 function toggleScheduleFields() {
@@ -1069,7 +1204,6 @@ function toggleValidityFields() {
 function confirmScheduleRules() {
     var scheduled = document.getElementById('scheduleToggle').checked;
     var unsociable = document.getElementById('unsociableToggle').checked;
-    var validity = document.getElementById('validityToggle').checked;
     
     var summaryParts = [];
     
@@ -1088,11 +1222,7 @@ function confirmScheduleRules() {
         summaryParts.push('Quiet hours: ' + from + ' - ' + to);
     }
     
-    if (validity) {
-        var duration = document.getElementById('validityDuration').value;
-        var unit = document.getElementById('validityUnit').value;
-        summaryParts.push('Validity: ' + duration + ' ' + unit);
-    }
+    scheduleRulesConfirmed = true;
     
     if (summaryParts.length > 0) {
         document.getElementById('scheduleSummaryText').textContent = summaryParts.join(' | ');

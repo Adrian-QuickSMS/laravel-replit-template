@@ -1,0 +1,128 @@
+Make the following UI and behaviour changes using the EXISTING UI template and components only.
+
+A. Template selector placement
+- The “Template” selector must be a dropdown.
+- Position it ABOVE the message text input area and the Title heading.
+- Align it inline (same row) as the “Improve with AI” button.
+- Do NOT change styling, spacing system, or component types.
+
+B. Toggles placement (beneath character counter)
+Beneath the character counter, display the following toggles in this order:
+1. Include trackable link
+2. Message expiry
+3. Schedule & sending rules
+
+Do not add additional toggles or controls.
+
+C. Toggle behaviour (important)
+- When ANY toggle is switched ON, open a modal / pop-up.
+- Use existing modal components from the template.
+- Do NOT allow inline expansion; configuration must happen in the pop-up.
+- When a toggle is OFF, no configuration UI is visible.
+
+────────────────────────────────
+D. Include Trackable Link (Pop-up)
+Control:
+- Toggle: “Include trackable link”
+
+When enabled:
+- Open a pop-up that allows selection of short URL domain:
+  - Default option: qsms.uk
+  - Customer-registered domains (if available)
+- System generates a unique tracking URL per message.
+- URL insertion options:
+  - Auto-insert at current cursor position, OR
+  - Insert via placeholder token
+
+Behaviour:
+- Tracking metadata must be stored for reporting and analytics.
+- No visual redesign; reuse existing dropdowns and inputs.
+
+────────────────────────────────
+E. Schedule & Sending Rules (Pop-up)
+Control:
+- Toggle: “Schedule & sending rules”
+
+When enabled:
+- Open the configuration pop-up defined below.
+
+2.6.7 Schedule & Sending Rules (Pop-up)
+
+1. Schedule Campaign
+- Toggle: “Schedule this campaign”
+- Default: OFF
+
+When OFF:
+- Campaign is sent immediately after final confirmation.
+
+When ON:
+- Show:
+  - Send Date (date picker, local timezone)
+  - Send Time (time picker, 24-hour format)
+- Validation:
+  - Scheduled date/time must be in the future
+- Save configuration to campaign settings.
+
+2. Unsociable Hours
+- Toggle: “Define unsociable hours”
+- Default: OFF
+
+When ON:
+- Show:
+  - From (time picker)
+  - To (time picker)
+
+Behaviour:
+- Messages are queued if outside the allowed window.
+- Messages are sent at the next allowable time.
+
+Helper text:
+“Messages will not be sent between [To] and [From]. They will be queued and sent at the next allowable time.”
+
+Validation:
+- From time must be earlier than To time.
+
+────────────────────────────────
+F. Message Expiry (Validity Period)
+Control:
+- Toggle: “Set message validity period”
+- Default: OFF
+
+Purpose:
+- Defines how long the platform should attempt delivery before expiring a message.
+
+When OFF:
+- Apply defaults:
+  - SMS: Operator default (typically 24–72 hours)
+  - RCS: Platform default (configurable, e.g. 24 hours)
+
+When ON:
+- Show:
+  - Validity duration (numeric input)
+  - Unit selector:
+    - Minutes
+    - Hours
+    - Days
+
+Behaviour:
+- If delivery does not occur within the defined validity period:
+  - Message expires
+  - No further delivery attempts are made
+  - Final status is recorded as “Expired”
+- Applies to:
+  - Queued messages
+  - Messages delayed by unsociable hours
+  - Temporary handset or network unavailability
+
+────────────────────────────────
+Constraints:
+- Do NOT redesign the UI.
+- Do NOT introduce new components, colours, or typography.
+- Reuse existing modal, toggle, dropdown, and input components.
+- If any backend wiring is missing, add TODO comments instead of inventing logic.
+
+Acceptance criteria:
+- Template selector and toggles are positioned exactly as specified.
+- Each toggle opens the correct pop-up.
+- Validation rules trigger correctly.
+- No UI or behaviour changes outside this scope.
