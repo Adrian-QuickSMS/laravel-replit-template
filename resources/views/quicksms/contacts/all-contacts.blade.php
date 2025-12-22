@@ -21,6 +21,9 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                         </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importContactsModal">
+                            <i class="fas fa-file-import me-1"></i> Import
+                        </button>
                         <button type="button" class="btn btn-primary btn-sm" id="btnAddContact" data-bs-toggle="modal" data-bs-target="#addContactModal">
                             <i class="fas fa-plus me-1"></i> Add Contact
                         </button>
@@ -1524,4 +1527,525 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="importContactsModal" tabindex="-1" aria-labelledby="importContactsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importContactsModalLabel"><i class="fas fa-file-import me-2"></i>Import Contacts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center import-step-circle active" style="width: 32px; height: 32px;" id="stepCircle1">1</div>
+                            <div class="small mt-1">Upload</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px;" id="stepCircle2">2</div>
+                            <div class="small mt-1">Map Columns</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px;" id="stepCircle3">3</div>
+                            <div class="small mt-1">Review</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px;" id="stepCircle4">4</div>
+                            <div class="small mt-1">Complete</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="importStep1">
+                    <h6 class="mb-3">Step 1: Upload File</h6>
+                    <div class="border rounded p-4 text-center bg-light" id="dropZone" style="border-style: dashed !important;">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                        <p class="mb-2">Drag and drop your file here, or click to browse</p>
+                        <input type="file" class="d-none" id="importFileInput" accept=".csv,.xlsx">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('importFileInput').click()">
+                            <i class="fas fa-folder-open me-1"></i> Browse Files
+                        </button>
+                        <p class="text-muted small mt-2 mb-0">Accepted formats: CSV, Excel (.xlsx)</p>
+                    </div>
+                    <div id="selectedFileInfo" class="d-none mt-3">
+                        <div class="alert alert-success d-flex align-items-center">
+                            <i class="fas fa-file-alt fa-2x me-3"></i>
+                            <div>
+                                <strong id="selectedFileName">filename.csv</strong>
+                                <div class="small text-muted" id="selectedFileSize">123 KB</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="clearImportFile()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="worksheetSelection" class="d-none mt-3">
+                        <label class="form-label fw-bold">Select Worksheet</label>
+                        <select class="form-select" id="worksheetSelect">
+                            <option value="Sheet1">Sheet1</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Does the first row contain column headings?</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="hasHeaders" id="hasHeadersYes" value="yes" checked>
+                                <label class="form-check-label" for="hasHeadersYes">Yes - first row contains headings</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="hasHeaders" id="hasHeadersNo" value="no">
+                                <label class="form-check-label" for="hasHeadersNo">No - first row contains data</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="importStep2" class="d-none">
+                    <h6 class="mb-3">Step 2: Map Columns</h6>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Map your file columns to contact fields. <strong>Mobile Number</strong> is required.
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Your Column</th>
+                                    <th>Sample Data</th>
+                                    <th>Map To</th>
+                                </tr>
+                            </thead>
+                            <tbody id="columnMappingBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="excelZeroWarning" class="alert alert-warning d-none">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Excel Number Detection</strong>
+                        <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
+                        <p class="mb-2">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="setExcelCorrection(true)">
+                                <i class="fas fa-check me-1"></i> Yes, convert to UK format
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
+                                <i class="fas fa-times me-1"></i> No, leave as-is
+                            </button>
+                        </div>
+                        <input type="hidden" id="excelCorrectionApplied" value="">
+                    </div>
+                </div>
+
+                <div id="importStep3" class="d-none">
+                    <h6 class="mb-3">Step 3: Review & Validate</h6>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-primary" id="statTotalRows">0</div>
+                                    <div class="small text-muted">Total Rows</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-info" id="statUniqueNumbers">0</div>
+                                    <div class="small text-muted">Unique Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-success" id="statValidNumbers">0</div>
+                                    <div class="small text-muted">Valid Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-danger" id="statInvalidNumbers">0</div>
+                                    <div class="small text-muted">Invalid Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="importIndicators" class="mb-3">
+                    </div>
+                    
+                    <div id="invalidRowsSection" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0"><i class="fas fa-exclamation-circle text-danger me-2"></i>Invalid Rows</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="downloadInvalidRows()">
+                                <i class="fas fa-download me-1"></i> Download Invalid Rows
+                            </button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Row</th>
+                                        <th>Original Value</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invalidRowsBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Confirm Settings</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmMappings" checked>
+                            <label class="form-check-label" for="confirmMappings">I confirm the column mappings are correct</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmRules" checked>
+                            <label class="form-check-label" for="confirmRules">I confirm the number formatting rules</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="importStep4" class="d-none">
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
+                        <h4>Import Complete!</h4>
+                        <p class="text-muted" id="importCompleteMessage">Successfully imported 0 contacts.</p>
+                        <div class="alert alert-info small mt-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Your contacts are now available in the contact list and can be used for messaging.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="importCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-outline-primary d-none" id="importBackBtn" onclick="importPrevStep()">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </button>
+                <button type="button" class="btn btn-primary" id="importNextBtn" onclick="importNextStep()" disabled>
+                    Next <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+                <button type="button" class="btn btn-success d-none" id="importConfirmBtn" onclick="confirmImport()">
+                    <i class="fas fa-check me-1"></i> Confirm & Import
+                </button>
+                <button type="button" class="btn btn-primary d-none" id="importDoneBtn" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-1"></i> Done
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var importCurrentStep = 1;
+var importFileData = null;
+var importMappings = {};
+var importValidationResults = null;
+
+document.getElementById('importFileInput').addEventListener('change', function(e) {
+    handleImportFile(e.target.files[0]);
+});
+
+var dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('border-primary');
+});
+dropZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.classList.remove('border-primary');
+});
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('border-primary');
+    if (e.dataTransfer.files.length) {
+        handleImportFile(e.dataTransfer.files[0]);
+    }
+});
+
+function handleImportFile(file) {
+    if (!file) return;
+    
+    var validTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    var validExtensions = ['.csv', '.xlsx', '.xls'];
+    var ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    
+    if (!validExtensions.includes(ext)) {
+        alert('Please upload a CSV or Excel file.');
+        return;
+    }
+    
+    importFileData = {
+        file: file,
+        name: file.name,
+        size: formatFileSize(file.size),
+        type: ext === '.csv' ? 'csv' : 'excel'
+    };
+    
+    document.getElementById('selectedFileName').textContent = file.name;
+    document.getElementById('selectedFileSize').textContent = formatFileSize(file.size);
+    document.getElementById('selectedFileInfo').classList.remove('d-none');
+    document.getElementById('dropZone').classList.add('d-none');
+    
+    if (importFileData.type === 'excel') {
+        document.getElementById('worksheetSelection').classList.remove('d-none');
+    }
+    
+    document.getElementById('importNextBtn').disabled = false;
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function clearImportFile() {
+    importFileData = null;
+    document.getElementById('importFileInput').value = '';
+    document.getElementById('selectedFileInfo').classList.add('d-none');
+    document.getElementById('dropZone').classList.remove('d-none');
+    document.getElementById('worksheetSelection').classList.add('d-none');
+    document.getElementById('importNextBtn').disabled = true;
+}
+
+function importNextStep() {
+    if (importCurrentStep === 1) {
+        showStep(2);
+        simulateColumnDetection();
+    } else if (importCurrentStep === 2) {
+        if (!validateMappings()) return;
+        showStep(3);
+        simulateValidation();
+    }
+}
+
+function importPrevStep() {
+    if (importCurrentStep > 1) {
+        showStep(importCurrentStep - 1);
+    }
+}
+
+function showStep(step) {
+    importCurrentStep = step;
+    
+    for (var i = 1; i <= 4; i++) {
+        document.getElementById('importStep' + i).classList.add('d-none');
+        document.getElementById('stepCircle' + i).classList.remove('bg-primary');
+        document.getElementById('stepCircle' + i).classList.add('bg-secondary');
+    }
+    
+    document.getElementById('importStep' + step).classList.remove('d-none');
+    for (var i = 1; i <= step; i++) {
+        document.getElementById('stepCircle' + i).classList.remove('bg-secondary');
+        document.getElementById('stepCircle' + i).classList.add('bg-primary');
+    }
+    
+    document.getElementById('importBackBtn').classList.toggle('d-none', step === 1 || step === 4);
+    document.getElementById('importNextBtn').classList.toggle('d-none', step >= 3);
+    document.getElementById('importConfirmBtn').classList.toggle('d-none', step !== 3);
+    document.getElementById('importDoneBtn').classList.toggle('d-none', step !== 4);
+    document.getElementById('importCancelBtn').classList.toggle('d-none', step === 4);
+}
+
+function simulateColumnDetection() {
+    var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
+    
+    var mockColumns = hasHeaders 
+        ? ['Mobile', 'First Name', 'Last Name', 'Email', 'Company']
+        : ['Column A', 'Column B', 'Column C', 'Column D', 'Column E'];
+    
+    var mockSamples = ['7712345678', 'John', 'Smith', 'john@example.com', 'Acme Ltd'];
+    
+    var tbody = document.getElementById('columnMappingBody');
+    tbody.innerHTML = '';
+    
+    var mappingOptions = `
+        <option value="">-- Do not import --</option>
+        <option value="mobile">Mobile Number *</option>
+        <option value="first_name">First Name</option>
+        <option value="last_name">Last Name</option>
+        <option value="email">Email</option>
+        <option value="custom">Custom Field</option>
+    `;
+    
+    mockColumns.forEach(function(col, idx) {
+        var autoMap = '';
+        var colLower = col.toLowerCase();
+        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn')) autoMap = 'mobile';
+        else if (colLower.includes('first')) autoMap = 'first_name';
+        else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
+        else if (colLower.includes('email')) autoMap = 'email';
+        
+        var row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${col}</strong></td>
+            <td class="text-muted small">${mockSamples[idx] || ''}</td>
+            <td>
+                <select class="form-select form-select-sm column-mapping" data-column="${idx}">
+                    ${mappingOptions}
+                </select>
+            </td>
+        `;
+        tbody.appendChild(row);
+        
+        if (autoMap) {
+            row.querySelector('select').value = autoMap;
+        }
+    });
+    
+    if (mockSamples[0] && mockSamples[0].startsWith('7') && mockSamples[0].length >= 10) {
+        document.getElementById('excelZeroWarning').classList.remove('d-none');
+    } else {
+        document.getElementById('excelZeroWarning').classList.add('d-none');
+    }
+}
+
+function setExcelCorrection(apply) {
+    document.getElementById('excelCorrectionApplied').value = apply ? 'yes' : 'no';
+    var warning = document.getElementById('excelZeroWarning');
+    warning.innerHTML = `
+        <i class="fas fa-check-circle text-success me-2"></i>
+        <strong>${apply ? 'UK number conversion will be applied' : 'Numbers will be left as-is'}</strong>
+        <button type="button" class="btn btn-sm btn-link" onclick="resetExcelCorrection()">Change</button>
+    `;
+}
+
+function resetExcelCorrection() {
+    document.getElementById('excelCorrectionApplied').value = '';
+    document.getElementById('excelZeroWarning').innerHTML = `
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Excel Number Detection</strong>
+        <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
+        <p class="mb-2">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-primary" onclick="setExcelCorrection(true)">
+                <i class="fas fa-check me-1"></i> Yes, convert to UK format
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
+                <i class="fas fa-times me-1"></i> No, leave as-is
+            </button>
+        </div>
+    `;
+}
+
+function validateMappings() {
+    var hasMobile = false;
+    document.querySelectorAll('.column-mapping').forEach(function(select) {
+        if (select.value === 'mobile') hasMobile = true;
+    });
+    
+    if (!hasMobile) {
+        alert('Please map at least one column to Mobile Number.');
+        return false;
+    }
+    
+    var excelWarning = document.getElementById('excelZeroWarning');
+    if (!excelWarning.classList.contains('d-none') && document.getElementById('excelCorrectionApplied').value === '') {
+        alert('Please confirm the Excel number correction option.');
+        return false;
+    }
+    
+    return true;
+}
+
+function simulateValidation() {
+    var totalRows = Math.floor(Math.random() * 500) + 100;
+    var uniqueNumbers = totalRows - Math.floor(Math.random() * 20);
+    var invalidCount = Math.floor(Math.random() * 10);
+    var validNumbers = uniqueNumbers - invalidCount;
+    
+    document.getElementById('statTotalRows').textContent = totalRows;
+    document.getElementById('statUniqueNumbers').textContent = uniqueNumbers;
+    document.getElementById('statValidNumbers').textContent = validNumbers;
+    document.getElementById('statInvalidNumbers').textContent = invalidCount;
+    
+    var indicators = document.getElementById('importIndicators');
+    indicators.innerHTML = '';
+    
+    if (document.getElementById('excelCorrectionApplied').value === 'yes') {
+        indicators.innerHTML += '<span class="badge bg-info me-2"><i class="fas fa-sync-alt me-1"></i> Excel correction applied</span>';
+    }
+    indicators.innerHTML += '<span class="badge bg-secondary"><i class="fas fa-globe me-1"></i> UK format normalized</span>';
+    
+    if (invalidCount > 0) {
+        document.getElementById('invalidRowsSection').classList.remove('d-none');
+        var tbody = document.getElementById('invalidRowsBody');
+        tbody.innerHTML = '';
+        
+        var reasons = ['Invalid format', 'Too short', 'Contains letters', 'Not a mobile number'];
+        for (var i = 0; i < invalidCount; i++) {
+            var row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${Math.floor(Math.random() * totalRows) + 1}</td>
+                <td class="text-muted">123ABC${i}</td>
+                <td><span class="badge bg-danger">${reasons[i % reasons.length]}</span></td>
+            `;
+            tbody.appendChild(row);
+        }
+    } else {
+        document.getElementById('invalidRowsSection').classList.add('d-none');
+    }
+    
+    importValidationResults = { totalRows, uniqueNumbers, validNumbers, invalidCount };
+}
+
+function downloadInvalidRows() {
+    var csvContent = 'Row,Original Value,Reason\n';
+    document.querySelectorAll('#invalidRowsBody tr').forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        csvContent += `"${cells[0].textContent}","${cells[1].textContent}","${cells[2].textContent}"\n`;
+    });
+    
+    var blob = new Blob([csvContent], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'invalid_rows_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function confirmImport() {
+    if (!document.getElementById('confirmMappings').checked || !document.getElementById('confirmRules').checked) {
+        alert('Please confirm both settings before importing.');
+        return;
+    }
+    
+    console.log('TODO: Implement actual import with streaming/chunked processing');
+    console.log('TODO: API endpoint: POST /api/contacts/import');
+    console.log('TODO: Log user confirmations and upload metadata');
+    
+    var validCount = importValidationResults ? importValidationResults.validNumbers : 0;
+    document.getElementById('importCompleteMessage').textContent = 
+        'Successfully imported ' + validCount + ' contacts.';
+    
+    showStep(4);
+}
+
+document.getElementById('importContactsModal').addEventListener('hidden.bs.modal', function() {
+    importCurrentStep = 1;
+    importFileData = null;
+    importMappings = {};
+    importValidationResults = null;
+    clearImportFile();
+    showStep(1);
+    document.getElementById('excelZeroWarning').classList.add('d-none');
+    document.getElementById('invalidRowsSection').classList.add('d-none');
+    document.getElementById('confirmMappings').checked = true;
+    document.getElementById('confirmRules').checked = true;
+});
+</script>
 @endsection

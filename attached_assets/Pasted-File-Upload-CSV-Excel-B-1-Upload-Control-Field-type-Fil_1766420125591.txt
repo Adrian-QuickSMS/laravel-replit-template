@@ -1,0 +1,92 @@
+File Upload (CSV / Excel)
+B.1 Upload Control
+•	Field type: File upload button
+•	Label: Upload file
+•	Accepted file types:
+o	.csv
+o	.xlsx (Excel)
+________________________________________
+B.2 File Validation & Pre-Processing
+•	Validate file type and size on upload.
+•	Support very large datasets (millions of rows) using streaming / chunked processing.
+•	For Excel files:
+o	Default to first worksheet
+o	Allow worksheet selection if multiple sheets exist
+________________________________________
+B.3 Header Detection & Column Mapping
+B.3.1 Header Confirmation
+After upload, prompt:
+“Does the first row contain column headings?”
+Options:
+•	Yes – first row contains headings
+•	No – first row contains data
+________________________________________
+B.3.2 Column Mapping
+•	Display detected columns (or Column A, Column B, etc.).
+•	Required mapping:
+o	Mobile Number
+•	Optional mappings:
+o	First Name
+o	Last Name
+o	Email
+o	Custom fields (for personalisation and reporting)
+________________________________________
+B.3.3 Mail Merge & Personalisation
+If headers are present:
+•	System attempts auto-mapping for common fields (mobile, msisdn, phone, firstname, surname, etc.).
+•	User can override mappings.
+•	Mapped fields become available for:
+o	Message personalisation (e.g. {{firstName}})
+o	Reporting and automation flows
+________________________________________
+B.4 Number Scope & Excel-Specific Handling
+The upload flow uses the same number scope and normalisation rules as Manual Input.
+Excel zero-stripping detection
+•	Detect numbers starting with 7xxxxxxxxx (10–11 digits) where Excel has likely removed the leading zero.
+•	Display confirmation modal:
+“We’ve detected mobile numbers starting with ‘7’. This often occurs when Excel removes the leading zero from UK mobile numbers. Should these be treated as UK numbers and converted to international format (+447…)? ”
+Options:
+•	Yes – convert to UK international format
+•	No – leave as-is
+User confirmation is required and logged.
+________________________________________
+B.5 Validation & Processing
+•	Normalisation based on confirmed rules
+•	De-duplication across entire dataset
+•	Format validation per country
+•	Invalid rows flagged without stopping processing
+________________________________________
+B.6 Upload Summary & Review
+Display summary:
+•	Total rows uploaded
+•	Unique numbers detected
+•	Valid numbers
+•	Invalid numbers
+Additional features:
+•	Expandable list of invalid rows with:
+o	Row number
+o	Original value
+o	Failure reason
+•	Downloadable CSV of invalid records
+•	Indicators showing:
+o	UK-only mode applied
+o	Excel correction applied (if applicable)
+________________________________________
+B.7 Confirmation & Completion
+User must confirm:
+•	Column mappings
+•	Number scope rules
+•	Any Excel corrections
+Button: Confirm & Import
+On confirmation:
+•	Numbers are added to the recipient pool
+•	Personalisation fields are stored
+________________________________________
+B.8 Non-Functional Requirements
+•	Must support millions of rows without timeouts
+•	Streaming, async processing required
+•	Must tolerate malformed rows
+•	Must log:
+o	User confirmations
+o	Normalisation decisions
+o	Upload metadata (file name, size, timestamp, user)
