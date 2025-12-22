@@ -114,35 +114,84 @@
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <h6 class="mb-3"><i class="fas fa-edit text-primary me-2"></i>4. Content</h6>
-                    <div class="row mb-3">
-                        <div class="col-8">
-                            <select class="form-select" id="templateSelect" onchange="applyTemplate()">
-                                <option value="">Select template...</option>
-                                @foreach($templates as $template)
-                                <option value="{{ $template['id'] }}" data-content="{{ $template['content'] }}">{{ $template['name'] }}</option>
-                                @endforeach
-                            </select>
+                    
+                    <label class="form-label mb-2" id="contentLabel">SMS Content</label>
+                    
+                    <div class="border rounded mb-2">
+                        <div class="d-flex justify-content-between align-items-center bg-light border-bottom px-3 py-2">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary" onclick="openPersonalisationModal()" title="Insert personalisation">
+                                    <i class="fas fa-user-tag me-1"></i>Personalise
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="openEmojiPicker()" title="Insert emoji">
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
+                                <i class="fas fa-magic me-1"></i>Improve with AI
+                            </button>
                         </div>
-                        <div class="col-4">
-                            <div class="btn-group w-100">
-                                <button type="button" class="btn btn-outline-secondary" onclick="insertMergeField()" title="Insert merge field"><i class="fas fa-code"></i></button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="insertTrackingUrl()" title="Insert tracking URL"><i class="fas fa-link"></i></button>
+                        <textarea class="form-control border-0" id="smsContent" rows="5" placeholder="Type your message here..." oninput="handleContentChange()"></textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="text-muted me-3">Characters: <strong id="charCount">0</strong></span>
+                            <span class="text-muted me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
+                            <span class="text-muted" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
+                        </div>
+                        <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+                        </span>
+                    </div>
+                    
+                    <div class="d-none mb-3" id="rcsTextHelper">
+                        <div class="alert alert-info py-2 mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="rcsHelperText">Messages over 160 characters will be automatically sent as a single RCS message where supported.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="useTemplate" onchange="toggleTemplateSelection()">
+                                    <label class="form-check-label" for="useTemplate">Use template</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="includeTrackableLink" onchange="toggleTrackableLinkModal()">
+                                    <label class="form-check-label" for="includeTrackableLink">Include trackable link</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="scheduleRules" onchange="toggleScheduleRulesModal()">
+                                    <label class="form-check-label" for="scheduleRules">Schedule & sending rules</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <textarea class="form-control mb-2" id="smsContent" rows="3" placeholder="Type your message..." onkeyup="updatePreview(); updateCharCount();"></textarea>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted"><span id="charCount">0</span>/160 | <span id="smsPartCount">1</span> part(s)</span>
-                        <div>
-                            <span class="form-check form-check-inline mb-0"><input class="form-check-input" type="radio" name="scheduling" id="sendNow" value="now" checked><label class="form-check-label" for="sendNow">Now</label></span>
-                            <span class="form-check form-check-inline mb-0"><input class="form-check-input" type="radio" name="scheduling" id="sendLater" value="scheduled"><label class="form-check-label" for="sendLater">Later</label></span>
+                    
+                    <div class="d-none mb-3" id="scheduleSummary">
+                        <div class="alert alert-secondary py-2 mb-0">
+                            <i class="fas fa-clock me-2"></i><span id="scheduleSummaryText">Scheduled for: --</span>
+                            <a href="#" class="ms-2" onclick="openScheduleRulesModal()">Edit</a>
                         </div>
                     </div>
-                    <div class="d-none mt-2" id="schedulingOptions">
-                        <input type="datetime-local" class="form-control" id="scheduledTime">
+                    
+                    <div class="d-none mb-3" id="trackableLinkSummary">
+                        <div class="alert alert-secondary py-2 mb-0">
+                            <i class="fas fa-link me-2"></i>Trackable link: <strong id="trackableLinkDomain">qsms.uk</strong>
+                            <a href="#" class="ms-2" onclick="openTrackableLinkModal()">Edit</a>
+                        </div>
                     </div>
+                    
                     <div class="d-none mt-3" id="rcsContentSection">
                         <div class="border rounded p-3 bg-light">
+                            <h6 class="mb-3">Rich RCS Card Content</h6>
                             <div class="row mb-3">
                                 <div class="col-6"><input type="text" class="form-control" id="rcsTitle" placeholder="Card title"></div>
                                 <div class="col-6"><input type="file" class="form-control" id="rcsImage" accept="image/*"></div>
@@ -150,9 +199,9 @@
                             <textarea class="form-control mb-3" id="rcsDescription" rows="2" placeholder="Description"></textarea>
                             <div id="rcsButtons">
                                 <div class="input-group mb-2">
-                                    <input type="text" class="form-control" placeholder="Button">
-                                    <input type="text" class="form-control" placeholder="URL">
-                                    <button class="btn btn-outline-danger" type="button"><i class="fas fa-times"></i></button>
+                                    <input type="text" class="form-control" placeholder="Button text">
+                                    <input type="text" class="form-control" placeholder="Button URL">
+                                    <button class="btn btn-outline-danger" type="button" onclick="removeRcsButton(this)"><i class="fas fa-times"></i></button>
                                 </div>
                             </div>
                             <button type="button" class="btn btn-link p-0" onclick="addRcsButton()">+ Add Button</button>
@@ -472,6 +521,292 @@
     </div>
 </div>
 
+<div class="modal fade" id="personalisationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-user-tag me-2"></i>Insert Personalisation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Click a placeholder to insert it at the cursor position in your message.</p>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Contact Book Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('firstName')">@{{firstName}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('lastName')">@{{lastName}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('fullName')">@{{fullName}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('mobile')">@{{mobile}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('email')">@{{email}}</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Custom Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentDate')">@{{appointmentDate}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentTime')">@{{appointmentTime}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('clinicName')">@{{clinicName}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('customField_1')">@{{customField_1}}</button>
+                    </div>
+                </div>
+                <div class="mb-3" id="csvFieldsSection" style="display: none;">
+                    <h6 class="text-muted mb-2">CSV/Excel Columns</h6>
+                    <div class="d-flex flex-wrap gap-2" id="csvFieldButtons"></div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="emojiPickerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-smile me-2"></i>Insert Emoji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning py-2 mb-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Emojis switch the message to Unicode encoding, reducing characters per segment.
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Commonly Used</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('😊')">😊</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('👍')">👍</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('✅')">✅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('⭐')">⭐</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📱')">📱</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📞')">📞</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📧')">📧</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('📅')">📅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('⏰')">⏰</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('💊')">💊</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Healthcare</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🏥')">🏥</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('👨‍⚕️')">👨‍⚕️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('👩‍⚕️')">👩‍⚕️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('💉')">💉</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🩺')">🩺</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🩹')">🩹</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('💪')">💪</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmoji('🧘')">🧘</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-file-alt me-2"></i>Select Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="templateSearch" placeholder="Search templates..." oninput="filterTemplates()">
+                </div>
+                <div class="list-group" id="templateList">
+                    @foreach($templates as $template)
+                    <a href="#" class="list-group-item list-group-item-action" onclick="selectTemplate('{{ $template['id'] }}', '{{ addslashes($template['content']) }}')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-1">{{ $template['name'] }}</h6>
+                            <span class="badge bg-secondary">SMS</span>
+                        </div>
+                        <p class="mb-0 text-muted small">{{ Str::limit($template['content'], 100) }}</p>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="trackableLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-link me-2"></i>Trackable Link Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">A unique shortened URL will be generated for each recipient to track clicks.</p>
+                <div class="mb-3">
+                    <label class="form-label">Short URL Domain</label>
+                    <select class="form-select" id="shortUrlDomain">
+                        <option value="qsms.uk" selected>qsms.uk (default)</option>
+                        <option value="custom1.co.uk">custom1.co.uk</option>
+                        <option value="custom2.com">custom2.com</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Destination URL</label>
+                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Insert Link As</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAtCursor" value="cursor" checked>
+                        <label class="form-check-label" for="linkAtCursor">Insert at cursor position</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAsPlaceholder" value="placeholder">
+                        <label class="form-check-label" for="linkAsPlaceholder">Use placeholder @{{trackingUrl}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmTrackableLink()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scheduleRulesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-clock me-2"></i>Schedule & Sending Rules</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="scheduleToggle" onchange="toggleScheduleFields()">
+                        <label class="form-check-label fw-medium" for="scheduleToggle">Schedule this campaign</label>
+                    </div>
+                    <div class="d-none ps-4" id="scheduleFields">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Send Date</label>
+                                <input type="date" class="form-control" id="scheduleDate">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Send Time</label>
+                                <input type="time" class="form-control" id="scheduleTime">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-top pt-4 mb-4">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="unsociableToggle" onchange="toggleUnsociableFields()">
+                        <label class="form-check-label fw-medium" for="unsociableToggle">Define unsociable hours</label>
+                    </div>
+                    <div class="d-none ps-4" id="unsociableFields">
+                        <p class="text-muted small mb-3">Messages will not be sent during these hours. They will be queued and sent at the next allowable time.</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Do not send before</label>
+                                <input type="time" class="form-control" id="unsociableFrom" value="08:00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Do not send after</label>
+                                <input type="time" class="form-control" id="unsociableTo" value="20:00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-top pt-4">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="validityToggle" onchange="toggleValidityFields()">
+                        <label class="form-check-label fw-medium" for="validityToggle">Set message validity period</label>
+                    </div>
+                    <div class="d-none ps-4" id="validityFields">
+                        <p class="text-muted small mb-3">If a message cannot be delivered within this period, it will expire and no further attempts will be made.</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Validity Duration</label>
+                                <input type="number" class="form-control" id="validityDuration" value="24" min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Unit</label>
+                                <select class="form-select" id="validityUnit">
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours" selected>Hours</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmScheduleRules()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiAssistantModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-magic me-2"></i>AI Content Assistant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="mb-3">Current Message</h6>
+                    <div class="bg-light p-3 rounded" id="aiCurrentContent">
+                        <em class="text-muted">No content to improve</em>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h6 class="mb-3">What would you like to do?</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('tone')"><i class="fas fa-smile me-1"></i>Improve tone</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('shorten')"><i class="fas fa-compress-alt me-1"></i>Shorten message</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('grammar')"><i class="fas fa-spell-check me-1"></i>Correct spelling & grammar</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('clarity')"><i class="fas fa-lightbulb me-1"></i>Rephrase for clarity</button>
+                    </div>
+                </div>
+                <div class="d-none" id="aiResultSection">
+                    <h6 class="mb-3">Suggested Version</h6>
+                    <div class="bg-success bg-opacity-10 border border-success p-3 rounded mb-3" id="aiSuggestedContent"></div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="useAiSuggestion()"><i class="fas fa-check me-1"></i>Use this</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="discardAiSuggestion()">Discard</button>
+                    </div>
+                </div>
+                <div class="d-none" id="aiLoadingSection">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <p class="text-muted">Improving your message...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -492,21 +827,32 @@ function selectChannel(channel) {
     var rcsAgentSection = document.getElementById('rcsAgentSection');
     var rcsContentSection = document.getElementById('rcsContentSection');
     var previewChannel = document.getElementById('previewChannel');
+    var contentLabel = document.getElementById('contentLabel');
+    var rcsTextHelper = document.getElementById('rcsTextHelper');
+    var rcsHelperText = document.getElementById('rcsHelperText');
     
     if (channel === 'sms') {
         rcsAgentSection.classList.add('d-none');
         rcsContentSection.classList.add('d-none');
+        rcsTextHelper.classList.add('d-none');
         previewChannel.textContent = 'SMS';
+        contentLabel.textContent = 'SMS Content';
     } else if (channel === 'rcs_basic') {
         rcsAgentSection.classList.remove('d-none');
         rcsContentSection.classList.add('d-none');
+        rcsTextHelper.classList.remove('d-none');
+        rcsHelperText.textContent = 'Messages over 160 characters will be automatically sent as a single RCS message where supported.';
         previewChannel.textContent = 'Basic RCS';
+        contentLabel.textContent = 'Message Content';
     } else if (channel === 'rcs_rich') {
         rcsAgentSection.classList.remove('d-none');
         rcsContentSection.classList.remove('d-none');
+        rcsTextHelper.classList.add('d-none');
         previewChannel.textContent = 'Rich RCS';
+        contentLabel.textContent = 'SMS Fallback Content';
     }
     updatePreview();
+    handleContentChange();
 }
 
 function toggleScheduling() {
@@ -523,13 +869,49 @@ function updatePreview() {
     document.getElementById('previewMessage').textContent = smsContent.value || 'Your message...';
 }
 
-function updateCharCount() {
+var GSM_CHARS = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà";
+var GSM_EXTENDED = "^{}\\[~]|€";
+
+function isGSM7(text) {
+    for (var i = 0; i < text.length; i++) {
+        var char = text[i];
+        if (GSM_CHARS.indexOf(char) === -1 && GSM_EXTENDED.indexOf(char) === -1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function handleContentChange() {
     var content = document.getElementById('smsContent').value;
     var charCount = content.length;
-    var parts = Math.ceil(charCount / 160) || 1;
+    var isGsm = isGSM7(content);
+    var channel = document.querySelector('input[name="channel"]:checked').value;
     
     document.getElementById('charCount').textContent = charCount;
-    document.getElementById('smsPartCount').textContent = parts;
+    document.getElementById('encodingType').textContent = isGsm ? 'GSM-7' : 'Unicode';
+    document.getElementById('unicodeWarning').classList.toggle('d-none', isGsm);
+    
+    var segmentDisplay = document.getElementById('segmentDisplay');
+    if (channel === 'rcs_basic' && charCount > 160) {
+        segmentDisplay.innerHTML = '<em class="text-success">Single RCS message</em>';
+        document.getElementById('rcsTextHelper').classList.remove('d-none');
+        document.getElementById('rcsHelperText').textContent = 'This message will be delivered as a single RCS text message.';
+    } else {
+        var singleLimit = isGsm ? 160 : 70;
+        var concatLimit = isGsm ? 153 : 67;
+        var parts = charCount <= singleLimit ? 1 : Math.ceil(charCount / concatLimit);
+        segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
+        if (channel !== 'rcs_basic') {
+            document.getElementById('rcsTextHelper').classList.add('d-none');
+        }
+    }
+    
+    updatePreview();
+}
+
+function updateCharCount() {
+    handleContentChange();
 }
 
 function applyTemplate() {
@@ -537,26 +919,257 @@ function applyTemplate() {
     var option = select.selectedOptions[0];
     if (option && option.dataset.content) {
         document.getElementById('smsContent').value = option.dataset.content;
-        updatePreview();
-        updateCharCount();
+        handleContentChange();
     }
+}
+
+function openPersonalisationModal() {
+    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    modal.show();
+}
+
+function insertPlaceholder(field) {
+    var textarea = document.getElementById('smsContent');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    var placeholder = '{{' + field + '}}';
+    textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+    textarea.focus();
+    handleContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
+}
+
+function openEmojiPicker() {
+    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
+    modal.show();
+}
+
+function insertEmoji(emoji) {
+    var textarea = document.getElementById('smsContent');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    textarea.value = text.substring(0, start) + emoji + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+    textarea.focus();
+    handleContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
+}
+
+function toggleTemplateSelection() {
+    var isChecked = document.getElementById('useTemplate').checked;
+    if (isChecked) {
+        var modal = new bootstrap.Modal(document.getElementById('templateModal'));
+        modal.show();
+    }
+}
+
+function selectTemplate(id, content) {
+    document.getElementById('smsContent').value = content;
+    handleContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
+}
+
+function filterTemplates() {
+    var search = document.getElementById('templateSearch').value.toLowerCase();
+    document.querySelectorAll('#templateList .list-group-item').forEach(function(item) {
+        var text = item.textContent.toLowerCase();
+        item.style.display = text.indexOf(search) > -1 ? '' : 'none';
+    });
+}
+
+function toggleTrackableLinkModal() {
+    var isChecked = document.getElementById('includeTrackableLink').checked;
+    if (isChecked) {
+        var modal = new bootstrap.Modal(document.getElementById('trackableLinkModal'));
+        modal.show();
+    } else {
+        document.getElementById('trackableLinkSummary').classList.add('d-none');
+    }
+}
+
+function openTrackableLinkModal() {
+    var modal = new bootstrap.Modal(document.getElementById('trackableLinkModal'));
+    modal.show();
+}
+
+function confirmTrackableLink() {
+    var domain = document.getElementById('shortUrlDomain').value;
+    var url = document.getElementById('destinationUrl').value;
+    var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
+    
+    if (url) {
+        document.getElementById('trackableLinkDomain').textContent = domain;
+        document.getElementById('trackableLinkSummary').classList.remove('d-none');
+        
+        if (method === 'cursor') {
+            var textarea = document.getElementById('smsContent');
+            var start = textarea.selectionStart;
+            var text = textarea.value;
+            var shortUrl = 'https://' + domain + '/abc123';
+            textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
+            handleContentChange();
+        } else {
+            insertPlaceholderDirect('trackingUrl');
+        }
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('trackableLinkModal')).hide();
+}
+
+function insertPlaceholderDirect(field) {
+    var textarea = document.getElementById('smsContent');
+    var start = textarea.selectionStart;
+    var text = textarea.value;
+    var placeholder = '{{' + field + '}}';
+    textarea.value = text.substring(0, start) + placeholder + text.substring(start);
+    handleContentChange();
+}
+
+function toggleScheduleRulesModal() {
+    var isChecked = document.getElementById('scheduleRules').checked;
+    if (isChecked) {
+        openScheduleRulesModal();
+    } else {
+        document.getElementById('scheduleSummary').classList.add('d-none');
+    }
+}
+
+function openScheduleRulesModal() {
+    var modal = new bootstrap.Modal(document.getElementById('scheduleRulesModal'));
+    modal.show();
+}
+
+function toggleScheduleFields() {
+    var isChecked = document.getElementById('scheduleToggle').checked;
+    document.getElementById('scheduleFields').classList.toggle('d-none', !isChecked);
+}
+
+function toggleUnsociableFields() {
+    var isChecked = document.getElementById('unsociableToggle').checked;
+    document.getElementById('unsociableFields').classList.toggle('d-none', !isChecked);
+}
+
+function toggleValidityFields() {
+    var isChecked = document.getElementById('validityToggle').checked;
+    document.getElementById('validityFields').classList.toggle('d-none', !isChecked);
+}
+
+function confirmScheduleRules() {
+    var scheduled = document.getElementById('scheduleToggle').checked;
+    var unsociable = document.getElementById('unsociableToggle').checked;
+    var validity = document.getElementById('validityToggle').checked;
+    
+    var summaryParts = [];
+    
+    if (scheduled) {
+        var date = document.getElementById('scheduleDate').value;
+        var time = document.getElementById('scheduleTime').value;
+        if (date && time) {
+            var dateObj = new Date(date + 'T' + time);
+            summaryParts.push('Scheduled: ' + dateObj.toLocaleString('en-GB', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}));
+        }
+    }
+    
+    if (unsociable) {
+        var from = document.getElementById('unsociableFrom').value;
+        var to = document.getElementById('unsociableTo').value;
+        summaryParts.push('Quiet hours: ' + from + ' - ' + to);
+    }
+    
+    if (validity) {
+        var duration = document.getElementById('validityDuration').value;
+        var unit = document.getElementById('validityUnit').value;
+        summaryParts.push('Validity: ' + duration + ' ' + unit);
+    }
+    
+    if (summaryParts.length > 0) {
+        document.getElementById('scheduleSummaryText').textContent = summaryParts.join(' | ');
+        document.getElementById('scheduleSummary').classList.remove('d-none');
+        document.getElementById('scheduleRules').checked = true;
+    } else {
+        document.getElementById('scheduleSummary').classList.add('d-none');
+        document.getElementById('scheduleRules').checked = false;
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('scheduleRulesModal')).hide();
+}
+
+function openAiAssistant() {
+    var content = document.getElementById('smsContent').value;
+    var display = document.getElementById('aiCurrentContent');
+    
+    if (content.trim()) {
+        display.innerHTML = content;
+    } else {
+        display.innerHTML = '<em class="text-muted">No content to improve</em>';
+    }
+    
+    document.getElementById('aiResultSection').classList.add('d-none');
+    document.getElementById('aiLoadingSection').classList.add('d-none');
+    
+    var modal = new bootstrap.Modal(document.getElementById('aiAssistantModal'));
+    modal.show();
+}
+
+var aiSuggestedText = '';
+
+function aiImprove(action) {
+    var content = document.getElementById('smsContent').value;
+    if (!content.trim()) {
+        alert('Please enter some message content first.');
+        return;
+    }
+    
+    document.getElementById('aiLoadingSection').classList.remove('d-none');
+    document.getElementById('aiResultSection').classList.add('d-none');
+    
+    setTimeout(function() {
+        var suggestions = {
+            'tone': 'Hi @{{firstName}}, we hope you\'re well! Just a friendly reminder about your upcoming appointment. We look forward to seeing you soon!',
+            'shorten': 'Reminder: Appt on @{{appointmentDate}} at @{{appointmentTime}}. Reply to confirm.',
+            'grammar': content.charAt(0).toUpperCase() + content.slice(1).replace(/\s+/g, ' ').trim() + (content.endsWith('.') ? '' : '.'),
+            'clarity': 'This is a reminder about your scheduled appointment. Please arrive 10 minutes early. Reply YES to confirm or call us to reschedule.'
+        };
+        
+        aiSuggestedText = suggestions[action] || content;
+        document.getElementById('aiSuggestedContent').textContent = aiSuggestedText;
+        document.getElementById('aiLoadingSection').classList.add('d-none');
+        document.getElementById('aiResultSection').classList.remove('d-none');
+    }, 1500);
+}
+
+function useAiSuggestion() {
+    document.getElementById('smsContent').value = aiSuggestedText;
+    handleContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('aiAssistantModal')).hide();
+}
+
+function discardAiSuggestion() {
+    document.getElementById('aiResultSection').classList.add('d-none');
+}
+
+function addRcsButton() {
+    var container = document.getElementById('rcsButtons');
+    var newBtn = document.createElement('div');
+    newBtn.className = 'input-group mb-2';
+    newBtn.innerHTML = '<input type="text" class="form-control" placeholder="Button text"><input type="text" class="form-control" placeholder="Button URL"><button class="btn btn-outline-danger" type="button" onclick="removeRcsButton(this)"><i class="fas fa-times"></i></button>';
+    container.appendChild(newBtn);
+}
+
+function removeRcsButton(btn) {
+    btn.closest('.input-group').remove();
 }
 
 function insertMergeField() {
-    var fields = ['@{{first_name}}', '@{{last_name}}', '@{{mobile}}', '@{{email}}'];
-    var field = prompt('Enter field name or choose:\n' + fields.join(', '));
-    if (field) {
-        var textarea = document.getElementById('smsContent');
-        textarea.value += field;
-        updatePreview();
-        updateCharCount();
-    }
+    openPersonalisationModal();
 }
 
 function insertTrackingUrl() {
-    var url = prompt('Enter URL to track:');
-    if (url) {
-        document.getElementById('smsContent').value += ' ' + url;
+    document.getElementById('includeTrackableLink').checked = true;
+    toggleTrackableLinkModal();
         updatePreview();
         updateCharCount();
     }

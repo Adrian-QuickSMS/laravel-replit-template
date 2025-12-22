@@ -1,0 +1,196 @@
+2.6 Content – SMS & Basic RCS (Text)
+Section Purpose
+This section defines how text-based message content is composed, personalised, validated, and enhanced for SMS and Basic RCS (text-only) delivery.
+It includes content editing, personalisation, encoding awareness, scheduling controls, and optional enhancements surfaced via toggles and pop-ups to minimise visual clutter.
+Rich RCS content (cards, images, buttons) is handled separately and is only available when Rich RCS with SMS fallback is selected.
+________________________________________
+Visibility Rules
+This section is visible when:
+•	SMS only is selected, or
+•	Basic RCS with SMS fallback is selected, or
+•	Rich RCS with SMS fallback is selected (for SMS fallback content)
+________________________________________
+2.6.1 Message Content Editor
+Input Control
+•	Field type: Multi-line text area
+•	Label (dynamic):
+o	SMS Content (SMS only)
+o	Message Content (Basic RCS with SMS fallback)
+o	SMS Fallback Content (Rich RCS with SMS fallback)
+•	Placeholder: Type your message here…
+________________________________________
+2.6.2 Channel-Aware Text Delivery Logic (Automatic)
+The system automatically determines whether the message is sent as SMS or Basic RCS (text) based on the selected channel and message length.
+Delivery Rules
+SMS only
+•	Message is always sent as SMS
+•	GSM / Unicode segmentation rules apply
+Basic RCS with SMS fallback
+•	Editor is text-only
+•	Delivery behaviour:
+o	Messages ≤160 characters may be sent as SMS
+o	Messages >160 characters are automatically delivered as a single Basic RCS text message where supported
+o	SMS is used as fallback if RCS is not supported on the recipient device
+•	No user action is required to enable this behaviour
+Helper text (inline or tooltip):
+“Messages over 160 characters will be automatically sent as a single RCS message where supported.”
+Rich RCS with SMS fallback
+•	This editor represents SMS fallback content only
+•	Rich RCS content is configured separately
+•	SMS segmentation rules apply to fallback messages
+________________________________________
+2.6.3 Mail Merge / Personalisation
+•	Control: Insert personalisation button within the editor toolbar
+•	Opens a pop-up listing available placeholders derived from:
+o	Contact Book fields
+o	CSV / Excel column mappings
+•	Examples:
+o	{{firstName}}
+o	{{appointmentDate}}
+o	{{customField_1}}
+•	Only fields available from selected recipient sources are shown
+•	Placeholders are inserted at the cursor position
+________________________________________
+2.6.4 Emoji Picker & Unicode Handling
+Emoji Picker
+•	Control: Emoji icon located in the bottom-right of the editor
+•	Opens emoji selection library
+•	Selected emoji is inserted at cursor position
+________________________________________
+Unicode Detection
+•	If any Unicode character (including emoji) is detected:
+o	Encoding switches to Unicode
+o	The triggering character is visually highlighted
+o	Unicode indicator is displayed next to the character counter
+•	Tooltip text:
+“This character causes the message to be sent using Unicode encoding.”
+________________________________________
+2.6.5 Character Set Detection & Counters
+The system automatically detects encoding based on content.
+Displayed Metrics (Real-Time)
+•	Characters: X
+•	Encoding: GSM-7 / Unicode
+•	Segments: Y (SMS only)
+________________________________________
+Segmentation Rules (SMS)
+GSM-7
+•	160 characters (single)
+•	153 characters per segment (concatenated)
+Unicode
+•	70 characters (single)
+•	67 characters per segment (concatenated)
+________________________________________
+Basic RCS Text Behaviour
+•	Basic RCS text messages are not segmented
+•	Character count remains visible for authoring clarity
+•	When content exceeds 160 characters under Basic RCS with SMS fallback:
+o	A helper label is shown:
+“This message will be delivered as a single RCS text message.”
+________________________________________
+2.6.6 Content Enhancements (Toggles Below Editor)
+Below the editor, a compact set of toggle options is displayed.
+Each toggle opens a modal or pop-up to keep the main page uncluttered.
+________________________________________
+A. Template Selection
+•	Control: Toggle – Use template
+When enabled:
+•	Opens a pop-up to select a predefined SMS / Basic RCS text template
+•	Templates respect:
+o	User permissions
+o	Channel compatibility
+•	Selected template populates the editor
+•	Content remains editable
+________________________________________
+B. Unique Trackable Shortened URL
+•	Control: Toggle – Include trackable link
+When enabled:
+•	Pop-up allows selection of short URL domain:
+o	Default: qsms.uk
+o	Customer-registered domains (if available)
+•	System generates a unique tracking URL per message
+•	URL may be:
+o	Auto-inserted at cursor position, or
+o	Inserted via placeholder
+•	Tracking metadata is stored for reporting and analytics
+________________________________________
+C. Schedule & Sending Rules
+•	Control: Toggle – Schedule & sending rules
+•	Opens configuration pop-up (see 2.6.7)
+________________________________________
+2.6.7 Schedule & Sending Rules (Pop-up)
+Schedule Campaign
+•	Control: Toggle – Schedule this campaign
+•	Default: OFF
+When OFF:
+•	Campaign is sent immediately after final confirmation (Screen 2)
+When ON:
+•	Show:
+o	Send Date – date picker (local timezone)
+o	Send Time – time picker (24-hour)
+•	Validation:
+o	Scheduled datetime must be in the future
+•	Stored in campaign configuration
+________________________________________
+Unsociable Hours
+•	Control: Toggle – Define unsociable hours
+•	Default: OFF
+When ON:
+•	Allowed sending window:
+o	From (time picker)
+o	To (time picker)
+Behaviour:
+•	Messages queued if outside window
+•	Sent at next allowable time
+Helper text:
+“Messages will not be sent between [To] and [From]. They will be queued and sent at the next allowable time.”
+Validation:
+•	From time must be earlier than To time
+________________________________________
+Message Validity
+Control
+•	Toggle: Set message validity period
+•	Default: OFF
+Purpose
+Defines how long the platform should attempt delivery before expiring the message.
+When OFF
+•	Default validity is applied:
+o	SMS: Operator default (typically 24–72 hours)
+o	RCS: Platform default (configurable, e.g. 24 hours)
+When ON
+•	Show fields:
+o	Validity Duration
+	Numeric input
+o	Unit selector
+	Minutes
+	Hours
+	Days
+Behaviour
+•	If a message cannot be delivered within the defined validity period:
+o	The message expires
+o	No further delivery attempts are made
+o	Final status is recorded as Expired
+•	Applies to:
+o	Queued messages
+o	Messages delayed by unsociable hours
+o	Temporary handset/network unavailability
+________________________________________
+6.8 AI Content Assistant
+•	Control: Button – Improve with AI
+Behaviour
+•	Opens a side panel or modal with options:
+o	Improve tone
+o	Shorten message
+o	Correct spelling & grammar
+o	Rephrase for clarity
+•	AI returns a suggested version
+User actions:
+•	Use this → replaces current content
+•	Cancel → no change
+Audit:
+•	AI usage is logged for analytics and compliance
+________________________________________
+2.6.9 Persistence & Validation
+•	Content is auto-saved in draft state
+•	All enhancements (templates, links, scheduling, personalisation) are persisted
+•	Channel-aware delivery rules are applied automatically
+•	Validation errors block progression to Screen 2

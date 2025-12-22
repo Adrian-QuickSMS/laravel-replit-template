@@ -1,273 +1,35 @@
 # QuickSMS Web Application
 
 ## Overview
-QuickSMS is a Laravel-based SMS messaging platform with a comprehensive navigation shell. The application extends the Fillow SaaS Admin template as the authoritative design system. Currently implemented is the navigation structure with placeholder pages for all modules.
+QuickSMS is a Laravel-based SMS messaging platform designed to provide a comprehensive messaging solution. It integrates a robust navigation shell and extends the Fillow SaaS Admin template as its authoritative design system. The project aims to offer a full suite of features for managing messages, contacts, reporting, purchasing, and account administration, with a strong focus on a modern and intuitive user interface. The ambition is to create a powerful, user-friendly platform for effective communication management.
 
-## Project Structure
-- `app/Http/Controllers/QuickSMSController.php` - Main controller with all page methods
-- `resources/views/layouts/quicksms.blade.php` - Thin wrapper extending Fillow default layout
-- `resources/views/layouts/default.blade.php` - Fillow template default layout
-- `resources/views/elements/quicksms-sidebar.blade.php` - QuickSMS navigation sidebar
-- `resources/views/quicksms/placeholder.blade.php` - Generic placeholder for all pages
-- `resources/views/quicksms/contacts/all-contacts.blade.php` - All Contacts page (implemented)
-- `resources/views/quicksms/contacts/lists.blade.php` - Lists page (implemented)
-- `resources/views/quicksms/contacts/tags.blade.php` - Tags page (implemented)
-- `resources/views/quicksms/contacts/opt-out-lists.blade.php` - Opt-Out Lists page (implemented)
-- `routes/web.php` - All route definitions
-- `database/` - Database (uses SQLite)
-- `public/` - Static assets (Fillow template CSS/JS)
+## User Preferences
+The user prefers detailed explanations when new concepts or features are introduced. The user wants the agent to prioritize developing the UI and front-end interactions before implementing backend logic. When making changes, the agent should clearly mark areas requiring backend integration with `TODO` comments. The user prefers an iterative development approach, focusing on completing one module's UI before moving to the next.
 
-## Architecture
-QuickSMS extends the Fillow template using Laravel's Blade template inheritance:
-1. `layouts.quicksms` extends `layouts.default` (Fillow's main layout)
-2. `layouts.quicksms` overrides the `sidebar` section with QuickSMS navigation
-3. Placeholder views extend `layouts.quicksms` and define `content` section
-4. All Fillow assets (CSS, JS, MetisMenu) are reused from the parent layout
+## System Architecture
+The application is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Template (Bootstrap 5) for its UI/UX foundation. MetisMenu provides responsive, collapsible sidebar navigation. The system architecture leverages Laravel's Blade templating engine for inheritance: `layouts.quicksms` extends `layouts.default` (Fillow's main layout) and overrides the sidebar with QuickSMS-specific navigation. All application pages then extend `layouts.quicksms`. The UI design emphasizes a consistent look and feel derived from the Fillow template, with custom components for specific functionalities like contact management, list creation, tag organization, and opt-out suppression.
 
-## Navigation Structure
-Top-level modules with sub-modules (all with dedicated routes):
-- **Dashboard** (/) - Main overview page
-- **Messages** (/messages) - Send Message, Inbox, Campaign History
-- **Contact Book** (/contacts) - All Contacts, Lists, Tags, Opt-Out Lists
-- **Reporting** (/reporting) - Dashboard, Message Log, Finance Data, Invoices, Download Area
-- **Purchase** (/purchase) - Credits and packages purchase
-- **Management** (/management) - RCS Agent Registrations, SMS SenderID Registration, Templates, API Connections, Email-to-SMS, Numbers
-- **Account** (/account) - Details, Users and Access, Sub Accounts, Audit Logs, Security Settings
-- **Support** (/support) - Dashboard, Create a Ticket, Knowledge Base
+Key UI/UX decisions include:
+- **Navigation:** A comprehensive, responsive sidebar with active route highlighting.
+- **Data Tables:** Standardized table patterns with client-side filtering, search, pagination, and bulk/row actions.
+- **Forms & Modals:** Consistent use of modals for creation, editing, and specific workflows (e.g., list creation wizard, import wizard, AI content assistant).
+- **Interactive Elements:** Features like mobile number masking, dynamic field validation, real-time character counting, and visual feedback for user actions.
+- **Content Editor:** An enhanced text editor with personalization, emoji picker, AI assistance, and channel-aware behavior (GSM-7/Unicode detection).
 
-## Placeholder Page Structure
-Each page displays only:
-- Page title
-- Purpose description
-- Sub-modules bullet list (for top-level modules with children)
-- "Coming Soon" panel
+Feature specifications include:
+- **Dashboard:** Main overview.
+- **Messages:** Send Message, Inbox, Campaign History.
+- **Contact Book:** All Contacts, Lists (Static & Dynamic), Tags, Opt-Out Lists.
+- **Reporting:** Dashboard, Message Log, Finance Data, Invoices, Download Area.
+- **Purchase:** Credits and packages.
+- **Management:** RCS Agent Registrations, SMS SenderID Registration, Templates, API Connections, Email-to-SMS, Numbers.
+- **Account:** Details, Users and Access, Sub Accounts, Audit Logs, Security Settings.
+- **Support:** Dashboard, Create a Ticket, Knowledge Base.
 
-## Running the Project
-```bash
-php artisan serve --host=0.0.0.0 --port=5000
-```
+The system uses an SQLite database for development, with a clear separation between UI implementation and planned backend API integrations.
 
-## Key Technologies
-- PHP 8.1+ / Laravel 10
-- Fillow SaaS Admin Template (Bootstrap 5)
-- MetisMenu (collapsible sidebar navigation)
-- SQLite database
-
-## Current Status
-- Navigation shell: Complete
-- All routes (8 top-level + 26 sub-modules): Implemented
-- All placeholder pages: Implemented
-- Responsive sidebar with expand/collapse: Implemented (MetisMenu)
-- Active route highlighting: Implemented
-- Fillow template integration: Complete
-- **All Contacts page: Implemented (UI only, mock data)**
-- **Lists page: Implemented (UI only, mock data)**
-- **Tags page: Implemented (UI only, mock data)**
-- **Opt-Out Lists page: Implemented (UI only, mock data)**
-- Business logic: Not yet implemented
-
-## All Contacts Page Features (UI Only)
-- Table with contact rows: checkbox, initials avatar, name, email, mobile (masked), tags, lists, status
-- Mobile number masking toggle (click to reveal/hide)
-- Search bar with client-side filtering
-- Collapsible filter panel (Status, Tags, Lists, Source, Date of Birth, Created Date)
-- Custom fields filter placeholder with info text
-- Bulk action bar with all spec actions (Add/Remove List, Add/Remove Tags, Send Message, Export, Delete)
-- Row action dropdown menu (View, Edit, Send Message, Timeline, Delete)
-- Pagination UI (static)
-- **TODO markers placed for:**
-  - Backend API integration (GET/PUT/DELETE /api/contacts endpoints)
-  - Database persistence
-  - Date range filter implementation
-  - Custom field filters (dynamic based on defined custom fields)
-  - Actual server-side filtering/sorting logic
-  - Contact CRUD operations with validation
-  - Send message functionality (integration with Messages module)
-  - Bulk actions (list management, tagging, export, delete)
-  - Activity timeline view
-  - Permission checks for delete operations
-
-## Lists Page Features (UI Only)
-- Tabbed interface: Static Lists and Dynamic Lists
-- **Static Lists:**
-  - Table with list name, description, contact count, created/updated dates
-  - Actions: View Contacts, Add Contacts, Rename, Delete
-  - 3-step Create List wizard: Name & Description → Add Contacts → Confirm
-  - Add contacts from Contact Book or via Filters
-  - Rename modal with name and description fields
-  - View contacts modal with remove functionality
-- **Dynamic Lists (Rule-Based):**
-  - Table with list name, rules display, contact count, last evaluated date
-  - Actions: View Contacts, Edit Rules, Refresh Now, Delete
-  - Create Dynamic List modal with rule builder
-  - Rule fields: Status, Tag, List, Created Date, Postcode, Source
-  - Rule operators: equals, not equals, contains, starts with, in last N days
-  - Add/remove rules dynamically
-  - Preview matching contacts
-- **TODO markers placed for:**
-  - Backend API integration (CRUD /api/lists endpoints)
-  - Database persistence for lists and list membership
-  - Dynamic list rule evaluation engine
-  - Scheduled re-indexing for dynamic lists
-  - Import/Campaign/API contact addition hooks
-
-## Tags Page Features (UI Only)
-- Purpose: Lightweight, flexible classification mechanism for contacts
-- Info banner: "Tags are labels, not audience definitions" (differentiates from Lists)
-- Table with: tag name (with color dot), contact count, source (Manual/Campaign/API), created date, last used date
-- Search bar with client-side filtering
-- Source filter dropdown (All, Manual, Campaign Auto-tag, API)
-- **Tag Management:**
-  - Create Tag modal with name, color picker, live preview
-  - Edit Tag modal for renaming and color change
-  - Merge Tag functionality (combine two tags)
-  - Delete Tag with contact count warning
-  - View tagged contacts modal with remove option
-- **Color System:**
-  - 10 predefined colors with visual picker
-  - Color dots displayed in table rows
-- **API Integration Section:**
-  - Apply tags: POST /api/contacts/{id}/tags
-  - Remove tags: DELETE /api/contacts/{id}/tags/{tag}
-  - Trigger campaigns: POST /api/campaigns/trigger?tag={tag}
-- **Local in-memory state** for validation demonstrations
-- **TODO markers placed for:**
-  - Backend API integration (CRUD /api/tags endpoints)
-  - Database persistence for tags and tag assignments
-  - Campaign-based auto-tagging integration
-  - API-driven tag management
-  - Tag usage analytics
-
-## Opt-Out Lists Page Features (UI Only)
-- Purpose: Centralised suppression management with brand-level flexibility
-- Tabbed interface: Manage Lists, View Opt-Outs, API Integration
-- **Manage Lists Tab:**
-  - Master Opt-Out List (global suppression, cannot be deleted)
-  - Secondary Opt-Out Lists (brand/campaign-specific)
-  - Table with: list name, description, opt-out count, created/updated dates
-  - Actions: View Opt-Outs, Export, Import, Rename (secondary only), Delete (secondary only)
-  - Create Opt-Out List modal with name and description
-  - Rename modal for secondary lists
-- **View Opt-Outs Tab:**
-  - Table with: checkbox, mobile (masked), source, timestamp, campaign ref, list
-  - Mobile number masking toggle (click to reveal/hide)
-  - Search bar with client-side filtering
-  - Filter by source (SMS Reply, URL Click, API, Manual)
-  - Filter by list
-  - Source badges with icons (SMS Reply=info, URL Click=success, API=secondary, Manual=warning)
-  - Bulk action bar (Move to List, Export Selected, Remove Selected)
-  - Row actions: View History, Move to List, Remove
-  - Add Opt-Out modal with mobile, list, source, campaign ref fields
-  - Mobile number validation (international format)
-  - Duplicate detection (in-memory validation)
-- **Import Flow (3-step wizard):**
-  - Step 1: Upload File - select target list, CSV/Excel upload
-  - Excel zero-strip detection with correction option
-  - Step 2: Map Columns - detected column mapping UI
-  - Step 3: Confirm - validation summary (total, valid, duplicates, invalid)
-  - De-duplication and UK format normalization indicators
-- **Export Modal:**
-  - Format selection (CSV/Excel)
-  - Field selection (Mobile, Source, Timestamp, Campaign Reference)
-- **API Integration Tab:**
-  - Opt-Out List Management: POST/PUT/DELETE /api/opt-out-lists
-  - Opt-Out Management: POST/DELETE /api/opt-outs
-  - Check opt-out status: GET /api/opt-outs/check
-  - Bulk import: POST /api/opt-outs/bulk
-- **Captured Metadata (Mandatory):**
-  - Mobile number
-  - Opt-out source (sms_reply, url_click, api, manual)
-  - Timestamp
-  - Campaign reference (optional)
-- **Local in-memory state** for validation demonstrations
-- **TODO markers placed for:**
-  - Backend API integration (CRUD /api/opt-out-lists, /api/opt-outs endpoints)
-  - Database persistence for opt-out lists and opt-out records
-  - Streaming/chunked import for millions of rows
-  - Audit logging for all opt-out changes
-  - Integration with campaign sending (suppression checks)
-
-## Send Message Page Features (UI Only)
-- **6-section single-screen layout** with individual cards and uniform gaps
-- **Section 1: Campaign Details**
-  - Optional campaign name field (auto-generates if blank: "Campaign - YYYY-MM-DD HH:mm")
-- **Section 2: Channel & Sender**
-  - Button group toggle: SMS only / Basic RCS / Rich RCS (with tooltips)
-  - SMS Sender ID dropdown (shows when SMS or RCS selected)
-  - RCS Agent dropdown (shows for Basic/Rich RCS only)
-  - Rich RCS content section (card title, image, description, buttons)
-- **Section 3: Recipients**
-  - UK only toggle with modal confirmation for international mode
-  - Three input methods via tabs: Manual, Upload, Contact Book
-  - **Manual Input:**
-    - Multi-line textarea for paste/type numbers
-    - Automatic UK format normalization (07xxx → +447xxx)
-    - Validation feedback (valid/invalid counts with review link)
-  - **File Upload:**
-    - CSV/Excel file support with progress indicator
-    - Column Mapping modal with header detection
-    - Excel zero-strip detection and correction
-    - Sample data preview in mapping table
-  - **Contact Book:**
-    - Full modal with 4 tabs: Contacts, Lists, Dynamic Lists, Tags
-    - Search, sort, and filter capabilities
-    - Multi-select with selection summary
-    - Selection chips with remove functionality
-  - **Recipient Summary:**
-    - Unique/Valid/Invalid count display
-    - Review link for invalid numbers
-    - Invalid Numbers modal with downloadable CSV
-- **Section 4: Content**
-  - Template selector dropdown
-  - Message textarea with character/part counter
-  - Merge field and tracking URL insertion
-  - Scheduling: Now/Later with datetime picker
-  - RCS content fields (title, image, description, buttons)
-- **Section 5: Opt-outs**
-  - Master Opt-Out List (required, always applied)
-  - Additional opt-out list checkboxes
-  - Excluded count display
-- **Section 6: Preview (sticky sidebar)**
-  - SMS/RCS preview toggle
-  - Phone mockup with message bubble
-  - Channel, Recipients, Cost summary
-  - Save Draft and Continue buttons
-- **TODO markers placed for:**
-  - Backend API integration (POST /api/campaigns, /api/messages)
-  - File upload processing (streaming for large files)
-  - Contact Book resolution to actual phone numbers
-  - Opt-out list exclusion calculation
-  - Cost estimation based on channel and message parts
-  - Draft saving functionality
-  - Navigation to confirmation screen
-
-## Recent Changes
-- December 22, 2025: Implemented Send Message page Recipients section
-  - Enhanced Manual Input with UK numbers toggle and validation feedback
-  - Added File Upload with column mapping modal and Excel zero-strip detection
-  - Created Contact Book selector modal with 4 tabs
-  - Added Recipient Summary panel with valid/invalid counts
-- December 22, 2025: Implemented Opt-Out Lists page UI
-  - Created opt-out-lists.blade.php with Master and Secondary lists structure
-  - Added mock opt-out data with all metadata (mobile, source, timestamp, campaign ref)
-  - Implemented three-tab interface: Manage Lists, View Opt-Outs, API Integration
-  - 3-step import wizard with Excel zero-strip detection
-  - Export modal with format and field selection
-  - Search, filter by source and list, bulk actions
-  - Mobile number masking and validation
-  - All actions have TODO markers for future backend integration
-- December 22, 2025: Implemented All Contacts page UI
-  - Created all-contacts.blade.php with Fillow table patterns
-  - Added mock contact data in controller
-  - Implemented client-side search, checkbox selection, mobile masking
-  - Added bulk action bar and row action menus
-  - All actions have TODO markers for future backend integration
-- December 22, 2025: Refactored to extend Fillow template
-  - QuickSMS layout now properly extends layouts.default
-  - Created dedicated quicksms-sidebar.blade.php using MetisMenu
-  - All pages use Fillow styling and asset pipeline
-  - Disabled preloader for better development experience
-- December 22, 2025: Initial QuickSMS navigation shell
-  - Created QuickSMSController with all placeholder methods
-  - Added dedicated routes for all top-level modules
-  - All pages follow strict placeholder-only pattern
+## External Dependencies
+- **PHP 8.1+ / Laravel 10:** Core backend framework.
+- **Fillow SaaS Admin Template:** UI framework based on Bootstrap 5.
+- **MetisMenu:** JavaScript library for collapsible sidebar navigation.
+- **SQLite:** Database for local development.
