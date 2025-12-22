@@ -1,4 +1,4 @@
-modules = ["php-8.1", "nodejs-20"]
+modules = ["php-8.3", "nodejs-20"]
 [agent]
 expertMode = true
 
