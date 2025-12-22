@@ -133,11 +133,19 @@
                                             <label class="form-check-label" for="checkAll"></label>
                                         </div>
                                     </th>
-                                    <th>Contact</th>
+                                    <th class="sortable" data-sort="contact" style="cursor: pointer;">
+                                        Contact <i class="fas fa-sort ms-1 text-muted"></i>
+                                    </th>
                                     <th>Mobile Number</th>
-                                    <th>Tags</th>
-                                    <th>Lists</th>
-                                    <th>Status</th>
+                                    <th class="sortable" data-sort="tags" style="cursor: pointer;">
+                                        Tags <i class="fas fa-sort ms-1 text-muted"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="lists" style="cursor: pointer;">
+                                        Lists <i class="fas fa-sort ms-1 text-muted"></i>
+                                    </th>
+                                    <th class="sortable" data-sort="status" style="cursor: pointer;">
+                                        Status <i class="fas fa-sort ms-1 text-muted"></i>
+                                    </th>
                                     <th style="width: 50px;"></th>
                                 </tr>
                             </thead>
@@ -301,6 +309,156 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = this.textContent === masked ? full : masked;
         });
     });
+
+    // Sorting functionality
+    var currentSort = { column: null, direction: 'asc' };
+    
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', function() {
+            const sortKey = this.dataset.sort;
+            const icon = this.querySelector('i');
+            
+            // Reset all icons
+            document.querySelectorAll('.sortable i').forEach(i => {
+                i.className = 'fas fa-sort ms-1 text-muted';
+            });
+            
+            // Determine direction
+            if (currentSort.column === sortKey) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = sortKey;
+                currentSort.direction = 'asc';
+            }
+            
+            // Update icon
+            icon.className = currentSort.direction === 'asc' 
+                ? 'fas fa-sort-up ms-1 text-primary' 
+                : 'fas fa-sort-down ms-1 text-primary';
+            
+            // Sort the data
+            var sortedContacts = [...contactsData].sort((a, b) => {
+                let valA, valB;
+                
+                switch(sortKey) {
+                    case 'contact':
+                        valA = (a.first_name + ' ' + a.last_name).toLowerCase();
+                        valB = (b.first_name + ' ' + b.last_name).toLowerCase();
+                        break;
+                    case 'tags':
+                        valA = a.tags.length;
+                        valB = b.tags.length;
+                        break;
+                    case 'lists':
+                        valA = a.lists.length;
+                        valB = b.lists.length;
+                        break;
+                    case 'status':
+                        valA = a.status;
+                        valB = b.status;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Re-render table
+            renderContactsTable(sortedContacts);
+        });
+    });
+    
+    function renderContactsTable(contacts) {
+        const tbody = document.getElementById('contactsTableBody');
+        tbody.innerHTML = contacts.map(contact => `
+            <tr class="btn-reveal-trigger" data-contact-id="${contact.id}">
+                <td class="py-2">
+                    <div class="form-check custom-checkbox">
+                        <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox${contact.id}">
+                        <label class="form-check-label" for="checkbox${contact.id}"></label>
+                    </div>
+                </td>
+                <td class="py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
+                            ${contact.initials}
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fs-6">${contact.first_name} ${contact.last_name}</h6>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-2">
+                    <span class="mobile-number" data-full="${contact.mobile}" data-masked="${contact.mobile_masked}" style="cursor: pointer;" title="Click to toggle masking">
+                        ${contact.mobile_masked}
+                    </span>
+                </td>
+                <td class="py-2">
+                    ${contact.tags.map(tag => `<span class="badge bg-light text-dark border me-1">${tag}</span>`).join('')}
+                </td>
+                <td class="py-2">
+                    ${contact.lists.map(list => `<span class="badge bg-info text-white me-1">${list}</span>`).join('')}
+                </td>
+                <td class="py-2">
+                    ${contact.status === 'active' 
+                        ? '<span class="badge bg-success">Active</span>' 
+                        : '<span class="badge bg-danger">Opted Out</span>'}
+                </td>
+                <td class="py-2 text-end">
+                    <div class="dropdown">
+                        <button class="btn btn-primary tp-btn-light sharp" type="button" data-bs-toggle="dropdown">
+                            <span class="fs--1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 24 24">
+                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <rect x="0" y="0" width="24" height="24"></rect>
+                                        <circle fill="#000000" cx="5" cy="12" r="2"></circle>
+                                        <circle fill="#000000" cx="12" cy="12" r="2"></circle>
+                                        <circle fill="#000000" cx="19" cy="12" r="2"></circle>
+                                    </g>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end border py-0">
+                            <div class="py-2">
+                                <a class="dropdown-item" href="#!" onclick="viewContact(${contact.id}); return false;">
+                                    <i class="fas fa-eye me-2 text-primary"></i> View Details
+                                </a>
+                                <a class="dropdown-item" href="#!" onclick="editContact(${contact.id}); return false;">
+                                    <i class="fas fa-edit me-2 text-info"></i> Edit
+                                </a>
+                                <a class="dropdown-item" href="#!" onclick="sendMessage(${contact.id}); return false;">
+                                    <i class="fas fa-paper-plane me-2 text-success"></i> Send Message
+                                </a>
+                                <a class="dropdown-item" href="#!" onclick="viewTimeline(${contact.id}); return false;">
+                                    <i class="fas fa-history me-2 text-secondary"></i> Activity Timeline
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger" href="#!" onclick="deleteContact(${contact.id}); return false;">
+                                    <i class="fas fa-trash me-2"></i> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Re-attach event listeners
+        document.querySelectorAll('.contact-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBulkActionBar);
+        });
+        
+        document.querySelectorAll('.mobile-number').forEach(el => {
+            el.addEventListener('click', function() {
+                const full = this.dataset.full;
+                const masked = this.dataset.masked;
+                this.textContent = this.textContent === masked ? full : masked;
+            });
+        });
+    }
 });
 
 function viewContact(id) {
