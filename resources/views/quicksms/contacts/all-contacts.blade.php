@@ -14,22 +14,37 @@
     
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                    <h4 class="card-title mb-2 mb-md-0">All Contacts</h4>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterPanel">
-                            <i class="fas fa-filter me-1"></i> Filters
-                        </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importContactsModal">
-                            <i class="fas fa-file-import me-1"></i> Import
-                        </button>
-                        <button type="button" class="btn btn-primary btn-sm" id="btnAddContact" data-bs-toggle="modal" data-bs-target="#addContactModal">
-                            <i class="fas fa-plus me-1"></i> Add Contact
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
+            <ul class="nav nav-tabs" id="contactsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="manage-contacts-tab" data-bs-toggle="tab" data-bs-target="#manage-contacts" type="button" role="tab">
+                        <i class="fas fa-users me-2"></i>Manage Contacts <span class="badge bg-primary ms-1">{{ count($contacts) }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="contacts-api-tab" data-bs-toggle="tab" data-bs-target="#contacts-api" type="button" role="tab">
+                        <i class="fas fa-code me-2"></i>API Integration
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="contactsTabContent">
+                <div class="tab-pane fade show active" id="manage-contacts" role="tabpanel">
+                    <div class="card border-top-0 rounded-top-0">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <h5 class="card-title mb-2 mb-md-0">All Contacts</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importContactsModal">
+                                    <i class="fas fa-file-import me-1"></i> Import
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" id="btnAddContact" data-bs-toggle="modal" data-bs-target="#addContactModal">
+                                    <i class="fas fa-plus me-1"></i> Add Contact
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
                     <div class="mb-3">
                         <div class="input-group">
                             <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
@@ -264,6 +279,112 @@
                                 </li>
                             </ul>
                         </nav>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="contacts-api" role="tabpanel">
+                    <div class="card border-top-0 rounded-top-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">API Integration</h5>
+                            <small class="text-muted">Manage contacts programmatically via the API</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Use these API endpoints to create, update, and manage contacts from external systems, CRMs, or automation workflows.
+                            </div>
+                            
+                            <h6 class="mb-3"><i class="fas fa-user me-2"></i>Contact Management</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-user-plus text-success me-2"></i>Create a Contact</h6>
+                                        <p class="small text-muted mb-2">Add a new contact to the system</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/contacts</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "name": "John Smith",
+  "mobile": "+447700900123",
+  "email": "john@example.com",
+  "tags": ["customer"],
+  "lists": ["marketing"]
+}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-user-edit text-primary me-2"></i>Update a Contact</h6>
+                                        <p class="small text-muted mb-2">Modify an existing contact's details</p>
+                                        <code class="small d-block bg-light p-2 rounded">PUT /api/contacts/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "name": "John Smith Jr",
+  "email": "john.jr@example.com",
+  "status": "active"
+}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-user-minus text-danger me-2"></i>Remove Contact</h6>
+                                        <p class="small text-muted mb-2">Delete a contact from the system</p>
+                                        <code class="small d-block bg-light p-2 rounded">DELETE /api/contacts/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Returns: <code>204 No Content</code></p>
+                                        <p class="small text-muted mb-0">Note: This action is permanent and cannot be undone.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-search text-info me-2"></i>Get Contact Details</h6>
+                                        <p class="small text-muted mb-2">Retrieve a single contact by ID</p>
+                                        <code class="small d-block bg-light p-2 rounded">GET /api/contacts/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Returns: Contact object with all fields</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="mb-3 mt-4"><i class="fas fa-sliders-h me-2"></i>Custom Field Management</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-plus-square text-success me-2"></i>Add Custom Field</h6>
+                                        <p class="small text-muted mb-2">Define a new custom field</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/custom-fields</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "name": "Company",
+  "type": "text",
+  "required": false
+}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-edit text-primary me-2"></i>Edit Custom Field</h6>
+                                        <p class="small text-muted mb-2">Update custom field properties</p>
+                                        <code class="small d-block bg-light p-2 rounded">PUT /api/custom-fields/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "name": "Company Name",
+  "required": true
+}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-minus-square text-danger me-2"></i>Remove Custom Field</h6>
+                                        <p class="small text-muted mb-2">Delete a custom field definition</p>
+                                        <code class="small d-block bg-light p-2 rounded">DELETE /api/custom-fields/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Returns: <code>204 No Content</code></p>
+                                        <p class="small text-muted mb-0">Warning: Removes field from all contacts.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
