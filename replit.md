@@ -10,6 +10,7 @@ QuickSMS is a Laravel-based SMS messaging platform with a comprehensive navigati
 - `resources/views/elements/quicksms-sidebar.blade.php` - QuickSMS navigation sidebar
 - `resources/views/quicksms/placeholder.blade.php` - Generic placeholder for all pages
 - `resources/views/quicksms/contacts/all-contacts.blade.php` - All Contacts page (implemented)
+- `resources/views/quicksms/contacts/lists.blade.php` - Lists page (implemented)
 - `routes/web.php` - All route definitions
 - `database/` - Database (uses SQLite)
 - `public/` - Static assets (Fillow template CSS/JS)
@@ -58,6 +59,7 @@ php artisan serve --host=0.0.0.0 --port=5000
 - Active route highlighting: Implemented
 - Fillow template integration: Complete
 - **All Contacts page: Implemented (UI only, mock data)**
+- **Lists page: Implemented (UI only, mock data)**
 - Business logic: Not yet implemented
 
 ## All Contacts Page Features (UI Only)
@@ -80,6 +82,30 @@ php artisan serve --host=0.0.0.0 --port=5000
   - Bulk actions (list management, tagging, export, delete)
   - Activity timeline view
   - Permission checks for delete operations
+
+## Lists Page Features (UI Only)
+- Tabbed interface: Static Lists and Dynamic Lists
+- **Static Lists:**
+  - Table with list name, description, contact count, created/updated dates
+  - Actions: View Contacts, Add Contacts, Rename, Delete
+  - 3-step Create List wizard: Name & Description → Add Contacts → Confirm
+  - Add contacts from Contact Book or via Filters
+  - Rename modal with name and description fields
+  - View contacts modal with remove functionality
+- **Dynamic Lists (Rule-Based):**
+  - Table with list name, rules display, contact count, last evaluated date
+  - Actions: View Contacts, Edit Rules, Refresh Now, Delete
+  - Create Dynamic List modal with rule builder
+  - Rule fields: Status, Tag, List, Created Date, Postcode, Source
+  - Rule operators: equals, not equals, contains, starts with, in last N days
+  - Add/remove rules dynamically
+  - Preview matching contacts
+- **TODO markers placed for:**
+  - Backend API integration (CRUD /api/lists endpoints)
+  - Database persistence for lists and list membership
+  - Dynamic list rule evaluation engine
+  - Scheduled re-indexing for dynamic lists
+  - Import/Campaign/API contact addition hooks
 
 ## Recent Changes
 - December 22, 2025: Implemented All Contacts page UI

@@ -200,10 +200,103 @@ class QuickSMSController extends Controller
 
     public function lists()
     {
-        return view('quicksms.placeholder', [
+        // TODO: Fetch lists from database via API
+        $static_lists = [
+            [
+                'id' => 1,
+                'name' => 'Marketing',
+                'description' => 'Main marketing campaign recipients',
+                'type' => 'static',
+                'contact_count' => 1247,
+                'created_at' => '2024-10-15',
+                'updated_at' => '2024-12-20',
+            ],
+            [
+                'id' => 2,
+                'name' => 'Promotions',
+                'description' => 'Customers interested in special offers',
+                'type' => 'static',
+                'contact_count' => 856,
+                'created_at' => '2024-09-22',
+                'updated_at' => '2024-12-18',
+            ],
+            [
+                'id' => 3,
+                'name' => 'Updates',
+                'description' => 'Product and service updates subscribers',
+                'type' => 'static',
+                'contact_count' => 2103,
+                'created_at' => '2024-08-10',
+                'updated_at' => '2024-12-21',
+            ],
+            [
+                'id' => 4,
+                'name' => 'Newsletter',
+                'description' => 'Monthly newsletter recipients',
+                'type' => 'static',
+                'contact_count' => 3421,
+                'created_at' => '2024-07-05',
+                'updated_at' => '2024-12-19',
+            ],
+        ];
+
+        $dynamic_lists = [
+            [
+                'id' => 101,
+                'name' => 'New Contacts (30 days)',
+                'description' => 'Contacts added in the last 30 days',
+                'type' => 'dynamic',
+                'rules' => [
+                    ['field' => 'created_date', 'operator' => 'last_n_days', 'value' => '30']
+                ],
+                'contact_count' => 89,
+                'created_at' => '2024-11-01',
+                'last_evaluated' => '2024-12-22',
+            ],
+            [
+                'id' => 102,
+                'name' => 'Active VIPs',
+                'description' => 'VIP tagged contacts with active status',
+                'type' => 'dynamic',
+                'rules' => [
+                    ['field' => 'tag', 'operator' => 'contains', 'value' => 'VIP'],
+                    ['field' => 'status', 'operator' => 'equals', 'value' => 'Active']
+                ],
+                'contact_count' => 156,
+                'created_at' => '2024-10-20',
+                'last_evaluated' => '2024-12-22',
+            ],
+            [
+                'id' => 103,
+                'name' => 'London Area',
+                'description' => 'Contacts with London postcodes',
+                'type' => 'dynamic',
+                'rules' => [
+                    ['field' => 'postcode', 'operator' => 'starts_with', 'value' => 'L']
+                ],
+                'contact_count' => 421,
+                'created_at' => '2024-09-15',
+                'last_evaluated' => '2024-12-22',
+            ],
+        ];
+
+        // TODO: Fetch contacts from database for adding to lists
+        $available_contacts = [
+            ['id' => 1, 'name' => 'Emma Thompson', 'mobile' => '+44 7700 900123'],
+            ['id' => 2, 'name' => 'James Wilson', 'mobile' => '+44 7700 900456'],
+            ['id' => 3, 'name' => 'Sarah Mitchell', 'mobile' => '+44 7700 900789'],
+            ['id' => 4, 'name' => 'Michael Brown', 'mobile' => '+44 7700 900321'],
+            ['id' => 5, 'name' => 'Lisa Anderson', 'mobile' => '+44 7700 900654'],
+        ];
+
+        $available_tags = ['VIP', 'Newsletter', 'Customer', 'Partner'];
+
+        return view('quicksms.contacts.lists', [
             'page_title' => 'Lists',
-            'purpose' => 'Organize contacts into distribution lists for targeted messaging.',
-            'sub_modules' => []
+            'static_lists' => $static_lists,
+            'dynamic_lists' => $dynamic_lists,
+            'available_contacts' => $available_contacts,
+            'available_tags' => $available_tags,
         ]);
     }
 
