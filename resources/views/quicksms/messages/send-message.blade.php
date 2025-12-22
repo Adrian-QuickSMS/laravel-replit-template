@@ -1179,9 +1179,6 @@ function insertMergeField() {
 function insertTrackingUrl() {
     document.getElementById('includeTrackableLink').checked = true;
     toggleTrackableLinkModal();
-        updatePreview();
-        updateCharCount();
-    }
 }
 
 function addRcsButton() {
