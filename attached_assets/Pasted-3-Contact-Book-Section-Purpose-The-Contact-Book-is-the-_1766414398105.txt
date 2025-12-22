@@ -1,0 +1,162 @@
+3. Contact Book
+Section Purpose
+The Contact Book is the central source of truth for all recipient data across the platform.
+It is consumed by:
+•	Send Message / Campaigns
+•	Message Inbox (conversation history)
+•	Templates (personalisation and send to list)
+•	Email-to-SMS (Send to contact group)
+•	Public & private APIs
+All data models and actions must be consistent, reusable, and auditable.
+________________________________________
+3.1 Contact Data Model (Core)
+Required Fields
+•	Mobile Number (E.164 preferred)
+•	Status:
+o	Active
+o	Opted Out
+Default System Fields
+These exist for all accounts and are filterable, sortable, and usable in templates:
+•	First Name
+•	Last Name
+•	Email
+•	Date of Birth
+•	Postcode
+•	City / Town
+•	Country
+•	Created Date
+•	Last Updated Date
+•	Source (UI / Import / API / Email-to-SMS)
+These defaults avoid over-reliance on custom fields for common segmentation.
+________________________________________
+Custom Fields
+Users can create additional fields.
+Field definition requires:
+•	Field name
+•	Field type:
+o	Text
+o	Number
+o	Date
+o	Boolean
+o	Enum (dropdown)
+•	Optional description
+Behaviour:
+•	Custom fields become:
+o	Searchable
+o	Filterable
+o	Sortable (where appropriate)
+o	Available for templates and mail merge
+•	Field type determines:
+o	Validation
+o	Filter operators
+o	UI control (date picker, numeric range, etc.)
+________________________________________
+3.2 All Contacts Screen
+Purpose
+Primary view for managing individual contacts.
+________________________________________
+3.2.1 Table Layout
+Each row displays:
+•	Selection checkbox
+•	Initials circle (auto-generated)
+•	Full name
+•	Mobile number
+o	Optional partial masking toggle (e.g. +44779****234)
+•	Tags (pill-style)
+•	Lists membership
+•	Status:
+o	Active
+o	Opted Out
+•	Overflow menu (⋯)
+________________________________________
+3.2.2 Row Actions (⋯ Menu)
+•	View contact details
+•	Edit contact
+•	Send message
+•	View activity timeline
+•	Delete contact (permission controlled)
+________________________________________
+3.2.3 Bulk Actions (Footer Action Bar)
+Appears when ≥1 contact selected.
+Actions:
+•	Add to list
+•	Remove from list
+•	Add / remove tags
+•	Send message
+•	Export
+•	Delete
+________________________________________
+3.2.4 Search, Filter & Sort
+Global Search
+•	Searches across:
+o	Name
+o	Mobile
+o	Email
+o	Tags
+o	Lists
+o	All custom fields
+•	Partial match
+•	Case-insensitive
+•	Debounced
+Helper text:
+“Search across names, numbers, tags, lists, and custom fields”
+________________________________________
+Filters (Collapsible Panel)
+•	Status (Active / Opted Out)
+•	Tags (multi-select)
+•	Lists
+•	Date of Birth (range)
+•	Created Date
+•	Custom fields (type-aware)
+•	Source
+Applied filters shown as removable chips.
+________________________________________
+Sorting
+Sortable by:
+•	First Name
+•	Last Name
+•	Date of Birth
+•	Created Date
+•	Last Contacted
+•	Mobile Number
+________________________________________
+3.2.5 Send Message Behaviour (Key Improvement)
+From:
+•	Individual contact
+•	Multi-select contacts
+•	List
+•	Dynamic list
+•	Tag selection
+Action: Send Message
+Behaviour:
+•	Launches Send Message / Campaign screen
+•	Pre-populates:
+o	Recipients section with selected entities
+•	User continues standard campaign flow
+•	Optional confirmation modal:
+“You are about to start a campaign to 432 recipients”
+________________________________________
+3.3 Contact Detail View
+Purpose
+Single source of truth for an individual recipient.
+________________________________________
+Includes
+•	Contact fields (system + custom)
+•	Tags
+•	Lists
+•	Opt-out status
+•	Activity timeline:
+o	Campaigns sent
+o	Replies received
+o	Opt-out events
+o	Tag/list changes
+________________________________________
+3.4 Lists & Segments
+Navigation Model (Clarified)
+Sidebar:
+•	Contact Book
+o	All Contacts
+o	Lists
+o	Tags
+o	Opt-out Lists
+Removes confusion between “Smart Segments” and “Dynamic Lists”.
