@@ -302,15 +302,76 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAll.indeterminate = checkedCount > 0 && !allChecked;
     }
 
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#contactsTableBody tr');
+    searchInput.addEventListener('input', applyFilters);
+
+    // Filter elements
+    const filterStatus = document.getElementById('filterStatus');
+    const filterTags = document.getElementById('filterTags');
+    const filterLists = document.getElementById('filterLists');
+    const filterSource = document.getElementById('filterSource');
+    
+    filterStatus.addEventListener('change', applyFilters);
+    filterTags.addEventListener('change', applyFilters);
+    filterLists.addEventListener('change', applyFilters);
+    filterSource.addEventListener('change', applyFilters);
+    
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusFilter = filterStatus.value;
+        const tagsFilter = filterTags.value;
+        const listsFilter = filterLists.value;
+        const sourceFilter = filterSource.value;
         
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        var filteredContacts = contactsData.filter(contact => {
+            // Search filter
+            const searchMatch = searchTerm === '' || 
+                (contact.first_name + ' ' + contact.last_name).toLowerCase().includes(searchTerm) ||
+                contact.mobile.includes(searchTerm) ||
+                contact.tags.some(t => t.toLowerCase().includes(searchTerm)) ||
+                contact.lists.some(l => l.toLowerCase().includes(searchTerm));
+            
+            // Status filter
+            const statusMatch = statusFilter === '' || contact.status === statusFilter;
+            
+            // Tags filter
+            const tagsMatch = tagsFilter === '' || contact.tags.includes(tagsFilter);
+            
+            // Lists filter
+            const listsMatch = listsFilter === '' || contact.lists.includes(listsFilter);
+            
+            // Source filter
+            const sourceMatch = sourceFilter === '' || contact.source === sourceFilter;
+            
+            return searchMatch && statusMatch && tagsMatch && listsMatch && sourceMatch;
         });
-    });
+        
+        renderContactsTable(filteredContacts);
+        updateActiveFilters();
+    }
+    
+    function updateActiveFilters() {
+        const activeFiltersDiv = document.getElementById('activeFilters');
+        let badges = [];
+        
+        if (filterStatus.value) {
+            badges.push(`<span class="badge bg-primary me-1">Status: ${filterStatus.options[filterStatus.selectedIndex].text} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterStatus')"></i></span>`);
+        }
+        if (filterTags.value) {
+            badges.push(`<span class="badge bg-primary me-1">Tag: ${filterTags.value} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterTags')"></i></span>`);
+        }
+        if (filterLists.value) {
+            badges.push(`<span class="badge bg-primary me-1">List: ${filterLists.value} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterLists')"></i></span>`);
+        }
+        if (filterSource.value) {
+            badges.push(`<span class="badge bg-primary me-1">Source: ${filterSource.value} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterSource')"></i></span>`);
+        }
+        
+        if (badges.length > 0) {
+            badges.push(`<a href="#!" class="small text-danger ms-2" onclick="clearAllFilters(); return false;"><i class="fas fa-times-circle me-1"></i>Clear All</a>`);
+        }
+        
+        activeFiltersDiv.innerHTML = badges.join('');
+    }
 
     document.querySelectorAll('.mobile-number').forEach(el => {
         el.style.cursor = 'pointer';
@@ -322,6 +383,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function clearFilter(filterId) {
+    document.getElementById(filterId).value = '';
+    document.getElementById(filterId).dispatchEvent(new Event('change'));
+}
+
+function clearAllFilters() {
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterTags').value = '';
+    document.getElementById('filterLists').value = '';
+    document.getElementById('filterSource').value = '';
+    document.getElementById('contactSearch').value = '';
+    document.getElementById('filterStatus').dispatchEvent(new Event('change'));
+}
 
 function sortContacts(sortKey, direction) {
     var sortedContacts = [...contactsData].sort((a, b) => {
