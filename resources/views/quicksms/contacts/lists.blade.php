@@ -25,6 +25,11 @@
                         <i class="fas fa-magic me-2"></i>Dynamic Lists <span class="badge bg-info ms-1">{{ count($dynamic_lists) }}</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="lists-api-tab" data-bs-toggle="tab" data-bs-target="#lists-api" type="button" role="tab">
+                        <i class="fas fa-code me-2"></i>API Integration
+                    </button>
+                </li>
             </ul>
             
             <div class="tab-content" id="listsTabContent">
@@ -172,6 +177,91 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="lists-api" role="tabpanel">
+                    <div class="card border-top-0 rounded-top-0">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">API Integration</h5>
+                            <small class="text-muted">Manage lists programmatically via the API</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Use these API endpoints to create, update, and manage lists and list membership from external systems, CRMs, or automation workflows.
+                            </div>
+                            
+                            <h6 class="mb-3"><i class="fas fa-list me-2"></i>List Management</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-plus-circle text-success me-2"></i>Add List</h6>
+                                        <p class="small text-muted mb-2">Create a new static list</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/lists</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "name": "Marketing List",
+  "description": "Monthly newsletter subscribers",
+  "type": "static"
+}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-edit text-primary me-2"></i>Edit List</h6>
+                                        <p class="small text-muted mb-2">Update list name or description</p>
+                                        <code class="small d-block bg-light p-2 rounded">PUT /api/lists/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "name": "Updated List Name",
+  "description": "New description"
+}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-trash text-danger me-2"></i>Delete List</h6>
+                                        <p class="small text-muted mb-2">Remove a list from the system</p>
+                                        <code class="small d-block bg-light p-2 rounded">DELETE /api/lists/{id}</code>
+                                        <p class="small text-muted mt-2 mb-0">Returns: <code>204 No Content</code></p>
+                                        <p class="small text-muted mb-0">Note: This removes the list but does not delete contacts.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="mb-3 mt-4"><i class="fas fa-user-plus me-2"></i>List Membership</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-user-plus text-success me-2"></i>Add Contacts to List</h6>
+                                        <p class="small text-muted mb-2">Add one or more contacts to a list</p>
+                                        <code class="small d-block bg-light p-2 rounded">POST /api/lists/{id}/contacts</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "contact_ids": [1, 2, 3, 4, 5]
+}</pre>
+                                        <p class="small text-muted mt-2 mb-0">Alternative - add by mobile:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "mobiles": ["+447700900123", "+447700900456"]
+}</pre>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6><i class="fas fa-user-minus text-danger me-2"></i>Remove Contacts from List</h6>
+                                        <p class="small text-muted mb-2">Remove one or more contacts from a list</p>
+                                        <code class="small d-block bg-light p-2 rounded">DELETE /api/lists/{id}/contacts</code>
+                                        <p class="small text-muted mt-2 mb-0">Body:</p>
+                                        <pre class="small bg-light p-2 rounded mb-0">{
+  "contact_ids": [1, 2, 3]
+}</pre>
+                                        <p class="small text-muted mt-2 mb-0">Or remove single contact:</p>
+                                        <code class="small d-block bg-light p-2 rounded">DELETE /api/lists/{id}/contacts/{contact_id}</code>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
