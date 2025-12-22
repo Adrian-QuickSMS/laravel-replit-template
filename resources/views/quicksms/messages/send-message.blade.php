@@ -117,21 +117,21 @@
                     
                     <label class="form-label mb-2" id="contentLabel">SMS Content</label>
                     
-                    <div class="border rounded mb-2">
-                        <div class="d-flex justify-content-between align-items-center bg-light border-bottom px-3 py-2">
-                            <div class="btn-group btn-group-sm">
-                                <button type="button" class="btn btn-outline-secondary" onclick="openPersonalisationModal()" title="Insert personalisation">
-                                    <i class="fas fa-user-tag me-1"></i>Personalise
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="openEmojiPicker()" title="Insert emoji">
-                                    <i class="fas fa-smile"></i>
-                                </button>
-                            </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
-                                <i class="fas fa-magic me-1"></i>Improve with AI
+                    <div class="d-flex justify-content-end mb-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
+                            <i class="fas fa-magic me-1"></i>Improve with AI
+                        </button>
+                    </div>
+                    <div class="position-relative border rounded mb-2">
+                        <textarea class="form-control border-0" id="smsContent" rows="5" placeholder="Type your message here..." oninput="handleContentChange()" style="padding-bottom: 40px;"></textarea>
+                        <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                            <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
+                                <i class="fas fa-user-tag"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" title="Insert emoji">
+                                <i class="fas fa-smile"></i>
                             </button>
                         </div>
-                        <textarea class="form-control border-0" id="smsContent" rows="5" placeholder="Type your message here..." oninput="handleContentChange()"></textarea>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -811,6 +811,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(e) { return new bootstrap.Tooltip(e); });
+    
+    document.getElementById('emojiPickerBtn').addEventListener('click', function() {
+        openEmojiPicker();
+    });
     
     document.querySelectorAll('input[name="channel"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
