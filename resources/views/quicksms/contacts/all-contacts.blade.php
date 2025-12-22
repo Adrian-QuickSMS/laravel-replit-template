@@ -98,25 +98,25 @@
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <span><strong id="selectedCount">0</strong> contact(s) selected</span>
                             <div class="d-flex gap-2 flex-wrap mt-2 mt-md-0">
-                                <button type="button" class="btn btn-sm btn-outline-primary" disabled title="TODO: Implement add to list">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAddToList()">
                                     <i class="fas fa-plus me-1"></i> Add to List
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" disabled title="TODO: Implement remove from list">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkRemoveFromList()">
                                     <i class="fas fa-minus me-1"></i> Remove from List
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" disabled title="TODO: Implement add tags">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAddTags()">
                                     <i class="fas fa-tag me-1"></i> Add Tags
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" disabled title="TODO: Implement remove tags">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkRemoveTags()">
                                     <i class="fas fa-times me-1"></i> Remove Tags
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-success" disabled title="TODO: Implement send message">
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="bulkSendMessage()">
                                     <i class="fas fa-paper-plane me-1"></i> Send Message
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="TODO: Implement export">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkExport()">
                                     <i class="fas fa-download me-1"></i> Export
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" disabled title="TODO: Implement delete">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDelete()">
                                     <i class="fas fa-trash me-1"></i> Delete
                                 </button>
                             </div>
@@ -594,6 +594,183 @@ function deleteContact(id) {
         alert('Delete Contact\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- Permission check\n- API endpoint: DELETE /api/contacts/{id}\n- Cascade delete or soft delete logic');
     }
 }
+
+function getSelectedContactIds() {
+    var ids = [];
+    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => {
+        var row = cb.closest('tr');
+        if (row) {
+            ids.push(parseInt(row.dataset.contactId));
+        }
+    });
+    return ids;
+}
+
+function getSelectedContactNames() {
+    var ids = getSelectedContactIds();
+    return ids.map(id => {
+        var contact = contactsData.find(c => c.id === id);
+        return contact ? contact.first_name + ' ' + contact.last_name : 'Unknown';
+    });
+}
+
+function bulkAddToList() {
+    var ids = getSelectedContactIds();
+    var names = getSelectedContactNames();
+    var modal = new bootstrap.Modal(document.getElementById('bulkAddToListModal'));
+    document.getElementById('bulkAddToListCount').textContent = ids.length;
+    modal.show();
+}
+
+function confirmBulkAddToList() {
+    var ids = getSelectedContactIds();
+    var listSelect = document.getElementById('bulkListSelect');
+    var selectedList = listSelect.value;
+    
+    if (!selectedList) {
+        alert('Please select a list.');
+        return;
+    }
+    
+    console.log('TODO: Add contacts ' + ids.join(', ') + ' to list: ' + selectedList);
+    alert('Added ' + ids.length + ' contact(s) to "' + selectedList + '"!\n\nThis requires backend implementation.');
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddToListModal'));
+    modal.hide();
+    
+    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
+    document.getElementById('checkAll').checked = false;
+    document.getElementById('bulkActionBar').classList.add('d-none');
+}
+
+function bulkRemoveFromList() {
+    var ids = getSelectedContactIds();
+    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveFromListModal'));
+    document.getElementById('bulkRemoveFromListCount').textContent = ids.length;
+    modal.show();
+}
+
+function confirmBulkRemoveFromList() {
+    var ids = getSelectedContactIds();
+    var listSelect = document.getElementById('bulkRemoveListSelect');
+    var selectedList = listSelect.value;
+    
+    if (!selectedList) {
+        alert('Please select a list.');
+        return;
+    }
+    
+    console.log('TODO: Remove contacts ' + ids.join(', ') + ' from list: ' + selectedList);
+    alert('Removed ' + ids.length + ' contact(s) from "' + selectedList + '"!\n\nThis requires backend implementation.');
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkRemoveFromListModal'));
+    modal.hide();
+    
+    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
+    document.getElementById('checkAll').checked = false;
+    document.getElementById('bulkActionBar').classList.add('d-none');
+}
+
+function bulkAddTags() {
+    var ids = getSelectedContactIds();
+    var modal = new bootstrap.Modal(document.getElementById('bulkAddTagsModal'));
+    document.getElementById('bulkAddTagsCount').textContent = ids.length;
+    modal.show();
+}
+
+function confirmBulkAddTags() {
+    var ids = getSelectedContactIds();
+    var tagSelect = document.getElementById('bulkTagSelect');
+    var selectedTags = Array.from(tagSelect.selectedOptions).map(o => o.value);
+    
+    if (selectedTags.length === 0) {
+        alert('Please select at least one tag.');
+        return;
+    }
+    
+    console.log('TODO: Add tags ' + selectedTags.join(', ') + ' to contacts: ' + ids.join(', '));
+    alert('Added tags "' + selectedTags.join(', ') + '" to ' + ids.length + ' contact(s)!\n\nThis requires backend implementation.');
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddTagsModal'));
+    modal.hide();
+    
+    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
+    document.getElementById('checkAll').checked = false;
+    document.getElementById('bulkActionBar').classList.add('d-none');
+}
+
+function bulkRemoveTags() {
+    var ids = getSelectedContactIds();
+    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveTagsModal'));
+    document.getElementById('bulkRemoveTagsCount').textContent = ids.length;
+    modal.show();
+}
+
+function confirmBulkRemoveTags() {
+    var ids = getSelectedContactIds();
+    var tagSelect = document.getElementById('bulkRemoveTagSelect');
+    var selectedTags = Array.from(tagSelect.selectedOptions).map(o => o.value);
+    
+    if (selectedTags.length === 0) {
+        alert('Please select at least one tag.');
+        return;
+    }
+    
+    console.log('TODO: Remove tags ' + selectedTags.join(', ') + ' from contacts: ' + ids.join(', '));
+    alert('Removed tags "' + selectedTags.join(', ') + '" from ' + ids.length + ' contact(s)!\n\nThis requires backend implementation.');
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkRemoveTagsModal'));
+    modal.hide();
+    
+    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
+    document.getElementById('checkAll').checked = false;
+    document.getElementById('bulkActionBar').classList.add('d-none');
+}
+
+function bulkSendMessage() {
+    var ids = getSelectedContactIds();
+    var names = getSelectedContactNames();
+    
+    alert('Send Message to ' + ids.length + ' contact(s):\n\n' + names.join('\n') + '\n\nThis will redirect to the Send Message screen with these contacts pre-selected.\n\nRequires Messages module integration.');
+    console.log('TODO: Navigate to Send Message with contact IDs: ' + ids.join(', '));
+}
+
+function bulkExport() {
+    var ids = getSelectedContactIds();
+    var names = getSelectedContactNames();
+    
+    var csvContent = 'Name,Mobile,Status\n';
+    ids.forEach(id => {
+        var contact = contactsData.find(c => c.id === id);
+        if (contact) {
+            csvContent += '"' + contact.first_name + ' ' + contact.last_name + '","' + contact.mobile + '","' + contact.status + '"\n';
+        }
+    });
+    
+    var blob = new Blob([csvContent], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'contacts_export_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    alert('Exported ' + ids.length + ' contact(s) to CSV!');
+}
+
+function bulkDelete() {
+    var ids = getSelectedContactIds();
+    var names = getSelectedContactNames();
+    
+    if (confirm('Are you sure you want to delete ' + ids.length + ' contact(s)?\n\n' + names.join('\n') + '\n\nThis action cannot be undone.')) {
+        console.log('TODO: Delete contacts: ' + ids.join(', '));
+        alert('Deleted ' + ids.length + ' contact(s)!\n\nThis requires backend implementation:\n- API endpoint: DELETE /api/contacts/bulk\n- Permission checks');
+        
+        document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
+        document.getElementById('checkAll').checked = false;
+        document.getElementById('bulkActionBar').classList.add('d-none');
+    }
+}
 </script>
 
 <div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
@@ -1015,6 +1192,102 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<div class="modal fade" id="bulkAddToListModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add to List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add <strong id="bulkAddToListCount">0</strong> contact(s) to:</p>
+                <select class="form-select" id="bulkListSelect">
+                    <option value="">Select a list...</option>
+                    @foreach($available_lists as $list)
+                    <option value="{{ $list }}">{{ $list }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkAddToList()">Add to List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkRemoveFromListModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-minus me-2"></i>Remove from List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Remove <strong id="bulkRemoveFromListCount">0</strong> contact(s) from:</p>
+                <select class="form-select" id="bulkRemoveListSelect">
+                    <option value="">Select a list...</option>
+                    @foreach($available_lists as $list)
+                    <option value="{{ $list }}">{{ $list }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkRemoveFromList()">Remove from List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkAddTagsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tag me-2"></i>Add Tags</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add tags to <strong id="bulkAddTagsCount">0</strong> contact(s):</p>
+                <select class="form-select" id="bulkTagSelect" multiple>
+                    @foreach($available_tags as $tag)
+                    <option value="{{ $tag }}">{{ $tag }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkAddTags()">Add Tags</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkRemoveTagsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-times me-2"></i>Remove Tags</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Remove tags from <strong id="bulkRemoveTagsCount">0</strong> contact(s):</p>
+                <select class="form-select" id="bulkRemoveTagSelect" multiple>
+                    @foreach($available_tags as $tag)
+                    <option value="{{ $tag }}">{{ $tag }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkRemoveTags()">Remove Tags</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="manageCustomFieldsModal" tabindex="-1" aria-labelledby="manageCustomFieldsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
