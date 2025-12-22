@@ -1053,8 +1053,108 @@
                                 
                                 <div class="mb-4">
                                     <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-image me-2"></i>Media</h6>
-                                    <div class="border rounded p-3 bg-light">
-                                        <p class="text-muted mb-0 small">Media upload configuration will appear here.</p>
+                                    <div class="border rounded p-3">
+                                        <div class="btn-group btn-group-sm w-100 mb-3" role="group">
+                                            <input type="radio" class="btn-check" name="rcsMediaSource" id="rcsMediaUrl" value="url" checked>
+                                            <label class="btn btn-outline-secondary" for="rcsMediaUrl">
+                                                <i class="fas fa-link me-1"></i>URL
+                                            </label>
+                                            <input type="radio" class="btn-check" name="rcsMediaSource" id="rcsMediaUpload" value="upload">
+                                            <label class="btn btn-outline-secondary" for="rcsMediaUpload">
+                                                <i class="fas fa-upload me-1"></i>Upload
+                                            </label>
+                                        </div>
+                                        
+                                        <div id="rcsMediaUrlSection">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                                <input type="url" class="form-control" id="rcsMediaUrlInput" placeholder="https://example.com/image.jpg">
+                                                <button type="button" class="btn btn-outline-success" onclick="loadRcsMediaUrl()">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </div>
+                                            <small class="text-muted d-block mt-1">Enter a publicly accessible image URL (JPEG, PNG, GIF)</small>
+                                        </div>
+                                        
+                                        <div id="rcsMediaUploadSection" class="d-none">
+                                            <div class="border border-dashed rounded p-3 text-center bg-light" id="rcsMediaDropzone">
+                                                <input type="file" id="rcsMediaFileInput" class="d-none" accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif">
+                                                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                                <p class="mb-1 small">Drag & drop or <a href="#" onclick="document.getElementById('rcsMediaFileInput').click(); return false;">browse</a></p>
+                                                <small class="text-muted">JPEG, PNG, GIF only. Max 250 KB</small>
+                                            </div>
+                                            <div id="rcsMediaError" class="alert alert-danger py-2 px-3 mt-2 d-none small">
+                                                <i class="fas fa-exclamation-circle me-1"></i><span id="rcsMediaErrorText"></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="rcsMediaPreview" class="d-none mt-3">
+                                            <div class="position-relative">
+                                                <div class="border rounded overflow-hidden bg-dark" style="max-height: 200px;">
+                                                    <img id="rcsMediaPreviewImg" src="" alt="Media preview" class="w-100" style="object-fit: contain; max-height: 200px;">
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="removeRcsMedia()">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="mt-3 p-3 border rounded bg-light" id="rcsImageEditor">
+                                                <h6 class="small text-muted text-uppercase mb-3"><i class="fas fa-sliders-h me-1"></i>Image Editor</h6>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label small mb-1">Orientation</label>
+                                                    <div class="d-flex gap-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="rcsOrientation" id="rcsOrientVertShort" value="vertical_short" checked>
+                                                            <label class="form-check-label small" for="rcsOrientVertShort">Vertical Short</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="rcsOrientation" id="rcsOrientVertMed" value="vertical_medium">
+                                                            <label class="form-check-label small" for="rcsOrientVertMed">Vertical Medium</label>
+                                                        </div>
+                                                        <div class="form-check" id="rcsOrientHorizWrapper">
+                                                            <input class="form-check-input" type="radio" name="rcsOrientation" id="rcsOrientHoriz" value="horizontal">
+                                                            <label class="form-check-label small" for="rcsOrientHoriz">Horizontal</label>
+                                                        </div>
+                                                    </div>
+                                                    <div id="rcsCarouselOrientWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
+                                                        <i class="fas fa-info-circle me-1"></i>Horizontal orientation is not available for Carousel cards.
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label small mb-1">Zoom <span class="text-muted" id="rcsZoomValue">100%</span></label>
+                                                    <input type="range" class="form-range" id="rcsZoomSlider" min="100" max="200" value="100" oninput="updateRcsZoom(this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-2">
+                                                    <label class="form-label small mb-1">Crop Position</label>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill rcs-crop-btn active" data-position="center" onclick="setRcsCropPosition('center')">
+                                                            <i class="fas fa-compress-arrows-alt"></i> Center
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill rcs-crop-btn" data-position="top" onclick="setRcsCropPosition('top')">
+                                                            <i class="fas fa-arrow-up"></i> Top
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill rcs-crop-btn" data-position="bottom" onclick="setRcsCropPosition('bottom')">
+                                                            <i class="fas fa-arrow-down"></i> Bottom
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">Aspect ratio maintained. No distortion applied.</small>
+                                                
+                                                <div class="mt-3 pt-3 border-top">
+                                                    <div class="d-flex justify-content-between align-items-center small">
+                                                        <span class="text-muted">Dimensions:</span>
+                                                        <span id="rcsImageDimensions" class="badge bg-secondary">--</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center small mt-1">
+                                                        <span class="text-muted">File size:</span>
+                                                        <span id="rcsImageFileSize" class="badge bg-secondary">--</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mb-4">
@@ -1635,9 +1735,197 @@ function updateRcsCardCount() {
     document.getElementById('rcsCardCount').textContent = rcsCardCount + ' / ' + rcsMaxCards;
 }
 
+var rcsMediaData = {
+    source: null,
+    url: null,
+    file: null,
+    dimensions: null,
+    fileSize: 0
+};
+
+var rcsAllowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+var rcsMaxFileSize = 250 * 1024;
+
+function toggleRcsMediaSource() {
+    var isUpload = document.getElementById('rcsMediaUpload').checked;
+    document.getElementById('rcsMediaUrlSection').classList.toggle('d-none', isUpload);
+    document.getElementById('rcsMediaUploadSection').classList.toggle('d-none', !isUpload);
+    hideRcsMediaError();
+}
+
+function loadRcsMediaUrl() {
+    var url = document.getElementById('rcsMediaUrlInput').value.trim();
+    if (!url) return;
+    
+    var img = new Image();
+    img.onload = function() {
+        rcsMediaData.source = 'url';
+        rcsMediaData.url = url;
+        rcsMediaData.dimensions = { width: img.width, height: img.height };
+        rcsMediaData.fileSize = 0;
+        showRcsMediaPreview(url);
+        updateRcsImageInfo();
+    };
+    img.onerror = function() {
+        showRcsMediaError('Unable to load image from URL. Please check the URL is publicly accessible.');
+    };
+    img.src = url;
+}
+
+function handleRcsFileUpload(file) {
+    hideRcsMediaError();
+    
+    if (!file) return;
+    
+    if (!rcsAllowedTypes.includes(file.type)) {
+        showRcsMediaError('Unsupported file type. Only JPEG, PNG, and GIF images are allowed.');
+        return;
+    }
+    
+    if (file.size > rcsMaxFileSize) {
+        showRcsMediaError('File size exceeds 250 KB limit. Please choose a smaller file.');
+        return;
+    }
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+            rcsMediaData.source = 'upload';
+            rcsMediaData.file = file;
+            rcsMediaData.url = e.target.result;
+            rcsMediaData.dimensions = { width: img.width, height: img.height };
+            rcsMediaData.fileSize = file.size;
+            showRcsMediaPreview(e.target.result);
+            updateRcsImageInfo();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function showRcsMediaPreview(src) {
+    document.getElementById('rcsMediaPreviewImg').src = src;
+    document.getElementById('rcsMediaPreview').classList.remove('d-none');
+    updateCarouselOrientationWarning();
+}
+
+function removeRcsMedia() {
+    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0 };
+    document.getElementById('rcsMediaPreview').classList.add('d-none');
+    document.getElementById('rcsMediaPreviewImg').src = '';
+    document.getElementById('rcsMediaPreviewImg').style.transform = '';
+    document.getElementById('rcsMediaPreviewImg').style.objectPosition = '';
+    document.getElementById('rcsMediaUrlInput').value = '';
+    document.getElementById('rcsMediaFileInput').value = '';
+    document.getElementById('rcsZoomSlider').value = 100;
+    document.getElementById('rcsZoomValue').textContent = '100%';
+    document.getElementById('rcsImageDimensions').textContent = '--';
+    document.getElementById('rcsImageFileSize').textContent = '--';
+    document.getElementById('rcsOrientVertShort').checked = true;
+    document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.dataset.position === 'center') btn.classList.add('active');
+    });
+    hideRcsMediaError();
+}
+
+function showRcsMediaError(message) {
+    var errorEl = document.getElementById('rcsMediaError');
+    document.getElementById('rcsMediaErrorText').textContent = message;
+    errorEl.classList.remove('d-none');
+}
+
+function hideRcsMediaError() {
+    document.getElementById('rcsMediaError').classList.add('d-none');
+}
+
+function updateRcsImageInfo() {
+    if (rcsMediaData.dimensions) {
+        document.getElementById('rcsImageDimensions').textContent = 
+            rcsMediaData.dimensions.width + ' x ' + rcsMediaData.dimensions.height + ' px';
+    }
+    if (rcsMediaData.fileSize > 0) {
+        document.getElementById('rcsImageFileSize').textContent = 
+            (rcsMediaData.fileSize / 1024).toFixed(1) + ' KB';
+    } else {
+        document.getElementById('rcsImageFileSize').textContent = 'External URL';
+    }
+}
+
+function updateRcsZoom(value) {
+    document.getElementById('rcsZoomValue').textContent = value + '%';
+    var img = document.getElementById('rcsMediaPreviewImg');
+    img.style.transform = 'scale(' + (value / 100) + ')';
+}
+
+function setRcsCropPosition(position) {
+    document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.dataset.position === position) btn.classList.add('active');
+    });
+    var img = document.getElementById('rcsMediaPreviewImg');
+    switch(position) {
+        case 'top': img.style.objectPosition = 'center top'; break;
+        case 'bottom': img.style.objectPosition = 'center bottom'; break;
+        default: img.style.objectPosition = 'center center';
+    }
+}
+
+function updateCarouselOrientationWarning() {
+    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
+    var horizWrapper = document.getElementById('rcsOrientHorizWrapper');
+    var horizInput = document.getElementById('rcsOrientHoriz');
+    var warning = document.getElementById('rcsCarouselOrientWarning');
+    
+    if (isCarousel) {
+        horizWrapper.classList.add('opacity-50');
+        horizInput.disabled = true;
+        warning.classList.remove('d-none');
+        if (horizInput.checked) {
+            document.getElementById('rcsOrientVertShort').checked = true;
+        }
+    } else {
+        horizWrapper.classList.remove('opacity-50');
+        horizInput.disabled = false;
+        warning.classList.add('d-none');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
-        radio.addEventListener('change', toggleRcsMessageType);
+        radio.addEventListener('change', function() {
+            toggleRcsMessageType();
+            updateCarouselOrientationWarning();
+        });
+    });
+    
+    document.querySelectorAll('input[name="rcsMediaSource"]').forEach(function(radio) {
+        radio.addEventListener('change', toggleRcsMediaSource);
+    });
+    
+    var fileInput = document.getElementById('rcsMediaFileInput');
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleRcsFileUpload(e.target.files[0]);
+        }
+    });
+    
+    var dropzone = document.getElementById('rcsMediaDropzone');
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropzone.classList.add('border-success');
+    });
+    dropzone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-success');
+    });
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-success');
+        if (e.dataTransfer.files.length > 0) {
+            handleRcsFileUpload(e.dataTransfer.files[0]);
+        }
     });
 });
 
