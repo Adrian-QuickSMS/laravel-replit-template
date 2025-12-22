@@ -12,7 +12,7 @@
         </ol>
     </div>
     
-    <div class="row">
+    <div class="row align-items-start">
         <div class="col-lg-8">
             <div class="card mb-1">
                 <div class="card-body p-2">
