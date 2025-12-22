@@ -8,10 +8,23 @@ class QuickSMSController extends Controller
 {
     public function dashboard()
     {
-        return view('quicksms.dashboard', [
+        return view('quicksms.placeholder', [
             'page_title' => 'Dashboard',
             'purpose' => 'Central overview of your QuickSMS account activity, statistics, and quick actions.',
             'sub_modules' => []
+        ]);
+    }
+
+    public function messages()
+    {
+        return view('quicksms.placeholder', [
+            'page_title' => 'Messages',
+            'purpose' => 'Manage all messaging activities including sending, receiving, and campaign management.',
+            'sub_modules' => [
+                'Send Message',
+                'Inbox',
+                'Campaign History'
+            ]
         ]);
     }
 
@@ -39,6 +52,20 @@ class QuickSMSController extends Controller
             'page_title' => 'Campaign History',
             'purpose' => 'Review past messaging campaigns and their performance.',
             'sub_modules' => []
+        ]);
+    }
+
+    public function contacts()
+    {
+        return view('quicksms.placeholder', [
+            'page_title' => 'Contact Book',
+            'purpose' => 'Manage your contacts, organize them into lists, and handle opt-out preferences.',
+            'sub_modules' => [
+                'All Contacts',
+                'Lists',
+                'Tags',
+                'Opt-Out Lists'
+            ]
         ]);
     }
 
@@ -75,6 +102,21 @@ class QuickSMSController extends Controller
             'page_title' => 'Opt-Out Lists',
             'purpose' => 'Manage contacts who have opted out of receiving messages.',
             'sub_modules' => []
+        ]);
+    }
+
+    public function reporting()
+    {
+        return view('quicksms.placeholder', [
+            'page_title' => 'Reporting',
+            'purpose' => 'Access comprehensive reports and analytics for your messaging activities.',
+            'sub_modules' => [
+                'Dashboard',
+                'Message Log',
+                'Finance Data',
+                'Invoices',
+                'Download Area'
+            ]
         ]);
     }
 
@@ -132,6 +174,22 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function management()
+    {
+        return view('quicksms.placeholder', [
+            'page_title' => 'Management',
+            'purpose' => 'Configure and manage your messaging infrastructure and integrations.',
+            'sub_modules' => [
+                'RCS Agent Registrations',
+                'SMS SenderID Registration',
+                'Templates',
+                'API Connections',
+                'Email-to-SMS',
+                'Numbers'
+            ]
+        ]);
+    }
+
     public function rcsAgentRegistrations()
     {
         return view('quicksms.placeholder', [
@@ -186,6 +244,21 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function account()
+    {
+        return view('quicksms.placeholder', [
+            'page_title' => 'Account',
+            'purpose' => 'Manage your account settings, users, and security preferences.',
+            'sub_modules' => [
+                'Details',
+                'Users and Access',
+                'Sub Accounts',
+                'Audit Logs',
+                'Security Settings'
+            ]
+        ]);
+    }
+
     public function accountDetails()
     {
         return view('quicksms.placeholder', [
@@ -228,6 +301,19 @@ class QuickSMSController extends Controller
             'page_title' => 'Security Settings',
             'purpose' => 'Configure security options including 2FA and session management.',
             'sub_modules' => []
+        ]);
+    }
+
+    public function support()
+    {
+        return view('quicksms.placeholder', [
+            'page_title' => 'Support',
+            'purpose' => 'Access support resources, submit tickets, and browse documentation.',
+            'sub_modules' => [
+                'Dashboard',
+                'Create a Ticket',
+                'Knowledge Base'
+            ]
         ]);
     }
 

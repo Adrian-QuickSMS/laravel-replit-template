@@ -200,6 +200,32 @@
             margin-bottom: 0.5rem;
         }
         
+        .parent-link {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .parent-link-text {
+            flex: 1;
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .parent-link-text:hover {
+            color: var(--sidebar-active);
+        }
+        
+        .expand-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            padding: 0.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
         @media (max-width: 991.98px) {
             .sidebar-toggle {
                 display: block;
@@ -245,12 +271,14 @@
                 </a>
             </li>
             
-            <li class="nav-item {{ request()->routeIs('messages.*') ? 'expanded' : '' }}">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(event, this)">
+            <li class="nav-item {{ request()->routeIs('messages') || request()->routeIs('messages.*') ? 'expanded' : '' }}">
+                <div class="nav-link parent-link {{ request()->routeIs('messages') ? 'active' : '' }}">
                     <i class="bi bi-envelope"></i>
-                    Messages
-                    <i class="bi bi-chevron-right arrow"></i>
-                </a>
+                    <a href="{{ route('messages') }}" class="parent-link-text">Messages</a>
+                    <button class="expand-btn" onclick="toggleSubmenu(event, this)">
+                        <i class="bi bi-chevron-right arrow"></i>
+                    </button>
+                </div>
                 <ul class="submenu">
                     <li class="nav-item">
                         <a href="{{ route('messages.send') }}" class="nav-link {{ request()->routeIs('messages.send') ? 'active' : '' }}">
@@ -273,12 +301,14 @@
                 </ul>
             </li>
             
-            <li class="nav-item {{ request()->routeIs('contacts.*') ? 'expanded' : '' }}">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(event, this)">
+            <li class="nav-item {{ request()->routeIs('contacts') || request()->routeIs('contacts.*') ? 'expanded' : '' }}">
+                <div class="nav-link parent-link {{ request()->routeIs('contacts') ? 'active' : '' }}">
                     <i class="bi bi-person-lines-fill"></i>
-                    Contact Book
-                    <i class="bi bi-chevron-right arrow"></i>
-                </a>
+                    <a href="{{ route('contacts') }}" class="parent-link-text">Contact Book</a>
+                    <button class="expand-btn" onclick="toggleSubmenu(event, this)">
+                        <i class="bi bi-chevron-right arrow"></i>
+                    </button>
+                </div>
                 <ul class="submenu">
                     <li class="nav-item">
                         <a href="{{ route('contacts.all') }}" class="nav-link {{ request()->routeIs('contacts.all') ? 'active' : '' }}">
@@ -307,12 +337,14 @@
                 </ul>
             </li>
             
-            <li class="nav-item {{ request()->routeIs('reporting.*') ? 'expanded' : '' }}">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(event, this)">
+            <li class="nav-item {{ request()->routeIs('reporting') || request()->routeIs('reporting.*') ? 'expanded' : '' }}">
+                <div class="nav-link parent-link {{ request()->routeIs('reporting') ? 'active' : '' }}">
                     <i class="bi bi-bar-chart-line"></i>
-                    Reporting
-                    <i class="bi bi-chevron-right arrow"></i>
-                </a>
+                    <a href="{{ route('reporting') }}" class="parent-link-text">Reporting</a>
+                    <button class="expand-btn" onclick="toggleSubmenu(event, this)">
+                        <i class="bi bi-chevron-right arrow"></i>
+                    </button>
+                </div>
                 <ul class="submenu">
                     <li class="nav-item">
                         <a href="{{ route('reporting.dashboard') }}" class="nav-link {{ request()->routeIs('reporting.dashboard') ? 'active' : '' }}">
@@ -354,12 +386,14 @@
                 </a>
             </li>
             
-            <li class="nav-item {{ request()->routeIs('management.*') ? 'expanded' : '' }}">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(event, this)">
+            <li class="nav-item {{ request()->routeIs('management') || request()->routeIs('management.*') ? 'expanded' : '' }}">
+                <div class="nav-link parent-link {{ request()->routeIs('management') ? 'active' : '' }}">
                     <i class="bi bi-gear"></i>
-                    Management
-                    <i class="bi bi-chevron-right arrow"></i>
-                </a>
+                    <a href="{{ route('management') }}" class="parent-link-text">Management</a>
+                    <button class="expand-btn" onclick="toggleSubmenu(event, this)">
+                        <i class="bi bi-chevron-right arrow"></i>
+                    </button>
+                </div>
                 <ul class="submenu">
                     <li class="nav-item">
                         <a href="{{ route('management.rcs-agent') }}" class="nav-link {{ request()->routeIs('management.rcs-agent') ? 'active' : '' }}">
@@ -400,12 +434,14 @@
                 </ul>
             </li>
             
-            <li class="nav-item {{ request()->routeIs('account.*') ? 'expanded' : '' }}">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(event, this)">
+            <li class="nav-item {{ request()->routeIs('account') || request()->routeIs('account.*') ? 'expanded' : '' }}">
+                <div class="nav-link parent-link {{ request()->routeIs('account') ? 'active' : '' }}">
                     <i class="bi bi-person-circle"></i>
-                    Account
-                    <i class="bi bi-chevron-right arrow"></i>
-                </a>
+                    <a href="{{ route('account') }}" class="parent-link-text">Account</a>
+                    <button class="expand-btn" onclick="toggleSubmenu(event, this)">
+                        <i class="bi bi-chevron-right arrow"></i>
+                    </button>
+                </div>
                 <ul class="submenu">
                     <li class="nav-item">
                         <a href="{{ route('account.details') }}" class="nav-link {{ request()->routeIs('account.details') ? 'active' : '' }}">
@@ -440,12 +476,14 @@
                 </ul>
             </li>
             
-            <li class="nav-item {{ request()->routeIs('support.*') ? 'expanded' : '' }}">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(event, this)">
+            <li class="nav-item {{ request()->routeIs('support') || request()->routeIs('support.*') ? 'expanded' : '' }}">
+                <div class="nav-link parent-link {{ request()->routeIs('support') ? 'active' : '' }}">
                     <i class="bi bi-headset"></i>
-                    Support
-                    <i class="bi bi-chevron-right arrow"></i>
-                </a>
+                    <a href="{{ route('support') }}" class="parent-link-text">Support</a>
+                    <button class="expand-btn" onclick="toggleSubmenu(event, this)">
+                        <i class="bi bi-chevron-right arrow"></i>
+                    </button>
+                </div>
                 <ul class="submenu">
                     <li class="nav-item">
                         <a href="{{ route('support.dashboard') }}" class="nav-link {{ request()->routeIs('support.dashboard') ? 'active' : '' }}">
@@ -483,6 +521,7 @@
         
         function toggleSubmenu(event, element) {
             event.preventDefault();
+            event.stopPropagation();
             const navItem = element.closest('.nav-item');
             navItem.classList.toggle('expanded');
         }
