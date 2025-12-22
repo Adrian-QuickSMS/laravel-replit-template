@@ -127,7 +127,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-sm mb-0 table-striped table-hover" id="contactsTable">
+                        <table class="table table-hover mb-0" id="contactsTable">
                             <thead>
                                 <tr>
                                     <th class="pe-3" style="width: 40px;">
