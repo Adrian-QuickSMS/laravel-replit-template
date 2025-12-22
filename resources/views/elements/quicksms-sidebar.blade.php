@@ -27,7 +27,6 @@
                     <span class="nav-text">Contact Book</span>
                 </a>
                 <ul aria-expanded="false">
-                    <li><a href="{{ route('contacts') }}" class="{{ request()->routeIs('contacts') && !request()->routeIs('contacts.*') ? 'mm-active' : '' }}">Overview</a></li>
                     <li><a href="{{ route('contacts.all') }}" class="{{ request()->routeIs('contacts.all') ? 'mm-active' : '' }}">All Contacts</a></li>
                     <li><a href="{{ route('contacts.lists') }}" class="{{ request()->routeIs('contacts.lists') ? 'mm-active' : '' }}">Lists</a></li>
                     <li><a href="{{ route('contacts.tags') }}" class="{{ request()->routeIs('contacts.tags') ? 'mm-active' : '' }}">Tags</a></li>
