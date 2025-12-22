@@ -1018,6 +1018,8 @@
                     </div>
                     <div class="col-lg-7 p-4">
                         <div class="rcs-config-panel">
+                            <div id="rcsValidationErrors" class="d-none"></div>
+                            
                             <div class="mb-4">
                                 <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-layer-group me-2"></i>Message Type</h6>
                                 <div class="btn-group w-100" role="group">
@@ -1791,29 +1793,438 @@ function insertTrackingUrl() {
 }
 
 function openRcsWizard() {
+    if (!rcsPersistentPayload && Object.keys(rcsCardsData).length === 0) {
+        var hasStoredDraft = loadRcsFromStorage();
+        if (!hasStoredDraft) {
+            initializeRcsCard(1);
+            rcsCurrentCard = 1;
+            rcsCardCount = 1;
+        }
+    }
+    
+    hideRcsValidationErrors();
+    
     var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
     modal.show();
 }
 
-function applyRcsContent() {
-    console.log('TODO: Apply RCS content configuration');
-    document.getElementById('rcsConfiguredSummary').classList.remove('d-none');
-    bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+function getRcsPayloadForSubmission() {
+    if (!rcsPersistentPayload) {
+        return null;
+    }
+    
+    // TODO: Google RCS API Integration
+    // Transform rcsPersistentPayload to Google RCS format before submission
+    // Include user_id from session and campaign timestamp
+    
+    return {
+        rcsContent: rcsPersistentPayload,
+        submittedAt: new Date().toISOString(),
+        userId: null, // TODO: Populate from Laravel session
+        campaignId: null // TODO: Generate or retrieve campaign ID
+    };
+}
+
+function clearRcsContent() {
+    resetRcsWizard();
+    document.getElementById('rcsConfiguredSummary').classList.add('d-none');
+    sessionStorage.removeItem('quicksms_rcs_draft');
 }
 
 var rcsCardCount = 1;
 var rcsCurrentCard = 1;
 var rcsMaxCards = 10;
+var rcsMaxButtons = 3;
+
+var rcsCardsData = {};
+var rcsPersistentPayload = null;
+
+function initializeRcsCard(cardNum) {
+    if (!rcsCardsData[cardNum]) {
+        rcsCardsData[cardNum] = {
+            media: {
+                source: null,
+                url: null,
+                file: null,
+                fileName: null,
+                fileSize: 0,
+                dimensions: null,
+                orientation: 'vertShort',
+                zoom: 100,
+                cropPosition: 'center'
+            },
+            description: '',
+            textBody: '',
+            buttons: []
+        };
+    }
+    return rcsCardsData[cardNum];
+}
+
+function saveCurrentCardData() {
+    var card = initializeRcsCard(rcsCurrentCard);
+    
+    card.media.source = rcsMediaData.source;
+    card.media.url = rcsMediaData.url;
+    card.media.file = rcsMediaData.file;
+    card.media.fileName = rcsMediaData.file ? rcsMediaData.file.name : null;
+    card.media.fileSize = rcsMediaData.fileSize;
+    card.media.dimensions = rcsMediaData.dimensions;
+    
+    var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
+    card.media.orientation = orientChecked ? orientChecked.value : 'vertShort';
+    card.media.zoom = parseInt(document.getElementById('rcsZoomSlider').value) || 100;
+    var activeCrop = document.querySelector('.rcs-crop-btn.active');
+    card.media.cropPosition = activeCrop ? activeCrop.dataset.position : 'center';
+    
+    card.description = document.getElementById('rcsDescription').value;
+    card.textBody = document.getElementById('rcsTextBody').value;
+    card.buttons = JSON.parse(JSON.stringify(rcsButtons));
+}
+
+function loadCardData(cardNum) {
+    var card = initializeRcsCard(cardNum);
+    
+    rcsMediaData.source = card.media.source;
+    rcsMediaData.url = card.media.url;
+    rcsMediaData.file = card.media.file;
+    rcsMediaData.fileSize = card.media.fileSize;
+    rcsMediaData.dimensions = card.media.dimensions;
+    
+    if (card.media.url) {
+        showRcsMediaPreview(card.media.url);
+        updateRcsImageInfo();
+        document.getElementById('rcsZoomSlider').value = card.media.zoom;
+        document.getElementById('rcsZoomValue').textContent = card.media.zoom + '%';
+        updateRcsZoom(card.media.zoom);
+        setRcsCropPosition(card.media.cropPosition);
+        
+        var orientRadio = document.getElementById('rcsOrient' + card.media.orientation.charAt(0).toUpperCase() + card.media.orientation.slice(1));
+        if (orientRadio) orientRadio.checked = true;
+    } else {
+        removeRcsMedia();
+    }
+    
+    document.getElementById('rcsDescription').value = card.description;
+    document.getElementById('rcsTextBody').value = card.textBody;
+    updateRcsDescriptionCount();
+    updateRcsTextBodyCount();
+    
+    rcsButtons = JSON.parse(JSON.stringify(card.buttons));
+    renderRcsButtons();
+    updateRcsButtonsPreview();
+}
+
+function validateRcsContent() {
+    var errors = [];
+    var warnings = [];
+    
+    for (var i = 1; i <= rcsCardCount; i++) {
+        var card = rcsCardsData[i];
+        if (!card) {
+            errors.push('Card ' + i + ': No data configured');
+            continue;
+        }
+        
+        if (card.media.source === 'upload' && card.media.file) {
+            if (card.media.fileSize > 250 * 1024) {
+                errors.push('Card ' + i + ': Media file exceeds 250KB limit (' + (card.media.fileSize / 1024).toFixed(1) + 'KB)');
+            }
+            var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (card.media.file.type && !allowedTypes.includes(card.media.file.type)) {
+                errors.push('Card ' + i + ': Invalid media type. Only JPEG, PNG, GIF allowed.');
+            }
+        }
+        
+        if (card.description.length > 120) {
+            warnings.push('Card ' + i + ': Description exceeds recommended 120 characters (' + card.description.length + ')');
+        }
+        if (card.textBody.length > 2000) {
+            warnings.push('Card ' + i + ': Text body exceeds recommended 2000 characters (' + card.textBody.length + ')');
+        }
+        
+        if (card.buttons.length > rcsMaxButtons) {
+            errors.push('Card ' + i + ': Maximum ' + rcsMaxButtons + ' buttons allowed per card');
+        }
+        
+        card.buttons.forEach(function(btn, btnIndex) {
+            if (btn.label.length > 25) {
+                errors.push('Card ' + i + ', Button ' + (btnIndex + 1) + ': Label exceeds 25 character limit');
+            }
+            if (btn.type === 'url' && !/^https?:\/\/.+/i.test(btn.url || '')) {
+                errors.push('Card ' + i + ', Button ' + (btnIndex + 1) + ': Invalid URL format');
+            }
+            if (btn.type === 'phone' && !/^\+?[0-9\s\-()]{7,20}$/.test(btn.phone || '')) {
+                errors.push('Card ' + i + ', Button ' + (btnIndex + 1) + ': Invalid phone number format');
+            }
+            if (btn.type === 'calendar') {
+                if (!btn.eventTitle) errors.push('Card ' + i + ', Button ' + (btnIndex + 1) + ': Calendar event requires a title');
+                if (!btn.eventStart) errors.push('Card ' + i + ', Button ' + (btnIndex + 1) + ': Calendar event requires start date/time');
+                if (!btn.eventEnd) errors.push('Card ' + i + ', Button ' + (btnIndex + 1) + ': Calendar event requires end date/time');
+            }
+        });
+    }
+    
+    if (rcsCardCount > rcsMaxCards) {
+        errors.push('Maximum ' + rcsMaxCards + ' cards allowed in carousel');
+    }
+    
+    return { valid: errors.length === 0, errors: errors, warnings: warnings };
+}
+
+function buildRcsPayload() {
+    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
+    var payload = {
+        type: isCarousel ? 'carousel' : 'single',
+        cardCount: rcsCardCount,
+        cards: [],
+        placeholders: [],
+        createdAt: new Date().toISOString(),
+        userId: null
+    };
+    
+    for (var i = 1; i <= rcsCardCount; i++) {
+        var card = rcsCardsData[i];
+        if (!card) continue;
+        
+        var cardPayload = {
+            order: i,
+            media: {
+                source: card.media.source,
+                url: card.media.url,
+                fileName: card.media.fileName,
+                fileSize: card.media.fileSize,
+                dimensions: card.media.dimensions,
+                orientation: card.media.orientation,
+                zoom: card.media.zoom,
+                cropPosition: card.media.cropPosition
+            },
+            description: card.description,
+            textBody: card.textBody,
+            buttons: card.buttons.map(function(btn, idx) {
+                return {
+                    order: idx + 1,
+                    label: btn.label,
+                    type: btn.type,
+                    action: btn.type === 'url' ? { url: btn.url } :
+                            btn.type === 'phone' ? { phoneNumber: btn.phone } :
+                            btn.type === 'calendar' ? {
+                                title: btn.eventTitle,
+                                startTime: btn.eventStart,
+                                endTime: btn.eventEnd,
+                                description: btn.eventDesc || ''
+                            } : null
+                };
+            })
+        };
+        
+        var placeholderRegex = /\{\{([^}]+)\}\}/g;
+        var match;
+        while ((match = placeholderRegex.exec(card.description)) !== null) {
+            if (!payload.placeholders.includes(match[1])) payload.placeholders.push(match[1]);
+        }
+        while ((match = placeholderRegex.exec(card.textBody)) !== null) {
+            if (!payload.placeholders.includes(match[1])) payload.placeholders.push(match[1]);
+        }
+        
+        payload.cards.push(cardPayload);
+    }
+    
+    return payload;
+}
+
+function persistRcsPayload(payload) {
+    rcsPersistentPayload = payload;
+    
+    console.log('RCS Payload persisted:', JSON.stringify(payload, null, 2));
+    
+    sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
+    
+    // TODO: Google RCS API Integration
+    // 1. Upload media files to Google RCS CDN for each card
+    //    - POST /v1/files:upload with media content
+    //    - Store returned file URIs in payload.cards[].media.rcsFileUri
+    // 2. Transform payload to Google RCS Business Messages format:
+    //    - For single card: contentMessage.richCard.standaloneCard
+    //    - For carousel: contentMessage.richCard.carouselCard
+    // 3. Validate RCS Agent ID is properly configured
+    // 4. Store payload to database with user_id and campaign reference:
+    //    - INSERT INTO rcs_content (campaign_id, user_id, payload, created_at)
+    // 5. When campaign is sent, call Google RCS API:
+    //    - POST /v1/phones/{phoneNumber}/agentMessages
+    //    - Handle delivery receipts and status callbacks
+}
+
+function applyRcsContent() {
+    saveCurrentCardData();
+    
+    var validation = validateRcsContent();
+    
+    hideRcsValidationErrors();
+    
+    if (!validation.valid) {
+        showRcsValidationErrors(validation.errors, validation.warnings);
+        return;
+    }
+    
+    if (validation.warnings.length > 0) {
+        showRcsValidationWarnings(validation.warnings);
+    }
+    
+    var payload = buildRcsPayload();
+    persistRcsPayload(payload);
+    
+    var summaryText = payload.type === 'carousel' 
+        ? 'RCS Carousel (' + payload.cardCount + ' cards) configured'
+        : 'RCS Rich Card configured';
+    
+    var totalButtons = payload.cards.reduce(function(sum, c) { return sum + c.buttons.length; }, 0);
+    if (totalButtons > 0) {
+        summaryText += ' with ' + totalButtons + ' action button' + (totalButtons > 1 ? 's' : '');
+    }
+    
+    document.getElementById('rcsConfiguredText').textContent = summaryText;
+    document.getElementById('rcsConfiguredSummary').classList.remove('d-none');
+    
+    bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+}
+
+function showRcsValidationErrors(errors, warnings) {
+    var container = document.getElementById('rcsValidationErrors');
+    if (!container) return;
+    
+    var html = '<div class="alert alert-danger mb-3"><h6 class="mb-2"><i class="fas fa-exclamation-circle me-1"></i>Please fix the following errors:</h6><ul class="mb-0 ps-3">';
+    errors.forEach(function(err) {
+        html += '<li>' + escapeHtml(err) + '</li>';
+    });
+    html += '</ul></div>';
+    
+    if (warnings.length > 0) {
+        html += '<div class="alert alert-warning mb-3"><h6 class="mb-2"><i class="fas fa-exclamation-triangle me-1"></i>Warnings:</h6><ul class="mb-0 ps-3">';
+        warnings.forEach(function(warn) {
+            html += '<li>' + escapeHtml(warn) + '</li>';
+        });
+        html += '</ul></div>';
+    }
+    
+    container.innerHTML = html;
+    container.classList.remove('d-none');
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showRcsValidationWarnings(warnings) {
+    var container = document.getElementById('rcsValidationErrors');
+    if (!container || warnings.length === 0) return;
+    
+    var html = '<div class="alert alert-warning mb-3"><h6 class="mb-2"><i class="fas fa-exclamation-triangle me-1"></i>Warnings (content saved with warnings):</h6><ul class="mb-0 ps-3">';
+    warnings.forEach(function(warn) {
+        html += '<li>' + escapeHtml(warn) + '</li>';
+    });
+    html += '</ul></div>';
+    
+    container.innerHTML = html;
+    container.classList.remove('d-none');
+    
+    setTimeout(function() {
+        container.classList.add('d-none');
+    }, 5000);
+}
+
+function hideRcsValidationErrors() {
+    var container = document.getElementById('rcsValidationErrors');
+    if (container) {
+        container.classList.add('d-none');
+        container.innerHTML = '';
+    }
+}
+
+function resetRcsWizard() {
+    rcsCardsData = {};
+    rcsCardCount = 1;
+    rcsCurrentCard = 1;
+    rcsButtons = [];
+    rcsPersistentPayload = null;
+    
+    document.getElementById('rcsTypeSingle').checked = true;
+    toggleRcsMessageType();
+    removeRcsMedia();
+    document.getElementById('rcsDescription').value = '';
+    document.getElementById('rcsTextBody').value = '';
+    updateRcsDescriptionCount();
+    updateRcsTextBodyCount();
+    renderRcsButtons();
+    updateRcsButtonsPreview();
+    hideRcsValidationErrors();
+    
+    initializeRcsCard(1);
+}
+
+function loadRcsFromStorage() {
+    var stored = sessionStorage.getItem('quicksms_rcs_draft');
+    if (!stored) return false;
+    
+    try {
+        var payload = JSON.parse(stored);
+        
+        document.getElementById('rcsType' + (payload.type === 'carousel' ? 'Carousel' : 'Single')).checked = true;
+        toggleRcsMessageType();
+        
+        rcsCardCount = payload.cardCount;
+        payload.cards.forEach(function(cardData) {
+            var cardNum = cardData.order;
+            rcsCardsData[cardNum] = {
+                media: {
+                    source: cardData.media.source,
+                    url: cardData.media.url,
+                    file: null,
+                    fileName: cardData.media.fileName,
+                    fileSize: cardData.media.fileSize,
+                    dimensions: cardData.media.dimensions,
+                    orientation: cardData.media.orientation,
+                    zoom: cardData.media.zoom,
+                    cropPosition: cardData.media.cropPosition
+                },
+                description: cardData.description,
+                textBody: cardData.textBody,
+                buttons: cardData.buttons.map(function(btn) {
+                    var buttonObj = { label: btn.label, type: btn.type };
+                    if (btn.type === 'url') buttonObj.url = btn.action.url;
+                    if (btn.type === 'phone') buttonObj.phone = btn.action.phoneNumber;
+                    if (btn.type === 'calendar') {
+                        buttonObj.eventTitle = btn.action.title;
+                        buttonObj.eventStart = btn.action.startTime;
+                        buttonObj.eventEnd = btn.action.endTime;
+                        buttonObj.eventDesc = btn.action.description;
+                    }
+                    return buttonObj;
+                })
+            };
+        });
+        
+        loadCardData(1);
+        rcsPersistentPayload = payload;
+        return true;
+    } catch (e) {
+        console.error('Failed to load RCS draft:', e);
+        return false;
+    }
+}
 
 function toggleRcsMessageType() {
+    saveCurrentCardData();
+    
     var isCarousel = document.getElementById('rcsTypeCarousel').checked;
     document.getElementById('rcsCarouselNav').classList.toggle('d-none', !isCarousel);
     document.getElementById('rcsCurrentCardLabel').classList.toggle('d-none', !isCarousel);
     
     if (!isCarousel) {
+        for (var i = 2; i <= rcsCardCount; i++) {
+            delete rcsCardsData[i];
+        }
         rcsCardCount = 1;
         rcsCurrentCard = 1;
         resetRcsCardTabs();
+        loadCardData(1);
     }
     updateRcsCardCount();
 }
@@ -1836,7 +2247,11 @@ function resetRcsCardTabs() {
 function addRcsCard() {
     if (rcsCardCount >= rcsMaxCards) return;
     
+    saveCurrentCardData();
+    
     rcsCardCount++;
+    initializeRcsCard(rcsCardCount);
+    
     var tabsContainer = document.getElementById('rcsCardTabs');
     var addBtn = document.getElementById('rcsAddCardBtn');
     
@@ -1857,7 +2272,59 @@ function addRcsCard() {
     }
 }
 
+function deleteRcsCard(cardNum) {
+    if (rcsCardCount <= 1) return;
+    
+    delete rcsCardsData[cardNum];
+    
+    var newCardsData = {};
+    var newIndex = 1;
+    for (var i = 1; i <= rcsCardCount; i++) {
+        if (i !== cardNum && rcsCardsData[i]) {
+            newCardsData[newIndex] = rcsCardsData[i];
+            newIndex++;
+        }
+    }
+    rcsCardsData = newCardsData;
+    rcsCardCount--;
+    
+    rebuildCardTabs();
+    
+    if (rcsCurrentCard > rcsCardCount) {
+        rcsCurrentCard = rcsCardCount;
+    }
+    selectRcsCard(rcsCurrentCard);
+    updateRcsCardCount();
+}
+
+function rebuildCardTabs() {
+    var tabsContainer = document.getElementById('rcsCardTabs');
+    var addBtn = document.getElementById('rcsAddCardBtn');
+    
+    tabsContainer.querySelectorAll('.rcs-card-tab').forEach(function(tab) {
+        tab.remove();
+    });
+    
+    for (var i = 1; i <= rcsCardCount; i++) {
+        var tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = 'btn btn-sm rcs-card-tab ' + (i === rcsCurrentCard ? 'btn-success active' : 'btn-outline-success');
+        tab.setAttribute('data-card', i);
+        tab.textContent = 'Card ' + i;
+        (function(cardNum) {
+            tab.onclick = function() { selectRcsCard(cardNum); };
+        })(i);
+        tabsContainer.insertBefore(tab, addBtn);
+    }
+    
+    addBtn.disabled = rcsCardCount >= rcsMaxCards;
+}
+
 function selectRcsCard(cardNum) {
+    if (rcsCurrentCard !== cardNum) {
+        saveCurrentCardData();
+    }
+    
     rcsCurrentCard = cardNum;
     
     document.querySelectorAll('.rcs-card-tab').forEach(function(tab) {
@@ -1872,7 +2339,7 @@ function selectRcsCard(cardNum) {
     });
     
     document.getElementById('rcsCurrentCardName').textContent = 'Card ' + cardNum;
-    console.log('TODO: Load card ' + cardNum + ' configuration');
+    loadCardData(cardNum);
 }
 
 function updateRcsCardCount() {
@@ -2111,7 +2578,6 @@ function insertRcsEmoji(emoji) {
 
 var rcsButtons = [];
 var rcsEditingButtonIndex = -1;
-var rcsMaxButtons = 3;
 
 function addRcsButton() {
     if (rcsButtons.length >= rcsMaxButtons) return;
