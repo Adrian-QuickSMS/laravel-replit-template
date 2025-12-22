@@ -60,29 +60,31 @@
                                                     <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
                                                         <i class="fas fa-list"></i>
                                                     </div>
-                                                    <strong>{{ $list['name'] }}</strong>
+                                                    <strong style="color: #000;">{{ $list['name'] }}</strong>
                                                 </div>
                                             </td>
-                                            <td class="text-muted">{{ $list['description'] }}</td>
+                                            <td style="color: #000;">{{ $list['description'] }}</td>
                                             <td>
                                                 <span class="badge bg-light text-dark">
                                                     <i class="fas fa-users me-1"></i>{{ number_format($list['contact_count']) }}
                                                 </span>
                                             </td>
-                                            <td class="text-muted small">{{ $list['created_at'] }}</td>
-                                            <td class="text-muted small">{{ $list['updated_at'] }}</td>
+                                            <td style="color: #000;">{{ \Carbon\Carbon::parse($list['created_at'])->format('d-m-Y') }}</td>
+                                            <td style="color: #000;">{{ \Carbon\Carbon::parse($list['updated_at'])->format('d-m-Y') }}</td>
                                             <td class="text-end">
                                                 <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <button class="btn btn-primary tp-btn-light sharp" type="button" data-bs-toggle="dropdown">
                                                         <i class="fas fa-ellipsis-v"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li><a class="dropdown-item" href="#!" onclick="viewListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-info"></i>View Contacts</a></li>
-                                                        <li><a class="dropdown-item" href="#!" onclick="addContactsToList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-success"></i>Add Contacts</a></li>
-                                                        <li><a class="dropdown-item" href="#!" onclick="renameList({{ $list['id'] }}, '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-primary"></i>Rename</a></li>
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li><a class="dropdown-item text-danger" href="#!" onclick="deleteList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                                    </ul>
+                                                    <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                        <div class="dropdown-content">
+                                                            <a class="dropdown-item" href="#!" onclick="viewListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-info"></i>View Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="addContactsToList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-success"></i>Add Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="renameList({{ $list['id'] }}, '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-primary"></i>Rename</a>
+                                                            <div class="dropdown-divider"></div>
+                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -131,8 +133,8 @@
                                                         <i class="fas fa-magic"></i>
                                                     </div>
                                                     <div>
-                                                        <strong>{{ $list['name'] }}</strong>
-                                                        <div class="small text-muted">{{ $list['description'] }}</div>
+                                                        <strong style="color: #000;">{{ $list['name'] }}</strong>
+                                                        <div class="small" style="color: #000;">{{ $list['description'] }}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -148,20 +150,22 @@
                                                     <i class="fas fa-users me-1"></i>{{ number_format($list['contact_count']) }}
                                                 </span>
                                             </td>
-                                            <td class="text-muted small">{{ $list['created_at'] }}</td>
-                                            <td class="text-muted small">{{ $list['last_evaluated'] }}</td>
+                                            <td style="color: #000;">{{ \Carbon\Carbon::parse($list['created_at'])->format('d-m-Y') }}</td>
+                                            <td style="color: #000;">{{ \Carbon\Carbon::parse($list['last_evaluated'])->format('d-m-Y') }}</td>
                                             <td class="text-end">
                                                 <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                    <button class="btn btn-primary tp-btn-light sharp" type="button" data-bs-toggle="dropdown">
                                                         <i class="fas fa-ellipsis-v"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li><a class="dropdown-item" href="#!" onclick="viewDynamicListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-info"></i>View Contacts</a></li>
-                                                        <li><a class="dropdown-item" href="#!" onclick="editDynamicListRules({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-primary"></i>Edit Rules</a></li>
-                                                        <li><a class="dropdown-item" href="#!" onclick="refreshDynamicList({{ $list['id'] }})"><i class="fas fa-sync-alt me-2 text-success"></i>Refresh Now</a></li>
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li><a class="dropdown-item text-danger" href="#!" onclick="deleteDynamicList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                                    </ul>
+                                                    <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                        <div class="dropdown-content">
+                                                            <a class="dropdown-item" href="#!" onclick="viewDynamicListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-info"></i>View Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="editDynamicListRules({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-primary"></i>Edit Rules</a>
+                                                            <a class="dropdown-item" href="#!" onclick="refreshDynamicList({{ $list['id'] }})"><i class="fas fa-sync-alt me-2 text-success"></i>Refresh Now</a>
+                                                            <div class="dropdown-divider"></div>
+                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteDynamicList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
