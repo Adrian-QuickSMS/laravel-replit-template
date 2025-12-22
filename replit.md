@@ -187,7 +187,66 @@ php artisan serve --host=0.0.0.0 --port=5000
   - Audit logging for all opt-out changes
   - Integration with campaign sending (suppression checks)
 
+## Send Message Page Features (UI Only)
+- **6-section single-screen layout** with individual cards and uniform gaps
+- **Section 1: Campaign Details**
+  - Optional campaign name field (auto-generates if blank: "Campaign - YYYY-MM-DD HH:mm")
+- **Section 2: Channel & Sender**
+  - Button group toggle: SMS only / Basic RCS / Rich RCS (with tooltips)
+  - SMS Sender ID dropdown (shows when SMS or RCS selected)
+  - RCS Agent dropdown (shows for Basic/Rich RCS only)
+  - Rich RCS content section (card title, image, description, buttons)
+- **Section 3: Recipients**
+  - UK only toggle with modal confirmation for international mode
+  - Three input methods via tabs: Manual, Upload, Contact Book
+  - **Manual Input:**
+    - Multi-line textarea for paste/type numbers
+    - Automatic UK format normalization (07xxx → +447xxx)
+    - Validation feedback (valid/invalid counts with review link)
+  - **File Upload:**
+    - CSV/Excel file support with progress indicator
+    - Column Mapping modal with header detection
+    - Excel zero-strip detection and correction
+    - Sample data preview in mapping table
+  - **Contact Book:**
+    - Full modal with 4 tabs: Contacts, Lists, Dynamic Lists, Tags
+    - Search, sort, and filter capabilities
+    - Multi-select with selection summary
+    - Selection chips with remove functionality
+  - **Recipient Summary:**
+    - Unique/Valid/Invalid count display
+    - Review link for invalid numbers
+    - Invalid Numbers modal with downloadable CSV
+- **Section 4: Content**
+  - Template selector dropdown
+  - Message textarea with character/part counter
+  - Merge field and tracking URL insertion
+  - Scheduling: Now/Later with datetime picker
+  - RCS content fields (title, image, description, buttons)
+- **Section 5: Opt-outs**
+  - Master Opt-Out List (required, always applied)
+  - Additional opt-out list checkboxes
+  - Excluded count display
+- **Section 6: Preview (sticky sidebar)**
+  - SMS/RCS preview toggle
+  - Phone mockup with message bubble
+  - Channel, Recipients, Cost summary
+  - Save Draft and Continue buttons
+- **TODO markers placed for:**
+  - Backend API integration (POST /api/campaigns, /api/messages)
+  - File upload processing (streaming for large files)
+  - Contact Book resolution to actual phone numbers
+  - Opt-out list exclusion calculation
+  - Cost estimation based on channel and message parts
+  - Draft saving functionality
+  - Navigation to confirmation screen
+
 ## Recent Changes
+- December 22, 2025: Implemented Send Message page Recipients section
+  - Enhanced Manual Input with UK numbers toggle and validation feedback
+  - Added File Upload with column mapping modal and Excel zero-strip detection
+  - Created Contact Book selector modal with 4 tabs
+  - Added Recipient Summary panel with valid/invalid counts
 - December 22, 2025: Implemented Opt-Out Lists page UI
   - Created opt-out-lists.blade.php with Master and Secondary lists structure
   - Added mock opt-out data with all metadata (mobile, source, timestamp, campaign ref)

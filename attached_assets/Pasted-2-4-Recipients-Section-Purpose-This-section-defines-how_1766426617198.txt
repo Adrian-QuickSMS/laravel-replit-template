@@ -1,0 +1,229 @@
+2.4 Recipients
+Section Purpose
+This section defines how recipients are selected, validated, normalised, and summarised for a campaign.
+Users may combine multiple recipient input methods; the system must de-duplicate and validate all recipients before sending.
+________________________________________
+2.4.1 Recipient Input Methods
+Users may select one or more of the following methods:
+1.	Manual Input
+2.	File Upload (CSV / Excel)
+3.	Contact Book Selector
+Selections from all methods are combined into a single recipient set.
+________________________________________
+A. Manual Input
+A.1 Input Field
+•	Field type: Multi-line text area
+•	Label: Enter mobile numbers
+•	Placeholder: Paste or type numbers separated by commas, spaces, or new lines
+________________________________________
+A.2 Number Scope & Normalisation
+•	Toggle: UK numbers only
+o	Default: ON
+o	Purpose: Indicates that all recipients are expected to be UK-based.
+Default behaviour (UK numbers only = ON):
+•	UK national format numbers (07xxxxxxxxx) are automatically normalised to international format (447xxxxxxxxx).
+•	Any non-UK international numbers (e.g. +33, +1) are flagged as invalid and excluded.
+•	No warnings or advanced options are shown to maintain a clean UI.
+________________________________________
+A.3 Changing Number Scope (Advanced Options)
+When the user switches UK numbers only = OFF:
+•	A modal dialog is displayed explaining:
+o	How number normalisation works
+o	The risks of mis-routing UK-formatted numbers
+Modal options include:
+•	Checkbox: Convert all 07xxx numbers to UK international format (+447xxx)
+When enabled:
+o	All numbers starting with 07 are converted to 447.
+o	A warning is displayed:
+“This setting assumes all 07xxx numbers are UK mobile numbers. If international recipients (e.g. Russia, Kazakhstan) are included, they may be incorrectly targeted as UK numbers.”
+•	The user must explicitly confirm before continuing.
+•	The confirmation is logged for audit purposes.
+•	Once confirmed, the modal closes and no persistent warnings are shown in the main UI.
+________________________________________
+A.4 Accepted Number Formats
+•	447xxxxxxxxx (UK international format)
+•	07xxxxxxxxx (UK national format)
+•	International numbers with + prefix (e.g. +33, +1, +49)
+________________________________________
+A.5 Validation & Processing
+On blur or submit, the system will:
+•	Normalise numbers based on confirmed scope rules
+•	De-duplicate entries
+•	Validate country codes and formats
+User feedback:
+•	Valid numbers: X
+•	Invalid numbers: Y (expandable list)
+Invalid numbers are excluded unless corrected.
+________________________________________
+B. File Upload (CSV / Excel)
+B.1 Upload Control
+•	Field type: File upload button
+•	Label: Upload file
+•	Accepted file types:
+o	.csv
+o	.xlsx (Excel)
+________________________________________
+B.2 File Validation & Pre-Processing
+•	Validate file type and size on upload.
+•	Support very large datasets (millions of rows) using streaming / chunked processing.
+•	For Excel files:
+o	Default to first worksheet
+o	Allow worksheet selection if multiple sheets exist
+________________________________________
+B.3 Header Detection & Column Mapping
+B.3.1 Header Confirmation
+After upload, prompt:
+“Does the first row contain column headings?”
+Options:
+•	Yes – first row contains headings
+•	No – first row contains data
+________________________________________
+B.3.2 Column Mapping
+•	Display detected columns (or Column A, Column B, etc.).
+•	Required mapping:
+o	Mobile Number
+•	Optional mappings:
+o	First Name
+o	Last Name
+o	Email
+o	Custom fields (for personalisation and reporting)
+________________________________________
+B.3.3 Mail Merge & Personalisation
+If headers are present:
+•	System attempts auto-mapping for common fields (mobile, msisdn, phone, firstname, surname, etc.).
+•	User can override mappings.
+•	Mapped fields become available for:
+o	Message personalisation (e.g. {{firstName}})
+o	Reporting and automation flows
+________________________________________
+B.4 Number Scope & Excel-Specific Handling
+The upload flow uses the same number scope and normalisation rules as Manual Input.
+Excel zero-stripping detection
+•	Detect numbers starting with 7xxxxxxxxx (10–11 digits) where Excel has likely removed the leading zero.
+•	Display confirmation modal:
+“We’ve detected mobile numbers starting with ‘7’. This often occurs when Excel removes the leading zero from UK mobile numbers. Should these be treated as UK numbers and converted to international format (+447…)? ”
+Options:
+•	Yes – convert to UK international format
+•	No – leave as-is
+User confirmation is required and logged.
+________________________________________
+B.5 Validation & Processing
+•	Normalisation based on confirmed rules
+•	De-duplication across entire dataset
+•	Format validation per country
+•	Invalid rows flagged without stopping processing
+________________________________________
+B.6 Upload Summary & Review
+Display summary:
+•	Total rows uploaded
+•	Unique numbers detected
+•	Valid numbers
+•	Invalid numbers
+Additional features:
+•	Expandable list of invalid rows with:
+o	Row number
+o	Original value
+o	Failure reason
+•	Downloadable CSV of invalid records
+•	Indicators showing:
+o	UK-only mode applied
+o	Excel correction applied (if applicable)
+________________________________________
+B.7 Confirmation & Completion
+User must confirm:
+•	Column mappings
+•	Number scope rules
+•	Any Excel corrections
+Button: Confirm & Import
+On confirmation:
+•	Numbers are added to the recipient pool
+•	Personalisation fields are stored
+________________________________________
+B.8 Non-Functional Requirements
+•	Must support millions of rows without timeouts
+•	Streaming, async processing required
+•	Must tolerate malformed rows
+•	Must log:
+o	User confirmations
+o	Normalisation decisions
+o	Upload metadata (file name, size, timestamp, user)
+________________________________________
+C. Contact Book Selector
+C.1 Modal Definition
+•	Trigger: Select from Contact Book
+•	Type: Full-screen modal (desktop) / slide-up modal (mobile)
+•	Purpose: Select recipients from Contacts, Lists, Dynamic Lists, or Tags
+Selections persist across tabs.
+________________________________________
+C.2 Tabs
+1.	Contacts
+2.	Lists
+3.	Dynamic Lists
+4.	Tags
+________________________________________
+C.3 Contacts Tab – Search, Filter & Sort
+Search
+•	Global search across:
+o	Name
+o	Mobile number
+o	Email
+o	All customer-defined custom fields
+o	Tags (optional)
+•	Case-insensitive, partial match, debounced
+Helper text:
+Search across names, numbers, tags, and custom contact fields
+________________________________________
+Filters (collapsible)
+•	Tags (multi-select)
+•	Custom fields (field-aware controls)
+•	Has mobile number (Yes / No)
+•	Opt-out status (excluded by default)
+•	Source (future)
+Filters appear as removable chips.
+________________________________________
+Sorting
+•	Name (A–Z / Z–A)
+•	Most recently added
+•	Most recently contacted (default)
+•	Mobile number
+________________________________________
+Selection
+•	Checkbox per contact
+•	Multi-select supported
+•	Select all (filtered results)
+•	Live selection counter
+•	Selection persists across paging and filtering
+________________________________________
+C.4 Lists / Dynamic Lists / Tags Tabs
+Each tab supports:
+•	Search by name
+•	Sorting (name, size, last updated/evaluated)
+•	Checkbox multi-select
+•	Contact counts displayed
+________________________________________
+C.5 User Actions
+•	Primary CTA: Add to Campaign
+•	Secondary CTA: Cancel
+________________________________________
+C.6 Post-Selection Behaviour
+On confirmation:
+•	Display summary chips (removable):
+o	e.g. 3 Lists, 2 Dynamic Lists, Tag: asthma
+•	Selection state persisted for:
+o	Recipient calculation
+o	De-duplication
+o	Payload generation
+o	Reporting
+________________________________________
+C.7 Scalability Requirements
+•	Support 100k–1M+ contacts
+•	Indexed search (including custom fields)
+•	Pagination or virtualised scrolling
+•	“Select all” applies only to current filter set
+•	De-duplication across all selection types
+________________________________________
+D. Recipient Summary
+Displayed below recipient inputs:
+•	Unique valid numbers: X
+•	Invalid numbers: Y (link to review)
+This summary feeds directly into Screen 2 – Final Confirmation.
