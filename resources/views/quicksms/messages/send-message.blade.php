@@ -1211,8 +1211,104 @@
                                 </div>
                                 <div class="mb-4">
                                     <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-mouse-pointer me-2"></i>Action Buttons</h6>
-                                    <div class="border rounded p-3 bg-light">
-                                        <p class="text-muted mb-0 small">Interactive button configuration will appear here.</p>
+                                    <div class="border rounded p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <small class="text-muted">Add up to 3 interactive buttons</small>
+                                            <span class="badge bg-secondary" id="rcsButtonCount">0 / 3</span>
+                                        </div>
+                                        
+                                        <div id="rcsButtonsList"></div>
+                                        
+                                        <div id="rcsAddButtonSection">
+                                            <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="addRcsButton()" id="rcsAddButtonBtn">
+                                                <i class="fas fa-plus me-1"></i>Add Button
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="modal fade" id="rcsButtonConfigModal" tabindex="-1" data-bs-backdrop="static">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header py-2">
+                                                        <h6 class="modal-title"><i class="fas fa-mouse-pointer me-2"></i>Configure Button</h6>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label small">Button Label <span class="text-danger">*</span></label>
+                                                            <input type="text" class="form-control form-control-sm" id="rcsButtonLabel" maxlength="25" placeholder="e.g., Learn More" oninput="updateRcsButtonLabelCount()">
+                                                            <div class="d-flex justify-content-between mt-1">
+                                                                <small id="rcsButtonLabelError" class="text-danger d-none">Label is required</small>
+                                                                <small class="text-muted ms-auto"><span id="rcsButtonLabelCount">0</span>/25</small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="form-label small">Button Type <span class="text-danger">*</span></label>
+                                                            <div class="btn-group w-100" role="group">
+                                                                <input type="radio" class="btn-check" name="rcsButtonType" id="rcsButtonTypeUrl" value="url" checked>
+                                                                <label class="btn btn-outline-secondary btn-sm" for="rcsButtonTypeUrl">
+                                                                    <i class="fas fa-link me-1"></i>URL
+                                                                </label>
+                                                                <input type="radio" class="btn-check" name="rcsButtonType" id="rcsButtonTypePhone" value="phone">
+                                                                <label class="btn btn-outline-secondary btn-sm" for="rcsButtonTypePhone">
+                                                                    <i class="fas fa-phone me-1"></i>Call
+                                                                </label>
+                                                                <input type="radio" class="btn-check" name="rcsButtonType" id="rcsButtonTypeCalendar" value="calendar">
+                                                                <label class="btn btn-outline-secondary btn-sm" for="rcsButtonTypeCalendar">
+                                                                    <i class="fas fa-calendar-plus me-1"></i>Calendar
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div id="rcsButtonUrlConfig">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small">URL <span class="text-danger">*</span></label>
+                                                                <input type="url" class="form-control form-control-sm" id="rcsButtonUrl" placeholder="https://example.com">
+                                                                <small id="rcsButtonUrlError" class="text-danger d-none">Valid URL is required</small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div id="rcsButtonPhoneConfig" class="d-none">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small">Phone Number <span class="text-danger">*</span></label>
+                                                                <input type="tel" class="form-control form-control-sm" id="rcsButtonPhone" placeholder="+44 1234 567890">
+                                                                <small id="rcsButtonPhoneError" class="text-danger d-none">Valid phone number required (e.g., +44...)</small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div id="rcsButtonCalendarConfig" class="d-none">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small">Event Title <span class="text-danger">*</span></label>
+                                                                <input type="text" class="form-control form-control-sm" id="rcsButtonEventTitle" maxlength="100" placeholder="Meeting with QuickSMS">
+                                                                <small id="rcsButtonEventTitleError" class="text-danger d-none">Event title is required</small>
+                                                            </div>
+                                                            <div class="row g-2 mb-3">
+                                                                <div class="col-6">
+                                                                    <label class="form-label small">Start Date/Time <span class="text-danger">*</span></label>
+                                                                    <input type="datetime-local" class="form-control form-control-sm" id="rcsButtonEventStart">
+                                                                    <small id="rcsButtonEventStartError" class="text-danger d-none">Start time required</small>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label class="form-label small">End Date/Time <span class="text-danger">*</span></label>
+                                                                    <input type="datetime-local" class="form-control form-control-sm" id="rcsButtonEventEnd">
+                                                                    <small id="rcsButtonEventEndError" class="text-danger d-none">End time required</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small">Event Description</label>
+                                                                <textarea class="form-control form-control-sm" id="rcsButtonEventDesc" rows="2" maxlength="500" placeholder="Optional description..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer py-2">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="button" class="btn btn-success btn-sm" onclick="saveRcsButton()">
+                                                            <i class="fas fa-check me-1"></i>Save Button
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2013,6 +2109,220 @@ function insertRcsEmoji(emoji) {
     rcsActiveTextField = null;
 }
 
+var rcsButtons = [];
+var rcsEditingButtonIndex = -1;
+var rcsMaxButtons = 3;
+
+function addRcsButton() {
+    if (rcsButtons.length >= rcsMaxButtons) return;
+    rcsEditingButtonIndex = -1;
+    resetRcsButtonForm();
+    var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
+    modal.show();
+}
+
+function editRcsButton(index) {
+    rcsEditingButtonIndex = index;
+    var btn = rcsButtons[index];
+    document.getElementById('rcsButtonLabel').value = btn.label;
+    updateRcsButtonLabelCount();
+    
+    document.getElementById('rcsButtonType' + btn.type.charAt(0).toUpperCase() + btn.type.slice(1)).checked = true;
+    toggleRcsButtonType();
+    
+    if (btn.type === 'url') {
+        document.getElementById('rcsButtonUrl').value = btn.url || '';
+    } else if (btn.type === 'phone') {
+        document.getElementById('rcsButtonPhone').value = btn.phone || '';
+    } else if (btn.type === 'calendar') {
+        document.getElementById('rcsButtonEventTitle').value = btn.eventTitle || '';
+        document.getElementById('rcsButtonEventStart').value = btn.eventStart || '';
+        document.getElementById('rcsButtonEventEnd').value = btn.eventEnd || '';
+        document.getElementById('rcsButtonEventDesc').value = btn.eventDesc || '';
+    }
+    
+    var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
+    modal.show();
+}
+
+function deleteRcsButton(index) {
+    rcsButtons.splice(index, 1);
+    renderRcsButtons();
+    updateRcsButtonsPreview();
+}
+
+function resetRcsButtonForm() {
+    document.getElementById('rcsButtonLabel').value = '';
+    document.getElementById('rcsButtonLabelCount').textContent = '0';
+    document.getElementById('rcsButtonTypeUrl').checked = true;
+    toggleRcsButtonType();
+    document.getElementById('rcsButtonUrl').value = '';
+    document.getElementById('rcsButtonPhone').value = '';
+    document.getElementById('rcsButtonEventTitle').value = '';
+    document.getElementById('rcsButtonEventStart').value = '';
+    document.getElementById('rcsButtonEventEnd').value = '';
+    document.getElementById('rcsButtonEventDesc').value = '';
+    hideAllRcsButtonErrors();
+}
+
+function hideAllRcsButtonErrors() {
+    ['rcsButtonLabelError', 'rcsButtonUrlError', 'rcsButtonPhoneError', 
+     'rcsButtonEventTitleError', 'rcsButtonEventStartError', 'rcsButtonEventEndError'].forEach(function(id) {
+        document.getElementById(id).classList.add('d-none');
+    });
+}
+
+function toggleRcsButtonType() {
+    var type = document.querySelector('input[name="rcsButtonType"]:checked').value;
+    document.getElementById('rcsButtonUrlConfig').classList.toggle('d-none', type !== 'url');
+    document.getElementById('rcsButtonPhoneConfig').classList.toggle('d-none', type !== 'phone');
+    document.getElementById('rcsButtonCalendarConfig').classList.toggle('d-none', type !== 'calendar');
+    hideAllRcsButtonErrors();
+    
+    if (type !== 'url') document.getElementById('rcsButtonUrl').value = '';
+    if (type !== 'phone') document.getElementById('rcsButtonPhone').value = '';
+    if (type !== 'calendar') {
+        document.getElementById('rcsButtonEventTitle').value = '';
+        document.getElementById('rcsButtonEventStart').value = '';
+        document.getElementById('rcsButtonEventEnd').value = '';
+        document.getElementById('rcsButtonEventDesc').value = '';
+    }
+}
+
+function updateRcsButtonLabelCount() {
+    var count = document.getElementById('rcsButtonLabel').value.length;
+    document.getElementById('rcsButtonLabelCount').textContent = count;
+}
+
+function validateRcsButton() {
+    hideAllRcsButtonErrors();
+    var valid = true;
+    var label = document.getElementById('rcsButtonLabel').value.trim();
+    var type = document.querySelector('input[name="rcsButtonType"]:checked').value;
+    
+    if (!label) {
+        document.getElementById('rcsButtonLabelError').classList.remove('d-none');
+        valid = false;
+    }
+    
+    if (type === 'url') {
+        var url = document.getElementById('rcsButtonUrl').value.trim();
+        var urlPattern = /^https?:\/\/.+/i;
+        if (!url || !urlPattern.test(url)) {
+            document.getElementById('rcsButtonUrlError').classList.remove('d-none');
+            valid = false;
+        }
+    } else if (type === 'phone') {
+        var phone = document.getElementById('rcsButtonPhone').value.trim();
+        var phonePattern = /^\+?[0-9\s\-()]{7,20}$/;
+        if (!phone || !phonePattern.test(phone)) {
+            document.getElementById('rcsButtonPhoneError').classList.remove('d-none');
+            valid = false;
+        }
+    } else if (type === 'calendar') {
+        var eventTitle = document.getElementById('rcsButtonEventTitle').value.trim();
+        var eventStart = document.getElementById('rcsButtonEventStart').value;
+        var eventEnd = document.getElementById('rcsButtonEventEnd').value;
+        
+        if (!eventTitle) {
+            document.getElementById('rcsButtonEventTitleError').classList.remove('d-none');
+            valid = false;
+        }
+        if (!eventStart) {
+            document.getElementById('rcsButtonEventStartError').classList.remove('d-none');
+            valid = false;
+        }
+        if (!eventEnd) {
+            document.getElementById('rcsButtonEventEndError').classList.remove('d-none');
+            valid = false;
+        }
+    }
+    
+    return valid;
+}
+
+function saveRcsButton() {
+    if (!validateRcsButton()) return;
+    
+    var label = document.getElementById('rcsButtonLabel').value.trim();
+    var type = document.querySelector('input[name="rcsButtonType"]:checked').value;
+    
+    var buttonData = { label: label, type: type };
+    
+    if (type === 'url') {
+        buttonData.url = document.getElementById('rcsButtonUrl').value.trim();
+    } else if (type === 'phone') {
+        buttonData.phone = document.getElementById('rcsButtonPhone').value.trim();
+    } else if (type === 'calendar') {
+        buttonData.eventTitle = document.getElementById('rcsButtonEventTitle').value.trim();
+        buttonData.eventStart = document.getElementById('rcsButtonEventStart').value;
+        buttonData.eventEnd = document.getElementById('rcsButtonEventEnd').value;
+        buttonData.eventDesc = document.getElementById('rcsButtonEventDesc').value.trim();
+    }
+    
+    if (rcsEditingButtonIndex >= 0) {
+        rcsButtons[rcsEditingButtonIndex] = buttonData;
+    } else {
+        rcsButtons.push(buttonData);
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('rcsButtonConfigModal')).hide();
+    renderRcsButtons();
+    updateRcsButtonsPreview();
+}
+
+function renderRcsButtons() {
+    var container = document.getElementById('rcsButtonsList');
+    container.innerHTML = '';
+    
+    rcsButtons.forEach(function(btn, index) {
+        var typeIcon = btn.type === 'url' ? 'fa-link' : btn.type === 'phone' ? 'fa-phone' : 'fa-calendar-plus';
+        var typeLabel = btn.type === 'url' ? 'URL' : btn.type === 'phone' ? 'Call' : 'Calendar';
+        
+        var html = '<div class="d-flex align-items-center justify-content-between p-2 border rounded mb-2 bg-light">';
+        html += '<div class="d-flex align-items-center">';
+        html += '<span class="badge bg-secondary me-2"><i class="fas ' + typeIcon + '"></i></span>';
+        html += '<span class="small fw-medium">' + escapeHtml(btn.label) + '</span>';
+        html += '<span class="badge bg-light text-muted ms-2 small">' + typeLabel + '</span>';
+        html += '</div>';
+        html += '<div class="btn-group btn-group-sm">';
+        html += '<button type="button" class="btn btn-outline-secondary" onclick="editRcsButton(' + index + ')"><i class="fas fa-edit"></i></button>';
+        html += '<button type="button" class="btn btn-outline-danger" onclick="deleteRcsButton(' + index + ')"><i class="fas fa-trash"></i></button>';
+        html += '</div>';
+        html += '</div>';
+        
+        container.innerHTML += html;
+    });
+    
+    document.getElementById('rcsButtonCount').textContent = rcsButtons.length + ' / ' + rcsMaxButtons;
+    document.getElementById('rcsAddButtonBtn').disabled = rcsButtons.length >= rcsMaxButtons;
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateRcsButtonsPreview() {
+    var previewContainer = document.querySelector('.rcs-preview-buttons .d-grid');
+    if (!previewContainer) return;
+    
+    previewContainer.innerHTML = '';
+    
+    if (rcsButtons.length === 0) {
+        previewContainer.innerHTML = '<button class="btn btn-outline-primary btn-sm" disabled>Action Button 1</button>';
+        previewContainer.innerHTML += '<button class="btn btn-outline-secondary btn-sm" disabled>Action Button 2</button>';
+        return;
+    }
+    
+    rcsButtons.forEach(function(btn, index) {
+        var btnClass = index === 0 ? 'btn-outline-primary' : 'btn-outline-secondary';
+        var icon = btn.type === 'url' ? 'fa-external-link-alt' : btn.type === 'phone' ? 'fa-phone' : 'fa-calendar-plus';
+        previewContainer.innerHTML += '<button class="btn ' + btnClass + ' btn-sm" disabled><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(btn.label) + '</button>';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -2054,6 +2364,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('emojiPickerModal').addEventListener('hidden.bs.modal', function() {
         rcsActiveTextField = null;
+    });
+    
+    document.querySelectorAll('input[name="rcsButtonType"]').forEach(function(radio) {
+        radio.addEventListener('change', toggleRcsButtonType);
+    });
+    
+    document.getElementById('rcsButtonConfigModal').addEventListener('hidden.bs.modal', function() {
+        rcsEditingButtonIndex = -1;
     });
 });
 
