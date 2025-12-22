@@ -58,67 +58,55 @@
             </div>
             
             <div class="card mb-1">
-                <div class="card-body p-2">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <h6 class="mb-0" style="font-size: 13px;"><i class="fas fa-users text-primary me-1"></i>3. Recipients <span class="badge bg-primary ms-1" id="recipientCount">0</span></h6>
-                        <div class="form-check form-switch mb-0" style="font-size: 10px;">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="mb-1" style="font-size: 14px; font-weight: 600;">Recipients</h6>
+                            <p class="text-muted mb-0" style="font-size: 12px;">Add recipients via manual entry, CSV upload, or from your contact book</p>
+                        </div>
+                        <div class="form-check form-switch mb-0" style="font-size: 11px;">
                             <input class="form-check-input" type="checkbox" id="ukNumbersOnly" checked onchange="toggleUkMode()">
                             <label class="form-check-label" for="ukNumbersOnly">UK only</label>
                         </div>
                     </div>
-                    <ul class="nav nav-pills nav-pills-sm mb-1" style="font-size: 11px;">
-                        <li class="nav-item"><button class="nav-link active py-0 px-2" data-bs-toggle="pill" data-bs-target="#manualEntry">Manual</button></li>
-                        <li class="nav-item"><button class="nav-link py-0 px-2" data-bs-toggle="pill" data-bs-target="#uploadFile">Upload</button></li>
-                        <li class="nav-item"><button class="nav-link py-0 px-2" data-bs-toggle="pill" data-bs-target="#contactBook">Contact Book</button></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="manualEntry">
-                            <textarea class="form-control form-control-sm" id="manualNumbers" rows="2" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()"></textarea>
-                            <div class="d-none mt-1" id="manualValidation" style="font-size: 10px;">
-                                <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="manualValid">0</span> valid</span>
-                                <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="manualInvalid">0</span> invalid</span>
-                                <a href="#" class="ms-2 d-none" id="manualInvalidLink" onclick="showInvalidNumbers('manual')">View</a>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="uploadFile">
-                            <div class="input-group input-group-sm">
-                                <input type="file" class="form-control form-control-sm" id="recipientFile" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
-                                <button class="btn btn-outline-primary" type="button" id="uploadBtn" disabled onclick="processFileUpload()"><i class="fas fa-upload"></i></button>
-                            </div>
-                            <div class="d-none mt-1" id="uploadProgress" style="font-size: 10px;">
-                                <div class="progress" style="height: 4px;"><div class="progress-bar" id="uploadProgressBar" style="width: 0%;"></div></div>
-                                <span id="uploadStatus" class="text-muted">Processing...</span>
-                            </div>
-                            <div class="d-none mt-1" id="uploadResult" style="font-size: 10px;">
-                                <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="uploadValid">0</span> valid</span>
-                                <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="uploadInvalid">0</span> invalid</span>
-                                <a href="#" class="ms-2 d-none" id="uploadInvalidLink" onclick="showInvalidNumbers('upload')">View</a>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="contactBook">
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="openContactBookModal()">
-                                <i class="fas fa-address-book me-1"></i>Select from Contact Book
-                            </button>
-                            <div class="d-none mt-1" id="contactBookSelection" style="font-size: 10px;">
-                                <div id="contactBookChips"></div>
-                            </div>
-                        </div>
+                    
+                    <label class="form-label mb-1" style="font-size: 12px; font-weight: 500;">Enter mobile numbers</label>
+                    <textarea class="form-control mb-2" id="manualNumbers" rows="3" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()" style="font-size: 13px;"></textarea>
+                    
+                    <div class="d-none mb-2" id="manualValidation" style="font-size: 11px;">
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="manualValid">0</span> valid</span>
+                        <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="manualInvalid">0</span> invalid</span>
+                        <a href="#" class="ms-2 d-none" id="manualInvalidLink" onclick="showInvalidNumbers('manual')">View</a>
                     </div>
-                    <div class="border-top mt-2 pt-2" style="font-size: 11px;">
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <span class="text-primary fw-bold" id="totalRecipients">0</span>
-                                <small class="text-muted d-block">Unique</small>
-                            </div>
-                            <div class="col-4">
-                                <span class="text-success fw-bold" id="validRecipients">0</span>
-                                <small class="text-muted d-block">Valid</small>
-                            </div>
-                            <div class="col-4">
-                                <span class="text-danger fw-bold" id="invalidRecipients">0</span>
-                                <small class="text-muted d-block"><a href="#" onclick="showAllInvalidNumbers()" id="invalidReviewLink" class="d-none">Review</a><span id="invalidLabel">Invalid</span></small>
-                            </div>
-                        </div>
+                    
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-light btn-sm" onclick="triggerFileUpload()">
+                            <i class="fas fa-upload me-1"></i>Upload CSV
+                        </button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="openContactBookModal()">
+                            <i class="fas fa-users me-1"></i>Select from Contact Book
+                        </button>
+                        <input type="file" class="d-none" id="recipientFile" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
+                    </div>
+                    
+                    <div class="d-none mb-2" id="uploadProgress" style="font-size: 11px;">
+                        <div class="progress mb-1" style="height: 4px;"><div class="progress-bar" id="uploadProgressBar" style="width: 0%;"></div></div>
+                        <span id="uploadStatus" class="text-muted">Processing...</span>
+                    </div>
+                    <div class="d-none mb-2" id="uploadResult" style="font-size: 11px;">
+                        <span class="badge bg-light text-dark me-1"><i class="fas fa-file-csv me-1"></i>File uploaded</span>
+                        <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="uploadValid">0</span> valid</span>
+                        <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="uploadInvalid">0</span> invalid</span>
+                        <a href="#" class="ms-2 d-none" id="uploadInvalidLink" onclick="showInvalidNumbers('upload')">View</a>
+                    </div>
+                    
+                    <div class="d-none mb-2" id="contactBookSelection" style="font-size: 11px;">
+                        <div id="contactBookChips"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <span style="font-size: 13px; font-weight: 500;">Total Recipients</span>
+                        <span class="badge bg-primary" id="recipientCount" style="font-size: 12px;">0</span>
                     </div>
                 </div>
             </div>
@@ -732,10 +720,15 @@ function revalidateNumbers() {
     }
 }
 
+function triggerFileUpload() {
+    document.getElementById('recipientFile').click();
+}
+
 function handleFileSelect() {
     var fileInput = document.getElementById('recipientFile');
-    var uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.disabled = !fileInput.files.length;
+    if (fileInput.files.length) {
+        processFileUpload();
+    }
 }
 
 function processFileUpload() {
@@ -881,21 +874,9 @@ function updateRecipientSummary() {
                           (recipientState.contactBook.tags.length * 500);
     
     var totalValid = manualValid + uploadValid + contactBookCount;
-    var totalInvalid = recipientState.manual.invalid.length + recipientState.upload.invalid.length;
     
-    document.getElementById('totalRecipients').textContent = totalValid;
-    document.getElementById('validRecipients').textContent = totalValid;
-    document.getElementById('invalidRecipients').textContent = totalInvalid;
-    document.getElementById('previewRecipients').textContent = totalValid;
     document.getElementById('recipientCount').textContent = totalValid;
-    
-    if (totalInvalid > 0) {
-        document.getElementById('invalidReviewLink').classList.remove('d-none');
-        document.getElementById('invalidLabel').classList.add('d-none');
-    } else {
-        document.getElementById('invalidReviewLink').classList.add('d-none');
-        document.getElementById('invalidLabel').classList.remove('d-none');
-    }
+    document.getElementById('previewRecipients').textContent = totalValid;
     
     updatePreviewCost();
 }
