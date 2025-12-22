@@ -302,10 +302,100 @@ class QuickSMSController extends Controller
 
     public function tags()
     {
-        return view('quicksms.placeholder', [
+        // TODO: Fetch tags from database via API
+        $tags = [
+            [
+                'id' => 1,
+                'name' => 'VIP',
+                'color' => '#6f42c1',
+                'contact_count' => 156,
+                'created_at' => '2024-06-15',
+                'last_used' => '2024-12-22',
+                'source' => 'manual',
+            ],
+            [
+                'id' => 2,
+                'name' => 'Newsletter',
+                'color' => '#0d6efd',
+                'contact_count' => 1847,
+                'created_at' => '2024-05-20',
+                'last_used' => '2024-12-21',
+                'source' => 'manual',
+            ],
+            [
+                'id' => 3,
+                'name' => 'Customer',
+                'color' => '#198754',
+                'contact_count' => 2341,
+                'created_at' => '2024-04-10',
+                'last_used' => '2024-12-22',
+                'source' => 'api',
+            ],
+            [
+                'id' => 4,
+                'name' => 'Partner',
+                'color' => '#fd7e14',
+                'contact_count' => 89,
+                'created_at' => '2024-07-22',
+                'last_used' => '2024-12-18',
+                'source' => 'manual',
+            ],
+            [
+                'id' => 5,
+                'name' => 'Flu Clinic 2025',
+                'color' => '#dc3545',
+                'contact_count' => 423,
+                'created_at' => '2024-11-01',
+                'last_used' => '2024-12-20',
+                'source' => 'campaign',
+            ],
+            [
+                'id' => 6,
+                'name' => 'Black Friday 2024',
+                'color' => '#212529',
+                'contact_count' => 1256,
+                'created_at' => '2024-11-15',
+                'last_used' => '2024-11-29',
+                'source' => 'campaign',
+            ],
+            [
+                'id' => 7,
+                'name' => 'Responded',
+                'color' => '#20c997',
+                'contact_count' => 567,
+                'created_at' => '2024-08-05',
+                'last_used' => '2024-12-22',
+                'source' => 'api',
+            ],
+            [
+                'id' => 8,
+                'name' => 'Inactive',
+                'color' => '#6c757d',
+                'contact_count' => 234,
+                'created_at' => '2024-09-12',
+                'last_used' => '2024-12-15',
+                'source' => 'api',
+            ],
+        ];
+
+        // Available colors for tag creation
+        $available_colors = [
+            '#6f42c1' => 'Purple',
+            '#0d6efd' => 'Blue',
+            '#198754' => 'Green',
+            '#fd7e14' => 'Orange',
+            '#dc3545' => 'Red',
+            '#212529' => 'Black',
+            '#20c997' => 'Teal',
+            '#6c757d' => 'Gray',
+            '#0dcaf0' => 'Cyan',
+            '#d63384' => 'Pink',
+        ];
+
+        return view('quicksms.contacts.tags', [
             'page_title' => 'Tags',
-            'purpose' => 'Create and manage tags to categorize and filter contacts.',
-            'sub_modules' => []
+            'tags' => $tags,
+            'available_colors' => $available_colors,
         ]);
     }
 

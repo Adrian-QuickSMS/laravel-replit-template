@@ -11,6 +11,7 @@ QuickSMS is a Laravel-based SMS messaging platform with a comprehensive navigati
 - `resources/views/quicksms/placeholder.blade.php` - Generic placeholder for all pages
 - `resources/views/quicksms/contacts/all-contacts.blade.php` - All Contacts page (implemented)
 - `resources/views/quicksms/contacts/lists.blade.php` - Lists page (implemented)
+- `resources/views/quicksms/contacts/tags.blade.php` - Tags page (implemented)
 - `routes/web.php` - All route definitions
 - `database/` - Database (uses SQLite)
 - `public/` - Static assets (Fillow template CSS/JS)
@@ -60,6 +61,7 @@ php artisan serve --host=0.0.0.0 --port=5000
 - Fillow template integration: Complete
 - **All Contacts page: Implemented (UI only, mock data)**
 - **Lists page: Implemented (UI only, mock data)**
+- **Tags page: Implemented (UI only, mock data)**
 - Business logic: Not yet implemented
 
 ## All Contacts Page Features (UI Only)
@@ -106,6 +108,33 @@ php artisan serve --host=0.0.0.0 --port=5000
   - Dynamic list rule evaluation engine
   - Scheduled re-indexing for dynamic lists
   - Import/Campaign/API contact addition hooks
+
+## Tags Page Features (UI Only)
+- Purpose: Lightweight, flexible classification mechanism for contacts
+- Info banner: "Tags are labels, not audience definitions" (differentiates from Lists)
+- Table with: tag name (with color dot), contact count, source (Manual/Campaign/API), created date, last used date
+- Search bar with client-side filtering
+- Source filter dropdown (All, Manual, Campaign Auto-tag, API)
+- **Tag Management:**
+  - Create Tag modal with name, color picker, live preview
+  - Edit Tag modal for renaming and color change
+  - Merge Tag functionality (combine two tags)
+  - Delete Tag with contact count warning
+  - View tagged contacts modal with remove option
+- **Color System:**
+  - 10 predefined colors with visual picker
+  - Color dots displayed in table rows
+- **API Integration Section:**
+  - Apply tags: POST /api/contacts/{id}/tags
+  - Remove tags: DELETE /api/contacts/{id}/tags/{tag}
+  - Trigger campaigns: POST /api/campaigns/trigger?tag={tag}
+- **Local in-memory state** for validation demonstrations
+- **TODO markers placed for:**
+  - Backend API integration (CRUD /api/tags endpoints)
+  - Database persistence for tags and tag assignments
+  - Campaign-based auto-tagging integration
+  - API-driven tag management
+  - Tag usage analytics
 
 ## Recent Changes
 - December 22, 2025: Implemented All Contacts page UI
