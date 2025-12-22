@@ -246,10 +246,14 @@
                                     </thead>
                                     <tbody id="contactsListCreate">
                                         @foreach($available_contacts as $contact)
+                                        @php
+                                            $mobile = $contact['mobile'];
+                                            $maskedMobile = substr($mobile, 0, 8) . '***' . substr($mobile, -3);
+                                        @endphp
                                         <tr>
                                             <td><input type="checkbox" class="form-check-input contact-select-create" value="{{ $contact['id'] }}"></td>
-                                            <td>{{ $contact['name'] }}</td>
-                                            <td class="text-muted">{{ $contact['mobile'] }}</td>
+                                            <td style="color: #000;">{{ $contact['name'] }}</td>
+                                            <td style="color: #000;">{{ $maskedMobile }}</td>
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -477,10 +481,14 @@
                         </thead>
                         <tbody id="contactsListAdd">
                             @foreach($available_contacts as $contact)
+                            @php
+                                $mobileAdd = $contact['mobile'];
+                                $maskedMobileAdd = substr($mobileAdd, 0, 8) . '***' . substr($mobileAdd, -3);
+                            @endphp
                             <tr>
                                 <td><input type="checkbox" class="form-check-input contact-select-add" value="{{ $contact['id'] }}"></td>
-                                <td>{{ $contact['name'] }}</td>
-                                <td class="text-muted">{{ $contact['mobile'] }}</td>
+                                <td style="color: #000;">{{ $contact['name'] }}</td>
+                                <td style="color: #000;">{{ $maskedMobileAdd }}</td>
                             </tr>
                             @endforeach
                         </tbody>
