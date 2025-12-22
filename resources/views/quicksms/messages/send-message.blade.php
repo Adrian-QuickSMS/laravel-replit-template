@@ -211,21 +211,20 @@
                     </div>
                     
                     <div class="d-none mt-3" id="rcsContentSection">
-                        <div class="border rounded p-3 bg-light">
-                            <h6 class="mb-3">Rich RCS Card Content</h6>
-                            <div class="row mb-3">
-                                <div class="col-6"><input type="text" class="form-control" id="rcsTitle" placeholder="Card title"></div>
-                                <div class="col-6"><input type="file" class="form-control" id="rcsImage" accept="image/*"></div>
-                            </div>
-                            <textarea class="form-control mb-3" id="rcsDescription" rows="2" placeholder="Description"></textarea>
-                            <div id="rcsButtons">
-                                <div class="input-group mb-2">
-                                    <input type="text" class="form-control" placeholder="Button text">
-                                    <input type="text" class="form-control" placeholder="Button URL">
-                                    <button class="btn btn-outline-danger" type="button" onclick="removeRcsButton(this)"><i class="fas fa-times"></i></button>
+                        <div class="border rounded p-3 bg-light text-center">
+                            <i class="fas fa-image fa-2x text-success mb-2"></i>
+                            <h6 class="mb-2">Rich RCS Card</h6>
+                            <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                            <button type="button" class="btn btn-success" onclick="openRcsWizard()">
+                                <i class="fas fa-magic me-1"></i>Create RCS Message
+                            </button>
+                            <div class="d-none mt-3" id="rcsConfiguredSummary">
+                                <div class="alert alert-success py-2 mb-0">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    <span id="rcsConfiguredText">RCS content configured</span>
+                                    <a href="#" class="ms-2" onclick="openRcsWizard(); return false;">Edit</a>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-link p-0" onclick="addRcsButton()">+ Add Button</button>
                         </div>
                     </div>
                 </div>
@@ -963,6 +962,100 @@
     </div>
 </div>
 
+<div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+        <div class="modal-content">
+            <div class="modal-header py-3 bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-magic me-2"></i>RCS Content Wizard</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0" style="min-height: 500px;">
+                    <div class="col-lg-5 bg-light p-4 d-flex flex-column align-items-center justify-content-center border-end">
+                        <p class="text-muted small mb-3">Live preview (coming soon)</p>
+                        <div class="phone-preview-shell mx-auto" style="width: 280px;">
+                            <div class="bg-dark rounded-top p-2 text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
+                                        <i class="fas fa-building" style="font-size: 12px;"></i>
+                                    </div>
+                                    <span class="text-white small">Your Business</span>
+                                    <span class="badge bg-primary ms-1" style="font-size: 8px;">Verified</span>
+                                </div>
+                            </div>
+                            <div class="bg-white border border-top-0 rounded-bottom shadow-sm">
+                                <div class="rcs-preview-media bg-secondary d-flex align-items-center justify-content-center" style="height: 140px;">
+                                    <div class="text-center text-white">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <p class="mb-0 small">Media Area</p>
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <div class="rcs-preview-title mb-2">
+                                        <div class="bg-light rounded p-2">
+                                            <span class="text-muted small">Card Title</span>
+                                        </div>
+                                    </div>
+                                    <div class="rcs-preview-description mb-2">
+                                        <div class="bg-light rounded p-2">
+                                            <span class="text-muted small">Description text will appear here...</span>
+                                        </div>
+                                    </div>
+                                    <div class="rcs-preview-body mb-3">
+                                        <div class="bg-light rounded p-2">
+                                            <span class="text-muted small">Text body content...</span>
+                                        </div>
+                                    </div>
+                                    <div class="rcs-preview-buttons">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-outline-primary btn-sm" disabled>Action Button 1</button>
+                                            <button class="btn btn-outline-secondary btn-sm" disabled>Action Button 2</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 p-4">
+                        <div class="rcs-config-panel">
+                            <div class="mb-4">
+                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-image me-2"></i>Media</h6>
+                                <div class="border rounded p-3 bg-light">
+                                    <p class="text-muted mb-0 small">Media upload configuration will appear here.</p>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Title & Description</h6>
+                                <div class="border rounded p-3 bg-light">
+                                    <p class="text-muted mb-0 small">Title and description inputs will appear here.</p>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-align-left me-2"></i>Text Body</h6>
+                                <div class="border rounded p-3 bg-light">
+                                    <p class="text-muted mb-0 small">Message body content will appear here.</p>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-mouse-pointer me-2"></i>Action Buttons</h6>
+                                <div class="border rounded p-3 bg-light">
+                                    <p class="text-muted mb-0 small">Interactive button configuration will appear here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="applyRcsContent()" disabled>
+                    <i class="fas fa-check me-1"></i>Apply RCS Content
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -1419,12 +1512,15 @@ function insertTrackingUrl() {
     toggleTrackableLinkModal();
 }
 
-function addRcsButton() {
-    var container = document.getElementById('rcsButtons');
-    var row = document.createElement('div');
-    row.className = 'input-group input-group-sm mb-1';
-    row.innerHTML = '<input type="text" class="form-control" placeholder="Button"><input type="text" class="form-control" placeholder="URL"><button class="btn btn-outline-danger btn-sm" type="button" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
-    container.appendChild(row);
+function openRcsWizard() {
+    var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
+    modal.show();
+}
+
+function applyRcsContent() {
+    console.log('TODO: Apply RCS content configuration');
+    document.getElementById('rcsConfiguredSummary').classList.remove('d-none');
+    bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
 }
 
 function showPreview(type) {
