@@ -40,7 +40,19 @@
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
+    padding-bottom: 280px;
     min-height: 0;
+}
+#replyComposerCard {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    background: white;
 }
 .chat-bx {
     cursor: pointer;
@@ -71,14 +83,13 @@
     height: 40px;
     min-width: 40px;
     border-radius: 50%;
-    background-color: var(--primary);
-    color: white;
+    background-color: #6f42c1 !important;
+    color: white !important;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary);
 }
 .message-received {
     background-color: #f8f9fa;
@@ -145,27 +156,11 @@
 }
 .contact-sidebar {
     border-left: 1px solid #e9ecef;
-    transition: all 0.3s ease;
     overflow: hidden;
     flex-shrink: 0;
     width: 280px;
     height: 100%;
     overflow-y: auto;
-}
-.contact-sidebar.collapsed {
-    width: 0 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    border-left: 0 !important;
-    visibility: hidden;
-}
-#replyComposerCard {
-    flex-shrink: 0;
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-    background: white;
 }
 .sort-dropdown {
     appearance: none;
@@ -375,7 +370,6 @@
                                             </svg>
                                         </div>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="javascript:void(0);" onclick="toggleContactSidebar()"><i class="fas fa-user me-2"></i>Toggle Contact Details</a></li>
                                             <li><a class="dropdown-item" href="javascript:void(0);" onclick="markAsRead()"><i class="fas fa-check-double me-2"></i>Mark as Read</a></li>
                                             <li><a class="dropdown-item" href="javascript:void(0);" onclick="showComingSoon('Archive')"><i class="fas fa-archive me-2"></i>Archive</a></li>
                                             <li><hr class="dropdown-divider"></li>
@@ -600,14 +594,13 @@
                         </div>
                         
                         <div class="contact-sidebar p-3" id="contactSidebar">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="mb-3">
                                 <h6 class="mb-0">Contact Details</h6>
-                                <button type="button" class="btn-close" onclick="toggleContactSidebar()" aria-label="Close"></button>
                             </div>
                             
                             <div id="contactExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? '' : 'd-none' }}">
                                 <div class="text-center mb-3">
-                                    <div class="chat-img mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px;" id="contactAvatar">
+                                    <div class="chat-img mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px; background-color: #6f42c1; color: white;" id="contactAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
                                     </div>
                                     <h6 class="mb-0" id="contactName">{{ $conversations[0]['name'] ?? '' }}</h6>
@@ -644,7 +637,7 @@
                             
                             <div id="contactNotExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? 'd-none' : '' }}">
                                 <div class="text-center py-3">
-                                    <div class="chat-img mx-auto mb-3 bg-secondary" style="width: 60px; height: 60px; font-size: 20px;">
+                                    <div class="chat-img mx-auto mb-3" style="width: 60px; height: 60px; font-size: 20px; background-color: #6f42c1; color: white;">
                                         <i class="fas fa-user"></i>
                                     </div>
                                     <p class="text-muted mb-3">This number is not in your contacts</p>
@@ -819,7 +812,6 @@ var templateModal = null;
 var comingSoonModal = null;
 var manageTagsModal = null;
 var manageListsModal = null;
-var sidebarVisible = true;
 var chatSearchMatches = [];
 var chatSearchIndex = 0;
 
@@ -930,17 +922,6 @@ function updateContactPanel(conv) {
     } else {
         document.getElementById('contactExists').classList.add('d-none');
         document.getElementById('contactNotExists').classList.remove('d-none');
-    }
-}
-
-function toggleContactSidebar() {
-    var sidebar = document.getElementById('contactSidebar');
-    sidebarVisible = !sidebarVisible;
-    
-    if (sidebarVisible) {
-        sidebar.classList.remove('collapsed');
-    } else {
-        sidebar.classList.add('collapsed');
     }
 }
 

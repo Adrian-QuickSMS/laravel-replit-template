@@ -1,0 +1,61 @@
+Fix the remaining Inbox UI issues. Use the existing Messages UI template styles/components only. Do NOT redesign.
+
+A) Composer must be truly fixed to bottom of viewport (WhatsApp/iMessage behaviour)
+Problem: composer is still moving up/down depending on chat length.
+Requirement:
+- The composer must be anchored to the bottom of the browser viewport at all times (position: fixed or the template’s equivalent).
+- It must NOT be part of the scrollable chat container.
+- Only the chat history pane should scroll behind/above it.
+
+Implementation notes:
+- Make the central chat area a flex column with:
+  1) Chat header (fixed at top of chat pane)
+  2) Chat messages area (flex-1, overflow-y: auto)
+  3) Composer (fixed to viewport bottom, or sticky within pane with a non-scrolling parent)
+- Add bottom padding to the chat messages scroll area equal to composer height so the last message isn’t hidden behind the fixed composer.
+- Do not make the whole page scroll; only left list and chat history should scroll.
+
+Acceptance:
+- On long chats, composer stays pinned at the bottom of the screen.
+- Messages scroll independently.
+- Last message remains visible and not covered.
+
+B) Avatars styling
+Requirement:
+- Replace the current white/grey avatars with:
+  - Purple filled circle background
+  - White initials text
+- Apply consistently to:
+  - Conversation list avatars
+  - Chat header avatar
+  - Any contact avatar shown in the right panel
+
+Constraints:
+- Use the template’s accent purple (do not invent a new colour token). Reuse an existing “primary”/“brand” colour class.
+
+C) SMS/RCS indicator in the left inbox list (reduce clutter)
+Requirement:
+- The “RCS” (and SMS) indicator next to the person name is cluttered.
+- Replace it with a compact pill/badge style label for channel:
+  - “SMS” pill
+  - “RCS” pill
+- Badge styling must match existing pill/badge components in the template.
+- Keep it visually secondary to the contact name (smaller, subtle), and align consistently across rows.
+
+D) Contact details toggle removal
+Current state: Contact details is always visible and the toggle no longer works.
+Requirement:
+- Remove the toggle / control entirely (e.g., three-dot toggle or any UI element used to show/hide the right panel).
+- Keep the Contact Details panel permanently visible (no collapse behaviour required).
+- Ensure layout spacing looks correct after removing the toggle (no empty gaps).
+
+Constraints:
+- Do NOT redesign layout or introduce new UI patterns.
+- Only adjust positioning/styling needed for the above.
+- Limit changes to Inbox/Messages files.
+
+Acceptance checklist:
+- Composer is fixed to viewport bottom like WhatsApp/iMessage and never moves with chat length.
+- Avatars are purple circles with white initials everywhere.
+- SMS/RCS labels are neat pills/badges and no longer clutter the name line.
+- Contact details toggle is removed; right panel remains always visible and layout remains clean.
