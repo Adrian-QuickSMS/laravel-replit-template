@@ -180,8 +180,28 @@ class QuickSMSController extends Controller
 
     public function campaignHistory()
     {
+        // TODO: Replace with API call to GET /api/campaigns
+        $campaigns = [
+            ['id' => 'camp_001', 'name' => 'New Year Flash Sale', 'channel' => 'rich_rcs', 'status' => 'scheduled', 'recipients_total' => 5200, 'recipients_delivered' => null, 'send_date' => '2025-01-01 00:00'],
+            ['id' => 'camp_002', 'name' => 'Holiday Greetings', 'channel' => 'sms_only', 'status' => 'sending', 'recipients_total' => 3150, 'recipients_delivered' => 1840, 'send_date' => '2024-12-24 09:00'],
+            ['id' => 'camp_003', 'name' => 'Boxing Day Deals', 'channel' => 'basic_rcs', 'status' => 'scheduled', 'recipients_total' => 2800, 'recipients_delivered' => null, 'send_date' => '2024-12-26 08:00'],
+            ['id' => 'camp_004', 'name' => 'Christmas Eve Reminder', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 1500, 'recipients_delivered' => 1487, 'send_date' => '2024-12-24 07:00'],
+            ['id' => 'camp_005', 'name' => 'Winter Clearance', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 4200, 'recipients_delivered' => 4156, 'send_date' => '2024-12-23 14:30'],
+            ['id' => 'camp_006', 'name' => 'Last Minute Gifts', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 890, 'recipients_delivered' => 885, 'send_date' => '2024-12-23 10:00'],
+            ['id' => 'camp_007', 'name' => 'Delivery Update Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 2340, 'recipients_delivered' => 2338, 'send_date' => '2024-12-22 16:45'],
+            ['id' => 'camp_008', 'name' => 'Weekend Special Offer', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1800, 'recipients_delivered' => 1756, 'send_date' => '2024-12-21 09:00'],
+            ['id' => 'camp_009', 'name' => 'VIP Early Access', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 520, 'recipients_delivered' => 518, 'send_date' => '2024-12-20 18:00'],
+            ['id' => 'camp_010', 'name' => 'Store Opening Hours', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 3400, 'recipients_delivered' => 3389, 'send_date' => '2024-12-20 08:00'],
+            ['id' => 'camp_011', 'name' => 'Flash Sale Alert', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 6100, 'recipients_delivered' => 6042, 'send_date' => '2024-12-19 12:00'],
+            ['id' => 'camp_012', 'name' => 'Customer Survey', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1200, 'recipients_delivered' => 1145, 'send_date' => '2024-12-18 10:30'],
+            ['id' => 'camp_013', 'name' => 'Order Confirmation Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 450, 'recipients_delivered' => 450, 'send_date' => '2024-12-17 15:20'],
+            ['id' => 'camp_014', 'name' => 'Appointment Reminders', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 780, 'recipients_delivered' => 776, 'send_date' => '2024-12-16 09:00'],
+            ['id' => 'camp_015', 'name' => 'Product Launch Teaser', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 2500, 'recipients_delivered' => 2467, 'send_date' => '2024-12-15 11:00'],
+        ];
+
         return view('quicksms.messages.campaign-history', [
             'page_title' => 'Campaign History',
+            'campaigns' => $campaigns,
         ]);
     }
 
