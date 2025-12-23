@@ -34,13 +34,24 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="campaignSearch" placeholder="Search by name, sender ID, agent, tags, or template...">
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                                <i class="fas fa-filter me-1"></i> Filters
-                                <span class="badge bg-primary ms-1 d-none" id="activeFiltersBadge">0</span>
-                            </button>
+                        <div class="d-flex gap-2">
+                            <div class="input-group flex-grow-1">
+                                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="campaignSearch" placeholder="Search by name, sender ID, agent, tags, or template...">
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                    <span class="badge bg-primary ms-1 d-none" id="activeFiltersBadge">0</span>
+                                </button>
+                            </div>
+                            <div class="input-group" style="width: auto;">
+                                <span class="input-group-text bg-transparent"><i class="fas fa-sort"></i></span>
+                                <select class="form-select" id="sortSelect" style="min-width: 180px;" onchange="sortCampaigns()">
+                                    <option value="recent">Most recent first</option>
+                                    <option value="oldest">Oldest first</option>
+                                    <option value="recipients">Highest recipients</option>
+                                    <option value="failure">Highest failure rate</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -386,6 +397,45 @@ function updateFilterBadge() {
     } else {
         badge.classList.add('d-none');
     }
+}
+
+function sortCampaigns() {
+    var sortBy = document.getElementById('sortSelect').value;
+    var tbody = document.getElementById('campaignsTableBody');
+    var rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+    
+    rows.sort(function(a, b) {
+        if (sortBy === 'recent') {
+            var dateA = new Date(a.dataset.sendDate);
+            var dateB = new Date(b.dataset.sendDate);
+            return dateB - dateA;
+        } else if (sortBy === 'oldest') {
+            var dateA = new Date(a.dataset.sendDate);
+            var dateB = new Date(b.dataset.sendDate);
+            return dateA - dateB;
+        } else if (sortBy === 'recipients') {
+            var recipA = parseInt(a.dataset.recipientsTotal) || 0;
+            var recipB = parseInt(b.dataset.recipientsTotal) || 0;
+            return recipB - recipA;
+        } else if (sortBy === 'failure') {
+            var totalA = parseInt(a.dataset.recipientsTotal) || 0;
+            var deliveredA = parseInt(a.dataset.recipientsDelivered) || totalA;
+            var failureRateA = totalA > 0 ? (totalA - deliveredA) / totalA : 0;
+            
+            var totalB = parseInt(b.dataset.recipientsTotal) || 0;
+            var deliveredB = parseInt(b.dataset.recipientsDelivered) || totalB;
+            var failureRateB = totalB > 0 ? (totalB - deliveredB) / totalB : 0;
+            
+            return failureRateB - failureRateA;
+        }
+        return 0;
+    });
+    
+    rows.forEach(function(row) {
+        tbody.appendChild(row);
+    });
+    
+    filterCampaigns();
 }
 
 function openCampaignDrawer(campaignId) {
