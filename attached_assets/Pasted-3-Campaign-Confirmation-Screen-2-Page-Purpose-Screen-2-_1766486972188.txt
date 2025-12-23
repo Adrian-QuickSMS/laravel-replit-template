@@ -1,0 +1,186 @@
+3. Campaign Confirmation (Screen 2)
+Page Purpose
+Screen 2 provides a final, read-only confirmation of the campaign configuration before submission.
+It validates all inputs from Screen 1, presents a clear delivery summary, and—where possible—displays transparent pricing.
+This screen is the last point of user confirmation before messages are queued or scheduled.
+________________________________________
+3.1 Page Layout
+Page Title
+Confirm & Send Campaign
+________________________________________
+Layout Structure
+The page is divided into five vertical sections:
+1.	Campaign Summary
+2.	Channel & Delivery Summary
+3.	Recipient Summary
+4.	Pricing Summary
+5.	Final Actions
+Primary action remains anchored at the bottom of the page.
+________________________________________
+3.2 Campaign Summary
+Purpose
+Confirms campaign identity and audit metadata.
+________________________________________
+Displayed Fields
+•	Campaign Name
+•	Created by
+•	Created date / time
+•	Scheduled send time
+o	Immediate or Scheduled: DD/MM/YYYY HH:mm
+•	Message validity
+o	Default or custom (e.g. “Expires after 24 hours”)
+•	Sending Window/Unsociable Hours
+________________________________________
+Behaviour
+•	Campaign Name is read-only
+•	Edit action returns user to Screen 1 (Campaign Details section)
+________________________________________
+3.3 Channel & Delivery Summary
+Purpose
+Confirms how the message will be delivered and branded.
+________________________________________
+Displayed Fields
+Channel
+•	SMS only
+•	Basic RCS with SMS fallback
+•	Rich RCS with SMS fallback
+________________________________________
+Sender / Agent
+•	SMS SenderID
+•	RCS Agent
+o	Agent name
+o	Brand logo (222×222)
+________________________________________
+Delivery Notes (Contextual)
+•	SMS only
+“Messages will be sent via SMS only.”
+•	Basic RCS with SMS fallback
+“Messages over 160 characters will be automatically delivered as a single RCS message where supported. SMS will be used as a fallback.”
+•	Rich RCS with SMS fallback
+“Rich RCS will be delivered where supported. SMS will be used as a fallback.”
+________________________________________
+Behaviour
+•	Section is read-only
+•	Edit returns user to Screen 1 → Channel & Sender
+________________________________________
+3.4 Recipient Summary
+Purpose
+Confirms audience size after validation, de-duplication, and opt-out exclusion.
+________________________________________
+Displayed Metrics
+•	Total recipients selected
+•	Valid recipients
+•	Invalid recipients (excluded)
+•	Opted-out recipients (excluded)
+________________________________________
+Source Breakdown (Expandable)
+•	Manual input
+•	File upload(s)
+•	Contacts
+•	Lists
+•	Dynamic lists
+•	Tags
+________________________________________
+Behaviour
+•	Counts reflect final payload
+•	Numbers are locked at this stage
+•	Edit returns user to Screen 1 → Recipients
+________________________________________
+3.5 Pricing Summary ⭐ (New Section)
+Purpose
+Provides transparent cost information where determinable, without misrepresenting RCS pricing.
+________________________________________
+3.5.1 Pricing Rules (Authoritative)
+SMS Pricing
+•	SMS unit price is retrieved from pricing database
+•	Total SMS cost can be calculated upfront
+RCS Pricing
+•	RCS delivery depends on handset/network support
+•	Exact RCS penetration cannot be known in advance
+•	Therefore:
+o	No total campaign price is shown, only the price of a RCS Basic and RCS Single message
+o	Only explanatory messaging is displayed
+________________________________________
+3.5.2 Pricing Display Logic
+A. SMS Only Campaigns
+Displayed fields:
+•	Price per SMS
+•	Estimated SMS count
+•	Subtotal (ex VAT)
+•	VAT (20%) (if applicable)
+•	Total price
+________________________________________
+VAT Handling
+•	Account-level flag: vat_applicable = true | false
+•	If true:
+o	VAT calculated at 20%
+o	VAT line item shown
+•	If false:
+o	VAT line omitted
+o	Helper text shown:
+“VAT not applicable for this account.”
+________________________________________
+Example Display
+Messages:          10,000
+Price per SMS:     £0.023
+Subtotal:          £230.00
+VAT (20%):         £46.00
+Total:             £276.00
+________________________________________
+B. Basic RCS or Rich RCS Campaigns
+Displayed Messaging
+Instead of a price breakdown, show:
+Pricing notice
+“This campaign includes RCS delivery. Because RCS availability varies by handset and network, the final cost cannot be calculated in advance.
+SMS fallback messages will be charged at your agreed SMS rate. RCS messages are billed based on actual delivery.”
+________________________________________
+Optional (If You Want Later)
+•	Show:
+o	SMS fallback unit price
+o	“Final charges will be available in reporting”
+(But no totals)
+________________________________________
+3.5.3 Pricing Persistence & Audit
+The system must store:
+•	Pricing model used (SMS-only / RCS)
+•	SMS unit price at time of send
+•	VAT applied or not
+•	User who confirmed pricing screen
+•	Timestamp
+Used for:
+•	Billing
+•	Invoicing
+•	Dispute resolution
+•	Audit trails
+________________________________________
+3.6 Final Actions
+Primary CTA
+Send Campaign
+•	If scheduled:
+o	Campaign is queued
+•	If immediate:
+o	Campaign enters send pipeline
+________________________________________
+Secondary Actions
+•	Back → returns to Screen 1
+•	Cancel → discards draft (with confirmation modal)
+________________________________________
+3.7 Validation Before Send
+Before enabling Send Campaign, system must confirm:
+•	Campaign name exists
+•	Valid channel selected
+•	SenderID and/or RCS Agent valid
+•	At least one valid recipient
+•	Content present
+•	Opt-out rules validated
+•	Pricing rules resolved
+Any failure blocks send and highlights issue.
+________________________________________
+3.8 Post-Send Behaviour
+After successful submission:
+•	Redirect to Campaign History
+•	Campaign status:
+o	Queued
+o	Scheduled
+o	Sending
+•	Immutable audit record created

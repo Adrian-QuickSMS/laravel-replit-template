@@ -97,6 +97,78 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function confirmCampaign()
+    {
+        // TODO: Replace with actual campaign data from session/database
+        $campaign = [
+            'name' => 'Summer Sale 2024',
+            'created_by' => 'John Smith',
+            'created_at' => '23/12/2024 14:30',
+            'scheduled_time' => 'Immediate',
+            'message_validity' => 'Default (48 hours)',
+            'sending_window' => 'Respect unsociable hours (21:00 - 08:00)',
+        ];
+
+        // TODO: Replace with actual channel data from session
+        $channel = [
+            'type' => 'rich_rcs', // sms_only, basic_rcs, rich_rcs
+            'sms_sender_id' => 'QuickSMS',
+            'rcs_agent' => [
+                'name' => 'QuickSMS Brand',
+                'logo' => 'https://via.placeholder.com/222',
+            ],
+        ];
+
+        // TODO: Replace with actual recipient data from validation
+        $recipients = [
+            'total_selected' => 5000,
+            'valid' => 4823,
+            'invalid' => 127,
+            'opted_out' => 50,
+            'sources' => [
+                'manual_input' => 25,
+                'file_upload' => 1500,
+                'contacts' => 2000,
+                'lists' => 1200,
+                'dynamic_lists' => 200,
+                'tags' => 75,
+            ],
+        ];
+
+        // TODO: Replace with actual pricing data from pricing database
+        $pricing = [
+            'sms_unit_price' => 0.023,
+            'rcs_basic_price' => 0.035,
+            'rcs_single_price' => 0.045,
+            'vat_applicable' => true,
+            'vat_rate' => 20,
+        ];
+
+        // TODO: Replace with actual message content from session
+        $message = [
+            'type' => 'rich_rcs',
+            'sms_content' => 'Summer Sale is here! Get 30% off all items. Shop now at example.com. Reply STOP to opt out.',
+            'rcs_content' => [
+                'title' => 'Summer Sale 2024',
+                'description' => 'Get 30% off all items!',
+                'media_url' => 'https://via.placeholder.com/400x200',
+                'buttons' => [
+                    ['label' => 'Shop Now', 'type' => 'url'],
+                    ['label' => 'Call Us', 'type' => 'phone'],
+                ],
+            ],
+        ];
+
+        return view('quicksms.messages.confirm-campaign', [
+            'page_title' => 'Confirm & Send Campaign',
+            'campaign' => $campaign,
+            'channel' => $channel,
+            'recipients' => $recipients,
+            'pricing' => $pricing,
+            'message' => $message,
+        ]);
+    }
+
     public function inbox()
     {
         return view('quicksms.placeholder', [
