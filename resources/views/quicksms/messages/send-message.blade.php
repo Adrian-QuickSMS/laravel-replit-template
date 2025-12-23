@@ -9,6 +9,14 @@
     transform: scale(0.85);
     transform-origin: top center;
 }
+.validation-error-field {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+.validation-error-field:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
 </style>
 @endpush
 
@@ -922,6 +930,24 @@
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="confirmMessageExpiry()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="validationErrorsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-circle me-2"></i>Required Information Missing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Please complete the following required fields before continuing:</p>
+                <ul class="list-unstyled mb-0" id="validationErrorsList"></ul>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK, I'll fix these</button>
             </div>
         </div>
     </div>
@@ -3250,7 +3276,50 @@ function saveDraft() {
     console.log('TODO: Save draft via POST /api/campaigns/draft');
 }
 
+function clearValidationErrors() {
+    document.querySelectorAll('.validation-error-field').forEach(function(el) {
+        el.classList.remove('validation-error-field');
+    });
+}
+
+function markFieldAsError(fieldId) {
+    var field = document.getElementById(fieldId);
+    if (field) {
+        field.classList.add('validation-error-field');
+        field.addEventListener('input', function handleInput() {
+            field.classList.remove('validation-error-field');
+            field.removeEventListener('input', handleInput);
+        }, { once: true });
+        field.addEventListener('change', function handleChange() {
+            field.classList.remove('validation-error-field');
+            field.removeEventListener('change', handleChange);
+        }, { once: true });
+    }
+}
+
+function showValidationErrors(errors) {
+    var list = document.getElementById('validationErrorsList');
+    list.innerHTML = '';
+    
+    errors.forEach(function(error) {
+        var li = document.createElement('li');
+        li.className = 'd-flex align-items-center mb-2';
+        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span>' + error.message + '</span>';
+        list.appendChild(li);
+        
+        if (error.fieldId) {
+            markFieldAsError(error.fieldId);
+        }
+    });
+    
+    var modal = new bootstrap.Modal(document.getElementById('validationErrorsModal'));
+    modal.show();
+}
+
 function continueToConfirmation() {
+    clearValidationErrors();
+    var errors = [];
+    
     var campaignName = document.getElementById('campaignName').value;
     if (!campaignName) {
         var now = new Date();
@@ -3259,27 +3328,44 @@ function continueToConfirmation() {
     }
     
     var senderId = document.getElementById('senderId').value;
-    var smsContent = document.getElementById('smsContent').value;
-    
     if (!senderId) {
-        alert('Please select a Sender ID');
-        return;
-    }
-    if (!smsContent.trim()) {
-        alert('Please enter a message');
-        return;
+        errors.push({ fieldId: 'senderId', message: 'Sender ID is required' });
     }
     
-    if (!validateOptoutConfig()) {
-        alert('Please fix opt-out configuration errors before continuing.');
+    var smsContent = document.getElementById('smsContent').value;
+    if (!smsContent.trim()) {
+        errors.push({ fieldId: 'smsContent', message: 'Message content is required' });
+    }
+    
+    var manualNumbers = document.getElementById('manualNumbers').value.trim();
+    var hasRecipients = manualNumbers.length > 0 || 
+        (recipientState && recipientState.manual && recipientState.manual.valid && recipientState.manual.valid.length > 0) ||
+        (recipientState && recipientState.upload && recipientState.upload.valid && recipientState.upload.valid.length > 0) ||
+        (recipientState && recipientState.contactBook && (
+            recipientState.contactBook.contacts.length > 0 ||
+            recipientState.contactBook.lists.length > 0 ||
+            recipientState.contactBook.dynamicLists.length > 0 ||
+            recipientState.contactBook.tags.length > 0
+        ));
+    
+    if (!hasRecipients) {
+        errors.push({ fieldId: 'manualNumbers', message: 'At least one recipient is required' });
+    }
+    
+    var optoutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (optoutEnabled && !validateOptoutConfig()) {
+        errors.push({ fieldId: null, message: 'Opt-out configuration has errors that must be fixed' });
+    }
+    
+    if (errors.length > 0) {
+        showValidationErrors(errors);
         return;
     }
     
     var optoutConfig = getOptoutConfiguration();
     console.log('Opt-out configuration:', optoutConfig);
     
-    alert('Proceeding to confirmation... (TODO: Navigate to confirmation screen)');
-    console.log('TODO: Navigate to /messages/send/confirm with campaign data');
+    window.location.href = '{{ route("messages.confirm") }}';
 }
 
 function updateOptoutCount() {
