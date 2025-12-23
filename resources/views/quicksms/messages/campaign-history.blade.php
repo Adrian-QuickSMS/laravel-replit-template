@@ -33,6 +33,13 @@
                     </a>
                 </div>
                 <div class="card-body p-4">
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="campaignSearch" placeholder="Search by name, sender ID, agent, tags, or template...">
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-hover mb-0" id="campaignsTable">
                             <thead>
@@ -44,7 +51,7 @@
                                     <th>Send Date</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="campaignsTableBody">
                                 @forelse($campaigns as $campaign)
                                 <tr onclick="openCampaignDrawer('{{ $campaign['id'] }}')" 
                                     data-id="{{ $campaign['id'] }}"
@@ -53,7 +60,11 @@
                                     data-status="{{ $campaign['status'] }}"
                                     data-recipients-total="{{ $campaign['recipients_total'] }}"
                                     data-recipients-delivered="{{ $campaign['recipients_delivered'] ?? '' }}"
-                                    data-send-date="{{ $campaign['send_date'] }}">
+                                    data-send-date="{{ $campaign['send_date'] }}"
+                                    data-sender-id="{{ $campaign['sender_id'] }}"
+                                    data-rcs-agent="{{ $campaign['rcs_agent'] ?? '' }}"
+                                    data-tags="{{ implode(',', $campaign['tags'] ?? []) }}"
+                                    data-template="{{ $campaign['template'] ?? '' }}">
                                     <td class="fw-medium">{{ $campaign['name'] }}</td>
                                     <td>
                                         @if($campaign['channel'] === 'sms_only')
@@ -83,7 +94,7 @@
                                     <td>{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
                                 </tr>
                                 @empty
-                                <tr>
+                                <tr id="emptyStateRow">
                                     <td colspan="5" class="text-center py-5 text-muted">
                                         <i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>
                                         <p class="mb-2">No campaigns to display yet.</p>
@@ -95,12 +106,17 @@
                                 @endforelse
                             </tbody>
                         </table>
+                        <div id="noResultsState" class="text-center py-5 text-muted d-none">
+                            <i class="fas fa-search fa-3x mb-3 d-block opacity-25"></i>
+                            <p class="mb-2">No campaigns match your search.</p>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSearch()">
+                                <i class="fas fa-times me-1"></i> Clear search
+                            </button>
+                        </div>
                     </div>
-                    @if(count($campaigns) > 0)
-                    <div class="mt-3">
-                        <small class="text-muted">Showing {{ count($campaigns) }} campaign(s)</small>
+                    <div class="mt-3" id="resultsCount">
+                        <small class="text-muted">Showing <span id="visibleCount">{{ count($campaigns) }}</span> of {{ count($campaigns) }} campaign(s)</small>
                     </div>
-                    @endif
                 </div>
             </div>
         </div>
@@ -156,10 +172,62 @@
 @push('scripts')
 <script>
 var campaignDrawer = null;
+var totalCampaigns = {{ count($campaigns) }};
 
 document.addEventListener('DOMContentLoaded', function() {
     campaignDrawer = new bootstrap.Offcanvas(document.getElementById('campaignDrawer'));
+    
+    var searchInput = document.getElementById('campaignSearch');
+    searchInput.addEventListener('input', filterCampaigns);
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            filterCampaigns();
+        }
+    });
 });
+
+function filterCampaigns() {
+    var searchTerm = document.getElementById('campaignSearch').value.toLowerCase().trim();
+    var rows = document.querySelectorAll('#campaignsTableBody tr[data-id]');
+    var visibleCount = 0;
+    
+    rows.forEach(function(row) {
+        var name = (row.dataset.name || '').toLowerCase();
+        var senderId = (row.dataset.senderId || '').toLowerCase();
+        var rcsAgent = (row.dataset.rcsAgent || '').toLowerCase();
+        var tags = (row.dataset.tags || '').toLowerCase();
+        var template = (row.dataset.template || '').toLowerCase();
+        var channel = (row.dataset.channel || '').toLowerCase().replace('_', ' ');
+        var status = (row.dataset.status || '').toLowerCase();
+        
+        var searchable = name + ' ' + senderId + ' ' + rcsAgent + ' ' + tags + ' ' + template + ' ' + channel + ' ' + status;
+        
+        if (searchTerm === '' || searchable.includes(searchTerm)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('visibleCount').textContent = visibleCount;
+    
+    var noResultsState = document.getElementById('noResultsState');
+    var table = document.getElementById('campaignsTable');
+    
+    if (visibleCount === 0 && searchTerm !== '') {
+        noResultsState.classList.remove('d-none');
+        table.classList.add('d-none');
+    } else {
+        noResultsState.classList.add('d-none');
+        table.classList.remove('d-none');
+    }
+}
+
+function clearSearch() {
+    document.getElementById('campaignSearch').value = '';
+    filterCampaigns();
+}
 
 function openCampaignDrawer(campaignId) {
     var row = document.querySelector('tr[data-id="' + campaignId + '"]');
