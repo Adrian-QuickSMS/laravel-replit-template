@@ -421,6 +421,53 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="costSummaryCard" style="display: none;">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="text-muted mb-0"><i class="fas fa-pound-sign me-2"></i><span id="costLabel">Cost Summary</span></h6>
+                        <span class="badge" id="costStatusBadge">-</span>
+                    </div>
+                    
+                    <div id="smsCostSection" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">SMS Messages</span>
+                            <span class="small" id="smsCostCount">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">Unit Price</span>
+                            <span class="small" id="smsCostUnit">-</span>
+                        </div>
+                    </div>
+                    
+                    <div id="rcsCostSection" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">SMS Fallback</span>
+                            <div class="text-end">
+                                <span class="small" id="rcsFallbackCount">-</span>
+                                <span class="small text-muted ms-2" id="rcsFallbackCost">-</span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">RCS Messages</span>
+                            <div class="text-end">
+                                <span class="small" id="rcsMessageCount">-</span>
+                                <span class="small text-muted ms-2" id="rcsMessageCost">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center pt-3">
+                        <span class="fw-medium" id="costTotalLabel">Total</span>
+                        <span class="fs-5 fw-bold text-primary" id="costTotal">-</span>
+                    </div>
+                    
+                    <div class="mt-2 small text-muted" id="costDisclaimer" style="display: none;">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span id="costDisclaimerText">-</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="card bg-light border-0">
                 <div class="card-body p-3 text-center text-muted">
                     <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
@@ -729,6 +776,7 @@ function openCampaignDrawer(campaignId) {
     
     var hasTracking = row.dataset.hasTracking === 'yes';
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
+    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
 
     campaignDrawer.show();
 }
@@ -854,6 +902,78 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     } else {
         rcsSeenMetrics.style.display = 'none';
     }
+}
+
+function updateCostSummary(channel, status, total, delivered) {
+    var costCard = document.getElementById('costSummaryCard');
+    
+    if (status === 'scheduled') {
+        costCard.style.display = 'none';
+        return;
+    }
+    costCard.style.display = '';
+    
+    var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
+    var isComplete = status === 'complete';
+    var deliveredCount = delivered !== null ? delivered : total;
+    
+    // TODO: Replace with real pricing from backend
+    var smsUnitPrice = 0.038;
+    var rcsUnitPrice = 0.025;
+    
+    var costLabel = document.getElementById('costLabel');
+    var costStatusBadge = document.getElementById('costStatusBadge');
+    var costTotalLabel = document.getElementById('costTotalLabel');
+    var costDisclaimer = document.getElementById('costDisclaimer');
+    var costDisclaimerText = document.getElementById('costDisclaimerText');
+    var smsCostSection = document.getElementById('smsCostSection');
+    var rcsCostSection = document.getElementById('rcsCostSection');
+    
+    if (isComplete) {
+        costLabel.textContent = 'Final Cost';
+        costStatusBadge.className = 'badge bg-success';
+        costStatusBadge.textContent = 'Final';
+        costTotalLabel.textContent = 'Total';
+        costDisclaimer.style.display = 'none';
+    } else {
+        costLabel.textContent = 'Estimated Cost';
+        costStatusBadge.className = 'badge bg-warning text-dark';
+        costStatusBadge.textContent = 'Estimated';
+        costTotalLabel.textContent = 'Est. Total';
+        costDisclaimer.style.display = '';
+        costDisclaimerText.textContent = 'Final cost will be calculated when delivery completes.';
+    }
+    
+    var totalCost = 0;
+    
+    if (!isRcs) {
+        smsCostSection.style.display = '';
+        rcsCostSection.style.display = 'none';
+        
+        document.getElementById('smsCostCount').textContent = deliveredCount.toLocaleString() + ' msgs';
+        document.getElementById('smsCostUnit').textContent = '£' + smsUnitPrice.toFixed(3);
+        
+        totalCost = deliveredCount * smsUnitPrice;
+    } else {
+        smsCostSection.style.display = 'none';
+        rcsCostSection.style.display = '';
+        
+        // Mock: 15% SMS fallback, 85% RCS
+        var smsFallbackCount = Math.floor(deliveredCount * 0.15);
+        var rcsCount = deliveredCount - smsFallbackCount;
+        
+        var smsFallbackCost = smsFallbackCount * smsUnitPrice;
+        var rcsCost = rcsCount * rcsUnitPrice;
+        totalCost = smsFallbackCost + rcsCost;
+        
+        document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
+        document.getElementById('rcsFallbackCost').textContent = '£' + smsFallbackCost.toFixed(2);
+        
+        document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
+        document.getElementById('rcsMessageCost').textContent = '£' + rcsCost.toFixed(2);
+    }
+    
+    document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
 }
 
 function formatDate(dateStr) {
