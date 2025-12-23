@@ -1,0 +1,129 @@
+{
+  "agent": {
+    "name": "QuickSMS",
+    "logo": "/reference/rcs/agent-logo.png"
+  },
+  "examples": [
+    {
+      "id": "carousel-large-media-desc-text-btn",
+      "type": "carousel",
+      "refImage": "/reference/rcs/Carousel/Carousel - Large Media - Description - Text - Button.png",
+      "features": {
+        "media": "large",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 1
+      }
+    },
+    {
+      "id": "phone-preview-medium-carousel",
+      "type": "phone_preview",
+      "refImage": "/reference/rcs/Phone Examples/Phone Preview Medium Carousel.png",
+      "features": {
+        "media": "medium",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 1
+      }
+    },
+    {
+      "id": "phone-preview-rich-card-2",
+      "type": "phone_preview",
+      "refImage": "/reference/rcs/Phone Examples/Phone Preview Rich Card 2.png",
+      "features": {
+        "media": "medium",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 3
+      }
+    },
+    {
+      "id": "phone-preview-rich-card",
+      "type": "phone_preview",
+      "refImage": "/reference/rcs/Phone Examples/Phone Preview Rich Card.png",
+      "features": {
+        "media": "short",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 3
+      }
+    },
+    {
+      "id": "phone-preview-small-carousel",
+      "type": "phone_preview",
+      "refImage": "/reference/rcs/Phone Examples/Phone Preview Small Carousel.png",
+      "features": {
+        "media": "short",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 1
+      }
+    },
+    {
+      "id": "rich-card-medium-media-desc-text-btns",
+      "type": "rich_card",
+      "refImage": "/reference/rcs/Rich Cards/Media Media/Medium Media - Description - Text - Buttons.png",
+      "features": {
+        "media": "medium",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 2
+      }
+    },
+    {
+      "id": "rich-card-no-media-text-btn",
+      "type": "rich_card",
+      "refImage": "/reference/rcs/Rich Cards/No Media/No Media  - Text - Button.png",
+      "features": {
+        "media": "none",
+        "hasDescription": false,
+        "hasText": true,
+        "buttons": 1
+      }
+    },
+    {
+      "id": "rich-card-short-media-desc-text-4btns",
+      "type": "rich_card",
+      "refImage": "/reference/rcs/Rich Cards/Short Media/Short Media - Description - Text - 4 Buttons.png",
+      "features": {
+        "media": "short",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 4
+      }
+    },
+    {
+      "id": "rich-card-short-media-desc-text-btns",
+      "type": "rich_card",
+      "refImage": "/reference/rcs/Rich Cards/Short Media/Short Media - Description - Text - Buttons.png",
+      "features": {
+        "media": "short",
+        "hasDescription": true,
+        "hasText": true,
+        "buttons": 2
+      }
+    },
+    {
+      "id": "rich-card-short-media-text-1btn",
+      "type": "rich_card",
+      "refImage": "/reference/rcs/Rich Cards/Short Media/Short Media - Text - One Button .png",
+      "features": {
+        "media": "short",
+        "hasDescription": false,
+        "hasText": true,
+        "buttons": 1
+      }
+    },
+    {
+      "id": "rich-card-tall-media-1btn",
+      "type": "rich_card",
+      "refImage": "/reference/rcs/Rich Cards/Tall Media/Rich card - Tall Media - One Button.png",
+      "features": {
+        "media": "tall",
+        "hasDescription": false,
+        "hasText": false,
+        "buttons": 1
+      }
+    }
+  ]
+}
