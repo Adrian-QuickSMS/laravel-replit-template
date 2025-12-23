@@ -468,6 +468,48 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="optoutSummaryCard" style="display: none;">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-user-slash me-2"></i>Compliance & Opt-outs</h6>
+                    
+                    <div class="border rounded p-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small">Total Opted Out</span>
+                            <span class="fs-5 fw-bold text-danger" id="optoutTotal">-</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-danger" id="optoutBar" role="progressbar" style="width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <div class="small text-muted mt-1" id="optoutPercent">-</div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="border rounded p-2 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-1">
+                                    <i class="fas fa-reply text-secondary me-1" style="font-size: 0.75rem;"></i>
+                                    <span class="small text-muted">Reply STOP</span>
+                                </div>
+                                <div class="fw-bold" id="optoutReplyStop">-</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-2 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-1">
+                                    <i class="fas fa-link text-secondary me-1" style="font-size: 0.75rem;"></i>
+                                    <span class="small text-muted">Opt-out URL</span>
+                                </div>
+                                <div class="fw-bold" id="optoutUrl">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="btn btn-outline-secondary btn-sm w-100" onclick="event.preventDefault(); alert('TODO: Implement opt-out export for this campaign');">
+                        <i class="fas fa-download me-1"></i> View/Export Opt-out Records
+                    </a>
+                </div>
+            </div>
+
             <div class="card bg-light border-0">
                 <div class="card-body p-3 text-center text-muted">
                     <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
@@ -775,8 +817,10 @@ function openCampaignDrawer(campaignId) {
     updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
     
     var hasTracking = row.dataset.hasTracking === 'yes';
+    var hasOptout = row.dataset.hasOptout === 'yes';
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
     updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
+    updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
 
     campaignDrawer.show();
 }
@@ -974,6 +1018,34 @@ function updateCostSummary(channel, status, total, delivered) {
     }
     
     document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
+}
+
+function updateOptoutSummary(status, total, delivered, hasOptout) {
+    var optoutCard = document.getElementById('optoutSummaryCard');
+    
+    if (!hasOptout || status === 'scheduled') {
+        optoutCard.style.display = 'none';
+        return;
+    }
+    optoutCard.style.display = '';
+    
+    var deliveredCount = delivered !== null ? delivered : total;
+    
+    // TODO: Replace with real opt-out data from backend
+    var optoutRate = 0.008 + (Math.random() * 0.007);
+    var totalOptouts = Math.floor(deliveredCount * optoutRate);
+    
+    var replyStopCount = Math.floor(totalOptouts * 0.65);
+    var urlOptoutCount = totalOptouts - replyStopCount;
+    
+    var optoutPct = deliveredCount > 0 ? (totalOptouts / deliveredCount * 100) : 0;
+    
+    document.getElementById('optoutTotal').textContent = totalOptouts.toLocaleString();
+    document.getElementById('optoutPercent').textContent = optoutPct.toFixed(2) + '% of delivered';
+    document.getElementById('optoutBar').style.width = Math.min(optoutPct * 10, 100) + '%';
+    
+    document.getElementById('optoutReplyStop').textContent = replyStopCount.toLocaleString();
+    document.getElementById('optoutUrl').textContent = urlOptoutCount.toLocaleString();
 }
 
 function formatDate(dateStr) {
