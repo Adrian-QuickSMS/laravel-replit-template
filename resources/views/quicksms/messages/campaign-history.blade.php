@@ -242,7 +242,7 @@
             
             <div class="mt-3" id="statusActionsContainer">
                 <div id="scheduledActions" style="display: none;">
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 mb-2">
                         <a href="#" id="editCampaignBtn" class="btn btn-light btn-sm flex-fill" onclick="editCampaign(event)">
                             <i class="fas fa-edit me-1"></i>Edit Campaign
                         </a>
@@ -252,10 +252,15 @@
                     </div>
                 </div>
                 <div id="sendingNotice" style="display: none;">
-                    <div class="alert alert-light mb-0 py-2 px-3 small d-flex align-items-center" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);">
+                    <div class="alert alert-light mb-2 py-2 px-3 small d-flex align-items-center" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);">
                         <i class="fas fa-spinner fa-spin me-2"></i>
                         <span>Campaign is currently sending and cannot be cancelled.</span>
                     </div>
+                </div>
+                <div id="duplicateAction">
+                    <button type="button" class="btn btn-outline-light btn-sm w-100" onclick="duplicateCampaign()">
+                        <i class="fas fa-copy me-1"></i>Duplicate Campaign
+                    </button>
                 </div>
             </div>
         </div>
@@ -1482,6 +1487,31 @@ function confirmCancelCampaign() {
     campaignDrawer.hide();
     
     showComingSoon('Campaign "' + currentCampaignName + '" would be cancelled. Backend integration required.');
+}
+
+function duplicateCampaign() {
+    // TODO: Implement campaign duplication
+    // - Call GET /api/campaigns/{id}/config to load campaign configuration
+    // - Store config in sessionStorage for Send Message page to read
+    // - Navigate to Send Message with duplicate flag
+    // - Check permissions (canCreateCampaign)
+    
+    // Mock: Store campaign info in sessionStorage for prefill
+    var duplicateConfig = {
+        source: 'duplicate',
+        originalId: currentCampaignId,
+        originalName: currentCampaignName,
+        // TODO: Load actual config from backend
+        name: currentCampaignName + ' (Copy)',
+        prefilled: true
+    };
+    
+    sessionStorage.setItem('campaignDuplicateConfig', JSON.stringify(duplicateConfig));
+    
+    campaignDrawer.hide();
+    
+    // Navigate to Send Message page with duplicate flag
+    window.location.href = '/messages/send-message?duplicate=' + currentCampaignId;
 }
 </script>
 @endpush

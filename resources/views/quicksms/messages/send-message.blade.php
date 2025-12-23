@@ -1341,7 +1341,56 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="scheduling"]').forEach(function(radio) {
         radio.addEventListener('change', toggleScheduling);
     });
+    
+    checkForDuplicatePrefill();
 });
+
+function checkForDuplicatePrefill() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var duplicateId = urlParams.get('duplicate');
+    
+    if (duplicateId) {
+        var configJson = sessionStorage.getItem('campaignDuplicateConfig');
+        
+        if (configJson) {
+            try {
+                var config = JSON.parse(configJson);
+                
+                // TODO: Replace with actual campaign config loading from backend
+                // - Call GET /api/campaigns/{duplicateId}/config
+                // - Prefill: channel, sender ID, RCS agent, message content, recipients, scheduling options
+                // - For now, just show notification with mock prefill
+                
+                var campaignNameInput = document.getElementById('campaignName');
+                if (campaignNameInput && config.name) {
+                    campaignNameInput.value = config.name;
+                }
+                
+                showDuplicateNotification(config.originalName);
+                
+                sessionStorage.removeItem('campaignDuplicateConfig');
+                
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (e) {
+                console.error('Error parsing duplicate config:', e);
+            }
+        }
+    }
+}
+
+function showDuplicateNotification(originalName) {
+    var alertHtml = '<div class="alert alert-info alert-dismissible fade show mb-3" role="alert">' +
+        '<i class="fas fa-copy me-2"></i>' +
+        '<strong>Duplicating campaign:</strong> ' + originalName +
+        '<br><small class="text-muted">TODO: Full configuration prefill requires backend integration.</small>' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+        '</div>';
+    
+    var cardBody = document.querySelector('.card-body');
+    if (cardBody) {
+        cardBody.insertAdjacentHTML('afterbegin', alertHtml);
+    }
+}
 
 function selectChannel(channel) {
     var rcsAgentSection = document.getElementById('rcsAgentSection');
