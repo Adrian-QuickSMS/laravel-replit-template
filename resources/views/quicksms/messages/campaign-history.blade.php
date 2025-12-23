@@ -295,6 +295,51 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="deliveryOutcomesCard">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-chart-pie me-2"></i>Delivery Outcomes</h6>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex rounded overflow-hidden" style="height: 24px;" id="outcomeBar">
+                            <div id="barDelivered" class="bg-success" style="width: 0%; transition: width 0.3s;"></div>
+                            <div id="barPending" class="bg-warning" style="width: 0%; transition: width 0.3s;"></div>
+                            <div id="barUndeliverable" class="bg-danger" style="width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="d-flex align-items-center justify-content-center mb-1">
+                                <span class="rounded-circle bg-success me-2" style="width: 10px; height: 10px; display: inline-block;"></span>
+                                <span class="small text-muted">Delivered</span>
+                            </div>
+                            <div class="fw-bold" id="outcomeDelivered">-</div>
+                            <div class="small text-muted" id="outcomeDeliveredPct">-</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="d-flex align-items-center justify-content-center mb-1">
+                                <span class="rounded-circle bg-warning me-2" style="width: 10px; height: 10px; display: inline-block;"></span>
+                                <span class="small text-muted">Pending</span>
+                            </div>
+                            <div class="fw-bold" id="outcomePending">-</div>
+                            <div class="small text-muted" id="outcomePendingPct">-</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="d-flex align-items-center justify-content-center mb-1">
+                                <span class="rounded-circle bg-danger me-2" style="width: 10px; height: 10px; display: inline-block;"></span>
+                                <span class="small text-muted">Undeliverable</span>
+                            </div>
+                            <div class="fw-bold" id="outcomeUndeliverable">-</div>
+                            <div class="small text-muted" id="outcomeUndeliverablePct">-</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>TODO: Integrate Chart.js pie chart for richer visualization</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="card bg-light border-0">
                 <div class="card-body p-3 text-center text-muted">
                     <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
@@ -598,7 +643,49 @@ function openCampaignDrawer(campaignId) {
         rateDisplay.className = 'fs-4 fw-bold text-muted';
     }
 
+    updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
+
     campaignDrawer.show();
+}
+
+function updateDeliveryOutcomes(status, total, delivered) {
+    var outcomesCard = document.getElementById('deliveryOutcomesCard');
+    
+    if (status === 'scheduled' || total === 0) {
+        outcomesCard.style.display = 'none';
+        return;
+    }
+    outcomesCard.style.display = '';
+    
+    // TODO: Replace with real pending/undeliverable data from backend
+    var deliveredCount = delivered !== null ? delivered : 0;
+    var pending = 0;
+    var undeliverable = 0;
+    
+    if (status === 'sending') {
+        pending = Math.floor((total - deliveredCount) * 0.7);
+        undeliverable = Math.floor((total - deliveredCount) * 0.3);
+    } else {
+        pending = 0;
+        undeliverable = total - deliveredCount;
+    }
+    
+    var deliveredPct = total > 0 ? (deliveredCount / total * 100) : 0;
+    var pendingPct = total > 0 ? (pending / total * 100) : 0;
+    var undeliverablePct = total > 0 ? (undeliverable / total * 100) : 0;
+    
+    document.getElementById('barDelivered').style.width = deliveredPct + '%';
+    document.getElementById('barPending').style.width = pendingPct + '%';
+    document.getElementById('barUndeliverable').style.width = undeliverablePct + '%';
+    
+    document.getElementById('outcomeDelivered').textContent = deliveredCount.toLocaleString();
+    document.getElementById('outcomeDeliveredPct').textContent = deliveredPct.toFixed(1) + '%';
+    
+    document.getElementById('outcomePending').textContent = pending.toLocaleString();
+    document.getElementById('outcomePendingPct').textContent = pendingPct.toFixed(1) + '%';
+    
+    document.getElementById('outcomeUndeliverable').textContent = undeliverable.toLocaleString();
+    document.getElementById('outcomeUndeliverablePct').textContent = undeliverablePct.toFixed(1) + '%';
 }
 
 function formatDate(dateStr) {
