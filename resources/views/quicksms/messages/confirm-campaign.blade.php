@@ -22,20 +22,23 @@
 .summary-card .card-body {
     padding: 1.25rem;
 }
-.summary-row {
-    display: flex;
-    justify-content: space-between;
+.summary-table {
+    width: 100%;
+}
+.summary-table td {
     padding: 0.75rem 0;
     border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
 }
-.summary-row:last-child {
+.summary-table tr:last-child td {
     border-bottom: none;
 }
-.summary-label {
+.summary-table .summary-label {
     color: #6c757d;
     font-size: 0.875rem;
+    width: 40%;
 }
-.summary-value {
+.summary-table .summary-value {
     font-weight: 500;
     color: #212529;
     text-align: right;
@@ -178,36 +181,38 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    <div class="summary-row">
-                        <span class="summary-label">Campaign Name</span>
-                        <span class="summary-value">{{ $campaign['name'] }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Created by</span>
-                        <span class="summary-value">{{ $campaign['created_by'] }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Created date / time</span>
-                        <span class="summary-value">{{ $campaign['created_at'] }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Scheduled send time</span>
-                        <span class="summary-value">
-                            @if($campaign['scheduled_time'] === 'Immediate')
-                                <span class="badge bg-success">{{ $campaign['scheduled_time'] }}</span>
-                            @else
-                                <span class="badge bg-info">Scheduled: {{ $campaign['scheduled_time'] }}</span>
-                            @endif
-                        </span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Message validity</span>
-                        <span class="summary-value">{{ $campaign['message_validity'] }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Sending Window</span>
-                        <span class="summary-value">{{ $campaign['sending_window'] }}</span>
-                    </div>
+                    <table class="summary-table">
+                        <tr>
+                            <td class="summary-label">Campaign Name</td>
+                            <td class="summary-value">{{ $campaign['name'] }}</td>
+                        </tr>
+                        <tr>
+                            <td class="summary-label">Created by</td>
+                            <td class="summary-value">{{ $campaign['created_by'] }}</td>
+                        </tr>
+                        <tr>
+                            <td class="summary-label">Created date / time</td>
+                            <td class="summary-value">{{ $campaign['created_at'] }}</td>
+                        </tr>
+                        <tr>
+                            <td class="summary-label">Scheduled send time</td>
+                            <td class="summary-value">
+                                @if($campaign['scheduled_time'] === 'Immediate')
+                                    <span class="badge bg-success">{{ $campaign['scheduled_time'] }}</span>
+                                @else
+                                    <span class="badge bg-info">Scheduled: {{ $campaign['scheduled_time'] }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="summary-label">Message validity</td>
+                            <td class="summary-value">{{ $campaign['message_validity'] }}</td>
+                        </tr>
+                        <tr>
+                            <td class="summary-label">Sending Window</td>
+                            <td class="summary-value">{{ $campaign['sending_window'] }}</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
