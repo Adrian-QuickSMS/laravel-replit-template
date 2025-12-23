@@ -30,11 +30,13 @@ The system uses an SQLite database for development, with a clear separation betw
 
 ## Inbox / Conversation Workspace
 The Messages Inbox provides a three-panel conversation workspace at `/messages/inbox`:
-- **Conversation List (Left):** Scrollable list of conversations with search, filter (All/Unread/SMS/RCS), sort (Newest/Oldest/A-Z/Z-A), unread badges, and channel indicators
-- **Chat Pane (Center):** Message history with inbound (gray, left-aligned) and outbound (purple, right-aligned) bubbles, timestamps, and delivery indicators
-- **Contact Info (Right):** Shows existing contact details (tags, lists, notes) or "Add to Contacts" onboarding for unknown numbers
+- **Conversation List (Left):** Uses Fillow's `.chat-bx` class pattern with purple left border (3px) for active state, search, filter (All/Unread/SMS/RCS), sort (Newest/Oldest/A-Z/Z-A), unread badges, and channel pills (`.channel-pill-sms`, `.channel-pill-rcs`)
+- **Chat Pane (Center):** Uses Fillow's `.message-received` (gray, left-aligned) and `.message-sent` (purple gradient, right-aligned) bubble classes with timestamps and delivery indicators
+- **Contact Info (Right):** Collapsible sidebar toggled via three-dot menu, shows contact details (tags, lists, notes) or "Add to Contacts" for unknown numbers
+- **Search in Conversation:** Header search bar with previous/next navigation and highlight matching (`.search-highlight`)
 - **Reply Composer:** SMS/RCS channel toggle, Sender ID/Agent selection, template picker, personalization fields, character/segment counter with GSM-7/Unicode detection
-- **Mock Data:** 6 sample conversations including various scenarios (order inquiries, opt-outs, appointments, feedback)
+- **RCS Rich Cards:** Inline rendering of rich card messages (`.rcs-rich-card-inbox`) with image, title, description, action button
+- **Mock Data:** 6 sample conversations including RCS rich card example (Sophie Brown)
 - **GDPR Compliance:** Phone numbers are masked (+44 77** ***111), message previews use placeholders only (@{{firstName}}, @{{orderNumber}})
 
 ## RCS Preview System
