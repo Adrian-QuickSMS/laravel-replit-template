@@ -613,11 +613,51 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="logsExportsCard">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-file-export me-2"></i>Logs & Exports</h6>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm text-start" onclick="exportDeliveryReport()">
+                            <i class="fas fa-file-csv me-2"></i>Export Delivery Report
+                            <span class="float-end text-muted small">CSV / Excel</span>
+                        </button>
+                        
+                        <button class="btn btn-outline-primary btn-sm text-start" onclick="exportMessageLog()">
+                            <i class="fas fa-list-alt me-2"></i>Export Message Log
+                            <span class="float-end text-muted small">Per recipient</span>
+                        </button>
+                        
+                        <button class="btn btn-outline-secondary btn-sm text-start" onclick="viewAuditLog()">
+                            <i class="fas fa-history me-2"></i>View Audit Log
+                            <span class="float-end text-muted small">Activity trail</span>
+                        </button>
+                    </div>
+                    
+                    <div class="small text-muted mt-2">
+                        <i class="fas fa-lock me-1"></i>Export access based on user permissions
+                    </div>
+                </div>
+            </div>
+
             <div class="card bg-light border-0">
                 <div class="card-body p-3 text-center text-muted">
                     <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
                     <p class="mb-0 small">Detailed analytics coming soon</p>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="comingSoonModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fas fa-tools fa-3x text-primary mb-3"></i>
+                <h5 class="mb-2">Coming Soon</h5>
+                <p class="text-muted small mb-3" id="comingSoonMessage">This feature is under development.</p>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Got it</button>
             </div>
         </div>
     </div>
@@ -1302,6 +1342,40 @@ function formatDate(dateStr) {
     var hours = String(date.getHours()).padStart(2, '0');
     var minutes = String(date.getMinutes()).padStart(2, '0');
     return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+}
+
+var comingSoonModal = null;
+
+function showComingSoon(message) {
+    if (!comingSoonModal) {
+        comingSoonModal = new bootstrap.Modal(document.getElementById('comingSoonModal'));
+    }
+    document.getElementById('comingSoonMessage').textContent = message;
+    comingSoonModal.show();
+}
+
+function exportDeliveryReport() {
+    // TODO: Implement delivery report export
+    // - Check user permissions (canExportReports)
+    // - Call GET /api/campaigns/{id}/export/delivery?format=csv|xlsx
+    // - Generate CSV/Excel with: recipient, status, delivered_at, failed_reason, channel
+    showComingSoon('Delivery report export will generate a CSV/Excel file with delivery status for all recipients.');
+}
+
+function exportMessageLog() {
+    // TODO: Implement message log export
+    // - Check user permissions (canExportLogs)
+    // - Call GET /api/campaigns/{id}/export/messages
+    // - Generate detailed log: recipient, message_content (with merged fields), sent_at, status, channel, cost
+    showComingSoon('Message log export will include per-recipient status, timestamps, and message content.');
+}
+
+function viewAuditLog() {
+    // TODO: Implement audit log viewer
+    // - Check user permissions (canViewAuditLogs)
+    // - Call GET /api/campaigns/{id}/audit-log
+    // - Display modal/drawer with: created_by, created_at, edited_by, edited_at, approved_by, approved_at, cancelled_by, cancelled_at
+    showComingSoon('Audit log will show who created, edited, approved, or cancelled this campaign and when.');
 }
 </script>
 @endpush
