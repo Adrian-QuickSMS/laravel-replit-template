@@ -510,6 +510,69 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="messagePreviewCard">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-eye me-2"></i>Message Preview</h6>
+                    
+                    <div id="smsPreviewSection" style="display: none;">
+                        <div class="border rounded p-3 bg-light" style="max-width: 280px; margin: 0 auto;">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
+                                    <i class="fas fa-sms text-white" style="font-size: 12px;"></i>
+                                </div>
+                                <span class="small fw-medium" id="smsPreviewSender">-</span>
+                            </div>
+                            <div class="bg-white rounded p-2 border" style="font-size: 13px; line-height: 1.4;">
+                                <span id="smsPreviewContent">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="rcsPreviewSection" style="display: none;">
+                        <div class="border rounded overflow-hidden" style="max-width: 280px; margin: 0 auto; background: #f5f5f5;">
+                            <div class="bg-primary text-white p-2 d-flex align-items-center">
+                                <div class="rounded-circle bg-white d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                                    <i class="fas fa-building text-primary" style="font-size: 10px;"></i>
+                                </div>
+                                <div>
+                                    <div class="small fw-medium" id="rcsPreviewAgent">-</div>
+                                    <div style="font-size: 10px; opacity: 0.8;">Verified Business</div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-2" id="rcsPreviewBasic" style="display: none;">
+                                <div class="bg-white rounded p-2 border" style="font-size: 13px; line-height: 1.4;">
+                                    <span id="rcsPreviewBasicContent">-</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-2" id="rcsPreviewRich" style="display: none;">
+                                <div class="bg-white rounded overflow-hidden border">
+                                    <div class="bg-secondary" style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-image text-white fa-2x opacity-50"></i>
+                                    </div>
+                                    <div class="p-2">
+                                        <div class="fw-medium small" id="rcsCardTitle">-</div>
+                                        <div class="text-muted" style="font-size: 11px;" id="rcsCardDesc">-</div>
+                                        <div class="mt-2" id="rcsCardButtons"></div>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2" id="rcsCarouselIndicator" style="display: none;">
+                                    <span class="badge bg-primary me-1" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span>
+                                    <span class="badge bg-secondary me-1" style="width: 6px; height: 6px; padding: 0; border-radius: 50%; opacity: 0.5;"></span>
+                                    <span class="badge bg-secondary" style="width: 6px; height: 6px; padding: 0; border-radius: 50%; opacity: 0.5;"></span>
+                                    <div class="small text-muted mt-1" id="rcsCarouselCount">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-2">
+                        <small class="text-muted"><i class="fas fa-shield-alt me-1"></i>Placeholders shown for privacy</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="card bg-light border-0">
                 <div class="card-body p-3 text-center text-muted">
                     <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
@@ -821,6 +884,7 @@ function openCampaignDrawer(campaignId) {
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
     updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
+    updateMessagePreview(channel, senderId, rcsAgent, template);
 
     campaignDrawer.show();
 }
@@ -1046,6 +1110,89 @@ function updateOptoutSummary(status, total, delivered, hasOptout) {
     
     document.getElementById('optoutReplyStop').textContent = replyStopCount.toLocaleString();
     document.getElementById('optoutUrl').textContent = urlOptoutCount.toLocaleString();
+}
+
+function updateMessagePreview(channel, senderId, rcsAgent, template) {
+    var smsSection = document.getElementById('smsPreviewSection');
+    var rcsSection = document.getElementById('rcsPreviewSection');
+    var rcsBasic = document.getElementById('rcsPreviewBasic');
+    var rcsRich = document.getElementById('rcsPreviewRich');
+    var carouselIndicator = document.getElementById('rcsCarouselIndicator');
+    
+    // TODO: Replace with actual message content from backend (with placeholders, never real data)
+    var mockMessages = {
+        'Sale Announcement': { type: 'rich', title: 'Flash Sale!', desc: 'Hi @{{firstName}}, enjoy 30% off today!', buttons: ['Shop Now', 'View Details'], carousel: 3 },
+        'Flash Deal': { type: 'rich', title: 'Limited Offer', desc: '@{{firstName}}, this deal expires soon!', buttons: ['Grab It'], carousel: 0 },
+        'Reminder': { type: 'sms', content: 'Hi @{{firstName}}, reminder: your appointment is tomorrow at @{{time}}. Reply STOP to opt out.' },
+        'Product Showcase': { type: 'rich', title: 'New Arrivals', desc: 'Check out our latest @{{category}} collection!', buttons: ['Browse', 'Learn More'], carousel: 4 },
+        'Weekend Deal': { type: 'basic', content: '@{{firstName}}, weekend special: use code SAVE20 for 20% off! Shop now: @{{link}}' },
+        'VIP Invitation': { type: 'rich', title: 'VIP Access', desc: 'Exclusive early access for you, @{{firstName}}!', buttons: ['Access Now'], carousel: 0 },
+        'Shipping Update': { type: 'sms', content: 'Your order #@{{orderNumber}} has shipped! Track: @{{trackingLink}}' },
+        'Survey Request': { type: 'basic', content: 'Hi @{{firstName}}, we value your feedback! Take our quick survey: @{{surveyLink}}' },
+        'Order Confirm': { type: 'sms', content: 'Order confirmed! #@{{orderNumber}} - Total: @{{amount}}. Thank you for shopping!' },
+        'Appointment': { type: 'sms', content: 'Reminder: @{{firstName}}, your appointment is on @{{date}} at @{{time}}.' },
+        'Product Launch': { type: 'rich', title: 'Introducing @{{productName}}', desc: 'Be the first to experience our newest innovation!', buttons: ['Pre-order', 'Learn More', 'Watch Video'], carousel: 5 }
+    };
+    
+    var defaultSms = 'Hi @{{firstName}}, thank you for being a valued customer! @{{message}} Reply STOP to opt out.';
+    var defaultBasic = 'Hi @{{firstName}}, @{{message}} Tap to learn more: @{{link}}';
+    
+    if (channel === 'sms_only') {
+        smsSection.style.display = '';
+        rcsSection.style.display = 'none';
+        
+        document.getElementById('smsPreviewSender').textContent = senderId || 'QuickSMS';
+        
+        var msgData = mockMessages[template];
+        if (msgData && msgData.type === 'sms') {
+            document.getElementById('smsPreviewContent').textContent = msgData.content;
+        } else {
+            document.getElementById('smsPreviewContent').textContent = defaultSms;
+        }
+    } else {
+        smsSection.style.display = 'none';
+        rcsSection.style.display = '';
+        
+        document.getElementById('rcsPreviewAgent').textContent = rcsAgent || 'QuickSMS Brand';
+        
+        var msgData = mockMessages[template];
+        
+        if (channel === 'basic_rcs' || (msgData && msgData.type === 'basic')) {
+            rcsBasic.style.display = '';
+            rcsRich.style.display = 'none';
+            
+            if (msgData && msgData.type === 'basic') {
+                document.getElementById('rcsPreviewBasicContent').textContent = msgData.content;
+            } else {
+                document.getElementById('rcsPreviewBasicContent').textContent = defaultBasic;
+            }
+        } else {
+            rcsBasic.style.display = 'none';
+            rcsRich.style.display = '';
+            
+            if (msgData && msgData.type === 'rich') {
+                document.getElementById('rcsCardTitle').textContent = msgData.title;
+                document.getElementById('rcsCardDesc').textContent = msgData.desc;
+                
+                var buttonsHtml = msgData.buttons.map(function(btn) {
+                    return '<button class="btn btn-outline-primary btn-sm w-100 mb-1" style="font-size: 11px;" disabled>' + btn + '</button>';
+                }).join('');
+                document.getElementById('rcsCardButtons').innerHTML = buttonsHtml;
+                
+                if (msgData.carousel > 1) {
+                    carouselIndicator.style.display = '';
+                    document.getElementById('rcsCarouselCount').textContent = '1 of ' + msgData.carousel + ' cards';
+                } else {
+                    carouselIndicator.style.display = 'none';
+                }
+            } else {
+                document.getElementById('rcsCardTitle').textContent = 'Special Offer';
+                document.getElementById('rcsCardDesc').textContent = 'Hi @{{firstName}}, check out this exclusive offer!';
+                document.getElementById('rcsCardButtons').innerHTML = '<button class="btn btn-outline-primary btn-sm w-100" style="font-size: 11px;" disabled>Learn More</button>';
+                carouselIndicator.style.display = 'none';
+            }
+        }
+    }
 }
 
 function formatDate(dateStr) {
