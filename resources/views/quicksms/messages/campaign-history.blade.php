@@ -468,6 +468,46 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="recipientBreakdownCard">
+                <div class="card-header p-3 bg-white border-bottom-0" style="cursor: pointer;" onclick="toggleRecipientBreakdown()">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="text-muted mb-0"><i class="fas fa-users me-2"></i>Recipient Breakdown</h6>
+                        <i class="fas fa-chevron-down text-muted" id="recipientBreakdownChevron" style="transition: transform 0.2s;"></i>
+                    </div>
+                </div>
+                <div class="card-body p-3 pt-0" id="recipientBreakdownBody" style="display: none;">
+                    <h6 class="small text-muted mb-2 mt-2">Sources Used</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-3" id="recipientSourcesContainer">
+                    </div>
+                    
+                    <h6 class="small text-muted mb-2">De-duplication Summary</h6>
+                    <div class="border rounded p-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                            <span class="small text-muted">Total Selected</span>
+                            <span class="small fw-medium" id="dedupTotalSelected">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                            <span class="small text-success">
+                                <i class="fas fa-check-circle me-1"></i>Unique Sent
+                            </span>
+                            <span class="small fw-bold text-success" id="dedupUniqueSent">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                            <span class="small text-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Excluded (Invalid)
+                            </span>
+                            <span class="small fw-medium text-warning" id="dedupExcludedInvalid">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-1">
+                            <span class="small text-danger">
+                                <i class="fas fa-ban me-1"></i>Excluded (Opted-out)
+                            </span>
+                            <span class="small fw-medium text-danger" id="dedupExcludedOptout">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-3" id="optoutSummaryCard" style="display: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-user-slash me-2"></i>Compliance & Opt-outs</h6>
@@ -885,6 +925,10 @@ function openCampaignDrawer(campaignId) {
     updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
     updateMessagePreview(channel, senderId, rcsAgent, template);
+    updateRecipientBreakdown(recipientsTotal, recipientsDelivered);
+    
+    document.getElementById('recipientBreakdownBody').style.display = 'none';
+    document.getElementById('recipientBreakdownChevron').style.transform = 'rotate(0deg)';
 
     campaignDrawer.show();
 }
@@ -1193,6 +1237,61 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
             }
         }
     }
+}
+
+function toggleRecipientBreakdown() {
+    var body = document.getElementById('recipientBreakdownBody');
+    var chevron = document.getElementById('recipientBreakdownChevron');
+    
+    if (body.style.display === 'none') {
+        body.style.display = '';
+        chevron.style.transform = 'rotate(180deg)';
+    } else {
+        body.style.display = 'none';
+        chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+function updateRecipientBreakdown(total, delivered) {
+    var container = document.getElementById('recipientSourcesContainer');
+    
+    // TODO: Replace with actual recipient source data from backend
+    var allSources = [
+        { id: 'manual', label: 'Manual Entry', icon: 'fa-keyboard', color: 'primary' },
+        { id: 'upload', label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
+        { id: 'contacts', label: 'Contacts', icon: 'fa-address-book', color: 'success' },
+        { id: 'lists', label: 'Lists', icon: 'fa-list', color: 'warning' },
+        { id: 'dynamic', label: 'Dynamic Lists', icon: 'fa-magic', color: 'purple' },
+        { id: 'tags', label: 'Tags', icon: 'fa-tags', color: 'danger' }
+    ];
+    
+    // Mock: randomly select 1-3 sources for this campaign
+    var numSources = 1 + Math.floor(Math.random() * 3);
+    var shuffled = allSources.sort(function() { return 0.5 - Math.random(); });
+    var usedSources = shuffled.slice(0, numSources);
+    
+    var sourcesHtml = usedSources.map(function(src) {
+        var bgClass = src.color === 'purple' ? 'bg-purple' : 'bg-' + src.color;
+        var style = src.color === 'purple' ? 'background-color: #7c3aed;' : '';
+        return '<span class="badge ' + bgClass + ' text-white" style="' + style + '">' +
+               '<i class="fas ' + src.icon + ' me-1"></i>' + src.label + '</span>';
+    }).join('');
+    
+    container.innerHTML = sourcesHtml;
+    
+    // De-dup calculation (mock data)
+    var totalSelected = total + Math.floor(total * 0.15);
+    var invalidRate = 0.02 + (Math.random() * 0.03);
+    var optoutRate = 0.03 + (Math.random() * 0.04);
+    
+    var excludedInvalid = Math.floor(totalSelected * invalidRate);
+    var excludedOptout = Math.floor(totalSelected * optoutRate);
+    var uniqueSent = total;
+    
+    document.getElementById('dedupTotalSelected').textContent = totalSelected.toLocaleString();
+    document.getElementById('dedupUniqueSent').textContent = uniqueSent.toLocaleString();
+    document.getElementById('dedupExcludedInvalid').textContent = excludedInvalid.toLocaleString();
+    document.getElementById('dedupExcludedOptout').textContent = excludedOptout.toLocaleString();
 }
 
 function formatDate(dateStr) {
