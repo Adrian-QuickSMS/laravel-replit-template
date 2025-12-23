@@ -239,6 +239,25 @@
                 <span id="drawerSendTimeLabel">Send Time:</span>
                 <span class="ms-1 fw-medium" id="drawerSendTime">-</span>
             </div>
+            
+            <div class="mt-3" id="statusActionsContainer">
+                <div id="scheduledActions" style="display: none;">
+                    <div class="d-flex gap-2">
+                        <a href="#" id="editCampaignBtn" class="btn btn-light btn-sm flex-fill" onclick="editCampaign(event)">
+                            <i class="fas fa-edit me-1"></i>Edit Campaign
+                        </a>
+                        <button type="button" class="btn btn-outline-light btn-sm flex-fill" onclick="showCancelConfirmation()">
+                            <i class="fas fa-times-circle me-1"></i>Cancel
+                        </button>
+                    </div>
+                </div>
+                <div id="sendingNotice" style="display: none;">
+                    <div class="alert alert-light mb-0 py-2 px-3 small d-flex align-items-center" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        <span>Campaign is currently sending and cannot be cancelled.</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="p-4">
@@ -662,6 +681,35 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="cancelCampaignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Cancel Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Are you sure you want to cancel this scheduled campaign?</p>
+                <div class="alert alert-light border mb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-bullhorn text-muted me-2"></i>
+                        <div>
+                            <strong id="cancelCampaignName">-</strong>
+                            <div class="small text-muted">Scheduled for <span id="cancelCampaignTime">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Campaign</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancelCampaign()">
+                    <i class="fas fa-times-circle me-1"></i>Cancel Campaign
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -966,6 +1014,7 @@ function openCampaignDrawer(campaignId) {
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
     updateMessagePreview(channel, senderId, rcsAgent, template);
     updateRecipientBreakdown(recipientsTotal, recipientsDelivered);
+    updateStatusActions(status, row.dataset.id, name, sendDate);
     
     document.getElementById('recipientBreakdownBody').style.display = 'none';
     document.getElementById('recipientBreakdownChevron').style.transform = 'rotate(0deg)';
@@ -1376,6 +1425,63 @@ function viewAuditLog() {
     // - Call GET /api/campaigns/{id}/audit-log
     // - Display modal/drawer with: created_by, created_at, edited_by, edited_at, approved_by, approved_at, cancelled_by, cancelled_at
     showComingSoon('Audit log will show who created, edited, approved, or cancelled this campaign and when.');
+}
+
+var currentCampaignId = null;
+var currentCampaignName = null;
+var currentCampaignTime = null;
+var cancelCampaignModal = null;
+
+function updateStatusActions(status, campaignId, campaignName, sendDate) {
+    var scheduledActions = document.getElementById('scheduledActions');
+    var sendingNotice = document.getElementById('sendingNotice');
+    
+    currentCampaignId = campaignId;
+    currentCampaignName = campaignName;
+    currentCampaignTime = formatDate(sendDate);
+    
+    scheduledActions.style.display = 'none';
+    sendingNotice.style.display = 'none';
+    
+    if (status === 'scheduled') {
+        scheduledActions.style.display = '';
+    } else if (status === 'sending') {
+        sendingNotice.style.display = '';
+    }
+}
+
+function editCampaign(event) {
+    event.preventDefault();
+    // TODO: Implement edit campaign
+    // - Navigate to /messages/send-message?edit={campaignId}
+    // - Load campaign config into form
+    // - Check permissions (canEditCampaign)
+    showComingSoon('Edit campaign will load the Send Message screen with the saved campaign configuration.');
+}
+
+function showCancelConfirmation() {
+    if (!cancelCampaignModal) {
+        cancelCampaignModal = new bootstrap.Modal(document.getElementById('cancelCampaignModal'));
+    }
+    
+    document.getElementById('cancelCampaignName').textContent = currentCampaignName;
+    document.getElementById('cancelCampaignTime').textContent = currentCampaignTime;
+    
+    cancelCampaignModal.show();
+}
+
+function confirmCancelCampaign() {
+    // TODO: Implement cancel campaign
+    // - Call POST /api/campaigns/{id}/cancel
+    // - Check permissions (canCancelCampaign)
+    // - Update campaign status to 'cancelled'
+    // - Refresh campaign list or update row in-place
+    // - Log action in audit trail
+    
+    cancelCampaignModal.hide();
+    campaignDrawer.hide();
+    
+    showComingSoon('Campaign "' + currentCampaignName + '" would be cancelled. Backend integration required.');
 }
 </script>
 @endpush
