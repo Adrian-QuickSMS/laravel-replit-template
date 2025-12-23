@@ -221,46 +221,85 @@
     </div>
 </div>
 
-<div class="offcanvas offcanvas-end" tabindex="-1" id="campaignDrawer" style="width: 450px;">
-    <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title">Campaign Overview</h5>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="campaignDrawer" style="width: 480px;">
+    <div class="offcanvas-header border-bottom py-2">
+        <h6 class="offcanvas-title text-muted mb-0"><i class="fas fa-bullhorn me-2"></i>Campaign Overview</h6>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body">
-        <div class="mb-4">
-            <h4 id="drawerCampaignName" class="mb-3">-</h4>
-            <div class="d-flex gap-2 mb-3">
-                <span id="drawerChannelBadge" class="badge bg-secondary">-</span>
-                <span id="drawerStatusBadge" class="badge bg-secondary">-</span>
+    <div class="offcanvas-body p-0">
+        <div class="bg-gradient-primary text-white p-4" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
+            <h4 id="drawerCampaignName" class="mb-3 fw-semibold">-</h4>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span id="drawerStatusBadge" class="badge bg-white text-dark">-</span>
+                <span id="drawerChannelBadge" class="badge bg-white bg-opacity-25">-</span>
+                <span id="drawerLiveStateBadge" class="badge bg-white bg-opacity-25">-</span>
+            </div>
+            <div class="d-flex align-items-center small opacity-75">
+                <i class="fas fa-clock me-2"></i>
+                <span id="drawerSendTimeLabel">Send Time:</span>
+                <span class="ms-1 fw-medium" id="drawerSendTime">-</span>
             </div>
         </div>
 
-        <div class="card mb-3">
-            <div class="card-body p-3">
-                <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Campaign Details</h6>
-                <div class="row mb-2">
-                    <div class="col-5 text-muted">Campaign ID</div>
-                    <div class="col-7" id="drawerCampaignId">-</div>
+        <div class="p-4">
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center h-100">
+                        <div class="text-muted small mb-1">Total Recipients</div>
+                        <div class="fs-4 fw-bold text-primary" id="drawerRecipientsTotal">-</div>
+                    </div>
                 </div>
-                <div class="row mb-2">
-                    <div class="col-5 text-muted">Send Date</div>
-                    <div class="col-7" id="drawerSendDate">-</div>
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center h-100">
+                        <div class="text-muted small mb-1">Delivered</div>
+                        <div class="fs-4 fw-bold text-success" id="drawerRecipientsDelivered">-</div>
+                    </div>
                 </div>
-                <div class="row mb-2">
-                    <div class="col-5 text-muted">Total Recipients</div>
-                    <div class="col-7" id="drawerRecipientsTotal">-</div>
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center h-100">
+                        <div class="text-muted small mb-1">Failed</div>
+                        <div class="fs-4 fw-bold text-danger" id="drawerRecipientsFailed">-</div>
+                    </div>
                 </div>
-                <div class="row" id="drawerDeliveredRow">
-                    <div class="col-5 text-muted">Delivered</div>
-                    <div class="col-7" id="drawerRecipientsDelivered">-</div>
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center h-100">
+                        <div class="text-muted small mb-1">Delivery Rate</div>
+                        <div class="fs-4 fw-bold" id="drawerDeliveryRate">-</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card bg-light border-0">
-            <div class="card-body p-3 text-center text-muted">
-                <i class="fas fa-chart-bar fa-2x mb-2 opacity-50"></i>
-                <p class="mb-0 small">Delivery analytics and cost breakdown coming soon</p>
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Campaign Details</h6>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Campaign ID</div>
+                        <div class="col-7 small" id="drawerCampaignId">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Sender ID</div>
+                        <div class="col-7 small" id="drawerSenderId">-</div>
+                    </div>
+                    <div class="row mb-2" id="drawerRcsAgentRow">
+                        <div class="col-5 text-muted small">RCS Agent</div>
+                        <div class="col-7 small" id="drawerRcsAgent">-</div>
+                    </div>
+                    <div class="row mb-2" id="drawerTemplateRow">
+                        <div class="col-5 text-muted small">Template</div>
+                        <div class="col-7 small" id="drawerTemplate">-</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-5 text-muted small">Tags</div>
+                        <div class="col-7 small" id="drawerTags">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-light border-0">
+                <div class="card-body p-3 text-center text-muted">
+                    <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
+                    <p class="mb-0 small">Detailed analytics coming soon</p>
+                </div>
             </div>
         </div>
     </div>
@@ -445,45 +484,118 @@ function openCampaignDrawer(campaignId) {
     var name = row.dataset.name;
     var channel = row.dataset.channel;
     var status = row.dataset.status;
-    var recipientsTotal = row.dataset.recipientsTotal;
-    var recipientsDelivered = row.dataset.recipientsDelivered;
+    var recipientsTotal = parseInt(row.dataset.recipientsTotal) || 0;
+    var recipientsDelivered = row.dataset.recipientsDelivered ? parseInt(row.dataset.recipientsDelivered) : null;
     var sendDate = row.dataset.sendDate;
+    var senderId = row.dataset.senderId || '-';
+    var rcsAgent = row.dataset.rcsAgent || '';
+    var tags = row.dataset.tags || '';
+    var template = row.dataset.template || '';
 
     document.getElementById('drawerCampaignName').textContent = name;
     document.getElementById('drawerCampaignId').textContent = campaignId;
-    document.getElementById('drawerSendDate').textContent = formatDate(sendDate);
-    document.getElementById('drawerRecipientsTotal').textContent = Number(recipientsTotal).toLocaleString();
+    document.getElementById('drawerRecipientsTotal').textContent = recipientsTotal.toLocaleString();
+    document.getElementById('drawerSenderId').textContent = senderId;
+
+    var sendTimeLabel = document.getElementById('drawerSendTimeLabel');
+    var sendTime = document.getElementById('drawerSendTime');
+    if (status === 'scheduled') {
+        sendTimeLabel.textContent = 'Scheduled:';
+    } else {
+        sendTimeLabel.textContent = 'Sent:';
+    }
+    sendTime.textContent = formatDate(sendDate);
+
+    if (rcsAgent) {
+        document.getElementById('drawerRcsAgentRow').style.display = '';
+        document.getElementById('drawerRcsAgent').textContent = rcsAgent;
+    } else {
+        document.getElementById('drawerRcsAgentRow').style.display = 'none';
+    }
+
+    if (template) {
+        document.getElementById('drawerTemplateRow').style.display = '';
+        document.getElementById('drawerTemplate').textContent = template;
+    } else {
+        document.getElementById('drawerTemplateRow').style.display = 'none';
+    }
+
+    if (tags) {
+        var tagArray = tags.split(',');
+        var tagHtml = tagArray.map(function(t) {
+            return '<span class="badge bg-light text-dark me-1">' + t.trim() + '</span>';
+        }).join('');
+        document.getElementById('drawerTags').innerHTML = tagHtml;
+    } else {
+        document.getElementById('drawerTags').textContent = '-';
+    }
 
     var channelBadge = document.getElementById('drawerChannelBadge');
+    channelBadge.className = 'badge bg-white bg-opacity-25';
     if (channel === 'sms_only') {
-        channelBadge.className = 'badge bg-secondary';
         channelBadge.textContent = 'SMS';
     } else if (channel === 'basic_rcs') {
-        channelBadge.className = 'badge bg-success';
         channelBadge.textContent = 'Basic RCS';
     } else {
-        channelBadge.className = 'badge bg-primary';
         channelBadge.textContent = 'Rich RCS';
     }
 
     var statusBadge = document.getElementById('drawerStatusBadge');
+    statusBadge.className = 'badge bg-white text-dark';
     if (status === 'scheduled') {
-        statusBadge.className = 'badge bg-info';
-        statusBadge.textContent = 'Scheduled';
+        statusBadge.innerHTML = '<i class="fas fa-calendar-alt me-1"></i>Scheduled';
     } else if (status === 'sending') {
-        statusBadge.className = 'badge bg-warning text-dark';
-        statusBadge.textContent = 'Sending';
+        statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending';
     } else {
-        statusBadge.className = 'badge bg-success';
-        statusBadge.textContent = 'Complete';
+        statusBadge.innerHTML = '<i class="fas fa-check me-1"></i>Complete';
     }
 
-    var deliveredRow = document.getElementById('drawerDeliveredRow');
-    if (recipientsDelivered) {
-        deliveredRow.style.display = '';
-        document.getElementById('drawerRecipientsDelivered').textContent = Number(recipientsDelivered).toLocaleString();
+    // TODO: Replace with backend validity_window field
+    var liveStateBadge = document.getElementById('drawerLiveStateBadge');
+    liveStateBadge.className = 'badge bg-white bg-opacity-25';
+    var campaignDate = new Date(sendDate);
+    var now = new Date();
+    var validityHours = 24;
+    var expiryDate = new Date(campaignDate.getTime() + (validityHours * 60 * 60 * 1000));
+    
+    if (status === 'scheduled') {
+        liveStateBadge.innerHTML = '<i class="fas fa-hourglass-start me-1"></i>Pending';
+    } else if (status === 'sending') {
+        if (now < expiryDate) {
+            liveStateBadge.innerHTML = '<i class="fas fa-broadcast-tower me-1"></i>Live';
+            liveStateBadge.className = 'badge bg-success';
+        } else {
+            liveStateBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Expired';
+            liveStateBadge.className = 'badge bg-secondary';
+        }
     } else {
-        deliveredRow.style.display = 'none';
+        if (recipientsDelivered !== null && recipientsDelivered >= recipientsTotal) {
+            liveStateBadge.innerHTML = '<i class="fas fa-check-double me-1"></i>Complete';
+        } else if (now > expiryDate) {
+            liveStateBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Expired';
+        } else {
+            liveStateBadge.innerHTML = '<i class="fas fa-check-double me-1"></i>Complete';
+        }
+    }
+
+    var failed = 0;
+    var deliveryRate = '-';
+    var deliveredDisplay = document.getElementById('drawerRecipientsDelivered');
+    var failedDisplay = document.getElementById('drawerRecipientsFailed');
+    var rateDisplay = document.getElementById('drawerDeliveryRate');
+    
+    if (recipientsDelivered !== null) {
+        failed = recipientsTotal - recipientsDelivered;
+        deliveryRate = recipientsTotal > 0 ? ((recipientsDelivered / recipientsTotal) * 100).toFixed(1) + '%' : '-';
+        deliveredDisplay.textContent = recipientsDelivered.toLocaleString();
+        failedDisplay.textContent = failed.toLocaleString();
+        rateDisplay.textContent = deliveryRate;
+        rateDisplay.className = 'fs-4 fw-bold ' + (parseFloat(deliveryRate) >= 95 ? 'text-success' : parseFloat(deliveryRate) >= 80 ? 'text-warning' : 'text-danger');
+    } else {
+        deliveredDisplay.textContent = '-';
+        failedDisplay.textContent = '-';
+        rateDisplay.textContent = '-';
+        rateDisplay.className = 'fs-4 fw-bold text-muted';
     }
 
     campaignDrawer.show();
