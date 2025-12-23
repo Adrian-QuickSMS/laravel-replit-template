@@ -180,58 +180,8 @@ class QuickSMSController extends Controller
 
     public function campaignHistory()
     {
-        // TODO: Replace with API call to GET /api/campaigns
-        $campaigns = [
-            [
-                'id' => 'camp_001',
-                'name' => 'Summer Sale 2024',
-                'channel' => 'sms_only',
-                'sender_id' => 'QuickSMS',
-                'recipients' => 1250,
-                'status' => 'completed',
-                'sent_date' => '23/12/2024 14:30',
-            ],
-            [
-                'id' => 'camp_002',
-                'name' => 'Holiday Promo',
-                'channel' => 'rich_rcs',
-                'sender_id' => 'QuickSMS',
-                'recipients' => 850,
-                'status' => 'completed',
-                'sent_date' => '22/12/2024 10:00',
-            ],
-            [
-                'id' => 'camp_003',
-                'name' => 'New Year Countdown',
-                'channel' => 'basic_rcs',
-                'sender_id' => 'Promotions',
-                'recipients' => 2100,
-                'status' => 'scheduled',
-                'sent_date' => '31/12/2024 23:00',
-            ],
-            [
-                'id' => 'camp_004',
-                'name' => 'Flash Sale Alert',
-                'channel' => 'sms_only',
-                'sender_id' => 'QuickSMS',
-                'recipients' => 500,
-                'status' => 'sending',
-                'sent_date' => '23/12/2024 16:45',
-            ],
-            [
-                'id' => 'camp_005',
-                'name' => 'Customer Survey',
-                'channel' => 'sms_only',
-                'sender_id' => 'Survey',
-                'recipients' => 320,
-                'status' => 'failed',
-                'sent_date' => '20/12/2024 09:15',
-            ],
-        ];
-
         return view('quicksms.messages.campaign-history', [
             'page_title' => 'Campaign History',
-            'campaigns' => $campaigns,
         ]);
     }
 
