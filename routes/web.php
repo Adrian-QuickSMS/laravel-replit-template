@@ -45,4 +45,6 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/support/dashboard', 'supportDashboard')->name('support.dashboard');
     Route::get('/support/create-ticket', 'createTicket')->name('support.create-ticket');
     Route::get('/support/knowledge-base', 'knowledgeBase')->name('support.knowledge-base');
+    
+    Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
 });

@@ -823,4 +823,11 @@ class QuickSMSController extends Controller
             'sub_modules' => []
         ]);
     }
+
+    public function rcsPreviewDemo()
+    {
+        return view('rcs.preview', [
+            'page_title' => 'RCS Preview Demo'
+        ]);
+    }
 }
