@@ -72,43 +72,33 @@ $permissions = [
         </ol>
     </div>
     
-    <div class="row align-items-start">
+    <div class="row">
         <div class="col-12">
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Campaign History</h5>
-                    <a href="{{ route('messages.send') }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-1"></i> Create Campaign
-                    </a>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="card-title mb-2 mb-md-0">Campaign History</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                            <i class="fas fa-filter me-1"></i> Filters
+                        </button>
+                        <a href="{{ route('messages.send') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> Create Campaign
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body">
                     <div class="mb-3">
-                        <div class="d-flex gap-2">
-                            <div class="input-group flex-grow-1">
-                                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="campaignSearch" placeholder="Search by name, sender ID, agent, tags, or template...">
-                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                                    <i class="fas fa-filter me-1"></i> Filters
-                                    <span class="badge bg-primary ms-1 d-none" id="activeFiltersBadge">0</span>
-                                </button>
-                            </div>
-                            <div class="input-group" style="width: auto;">
-                                <span class="input-group-text bg-transparent"><i class="fas fa-sort"></i></span>
-                                <select class="form-select" id="sortSelect" style="min-width: 180px;" onchange="sortCampaigns()">
-                                    <option value="recent">Most recent first</option>
-                                    <option value="oldest">Oldest first</option>
-                                    <option value="recipients">Highest recipients</option>
-                                    <option value="failure">Highest failure rate</option>
-                                </select>
-                            </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="campaignSearch" placeholder="Search by name, sender ID, agent, tags, or template...">
                         </div>
                     </div>
 
                     <div class="collapse mb-3" id="filtersPanel">
                         <div class="card card-body bg-light border">
                             <div class="row g-3">
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Status</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Status</label>
                                     <select class="form-select form-select-sm" id="filterStatus">
                                         <option value="">All Statuses</option>
                                         <option value="scheduled">Scheduled</option>
@@ -116,8 +106,8 @@ $permissions = [
                                         <option value="complete">Complete</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Channel</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Channel</label>
                                     <select class="form-select form-select-sm" id="filterChannel">
                                         <option value="">All Channels</option>
                                         <option value="sms_only">SMS</option>
@@ -125,8 +115,8 @@ $permissions = [
                                         <option value="rich_rcs">Rich RCS</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Sender ID</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Sender ID</label>
                                     <select class="form-select form-select-sm" id="filterSenderId">
                                         <option value="">All Sender IDs</option>
                                         @php
@@ -137,8 +127,8 @@ $permissions = [
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">RCS Agent</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">RCS Agent</label>
                                     <select class="form-select form-select-sm" id="filterRcsAgent">
                                         <option value="">All Agents</option>
                                         @php
@@ -149,24 +139,24 @@ $permissions = [
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Date From</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Date From</label>
                                     <input type="date" class="form-control form-control-sm" id="filterDateFrom">
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Date To</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Date To</label>
                                     <input type="date" class="form-control form-control-sm" id="filterDateTo">
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Has Tracking Link</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Has Tracking</label>
                                     <select class="form-select form-select-sm" id="filterTracking">
                                         <option value="">Any</option>
                                         <option value="yes">Yes</option>
                                         <option value="no">No</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 col-lg-3">
-                                    <label class="form-label small text-muted">Has Opt-Out</label>
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Has Opt-Out</label>
                                     <select class="form-select form-select-sm" id="filterOptout">
                                         <option value="">Any</option>
                                         <option value="yes">Yes</option>
@@ -174,14 +164,7 @@ $permissions = [
                                     </select>
                                 </div>
                             </div>
-                            <div class="d-flex gap-2 mt-3 pt-3 border-top">
-                                <button type="button" class="btn btn-primary btn-sm" onclick="applyFilters()">
-                                    <i class="fas fa-check me-1"></i> Apply Filters
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
-                                    <i class="fas fa-undo me-1"></i> Reset
-                                </button>
-                            </div>
+                            <div class="mt-3" id="activeFilters"></div>
                         </div>
                     </div>
 
@@ -189,16 +172,56 @@ $permissions = [
                         <table class="table table-hover mb-0" id="campaignsTable">
                             <thead>
                                 <tr>
-                                    <th>Campaign Name</th>
+                                    <th>
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Campaign Name <i class="fas fa-sort ms-1 text-muted"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('name', 'asc'); return false;"><i class="fas fa-sort-alpha-down me-2"></i> A-Z</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('name', 'desc'); return false;"><i class="fas fa-sort-alpha-up me-2"></i> Z-A</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
                                     <th>Channel</th>
-                                    <th>Status</th>
-                                    <th>Recipients</th>
-                                    <th>Send Date</th>
+                                    <th>
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Status <i class="fas fa-sort ms-1 text-muted"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('status', 'asc'); return false;"><i class="fas fa-clock me-2 text-info"></i> Scheduled First</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('status', 'desc'); return false;"><i class="fas fa-check-circle me-2 text-success"></i> Complete First</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Recipients <i class="fas fa-sort ms-1 text-muted"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('recipients', 'desc'); return false;"><i class="fas fa-sort-amount-down me-2"></i> Highest First</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('recipients', 'asc'); return false;"><i class="fas fa-sort-amount-up me-2"></i> Lowest First</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Send Date <i class="fas fa-sort ms-1 text-muted"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('date', 'desc'); return false;"><i class="fas fa-calendar-alt me-2"></i> Most Recent</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortCampaigns('date', 'asc'); return false;"><i class="fas fa-calendar me-2"></i> Oldest First</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="campaignsTableBody">
                                 @forelse($campaigns as $campaign)
-                                <tr onclick="openCampaignDrawer('{{ $campaign['id'] }}')" 
+                                <tr class="btn-reveal-trigger" onclick="openCampaignDrawer('{{ $campaign['id'] }}')" 
                                     data-id="{{ $campaign['id'] }}"
                                     data-name="{{ $campaign['name'] }}"
                                     data-channel="{{ $campaign['channel'] }}"
@@ -212,8 +235,10 @@ $permissions = [
                                     data-template="{{ $campaign['template'] ?? '' }}"
                                     data-has-tracking="{{ $campaign['has_tracking'] ? 'yes' : 'no' }}"
                                     data-has-optout="{{ $campaign['has_optout'] ? 'yes' : 'no' }}">
-                                    <td class="fw-medium">{{ $campaign['name'] }}</td>
-                                    <td>
+                                    <td class="py-2">
+                                        <h6 class="mb-0 fs-6">{{ $campaign['name'] }}</h6>
+                                    </td>
+                                    <td class="py-2">
                                         @if($campaign['channel'] === 'sms_only')
                                             <span class="badge bg-secondary">SMS</span>
                                         @elseif($campaign['channel'] === 'basic_rcs')
@@ -222,7 +247,7 @@ $permissions = [
                                             <span class="badge bg-primary">Rich RCS</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="py-2">
                                         @if($campaign['status'] === 'scheduled')
                                             <span class="badge bg-info">Scheduled</span>
                                         @elseif($campaign['status'] === 'sending')
@@ -231,14 +256,14 @@ $permissions = [
                                             <span class="badge bg-success">Complete</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="py-2">
                                         @if($campaign['recipients_delivered'] !== null)
                                             {{ number_format($campaign['recipients_delivered']) }}/{{ number_format($campaign['recipients_total']) }}
                                         @else
                                             {{ number_format($campaign['recipients_total']) }}
                                         @endif
                                     </td>
-                                    <td>{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
+                                    <td class="py-2">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
                                 </tr>
                                 @empty
                                 <tr id="emptyStateRow">
@@ -260,9 +285,6 @@ $permissions = [
                                 <i class="fas fa-times me-1"></i> Clear search
                             </button>
                         </div>
-                    </div>
-                    <div class="mt-3" id="resultsCount">
-                        <small class="text-muted">Showing <span id="visibleCount">{{ count($campaigns) }}</span> of {{ count($campaigns) }} campaign(s)</small>
                     </div>
                 </div>
             </div>
@@ -945,36 +967,33 @@ function updateFilterBadge() {
     }
 }
 
-function sortCampaigns() {
-    var sortBy = document.getElementById('sortSelect').value;
+function sortCampaigns(field, direction) {
     var tbody = document.getElementById('campaignsTableBody');
     var rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
     
     rows.sort(function(a, b) {
-        if (sortBy === 'recent') {
-            var dateA = new Date(a.dataset.sendDate);
-            var dateB = new Date(b.dataset.sendDate);
-            return dateB - dateA;
-        } else if (sortBy === 'oldest') {
-            var dateA = new Date(a.dataset.sendDate);
-            var dateB = new Date(b.dataset.sendDate);
-            return dateA - dateB;
-        } else if (sortBy === 'recipients') {
+        var result = 0;
+        
+        if (field === 'name') {
+            var nameA = (a.dataset.name || '').toLowerCase();
+            var nameB = (b.dataset.name || '').toLowerCase();
+            result = nameA.localeCompare(nameB);
+        } else if (field === 'status') {
+            var statusOrder = { 'scheduled': 1, 'sending': 2, 'complete': 3 };
+            var statusA = statusOrder[a.dataset.status] || 0;
+            var statusB = statusOrder[b.dataset.status] || 0;
+            result = statusA - statusB;
+        } else if (field === 'recipients') {
             var recipA = parseInt(a.dataset.recipientsTotal) || 0;
             var recipB = parseInt(b.dataset.recipientsTotal) || 0;
-            return recipB - recipA;
-        } else if (sortBy === 'failure') {
-            var totalA = parseInt(a.dataset.recipientsTotal) || 0;
-            var deliveredA = parseInt(a.dataset.recipientsDelivered) || totalA;
-            var failureRateA = totalA > 0 ? (totalA - deliveredA) / totalA : 0;
-            
-            var totalB = parseInt(b.dataset.recipientsTotal) || 0;
-            var deliveredB = parseInt(b.dataset.recipientsDelivered) || totalB;
-            var failureRateB = totalB > 0 ? (totalB - deliveredB) / totalB : 0;
-            
-            return failureRateB - failureRateA;
+            result = recipA - recipB;
+        } else if (field === 'date') {
+            var dateA = new Date(a.dataset.sendDate);
+            var dateB = new Date(b.dataset.sendDate);
+            result = dateA - dateB;
         }
-        return 0;
+        
+        return direction === 'desc' ? -result : result;
     });
     
     rows.forEach(function(row) {
