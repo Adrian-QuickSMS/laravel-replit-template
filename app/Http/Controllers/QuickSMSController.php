@@ -203,11 +203,11 @@ class QuickSMSController extends Controller
                 'last_message_time' => '10:32 AM',
                 'first_contact' => '15 Dec 2024',
                 'messages' => [
-                    ['direction' => 'outbound', 'content' => 'Hi Sarah, your order #12345 has been dispatched!', 'time' => '09:15 AM'],
-                    ['direction' => 'inbound', 'content' => 'Thanks! How long will delivery take?', 'time' => '09:45 AM'],
-                    ['direction' => 'outbound', 'content' => 'Usually 2-3 business days. You\'ll receive tracking soon.', 'time' => '09:48 AM'],
-                    ['direction' => 'inbound', 'content' => 'Great, thank you!', 'time' => '10:02 AM'],
-                    ['direction' => 'inbound', 'content' => 'When will my order arrive?', 'time' => '10:32 AM'],
+                    ['direction' => 'outbound', 'content' => 'Hi Sarah, your order #12345 has been dispatched!', 'time' => '09:15 AM', 'date' => '22 Dec 2024'],
+                    ['direction' => 'inbound', 'content' => 'Thanks! How long will delivery take?', 'time' => '09:45 AM', 'date' => '22 Dec 2024'],
+                    ['direction' => 'outbound', 'content' => 'Usually 2-3 business days. You\'ll receive tracking soon.', 'time' => '09:48 AM', 'date' => '22 Dec 2024'],
+                    ['direction' => 'inbound', 'content' => 'Great, thank you!', 'time' => '10:02 AM', 'date' => '23 Dec 2024'],
+                    ['direction' => 'inbound', 'content' => 'When will my order arrive?', 'time' => '10:32 AM', 'date' => '23 Dec 2024'],
                 ],
             ],
             [

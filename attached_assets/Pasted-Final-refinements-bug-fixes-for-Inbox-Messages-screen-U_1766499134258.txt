@@ -1,0 +1,72 @@
+Final refinements + bug fixes for Inbox / Messages screen. Use the existing Messages + Send Message UI templates only. Do NOT redesign.
+
+A) Composer rules (Basic RCS requires SMS fallback sender)
+- If Basic RCS is selected, the user MUST still select an SMS SenderID/Reply-from number for SMS fallback.
+- UI behaviour:
+  - Basic RCS selected → show BOTH:
+    1) RCS Agent dropdown (Send as)
+    2) SMS SenderID dropdown (SMS fallback)
+- Rich RCS selected → follow existing Send Message logic (RCS agent required; include SMS fallback sender only if your send model requires fallback).
+- SMS selected → SMS sender only.
+
+B) Composer must be fixed (no page scrolling to send)
+- Under no circumstances should the user need to scroll the page to access sending controls.
+- The entire composer card (channel picker + sender dropdown(s) + template + AI + editor + send button) must be FIXED / STICKY at the bottom of the viewport.
+- Scrolling must be confined to:
+  - Left inbox conversation list column, and/or
+  - Central chat history pane
+- The main page container should NOT scroll for messaging.
+
+Acceptance:
+- On small laptop height, Send controls are always visible without scrolling.
+
+C) Bugs / UI issues to fix
+
+1) Contact overview collapse bug
+- When the Contact overview (right column) is hidden/collapsed, it currently reappears at the bottom-left of the page.
+- Fix so that collapsing:
+  - removes/hides the right column cleanly
+  - expands the central chat pane horizontally
+  - does NOT move the panel elsewhere in the DOM/layout
+- Ensure this works on resize.
+
+2) “Newest” sort dropdown arrow positioning
+- The down-arrow/chevron for the sort dropdown is rendering inside/overlapping the text.
+- Fix the dropdown styling so the arrow sits in the correct position (like the template select inputs) and does not overlap the label/value.
+
+3) Incoming chat bubbles too narrow
+- Customer/inbound bubbles are too narrow (one word per line).
+- Increase bubble max-width to match the template behaviour (e.g. ~65–75% of the chat pane width for inbound/outbound, responsive).
+- Ensure long messages wrap naturally and don’t create skinny columns.
+
+4) Contact actions: add to lists / tags
+- From the Contact details panel (or appropriate UI in this screen), the user must be able to:
+  - Add an existing contact to one or more Lists
+  - Add/manage Tags for the contact
+- Reuse existing List/Tag components and workflows from Contact Book (do not create new patterns).
+- If backend wiring isn’t complete, add TODO but keep UI consistent.
+
+5) Avatar initials styling
+- The initials/avatar circles in the conversation list and chat header should have a purple circular border/ring (match the Messages template accent).
+- Do not change the avatar size; just apply the correct ring/border styling.
+
+6) Date + time in chat thread
+- Display date/time within the conversation thread:
+  - Each message shows a timestamp (time)
+  - Also show date separators when the day changes (e.g. “15 Jan 2025”)
+- Format must match the Messages template (subtle, secondary text).
+
+Constraints:
+- Do NOT change overall layout structure beyond making the composer fixed and correcting the collapse behaviour.
+- Do NOT introduce new colours/components; reuse existing template classes/components.
+- Keep changes limited to Messages/Inbox module files.
+
+Acceptance checklist:
+- Basic RCS shows RCS Agent + SMS SenderID fallback selection.
+- Composer is fixed at bottom; no page scrolling required to send.
+- Right panel collapse works (no teleporting to bottom-left).
+- Sort dropdown chevron is positioned correctly.
+- Inbound bubbles use sensible width.
+- Can add existing contact to lists and tags using existing components.
+- Avatars have purple ring styling.
+- Date separators + message times appear in thread.
