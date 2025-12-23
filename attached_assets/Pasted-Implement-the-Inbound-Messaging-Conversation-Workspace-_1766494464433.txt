@@ -1,0 +1,292 @@
+Implement the Inbound Messaging + Conversation Workspace (Chat Module).
+
+IMPORTANT – UI AUTHORITY (MANDATORY):
+- This platform ALREADY HAS a UI template and interaction pattern for chat-style functionality called “Messages”.
+- You MUST reuse the existing “Messages” UI template, layout, components, spacing, colours, typography, and interaction patterns.
+- Do NOT design a new chat UI.
+- Do NOT copy styling from WhatsApp, iMessage, or external examples directly.
+- Any references to WhatsApp / iMessage are for BEHAVIOUR ONLY, not visual design.
+- If a required UI element does not exist in the Messages template, add a TODO instead of inventing a new pattern.
+
+This module must visually and behaviourally feel like a natural extension of the existing Messages experience.
+
+────────────────────────────────
+1. Purpose & Target Users
+
+This module enables SMB users to manage all inbound SMS and RCS messages in a single conversational workspace.
+
+It behaves as:
+- A chat window for daily messaging
+- A lightweight contact-centre / inbox
+- A bi-directional SMS and RCS messaging interface
+
+Users must be able to:
+- View inbound conversation threads
+- Reply using SMS or RCS
+- Manage contacts, tags, and replies
+- Attach rich content (images / PDF / buttons)
+- Search, sort, and filter conversations
+
+────────────────────────────────
+2. Core Use Cases
+
+2.1 Receiving inbound messages
+- Receive SMS and RCS messages
+- Automatically group messages by mobile number + channel
+- Show newest conversations at the top
+- Clearly mark unread conversations
+
+2.2 Replying to inbound messages
+- Reply via SMS (select reply number)
+- Reply via RCS (select registered agent, optionally send rich content)
+
+2.3 Contact management
+If sender is NOT recognised:
+- Show options:
+  - Add as Contact
+  - Add to list
+  - Add tag
+
+If sender IS recognised:
+- Show contact name
+- Display tags, notes, and conversation history
+
+2.4 Inbox management
+Filtering:
+- Unread
+- Waiting for reply
+- Priority (future)
+- Tags
+- Assigned user (future multi-user support)
+
+Search:
+- Phone number
+- Contact name
+- Message content (future indexing)
+
+────────────────────────────────
+3. High-Level Architecture Integration
+
+This module integrates with:
+- Messages UI template (authoritative)
+- Contact Book
+- RCS Agent Registry
+- SMS Routing
+- Attachments Service
+- Notifications Service
+- Message Store
+- Flow Engine (future)
+
+Do not duplicate logic already handled by these modules.
+
+────────────────────────────────
+4. UI Specification (USING EXISTING MESSAGES TEMPLATE)
+
+4.1 Main Inbox Screen
+Use the existing Messages inbox layout.
+
+Conversation list items must display:
+- Contact name (or phone number if unknown)
+- Last message snippet
+- Timestamp of last message
+- Unread badge count
+- Channel indicator (SMS / RCS)
+- Optional status tags (future)
+
+Sorting options:
+- Newest first (default)
+- Oldest
+- Alphabetical (contact name)
+- Unread first
+
+Filtering:
+- All
+- Unread
+- SMS conversations
+- RCS conversations
+- Waiting reply
+
+────────────────────────────────
+4.2 Chat View (Conversation Pane)
+
+Use the existing Messages conversation layout.
+
+Behaviour:
+- Message bubbles aligned per channel:
+  - SMS
+  - RCS
+- Scrollable message history
+- Timestamp per message
+- Channel indicator per message
+- Delivery status where available
+
+Enhancements (only if already supported by template):
+- Hover metadata
+- Link previews
+- RCS button interaction history
+
+────────────────────────────────
+4.3 Message Input Toolbar (Reuse Campaign Send Patterns)
+
+The message input toolbar must match the Campaign Send editor patterns.
+
+4.3.1 Channel selection
+- SMS Reply
+- RCS Reply
+Availability depends on:
+- Recipient device capability
+- Registered RCS agents
+- Account permissions
+
+4.3.2 SMS Reply
+Sender selection:
+- Dropdown: Reply from
+- Options limited to numbers assigned to account
+
+Editor:
+- Multi-line text input
+- Character count
+- Encoding detection (GSM / Unicode)
+- Segment counter
+
+Templates:
+- Opens approved SMS templates
+- Inserts content into editor
+- Editable unless locked by policy
+
+Placeholders:
+- Insert field button
+- Fields sourced from Contact Book
+- Insert at cursor position
+
+Emoji picker:
+- Bottom-right of editor
+- Emoji inserted at cursor
+- Unicode indicator next to counter
+
+4.3.3 RCS Reply
+
+Agent selection:
+- Dropdown: Send as
+- Shows agent name and brand logo
+
+Reply types:
+1. Basic RCS (text-only)
+2. Rich RCS
+
+Basic RCS:
+- Same editor as SMS
+- Supports long messages
+- No media or buttons
+
+Rich RCS:
+- Toolbar icon opens RCS Wizard Creator
+- Wizard MUST be identical to Campaign Send RCS Wizard
+- Do NOT reimplement logic separately
+
+Supported:
+- Rich cards
+- Carousels (max 10)
+- Images (validated)
+- Text + descriptions
+- Action buttons
+- Live phone mock-up preview
+
+RCS templates:
+- Load into text editor (Basic RCS)
+- Load into wizard (Rich RCS)
+
+────────────────────────────────
+4.3.4 Preview & Send
+- SMS shows text preview
+- RCS shows rich preview
+- Clicking Send sends immediately
+- No scheduling from Inbox
+
+────────────────────────────────
+4.3.5 Validation
+Block send if:
+- Required fields missing
+- Character limits exceeded
+- Unsupported media
+- RCS agent not selected
+
+Errors must be inline and consistent with Messages template.
+
+────────────────────────────────
+4.3.6 Audit & Logging
+Persist:
+- Channel
+- Sender number / RCS agent
+- Template ID
+- Placeholder usage
+- Message content
+- Timestamp + user ID
+
+Used for:
+- Conversation history
+- Compliance
+- Reporting
+- Dispute resolution
+
+────────────────────────────────
+4.4 Contact Onboarding Panel (Right Sidebar)
+
+If contact exists:
+- Show name, mobile, tags, lists, notes
+
+If contact does not exist:
+- Show “Add to Contact Book”
+- Capture first name, last name
+- Optional tag assignment
+- On save, auto-link conversation to contact
+
+────────────────────────────────
+5. Message Handling Logic
+
+Threading:
+- Thread key = phone number + channel
+- Inbound + outbound messages share thread
+
+Unread logic:
+- Inbound = unread
+- Opening conversation marks as read
+- Inbox badge updates in real time
+
+Notifications:
+- Unread badge next to Inbox
+- Browser notifications (future)
+
+Search:
+- Contact name
+- Phone number
+- Message text (if supported)
+
+────────────────────────────────
+6. Backend/API Expectations (Do Not Overbuild)
+
+Use or stub the following:
+- Get Conversations (paginated)
+- Get Conversation Detail
+- Send SMS
+- Send RCS
+- Attachment Upload
+- Contact Management
+
+If endpoints are missing:
+- Stub responses
+- Add TODO comments
+- Do NOT invent new APIs
+
+────────────────────────────────
+Final Constraints:
+- Reuse Messages UI template at all times.
+- Do NOT redesign chat layouts.
+- Do NOT introduce new UI paradigms.
+- Behavioural parity with Campaign Send is mandatory.
+- Stop and ask if unsure rather than inventing UI or logic.
+
+Acceptance:
+- Inbox + chat experience feels identical to existing Messages UI.
+- RCS and SMS replies behave consistently with Campaign Send.
+- No visual or interaction drift across the platform.

@@ -171,10 +171,155 @@ class QuickSMSController extends Controller
 
     public function inbox()
     {
-        return view('quicksms.placeholder', [
+        $sender_ids = [
+            ['id' => 'sid_1', 'name' => 'QuickSMS', 'type' => 'Alpha'],
+            ['id' => 'sid_2', 'name' => 'Alerts', 'type' => 'Alpha'],
+            ['id' => 'sid_3', 'name' => '+447700900100', 'type' => 'VMN'],
+        ];
+
+        $rcs_agents = [
+            ['id' => 'agent_1', 'name' => 'QuickSMS Brand'],
+            ['id' => 'agent_2', 'name' => 'RetailBot'],
+        ];
+
+        $templates = [
+            ['id' => 'tpl_1', 'name' => 'Quick Reply', 'content' => 'Thank you for your message. We will get back to you shortly.'],
+            ['id' => 'tpl_2', 'name' => 'Order Update', 'content' => 'Hi {{firstName}}, your order #{{orderNumber}} is on its way!'],
+            ['id' => 'tpl_3', 'name' => 'Appointment Confirm', 'content' => 'Your appointment is confirmed for {{date}} at {{time}}. Reply YES to confirm or NO to cancel.'],
+        ];
+
+        $conversations = [
+            [
+                'id' => 'conv_001',
+                'phone' => '+447700900111',
+                'phone_masked' => '+44 77** ***111',
+                'name' => 'Sarah Mitchell',
+                'initials' => 'SM',
+                'contact_id' => 'c_001',
+                'channel' => 'sms',
+                'unread' => true,
+                'unread_count' => 2,
+                'last_message' => 'When will my order arrive?',
+                'last_message_time' => '10:32 AM',
+                'first_contact' => '15 Dec 2024',
+                'messages' => [
+                    ['direction' => 'outbound', 'content' => 'Hi Sarah, your order #12345 has been dispatched!', 'time' => '09:15 AM'],
+                    ['direction' => 'inbound', 'content' => 'Thanks! How long will delivery take?', 'time' => '09:45 AM'],
+                    ['direction' => 'outbound', 'content' => 'Usually 2-3 business days. You\'ll receive tracking soon.', 'time' => '09:48 AM'],
+                    ['direction' => 'inbound', 'content' => 'Great, thank you!', 'time' => '10:02 AM'],
+                    ['direction' => 'inbound', 'content' => 'When will my order arrive?', 'time' => '10:32 AM'],
+                ],
+            ],
+            [
+                'id' => 'conv_002',
+                'phone' => '+447700900222',
+                'phone_masked' => '+44 77** ***222',
+                'name' => 'James Wilson',
+                'initials' => 'JW',
+                'contact_id' => 'c_002',
+                'channel' => 'rcs',
+                'unread' => true,
+                'unread_count' => 1,
+                'last_message' => 'Can I change my delivery address?',
+                'last_message_time' => '09:15 AM',
+                'first_contact' => '10 Dec 2024',
+                'messages' => [
+                    ['direction' => 'inbound', 'content' => 'Hi, I placed an order yesterday', 'time' => '08:30 AM'],
+                    ['direction' => 'outbound', 'content' => 'Hello James! How can we help you today?', 'time' => '08:45 AM'],
+                    ['direction' => 'inbound', 'content' => 'Can I change my delivery address?', 'time' => '09:15 AM'],
+                ],
+            ],
+            [
+                'id' => 'conv_003',
+                'phone' => '+447700900333',
+                'phone_masked' => '+44 77** ***333',
+                'name' => '+44 7700 900333',
+                'initials' => '??',
+                'contact_id' => null,
+                'channel' => 'sms',
+                'unread' => false,
+                'unread_count' => 0,
+                'last_message' => 'STOP',
+                'last_message_time' => 'Yesterday',
+                'first_contact' => '20 Dec 2024',
+                'messages' => [
+                    ['direction' => 'outbound', 'content' => 'Flash sale! 50% off everything today only. Shop now at example.com', 'time' => '10:00 AM'],
+                    ['direction' => 'inbound', 'content' => 'STOP', 'time' => '10:15 AM'],
+                ],
+            ],
+            [
+                'id' => 'conv_004',
+                'phone' => '+447700900444',
+                'phone_masked' => '+44 77** ***444',
+                'name' => 'Emma Thompson',
+                'initials' => 'ET',
+                'contact_id' => 'c_003',
+                'channel' => 'rcs',
+                'unread' => false,
+                'unread_count' => 0,
+                'last_message' => 'Perfect, see you then!',
+                'last_message_time' => 'Yesterday',
+                'first_contact' => '01 Nov 2024',
+                'messages' => [
+                    ['direction' => 'outbound', 'content' => 'Reminder: Your appointment is tomorrow at 2pm', 'time' => '3:00 PM'],
+                    ['direction' => 'inbound', 'content' => 'Thanks for the reminder!', 'time' => '3:30 PM'],
+                    ['direction' => 'inbound', 'content' => 'Can I reschedule to 3pm instead?', 'time' => '3:32 PM'],
+                    ['direction' => 'outbound', 'content' => 'Of course! Your appointment has been moved to 3pm.', 'time' => '3:45 PM'],
+                    ['direction' => 'inbound', 'content' => 'Perfect, see you then!', 'time' => '3:48 PM'],
+                ],
+            ],
+            [
+                'id' => 'conv_005',
+                'phone' => '+447700900555',
+                'phone_masked' => '+44 77** ***555',
+                'name' => 'Michael Brown',
+                'initials' => 'MB',
+                'contact_id' => 'c_004',
+                'channel' => 'sms',
+                'unread' => false,
+                'unread_count' => 0,
+                'last_message' => 'Your refund has been processed.',
+                'last_message_time' => '2 days ago',
+                'first_contact' => '05 Dec 2024',
+                'messages' => [
+                    ['direction' => 'inbound', 'content' => 'I need to return my order', 'time' => '11:00 AM'],
+                    ['direction' => 'outbound', 'content' => 'Sorry to hear that. What\'s the issue?', 'time' => '11:15 AM'],
+                    ['direction' => 'inbound', 'content' => 'Wrong size', 'time' => '11:20 AM'],
+                    ['direction' => 'outbound', 'content' => 'No problem. Please return to our store or use the prepaid label in your package.', 'time' => '11:25 AM'],
+                    ['direction' => 'inbound', 'content' => 'Done, dropped it off today', 'time' => '2:00 PM'],
+                    ['direction' => 'outbound', 'content' => 'Your refund has been processed.', 'time' => '4:30 PM'],
+                ],
+            ],
+            [
+                'id' => 'conv_006',
+                'phone' => '+447700900666',
+                'phone_masked' => '+44 77** ***666',
+                'name' => 'Lisa Anderson',
+                'initials' => 'LA',
+                'contact_id' => 'c_005',
+                'channel' => 'rcs',
+                'unread' => false,
+                'unread_count' => 0,
+                'last_message' => 'Thank you for your feedback!',
+                'last_message_time' => '3 days ago',
+                'first_contact' => '01 Dec 2024',
+                'messages' => [
+                    ['direction' => 'outbound', 'content' => 'How was your recent purchase? Rate us 1-5', 'time' => '10:00 AM'],
+                    ['direction' => 'inbound', 'content' => '5 - Excellent service!', 'time' => '10:30 AM'],
+                    ['direction' => 'outbound', 'content' => 'Thank you for your feedback!', 'time' => '10:35 AM'],
+                ],
+            ],
+        ];
+
+        $unread_count = collect($conversations)->where('unread', true)->count();
+
+        return view('quicksms.messages.inbox', [
             'page_title' => 'Inbox',
-            'purpose' => 'View and manage incoming messages and replies.',
-            'sub_modules' => []
+            'conversations' => $conversations,
+            'unread_count' => $unread_count,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents,
+            'templates' => $templates,
         ]);
     }
 
