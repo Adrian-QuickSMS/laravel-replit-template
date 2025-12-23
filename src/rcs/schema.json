@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RCS Message Schema",
+  "type": "object",
+  "required": ["type", "agent", "content"],
+  "properties": {
+    "id": { "type": "string" },
+    "type": { "enum": ["rich_card", "carousel"] },
+    "agent": {
+      "type": "object",
+      "required": ["name", "logo"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "logo": { "type": "string", "format": "uri" },
+        "verified": { "type": "boolean" },
+        "tagline": { "type": "string", "maxLength": 100 }
+      }
+    },
+    "content": {
+      "oneOf": [
+        { "$ref": "#/definitions/richCard" },
+        { "$ref": "#/definitions/carousel" }
+      ]
+    },
+    "fallbackText": { "type": "string", "maxLength": 3072 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "definitions": {
+    "richCard": {
+      "type": "object",
+      "required": ["buttons"],
+      "properties": {
+        "media": { "$ref": "#/definitions/media" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "buttons": {
+          "type": "array",
+          "maxItems": 4,
+          "items": { "$ref": "#/definitions/button" }
+        }
+      }
+    },
+    "carousel": {
+      "type": "object",
+      "required": ["cardWidth", "cards"],
+      "properties": {
+        "cardWidth": { "enum": ["small", "medium"] },
+        "cards": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 10,
+          "items": { "$ref": "#/definitions/richCard" }
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "required": ["url", "mimeType", "height"],
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "mimeType": { "enum": ["image/jpeg", "image/png", "image/gif"] },
+        "height": { "enum": ["none", "short", "medium", "tall"] },
+        "thumbnailUrl": { "type": "string", "format": "uri" },
+        "altText": { "type": "string", "maxLength": 100 }
+      }
+    },
+    "button": {
+      "type": "object",
+      "required": ["label", "action"],
+      "properties": {
+        "label": { "type": "string", "maxLength": 25 },
+        "action": { "$ref": "#/definitions/buttonAction" },
+        "icon": { "type": "string" }
+      }
+    },
+    "buttonAction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "url"],
+          "properties": {
+            "type": { "const": "url" },
+            "url": { "type": "string", "format": "uri", "pattern": "^https?://" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "phoneNumber"],
+          "properties": {
+            "type": { "const": "dial" },
+            "phoneNumber": { "type": "string", "pattern": "^\\+?[0-9\\s\\-()]+$" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "title", "startTime", "endTime"],
+          "properties": {
+            "type": { "const": "calendar" },
+            "title": { "type": "string", "maxLength": 100 },
+            "description": { "type": "string", "maxLength": 500 },
+            "startTime": { "type": "string", "format": "date-time" },
+            "endTime": { "type": "string", "format": "date-time" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "text"],
+          "properties": {
+            "type": { "const": "reply" },
+            "text": { "type": "string", "maxLength": 25 },
+            "postbackData": { "type": "string", "maxLength": 2048 }
+          }
+        }
+      ]
+    }
+  }
+}
