@@ -34,7 +34,7 @@ The Messages Inbox provides a three-panel conversation workspace at `/messages/i
 - **Chat Pane (Center):** Uses Fillow's `.message-received` (gray, left-aligned) and `.message-sent` (purple gradient, right-aligned) bubble classes with timestamps and delivery indicators
 - **Contact Info (Right):** Collapsible sidebar toggled via three-dot menu, shows contact details (tags, lists, notes) or "Add to Contacts" for unknown numbers
 - **Search in Conversation:** Header search bar with previous/next navigation and highlight matching (`.search-highlight`)
-- **Reply Composer:** SMS/RCS channel toggle, Sender ID/Agent selection, template picker, personalization fields, character/segment counter with GSM-7/Unicode detection
+- **Reply Composer:** Redesigned as a larger card matching Send Message UI with full-width channel picker (SMS only, Basic RCS, Rich RCS), conditional sender controls (SenderID for SMS, RCS Agent for RCS), Template dropdown + "Improve with AI" button, content editor with placeholder/emoji picker, character/encoding/segment counters with GSM-7/Unicode detection
 - **RCS Rich Cards:** Inline rendering of rich card messages (`.rcs-rich-card-inbox`) with image, title, description, action button
 - **Mock Data:** 6 sample conversations including RCS rich card example (Sophie Brown)
 - **GDPR Compliance:** Phone numbers are masked (+44 77** ***111), message previews use placeholders only (@{{firstName}}, @{{orderNumber}})
