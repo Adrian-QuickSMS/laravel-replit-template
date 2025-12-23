@@ -15,27 +15,27 @@
 
     <div class="row">
         <div class="col-xl-8 col-lg-10">
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2 text-primary"></i>Campaign Summary</h4>
                     <a href="{{ route('messages.send') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-edit me-1"></i>Edit
                     </a>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
+                <div class="card-body p-4">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Campaign Name</div>
                         <div class="col-sm-8 fw-medium">{{ $campaign['name'] }}</div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Created by</div>
                         <div class="col-sm-8">{{ $campaign['created_by'] }}</div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Created date / time</div>
                         <div class="col-sm-8">{{ $campaign['created_at'] }}</div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Scheduled send time</div>
                         <div class="col-sm-8">
                             @if($campaign['scheduled_time'] === 'Immediate')
@@ -45,7 +45,7 @@
                             @endif
                         </div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Message validity</div>
                         <div class="col-sm-8">{{ $campaign['message_validity'] }}</div>
                     </div>
@@ -56,15 +56,15 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0"><i class="fas fa-broadcast-tower me-2 text-info"></i>Channel & Delivery</h4>
                     <a href="{{ route('messages.send') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-edit me-1"></i>Edit
                     </a>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
+                <div class="card-body p-4">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Channel</div>
                         <div class="col-sm-8">
                             @if($channel['type'] === 'sms_only')
@@ -76,12 +76,12 @@
                             @endif
                         </div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">SMS Sender ID</div>
                         <div class="col-sm-8 fw-medium">{{ $channel['sms_sender_id'] }}</div>
                     </div>
                     @if($channel['type'] !== 'sms_only')
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         <div class="col-sm-4 text-muted">RCS Agent</div>
                         <div class="col-sm-8">
                             <div class="d-flex align-items-center">
@@ -92,7 +92,7 @@
                         </div>
                     </div>
                     @endif
-                    <div class="alert alert-info py-2 mb-0 mt-3">
+                    <div class="alert alert-info py-2 mb-0 mt-2">
                         <i class="fas fa-info-circle me-2"></i>
                         <small>
                             @if($channel['type'] === 'sms_only')
@@ -107,15 +107,15 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0"><i class="fas fa-users me-2 text-success"></i>Recipients</h4>
                     <a href="{{ route('messages.send') }}" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-edit me-1"></i>Edit
                     </a>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center mb-4">
+                <div class="card-body p-4">
+                    <div class="row text-center mb-3">
                         <div class="col-6 col-md-3 mb-3 mb-md-0">
                             <div class="h3 text-primary mb-1">{{ number_format($recipients['total_selected']) }}</div>
                             <small class="text-muted">Total Selected</small>
@@ -176,11 +176,11 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header py-3">
                     <h4 class="card-title mb-0"><i class="fas fa-pound-sign me-2 text-warning"></i>Pricing</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
                         @php
                             $messageCount = $recipients['valid'];
