@@ -2,6 +2,55 @@
 
 @section('title', 'Campaign History')
 
+@php
+/**
+ * SCALABILITY GUARDRAILS (10K-1M campaigns)
+ * ==========================================
+ * TODO: All aggregates must be computed server-side for performance
+ * - Total campaigns count: paginated query with COUNT()
+ * - Filter counts: computed via indexed queries
+ * - Dashboard metrics: pre-aggregated or computed on-demand via API
+ * 
+ * Current mock data is for UI development only.
+ * Replace with: GET /api/campaigns?page=X&limit=Y&filters=Z
+ */
+
+/**
+ * RBAC PERMISSION STUBS
+ * =====================
+ * TODO: Integrate with existing RBAC system (e.g., Spatie Laravel-Permission)
+ * Roles: Viewer, Editor, Admin
+ * 
+ * Permissions matrix:
+ * - view_campaigns: Viewer, Editor, Admin
+ * - edit_campaign: Editor, Admin
+ * - cancel_campaign: Editor, Admin
+ * - duplicate_campaign: Editor, Admin
+ * - export_delivery_report: Editor, Admin
+ * - export_message_log: Admin only (contains PII)
+ * - view_audit_log: Admin only
+ */
+
+// Stub permission checks - replace with actual RBAC implementation
+$userRole = 'admin'; // TODO: Auth::user()->role or Auth::user()->hasRole()
+$permissions = [
+    'can_edit' => in_array($userRole, ['editor', 'admin']),
+    'can_cancel' => in_array($userRole, ['editor', 'admin']),
+    'can_duplicate' => in_array($userRole, ['editor', 'admin']),
+    'can_export_delivery' => in_array($userRole, ['editor', 'admin']),
+    'can_export_messages' => $userRole === 'admin', // PII access
+    'can_view_audit' => $userRole === 'admin',
+];
+
+/**
+ * GDPR COMPLIANCE
+ * ================
+ * - Message previews MUST use placeholders (e.g., {{firstName}}) never real PII
+ * - Exports containing PII require elevated permissions
+ * - All PII access must be logged in audit trail
+ */
+@endphp
+
 @push('styles')
 <style>
 #campaignsTable tbody tr {
@@ -243,12 +292,16 @@
             <div class="mt-3" id="statusActionsContainer">
                 <div id="scheduledActions" style="display: none;">
                     <div class="d-flex gap-2 mb-2">
+                        @if($permissions['can_edit'])
                         <a href="#" id="editCampaignBtn" class="btn btn-light btn-sm flex-fill" onclick="editCampaign(event)">
                             <i class="fas fa-edit me-1"></i>Edit Campaign
                         </a>
+                        @endif
+                        @if($permissions['can_cancel'])
                         <button type="button" class="btn btn-outline-light btn-sm flex-fill" onclick="showCancelConfirmation()">
                             <i class="fas fa-times-circle me-1"></i>Cancel
                         </button>
+                        @endif
                     </div>
                 </div>
                 <div id="sendingNotice" style="display: none;">
@@ -257,11 +310,13 @@
                         <span>Campaign is currently sending and cannot be cancelled.</span>
                     </div>
                 </div>
+                @if($permissions['can_duplicate'])
                 <div id="duplicateAction">
                     <button type="button" class="btn btn-outline-light btn-sm w-100" onclick="duplicateCampaign()">
                         <i class="fas fa-copy me-1"></i>Duplicate Campaign
                     </button>
                 </div>
+                @endif
             </div>
         </div>
 
@@ -632,7 +687,9 @@
                     </div>
                     
                     <div class="text-center mt-2">
-                        <small class="text-muted"><i class="fas fa-shield-alt me-1"></i>Placeholders shown for privacy</small>
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>GDPR: Placeholders shown - no personal data displayed
+                        </small>
                     </div>
                 </div>
             </div>
@@ -642,24 +699,40 @@
                     <h6 class="text-muted mb-3"><i class="fas fa-file-export me-2"></i>Logs & Exports</h6>
                     
                     <div class="d-grid gap-2">
+                        @if($permissions['can_export_delivery'])
                         <button class="btn btn-outline-primary btn-sm text-start" onclick="exportDeliveryReport()">
                             <i class="fas fa-file-csv me-2"></i>Export Delivery Report
                             <span class="float-end text-muted small">CSV / Excel</span>
                         </button>
+                        @endif
                         
+                        @if($permissions['can_export_messages'])
                         <button class="btn btn-outline-primary btn-sm text-start" onclick="exportMessageLog()">
                             <i class="fas fa-list-alt me-2"></i>Export Message Log
-                            <span class="float-end text-muted small">Per recipient</span>
+                            <span class="float-end text-muted small">Per recipient (PII)</span>
                         </button>
+                        @else
+                        <button class="btn btn-outline-secondary btn-sm text-start" disabled title="Admin access required for PII exports">
+                            <i class="fas fa-lock me-2"></i>Export Message Log
+                            <span class="float-end text-muted small">Admin only</span>
+                        </button>
+                        @endif
                         
+                        @if($permissions['can_view_audit'])
                         <button class="btn btn-outline-secondary btn-sm text-start" onclick="viewAuditLog()">
                             <i class="fas fa-history me-2"></i>View Audit Log
                             <span class="float-end text-muted small">Activity trail</span>
                         </button>
+                        @else
+                        <button class="btn btn-outline-secondary btn-sm text-start" disabled title="Admin access required">
+                            <i class="fas fa-lock me-2"></i>View Audit Log
+                            <span class="float-end text-muted small">Admin only</span>
+                        </button>
+                        @endif
                     </div>
                     
                     <div class="small text-muted mt-2">
-                        <i class="fas fa-lock me-1"></i>Export access based on user permissions
+                        <i class="fas fa-shield-alt me-1"></i>Access controlled by role permissions
                     </div>
                 </div>
             </div>
@@ -719,8 +792,31 @@
 
 @push('scripts')
 <script>
+/**
+ * SCALABILITY NOTES
+ * =================
+ * Current implementation uses client-side filtering/sorting for demo purposes.
+ * 
+ * TODO: For 10K-1M campaigns, replace with:
+ * - Server-side pagination: GET /api/campaigns?page=X&limit=50
+ * - Server-side search: GET /api/campaigns?search=term
+ * - Server-side filters: GET /api/campaigns?status=X&channel=Y
+ * - Server-side sorting: GET /api/campaigns?sort=created_at&order=desc
+ * - Lazy-load drawer data: GET /api/campaigns/{id}/dashboard
+ * - Pre-aggregated metrics: Compute via scheduled jobs or materialized views
+ */
+
 var campaignDrawer = null;
 var totalCampaigns = {{ count($campaigns) }};
+
+var userPermissions = {
+    canEdit: {{ $permissions['can_edit'] ? 'true' : 'false' }},
+    canCancel: {{ $permissions['can_cancel'] ? 'true' : 'false' }},
+    canDuplicate: {{ $permissions['can_duplicate'] ? 'true' : 'false' }},
+    canExportDelivery: {{ $permissions['can_export_delivery'] ? 'true' : 'false' }},
+    canExportMessages: {{ $permissions['can_export_messages'] ? 'true' : 'false' }},
+    canViewAudit: {{ $permissions['can_view_audit'] ? 'true' : 'false' }}
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     campaignDrawer = new bootstrap.Offcanvas(document.getElementById('campaignDrawer'));
@@ -1409,24 +1505,42 @@ function showComingSoon(message) {
 }
 
 function exportDeliveryReport() {
+    // RBAC: Check permission before export
+    if (!userPermissions.canExportDelivery) {
+        showComingSoon('You do not have permission to export delivery reports. Contact your administrator.');
+        return;
+    }
+    
     // TODO: Implement delivery report export
-    // - Check user permissions (canExportReports)
     // - Call GET /api/campaigns/{id}/export/delivery?format=csv|xlsx
-    // - Generate CSV/Excel with: recipient, status, delivered_at, failed_reason, channel
+    // - Generate CSV/Excel with: recipient (masked), status, delivered_at, failed_reason, channel
+    // - Log export action in audit trail for GDPR compliance
     showComingSoon('Delivery report export will generate a CSV/Excel file with delivery status for all recipients.');
 }
 
 function exportMessageLog() {
-    // TODO: Implement message log export
-    // - Check user permissions (canExportLogs)
+    // RBAC: Admin-only due to PII content
+    if (!userPermissions.canExportMessages) {
+        showComingSoon('Message log exports contain personal data and require Admin access.');
+        return;
+    }
+    
+    // TODO: Implement message log export (GDPR-sensitive)
     // - Call GET /api/campaigns/{id}/export/messages
-    // - Generate detailed log: recipient, message_content (with merged fields), sent_at, status, channel, cost
+    // - Generate detailed log: recipient, message_content (with merged PII), sent_at, status, channel, cost
+    // - MANDATORY: Log PII access in audit trail
+    // - MANDATORY: Include export reason/justification
     showComingSoon('Message log export will include per-recipient status, timestamps, and message content.');
 }
 
 function viewAuditLog() {
+    // RBAC: Admin-only for audit access
+    if (!userPermissions.canViewAudit) {
+        showComingSoon('Audit log access requires Admin privileges.');
+        return;
+    }
+    
     // TODO: Implement audit log viewer
-    // - Check user permissions (canViewAuditLogs)
     // - Call GET /api/campaigns/{id}/audit-log
     // - Display modal/drawer with: created_by, created_at, edited_by, edited_at, approved_by, approved_at, cancelled_by, cancelled_at
     showComingSoon('Audit log will show who created, edited, approved, or cancelled this campaign and when.');
