@@ -1,0 +1,36 @@
+UI consistency issue: this screen does not match the styling/formatting of the existing “Send Message” screen, and the current validation box looks like backend/debug validation and must NOT be shown to end users.
+
+Goal:
+Make this screen visually consistent with the Send Message screen by reusing the same layout, spacing, typography, and component patterns from the existing UI template.
+
+Instructions:
+1) Match the Send Message screen template
+- Use the same page container width, header structure, card styling, padding, and spacing as Send Message.
+- Use the same form field components and alignment rules (labels, helper text, counters, buttons).
+- Do NOT invent new styling or formatting.
+- If there is a shared Blade layout/partial/components used by Send Message, reuse the exact same ones here.
+
+2) Remove “backend-looking” validation UI
+- Remove the current validation box/panel that looks like server-side/debug output.
+- Users should NOT see raw validation dumps or “backend” style error blocks.
+
+3) Replace validation UX with Send Message pattern
+- Validation should follow the same user-facing pattern as Send Message:
+  - Inline field error text + red border on required fields when Continue is clicked
+  - Errors clear automatically (border returns to normal) once corrected
+  - Optional: a concise modal summarising missing fields ONLY if Send Message already uses that pattern (do not introduce a new pattern)
+
+4) Attached example usage
+- Use the attached example only as a reference for the intended flow/behaviour.
+- Do NOT copy its styling if it differs from the platform template.
+- The final result must look like it belongs in the QuickSMS template and be consistent with Send Message.
+
+Constraints:
+- Do NOT redesign the feature.
+- Do NOT introduce new components, fonts, colours, or spacing tokens.
+- Keep changes limited to formatting/layout consistency and validation presentation.
+
+Acceptance criteria:
+- Screen looks and feels the same as Send Message (same layout + component styling).
+- No backend/debug validation box is visible to users.
+- Validation errors are user-friendly and consistent with Send Message patterns.
