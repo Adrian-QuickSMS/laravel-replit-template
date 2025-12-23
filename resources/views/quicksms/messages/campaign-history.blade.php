@@ -37,6 +37,91 @@
                         <div class="input-group">
                             <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                             <input type="text" class="form-control" id="campaignSearch" placeholder="Search by name, sender ID, agent, tags, or template...">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                                <i class="fas fa-filter me-1"></i> Filters
+                                <span class="badge bg-primary ms-1 d-none" id="activeFiltersBadge">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="collapse mb-3" id="filtersPanel">
+                        <div class="card card-body bg-light border">
+                            <div class="row g-3">
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Status</label>
+                                    <select class="form-select form-select-sm" id="filterStatus">
+                                        <option value="">All Statuses</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="sending">Sending</option>
+                                        <option value="complete">Complete</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Channel</label>
+                                    <select class="form-select form-select-sm" id="filterChannel">
+                                        <option value="">All Channels</option>
+                                        <option value="sms_only">SMS</option>
+                                        <option value="basic_rcs">Basic RCS</option>
+                                        <option value="rich_rcs">Rich RCS</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Sender ID</label>
+                                    <select class="form-select form-select-sm" id="filterSenderId">
+                                        <option value="">All Sender IDs</option>
+                                        @php
+                                            $senderIds = collect($campaigns)->pluck('sender_id')->unique()->sort();
+                                        @endphp
+                                        @foreach($senderIds as $sid)
+                                            <option value="{{ $sid }}">{{ $sid }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">RCS Agent</label>
+                                    <select class="form-select form-select-sm" id="filterRcsAgent">
+                                        <option value="">All Agents</option>
+                                        @php
+                                            $agents = collect($campaigns)->pluck('rcs_agent')->filter()->unique()->sort();
+                                        @endphp
+                                        @foreach($agents as $agent)
+                                            <option value="{{ $agent }}">{{ $agent }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Date From</label>
+                                    <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Date To</label>
+                                    <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Has Tracking Link</label>
+                                    <select class="form-select form-select-sm" id="filterTracking">
+                                        <option value="">Any</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-lg-3">
+                                    <label class="form-label small text-muted">Has Opt-Out</label>
+                                    <select class="form-select form-select-sm" id="filterOptout">
+                                        <option value="">Any</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3 pt-3 border-top">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="fas fa-check me-1"></i> Apply Filters
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
+                                    <i class="fas fa-undo me-1"></i> Reset
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -64,7 +149,9 @@
                                     data-sender-id="{{ $campaign['sender_id'] }}"
                                     data-rcs-agent="{{ $campaign['rcs_agent'] ?? '' }}"
                                     data-tags="{{ implode(',', $campaign['tags'] ?? []) }}"
-                                    data-template="{{ $campaign['template'] ?? '' }}">
+                                    data-template="{{ $campaign['template'] ?? '' }}"
+                                    data-has-tracking="{{ $campaign['has_tracking'] ? 'yes' : 'no' }}"
+                                    data-has-optout="{{ $campaign['has_optout'] ? 'yes' : 'no' }}">
                                     <td class="fw-medium">{{ $campaign['name'] }}</td>
                                     <td>
                                         @if($campaign['channel'] === 'sms_only')
@@ -190,19 +277,46 @@ function filterCampaigns() {
     var searchTerm = document.getElementById('campaignSearch').value.toLowerCase().trim();
     var rows = document.querySelectorAll('#campaignsTableBody tr[data-id]');
     var visibleCount = 0;
+    var hasActiveFilters = Object.values(activeFilters).some(function(v) { return v !== ''; });
     
     rows.forEach(function(row) {
         var name = (row.dataset.name || '').toLowerCase();
-        var senderId = (row.dataset.senderId || '').toLowerCase();
-        var rcsAgent = (row.dataset.rcsAgent || '').toLowerCase();
+        var senderId = (row.dataset.senderId || '');
+        var rcsAgent = (row.dataset.rcsAgent || '');
         var tags = (row.dataset.tags || '').toLowerCase();
         var template = (row.dataset.template || '').toLowerCase();
-        var channel = (row.dataset.channel || '').toLowerCase().replace('_', ' ');
-        var status = (row.dataset.status || '').toLowerCase();
+        var channel = (row.dataset.channel || '');
+        var status = (row.dataset.status || '');
+        var sendDate = row.dataset.sendDate || '';
+        var hasTracking = row.dataset.hasTracking || '';
+        var hasOptout = row.dataset.hasOptout || '';
         
-        var searchable = name + ' ' + senderId + ' ' + rcsAgent + ' ' + tags + ' ' + template + ' ' + channel + ' ' + status;
+        var searchable = name + ' ' + senderId.toLowerCase() + ' ' + rcsAgent.toLowerCase() + ' ' + tags + ' ' + template + ' ' + channel.toLowerCase().replace('_', ' ') + ' ' + status.toLowerCase();
+        var matchesSearch = searchTerm === '' || searchable.includes(searchTerm);
         
-        if (searchTerm === '' || searchable.includes(searchTerm)) {
+        var matchesFilters = true;
+        if (hasActiveFilters) {
+            if (activeFilters.status && status !== activeFilters.status) matchesFilters = false;
+            if (activeFilters.channel && channel !== activeFilters.channel) matchesFilters = false;
+            if (activeFilters.senderId && senderId !== activeFilters.senderId) matchesFilters = false;
+            if (activeFilters.rcsAgent && rcsAgent !== activeFilters.rcsAgent) matchesFilters = false;
+            if (activeFilters.tracking && hasTracking !== activeFilters.tracking) matchesFilters = false;
+            if (activeFilters.optout && hasOptout !== activeFilters.optout) matchesFilters = false;
+            
+            if (activeFilters.dateFrom) {
+                var rowDate = new Date(sendDate);
+                var fromDate = new Date(activeFilters.dateFrom);
+                if (rowDate < fromDate) matchesFilters = false;
+            }
+            if (activeFilters.dateTo) {
+                var rowDate = new Date(sendDate);
+                var toDate = new Date(activeFilters.dateTo);
+                toDate.setHours(23, 59, 59);
+                if (rowDate > toDate) matchesFilters = false;
+            }
+        }
+        
+        if (matchesSearch && matchesFilters) {
             row.style.display = '';
             visibleCount++;
         } else {
@@ -215,7 +329,7 @@ function filterCampaigns() {
     var noResultsState = document.getElementById('noResultsState');
     var table = document.getElementById('campaignsTable');
     
-    if (visibleCount === 0 && searchTerm !== '') {
+    if (visibleCount === 0 && (searchTerm !== '' || hasActiveFilters)) {
         noResultsState.classList.remove('d-none');
         table.classList.add('d-none');
     } else {
@@ -227,6 +341,51 @@ function filterCampaigns() {
 function clearSearch() {
     document.getElementById('campaignSearch').value = '';
     filterCampaigns();
+}
+
+var activeFilters = {};
+
+function applyFilters() {
+    activeFilters = {
+        status: document.getElementById('filterStatus').value,
+        channel: document.getElementById('filterChannel').value,
+        senderId: document.getElementById('filterSenderId').value,
+        rcsAgent: document.getElementById('filterRcsAgent').value,
+        dateFrom: document.getElementById('filterDateFrom').value,
+        dateTo: document.getElementById('filterDateTo').value,
+        tracking: document.getElementById('filterTracking').value,
+        optout: document.getElementById('filterOptout').value
+    };
+    
+    updateFilterBadge();
+    filterCampaigns();
+}
+
+function resetFilters() {
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterChannel').value = '';
+    document.getElementById('filterSenderId').value = '';
+    document.getElementById('filterRcsAgent').value = '';
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    document.getElementById('filterTracking').value = '';
+    document.getElementById('filterOptout').value = '';
+    
+    activeFilters = {};
+    updateFilterBadge();
+    filterCampaigns();
+}
+
+function updateFilterBadge() {
+    var count = Object.values(activeFilters).filter(function(v) { return v !== ''; }).length;
+    var badge = document.getElementById('activeFiltersBadge');
+    
+    if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove('d-none');
+    } else {
+        badge.classList.add('d-none');
+    }
 }
 
 function openCampaignDrawer(campaignId) {
