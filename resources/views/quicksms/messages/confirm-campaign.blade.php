@@ -13,7 +13,7 @@
         </ol>
     </div>
 
-    <div class="row">
+    <div class="row align-items-start">
         <div class="col-xl-8 col-lg-10">
             <div class="card mb-3">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
