@@ -2,6 +2,16 @@
 
 @section('title', 'Send Message')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
+<style>
+#rcsWizardPreviewContainer .rcs-phone-frame {
+    transform: scale(0.85);
+    transform-origin: top center;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row page-titles">
@@ -971,50 +981,9 @@
             </div>
             <div class="modal-body p-0">
                 <div class="row g-0" style="min-height: 500px;">
-                    <div class="col-lg-5 bg-light p-4 d-flex flex-column align-items-center justify-content-center border-end">
-                        <p class="text-muted small mb-3">Live preview (coming soon)</p>
-                        <div class="phone-preview-shell mx-auto" style="width: 280px;">
-                            <div class="bg-dark rounded-top p-2 text-center">
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
-                                        <i class="fas fa-building" style="font-size: 12px;"></i>
-                                    </div>
-                                    <span class="text-white small">Your Business</span>
-                                    <span class="badge bg-primary ms-1" style="font-size: 8px;">Verified</span>
-                                </div>
-                            </div>
-                            <div class="bg-white border border-top-0 rounded-bottom shadow-sm">
-                                <div class="rcs-preview-media bg-secondary d-flex align-items-center justify-content-center" style="height: 140px;">
-                                    <div class="text-center text-white">
-                                        <i class="fas fa-image fa-2x mb-2"></i>
-                                        <p class="mb-0 small">Media Area</p>
-                                    </div>
-                                </div>
-                                <div class="p-3">
-                                    <div class="rcs-preview-title mb-2">
-                                        <div class="bg-light rounded p-2">
-                                            <span class="text-muted small">Card Title</span>
-                                        </div>
-                                    </div>
-                                    <div class="rcs-preview-description mb-2">
-                                        <div class="bg-light rounded p-2">
-                                            <span class="text-muted small">Description text will appear here...</span>
-                                        </div>
-                                    </div>
-                                    <div class="rcs-preview-body mb-3">
-                                        <div class="bg-light rounded p-2">
-                                            <span class="text-muted small">Text body content...</span>
-                                        </div>
-                                    </div>
-                                    <div class="rcs-preview-buttons">
-                                        <div class="d-grid gap-2">
-                                            <button class="btn btn-outline-primary btn-sm" disabled>Action Button 1</button>
-                                            <button class="btn btn-outline-secondary btn-sm" disabled>Action Button 2</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-lg-5 bg-light p-4 d-flex flex-column align-items-center justify-content-start border-end" style="overflow-y: auto; max-height: 80vh;">
+                        <p class="text-muted small mb-3">Live Preview</p>
+                        <div id="rcsWizardPreviewContainer"></div>
                     </div>
                     <div class="col-lg-7 p-4">
                         <div class="rcs-config-panel">
@@ -1806,6 +1775,10 @@ function openRcsWizard() {
     
     var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
     modal.show();
+    
+    setTimeout(function() {
+        updateRcsWizardPreview();
+    }, 100);
 }
 
 function getRcsPayloadForSubmission() {
@@ -2138,6 +2111,163 @@ function hideRcsValidationErrors() {
     }
 }
 
+function updateRcsWizardPreview() {
+    var container = document.getElementById('rcsWizardPreviewContainer');
+    if (!container) return;
+    
+    var agentSelect = document.getElementById('rcsAgent');
+    var agentName = 'Your Business';
+    if (agentSelect && agentSelect.selectedIndex > 0) {
+        agentName = agentSelect.options[agentSelect.selectedIndex].text;
+    }
+    
+    var isCarousel = document.querySelector('input[name="rcsMessageType"]:checked')?.value === 'carousel';
+    var messageHtml = '';
+    
+    if (isCarousel && rcsCardCount > 1) {
+        messageHtml = renderRcsCarouselPreview();
+    } else {
+        messageHtml = renderRcsCardPreview(rcsCurrentCard);
+    }
+    
+    container.innerHTML = renderRcsPhoneFrame({
+        name: agentName,
+        logo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(agentName.substring(0, 2)) + '&background=7c3aed&color=fff&size=80',
+        verified: true,
+        tagline: 'Verified Business'
+    }, messageHtml);
+    
+    initRcsCarouselBehavior();
+}
+
+function renderRcsPhoneFrame(agent, messageContent) {
+    var badge = '<svg class="rcs-verified-badge" viewBox="0 0 24 24" fill="#1a73e8"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>';
+    var tagline = agent.tagline ? '<span class="rcs-agent-tagline">' + escapeHtml(agent.tagline) + '</span>' : '';
+    
+    return '<div class="rcs-phone-frame">' +
+        '<div class="rcs-status-bar"><span class="rcs-status-time">9:30</span><div class="rcs-status-icons"><span class="rcs-status-5g">5G</span><svg class="rcs-status-signal" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M2 22h20V2L2 22zm18-2H6.83L20 6.83V20z"/></svg><svg class="rcs-status-battery" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg></div></div>' +
+        '<div class="rcs-header">' +
+            '<button class="rcs-back-button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>' +
+            '<div class="rcs-agent-info">' +
+                '<div class="rcs-agent-logo-wrapper"><img src="' + escapeHtml(agent.logo) + '" alt="' + escapeHtml(agent.name) + '" class="rcs-agent-logo"/>' + badge + '</div>' +
+                '<div class="rcs-agent-details"><span class="rcs-agent-name">' + escapeHtml(agent.name) + '</span>' + tagline + '</div>' +
+            '</div>' +
+            '<div class="rcs-header-actions"><button class="rcs-header-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button><button class="rcs-header-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button></div>' +
+        '</div>' +
+        '<div class="rcs-chat-area"><div class="rcs-timestamp">Today</div><div class="rcs-message">' + messageContent + '</div></div>' +
+        '<div class="rcs-input-bar"><button class="rcs-input-action"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button><input type="text" class="rcs-input-field" placeholder="RCS message" readonly/><button class="rcs-input-action"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg></button><button class="rcs-input-action"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></button><button class="rcs-send-button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg></button></div>' +
+    '</div>';
+}
+
+function renderRcsCardPreview(cardNum) {
+    var card = rcsCardsData[cardNum] || initializeRcsCard(cardNum);
+    var mediaHtml = '';
+    var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
+    var orientation = orientChecked ? orientChecked.value : 'vertical_short';
+    var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'horizontal': 'tall' };
+    var heightClass = heights[orientation] || 'medium';
+    var heightPx = { 'short': '112px', 'medium': '168px', 'tall': '264px' };
+    
+    if (card.media && card.media.url) {
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(card.media.url) + '" class="rcs-media-image" loading="lazy"/></div>';
+    } else if (rcsMediaData.url) {
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(rcsMediaData.url) + '" class="rcs-media-image" loading="lazy"/></div>';
+    } else {
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;"><span style="color: #888; font-size: 12px;">No media</span></div>';
+    }
+    
+    var descEl = document.getElementById('rcsDescription');
+    var bodyEl = document.getElementById('rcsTextBody');
+    var description = descEl ? descEl.value : (card.description || '');
+    var textBody = bodyEl ? bodyEl.value : (card.textBody || '');
+    
+    var titleHtml = description ? '<h3 class="rcs-card-title">' + escapeHtml(description) + '</h3>' : '';
+    var descHtml = textBody ? '<p class="rcs-card-description">' + escapeHtml(textBody) + '</p>' : '';
+    
+    var buttonsHtml = '';
+    var btns = rcsButtons.length > 0 ? rcsButtons : (card.buttons || []);
+    if (btns.length > 0) {
+        buttonsHtml = '<div class="rcs-buttons">';
+        btns.forEach(function(btn) {
+            var icon = getRcsButtonIcon(btn.type);
+            buttonsHtml += '<button type="button" class="rcs-button">' + (icon ? '<span class="rcs-button-icon-wrapper">' + icon + '</span>' : '') + '<span class="rcs-button-label">' + escapeHtml(btn.label || 'Button') + '</span></button>';
+        });
+        buttonsHtml += '</div>';
+    }
+    
+    var mediaClass = (card.media && card.media.url) || rcsMediaData.url ? 'rcs-card--has-media' : 'rcs-card--no-media';
+    return '<div class="rcs-card ' + mediaClass + '">' + mediaHtml + '<div class="rcs-card-content">' + titleHtml + descHtml + '</div>' + buttonsHtml + '</div>';
+}
+
+function renderRcsCarouselPreview() {
+    var cardsHtml = '';
+    for (var i = 1; i <= rcsCardCount; i++) {
+        cardsHtml += '<div class="rcs-carousel-item" style="min-width: 256px; max-width: 256px;">' + renderRcsCardPreviewForCarousel(i) + '</div>';
+    }
+    var dots = '';
+    for (var j = 1; j <= rcsCardCount; j++) {
+        dots += '<button class="rcs-carousel-dot ' + (j === 1 ? 'active' : '') + '" data-index="' + (j - 1) + '"></button>';
+    }
+    return '<div class="rcs-carousel"><div class="rcs-carousel-track">' + cardsHtml + '</div><div class="rcs-carousel-indicators">' + dots + '</div></div>';
+}
+
+function renderRcsCardPreviewForCarousel(cardNum) {
+    var card = rcsCardsData[cardNum] || {};
+    var mediaHtml = '';
+    var heightClass = 'medium';
+    var heightPx = '168px';
+    
+    if (card.media && card.media.url) {
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + ';"><img src="' + escapeHtml(card.media.url) + '" class="rcs-media-image" loading="lazy"/></div>';
+    } else {
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;"><span style="color: #888; font-size: 11px;">Card ' + cardNum + '</span></div>';
+    }
+    
+    var titleHtml = card.description ? '<h3 class="rcs-card-title">' + escapeHtml(card.description) + '</h3>' : '';
+    var descHtml = card.textBody ? '<p class="rcs-card-description">' + escapeHtml(card.textBody.substring(0, 80)) + (card.textBody.length > 80 ? '...' : '') + '</p>' : '';
+    
+    var buttonsHtml = '';
+    var btns = card.buttons || [];
+    if (btns.length > 0) {
+        buttonsHtml = '<div class="rcs-buttons">';
+        btns.forEach(function(btn) {
+            var icon = getRcsButtonIcon(btn.type);
+            buttonsHtml += '<button type="button" class="rcs-button">' + (icon ? '<span class="rcs-button-icon-wrapper">' + icon + '</span>' : '') + '<span class="rcs-button-label">' + escapeHtml(btn.label || 'Button') + '</span></button>';
+        });
+        buttonsHtml += '</div>';
+    }
+    
+    return '<div class="rcs-card rcs-carousel-card">' + mediaHtml + '<div class="rcs-card-content">' + titleHtml + descHtml + '</div>' + buttonsHtml + '</div>';
+}
+
+function getRcsButtonIcon(type) {
+    var icons = {
+        url: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>',
+        phone: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>',
+        calendar: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>',
+        reply: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>'
+    };
+    return icons[type] || icons.url;
+}
+
+function initRcsCarouselBehavior() {
+    var carousel = document.querySelector('#rcsWizardPreviewContainer .rcs-carousel-track');
+    if (!carousel) return;
+    var dots = document.querySelectorAll('#rcsWizardPreviewContainer .rcs-carousel-dot');
+    carousel.addEventListener('scroll', function() {
+        var scrollLeft = carousel.scrollLeft;
+        var itemWidth = carousel.firstElementChild?.clientWidth || 256;
+        var currentIndex = Math.round(scrollLeft / (itemWidth + 8));
+        dots.forEach(function(dot, i) { dot.classList.toggle('active', i === currentIndex); });
+    });
+    dots.forEach(function(dot, i) {
+        dot.addEventListener('click', function() {
+            var itemWidth = carousel.firstElementChild?.clientWidth || 256;
+            carousel.scrollTo({ left: i * (itemWidth + 8), behavior: 'smooth' });
+        });
+    });
+}
+
 function resetRcsWizard() {
     rcsCardsData = {};
     rcsCardCount = 1;
@@ -2419,6 +2549,7 @@ function showRcsMediaPreview(src) {
     document.getElementById('rcsMediaPreviewImg').src = src;
     document.getElementById('rcsMediaPreview').classList.remove('d-none');
     updateCarouselOrientationWarning();
+    updateRcsWizardPreview();
 }
 
 function removeRcsMedia() {
@@ -2431,6 +2562,7 @@ function removeRcsMedia() {
     document.getElementById('rcsMediaFileInput').value = '';
     document.getElementById('rcsZoomSlider').value = 100;
     document.getElementById('rcsZoomValue').textContent = '100%';
+    updateRcsWizardPreview();
     document.getElementById('rcsImageDimensions').textContent = '--';
     document.getElementById('rcsImageFileSize').textContent = '--';
     document.getElementById('rcsOrientVertShort').checked = true;
@@ -2511,6 +2643,7 @@ function updateRcsDescriptionCount() {
     document.getElementById('rcsDescriptionCount').textContent = count;
     var warning = document.getElementById('rcsDescriptionWarning');
     warning.classList.toggle('d-none', count <= 120);
+    updateRcsWizardPreview();
 }
 
 function updateRcsTextBodyCount() {
@@ -2519,6 +2652,7 @@ function updateRcsTextBodyCount() {
     document.getElementById('rcsTextBodyCount').textContent = count;
     var warning = document.getElementById('rcsTextBodyWarning');
     warning.classList.toggle('d-none', count <= 2000);
+    updateRcsWizardPreview();
 }
 
 function openRcsPlaceholderPicker(field) {
@@ -2762,6 +2896,7 @@ function renderRcsButtons() {
     
     document.getElementById('rcsButtonCount').textContent = rcsButtons.length + ' / ' + rcsMaxButtons;
     document.getElementById('rcsAddButtonBtn').disabled = rcsButtons.length >= rcsMaxButtons;
+    updateRcsWizardPreview();
 }
 
 function escapeHtml(text) {
@@ -2794,11 +2929,16 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             toggleRcsMessageType();
             updateCarouselOrientationWarning();
+            updateRcsWizardPreview();
         });
     });
     
     document.querySelectorAll('input[name="rcsMediaSource"]').forEach(function(radio) {
         radio.addEventListener('change', toggleRcsMediaSource);
+    });
+    
+    document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
+        radio.addEventListener('change', updateRcsWizardPreview);
     });
     
     var fileInput = document.getElementById('rcsMediaFileInput');
