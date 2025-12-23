@@ -295,6 +295,40 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="channelSplitCard">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-random me-2"></i>Channel Split</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="fas fa-sms text-secondary me-2"></i>
+                                    <span class="small fw-medium">SMS</span>
+                                </div>
+                                <div class="fs-4 fw-bold" id="channelSmsPercent">-</div>
+                                <div class="small text-muted" id="channelSmsCount">-</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 text-center">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="fas fa-comment-dots text-primary me-2"></i>
+                                    <span class="small fw-medium">RCS</span>
+                                </div>
+                                <div class="fs-4 fw-bold" id="channelRcsPercent">-</div>
+                                <div class="small text-muted" id="channelRcsCount">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex rounded overflow-hidden" style="height: 8px;">
+                            <div id="channelBarSms" class="bg-secondary" style="width: 0%; transition: width 0.3s;"></div>
+                            <div id="channelBarRcs" class="bg-primary" style="width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-3" id="deliveryOutcomesCard">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-chart-pie me-2"></i>Delivery Outcomes</h6>
@@ -644,6 +678,7 @@ function openCampaignDrawer(campaignId) {
     }
 
     updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
+    updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
 
     campaignDrawer.show();
 }
@@ -686,6 +721,42 @@ function updateDeliveryOutcomes(status, total, delivered) {
     
     document.getElementById('outcomeUndeliverable').textContent = undeliverable.toLocaleString();
     document.getElementById('outcomeUndeliverablePct').textContent = undeliverablePct.toFixed(1) + '%';
+}
+
+function updateChannelSplit(channel, status, total, delivered) {
+    var channelCard = document.getElementById('channelSplitCard');
+    
+    if (status === 'scheduled' || total === 0) {
+        channelCard.style.display = 'none';
+        return;
+    }
+    channelCard.style.display = '';
+    
+    var smsCount = 0;
+    var rcsCount = 0;
+    var deliveredCount = delivered !== null ? delivered : total;
+    
+    // TODO: Replace with real channel split data from backend
+    if (channel === 'sms_only') {
+        smsCount = deliveredCount;
+        rcsCount = 0;
+    } else if (channel === 'basic_rcs' || channel === 'rich_rcs') {
+        // Mock: RCS campaigns typically have ~85% RCS success, 15% SMS fallback
+        rcsCount = Math.floor(deliveredCount * 0.85);
+        smsCount = deliveredCount - rcsCount;
+    }
+    
+    var smsPct = deliveredCount > 0 ? (smsCount / deliveredCount * 100) : 0;
+    var rcsPct = deliveredCount > 0 ? (rcsCount / deliveredCount * 100) : 0;
+    
+    document.getElementById('channelSmsPercent').textContent = smsPct.toFixed(1) + '%';
+    document.getElementById('channelSmsCount').textContent = smsCount.toLocaleString() + ' msgs';
+    
+    document.getElementById('channelRcsPercent').textContent = rcsPct.toFixed(1) + '%';
+    document.getElementById('channelRcsCount').textContent = rcsCount.toLocaleString() + ' msgs';
+    
+    document.getElementById('channelBarSms').style.width = smsPct + '%';
+    document.getElementById('channelBarRcs').style.width = rcsPct + '%';
 }
 
 function formatDate(dateStr) {
