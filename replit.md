@@ -28,6 +28,16 @@ Feature specifications include:
 
 The system uses an SQLite database for development, with a clear separation between UI implementation and planned backend API integrations.
 
+## RCS Preview System
+The application includes a schema-driven RCS message preview renderer at `/rcs/preview-demo`:
+- **Phone Frame:** Android-style phone UI with status bar, agent header (logo, verified badge, name, tagline), chat area, and input bar
+- **Rich Cards:** Support for short, medium, and tall media heights with title, description, and up to 4 action buttons
+- **Carousels:** Horizontal scrolling card galleries with medium/small card widths and dot indicators
+- **Validation:** Enforces RCS constraints (max 10 carousel cards, max 4 buttons, character limits)
+- **Design Tokens:** CSS variables derived from Google RCS specifications for consistent styling
+- **Alpine.js Controller:** Interactive example selector with live JSON payload display
+- **Sample Payloads:** 5 example message types demonstrating rich card and carousel variations
+
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
 - **Fillow SaaS Admin Template:** UI framework based on Bootstrap 5.
