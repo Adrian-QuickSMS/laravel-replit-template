@@ -1,0 +1,58 @@
+Inbox bottom composer needs redesign to dedicate more space to sending configuration, and it must reuse the existing “Send Message” UI template and formatting.
+
+Goal:
+- Replace the current small composer with a larger “mini Send Message” composer card that sits beneath the chat pane.
+- This must look like a compact version of the Send Message screen, using the SAME components, spacing, typography, and layout patterns.
+
+A) Layout change
+- The chat history area should remain scrollable.
+- Beneath the chat history, add a SINGLE card that contains the full mini composer.
+- Allocate more vertical space to this composer card (so it doesn’t feel cramped).
+- Do NOT create extra whitespace inside other cards/panels.
+
+B) Mini composer card contents (must match Send Message patterns)
+
+1) Channel picker (same as Send Message)
+- Provide the same channel picker options used in Send Message:
+  - SMS
+  - Basic RCS
+  - Rich RCS
+- Availability should follow the same rules as Send Message (permissions/device capability/agent availability) — if wiring is missing, add TODO, but keep the UI.
+
+2) Conditional “Sender” controls (same behaviour as Send Message)
+- When SMS is selected:
+  - Show SenderID / Reply-from dropdown (numbers assigned to account).
+- When Basic RCS or Rich RCS is selected:
+  - Show RCS Agent dropdown.
+- Only show the relevant dropdown(s) for the selected channel type.
+- Use the same dropdown component styling as Send Message.
+
+3) Content editor card area (same as Send Message)
+Inside the mini composer card include the content editor section that matches Send Message:
+
+- Template dropdown ABOVE the text input area (same placement as Send Message).
+- “Improve with AI” button inline with the Template dropdown (same row).
+- Message input box styled exactly like Send Message.
+- Placeholder button + emoji picker functionality present (same UX as Send Message):
+  - Placeholder/insert-field control
+  - Emoji icon bottom-right inside the input
+  - Emoji picker must work (opens and inserts at cursor)
+  - Placeholders insert at cursor position
+
+C) Constraints
+- Use existing Send Message Blade components/partials for:
+  - Channel picker
+  - SenderID dropdown
+  - RCS Agent dropdown
+  - Template dropdown
+  - Improve with AI button
+  - Message content editor (including placeholder + emoji)
+- Do NOT redesign UI or introduce new components.
+- Do NOT change styles globally.
+- Limit changes to the Inbox/Messages module only.
+
+Acceptance criteria
+- The bottom composer is a larger single card beneath chat, visually consistent with Send Message.
+- Channel picker behaves identically to Send Message and conditionally shows correct sender controls.
+- Template dropdown + Improve with AI + content input match Send Message layout.
+- Placeholder + emoji picker work and insert into the editor correctly.

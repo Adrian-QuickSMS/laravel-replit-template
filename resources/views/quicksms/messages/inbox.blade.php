@@ -48,8 +48,8 @@
     font-weight: 500;
 }
 .chat-box-area {
-    min-height: calc(100vh - 380px);
-    max-height: calc(100vh - 380px);
+    min-height: calc(100vh - 520px);
+    max-height: calc(100vh - 520px);
     overflow-y: auto;
     padding: 1rem;
 }
@@ -81,6 +81,40 @@
 .channel-pill-sms {
     background-color: #6c757d;
     color: white;
+}
+.emoji-picker-container {
+    position: absolute;
+    bottom: 45px;
+    right: 12px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    width: 280px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.emoji-picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.emoji-item {
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+.emoji-item:hover {
+    background-color: #f0f0f0;
+}
+#replyComposerCard {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
 }
 .channel-pill-rcs {
     background-color: #198754;
@@ -349,38 +383,137 @@
                                 @endif
                             </div>
                             
-                            <div class="card-footer border-0 type-massage px-4 py-3">
-                                <div class="d-flex align-items-center gap-3 mb-2">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <input type="radio" class="btn-check" name="replyChannel" id="replySms" value="sms" checked>
-                                        <label class="btn btn-outline-secondary" for="replySms"><i class="fas fa-comment me-1"></i>SMS</label>
-                                        <input type="radio" class="btn-check" name="replyChannel" id="replyRcs" value="rcs">
-                                        <label class="btn btn-outline-secondary" for="replyRcs"><i class="fas fa-mobile-alt me-1"></i>RCS</label>
+                            <div class="card border-top" id="replyComposerCard">
+                                <div class="card-body p-3">
+                                    <div class="row mb-3">
+                                        <div class="col-12 mb-2">
+                                            <label class="form-label small fw-bold mb-2">Channel & Sender</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <input type="radio" class="btn-check" name="replyChannel" id="replySms" value="sms" checked>
+                                                <label class="btn btn-outline-primary" for="replySms"><i class="fas fa-sms me-1"></i>SMS only</label>
+                                                <input type="radio" class="btn-check" name="replyChannel" id="replyRcsBasic" value="rcs_basic">
+                                                <label class="btn btn-outline-info" for="replyRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                                                <input type="radio" class="btn-check" name="replyChannel" id="replyRcsRich" value="rcs_rich">
+                                                <label class="btn btn-outline-success" for="replyRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="senderIdSection">
+                                            <select class="form-select" id="senderSelect">
+                                                <option value="">SMS Sender ID *</option>
+                                                @foreach($sender_ids as $sid)
+                                                <option value="{{ $sid['id'] }}">{{ $sid['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 d-none" id="rcsAgentSection">
+                                            <select class="form-select" id="rcsAgentSelect">
+                                                <option value="">RCS Agent *</option>
+                                                @foreach($rcs_agents as $agent)
+                                                <option value="{{ $agent['id'] }}">{{ $agent['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
-                                    <select class="form-select form-select-sm" id="senderSelect" style="width: auto;">
-                                        @foreach($sender_ids as $sid)
-                                        <option value="{{ $sid['id'] }}">{{ $sid['name'] }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="d-none" id="rcsAgentSelect">
-                                        <select class="form-select form-select-sm" style="width: auto;">
-                                            @foreach($rcs_agents as $agent)
-                                            <option value="{{ $agent['id'] }}">{{ $agent['name'] }}</option>
-                                            @endforeach
-                                        </select>
+                                    
+                                    <div class="row align-items-center mb-2">
+                                        <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label class="form-label mb-0 text-nowrap small">Template</label>
+                                                <select class="form-select form-select-sm" id="templateSelector" onchange="applyTemplate()">
+                                                    <option value="">-- None --</option>
+                                                    @foreach($templates as $tpl)
+                                                    <option value="{{ $tpl['id'] }}" data-content="{{ addslashes($tpl['content']) }}">{{ $tpl['name'] }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-7 text-md-end">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
+                                                <i class="fas fa-magic me-1"></i>Improve with AI
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showTemplateModal()">
-                                        <i class="fas fa-file-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="input-group">
-                                    <textarea class="form-control" id="replyMessage" rows="2" placeholder="Type your message..."></textarea>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <small class="text-muted"><span id="charCount">0</span> characters</small>
-                                    <button type="button" class="btn btn-primary" onclick="sendReply()">
-                                        <i class="far fa-paper-plane me-1"></i>Send
-                                    </button>
+                                    
+                                    <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
+                                    <div class="position-relative border rounded mb-2">
+                                        <textarea class="form-control border-0" id="replyMessage" rows="4" placeholder="Type your message here..." oninput="updateCharCount()" style="padding-bottom: 40px; resize: none;"></textarea>
+                                        <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" onclick="toggleEmojiPicker()" title="Insert emoji">
+                                                <i class="fas fa-smile"></i>
+                                            </button>
+                                        </div>
+                                        <div class="emoji-picker-container d-none" id="emojiPickerContainer">
+                                            <div class="emoji-picker-grid p-2">
+                                                <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😅')">😅</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🤣')">🤣</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😊')">😊</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😇')">😇</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🙂')">🙂</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😉')">😉</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😍')">😍</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🥰')">🥰</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😘')">😘</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😋')">😋</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😎')">😎</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🙄')">🙄</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😏')">😏</span>
+                                                <span class="emoji-item" onclick="insertEmoji('😴')">😴</span>
+                                                <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+                                                <span class="emoji-item" onclick="insertEmoji('👎')">👎</span>
+                                                <span class="emoji-item" onclick="insertEmoji('👌')">👌</span>
+                                                <span class="emoji-item" onclick="insertEmoji('✌️')">✌️</span>
+                                                <span class="emoji-item" onclick="insertEmoji('👋')">👋</span>
+                                                <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🙏')">🙏</span>
+                                                <span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🎉')">🎉</span>
+                                                <span class="emoji-item" onclick="insertEmoji('💯')">💯</span>
+                                                <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span>
+                                                <span class="emoji-item" onclick="insertEmoji('❤️')">❤️</span>
+                                                <span class="emoji-item" onclick="insertEmoji('💙')">💙</span>
+                                                <span class="emoji-item" onclick="insertEmoji('💚')">💚</span>
+                                                <span class="emoji-item" onclick="insertEmoji('💜')">💜</span>
+                                                <span class="emoji-item" onclick="insertEmoji('⭐')">⭐</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <span class="text-muted small me-3">Characters: <strong id="charCount">0</strong></span>
+                                            <span class="text-muted small me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
+                                            <span class="text-muted small" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
+                                        </div>
+                                        <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-none" id="rcsRichContentSection">
+                                        <div class="border rounded p-3 bg-light text-center mb-2">
+                                            <i class="fas fa-image fa-2x text-success mb-2"></i>
+                                            <h6 class="mb-2">Rich RCS Card</h6>
+                                            <p class="text-muted small mb-2">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="showComingSoon('Create RCS Message')">
+                                                <i class="fas fa-magic me-1"></i>Create RCS Message
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-primary" onclick="sendReply()">
+                                            <i class="far fa-paper-plane me-1"></i>Send Message
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -549,6 +682,19 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('chatSearchInput').addEventListener('input', function() {
         searchInConversation(this.value);
     });
+    
+    document.addEventListener('click', function(e) {
+        var picker = document.getElementById('emojiPickerContainer');
+        var btn = document.getElementById('emojiPickerBtn');
+        if (picker && !picker.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            picker.classList.add('d-none');
+        }
+    });
+    
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
 
 function selectConversation(id) {
@@ -635,21 +781,121 @@ function toggleContactSidebar() {
 }
 
 function toggleReplyChannel(channel) {
-    var senderSelect = document.getElementById('senderSelect');
-    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    var senderIdSection = document.getElementById('senderIdSection');
+    var rcsAgentSection = document.getElementById('rcsAgentSection');
+    var rcsRichSection = document.getElementById('rcsRichContentSection');
+    var contentLabel = document.getElementById('replyContentLabel');
+    var segmentDisplay = document.getElementById('segmentDisplay');
     
-    if (channel === 'rcs') {
-        senderSelect.classList.add('d-none');
-        rcsAgentSelect.classList.remove('d-none');
-    } else {
-        senderSelect.classList.remove('d-none');
-        rcsAgentSelect.classList.add('d-none');
+    if (channel === 'sms') {
+        senderIdSection.classList.remove('d-none');
+        rcsAgentSection.classList.add('d-none');
+        rcsRichSection.classList.add('d-none');
+        contentLabel.textContent = 'SMS Content';
+        segmentDisplay.classList.remove('d-none');
+    } else if (channel === 'rcs_basic') {
+        senderIdSection.classList.add('d-none');
+        rcsAgentSection.classList.remove('d-none');
+        rcsRichSection.classList.add('d-none');
+        contentLabel.textContent = 'RCS Content';
+        segmentDisplay.classList.add('d-none');
+    } else if (channel === 'rcs_rich') {
+        senderIdSection.classList.add('d-none');
+        rcsAgentSection.classList.remove('d-none');
+        rcsRichSection.classList.remove('d-none');
+        contentLabel.textContent = 'RCS Content (Optional Fallback Text)';
+        segmentDisplay.classList.add('d-none');
     }
+    updateCharCount();
+}
+
+var GSM7_CHARS = '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà';
+var GSM7_EXTENDED = '^{}\\[~]|€';
+
+function isGSM7(text) {
+    for (var i = 0; i < text.length; i++) {
+        var char = text[i];
+        if (GSM7_CHARS.indexOf(char) === -1 && GSM7_EXTENDED.indexOf(char) === -1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function countGSM7Length(text) {
+    var len = 0;
+    for (var i = 0; i < text.length; i++) {
+        len += GSM7_EXTENDED.indexOf(text[i]) !== -1 ? 2 : 1;
+    }
+    return len;
 }
 
 function updateCharCount() {
     var text = document.getElementById('replyMessage').value;
-    document.getElementById('charCount').textContent = text.length;
+    var charCount = text.length;
+    var isGsm = isGSM7(text);
+    var encoding = isGsm ? 'GSM-7' : 'Unicode';
+    var segments = 1;
+    
+    if (isGsm) {
+        var gsm7Len = countGSM7Length(text);
+        if (gsm7Len <= 160) {
+            segments = 1;
+        } else {
+            segments = Math.ceil(gsm7Len / 153);
+        }
+    } else {
+        if (charCount <= 70) {
+            segments = 1;
+        } else {
+            segments = Math.ceil(charCount / 67);
+        }
+    }
+    
+    document.getElementById('charCount').textContent = charCount;
+    document.getElementById('encodingType').textContent = encoding;
+    document.getElementById('smsPartCount').textContent = segments;
+    
+    var unicodeWarning = document.getElementById('unicodeWarning');
+    if (!isGsm && charCount > 0) {
+        unicodeWarning.classList.remove('d-none');
+    } else {
+        unicodeWarning.classList.add('d-none');
+    }
+}
+
+function toggleEmojiPicker() {
+    var picker = document.getElementById('emojiPickerContainer');
+    picker.classList.toggle('d-none');
+}
+
+function insertEmoji(emoji) {
+    var textarea = document.getElementById('replyMessage');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    textarea.value = text.substring(0, start) + emoji + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+    textarea.focus();
+    updateCharCount();
+    document.getElementById('emojiPickerContainer').classList.add('d-none');
+}
+
+function applyTemplate() {
+    var select = document.getElementById('templateSelector');
+    var option = select.options[select.selectedIndex];
+    if (option && option.dataset.content) {
+        document.getElementById('replyMessage').value = option.dataset.content.replace(/\\'/g, "'");
+        updateCharCount();
+    }
+}
+
+function openAiAssistant() {
+    showComingSoon('AI Assistant');
+}
+
+function openPersonalisationModal() {
+    showComingSoon('Personalisation Fields');
 }
 
 function filterConversations() {
