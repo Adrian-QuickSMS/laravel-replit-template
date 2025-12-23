@@ -28,6 +28,15 @@ Feature specifications include:
 
 The system uses an SQLite database for development, with a clear separation between UI implementation and planned backend API integrations.
 
+## Inbox / Conversation Workspace
+The Messages Inbox provides a three-panel conversation workspace at `/messages/inbox`:
+- **Conversation List (Left):** Scrollable list of conversations with search, filter (All/Unread/SMS/RCS), sort (Newest/Oldest/A-Z/Z-A), unread badges, and channel indicators
+- **Chat Pane (Center):** Message history with inbound (gray, left-aligned) and outbound (purple, right-aligned) bubbles, timestamps, and delivery indicators
+- **Contact Info (Right):** Shows existing contact details (tags, lists, notes) or "Add to Contacts" onboarding for unknown numbers
+- **Reply Composer:** SMS/RCS channel toggle, Sender ID/Agent selection, template picker, personalization fields, character/segment counter with GSM-7/Unicode detection
+- **Mock Data:** 6 sample conversations including various scenarios (order inquiries, opt-outs, appointments, feedback)
+- **GDPR Compliance:** Phone numbers are masked (+44 77** ***111), message previews use placeholders only (@{{firstName}}, @{{orderNumber}})
+
 ## RCS Preview System
 The application includes a schema-driven RCS message preview renderer at `/rcs/preview-demo`:
 - **Phone Frame:** Android-style phone UI with status bar, agent header (logo, verified badge, name, tagline), chat area, and input bar
