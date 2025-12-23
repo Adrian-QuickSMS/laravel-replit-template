@@ -374,6 +374,53 @@
                 </div>
             </div>
 
+            <div class="card mb-3" id="engagementMetricsCard" style="display: none;">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-mouse-pointer me-2"></i>Engagement Metrics</h6>
+                    
+                    <div id="trackingMetrics" style="display: none;">
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted mb-1">Total Clicks</div>
+                                    <div class="fs-5 fw-bold text-primary" id="metricTotalClicks">-</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted mb-1">Unique Clicks</div>
+                                    <div class="fs-5 fw-bold text-info" id="metricUniqueClicks">-</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted mb-1">CTR</div>
+                                    <div class="fs-5 fw-bold text-success" id="metricCtr">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="rcsSeenMetrics" style="display: none;">
+                        <div class="border rounded p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-eye text-primary me-2"></i>
+                                    <span class="small">RCS Seen Rate</span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="fs-5 fw-bold text-primary" id="metricSeenPercent">-</span>
+                                    <div class="small text-muted" id="metricSeenCount">-</div>
+                                </div>
+                            </div>
+                            <div class="progress mt-2" style="height: 6px;">
+                                <div class="progress-bar bg-primary" id="metricSeenBar" role="progressbar" style="width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card bg-light border-0">
                 <div class="card-body p-3 text-center text-muted">
                     <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
@@ -679,6 +726,9 @@ function openCampaignDrawer(campaignId) {
 
     updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
     updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
+    
+    var hasTracking = row.dataset.hasTracking === 'yes';
+    updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
 
     campaignDrawer.show();
 }
@@ -757,6 +807,53 @@ function updateChannelSplit(channel, status, total, delivered) {
     
     document.getElementById('channelBarSms').style.width = smsPct + '%';
     document.getElementById('channelBarRcs').style.width = rcsPct + '%';
+}
+
+function updateEngagementMetrics(channel, status, total, delivered, hasTracking) {
+    var engagementCard = document.getElementById('engagementMetricsCard');
+    var trackingMetrics = document.getElementById('trackingMetrics');
+    var rcsSeenMetrics = document.getElementById('rcsSeenMetrics');
+    
+    var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
+    var showSection = (hasTracking || isRcs) && status !== 'scheduled';
+    
+    if (!showSection) {
+        engagementCard.style.display = 'none';
+        return;
+    }
+    engagementCard.style.display = '';
+    
+    var deliveredCount = delivered !== null ? delivered : total;
+    
+    // TODO: Replace with real tracking data from backend
+    if (hasTracking) {
+        trackingMetrics.style.display = '';
+        
+        var uniqueClicks = Math.floor(deliveredCount * 0.12);
+        var totalClicks = Math.floor(uniqueClicks * 1.4);
+        var ctr = deliveredCount > 0 ? (uniqueClicks / deliveredCount * 100) : 0;
+        
+        document.getElementById('metricTotalClicks').textContent = totalClicks.toLocaleString();
+        document.getElementById('metricUniqueClicks').textContent = uniqueClicks.toLocaleString();
+        document.getElementById('metricCtr').textContent = ctr.toFixed(1) + '%';
+    } else {
+        trackingMetrics.style.display = 'none';
+    }
+    
+    // TODO: Replace with real RCS read receipts from backend
+    if (isRcs) {
+        rcsSeenMetrics.style.display = '';
+        
+        var rcsDelivered = Math.floor(deliveredCount * 0.85);
+        var seenCount = Math.floor(rcsDelivered * 0.72);
+        var seenPct = rcsDelivered > 0 ? (seenCount / rcsDelivered * 100) : 0;
+        
+        document.getElementById('metricSeenPercent').textContent = seenPct.toFixed(1) + '%';
+        document.getElementById('metricSeenCount').textContent = seenCount.toLocaleString() + ' of ' + rcsDelivered.toLocaleString() + ' RCS';
+        document.getElementById('metricSeenBar').style.width = seenPct + '%';
+    } else {
+        rcsSeenMetrics.style.display = 'none';
+    }
 }
 
 function formatDate(dateStr) {
