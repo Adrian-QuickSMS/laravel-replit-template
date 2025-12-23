@@ -2,6 +2,17 @@
 
 @section('title', 'Campaign History')
 
+@push('styles')
+<style>
+#campaignsTable tbody tr {
+    cursor: pointer;
+}
+#campaignsTable tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.05);
+}
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row page-titles">
@@ -35,7 +46,14 @@
                             </thead>
                             <tbody>
                                 @forelse($campaigns as $campaign)
-                                <tr>
+                                <tr onclick="openCampaignDrawer('{{ $campaign['id'] }}')" 
+                                    data-id="{{ $campaign['id'] }}"
+                                    data-name="{{ $campaign['name'] }}"
+                                    data-channel="{{ $campaign['channel'] }}"
+                                    data-status="{{ $campaign['status'] }}"
+                                    data-recipients-total="{{ $campaign['recipients_total'] }}"
+                                    data-recipients-delivered="{{ $campaign['recipients_delivered'] ?? '' }}"
+                                    data-send-date="{{ $campaign['send_date'] }}">
                                     <td class="fw-medium">{{ $campaign['name'] }}</td>
                                     <td>
                                         @if($campaign['channel'] === 'sms_only')
@@ -88,4 +106,120 @@
         </div>
     </div>
 </div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="campaignDrawer" style="width: 450px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title">Campaign Overview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="mb-4">
+            <h4 id="drawerCampaignName" class="mb-3">-</h4>
+            <div class="d-flex gap-2 mb-3">
+                <span id="drawerChannelBadge" class="badge bg-secondary">-</span>
+                <span id="drawerStatusBadge" class="badge bg-secondary">-</span>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body p-3">
+                <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Campaign Details</h6>
+                <div class="row mb-2">
+                    <div class="col-5 text-muted">Campaign ID</div>
+                    <div class="col-7" id="drawerCampaignId">-</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 text-muted">Send Date</div>
+                    <div class="col-7" id="drawerSendDate">-</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-5 text-muted">Total Recipients</div>
+                    <div class="col-7" id="drawerRecipientsTotal">-</div>
+                </div>
+                <div class="row" id="drawerDeliveredRow">
+                    <div class="col-5 text-muted">Delivered</div>
+                    <div class="col-7" id="drawerRecipientsDelivered">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-light border-0">
+            <div class="card-body p-3 text-center text-muted">
+                <i class="fas fa-chart-bar fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0 small">Delivery analytics and cost breakdown coming soon</p>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+var campaignDrawer = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    campaignDrawer = new bootstrap.Offcanvas(document.getElementById('campaignDrawer'));
+});
+
+function openCampaignDrawer(campaignId) {
+    var row = document.querySelector('tr[data-id="' + campaignId + '"]');
+    if (!row) return;
+
+    var name = row.dataset.name;
+    var channel = row.dataset.channel;
+    var status = row.dataset.status;
+    var recipientsTotal = row.dataset.recipientsTotal;
+    var recipientsDelivered = row.dataset.recipientsDelivered;
+    var sendDate = row.dataset.sendDate;
+
+    document.getElementById('drawerCampaignName').textContent = name;
+    document.getElementById('drawerCampaignId').textContent = campaignId;
+    document.getElementById('drawerSendDate').textContent = formatDate(sendDate);
+    document.getElementById('drawerRecipientsTotal').textContent = Number(recipientsTotal).toLocaleString();
+
+    var channelBadge = document.getElementById('drawerChannelBadge');
+    if (channel === 'sms_only') {
+        channelBadge.className = 'badge bg-secondary';
+        channelBadge.textContent = 'SMS';
+    } else if (channel === 'basic_rcs') {
+        channelBadge.className = 'badge bg-success';
+        channelBadge.textContent = 'Basic RCS';
+    } else {
+        channelBadge.className = 'badge bg-primary';
+        channelBadge.textContent = 'Rich RCS';
+    }
+
+    var statusBadge = document.getElementById('drawerStatusBadge');
+    if (status === 'scheduled') {
+        statusBadge.className = 'badge bg-info';
+        statusBadge.textContent = 'Scheduled';
+    } else if (status === 'sending') {
+        statusBadge.className = 'badge bg-warning text-dark';
+        statusBadge.textContent = 'Sending';
+    } else {
+        statusBadge.className = 'badge bg-success';
+        statusBadge.textContent = 'Complete';
+    }
+
+    var deliveredRow = document.getElementById('drawerDeliveredRow');
+    if (recipientsDelivered) {
+        deliveredRow.style.display = '';
+        document.getElementById('drawerRecipientsDelivered').textContent = Number(recipientsDelivered).toLocaleString();
+    } else {
+        deliveredRow.style.display = 'none';
+    }
+
+    campaignDrawer.show();
+}
+
+function formatDate(dateStr) {
+    var date = new Date(dateStr);
+    var day = String(date.getDate()).padStart(2, '0');
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var year = date.getFullYear();
+    var hours = String(date.getHours()).padStart(2, '0');
+    var minutes = String(date.getMinutes()).padStart(2, '0');
+    return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+}
+</script>
+@endpush
