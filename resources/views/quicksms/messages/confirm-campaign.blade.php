@@ -16,11 +16,8 @@
     <div class="row align-items-start">
         <div class="col-xl-8 col-lg-10">
             <div class="card mb-3">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-3">
                     <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2 text-primary"></i>Campaign Summary</h4>
-                    <a href="{{ route('messages.send') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-edit me-1"></i>Edit
-                    </a>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-2">
@@ -57,11 +54,8 @@
             </div>
 
             <div class="card mb-3">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-3">
                     <h4 class="card-title mb-0"><i class="fas fa-broadcast-tower me-2 text-info"></i>Channel & Delivery</h4>
-                    <a href="{{ route('messages.send') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-edit me-1"></i>Edit
-                    </a>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-2">
@@ -108,11 +102,8 @@
             </div>
 
             <div class="card mb-3">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-3">
                     <h4 class="card-title mb-0"><i class="fas fa-users me-2 text-success"></i>Recipients</h4>
-                    <a href="{{ route('messages.send') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-edit me-1"></i>Edit
-                    </a>
                 </div>
                 <div class="card-body p-4">
                     <div class="row text-center mb-3">
