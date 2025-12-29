@@ -5,86 +5,17 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-/* Inbox page container - fills available space */
-.inbox-page-container {
-    height: calc(100vh - 120px) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-}
-.inbox-page-container > .row {
-    flex: 1 !important;
-    margin: 0 !important;
-}
-.inbox-page-container > .row > .col-12 {
-    padding: 0 !important;
-}
-.inbox-page-container .card {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-    margin-bottom: 0 !important;
-    height: 100% !important;
-}
-.inbox-page-container .card > .card-body {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: row !important;
-    overflow: hidden !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-    height: 100% !important;
-}
-.inbox-row {
-    display: flex !important;
-    flex-direction: row !important;
-    height: 100%;
-}
-.chat-left-body {
-    width: 340px !important;
-    min-width: 340px !important;
-    max-width: 340px !important;
-    flex-shrink: 0 !important;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-right: 1px solid #e9ecef;
-}
-.chat-sidebar {
-    flex: 1;
-    overflow-y: auto;
-}
-.chat-pane-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1 !important;
-    min-width: 0;
-    height: 100%;
-    overflow: hidden;
-}
-.inbox-left-column {
-    width: 340px;
-    min-width: 340px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-right: 1px solid #e9ecef;
-    overflow: hidden;
-}
+/* Inbox uses Fillow's standard chat viewport height pattern */
 .inbox-left-column .chat-sidebar {
-    flex: 1;
+    height: calc(80vh - 200px);
     overflow-y: auto;
-    min-height: 0;
 }
+
+/* Center pane - flex layout to pin composer at bottom */
 .inbox-chat-pane {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    height: 100%;
-    overflow: hidden;
+    height: calc(80vh - 100px);
 }
 .inbox-chat-pane .chat-box-area {
     flex: 1;
@@ -94,20 +25,13 @@
 }
 .inbox-chat-pane #replyComposerCard {
     flex-shrink: 0;
-    z-index: 10;
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-    background: white;
     border-top: 1px solid #e9ecef;
 }
+
+/* Right sidebar - contact details */
 .inbox-contact-sidebar {
-    width: 280px;
-    flex-shrink: 0;
-    border-left: 1px solid #e9ecef;
+    height: calc(80vh - 150px);
     overflow-y: auto;
-    height: 100%;
 }
 .chat-bx {
     cursor: pointer;
@@ -165,13 +89,17 @@
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-left-radius: 0.25rem;
-    max-width: 65%;
+    max-width: 70%;
+    min-width: 100px;
+    display: inline-block;
 }
 .message-sent {
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-right-radius: 0.25rem;
-    max-width: 65%;
+    max-width: 70%;
+    min-width: 100px;
+    display: inline-block;
 }
 .message-sent small {
     color: rgba(255,255,255,0.8);
@@ -294,11 +222,11 @@
 @endpush
 
 @section('content')
-<div class="container-fluid inbox-page-container">
-    <div class="row h-100">
-        <div class="col-12 h-100">
-            <div class="card h-100">
-                <div class="card-body d-flex flex-nowrap p-0">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-3 col-lg-4">
+            <div class="card">
+                <div class="card-body p-0">
                     <div class="inbox-left-column">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
@@ -383,7 +311,12 @@
                             @endforelse
                         </div>
                     </div>
-                    
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-lg-5">
+            <div class="card">
+                <div class="card-body p-0">
                     <div class="inbox-chat-pane" id="chatPaneWrapper">
                             <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                                 <div class="d-flex align-items-center">
@@ -602,8 +535,13 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="inbox-contact-sidebar p-3" id="contactSidebar">
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3">
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="inbox-contact-sidebar" id="contactSidebar">
                             <div class="mb-3">
                                 <h6 class="mb-0">Contact Details</h6>
                             </div>
