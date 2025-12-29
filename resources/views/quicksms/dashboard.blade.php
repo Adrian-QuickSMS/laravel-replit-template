@@ -277,10 +277,11 @@
                         <p class="text-muted small mb-3">Send a test RCS message to your mobile to see it in action.</p>
                         <div class="row g-2 align-items-end">
                             <div class="col">
-                                <label class="form-label small mb-1">Mobile Number</label>
-                                <div class="input-group">
+                                <label class="form-label small mb-1">UK Mobile Number</label>
+                                <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                    <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000">
+                                    <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000" aria-describedby="testRcsFeedback">
+                                    <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number (e.g., +44 7700 900000 or 07700 900000)</div>
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -291,10 +292,10 @@
                         </div>
                         <div class="mt-3 d-none" id="testRcsResult">
                             <div class="alert alert-success mb-0 py-2" id="testRcsSuccess">
-                                <i class="fas fa-check-circle me-2"></i>Test message sent successfully!
+                                <i class="fas fa-check-circle me-2"></i><span id="testRcsSuccessMessage">Test message sent successfully!</span>
                             </div>
                             <div class="alert alert-danger mb-0 py-2 d-none" id="testRcsFail">
-                                <i class="fas fa-times-circle me-2"></i>Failed to send test message. Please try again.
+                                <i class="fas fa-times-circle me-2"></i><span id="testRcsFailMessage">Failed to send test message. Please try again.</span>
                             </div>
                         </div>
                     </div>
@@ -952,43 +953,169 @@ document.addEventListener('DOMContentLoaded', function() {
     window.renderTrafficChart = renderTrafficChart;
 });
 
+/**
+ * Validates UK mobile number format
+ * Accepts: +44 7xxx, 07xxx, 447xxx formats with various spacing/formatting
+ * @param {string} mobile - The mobile number to validate
+ * @returns {object} - { valid: boolean, normalized: string, error: string }
+ */
+function validateUKMobile(mobile) {
+    if (!mobile || typeof mobile !== 'string') {
+        return { valid: false, normalized: null, error: 'Mobile number is required' };
+    }
+    
+    // Remove all spaces, dashes, parentheses
+    var cleaned = mobile.replace(/[\s\-\(\)\.]/g, '');
+    
+    // UK mobile patterns:
+    // +447xxxxxxxxx (13 chars)
+    // 447xxxxxxxxx (12 chars)
+    // 07xxxxxxxxx (11 chars)
+    
+    var patterns = [
+        /^\+44(7\d{9})$/,      // +447xxxxxxxxx
+        /^44(7\d{9})$/,        // 447xxxxxxxxx
+        /^0(7\d{9})$/          // 07xxxxxxxxx
+    ];
+    
+    for (var i = 0; i < patterns.length; i++) {
+        var match = cleaned.match(patterns[i]);
+        if (match) {
+            // Normalize to +44 format
+            return { 
+                valid: true, 
+                normalized: '+44' + match[1],
+                error: null 
+            };
+        }
+    }
+    
+    return { 
+        valid: false, 
+        normalized: null, 
+        error: 'Please enter a valid UK mobile number (e.g., +44 7700 900000 or 07700 900000)' 
+    };
+}
+
 function sendTestRcs() {
     var mobileInput = document.getElementById('testRcsMobile');
+    var feedbackEl = document.getElementById('testRcsFeedback');
     var resultDiv = document.getElementById('testRcsResult');
     var successDiv = document.getElementById('testRcsSuccess');
     var failDiv = document.getElementById('testRcsFail');
+    var successMsgEl = document.getElementById('testRcsSuccessMessage');
+    var failMsgEl = document.getElementById('testRcsFailMessage');
     var btn = document.getElementById('btnSendTestRcs');
     
     var mobile = mobileInput.value.trim();
     
-    if (!mobile) {
+    // Hide previous results
+    resultDiv.classList.add('d-none');
+    successDiv.classList.add('d-none');
+    failDiv.classList.add('d-none');
+    
+    // Validate UK mobile format
+    var validation = validateUKMobile(mobile);
+    
+    if (!validation.valid) {
         mobileInput.classList.add('is-invalid');
+        if (feedbackEl) {
+            feedbackEl.textContent = validation.error;
+        }
         return;
     }
     
+    // Clear validation state
     mobileInput.classList.remove('is-invalid');
+    mobileInput.classList.add('is-valid');
+    
+    // Show sending state
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
     
-    // TODO: Replace with actual API call
-    // POST /api/rcs/test { mobile: mobile }
+    // Prepare payload for API
+    var payload = {
+        mobile: validation.normalized,  // Normalized UK format: +447xxxxxxxxx
+        messageType: 'rcs_test',
+        timestamp: new Date().toISOString(),
+        // TODO: Add user/session context when available
+        // userId: getCurrentUserId(),
+        // sessionId: getSessionId()
+    };
+    
+    console.log('[Test RCS] Sending test message:', payload);
+    
+    // TODO: Replace setTimeout with actual API call
+    // Example API integration:
+    // fetch('/api/rcs/send-test', {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    //     },
+    //     body: JSON.stringify(payload)
+    // })
+    // .then(response => response.json())
+    // .then(data => handleTestRcsResponse(data))
+    // .catch(error => handleTestRcsError(error));
+    
+    // Simulated API call (remove when backend is ready)
     setTimeout(function() {
-        resultDiv.classList.remove('d-none');
+        // Simulate API response
+        var mockResponse = {
+            success: Math.random() > 0.2,  // 80% success rate for demo
+            messageId: 'msg_' + Date.now(),
+            mobile: validation.normalized,
+            error: null
+        };
         
-        // Placeholder: randomly show success or fail for demo
-        var isSuccess = Math.random() > 0.3;
-        
-        if (isSuccess) {
-            successDiv.classList.remove('d-none');
-            failDiv.classList.add('d-none');
-        } else {
-            successDiv.classList.add('d-none');
-            failDiv.classList.remove('d-none');
+        if (!mockResponse.success) {
+            mockResponse.error = 'RCS not available for this number. SMS fallback not enabled.';
         }
         
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send Test';
+        handleTestRcsResponse(mockResponse);
     }, 1500);
+}
+
+function handleTestRcsResponse(response) {
+    var resultDiv = document.getElementById('testRcsResult');
+    var successDiv = document.getElementById('testRcsSuccess');
+    var failDiv = document.getElementById('testRcsFail');
+    var successMsgEl = document.getElementById('testRcsSuccessMessage');
+    var failMsgEl = document.getElementById('testRcsFailMessage');
+    var btn = document.getElementById('btnSendTestRcs');
+    var mobileInput = document.getElementById('testRcsMobile');
+    
+    resultDiv.classList.remove('d-none');
+    
+    if (response.success) {
+        // Success state
+        successDiv.classList.remove('d-none');
+        failDiv.classList.add('d-none');
+        successMsgEl.textContent = 'Test message sent to ' + response.mobile + '. Check your phone!';
+        mobileInput.classList.remove('is-valid');
+        console.log('[Test RCS] Success:', response);
+    } else {
+        // Failure state
+        successDiv.classList.add('d-none');
+        failDiv.classList.remove('d-none');
+        failMsgEl.textContent = response.error || 'Failed to send test message. Please try again.';
+        mobileInput.classList.remove('is-valid');
+        console.error('[Test RCS] Failed:', response);
+    }
+    
+    // Reset button
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send Test';
+}
+
+// TODO: Add error handler for network/API errors
+function handleTestRcsError(error) {
+    console.error('[Test RCS] Network error:', error);
+    handleTestRcsResponse({
+        success: false,
+        error: 'Network error. Please check your connection and try again.'
+    });
 }
 
 function calculateSavings() {
