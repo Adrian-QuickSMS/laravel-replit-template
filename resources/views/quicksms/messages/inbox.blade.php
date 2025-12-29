@@ -110,15 +110,13 @@
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-left-radius: 0.25rem;
-    max-width: 75%;
-    min-width: 120px;
+    max-width: 65%;
 }
 .message-sent {
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-right-radius: 0.25rem;
-    max-width: 75%;
-    min-width: 120px;
+    max-width: 65%;
 }
 .message-sent small {
     color: rgba(255,255,255,0.8);
@@ -297,25 +295,26 @@
                                      data-source="{{ $conversation['source'] ?? '' }}"
                                      data-source-type="{{ $conversation['source_type'] ?? 'vmn' }}"
                                      data-unread="{{ $conversation['unread'] ? '1' : '0' }}"
+                                     data-timestamp="{{ $conversation['timestamp'] ?? 0 }}"
                                      data-contact-id="{{ $conversation['contact_id'] ?? '' }}"
                                      onclick="selectConversation('{{ $conversation['id'] }}')">
-                                    <div class="chat-img me-3">
+                                    <div class="chat-img me-2">
                                         {{ $conversation['initials'] }}
                                     </div>
-                                    <div class="w-100">
-                                        <div class="d-flex mb-1 align-items-center justify-content-between">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <h6 class="mb-0 chat-name">{{ $conversation['name'] }}</h6>
-                                                <span class="badge rounded-pill channel-pill-{{ $conversation['channel'] }}">{{ strtoupper($conversation['channel']) }}</span>
+                                    <div class="flex-grow-1 min-width-0">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <div class="d-flex align-items-center" style="gap: 6px;">
+                                                <span class="chat-name fw-medium text-truncate" style="font-size: 14px; max-width: 120px;">{{ $conversation['name'] }}</span>
+                                                <span class="badge rounded-pill channel-pill-{{ $conversation['channel'] }}" style="font-size: 10px; padding: 3px 8px;">{{ strtoupper($conversation['channel']) }}</span>
                                             </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <small class="text-muted">{{ $conversation['last_message_time'] }}</small>
+                                            <div class="d-flex align-items-center" style="gap: 6px;">
+                                                <small class="text-muted" style="font-size: 11px; white-space: nowrap;">{{ $conversation['last_message_time'] }}</small>
                                                 @if($conversation['unread'])
-                                                <span class="badge bg-primary rounded-pill" style="font-size: 10px;">{{ $conversation['unread_count'] }}</span>
+                                                <span class="badge bg-primary rounded-pill" style="font-size: 9px; padding: 3px 6px; min-width: 18px;">{{ $conversation['unread_count'] }}</span>
                                                 @endif
                                             </div>
                                         </div>
-                                        <p class="mb-0 text-muted lh-base" style="font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $conversation['last_message'] }}</p>
+                                        <p class="mb-0 text-muted text-truncate" style="font-size: 13px;">{{ $conversation['last_message'] }}</p>
                                         @if(!$conversation['contact_id'])
                                         <span class="waiting-badge mt-1 d-inline-block">Waiting for reply</span>
                                         @endif
@@ -1483,7 +1482,13 @@ function filterConversations() {
     var filterVal = document.getElementById('filterConversations').value;
     var sourceVal = document.getElementById('filterSource').value;
     
+    console.log('[Filter] Applying filters - Search:', searchTerm, 'Filter:', filterVal, 'Source:', sourceVal);
+    
+    var visibleCount = 0;
+    var totalCount = 0;
+    
     document.querySelectorAll('.chat-bx').forEach(function(el) {
+        totalCount++;
         var name = el.querySelector('.chat-name').textContent.toLowerCase();
         var channel = el.dataset.channel;
         var source = el.dataset.source || '';
@@ -1496,8 +1501,12 @@ function filterConversations() {
             (filterVal === 'rcs' && channel === 'rcs');
         var matchesSource = sourceVal === 'all' || source === sourceVal;
         
-        el.style.display = (matchesSearch && matchesFilter && matchesSource) ? '' : 'none';
+        var isVisible = matchesSearch && matchesFilter && matchesSource;
+        el.style.display = isVisible ? '' : 'none';
+        if (isVisible) visibleCount++;
     });
+    
+    console.log('[Filter] Showing', visibleCount, 'of', totalCount, 'conversations');
 }
 
 function sortConversations() {
@@ -1505,8 +1514,18 @@ function sortConversations() {
     var container = document.getElementById('conversationList');
     var items = Array.from(container.querySelectorAll('.chat-bx'));
     
+    console.log('[Sort] Sorting conversations by:', sortVal);
+    
     items.sort(function(a, b) {
-        if (sortVal === 'alphabetical') {
+        if (sortVal === 'newest') {
+            var tsA = parseInt(a.dataset.timestamp) || 0;
+            var tsB = parseInt(b.dataset.timestamp) || 0;
+            return tsB - tsA;
+        } else if (sortVal === 'oldest') {
+            var tsA = parseInt(a.dataset.timestamp) || 0;
+            var tsB = parseInt(b.dataset.timestamp) || 0;
+            return tsA - tsB;
+        } else if (sortVal === 'alphabetical') {
             return a.querySelector('.chat-name').textContent.localeCompare(b.querySelector('.chat-name').textContent);
         } else if (sortVal === 'unread') {
             return (b.dataset.unread === '1' ? 1 : 0) - (a.dataset.unread === '1' ? 1 : 0);
@@ -1517,6 +1536,8 @@ function sortConversations() {
     items.forEach(function(item) {
         container.appendChild(item);
     });
+    
+    console.log('[Sort] Sorted', items.length, 'conversations');
 }
 
 function toggleChatSearch() {
