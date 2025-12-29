@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
 .inbox-main-container {
-    height: calc(100vh - 120px);
+    height: calc(100vh - 80px);
     overflow: hidden;
 }
 .inbox-row {
@@ -34,19 +34,14 @@
     flex: 1 !important;
     min-width: 0;
     height: 100%;
-    overflow: hidden;
+    overflow-y: auto;
 }
 .chat-box-area {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 1 auto;
     padding: 1rem;
-    padding-bottom: 280px;
-    min-height: 0;
+    min-height: 200px;
 }
 #replyComposerCard {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
     flex-shrink: 0;
     border-radius: 0;
     border-left: 0;
@@ -442,10 +437,10 @@
                             </div>
                             
                             <div class="card border-top" id="replyComposerCard">
-                                <div class="card-body p-3">
-                                    <div class="row mb-3">
-                                        <div class="col-12 mb-2">
-                                            <label class="form-label small fw-bold mb-2">Channel & Sender</label>
+                                <div class="card-body p-2">
+                                    <div class="row mb-2">
+                                        <div class="col-12 mb-1">
+                                            <label class="form-label small fw-bold mb-1">Channel & Sender</label>
                                             <div class="btn-group w-100" role="group">
                                                 <input type="radio" class="btn-check" name="replyChannel" id="replySms" value="sms" checked>
                                                 <label class="btn btn-outline-primary" for="replySms"><i class="fas fa-sms me-1"></i>SMS only</label>
@@ -505,7 +500,7 @@
                                     
                                     <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
                                     <div class="position-relative border rounded mb-2">
-                                        <textarea class="form-control border-0" id="replyMessage" rows="4" placeholder="Type your message here..." oninput="updateCharCount()" style="padding-bottom: 40px; resize: none;"></textarea>
+                                        <textarea class="form-control border-0" id="replyMessage" rows="3" placeholder="Type your message here..." oninput="updateCharCount()" style="padding-bottom: 40px; resize: none;"></textarea>
                                         <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
                                             <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
                                                 <i class="fas fa-user-tag"></i>

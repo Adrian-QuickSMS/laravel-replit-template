@@ -97,8 +97,8 @@
         </ul>
         
         <div class="copyright">
-            <p><strong>QuickSMS</strong> &copy; {{ date('Y') }} All Rights Reserved</p>
-            <p class="fs-12">Powered by Fillow</p>
+            <p><strong>QuickSMS</strong></p>
+            <p class="fs-12">&copy; {{ date('Y') }} All Rights Reserved</p>
         </div>
     </div>
 </div>
