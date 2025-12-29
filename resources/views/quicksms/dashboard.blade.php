@@ -15,110 +15,135 @@
             <h4 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Operational Overview</h4>
         </div>
         <div class="row">
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                <div class="card" id="tile-credits">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-1 text-muted">Credits Balance</p>
-                                <h3 class="mb-0" id="credits-value">--</h3>
+            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('purchase') }}" class="text-decoration-none">
+                    <div class="card dashboard-tile h-100" id="tile-balance">
+                        <div class="card-body p-3">
+                            <div class="tile-loading d-none">
+                                <div class="skeleton-shimmer mb-2" style="height: 14px; width: 60%;"></div>
+                                <div class="skeleton-shimmer" style="height: 28px; width: 80%;"></div>
                             </div>
-                            <div class="icon-box bg-primary-light rounded-circle">
-                                <i class="fas fa-coins text-primary fa-lg"></i>
+                            <div class="tile-error d-none">
+                                <div class="text-center text-danger">
+                                    <i class="fas fa-exclamation-triangle mb-1"></i>
+                                    <p class="mb-0 small">Error loading</p>
+                                </div>
+                            </div>
+                            <div class="tile-content">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="text-muted small">Balance</span>
+                                    <div class="icon-box-sm bg-primary-light rounded-circle">
+                                        <i class="fas fa-sterling-sign text-primary"></i>
+                                    </div>
+                                </div>
+                                <h3 class="mb-0 tile-value" id="balance-value">£0.00</h3>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-muted small" id="credits-subtext">Loading...</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('messages.inbox') }}?filter=waiting" class="text-decoration-none">
+                    <div class="card dashboard-tile h-100" id="tile-inbound">
+                        <div class="card-body p-3">
+                            <div class="tile-loading d-none">
+                                <div class="skeleton-shimmer mb-2" style="height: 14px; width: 80%;"></div>
+                                <div class="skeleton-shimmer" style="height: 28px; width: 50%;"></div>
+                            </div>
+                            <div class="tile-error d-none">
+                                <div class="text-center text-danger">
+                                    <i class="fas fa-exclamation-triangle mb-1"></i>
+                                    <p class="mb-0 small">Error loading</p>
+                                </div>
+                            </div>
+                            <div class="tile-content">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="text-muted small">Inbound (Unresponded)</span>
+                                    <div class="icon-box-sm bg-warning-light rounded-circle">
+                                        <i class="fas fa-inbox text-warning"></i>
+                                    </div>
+                                </div>
+                                <h3 class="mb-0 tile-value" id="inbound-value">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('messages.campaign-history') }}?date=today" class="text-decoration-none">
+                    <div class="card dashboard-tile h-100" id="tile-messages-today">
+                        <div class="card-body p-3">
+                            <div class="tile-loading d-none">
+                                <div class="skeleton-shimmer mb-2" style="height: 14px; width: 90%;"></div>
+                                <div class="skeleton-shimmer" style="height: 28px; width: 40%;"></div>
+                            </div>
+                            <div class="tile-error d-none">
+                                <div class="text-center text-danger">
+                                    <i class="fas fa-exclamation-triangle mb-1"></i>
+                                    <p class="mb-0 small">Error loading</p>
+                                </div>
+                            </div>
+                            <div class="tile-content">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="text-muted small">Messages Sent Today</span>
+                                    <div class="icon-box-sm bg-success-light rounded-circle">
+                                        <i class="fas fa-paper-plane text-success"></i>
+                                    </div>
+                                </div>
+                                <h3 class="mb-0 tile-value" id="messages-today-value">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <div class="card dashboard-tile h-100" id="tile-delivery-rate">
+                    <div class="card-body p-3">
+                        <div class="tile-loading d-none">
+                            <div class="skeleton-shimmer mb-2" style="height: 14px; width: 70%;"></div>
+                            <div class="skeleton-shimmer" style="height: 28px; width: 45%;"></div>
+                        </div>
+                        <div class="tile-error d-none">
+                            <div class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle mb-1"></i>
+                                <p class="mb-0 small">Error loading</p>
+                            </div>
+                        </div>
+                        <div class="tile-content">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="text-muted small">Delivery Rate (%)</span>
+                                <div class="icon-box-sm bg-info-light rounded-circle">
+                                    <i class="fas fa-check-double text-info"></i>
+                                </div>
+                            </div>
+                            <h3 class="mb-0 tile-value delivery-rate-value" id="delivery-rate-value" data-rate="0">0%</h3>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                <div class="card" id="tile-messages-today">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-1 text-muted">Messages Today</p>
-                                <h3 class="mb-0" id="messages-today-value">--</h3>
+            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('purchase') }}" class="text-decoration-none">
+                    <div class="card dashboard-tile dashboard-action-tile h-100" id="tile-make-payment">
+                        <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center text-center">
+                            <div class="icon-box bg-primary rounded-circle mb-2" style="width: 48px; height: 48px;">
+                                <i class="fas fa-credit-card text-white fa-lg"></i>
                             </div>
-                            <div class="icon-box bg-success-light rounded-circle">
-                                <i class="fas fa-paper-plane text-success fa-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-muted small" id="messages-today-subtext">Loading...</span>
+                            <span class="fw-medium text-dark">Make Payment</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                <div class="card" id="tile-delivery-rate">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-1 text-muted">Delivery Rate</p>
-                                <h3 class="mb-0" id="delivery-rate-value">--%</h3>
+            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('management.numbers') }}" class="text-decoration-none">
+                    <div class="card dashboard-tile dashboard-action-tile h-100" id="tile-buy-number">
+                        <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center text-center">
+                            <div class="icon-box bg-success rounded-circle mb-2" style="width: 48px; height: 48px;">
+                                <i class="fas fa-sim-card text-white fa-lg"></i>
                             </div>
-                            <div class="icon-box bg-info-light rounded-circle">
-                                <i class="fas fa-check-double text-info fa-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-muted small" id="delivery-rate-subtext">Loading...</span>
+                            <span class="fw-medium text-dark">Buy Number</span>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                <div class="card" id="tile-inbox-unread">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-1 text-muted">Inbox Unread</p>
-                                <h3 class="mb-0" id="inbox-unread-value">--</h3>
-                            </div>
-                            <div class="icon-box bg-warning-light rounded-circle">
-                                <i class="fas fa-envelope text-warning fa-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-muted small" id="inbox-unread-subtext">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-xl-8 col-lg-7">
-                <div class="card" id="tile-message-activity">
-                    <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0">Message Activity (7 Days)</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 250px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0.5rem;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-chart-area fa-3x mb-2 opacity-50"></i>
-                                <p class="mb-0">Chart placeholder</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-lg-5">
-                <div class="card" id="tile-channel-breakdown">
-                    <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0">Channel Breakdown</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 250px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0.5rem;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-chart-pie fa-3x mb-2 opacity-50"></i>
-                                <p class="mb-0">Chart placeholder</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -336,8 +361,15 @@
     align-items: center;
     justify-content: center;
 }
+.icon-box-sm {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .bg-primary-light {
-    background-color: rgba(var(--primary-rgb, 124, 93, 250), 0.1);
+    background-color: rgba(136, 108, 192, 0.1);
 }
 .bg-success-light {
     background-color: rgba(40, 167, 69, 0.1);
@@ -348,16 +380,134 @@
 .bg-warning-light {
     background-color: rgba(255, 193, 7, 0.1);
 }
+.bg-danger-light {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.dashboard-tile {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+.dashboard-tile:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+.dashboard-action-tile {
+    min-height: 110px;
+    background: linear-gradient(135deg, #fafbfc 0%, #f4f5f7 100%);
+}
+.dashboard-action-tile:hover {
+    background: linear-gradient(135deg, #f0f1f3 0%, #e8e9eb 100%);
+}
+
+.tile-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.delivery-rate-green {
+    color: #28a745 !important;
+}
+.delivery-rate-amber {
+    color: #ffc107 !important;
+}
+.delivery-rate-red {
+    color: #dc3545 !important;
+}
+
 #operationalOverview .card,
 #rcsPromotion .card,
 #supportNotifications .card {
     transition: box-shadow 0.2s ease;
 }
-#operationalOverview .card:hover,
 #rcsPromotion .card:hover,
 #supportNotifications .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateDeliveryRateColor() {
+        var rateEl = document.getElementById('delivery-rate-value');
+        if (!rateEl) return;
+        
+        var rate = parseFloat(rateEl.dataset.rate) || 0;
+        rateEl.classList.remove('delivery-rate-green', 'delivery-rate-amber', 'delivery-rate-red');
+        
+        if (rate > 95) {
+            rateEl.classList.add('delivery-rate-green');
+        } else if (rate >= 90) {
+            rateEl.classList.add('delivery-rate-amber');
+        } else {
+            rateEl.classList.add('delivery-rate-red');
+        }
+    }
+    
+    function setTileLoading(tileId, isLoading) {
+        var tile = document.getElementById(tileId);
+        if (!tile) return;
+        
+        var loadingEl = tile.querySelector('.tile-loading');
+        var contentEl = tile.querySelector('.tile-content');
+        var errorEl = tile.querySelector('.tile-error');
+        
+        if (isLoading) {
+            if (loadingEl) loadingEl.classList.remove('d-none');
+            if (contentEl) contentEl.classList.add('d-none');
+            if (errorEl) errorEl.classList.add('d-none');
+        } else {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            if (contentEl) contentEl.classList.remove('d-none');
+        }
+    }
+    
+    function setTileError(tileId, hasError) {
+        var tile = document.getElementById(tileId);
+        if (!tile) return;
+        
+        var loadingEl = tile.querySelector('.tile-loading');
+        var contentEl = tile.querySelector('.tile-content');
+        var errorEl = tile.querySelector('.tile-error');
+        
+        if (hasError) {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            if (contentEl) contentEl.classList.add('d-none');
+            if (errorEl) errorEl.classList.remove('d-none');
+        } else {
+            if (errorEl) errorEl.classList.add('d-none');
+        }
+    }
+    
+    // TODO: Replace with actual API calls to load tile data
+    // Example usage:
+    // setTileLoading('tile-balance', true);
+    // fetch('/api/balance').then(res => res.json()).then(data => {
+    //     document.getElementById('balance-value').textContent = '£' + data.balance;
+    //     setTileLoading('tile-balance', false);
+    // }).catch(() => setTileError('tile-balance', true));
+    
+    updateDeliveryRateColor();
+    
+    window.setTileLoading = setTileLoading;
+    window.setTileError = setTileError;
+    window.updateDeliveryRateColor = updateDeliveryRateColor;
+});
+</script>
 @endpush
 @endsection
