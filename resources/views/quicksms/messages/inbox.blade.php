@@ -244,7 +244,7 @@
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center">
                                     <h4 class="mb-0 me-2">Inbox</h4>
-                                    <span class="badge bg-primary-light text-primary" id="unreadBadge">{{ $unread_count }} unread</span>
+                                    <span class="badge bg-danger text-white" id="unreadBadge">{{ $unread_count }} unread</span>
                                 </div>
                             </div>
                             <div class="p-3 border-bottom">
@@ -305,7 +305,7 @@
                                             <div class="d-flex align-items-center" style="gap: 6px;">
                                                 <small class="text-muted" style="font-size: 11px; white-space: nowrap;">{{ $conversation['last_message_time'] }}</small>
                                                 @if($conversation['unread'])
-                                                <span class="badge bg-primary rounded-pill" style="font-size: 9px; padding: 3px 6px; min-width: 18px;">{{ $conversation['unread_count'] }}</span>
+                                                <span class="badge bg-danger text-white rounded-pill" style="font-size: 9px; padding: 3px 6px; min-width: 18px;">{{ $conversation['unread_count'] }}</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -1693,6 +1693,10 @@ function updateUnreadCount() {
     var countBadge = document.getElementById('unreadBadge');
     if (countBadge) {
         countBadge.textContent = unreadCount + ' unread';
+    }
+    var navBadge = document.getElementById('navInboxBadge');
+    if (navBadge) {
+        navBadge.textContent = unreadCount;
     }
 }
 
