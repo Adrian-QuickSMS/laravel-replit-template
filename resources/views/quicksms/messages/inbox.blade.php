@@ -1133,7 +1133,25 @@ document.addEventListener('DOMContentLoaded', function() {
     tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+    
+    // Set initial reply channel based on first conversation
+    if (conversationsData.length > 0) {
+        setReplyChannel(conversationsData[0].channel);
+    }
 });
+
+function setReplyChannel(channel) {
+    var smsRadio = document.getElementById('replySms');
+    var rcsBasicRadio = document.getElementById('replyRcsBasic');
+    
+    if (channel === 'rcs') {
+        rcsBasicRadio.checked = true;
+        rcsBasicRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+        smsRadio.checked = true;
+        smsRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
 
 function selectConversation(id) {
     currentConversationId = id;
@@ -1148,6 +1166,8 @@ function selectConversation(id) {
     document.getElementById('chatAvatar').textContent = conv.initials;
     document.getElementById('chatName').textContent = conv.name;
     document.getElementById('chatPhone').textContent = conv.phone_masked;
+    
+    setReplyChannel(conv.channel);
     
     var channelBadge = document.getElementById('chatChannelBadge');
     channelBadge.textContent = conv.channel.toUpperCase();
