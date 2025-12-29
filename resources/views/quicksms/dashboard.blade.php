@@ -228,37 +228,34 @@
                                 <input type="number" class="form-control form-control-sm" id="calcSmsPrice" placeholder="0.035" step="0.001" value="0.035">
                             </div>
                             <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">RCS Price (£)</label>
-                                <input type="number" class="form-control form-control-sm" id="calcRcsPrice" placeholder="0.045" step="0.001" value="0.045">
+                                <label class="form-label small mb-1">RCS Basic (£)</label>
+                                <input type="number" class="form-control form-control-sm" id="calcRcsBasicPrice" placeholder="0.040" step="0.001" value="0.040">
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small mb-1">RCS Single (£)</label>
+                                <input type="number" class="form-control form-control-sm" id="calcRcsSinglePrice" placeholder="0.055" step="0.001" value="0.055">
                             </div>
                             <div class="col-6 col-md-4">
                                 <label class="form-label small mb-1">Avg Fragments</label>
-                                <input type="number" class="form-control form-control-sm" id="calcFragments" placeholder="2" min="1" value="2">
+                                <input type="number" class="form-control form-control-sm" id="calcFragments" placeholder="1" min="1" step="0.1" value="1">
                             </div>
                             <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">RCS Penetration %</label>
-                                <input type="number" class="form-control form-control-sm" id="calcPenetration" placeholder="60" min="0" max="100" value="60">
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="form-label small mb-1">Messages</label>
-                                <input type="number" class="form-control form-control-sm" id="calcMessages" placeholder="10000" value="10000">
+                                <label class="form-label small mb-1">Penetration %</label>
+                                <input type="number" class="form-control form-control-sm" id="calcPenetration" placeholder="65" min="0" max="100" value="65">
                             </div>
                             <div class="col-6 col-md-4 d-flex align-items-end">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="calcVat">
-                                    <label class="form-check-label small" for="calcVat">Include VAT</label>
-                                </div>
+                                <small class="text-muted" id="calcModeIndicator">Mode: RCS Basic</small>
                             </div>
                         </div>
                         <hr class="my-2">
                         <div class="row g-2">
                             <div class="col-4 text-center">
-                                <p class="mb-1 text-muted small">SMS Only Cost</p>
-                                <h5 class="mb-0 text-danger" id="calcSmsOnlyCost">£0.00</h5>
+                                <p class="mb-1 text-muted small">Avg SMS Cost</p>
+                                <h5 class="mb-0 text-danger" id="calcSmsOnlyCost">£0.000</h5>
                             </div>
                             <div class="col-4 text-center">
-                                <p class="mb-1 text-muted small">Blended Cost</p>
-                                <h5 class="mb-0 text-success" id="calcBlendedCost">£0.00</h5>
+                                <p class="mb-1 text-muted small">Avg Blended Cost</p>
+                                <h5 class="mb-0 text-success" id="calcBlendedCost">£0.000</h5>
                             </div>
                             <div class="col-4 text-center">
                                 <p class="mb-1 text-muted small">You Save</p>
@@ -641,10 +638,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         resolve({
                             smsPrice: 0.035,
-                            rcsPrice: 0.045,
-                            avgFragments: 2.3,
-                            rcsPenetration: 62,
-                            vatRate: 20
+                            rcsBasicPrice: 0.040,
+                            rcsSinglePrice: 0.055,
+                            avgFragments: 1,
+                            penetration: 65
                         });
                     }
                 }, MockAPI.delay());
@@ -802,14 +799,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.smsPrice !== undefined) {
                     document.getElementById('calcSmsPrice').value = data.smsPrice;
                 }
-                if (data.rcsPrice !== undefined) {
-                    document.getElementById('calcRcsPrice').value = data.rcsPrice;
+                if (data.rcsBasicPrice !== undefined) {
+                    document.getElementById('calcRcsBasicPrice').value = data.rcsBasicPrice;
+                }
+                if (data.rcsSinglePrice !== undefined) {
+                    document.getElementById('calcRcsSinglePrice').value = data.rcsSinglePrice;
                 }
                 if (data.avgFragments !== undefined) {
                     document.getElementById('calcFragments').value = data.avgFragments;
                 }
-                if (data.rcsPenetration !== undefined) {
-                    document.getElementById('calcPenetration').value = data.rcsPenetration;
+                if (data.penetration !== undefined) {
+                    document.getElementById('calcPenetration').value = data.penetration;
                 }
                 // Trigger initial calculation
                 calculateSavings();
@@ -993,27 +993,52 @@ function sendTestRcs() {
 
 function calculateSavings() {
     var smsPrice = parseFloat(document.getElementById('calcSmsPrice').value) || 0;
-    var rcsPrice = parseFloat(document.getElementById('calcRcsPrice').value) || 0;
-    var fragments = parseFloat(document.getElementById('calcFragments').value) || 1;
-    var penetration = parseFloat(document.getElementById('calcPenetration').value) || 0;
-    var messages = parseFloat(document.getElementById('calcMessages').value) || 0;
-    var includeVat = document.getElementById('calcVat').checked;
-    var vatMultiplier = includeVat ? 1.20 : 1;
+    var rcsBasicPrice = parseFloat(document.getElementById('calcRcsBasicPrice').value) || 0;
+    var rcsSinglePrice = parseFloat(document.getElementById('calcRcsSinglePrice').value) || 0;
+    var avgFragments = parseFloat(document.getElementById('calcFragments').value) || 1;
+    var penetration = parseFloat(document.getElementById('calcPenetration').value) || 65;
     
-    // SMS only: each message costs fragments * smsPrice
-    var smsOnlyCost = messages * fragments * smsPrice * vatMultiplier;
+    // Determine which RCS pricing mode to use based on avgFragments
+    var useRcsBasic = (avgFragments <= 1);
+    var modeIndicator = document.getElementById('calcModeIndicator');
     
-    // Blended: RCS messages cost rcsPrice (1 fragment), SMS messages cost fragments * smsPrice
-    var rcsMessages = messages * (penetration / 100);
-    var smsMessages = messages - rcsMessages;
-    var blendedCost = ((rcsMessages * rcsPrice) + (smsMessages * fragments * smsPrice)) * vatMultiplier;
+    // Update mode indicator
+    if (modeIndicator) {
+        if (useRcsBasic) {
+            modeIndicator.textContent = 'Mode: RCS Basic';
+            modeIndicator.classList.remove('text-warning');
+            modeIndicator.classList.add('text-muted');
+        } else {
+            modeIndicator.textContent = 'Mode: RCS Single';
+            modeIndicator.classList.remove('text-muted');
+            modeIndicator.classList.add('text-warning');
+        }
+    }
     
-    // Calculate savings
-    var savings = smsOnlyCost > 0 ? ((smsOnlyCost - blendedCost) / smsOnlyCost) * 100 : 0;
+    // Calculate average SMS cost per message (based on fragments)
+    var avgSmsCost = smsPrice * avgFragments;
     
-    // Update display
-    document.getElementById('calcSmsOnlyCost').textContent = '£' + smsOnlyCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('calcBlendedCost').textContent = '£' + blendedCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // Calculate blended cost based on formula:
+    // If avgFragments = 1: 65% RCS Basic + 35% SMS
+    // If avgFragments > 1: 65% RCS Single + 35% (SMS * avgFragments)
+    var rcsPortion = penetration / 100;
+    var smsPortion = 1 - rcsPortion;
+    
+    var avgBlendedCost;
+    if (useRcsBasic) {
+        // avgFragments = 1: Use RCS Basic price
+        avgBlendedCost = (rcsPortion * rcsBasicPrice) + (smsPortion * smsPrice);
+    } else {
+        // avgFragments > 1: Use RCS Single price, SMS uses fragments
+        avgBlendedCost = (rcsPortion * rcsSinglePrice) + (smsPortion * smsPrice * avgFragments);
+    }
+    
+    // Calculate savings percentage
+    var savings = avgSmsCost > 0 ? ((avgSmsCost - avgBlendedCost) / avgSmsCost) * 100 : 0;
+    
+    // Update display (show 3 decimal places for per-message costs)
+    document.getElementById('calcSmsOnlyCost').textContent = '£' + avgSmsCost.toFixed(3);
+    document.getElementById('calcBlendedCost').textContent = '£' + avgBlendedCost.toFixed(3);
     document.getElementById('calcSavings').textContent = savings.toFixed(1) + '%';
     
     // Color coding for savings
