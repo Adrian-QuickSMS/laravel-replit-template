@@ -83,13 +83,13 @@
     height: 40px;
     min-width: 40px;
     border-radius: 50%;
-    background-color: #6f42c1 !important;
+    background-color: var(--primary) !important;
     color: white !important;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
 }
 .message-received {
     background-color: #f8f9fa;
@@ -101,8 +101,6 @@
     min-width: 120px;
 }
 .message-sent {
-    background: linear-gradient(135deg, var(--primary) 0%, #8a5cd8 100%);
-    color: white;
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-right-radius: 0.25rem;
@@ -117,10 +115,6 @@
     padding: 2px 6px;
     border-radius: 3px;
     font-weight: 500;
-}
-.channel-pill-sms {
-    background-color: #6c757d;
-    color: white;
 }
 .emoji-picker-container {
     position: absolute;
@@ -149,10 +143,6 @@
 }
 .emoji-item:hover {
     background-color: #f0f0f0;
-}
-.channel-pill-rcs {
-    background-color: #198754;
-    color: white;
 }
 .contact-sidebar {
     border-left: 1px solid #e9ecef;
@@ -277,7 +267,7 @@
                                     <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
                                     <input type="text" class="form-control border-start-0" id="conversationSearch" placeholder="Search conversations...">
                                 </div>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 flex-wrap">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-filter text-muted me-1" style="font-size: 11px;"></i>
                                         <select class="form-select form-select-sm border-0 bg-transparent p-0 ps-1" id="filterConversations" style="width: auto; font-size: 13px;">
@@ -287,7 +277,16 @@
                                             <option value="rcs">RCS</option>
                                         </select>
                                     </div>
-                                    <div class="d-flex align-items-center ms-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-phone-alt text-muted me-1" style="font-size: 11px;"></i>
+                                        <select class="form-select form-select-sm border-0 bg-transparent p-0 ps-1" id="filterSource" style="width: auto; font-size: 13px;">
+                                            <option value="all">All Sources</option>
+                                            <option value="vmn">VMN</option>
+                                            <option value="shortcode">Short Code</option>
+                                            <option value="rcs_agent">RCS Agent</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center">
                                         <i class="fas fa-sort text-muted me-1" style="font-size: 11px;"></i>
                                         <select class="form-select form-select-sm border-0 bg-transparent sort-dropdown" id="sortConversations" style="width: auto; font-size: 13px; min-width: 80px;">
                                             <option value="newest">Newest</option>
@@ -305,6 +304,7 @@
                                      data-id="{{ $conversation['id'] }}"
                                      data-phone="{{ $conversation['phone'] }}"
                                      data-channel="{{ $conversation['channel'] }}"
+                                     data-source-type="{{ $conversation['source_type'] ?? 'vmn' }}"
                                      data-unread="{{ $conversation['unread'] ? '1' : '0' }}"
                                      data-contact-id="{{ $conversation['contact_id'] ?? '' }}"
                                      onclick="selectConversation('{{ $conversation['id'] }}')">
@@ -351,6 +351,11 @@
                                             <span class="channel-pill channel-pill-{{ $conversations[0]['channel'] ?? 'sms' }}" id="chatChannelBadge">{{ strtoupper($conversations[0]['channel'] ?? 'SMS') }}</span>
                                         </div>
                                         <small class="text-muted" id="chatPhone">{{ $conversations[0]['phone_masked'] ?? '' }}</small>
+                                        <div class="mt-1">
+                                            <small class="text-muted" id="chatSource">
+                                                <i class="fas fa-broadcast-tower me-1"></i>From: <span id="chatSourceValue">{{ $conversations[0]['source'] ?? '60777' }}</span>
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="activity d-flex align-items-center">
@@ -436,7 +441,7 @@
                                         @else
                                         <div class="media my-3 justify-content-end align-items-end">
                                             <div class="text-end">
-                                                <div class="message-sent">
+                                                <div class="message-sent {{ $conversations[0]['channel'] ?? 'sms' }}-bubble">
                                                     <p class="mb-1">{{ $msg['content'] ?? '' }}</p>
                                                 </div>
                                                 <small class="text-muted">{{ $msg['time'] }} <i class="fas fa-check-double text-primary ms-1" style="font-size: 10px;"></i></small>
@@ -600,17 +605,23 @@
                             
                             <div id="contactExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? '' : 'd-none' }}">
                                 <div class="text-center mb-3">
-                                    <div class="chat-img mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px; background-color: #6f42c1; color: white;" id="contactAvatar">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px; font-weight: 600;" id="contactAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
                                     </div>
                                     <h6 class="mb-0" id="contactName">{{ $conversations[0]['name'] ?? '' }}</h6>
                                     <small class="text-muted" id="contactPhone">{{ $conversations[0]['phone_masked'] ?? '' }}</small>
                                 </div>
                                 
+                                <div class="d-grid gap-2 mb-3">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="openViewContactModal()">
+                                        <i class="fas fa-user me-1"></i>View Contact
+                                    </button>
+                                </div>
+                                
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <label class="form-label small fw-bold mb-0">Tags</label>
-                                        <a href="javascript:void(0);" class="small" onclick="openManageTagsModal()"><i class="fas fa-edit"></i></a>
+                                        <a href="javascript:void(0);" class="small text-primary" onclick="openManageTagsModal()"><i class="fas fa-plus"></i> Add</a>
                                     </div>
                                     <div id="contactTags">
                                         <span class="badge bg-light text-dark border me-1 mb-1">Parents</span>
@@ -621,31 +632,48 @@
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <label class="form-label small fw-bold mb-0">Lists</label>
-                                        <a href="javascript:void(0);" class="small" onclick="openManageListsModal()"><i class="fas fa-edit"></i></a>
+                                        <a href="javascript:void(0);" class="small text-primary" onclick="openManageListsModal()"><i class="fas fa-plus"></i> Add</a>
                                     </div>
                                     <div id="contactLists">
-                                        <span class="badge bg-light text-dark border me-1 mb-1">Greenhill Parents</span>
-                                        <span class="badge bg-light text-dark border me-1 mb-1">Newsletter</span>
+                                        <span class="badge bg-info text-white me-1 mb-1">Greenhill Parents</span>
+                                        <span class="badge bg-info text-white me-1 mb-1">Newsletter</span>
                                     </div>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold">Notes</label>
-                                    <p class="text-muted small mb-0" id="contactNotes">No notes added</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label small fw-bold mb-0">Notes</label>
+                                        <a href="javascript:void(0);" class="small text-primary" onclick="toggleAddNote()"><i class="fas fa-plus"></i> Add</a>
+                                    </div>
+                                    <div id="addNoteSection" class="d-none mb-2">
+                                        <textarea class="form-control form-control-sm mb-2" id="newNoteText" rows="2" placeholder="Enter note..."></textarea>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="saveNote()">
+                                                <i class="fas fa-save me-1"></i>Save
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleAddNote()">Cancel</button>
+                                        </div>
+                                    </div>
+                                    <div id="contactNotes">
+                                        <p class="text-muted small mb-0">No notes added</p>
+                                    </div>
                                 </div>
                             </div>
                             
                             <div id="contactNotExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? 'd-none' : '' }}">
                                 <div class="text-center py-3">
-                                    <div class="chat-img mx-auto mb-3" style="width: 60px; height: 60px; font-size: 20px; background-color: #6f42c1; color: white;">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; font-size: 20px;">
                                         <i class="fas fa-user"></i>
                                     </div>
                                     <p class="text-muted mb-3">This number is not in your contacts</p>
                                     <button type="button" class="btn btn-primary btn-sm mb-2 w-100" onclick="openAddContactModal()">
                                         <i class="fas fa-user-plus me-1"></i>Add to Contacts
                                     </button>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="openManageListsModal()">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2" onclick="openManageListsModal()">
                                         <i class="fas fa-list me-1"></i>Add to List
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="openManageTagsModal()">
+                                        <i class="fas fa-tags me-1"></i>Add Tag
                                     </button>
                                 </div>
                             </div>
@@ -801,11 +829,83 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="viewContactModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user me-2"></i>Contact Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center border-end">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;" id="viewContactAvatar">SM</div>
+                        <h5 class="mb-1" id="viewContactName">Sarah Mitchell</h5>
+                        <p class="text-muted mb-3" id="viewContactPhone">+44 77** ***111</p>
+                        <div class="mb-3">
+                            <span class="channel-pill channel-pill-sms" id="viewContactChannel">SMS</span>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">First Name</label>
+                                <p class="mb-0 fw-medium" id="viewContactFirstName">Sarah</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Last Name</label>
+                                <p class="mb-0 fw-medium" id="viewContactLastName">Mitchell</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Email</label>
+                                <p class="mb-0 fw-medium" id="viewContactEmail">sarah.m@email.com</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Company</label>
+                                <p class="mb-0 fw-medium" id="viewContactCompany">Greenhill School</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Tags</label>
+                            <div id="viewContactTags">
+                                <span class="badge bg-light text-dark border me-1">Parents</span>
+                                <span class="badge bg-light text-dark border me-1">School-Redwood</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Lists</label>
+                            <div id="viewContactLists">
+                                <span class="badge bg-info text-white me-1">Greenhill Parents</span>
+                                <span class="badge bg-info text-white me-1">Newsletter</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Created</label>
+                            <p class="mb-0 small" id="viewContactCreated">15 Dec 2024 at 10:30 AM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/contacts/all" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt me-1"></i>Open in Contact Book
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
+<link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
 <script>
 var conversationsData = @json($conversations);
+var viewContactModal = null;
+var currentContactNotes = [];
 var currentConversationId = '{{ $conversations[0]['id'] ?? '' }}';
 var addContactModal = null;
 var templateModal = null;
@@ -821,6 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
     comingSoonModal = new bootstrap.Modal(document.getElementById('comingSoonModal'));
     manageTagsModal = new bootstrap.Modal(document.getElementById('manageTagsModal'));
     manageListsModal = new bootstrap.Modal(document.getElementById('manageListsModal'));
+    viewContactModal = new bootstrap.Modal(document.getElementById('viewContactModal'));
     
     document.querySelectorAll('input[name="replyChannel"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -835,6 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('conversationSearch').addEventListener('input', filterConversations);
     document.getElementById('filterConversations').addEventListener('change', filterConversations);
+    document.getElementById('filterSource').addEventListener('change', filterConversations);
     document.getElementById('sortConversations').addEventListener('change', sortConversations);
     
     document.getElementById('chatSearchInput').addEventListener('input', function() {
@@ -873,8 +975,13 @@ function selectConversation(id) {
     channelBadge.textContent = conv.channel.toUpperCase();
     channelBadge.className = 'channel-pill channel-pill-' + conv.channel;
     
+    var sourceValue = document.getElementById('chatSourceValue');
+    sourceValue.textContent = conv.source || (conv.channel === 'rcs' ? 'RCS Agent' : '60777');
+    
     var chatArea = document.getElementById('chatArea');
     chatArea.innerHTML = '';
+    
+    var bubbleClass = conv.channel === 'rcs' ? 'rcs-bubble' : 'sms-bubble';
     
     conv.messages.forEach(function(msg) {
         var html = '';
@@ -900,7 +1007,7 @@ function selectConversation(id) {
                 '</div></div>';
         } else {
             html = '<div class="media my-3 justify-content-end align-items-end">' +
-                '<div class="text-end"><div class="message-sent"><p class="mb-1">' + escapeHtml(msg.content || '') + '</p></div>' +
+                '<div class="text-end"><div class="message-sent ' + bubbleClass + '"><p class="mb-1">' + escapeHtml(msg.content || '') + '</p></div>' +
                 '<small class="text-muted">' + msg.time + ' <i class="fas fa-check-double text-primary ms-1" style="font-size: 10px;"></i></small></div></div>';
         }
         chatArea.innerHTML += html;
@@ -943,6 +1050,62 @@ function saveContactLists() {
     // TODO: POST /api/contacts/{id}/lists
     manageListsModal.hide();
     alert('Lists updated successfully!');
+}
+
+function openViewContactModal() {
+    var conv = conversationsData.find(function(c) { return c.id === currentConversationId; });
+    if (!conv) return;
+    
+    document.getElementById('viewContactAvatar').textContent = conv.initials;
+    document.getElementById('viewContactName').textContent = conv.name;
+    document.getElementById('viewContactPhone').textContent = conv.phone_masked;
+    
+    var channelBadge = document.getElementById('viewContactChannel');
+    channelBadge.textContent = conv.channel.toUpperCase();
+    channelBadge.className = 'channel-pill channel-pill-' + conv.channel;
+    
+    var nameParts = conv.name.split(' ');
+    document.getElementById('viewContactFirstName').textContent = nameParts[0] || '-';
+    document.getElementById('viewContactLastName').textContent = nameParts.slice(1).join(' ') || '-';
+    
+    viewContactModal.show();
+}
+
+function toggleAddNote() {
+    var section = document.getElementById('addNoteSection');
+    section.classList.toggle('d-none');
+    if (!section.classList.contains('d-none')) {
+        document.getElementById('newNoteText').focus();
+    }
+}
+
+function saveNote() {
+    var noteText = document.getElementById('newNoteText').value.trim();
+    if (!noteText) {
+        alert('Please enter a note.');
+        return;
+    }
+    
+    var now = new Date();
+    var dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    
+    var noteHtml = '<div class="border-bottom pb-2 mb-2">' +
+        '<p class="mb-1 small">' + escapeHtml(noteText) + '</p>' +
+        '<small class="text-muted">Added by Admin on ' + dateStr + ' at ' + timeStr + '</small>' +
+        '</div>';
+    
+    var notesContainer = document.getElementById('contactNotes');
+    if (notesContainer.querySelector('p.text-muted')) {
+        notesContainer.innerHTML = noteHtml;
+    } else {
+        notesContainer.insertAdjacentHTML('afterbegin', noteHtml);
+    }
+    
+    document.getElementById('newNoteText').value = '';
+    toggleAddNote();
+    
+    // TODO: POST /api/contacts/{id}/notes
 }
 
 function toggleReplyChannel(channel) {
@@ -1070,10 +1233,12 @@ function openPersonalisationModal() {
 function filterConversations() {
     var searchTerm = document.getElementById('conversationSearch').value.toLowerCase();
     var filterVal = document.getElementById('filterConversations').value;
+    var sourceVal = document.getElementById('filterSource').value;
     
     document.querySelectorAll('.chat-bx').forEach(function(el) {
         var name = el.querySelector('.chat-name').textContent.toLowerCase();
         var channel = el.dataset.channel;
+        var sourceType = el.dataset.sourceType || 'vmn';
         var unread = el.dataset.unread === '1';
         
         var matchesSearch = name.includes(searchTerm) || searchTerm === '';
@@ -1081,8 +1246,12 @@ function filterConversations() {
             (filterVal === 'unread' && unread) ||
             (filterVal === 'sms' && channel === 'sms') ||
             (filterVal === 'rcs' && channel === 'rcs');
+        var matchesSource = sourceVal === 'all' ||
+            (sourceVal === 'vmn' && sourceType === 'vmn') ||
+            (sourceVal === 'shortcode' && sourceType === 'shortcode') ||
+            (sourceVal === 'rcs_agent' && sourceType === 'rcs_agent');
         
-        el.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+        el.style.display = (matchesSearch && matchesFilter && matchesSource) ? '' : 'none';
     });
 }
 

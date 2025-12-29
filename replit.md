@@ -30,9 +30,9 @@ The system uses an SQLite database for development, with a clear separation betw
 
 ## Inbox / Conversation Workspace
 The Messages Inbox provides a three-panel conversation workspace at `/messages/inbox`:
-- **Conversation List (Left):** Uses Fillow's `.chat-bx` class pattern with purple left border (3px) for active state, search, filter (All/Unread/SMS/RCS), sort (Newest/Oldest/A-Z/Z-A), unread badges, and channel pills (`.channel-pill-sms`, `.channel-pill-rcs`)
-- **Chat Pane (Center):** Uses Fillow's `.message-received` (gray, left-aligned) and `.message-sent` (purple gradient, right-aligned) bubble classes with timestamps and delivery indicators
-- **Contact Info (Right):** Collapsible sidebar toggled via three-dot menu, shows contact details (tags, lists, notes) or "Add to Contacts" for unknown numbers
+- **Conversation List (Left):** Uses Fillow's `.chat-bx` class pattern with purple left border (3px) for active state, search, filter (All/Unread/SMS/RCS), source filter (VMN/Short Code/RCS Agent), sort (Newest/Oldest/A-Z/Z-A), unread badges, and channel pills (`.channel-pill-sms` green #34C759, `.channel-pill-rcs` blue #007AFF)
+- **Chat Pane (Center):** Uses `.message-received` (gray, left-aligned) and channel-specific `.message-sent` bubbles (green gradient for SMS, blue gradient for RCS) with timestamps and delivery indicators. Source display in header ("From: [VMN/Short Code/RCS Agent]")
+- **Contact Info (Right):** Collapsible sidebar toggled via three-dot menu, shows contact details (tags, lists, notes) with "+ Add" links, "View Contact" button for modal preview, or "Add to Contacts" for unknown numbers. Notes section with add/save functionality and user attribution timestamps
 - **Search in Conversation:** Header search bar with previous/next navigation and highlight matching (`.search-highlight`)
 - **Reply Composer:** Redesigned as a larger card matching Send Message UI with full-width channel picker (SMS only, Basic RCS, Rich RCS), conditional sender controls (SenderID for SMS, RCS Agent for RCS), Template dropdown + "Improve with AI" button, content editor with placeholder/emoji picker, character/encoding/segment counters with GSM-7/Unicode detection
 - **RCS Rich Cards:** Inline rendering of rich card messages (`.rcs-rich-card-inbox`) with image, title, description, action button
@@ -48,6 +48,10 @@ The application includes a schema-driven RCS message preview renderer at `/rcs/p
 - **Design Tokens:** CSS variables derived from Google RCS specifications for consistent styling
 - **Alpine.js Controller:** Interactive example selector with live JSON payload display
 - **Sample Payloads:** 5 example message types demonstrating rich card and carousel variations
+
+## CSS Architecture Notes
+- **Inbox Module:** Uses `public/css/quicksms-inbox.css` loaded after Fillow styles to override message bubble colors with channel-specific gradients (SMS green, RCS blue)
+- **CSS Specificity:** Inbox overrides use `.chat-box-area .message-sent p` and `.chat-box-area .media .message-sent p` selectors to match Fillow's specificity
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

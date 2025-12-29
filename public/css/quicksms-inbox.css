@@ -1,0 +1,29 @@
+.chat-box-area .message-sent p,
+.chat-box-area .media .message-sent p {
+    background: linear-gradient(135deg, #34C759 0%, #2DB84D 100%);
+    color: white;
+    border-radius: 0.625rem;
+    border-top-right-radius: 0;
+}
+
+.chat-box-area .message-sent.sms-bubble p,
+.chat-box-area .media .message-sent.sms-bubble p {
+    background: linear-gradient(135deg, #34C759 0%, #2DB84D 100%);
+    color: white;
+}
+
+.chat-box-area .message-sent.rcs-bubble p,
+.chat-box-area .media .message-sent.rcs-bubble p {
+    background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+    color: white;
+}
+
+.channel-pill-sms {
+    background-color: #34C759;
+    color: white;
+}
+
+.channel-pill-rcs {
+    background-color: #007AFF;
+    color: white;
+}
