@@ -15,26 +15,28 @@
     height: 100%;
 }
 .chat-left-body {
-    width: 340px !important;
-    min-width: 340px !important;
-    max-width: 340px !important;
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
     flex-shrink: 0 !important;
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0;
     border-right: 1px solid #e9ecef;
 }
 .chat-sidebar {
-    flex: 1;
+    flex: 1 1 0;
     overflow-y: auto;
+    min-height: 0;
 }
 .chat-pane-wrapper {
     display: flex;
     flex-direction: column;
     flex: 1 !important;
     min-width: 0;
+    min-height: 0;
     height: 100%;
-    overflow: hidden;
 }
 .chat-box-area {
     flex: 1 1 0;
@@ -49,20 +51,17 @@
     border-right: 0;
     border-bottom: 0;
     background: white;
+    max-height: 45%;
+    overflow-y: auto;
 }
-#replyComposerCard .card-body {
-    display: flex;
-    flex-direction: column;
-    max-height: calc(50vh - 40px);
-}
-#replyComposerCard .composer-scrollable {
-    flex: 1;
+.contact-sidebar {
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+    flex-shrink: 0 !important;
     overflow-y: auto;
     min-height: 0;
-}
-#replyComposerCard .composer-footer {
-    flex-shrink: 0;
-    padding-top: 0.5rem;
+    border-left: 1px solid #e9ecef;
 }
 .chat-bx {
     cursor: pointer;
@@ -339,7 +338,7 @@
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: flex; flex-direction: column; flex: 1; min-width: 0; height: 100%; overflow: hidden;">
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper">
                             <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
@@ -453,7 +452,6 @@
                             
                             <div class="card border-top" id="replyComposerCard">
                                 <div class="card-body p-2">
-                                    <div class="composer-scrollable">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
                                             <label class="form-label small fw-bold mb-1">Channel & Sender</label>
@@ -548,9 +546,8 @@
                                             </button>
                                         </div>
                                     </div>
-                                    </div>
                                     
-                                    <div class="composer-footer d-flex justify-content-end">
+                                    <div class="d-flex justify-content-end mt-2">
                                         <button type="button" class="btn btn-primary" onclick="sendReply()">
                                             <i class="far fa-paper-plane me-1"></i>Send Message
                                         </button>
