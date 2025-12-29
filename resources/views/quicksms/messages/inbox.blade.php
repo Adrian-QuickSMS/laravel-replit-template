@@ -264,10 +264,17 @@
                                     <div class="d-flex align-items-center">
                                         <select class="form-select form-select-sm" id="filterSource" style="width: auto; font-size: 12px; padding-right: 28px;">
                                             <option value="all">All Sources</option>
-                                            <option value="60777">60777 (Short Code)</option>
-                                            <option value="+447700900100">+44 7700 900100 (VMN)</option>
-                                            <option value="QuickSMS Brand">QuickSMS Brand (RCS Agent)</option>
-                                            <option value="RetailBot">RetailBot (RCS Agent)</option>
+                                            <optgroup label="By Type">
+                                                <option value="type:vmn">All VMNs</option>
+                                                <option value="type:shortcode">All Short Codes</option>
+                                                <option value="type:rcs_agent">All RCS Agents</option>
+                                            </optgroup>
+                                            <optgroup label="Specific Sources">
+                                                <option value="source:60777">60777 (Short Code)</option>
+                                                <option value="source:+447700900100">+44 7700 900100 (VMN)</option>
+                                                <option value="source:QuickSMS Brand">QuickSMS Brand (RCS Agent)</option>
+                                                <option value="source:RetailBot">RetailBot (RCS Agent)</option>
+                                            </optgroup>
                                         </select>
                                     </div>
                                     <div class="d-flex align-items-center">
@@ -1474,11 +1481,12 @@ function insertPlaceholder(field) {
 }
 
 function filterConversations() {
+    // TODO: Replace with API call to GET /api/conversations?search=&status=&source= when backend is ready
     var searchTerm = document.getElementById('conversationSearch').value.toLowerCase();
     var filterVal = document.getElementById('filterConversations').value;
     var sourceVal = document.getElementById('filterSource').value;
     
-    console.log('[Filter] Applying filters - Search:', searchTerm, 'Filter:', filterVal, 'Source:', sourceVal);
+    console.log('[Filter] Applying filters - Search:', searchTerm, 'Status:', filterVal, 'Source:', sourceVal);
     
     var visibleCount = 0;
     var totalCount = 0;
@@ -1489,15 +1497,34 @@ function filterConversations() {
         var phone = (el.dataset.phone || '').toLowerCase();
         var channel = el.dataset.channel;
         var source = el.dataset.source || '';
+        var sourceType = el.dataset.sourceType || '';
         var unread = el.dataset.unread === '1';
         
+        // Search matches name OR phone number (case-insensitive)
         var matchesSearch = searchTerm === '' || name.includes(searchTerm) || phone.includes(searchTerm);
+        
+        // Status filter: All / Unread / SMS / RCS
         var matchesFilter = filterVal === 'all' ||
             (filterVal === 'unread' && unread) ||
             (filterVal === 'sms' && channel === 'sms') ||
             (filterVal === 'rcs' && channel === 'rcs');
-        var matchesSource = sourceVal === 'all' || source === sourceVal;
         
+        // Source filter: all, type:xxx (filter by source type), source:xxx (filter by specific source)
+        var matchesSource = false;
+        if (sourceVal === 'all') {
+            matchesSource = true;
+        } else if (sourceVal.startsWith('type:')) {
+            var filterType = sourceVal.substring(5);
+            matchesSource = sourceType === filterType;
+        } else if (sourceVal.startsWith('source:')) {
+            var filterSource = sourceVal.substring(7);
+            matchesSource = source === filterSource;
+        } else {
+            // Legacy fallback: direct source match
+            matchesSource = source === sourceVal;
+        }
+        
+        // AND logic: all filters must match
         var isVisible = matchesSearch && matchesFilter && matchesSource;
         el.style.display = isVisible ? '' : 'none';
         if (isVisible) visibleCount++;
