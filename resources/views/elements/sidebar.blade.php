@@ -184,8 +184,8 @@
 		</div>
 		
 		<div class="copyright">
-			<p><strong>Fillow Saas Admin</strong> © 2024 All Rights Reserved</p>
-			<p class="fs-12">Made with <span class="heart"></span> by DexignLab</p>
+			<p><strong>QuickSMS</strong> </p>
+			<p class="fs-12">© 2025 All Rights Reserved</p>
 		</div>
 	</div>
 </div>
