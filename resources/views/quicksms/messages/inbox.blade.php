@@ -250,11 +250,11 @@
                             <div class="p-3 border-bottom">
                                 <div class="input-group input-group-sm mb-2">
                                     <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                    <input type="text" class="form-control border-start-0" id="conversationSearch" placeholder="Search conversations...">
+                                    <input type="text" class="form-control border-start-0" id="conversationSearch" placeholder="Search conversations..." onkeyup="filterConversations()" oninput="filterConversations()">
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
                                     <div class="d-flex align-items-center">
-                                        <select class="form-select form-select-sm" id="filterConversations" style="width: auto; font-size: 12px; padding-right: 28px;">
+                                        <select class="form-select form-select-sm" id="filterConversations" style="width: auto; font-size: 12px; padding-right: 28px;" onchange="console.log('Status changed'); filterConversations();">
                                             <option value="all">All</option>
                                             <option value="unread">Unread</option>
                                             <option value="sms">SMS</option>
@@ -262,7 +262,7 @@
                                         </select>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <select class="form-select form-select-sm" id="filterSource" style="width: auto; font-size: 12px; padding-right: 28px;">
+                                        <select class="form-select form-select-sm" id="filterSource" style="width: auto; font-size: 12px; padding-right: 28px;" onchange="console.log('Source changed'); filterConversations();">
                                             <option value="all">All Sources</option>
                                             <optgroup label="By Type">
                                                 <option value="type:vmn">All VMNs</option>
@@ -1044,12 +1044,25 @@ var chatSearchIndex = 0;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] DOMContentLoaded fired');
     
-    addContactModal = new bootstrap.Modal(document.getElementById('addContactModal'));
-    templateModal = new bootstrap.Modal(document.getElementById('templateModal'));
-    comingSoonModal = new bootstrap.Modal(document.getElementById('comingSoonModal'));
-    manageTagsModal = new bootstrap.Modal(document.getElementById('manageTagsModal'));
-    manageListsModal = new bootstrap.Modal(document.getElementById('manageListsModal'));
-    viewContactModal = new bootstrap.Modal(document.getElementById('viewContactModal'));
+    // Initialize modals with error handling
+    try {
+        var addContactEl = document.getElementById('addContactModal');
+        var templateEl = document.getElementById('templateModal');
+        var comingSoonEl = document.getElementById('comingSoonModal');
+        var manageTagsEl = document.getElementById('manageTagsModal');
+        var manageListsEl = document.getElementById('manageListsModal');
+        var viewContactEl = document.getElementById('viewContactModal');
+        
+        if (addContactEl) addContactModal = new bootstrap.Modal(addContactEl);
+        if (templateEl) templateModal = new bootstrap.Modal(templateEl);
+        if (comingSoonEl) comingSoonModal = new bootstrap.Modal(comingSoonEl);
+        if (manageTagsEl) manageTagsModal = new bootstrap.Modal(manageTagsEl);
+        if (manageListsEl) manageListsModal = new bootstrap.Modal(manageListsEl);
+        if (viewContactEl) viewContactModal = new bootstrap.Modal(viewContactEl);
+        console.log('[Inbox] Modals initialized');
+    } catch (e) {
+        console.error('[Inbox] Modal initialization error:', e);
+    }
     
     document.querySelectorAll('input[name="replyChannel"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -1071,34 +1084,39 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] Elements found - Search:', !!searchEl, 'Filter:', !!filterEl, 'Source:', !!sourceEl, 'Sort:', !!sortEl);
     
     if (searchEl) {
-        searchEl.addEventListener('input', function() {
-            console.log('[Filter] Search input triggered');
+        console.log('[Inbox] Attaching search listeners');
+        searchEl.addEventListener('input', function(e) {
+            console.log('[Filter] Search input triggered, value:', e.target.value);
             filterConversations();
         });
-        searchEl.addEventListener('keyup', function() {
+        searchEl.addEventListener('keyup', function(e) {
+            console.log('[Filter] Search keyup triggered');
             filterConversations();
         });
     }
     if (filterEl) {
-        filterEl.addEventListener('change', function() {
-            console.log('[Filter] Status filter changed to:', this.value);
+        console.log('[Inbox] Attaching status filter listener');
+        filterEl.addEventListener('change', function(e) {
+            console.log('[Filter] Status filter changed to:', e.target.value);
             filterConversations();
         });
     }
     if (sourceEl) {
-        sourceEl.addEventListener('change', function() {
-            console.log('[Filter] Source filter changed to:', this.value);
+        console.log('[Inbox] Attaching source filter listener');
+        sourceEl.addEventListener('change', function(e) {
+            console.log('[Filter] Source filter changed to:', e.target.value);
             filterConversations();
         });
     }
     if (sortEl) {
-        sortEl.addEventListener('change', function() {
-            console.log('[Sort] Sort changed to:', this.value);
+        console.log('[Inbox] Attaching sort listener');
+        sortEl.addEventListener('change', function(e) {
+            console.log('[Sort] Sort changed to:', e.target.value);
             sortConversations();
         });
     }
     
-    console.log('[Inbox] Event listeners attached');
+    console.log('[Inbox] All event listeners attached successfully');
     
     document.getElementById('chatSearchInput').addEventListener('input', function() {
         searchInConversation(this.value);
