@@ -146,6 +146,42 @@
                 </a>
             </div>
         </div>
+        
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card dashboard-tile" id="tile-traffic-graph">
+                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="card-title mb-0"><i class="fas fa-chart-area me-2 text-primary"></i>Message Traffic</h5>
+                        <div class="btn-group" role="group" id="trafficToggle">
+                            <input type="radio" class="btn-check" name="trafficPeriod" id="trafficToday" value="today" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="trafficToday">Today</label>
+                            <input type="radio" class="btn-check" name="trafficPeriod" id="traffic7Days" value="7days">
+                            <label class="btn btn-outline-primary btn-sm" for="traffic7Days">Last 7 Days</label>
+                            <input type="radio" class="btn-check" name="trafficPeriod" id="traffic30Days" value="30days">
+                            <label class="btn btn-outline-primary btn-sm" for="traffic30Days">Last 30 Days</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="tile-loading d-none">
+                            <div class="d-flex align-items-center justify-content-center" style="height: 300px;">
+                                <div class="skeleton-shimmer" style="width: 100%; height: 250px;"></div>
+                            </div>
+                        </div>
+                        <div class="tile-error d-none">
+                            <div class="d-flex align-items-center justify-content-center" style="height: 300px;">
+                                <div class="text-center text-danger">
+                                    <i class="fas fa-exclamation-triangle fa-3x mb-2"></i>
+                                    <p class="mb-0">Failed to load chart data</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tile-content">
+                            <div id="trafficChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
     
     <section class="mb-4" id="rcsPromotion">
@@ -441,6 +477,7 @@
 @endpush
 
 @push('scripts')
+<script src="/vendor/apexchart/apexchart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     function updateDeliveryRateColor() {
@@ -495,18 +532,150 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // TODO: Replace with actual API calls to load tile data
-    // Example usage:
-    // setTileLoading('tile-balance', true);
-    // fetch('/api/balance').then(res => res.json()).then(data => {
-    //     document.getElementById('balance-value').textContent = '£' + data.balance;
-    //     setTileLoading('tile-balance', false);
-    // }).catch(() => setTileError('tile-balance', true));
     
     updateDeliveryRateColor();
     
     window.setTileLoading = setTileLoading;
     window.setTileError = setTileError;
     window.updateDeliveryRateColor = updateDeliveryRateColor;
+    
+    // Traffic Graph
+    var trafficChart = null;
+    
+    function getDummyData(period) {
+        var categories = [];
+        var data = [];
+        
+        if (period === 'today') {
+            categories = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+            data = [12, 8, 25, 89, 156, 134, 98, 45];
+        } else if (period === '7days') {
+            var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            categories = days;
+            data = [342, 456, 389, 512, 478, 234, 189];
+        } else if (period === '30days') {
+            for (var i = 1; i <= 30; i++) {
+                categories.push('Day ' + i);
+                data.push(Math.floor(Math.random() * 400) + 100);
+            }
+        }
+        
+        return { categories: categories, data: data };
+    }
+    
+    function renderTrafficChart(period) {
+        var dummyData = getDummyData(period);
+        
+        var options = {
+            series: [{
+                name: 'Total Messages',
+                data: dummyData.data
+            }],
+            chart: {
+                type: 'area',
+                height: 300,
+                fontFamily: 'inherit',
+                toolbar: {
+                    show: false
+                },
+                zoom: {
+                    enabled: false
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            colors: ['#886cc0'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.4,
+                    opacityTo: 0.1,
+                    stops: [0, 90, 100]
+                }
+            },
+            xaxis: {
+                categories: dummyData.categories,
+                labels: {
+                    style: {
+                        colors: '#888',
+                        fontSize: '11px'
+                    }
+                },
+                axisBorder: {
+                    show: false
+                },
+                axisTicks: {
+                    show: false
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: '#888',
+                        fontSize: '11px'
+                    },
+                    formatter: function(val) {
+                        return Math.round(val);
+                    }
+                }
+            },
+            grid: {
+                borderColor: '#f1f1f1',
+                strokeDashArray: 3
+            },
+            tooltip: {
+                y: {
+                    formatter: function(val) {
+                        return val + ' messages';
+                    }
+                }
+            }
+        };
+        
+        if (trafficChart) {
+            trafficChart.destroy();
+        }
+        
+        var chartEl = document.querySelector('#trafficChart');
+        if (chartEl) {
+            trafficChart = new ApexCharts(chartEl, options);
+            trafficChart.render();
+        }
+    }
+    
+    // TODO: Replace with actual API call
+    function loadTrafficData(period) {
+        // setTileLoading('tile-traffic-graph', true);
+        // fetch('/api/traffic?period=' + period)
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         renderTrafficChart(period, data);
+        //         setTileLoading('tile-traffic-graph', false);
+        //     })
+        //     .catch(() => setTileError('tile-traffic-graph', true));
+        
+        renderTrafficChart(period);
+    }
+    
+    // Toggle handlers
+    var toggleInputs = document.querySelectorAll('input[name="trafficPeriod"]');
+    toggleInputs.forEach(function(input) {
+        input.addEventListener('change', function() {
+            loadTrafficData(this.value);
+        });
+    });
+    
+    // Initial render
+    loadTrafficData('today');
+    
+    window.loadTrafficData = loadTrafficData;
+    window.renderTrafficChart = renderTrafficChart;
 });
 </script>
 @endpush
