@@ -307,7 +307,6 @@
                                         <div class="d-flex align-items-center justify-content-between mb-1">
                                             <div class="d-flex align-items-center" style="gap: 6px;">
                                                 <span class="chat-name fw-medium text-truncate" style="font-size: 14px; max-width: 120px;">{{ $conversation['name'] }}</span>
-                                                <span class="badge rounded-pill channel-pill-{{ $conversation['channel'] }}" style="font-size: 10px; padding: 3px 8px;">{{ strtoupper($conversation['channel']) }}</span>
                                             </div>
                                             <div class="d-flex align-items-center" style="gap: 6px;">
                                                 <small class="text-muted" style="font-size: 11px; white-space: nowrap;">{{ $conversation['last_message_time'] }}</small>
