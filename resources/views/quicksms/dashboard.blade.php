@@ -328,103 +328,73 @@
             <h4 class="mb-0"><i class="fas fa-bell me-2 text-primary"></i>Support & Notifications</h4>
         </div>
         <div class="row">
-            <div class="col-xl-4 col-lg-6">
-                <div class="card" id="tile-open-tickets">
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                <a href="{{ route('support.dashboard') }}" class="text-decoration-none">
+                    <div class="card dashboard-tile h-100" id="tile-support-tickets">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                            <div class="icon-box bg-danger rounded-circle mb-3" style="width: 56px; height: 56px;">
+                                <i class="fas fa-ticket-alt text-white fa-lg"></i>
+                            </div>
+                            <h2 class="mb-1 text-dark" id="support-tickets-count">3</h2>
+                            <span class="text-muted small">Open Support Tickets</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                <div class="card dashboard-tile h-100" id="tile-knowledge-base">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                        <div class="icon-box bg-info rounded-circle mb-3" style="width: 56px; height: 56px;">
+                            <i class="fas fa-book text-white fa-lg"></i>
+                        </div>
+                        <h5 class="mb-2 text-dark">Knowledge Base</h5>
+                        <p class="text-muted small mb-3">Find answers to common questions</p>
+                        <a href="#" target="_blank" class="btn btn-info btn-sm" id="btnOpenKnowledgeBase">
+                            <i class="fas fa-external-link-alt me-1"></i>Open Knowledge Base
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-6 col-lg-8 mb-3">
+                <div class="card dashboard-tile h-100" id="tile-notifications">
                     <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Open Tickets</h5>
-                        <a href="{{ route('support.dashboard') }}" class="text-primary small">View All</a>
+                        <h5 class="card-title mb-0"><i class="fas fa-bullhorn me-2 text-warning"></i>Announcements</h5>
+                        <span class="badge bg-warning text-dark">1 New</span>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0.5rem;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-ticket-alt fa-2x mb-2 opacity-50"></i>
-                                <p class="mb-0 small">No open tickets</p>
+                        <div class="notification-item p-3 rounded mb-2" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%); border-left: 3px solid #ffc107;" id="notification-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0 fw-semibold">Platform Maintenance Scheduled</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0" onclick="dismissNotification('notification-1')" title="Dismiss">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <p class="mb-2 small text-muted">We will be performing scheduled maintenance on Saturday, January 4th from 02:00 - 04:00 GMT. Some services may be temporarily unavailable.</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small" id="notification-1-timestamp">
+                                    <i class="fas fa-clock me-1"></i>Posted: Dec 28, 2025 at 14:30
+                                </span>
+                                <a href="#" class="small text-primary">Read more</a>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-lg-6">
-                <div class="card" id="tile-system-alerts">
-                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">System Alerts</h5>
-                        <span class="badge bg-success">All Clear</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0.5rem;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-shield-alt fa-2x mb-2 opacity-50"></i>
-                                <p class="mb-0 small">No active alerts</p>
+                        
+                        <div class="notification-item p-3 rounded" style="background: #f8f9fa; border-left: 3px solid #6c757d;" id="notification-2">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0 fw-semibold text-muted">New RCS Features Available</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0" onclick="dismissNotification('notification-2')" title="Dismiss">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
+                            <p class="mb-2 small text-muted">Check out our new RCS carousel templates and rich card builder in the Templates section.</p>
+                            <span class="text-muted small" id="notification-2-timestamp">
+                                <i class="fas fa-clock me-1"></i>Posted: Dec 20, 2025 at 09:15
+                            </span>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-lg-6">
-                <div class="card" id="tile-recent-activity">
-                    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Recent Activity</h5>
-                        <a href="{{ route('account.audit-logs') }}" class="text-primary small">View All</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 150px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0.5rem;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-history fa-2x mb-2 opacity-50"></i>
-                                <p class="mb-0 small">Loading activity...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-xl-6">
-                <div class="card" id="tile-announcements">
-                    <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0">Announcements</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-center" style="height: 120px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0.5rem;">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-bullhorn fa-2x mb-2 opacity-50"></i>
-                                <p class="mb-0 small">No new announcements</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-6">
-                <div class="card" id="tile-help-resources">
-                    <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0">Help & Resources</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <a href="{{ route('support.knowledge-base') }}" class="btn btn-light w-100 py-2 d-flex align-items-center gap-2">
-                                    <i class="fas fa-book text-primary"></i>
-                                    <span class="small">Knowledge Base</span>
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="{{ route('support.create-ticket') }}" class="btn btn-light w-100 py-2 d-flex align-items-center gap-2">
-                                    <i class="fas fa-headset text-primary"></i>
-                                    <span class="small">Create Ticket</span>
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="#" class="btn btn-light w-100 py-2 d-flex align-items-center gap-2 disabled">
-                                    <i class="fas fa-video text-primary"></i>
-                                    <span class="small">Video Tutorials</span>
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="{{ route('management.api-connections') }}" class="btn btn-light w-100 py-2 d-flex align-items-center gap-2">
-                                    <i class="fas fa-code text-primary"></i>
-                                    <span class="small">API Docs</span>
-                                </a>
-                            </div>
+                        
+                        <div class="text-center mt-3 d-none" id="no-notifications">
+                            <p class="text-muted small mb-0"><i class="fas fa-check-circle me-1"></i>No new announcements</p>
                         </div>
                     </div>
                 </div>
@@ -767,6 +737,31 @@ function calculateSavings() {
     // Will be implemented when backend is ready
     // Read: calcSmsPrice, calcRcsPrice, calcFragments, calcPenetration, calcMessages, calcVat
     // Update: calcSmsOnlyCost, calcBlendedCost, calcSavings
+}
+
+function dismissNotification(notificationId) {
+    var notification = document.getElementById(notificationId);
+    if (notification) {
+        notification.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(20px)';
+        
+        setTimeout(function() {
+            notification.remove();
+            
+            // Check if any notifications remain
+            var remaining = document.querySelectorAll('#tile-notifications .notification-item');
+            if (remaining.length === 0) {
+                document.getElementById('no-notifications').classList.remove('d-none');
+                // Update badge
+                var badge = document.querySelector('#tile-notifications .badge');
+                if (badge) badge.remove();
+            }
+        }, 300);
+    }
+    
+    // TODO: API call to mark notification as dismissed
+    // POST /api/notifications/dismiss { id: notificationId }
 }
 </script>
 @endpush
