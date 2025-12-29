@@ -15,9 +15,9 @@
     height: 100%;
 }
 .chat-left-body {
-    width: 300px !important;
-    min-width: 300px !important;
-    max-width: 300px !important;
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 340px !important;
     flex-shrink: 0 !important;
     display: flex;
     flex-direction: column;
@@ -97,14 +97,14 @@
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-left-radius: 0.25rem;
-    max-width: 70%;
+    max-width: 75%;
     min-width: 120px;
 }
 .message-sent {
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-right-radius: 0.25rem;
-    max-width: 70%;
+    max-width: 75%;
     min-width: 120px;
 }
 .message-sent small {
@@ -112,9 +112,11 @@
 }
 .channel-pill {
     font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 .emoji-picker-container {
     position: absolute;
@@ -254,7 +256,7 @@
         <div class="col-xl-12">
             <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
                 <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%;">
-                    <div style="width: 300px; min-width: 300px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
+                    <div style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center">
@@ -269,8 +271,7 @@
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-filter text-muted me-1" style="font-size: 11px;"></i>
-                                        <select class="form-select form-select-sm border-0 bg-transparent p-0 ps-1" id="filterConversations" style="width: auto; font-size: 13px;">
+                                        <select class="form-select form-select-sm" id="filterConversations" style="width: auto; font-size: 12px; padding-right: 28px;">
                                             <option value="all">All</option>
                                             <option value="unread">Unread</option>
                                             <option value="sms">SMS</option>
@@ -278,17 +279,16 @@
                                         </select>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-phone-alt text-muted me-1" style="font-size: 11px;"></i>
-                                        <select class="form-select form-select-sm border-0 bg-transparent p-0 ps-1" id="filterSource" style="width: auto; font-size: 13px;">
+                                        <select class="form-select form-select-sm" id="filterSource" style="width: auto; font-size: 12px; padding-right: 28px;">
                                             <option value="all">All Sources</option>
-                                            <option value="vmn">VMN</option>
-                                            <option value="shortcode">Short Code</option>
-                                            <option value="rcs_agent">RCS Agent</option>
+                                            <option value="60777">60777 (Short Code)</option>
+                                            <option value="+447700900100">+44 7700 900100 (VMN)</option>
+                                            <option value="QuickSMS Brand">QuickSMS Brand (RCS Agent)</option>
+                                            <option value="RetailBot">RetailBot (RCS Agent)</option>
                                         </select>
                                     </div>
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-sort text-muted me-1" style="font-size: 11px;"></i>
-                                        <select class="form-select form-select-sm border-0 bg-transparent sort-dropdown" id="sortConversations" style="width: auto; font-size: 13px; min-width: 80px;">
+                                        <select class="form-select form-select-sm" id="sortConversations" style="width: auto; font-size: 12px; padding-right: 28px;">
                                             <option value="newest">Newest</option>
                                             <option value="oldest">Oldest</option>
                                             <option value="alphabetical">A-Z</option>
@@ -304,6 +304,7 @@
                                      data-id="{{ $conversation['id'] }}"
                                      data-phone="{{ $conversation['phone'] }}"
                                      data-channel="{{ $conversation['channel'] }}"
+                                     data-source="{{ $conversation['source'] ?? '' }}"
                                      data-source-type="{{ $conversation['source_type'] ?? 'vmn' }}"
                                      data-unread="{{ $conversation['unread'] ? '1' : '0' }}"
                                      data-contact-id="{{ $conversation['contact_id'] ?? '' }}"
@@ -352,9 +353,7 @@
                                         </div>
                                         <small class="text-muted" id="chatPhone">{{ $conversations[0]['phone_masked'] ?? '' }}</small>
                                         <div class="mt-1">
-                                            <small class="text-muted" id="chatSource">
-                                                <i class="fas fa-broadcast-tower me-1"></i>From: <span id="chatSourceValue">{{ $conversations[0]['source'] ?? '60777' }}</span>
-                                            </small>
+                                            <h5 class="mb-0" id="chatSource">To <span id="chatSourceValue">{{ $conversations[0]['source'] ?? '60777' }}</span> <span id="chatSourceType" class="text-muted fw-normal">({{ ucfirst(str_replace('_', ' ', $conversations[0]['source_type'] ?? 'Short Code')) }})</span></h5>
                                         </div>
                                     </div>
                                 </div>
@@ -461,9 +460,9 @@
                                                 <input type="radio" class="btn-check" name="replyChannel" id="replySms" value="sms" checked>
                                                 <label class="btn btn-outline-primary" for="replySms"><i class="fas fa-sms me-1"></i>SMS only</label>
                                                 <input type="radio" class="btn-check" name="replyChannel" id="replyRcsBasic" value="rcs_basic">
-                                                <label class="btn btn-outline-info" for="replyRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                                                <label class="btn btn-outline-primary" for="replyRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
                                                 <input type="radio" class="btn-check" name="replyChannel" id="replyRcsRich" value="rcs_rich">
-                                                <label class="btn btn-outline-success" for="replyRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                                                <label class="btn btn-outline-primary" for="replyRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
                                             </div>
                                         </div>
                                         <div class="col-md-6" id="senderIdSection">
@@ -978,6 +977,12 @@ function selectConversation(id) {
     var sourceValue = document.getElementById('chatSourceValue');
     sourceValue.textContent = conv.source || (conv.channel === 'rcs' ? 'RCS Agent' : '60777');
     
+    var sourceType = document.getElementById('chatSourceType');
+    var typeLabel = conv.source_type === 'vmn' ? 'VMN' : 
+                    conv.source_type === 'shortcode' ? 'Short Code' : 
+                    conv.source_type === 'rcs_agent' ? 'RCS Agent' : 'Short Code';
+    sourceType.textContent = '(' + typeLabel + ')';
+    
     var chatArea = document.getElementById('chatArea');
     chatArea.innerHTML = '';
     
@@ -1238,7 +1243,7 @@ function filterConversations() {
     document.querySelectorAll('.chat-bx').forEach(function(el) {
         var name = el.querySelector('.chat-name').textContent.toLowerCase();
         var channel = el.dataset.channel;
-        var sourceType = el.dataset.sourceType || 'vmn';
+        var source = el.dataset.source || '';
         var unread = el.dataset.unread === '1';
         
         var matchesSearch = name.includes(searchTerm) || searchTerm === '';
@@ -1246,10 +1251,7 @@ function filterConversations() {
             (filterVal === 'unread' && unread) ||
             (filterVal === 'sms' && channel === 'sms') ||
             (filterVal === 'rcs' && channel === 'rcs');
-        var matchesSource = sourceVal === 'all' ||
-            (sourceVal === 'vmn' && sourceType === 'vmn') ||
-            (sourceVal === 'shortcode' && sourceType === 'shortcode') ||
-            (sourceVal === 'rcs_agent' && sourceType === 'rcs_agent');
+        var matchesSource = sourceVal === 'all' || source === sourceVal;
         
         el.style.display = (matchesSearch && matchesFilter && matchesSource) ? '' : 'none';
     });

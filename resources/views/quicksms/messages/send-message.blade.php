@@ -48,9 +48,9 @@
                                 <input type="radio" class="btn-check" name="channel" id="channelSMS" value="sms" checked>
                                 <label class="btn btn-outline-primary" for="channelSMS"><i class="fas fa-sms me-1"></i>SMS only</label>
                                 <input type="radio" class="btn-check" name="channel" id="channelRCSBasic" value="rcs_basic">
-                                <label class="btn btn-outline-info" for="channelRCSBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                                <label class="btn btn-outline-primary" for="channelRCSBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
                                 <input type="radio" class="btn-check" name="channel" id="channelRCSRich" value="rcs_rich">
-                                <label class="btn btn-outline-success" for="channelRCSRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                                <label class="btn btn-outline-primary" for="channelRCSRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
                             </div>
                         </div>
                     </div>
