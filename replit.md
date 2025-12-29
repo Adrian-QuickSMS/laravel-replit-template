@@ -40,6 +40,7 @@ The Messages Inbox provides a three-panel conversation workspace at `/messages/i
 - **RCS Rich Cards:** Inline rendering of rich card messages (`.rcs-rich-card-inbox`) with image, title, description, action button
 - **Mock Data:** 35 sample conversations with varied channels, sources, timestamps, unread states for filter/sort testing
 - **GDPR Compliance:** Phone numbers are masked (+44 77** ***111), message previews use placeholders only (@{{firstName}}, @{{orderNumber}})
+- **Navigation Badge Sync:** Header inbox icon (envelope) navigates directly to `/messages/inbox`. The red badge (#navInboxBadge) shows unread count synchronized via `updateUnreadCount()` JS function when conversations are marked read/unread. All unread badges use consistent `bg-danger text-white` styling.
 
 ## RCS Preview System
 The application includes a schema-driven RCS message preview renderer at `/rcs/preview-demo`:
