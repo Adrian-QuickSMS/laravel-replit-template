@@ -65,6 +65,14 @@ The application includes a schema-driven RCS message preview renderer at `/rcs/p
 ## CSS Architecture Notes
 - **Inbox Module:** Uses `public/css/quicksms-inbox.css` loaded after Fillow styles to override message bubble colors with channel-specific gradients (SMS green, RCS blue)
 - **CSS Specificity:** Inbox overrides use `.chat-box-area .message-sent p` and `.chat-box-area .media .message-sent p` selectors to match Fillow's specificity
+- **Inbox Three-Panel Layout:** Uses Bootstrap's grid system (`.row` with `.col-auto` and `.col`) instead of custom flexbox to work with Fillow template. Structure:
+  - `.inbox-page-wrapper` (height: calc(100vh - 100px))
+  - `.inbox-card.card` (height: 100%)
+  - `.inbox-card-body.card-body.p-0` with nested `.row.g-0.h-100`
+  - Left panel: `.col-auto.inbox-sidebar` (340px fixed width)
+  - Center panel: `.col.chat-pane-wrapper` (flexible width)
+  - Right panel: `.col-auto.contact-sidebar` (280px fixed width)
+  - This approach avoids conflicts with Fillow's `.card-body` default styling
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
