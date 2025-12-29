@@ -1028,7 +1028,48 @@
 @push('scripts')
 <link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
 <script>
-var conversationsData = @json($conversations);
+// ========================================
+// INBOX FILTER SYSTEM - Complete Implementation
+// ========================================
+
+// Conversation data from server (normalized structure)
+var conversationsData = @json($conversations).map(function(conv) {
+    // Normalize data structure to match filter requirements
+    return {
+        id: conv.id,
+        contactName: conv.name,
+        phoneNumber: conv.phone,
+        phoneMasked: conv.phone_masked,
+        initials: conv.initials,
+        contactId: conv.contact_id,
+        type: conv.channel.toUpperCase(), // 'SMS' or 'RCS'
+        source: conv.source,
+        sourceId: conv.source_type, // 'vmn', 'shortcode', 'rcs_agent'
+        senderId: conv.sender_id,
+        rcsAgentId: conv.rcs_agent_id,
+        unread: conv.unread === true,
+        unreadCount: conv.unread_count || 0,
+        lastMessageText: conv.last_message,
+        lastMessageTime: conv.last_message_time,
+        lastMessageDate: conv.timestamp, // Unix timestamp for sorting
+        firstContact: conv.first_contact,
+        messages: conv.messages || [],
+        // Keep original for selectConversation compatibility
+        _original: conv
+    };
+});
+
+// Global filter state
+var inboxFilters = {
+    status: 'all',      // all, unread, sms, rcs
+    source: 'all',      // all, type:vmn, type:shortcode, type:rcs_agent, source:xxx
+    search: '',         // search term
+    sort: 'newest'      // newest, oldest, alphabetical, unread
+};
+
+// Filtered results
+var filteredConversations = [...conversationsData];
+
 var viewContactModal = null;
 var currentContactNotes = [];
 var currentConversationId = '{{ $conversations[0]['id'] ?? '' }}';
@@ -1042,6 +1083,7 @@ var chatSearchIndex = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] DOMContentLoaded fired');
+    console.log('[Inbox] Loaded', conversationsData.length, 'conversations');
     
     // Initialize modals with error handling
     try {
@@ -1074,7 +1116,9 @@ document.addEventListener('DOMContentLoaded', function() {
         replyMsg.addEventListener('input', updateCharCount);
     }
     
-    // Attach filter/search event listeners using vanilla JS (no jQuery dependency)
+    // ========================================
+    // FILTER EVENT LISTENERS
+    // ========================================
     var searchEl = document.getElementById('conversationSearch');
     var filterEl = document.getElementById('filterConversations');
     var sourceEl = document.getElementById('filterSource');
@@ -1082,40 +1126,50 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('[Inbox] Elements found - Search:', !!searchEl, 'Filter:', !!filterEl, 'Source:', !!sourceEl, 'Sort:', !!sortEl);
     
+    // Search input (debounced)
     if (searchEl) {
-        console.log('[Inbox] Attaching search listeners');
+        var searchTimeout = null;
         searchEl.addEventListener('input', function(e) {
-            console.log('[Filter] Search input triggered, value:', e.target.value);
-            filterConversations();
-        });
-        searchEl.addEventListener('keyup', function(e) {
-            console.log('[Filter] Search keyup triggered');
-            filterConversations();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                inboxFilters.search = e.target.value.trim();
+                console.log('[Filter] Search changed to:', inboxFilters.search);
+                applyFilters();
+            }, 150); // 150ms debounce
         });
     }
+    
+    // Status filter (All / Unread / SMS / RCS)
     if (filterEl) {
-        console.log('[Inbox] Attaching status filter listener');
         filterEl.addEventListener('change', function(e) {
-            console.log('[Filter] Status filter changed to:', e.target.value);
-            filterConversations();
+            inboxFilters.status = e.target.value;
+            console.log('[Filter] Status changed to:', inboxFilters.status);
+            applyFilters();
         });
     }
+    
+    // Source filter (All / type:xxx / source:xxx)
     if (sourceEl) {
-        console.log('[Inbox] Attaching source filter listener');
         sourceEl.addEventListener('change', function(e) {
-            console.log('[Filter] Source filter changed to:', e.target.value);
-            filterConversations();
+            inboxFilters.source = e.target.value;
+            console.log('[Filter] Source changed to:', inboxFilters.source);
+            applyFilters();
         });
     }
+    
+    // Sort order
     if (sortEl) {
-        console.log('[Inbox] Attaching sort listener');
         sortEl.addEventListener('change', function(e) {
-            console.log('[Sort] Sort changed to:', e.target.value);
-            sortConversations();
+            inboxFilters.sort = e.target.value;
+            console.log('[Sort] Sort changed to:', inboxFilters.sort);
+            applyFilters();
         });
     }
     
     console.log('[Inbox] All event listeners attached successfully');
+    
+    // Initial filter application
+    applyFilters();
     
     document.getElementById('chatSearchInput').addEventListener('input', function() {
         searchInConversation(this.value);
@@ -1201,44 +1255,62 @@ function setSender(conv) {
 
 function selectConversation(id) {
     currentConversationId = id;
-    var conv = conversationsData.find(function(c) { return c.id === id; });
-    if (!conv) return;
     
+    // Find conversation in normalized data
+    var convData = conversationsData.find(function(c) { return c.id === id; });
+    if (!convData) {
+        console.error('[Select] Conversation not found:', id);
+        return;
+    }
+    
+    // Use original data for backward compatibility with message rendering
+    var conv = convData._original || convData;
+    
+    // Update active state in list
     document.querySelectorAll('.chat-bx').forEach(function(el) {
         el.classList.remove('active');
     });
-    document.querySelector('.chat-bx[data-id="' + id + '"]').classList.add('active');
+    var activeEl = document.querySelector('.chat-bx[data-id="' + id + '"]');
+    if (activeEl) {
+        activeEl.classList.add('active');
+    }
     
-    document.getElementById('chatAvatar').textContent = conv.initials;
-    document.getElementById('chatName').textContent = conv.name;
-    document.getElementById('chatPhone').textContent = conv.phone_masked;
+    // Update chat header
+    document.getElementById('chatAvatar').textContent = convData.initials;
+    document.getElementById('chatName').textContent = convData.contactName;
+    document.getElementById('chatPhone').textContent = convData.phoneMasked;
     
-    setReplyChannel(conv.channel);
-    setSender(conv);
+    // Set channel and sender
+    var channel = convData.type.toLowerCase(); // 'sms' or 'rcs'
+    setReplyChannel(channel);
+    setSender(conv); // Uses original format for sender matching
     
+    // Update channel badge
     var channelBadge = document.getElementById('chatChannelBadge');
-    channelBadge.textContent = conv.channel.toUpperCase();
-    channelBadge.className = 'badge rounded-pill channel-pill-' + conv.channel;
+    channelBadge.textContent = convData.type;
+    channelBadge.className = 'badge rounded-pill channel-pill-' + channel;
     
+    // Update source info
     var sourceValue = document.getElementById('chatSourceValue');
-    sourceValue.textContent = conv.source || (conv.channel === 'rcs' ? 'RCS Agent' : '60777');
+    sourceValue.textContent = convData.source || (channel === 'rcs' ? 'RCS Agent' : '60777');
     
     var sourceType = document.getElementById('chatSourceType');
-    var typeLabel = conv.source_type === 'vmn' ? 'VMN' : 
-                    conv.source_type === 'shortcode' ? 'Short Code' : 
-                    conv.source_type === 'rcs_agent' ? 'RCS Agent' : 'Short Code';
+    var typeLabel = convData.sourceId === 'vmn' ? 'VMN' : 
+                    convData.sourceId === 'shortcode' ? 'Short Code' : 
+                    convData.sourceId === 'rcs_agent' ? 'RCS Agent' : 'Short Code';
     sourceType.textContent = '(' + typeLabel + ')';
     
+    // Render messages
     var chatArea = document.getElementById('chatArea');
     chatArea.innerHTML = '';
     
-    var bubbleClass = conv.channel === 'rcs' ? 'rcs-bubble' : 'sms-bubble';
+    var bubbleClass = channel === 'rcs' ? 'rcs-bubble' : 'sms-bubble';
     
-    conv.messages.forEach(function(msg) {
+    convData.messages.forEach(function(msg) {
         var html = '';
         if (msg.direction === 'inbound') {
             html = '<div class="media my-3 justify-content-start align-items-start">' +
-                '<div class="chat-img chat-img-sm me-3">' + conv.initials + '</div>' +
+                '<div class="chat-img chat-img-sm me-3">' + convData.initials + '</div>' +
                 '<div><div class="message-received"><p class="mb-1">' + escapeHtml(msg.content || '') + '</p></div>' +
                 '<small class="text-muted">' + msg.time + '</small></div></div>';
         } else if (msg.type === 'rich_card' && msg.rich_card) {
@@ -1266,15 +1338,18 @@ function selectConversation(id) {
     
     chatArea.scrollTop = chatArea.scrollHeight;
     
-    updateContactPanel(conv);
+    // Update contact panel
+    updateContactPanel(convData);
+    
+    console.log('[Select] Selected conversation:', id, convData.contactName);
 }
 
 function updateContactPanel(conv) {
     document.getElementById('contactAvatar').textContent = conv.initials;
-    document.getElementById('contactName').textContent = conv.name;
-    document.getElementById('contactPhone').textContent = conv.phone_masked;
+    document.getElementById('contactName').textContent = conv.contactName;
+    document.getElementById('contactPhone').textContent = conv.phoneMasked;
     
-    if (conv.contact_id) {
+    if (conv.contactId) {
         document.getElementById('contactExists').classList.remove('d-none');
         document.getElementById('contactNotExists').classList.add('d-none');
     } else {
@@ -1599,99 +1674,264 @@ function insertPlaceholder(field) {
     bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
 }
 
-function filterConversations() {
-    // TODO: Replace with API call to GET /api/conversations?search=&status=&source= when backend is ready
-    console.log('[Filter] filterConversations called');
+// ========================================
+// FILTER SYSTEM - Core Functions
+// ========================================
+
+/**
+ * Apply all filters and re-render the conversation list
+ */
+function applyFilters() {
+    console.log('[Filter] Applying filters:', JSON.stringify(inboxFilters));
     
-    var searchEl = document.getElementById('conversationSearch');
-    var filterEl = document.getElementById('filterConversations');
-    var sourceEl = document.getElementById('filterSource');
+    var results = conversationsData.slice(); // Copy array
     
-    if (!searchEl || !filterEl || !sourceEl) {
-        console.error('[Filter] Missing elements:', !searchEl, !filterEl, !sourceEl);
+    // 1. Apply status filter
+    if (inboxFilters.status !== 'all') {
+        results = results.filter(function(conv) {
+            return matchesStatus(conv, inboxFilters.status);
+        });
+    }
+    
+    // 2. Apply source filter
+    if (inboxFilters.source !== 'all') {
+        results = results.filter(function(conv) {
+            return matchesSource(conv, inboxFilters.source);
+        });
+    }
+    
+    // 3. Apply search (matches contact name OR phone number)
+    if (inboxFilters.search) {
+        results = results.filter(function(conv) {
+            return matchesSearch(conv, inboxFilters.search);
+        });
+    }
+    
+    // 4. Apply sort
+    results = sortConversations(results, inboxFilters.sort);
+    
+    // Store filtered results
+    filteredConversations = results;
+    
+    console.log('[Filter] Results:', results.length, 'of', conversationsData.length, 'conversations');
+    
+    // Re-render the list
+    renderConversationList();
+    
+    // Update unread badge in header
+    updateUnreadBadge();
+}
+
+/**
+ * Check if conversation matches status filter
+ */
+function matchesStatus(conv, status) {
+    switch (status) {
+        case 'unread':
+            return conv.unread === true;
+        case 'sms':
+            return conv.type === 'SMS';
+        case 'rcs':
+            return conv.type === 'RCS';
+        default:
+            return true;
+    }
+}
+
+/**
+ * Check if conversation matches source filter
+ * Supports: all, type:vmn, type:shortcode, type:rcs_agent, source:xxx
+ */
+function matchesSource(conv, source) {
+    if (source === 'all') {
+        return true;
+    } else if (source.startsWith('type:')) {
+        var filterType = source.substring(5);
+        return conv.sourceId === filterType;
+    } else if (source.startsWith('source:')) {
+        var filterSource = source.substring(7);
+        return conv.source === filterSource;
+    }
+    // Legacy fallback
+    return conv.source === source;
+}
+
+/**
+ * Check if conversation matches search term
+ * Searches both contact name AND phone number
+ */
+function matchesSearch(conv, searchTerm) {
+    var searchLower = searchTerm.toLowerCase();
+    // Remove non-digits for phone number matching
+    var searchDigits = searchTerm.replace(/\D/g, '');
+    
+    // Match against contact name (case-insensitive)
+    var nameMatch = conv.contactName && conv.contactName.toLowerCase().includes(searchLower);
+    
+    // Match against phone number (digits only for flexible matching)
+    var phoneDigits = conv.phoneNumber ? conv.phoneNumber.replace(/\D/g, '') : '';
+    var numberMatch = searchDigits && phoneDigits.includes(searchDigits);
+    
+    // Also check masked phone for partial matches
+    var maskedMatch = conv.phoneMasked && conv.phoneMasked.toLowerCase().includes(searchLower);
+    
+    return nameMatch || numberMatch || maskedMatch;
+}
+
+/**
+ * Sort conversations by specified order
+ */
+function sortConversations(conversations, order) {
+    return conversations.slice().sort(function(a, b) {
+        switch (order) {
+            case 'newest':
+                return (b.lastMessageDate || 0) - (a.lastMessageDate || 0);
+            case 'oldest':
+                return (a.lastMessageDate || 0) - (b.lastMessageDate || 0);
+            case 'alphabetical':
+                return (a.contactName || '').localeCompare(b.contactName || '');
+            case 'unread':
+                // Unread first, then by date
+                if (a.unread !== b.unread) {
+                    return a.unread ? -1 : 1;
+                }
+                return (b.lastMessageDate || 0) - (a.lastMessageDate || 0);
+            default:
+                return 0;
+        }
+    });
+}
+
+/**
+ * Render the conversation list based on filtered results
+ */
+function renderConversationList() {
+    var container = document.getElementById('conversationList');
+    if (!container) {
+        console.error('[Render] conversationList container not found');
         return;
     }
     
-    var searchTerm = searchEl.value.toLowerCase();
-    var filterVal = filterEl.value;
-    var sourceVal = sourceEl.value;
-    
-    console.log('[Filter] Applying filters - Search:', searchTerm, 'Status:', filterVal, 'Source:', sourceVal);
-    
-    var visibleCount = 0;
-    var totalCount = 0;
-    
-    document.querySelectorAll('.chat-bx').forEach(function(el) {
-        totalCount++;
-        var name = el.querySelector('.chat-name').textContent.toLowerCase();
-        var phone = (el.dataset.phone || '').toLowerCase();
-        var channel = el.dataset.channel;
-        var source = el.dataset.source || '';
-        var sourceType = el.dataset.sourceType || '';
-        var unread = el.dataset.unread === '1';
-        
-        // Search matches name OR phone number (case-insensitive)
-        var matchesSearch = searchTerm === '' || name.includes(searchTerm) || phone.includes(searchTerm);
-        
-        // Status filter: All / Unread / SMS / RCS
-        var matchesFilter = filterVal === 'all' ||
-            (filterVal === 'unread' && unread) ||
-            (filterVal === 'sms' && channel === 'sms') ||
-            (filterVal === 'rcs' && channel === 'rcs');
-        
-        // Source filter: all, type:xxx (filter by source type), source:xxx (filter by specific source)
-        var matchesSource = false;
-        if (sourceVal === 'all') {
-            matchesSource = true;
-        } else if (sourceVal.startsWith('type:')) {
-            var filterType = sourceVal.substring(5);
-            matchesSource = sourceType === filterType;
-        } else if (sourceVal.startsWith('source:')) {
-            var filterSource = sourceVal.substring(7);
-            matchesSource = source === filterSource;
-        } else {
-            // Legacy fallback: direct source match
-            matchesSource = source === sourceVal;
-        }
-        
-        // AND logic: all filters must match
-        var isVisible = matchesSearch && matchesFilter && matchesSource;
-        el.style.display = isVisible ? '' : 'none';
-        if (isVisible) visibleCount++;
+    // Check if current selection is still in filtered results
+    var currentStillVisible = filteredConversations.some(function(c) {
+        return c.id === currentConversationId;
     });
     
-    console.log('[Filter] Showing', visibleCount, 'of', totalCount, 'conversations');
+    // Build HTML for all filtered conversations
+    var html = '';
+    filteredConversations.forEach(function(conv, index) {
+        var isActive = conv.id === currentConversationId;
+        // If current selection is not visible, make first item active
+        if (!currentStillVisible && index === 0) {
+            isActive = true;
+            currentConversationId = conv.id;
+        }
+        html += createConversationHTML(conv, isActive);
+    });
+    
+    // Show empty state if no results
+    if (filteredConversations.length === 0) {
+        html = '<div class="text-center py-5">' +
+            '<i class="fas fa-search fa-3x text-muted mb-3 opacity-50"></i>' +
+            '<p class="mb-0 text-muted">No conversations match your filters</p>' +
+            '<button class="btn btn-sm btn-outline-primary mt-2" onclick="resetFilters()">Clear Filters</button>' +
+            '</div>';
+    }
+    
+    container.innerHTML = html;
+    
+    // Re-attach click handlers
+    container.querySelectorAll('.chat-bx').forEach(function(el) {
+        el.addEventListener('click', function() {
+            selectConversation(el.dataset.id);
+        });
+    });
+    
+    // If selection changed, update chat pane
+    if (!currentStillVisible && filteredConversations.length > 0) {
+        selectConversation(filteredConversations[0].id);
+    }
+    
+    console.log('[Render] Rendered', filteredConversations.length, 'conversations');
 }
 
-function sortConversations() {
-    var sortVal = document.getElementById('sortConversations').value;
-    var container = document.getElementById('conversationList');
-    var items = Array.from(container.querySelectorAll('.chat-bx'));
+/**
+ * Create HTML for a single conversation item
+ */
+function createConversationHTML(conv, isActive) {
+    var activeClass = isActive ? 'active' : '';
+    var unreadClass = conv.unread ? 'unread' : '';
+    var waitingBadge = !conv.contactId ? '<span class="waiting-badge mt-1 d-inline-block">Waiting for reply</span>' : '';
+    var unreadBadge = conv.unread ? '<span class="badge bg-danger text-white rounded-pill" style="font-size: 9px; padding: 3px 6px; min-width: 18px;">' + conv.unreadCount + '</span>' : '';
     
-    console.log('[Sort] Sorting conversations by:', sortVal);
+    return '<div class="chat-bx d-flex border-bottom ' + unreadClass + ' ' + activeClass + '"' +
+        ' data-id="' + conv.id + '"' +
+        ' data-phone="' + (conv.phoneNumber || '') + '"' +
+        ' data-channel="' + conv.type.toLowerCase() + '"' +
+        ' data-source="' + (conv.source || '') + '"' +
+        ' data-source-type="' + (conv.sourceId || '') + '"' +
+        ' data-unread="' + (conv.unread ? '1' : '0') + '"' +
+        ' data-timestamp="' + (conv.lastMessageDate || 0) + '"' +
+        ' data-contact-id="' + (conv.contactId || '') + '">' +
+        '<div class="chat-img me-2">' + conv.initials + '</div>' +
+        '<div class="flex-grow-1 min-width-0">' +
+        '<div class="d-flex align-items-center justify-content-between mb-1">' +
+        '<div class="d-flex align-items-center" style="gap: 6px;">' +
+        '<span class="chat-name fw-medium text-truncate" style="font-size: 14px; max-width: 120px;">' + escapeHtml(conv.contactName) + '</span>' +
+        '</div>' +
+        '<div class="d-flex align-items-center" style="gap: 6px;">' +
+        '<small class="text-muted" style="font-size: 11px; white-space: nowrap;">' + conv.lastMessageTime + '</small>' +
+        unreadBadge +
+        '</div>' +
+        '</div>' +
+        '<p class="mb-0 text-muted text-truncate" style="font-size: 13px;">' + escapeHtml(conv.lastMessageText) + '</p>' +
+        waitingBadge +
+        '</div>' +
+        '</div>';
+}
+
+/**
+ * Update the unread badge in the inbox header
+ */
+function updateUnreadBadge() {
+    var totalUnread = conversationsData.filter(function(c) { return c.unread; }).length;
+    var filteredUnread = filteredConversations.filter(function(c) { return c.unread; }).length;
     
-    items.sort(function(a, b) {
-        if (sortVal === 'newest') {
-            var tsA = parseInt(a.dataset.timestamp) || 0;
-            var tsB = parseInt(b.dataset.timestamp) || 0;
-            return tsB - tsA;
-        } else if (sortVal === 'oldest') {
-            var tsA = parseInt(a.dataset.timestamp) || 0;
-            var tsB = parseInt(b.dataset.timestamp) || 0;
-            return tsA - tsB;
-        } else if (sortVal === 'alphabetical') {
-            return a.querySelector('.chat-name').textContent.localeCompare(b.querySelector('.chat-name').textContent);
-        } else if (sortVal === 'unread') {
-            return (b.dataset.unread === '1' ? 1 : 0) - (a.dataset.unread === '1' ? 1 : 0);
-        }
-        return 0;
-    });
+    var badge = document.getElementById('unreadBadge');
+    if (badge) {
+        badge.textContent = totalUnread + ' unread';
+        badge.style.display = totalUnread > 0 ? '' : 'none';
+    }
     
-    items.forEach(function(item) {
-        container.appendChild(item);
-    });
+    // Also update header navbar badge
+    var navBadge = document.getElementById('navInboxBadge');
+    if (navBadge) {
+        navBadge.textContent = totalUnread;
+        navBadge.style.display = totalUnread > 0 ? '' : 'none';
+    }
+}
+
+/**
+ * Reset all filters to default
+ */
+function resetFilters() {
+    inboxFilters.status = 'all';
+    inboxFilters.source = 'all';
+    inboxFilters.search = '';
+    inboxFilters.sort = 'newest';
     
-    console.log('[Sort] Sorted', items.length, 'conversations');
+    // Reset UI elements
+    document.getElementById('conversationSearch').value = '';
+    document.getElementById('filterConversations').value = 'all';
+    document.getElementById('filterSource').value = 'all';
+    document.getElementById('sortConversations').value = 'newest';
+    
+    applyFilters();
+}
+
+// Legacy function name for compatibility with inline onclick handlers
+function filterConversations() {
+    applyFilters();
 }
 
 function toggleChatSearch() {
