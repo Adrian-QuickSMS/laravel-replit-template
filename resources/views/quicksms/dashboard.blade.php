@@ -345,36 +345,29 @@
                     </div>
                     <div class="card-body">
                         <p class="text-muted small mb-3">Send a test RCS message to your mobile to see it in action.</p>
-                        <div class="row g-2 align-items-end">
-                            <div class="col-12 col-md-5">
-                                <label class="form-label small mb-1">Message Type</label>
-                                <select class="form-select" id="testRcsMessageType">
-                                    <option value="basic-text" selected>Basic Text</option>
-                                    <option value="rich-card">Rich Card</option>
-                                    <option value="appointment-reminder">Appointment Reminder</option>
-                                    <option value="carousel">Carousel</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label class="form-label small mb-1">UK Mobile Number</label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                    <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000" aria-describedby="testRcsFeedback">
-                                    <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number</div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <button class="btn btn-info w-100" id="btnSendTestRcs" onclick="sendTestRcs()">
-                                    <i class="fas fa-paper-plane me-1"></i>Send Test
-                                </button>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label small mb-1">Message Type</label>
+                            <select class="form-select" id="testRcsMessageType" style="height: 45px;">
+                                <option value="basic-text" selected>Basic Text</option>
+                                <option value="rich-card">Rich Card</option>
+                                <option value="appointment-reminder">Appointment Reminder</option>
+                                <option value="carousel">Carousel</option>
+                            </select>
                         </div>
-                        <div class="mt-3 d-none" id="testRcsResult">
+                        <div class="mb-3">
+                            <label class="form-label small mb-1">UK Mobile Number</label>
+                            <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000" aria-describedby="testRcsFeedback" style="height: 45px;">
+                            <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number</div>
+                        </div>
+                        <div class="mb-3">
+                            <button class="btn btn-info btn-rounded" id="btnSendTestRcs" onclick="sendTestRcs()">Send Test</button>
+                        </div>
+                        <div class="d-none" id="testRcsResult">
                             <div class="alert alert-success mb-0 py-2" id="testRcsSuccess">
-                                <i class="fas fa-check-circle me-2"></i><span id="testRcsSuccessMessage">Test message sent successfully!</span>
+                                <span id="testRcsSuccessMessage">Test message sent successfully!</span>
                             </div>
                             <div class="alert alert-danger mb-0 py-2 d-none" id="testRcsFail">
-                                <i class="fas fa-times-circle me-2"></i><span id="testRcsFailMessage">Failed to send test message. Please try again.</span>
+                                <span id="testRcsFailMessage">Failed to send test message. Please try again.</span>
                             </div>
                         </div>
                     </div>
