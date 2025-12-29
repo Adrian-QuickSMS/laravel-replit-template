@@ -19,12 +19,12 @@
     color: white;
 }
 
-.channel-pill-sms {
+.badge.channel-pill-sms {
     background-color: #34C759 !important;
     color: white !important;
 }
 
-.channel-pill-rcs {
+.badge.channel-pill-rcs {
     background-color: #007AFF !important;
     color: white !important;
 }
@@ -55,4 +55,10 @@
     min-height: 32px !important;
     max-height: 32px !important;
     font-size: 11px !important;
+}
+
+.emoji-btn {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    padding: 0.25rem 0.4rem !important;
 }

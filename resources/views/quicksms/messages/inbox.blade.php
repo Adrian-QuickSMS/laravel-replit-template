@@ -123,52 +123,18 @@
 .message-sent small {
     color: rgba(255,255,255,0.8);
 }
-.channel-pill {
-    display: inline-block;
-    font-size: 10px;
-    padding: 0.25em 0.6em;
-    border-radius: 10rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    line-height: 1;
-    vertical-align: middle;
-}
-.channel-pill-sms {
+.badge.channel-pill-sms {
     background-color: #34C759 !important;
     color: white !important;
 }
-.channel-pill-rcs {
+.badge.channel-pill-rcs {
     background-color: #007AFF !important;
     color: white !important;
 }
-.emoji-picker-container {
-    position: absolute;
-    bottom: 45px;
-    right: 12px;
-    background: white;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1000;
-    width: 280px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-.emoji-picker-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-.emoji-item {
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background 0.15s;
-}
-.emoji-item:hover {
-    background-color: #f0f0f0;
+.emoji-btn {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    padding: 0.25rem 0.4rem !important;
 }
 .contact-sidebar {
     border-left: 1px solid #e9ecef;
@@ -340,7 +306,7 @@
                                         <div class="d-flex mb-1 align-items-center justify-content-between">
                                             <div class="d-flex align-items-center gap-2">
                                                 <h6 class="mb-0 chat-name">{{ $conversation['name'] }}</h6>
-                                                <span class="channel-pill channel-pill-{{ $conversation['channel'] }}">{{ strtoupper($conversation['channel']) }}</span>
+                                                <span class="badge rounded-pill channel-pill-{{ $conversation['channel'] }}">{{ strtoupper($conversation['channel']) }}</span>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <small class="text-muted">{{ $conversation['last_message_time'] }}</small>
@@ -373,7 +339,7 @@
                                     <div>
                                         <div class="d-flex align-items-center gap-2">
                                             <h5 class="mb-0" id="chatName">{{ $conversations[0]['name'] ?? 'Select a conversation' }}</h5>
-                                            <span class="channel-pill channel-pill-{{ $conversations[0]['channel'] ?? 'sms' }}" id="chatChannelBadge">{{ strtoupper($conversations[0]['channel'] ?? 'SMS') }}</span>
+                                            <span class="badge rounded-pill channel-pill-{{ $conversations[0]['channel'] ?? 'sms' }}" id="chatChannelBadge">{{ strtoupper($conversations[0]['channel'] ?? 'SMS') }}</span>
                                         </div>
                                         <small class="text-muted" id="chatPhone">{{ $conversations[0]['phone_masked'] ?? '' }}</small>
                                         <div class="mt-1">
@@ -547,46 +513,6 @@
                                             <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" onclick="toggleEmojiPicker()" title="Insert emoji">
                                                 <i class="fas fa-smile"></i>
                                             </button>
-                                        </div>
-                                        <div class="emoji-picker-container d-none" id="emojiPickerContainer">
-                                            <div class="emoji-picker-grid p-2">
-                                                <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😅')">😅</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🤣')">🤣</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😊')">😊</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😇')">😇</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🙂')">🙂</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😉')">😉</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😍')">😍</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🥰')">🥰</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😘')">😘</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😋')">😋</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😎')">😎</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🙄')">🙄</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😏')">😏</span>
-                                                <span class="emoji-item" onclick="insertEmoji('😴')">😴</span>
-                                                <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-                                                <span class="emoji-item" onclick="insertEmoji('👎')">👎</span>
-                                                <span class="emoji-item" onclick="insertEmoji('👌')">👌</span>
-                                                <span class="emoji-item" onclick="insertEmoji('✌️')">✌️</span>
-                                                <span class="emoji-item" onclick="insertEmoji('👋')">👋</span>
-                                                <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🙏')">🙏</span>
-                                                <span class="emoji-item" onclick="insertEmoji('✨')">✨</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🎉')">🎉</span>
-                                                <span class="emoji-item" onclick="insertEmoji('💯')">💯</span>
-                                                <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span>
-                                                <span class="emoji-item" onclick="insertEmoji('❤️')">❤️</span>
-                                                <span class="emoji-item" onclick="insertEmoji('💙')">💙</span>
-                                                <span class="emoji-item" onclick="insertEmoji('💚')">💚</span>
-                                                <span class="emoji-item" onclick="insertEmoji('💜')">💜</span>
-                                                <span class="emoji-item" onclick="insertEmoji('⭐')">⭐</span>
-                                            </div>
                                         </div>
                                     </div>
                                     
@@ -777,6 +703,181 @@
     </div>
 </div>
 
+<div class="modal fade" id="personalisationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-user-tag me-2"></i>Insert Personalisation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Click a placeholder to insert it at the cursor position in your message.</p>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Contact Book Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('firstName')">@{{firstName}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('lastName')">@{{lastName}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('fullName')">@{{fullName}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('mobile')">@{{mobile}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('email')">@{{email}}</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Custom Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentDate')">@{{appointmentDate}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentTime')">@{{appointmentTime}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('clinicName')">@{{clinicName}}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('customField_1')">@{{customField_1}}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="emojiPickerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-smile me-2"></i>Insert Emoji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning py-2 mb-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Emojis switch the message to Unicode encoding, reducing characters per segment.
+                </div>
+                <div class="mb-3">
+                    <input type="text" class="form-control form-control-sm" id="emojiSearch" placeholder="Search emojis..." oninput="filterEmojis(this.value)">
+                </div>
+                <div class="mb-3" id="recentlyUsedSection">
+                    <h6 class="text-muted mb-2">Recently Used</h6>
+                    <div class="d-flex flex-wrap gap-1" id="recentlyUsedEmojis">
+                        <span class="text-muted small">No recent emojis</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Commonly Used</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="common">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😊')">😊</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👍')">👍</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('❤️')">❤️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🎉')">🎉</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('✅')">✅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('⭐')">⭐</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📱')">📱</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📞')">📞</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📧')">📧</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('📅')">📅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('⏰')">⏰</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💊')">💊</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Smileys & People</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="smileys">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😀')">😀</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😃')">😃</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😄')">😄</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😁')">😁</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😅')">😅</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😂')">😂</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🤣')">🤣</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😇')">😇</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🙂')">🙂</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😉')">😉</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😍')">😍</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🥰')">🥰</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😘')">😘</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😋')">😋</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('😎')">😎</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🤔')">🤔</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Gestures</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="gestures">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👌')">👌</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('✌️')">✌️</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👋')">👋</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👏')">👏</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🙏')">🙏</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('✨')">✨</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💯')">💯</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🔥')">🔥</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('👎')">👎</button>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <h6 class="text-muted mb-2">Hearts & Symbols</h6>
+                    <div class="d-flex flex-wrap gap-1 emoji-category" data-category="hearts">
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💙')">💙</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💚')">💚</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💜')">💜</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💛')">💛</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🧡')">🧡</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('🖤')">🖤</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💔')">💔</button>
+                        <button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal('💕')">💕</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiAssistantModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-magic me-2"></i>AI Content Assistant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="mb-3">Current Message</h6>
+                    <div class="bg-light p-3 rounded" id="aiCurrentContent">
+                        <em class="text-muted">No content to improve</em>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h6 class="mb-3">What would you like to do?</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('tone')"><i class="fas fa-smile me-1"></i>Improve tone</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('shorten')"><i class="fas fa-compress-alt me-1"></i>Shorten message</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('grammar')"><i class="fas fa-spell-check me-1"></i>Correct spelling & grammar</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('clarity')"><i class="fas fa-lightbulb me-1"></i>Rephrase for clarity</button>
+                    </div>
+                </div>
+                <div class="d-none" id="aiResultSection">
+                    <h6 class="mb-3">Suggested Version</h6>
+                    <div class="bg-success bg-opacity-10 border border-success p-3 rounded mb-3" id="aiSuggestedContent"></div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="useAiSuggestion()"><i class="fas fa-check me-1"></i>Use this</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="discardAiSuggestion()">Discard</button>
+                    </div>
+                </div>
+                <div class="d-none" id="aiLoadingSection">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <p class="text-muted">Improving your message...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="manageTagsModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -867,7 +968,7 @@
                         <h5 class="mb-1" id="viewContactName">Sarah Mitchell</h5>
                         <p class="text-muted mb-3" id="viewContactPhone">+44 77** ***111</p>
                         <div class="mb-3">
-                            <span class="channel-pill channel-pill-sms" id="viewContactChannel">SMS</span>
+                            <span class="badge rounded-pill channel-pill-sms" id="viewContactChannel">SMS</span>
                         </div>
                     </div>
                     <div class="col-md-8">
@@ -996,7 +1097,7 @@ function selectConversation(id) {
     
     var channelBadge = document.getElementById('chatChannelBadge');
     channelBadge.textContent = conv.channel.toUpperCase();
-    channelBadge.className = 'channel-pill channel-pill-' + conv.channel;
+    channelBadge.className = 'badge rounded-pill channel-pill-' + conv.channel;
     
     var sourceValue = document.getElementById('chatSourceValue');
     sourceValue.textContent = conv.source || (conv.channel === 'rcs' ? 'RCS Agent' : '60777');
@@ -1091,7 +1192,7 @@ function openViewContactModal() {
     
     var channelBadge = document.getElementById('viewContactChannel');
     channelBadge.textContent = conv.channel.toUpperCase();
-    channelBadge.className = 'channel-pill channel-pill-' + conv.channel;
+    channelBadge.className = 'badge rounded-pill channel-pill-' + conv.channel;
     
     var nameParts = conv.name.split(' ');
     document.getElementById('viewContactFirstName').textContent = nameParts[0] || '-';
@@ -1226,11 +1327,32 @@ function updateCharCount() {
 }
 
 function toggleEmojiPicker() {
-    var picker = document.getElementById('emojiPickerContainer');
-    picker.classList.toggle('d-none');
+    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
+    loadRecentlyUsedEmojis();
+    modal.show();
 }
 
-function insertEmoji(emoji) {
+var recentlyUsedEmojis = JSON.parse(localStorage.getItem('recentEmojis') || '[]');
+
+function loadRecentlyUsedEmojis() {
+    var container = document.getElementById('recentlyUsedEmojis');
+    if (recentlyUsedEmojis.length === 0) {
+        container.innerHTML = '<span class="text-muted small">No recent emojis</span>';
+    } else {
+        container.innerHTML = recentlyUsedEmojis.map(function(emoji) {
+            return '<button type="button" class="btn btn-light btn-sm emoji-btn" onclick="insertEmojiFromModal(\'' + emoji + '\')">' + emoji + '</button>';
+        }).join('');
+    }
+}
+
+function addToRecentEmojis(emoji) {
+    recentlyUsedEmojis = recentlyUsedEmojis.filter(function(e) { return e !== emoji; });
+    recentlyUsedEmojis.unshift(emoji);
+    if (recentlyUsedEmojis.length > 12) recentlyUsedEmojis = recentlyUsedEmojis.slice(0, 12);
+    localStorage.setItem('recentEmojis', JSON.stringify(recentlyUsedEmojis));
+}
+
+function insertEmojiFromModal(emoji) {
     var textarea = document.getElementById('replyMessage');
     var start = textarea.selectionStart;
     var end = textarea.selectionEnd;
@@ -1239,7 +1361,35 @@ function insertEmoji(emoji) {
     textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
     textarea.focus();
     updateCharCount();
-    document.getElementById('emojiPickerContainer').classList.add('d-none');
+    addToRecentEmojis(emoji);
+    bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
+}
+
+function insertEmoji(emoji) {
+    insertEmojiFromModal(emoji);
+}
+
+function filterEmojis(searchTerm) {
+    var emojiNames = {
+        '😊': 'smile happy', '👍': 'thumbs up like', '❤️': 'heart love red', '🎉': 'party celebrate',
+        '✅': 'check done complete', '⭐': 'star favorite', '📱': 'phone mobile', '📞': 'call phone',
+        '📧': 'email mail', '📅': 'calendar date', '⏰': 'clock time alarm', '💊': 'pill medicine',
+        '😀': 'grin smile', '😃': 'smiley happy', '😄': 'grin happy', '😁': 'beam smile',
+        '😅': 'sweat smile nervous', '😂': 'laugh tears joy', '🤣': 'rofl laugh', '😇': 'angel innocent',
+        '🙂': 'smile slight', '😉': 'wink', '😍': 'heart eyes love', '🥰': 'love hearts',
+        '😘': 'kiss love', '😋': 'yummy delicious', '😎': 'cool sunglasses', '🤔': 'thinking hmm',
+        '👌': 'ok perfect', '✌️': 'peace victory', '👋': 'wave hello hi bye', '👏': 'clap applause',
+        '🙏': 'pray please thanks', '✨': 'sparkle magic', '💯': 'hundred perfect', '🔥': 'fire hot',
+        '👎': 'thumbs down dislike', '💙': 'blue heart', '💚': 'green heart', '💜': 'purple heart',
+        '💛': 'yellow heart', '🧡': 'orange heart', '🖤': 'black heart', '💔': 'broken heart', '💕': 'hearts love'
+    };
+    searchTerm = searchTerm.toLowerCase();
+    document.querySelectorAll('.emoji-category .emoji-btn').forEach(function(btn) {
+        var emoji = btn.textContent.trim();
+        var names = emojiNames[emoji] || '';
+        var match = emoji.includes(searchTerm) || names.includes(searchTerm);
+        btn.style.display = searchTerm === '' || match ? '' : 'none';
+    });
 }
 
 function applyTemplate() {
@@ -1252,11 +1402,80 @@ function applyTemplate() {
 }
 
 function openAiAssistant() {
-    showComingSoon('AI Assistant');
+    var content = document.getElementById('replyMessage').value.trim();
+    var displayEl = document.getElementById('aiCurrentContent');
+    if (content) {
+        displayEl.innerHTML = '<p class="mb-0">' + escapeHtml(content) + '</p>';
+    } else {
+        displayEl.innerHTML = '<em class="text-muted">No content to improve</em>';
+    }
+    document.getElementById('aiResultSection').classList.add('d-none');
+    document.getElementById('aiLoadingSection').classList.add('d-none');
+    var modal = new bootstrap.Modal(document.getElementById('aiAssistantModal'));
+    modal.show();
+}
+
+function aiImprove(action) {
+    var content = document.getElementById('replyMessage').value.trim();
+    if (!content) {
+        alert('Please enter some message content first.');
+        return;
+    }
+    
+    document.getElementById('aiLoadingSection').classList.remove('d-none');
+    document.getElementById('aiResultSection').classList.add('d-none');
+    
+    setTimeout(function() {
+        var improved = content;
+        if (action === 'tone') {
+            improved = 'Hi there! ' + content + ' Thank you for your patience!';
+        } else if (action === 'shorten') {
+            improved = content.split('.')[0] + '.';
+        } else if (action === 'grammar') {
+            improved = content.charAt(0).toUpperCase() + content.slice(1);
+            if (!improved.endsWith('.') && !improved.endsWith('!') && !improved.endsWith('?')) {
+                improved += '.';
+            }
+        } else if (action === 'clarity') {
+            improved = 'To clarify: ' + content;
+        }
+        
+        document.getElementById('aiSuggestedContent').innerHTML = '<p class="mb-0">' + escapeHtml(improved) + '</p>';
+        document.getElementById('aiLoadingSection').classList.add('d-none');
+        document.getElementById('aiResultSection').classList.remove('d-none');
+        window.aiSuggestedText = improved;
+    }, 1000);
+}
+
+function useAiSuggestion() {
+    if (window.aiSuggestedText) {
+        document.getElementById('replyMessage').value = window.aiSuggestedText;
+        updateCharCount();
+    }
+    bootstrap.Modal.getInstance(document.getElementById('aiAssistantModal')).hide();
+}
+
+function discardAiSuggestion() {
+    document.getElementById('aiResultSection').classList.add('d-none');
+    window.aiSuggestedText = null;
 }
 
 function openPersonalisationModal() {
-    showComingSoon('Personalisation Fields');
+    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    modal.show();
+}
+
+function insertPlaceholder(field) {
+    var textarea = document.getElementById('replyMessage');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    var placeholder = '{' + '{' + field + '}' + '}';
+    textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+    textarea.focus();
+    updateCharCount();
+    bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
 }
 
 function filterConversations() {
