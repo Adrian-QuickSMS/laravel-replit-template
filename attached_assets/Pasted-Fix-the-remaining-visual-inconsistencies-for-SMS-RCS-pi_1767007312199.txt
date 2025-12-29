@@ -1,0 +1,56 @@
+Fix the remaining visual inconsistencies for SMS/RCS pills and avatars in the Inbox / Messages UI.
+
+IMPORTANT:
+- You MUST reuse the existing tag/list pill styles and avatar styles from the Contact Book.
+- Do NOT create new colours, shapes, or CSS; copy the existing design system.
+
+A) SMS/RCS pills – use Tag/List pill formatting
+
+Problem:
+- SMS and RCS pills are still square/rectangular.
+
+Requirement:
+- Apply the SAME styling used for Tags/Lists pills in the Contact Book to all SMS/RCS pills:
+  - Same rounded “pill” shape (fully rounded border radius, not square).
+  - Same padding, border-radius, font size, and text alignment.
+- Keep the channel colours we already defined:
+  - SMS pill: green
+  - RCS pill: blue
+- Locations where this must be applied:
+  - Conversation list (left column)
+  - Chat header
+  - Anywhere else SMS/RCS pills appear in Inbox/Messages
+
+Implementation note:
+- Find the component or CSS class used for Tag/List pills in the Contact Book and reuse that class/component for SMS/RCS pills, only overriding the background colour where necessary.
+
+B) Avatar circles in chat thread – must be true circles
+
+Problem:
+- Avatar shapes in the chat thread are currently oval instead of circular (see the attached screenshot with red circles showing the issue).
+
+Requirement:
+- Ensure ALL avatars in the Inbox/Messages module are perfect circles, not ovals:
+  - Height and width must be equal.
+  - Use the same avatar component/styles as in the Contact Book.
+  - Purple circular background.
+  - White initials, bold, centred both vertically and horizontally.
+
+Locations:
+- Conversation list (left column)
+- Chat thread (beside messages, where avatars are shown)
+- Chat header
+- Contact details panel (right sidebar)
+
+Implementation note:
+- Check for mismatched height/width or conflicting padding/line-height that might be causing the oval effect.
+- Use the exact same avatar component or CSS classes as Contact Book so the behaviour and proportions are identical.
+
+Constraints:
+- Do NOT invent new avatar or pill designs.
+- Reuse existing Tag/List pill and avatar components/styles from Contact Book.
+- Limit changes to Inbox/Messages + shared avatar/pill components.
+
+Acceptance checklist:
+- SMS and RCS pills visually match Tag/List pills in shape and general styling (pill-shaped, not square), with correct green/blue colours.
+- All avatars in Inbox/Messages are true circles, matching Contact Book exactly (same size, purple background, centered white initials).

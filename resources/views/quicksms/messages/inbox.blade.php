@@ -82,6 +82,9 @@
     width: 40px;
     height: 40px;
     min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
     border-radius: 50%;
     background-color: var(--primary) !important;
     color: white !important;
@@ -90,6 +93,16 @@
     justify-content: center;
     font-size: 14px;
     font-weight: 600;
+    flex-shrink: 0;
+}
+.chat-img-sm {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    font-size: 11px !important;
 }
 .message-received {
     background-color: #f8f9fa;
@@ -111,12 +124,23 @@
     color: rgba(255,255,255,0.8);
 }
 .channel-pill {
+    display: inline-block;
     font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 50px;
+    padding: 0.25em 0.6em;
+    border-radius: 10rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    line-height: 1;
+    vertical-align: middle;
+}
+.channel-pill-sms {
+    background-color: #34C759 !important;
+    color: white !important;
+}
+.channel-pill-rcs {
+    background-color: #007AFF !important;
+    color: white !important;
 }
 .emoji-picker-container {
     position: absolute;
@@ -406,7 +430,7 @@
                                         
                                         @if($msg['direction'] === 'inbound')
                                         <div class="media my-3 justify-content-start align-items-start">
-                                            <div class="chat-img me-3" style="width: 32px; height: 32px; font-size: 11px;">
+                                            <div class="chat-img chat-img-sm me-3">
                                                 {{ $conversations[0]['initials'] ?? '??' }}
                                             </div>
                                             <div>
@@ -992,7 +1016,7 @@ function selectConversation(id) {
         var html = '';
         if (msg.direction === 'inbound') {
             html = '<div class="media my-3 justify-content-start align-items-start">' +
-                '<div class="chat-img me-3" style="width: 32px; height: 32px; font-size: 11px;">' + conv.initials + '</div>' +
+                '<div class="chat-img chat-img-sm me-3">' + conv.initials + '</div>' +
                 '<div><div class="message-received"><p class="mb-1">' + escapeHtml(msg.content || '') + '</p></div>' +
                 '<small class="text-muted">' + msg.time + '</small></div></div>';
         } else if (msg.type === 'rich_card' && msg.rich_card) {
