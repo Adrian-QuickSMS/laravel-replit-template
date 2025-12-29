@@ -224,11 +224,11 @@
                         <h5 class="card-title mb-0"><i class="fas fa-chart-area me-2 text-primary"></i>Message Traffic</h5>
                         <div class="btn-group" role="group" id="trafficToggle">
                             <input type="radio" class="btn-check" name="trafficPeriod" id="trafficToday" value="today" checked>
-                            <label class="btn btn-outline-primary btn-sm" for="trafficToday">Today</label>
+                            <label class="btn btn-outline-primary btn-sm traffic-toggle-btn" for="trafficToday">Today</label>
                             <input type="radio" class="btn-check" name="trafficPeriod" id="traffic7Days" value="7days">
-                            <label class="btn btn-outline-primary btn-sm" for="traffic7Days">Last 7 Days</label>
+                            <label class="btn btn-outline-primary btn-sm traffic-toggle-btn" for="traffic7Days">7 Days</label>
                             <input type="radio" class="btn-check" name="trafficPeriod" id="traffic30Days" value="30days">
-                            <label class="btn btn-outline-primary btn-sm" for="traffic30Days">Last 30 Days</label>
+                            <label class="btn btn-outline-primary btn-sm traffic-toggle-btn" for="traffic30Days">30 Days</label>
                         </div>
                     </div>
                     <div class="card-body">
@@ -769,6 +769,12 @@
     }
 }
 
+/* Equal-width traffic toggle buttons */
+.traffic-toggle-btn {
+    min-width: 70px;
+    text-align: center;
+}
+
 /* ========================================
    FORM INPUT CONSISTENCY
    ======================================== */
@@ -895,15 +901,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         var categories = [];
                         var data = [];
                         
+                        var today = new Date();
+                        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        
                         if (period === 'today') {
                             categories = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
                             data = [12, 8, 25, 189, 356, 284, 198, 95];
                         } else if (period === '7days') {
-                            categories = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                            data = [1842, 2156, 1989, 2312, 2478, 1234, 989];
+                            for (var i = 6; i >= 0; i--) {
+                                var d = new Date(today);
+                                d.setDate(today.getDate() - i);
+                                categories.push(d.getDate() + ' ' + months[d.getMonth()]);
+                                data.push([1842, 2156, 1989, 2312, 2478, 1234, 989][6 - i]);
+                            }
                         } else if (period === '30days') {
-                            for (var i = 1; i <= 30; i++) {
-                                categories.push('Day ' + i);
+                            for (var i = 29; i >= 0; i--) {
+                                var d = new Date(today);
+                                d.setDate(today.getDate() - i);
+                                categories.push(d.getDate() + ' ' + months[d.getMonth()]);
                                 data.push(Math.floor(Math.random() * 2000) + 800);
                             }
                         }
