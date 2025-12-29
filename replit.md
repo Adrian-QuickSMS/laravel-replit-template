@@ -30,13 +30,15 @@ The system uses an SQLite database for development, with a clear separation betw
 
 ## Inbox / Conversation Workspace
 The Messages Inbox provides a three-panel conversation workspace at `/messages/inbox`:
-- **Conversation List (Left):** Uses Fillow's `.chat-bx` class pattern with purple left border (3px) for active state, search, filter (All/Unread/SMS/RCS), source filter (VMN/Short Code/RCS Agent), sort (Newest/Oldest/A-Z/Z-A), unread badges, and channel pills (`.channel-pill-sms` green #34C759, `.channel-pill-rcs` blue #007AFF)
-- **Chat Pane (Center):** Uses `.message-received` (gray, left-aligned) and channel-specific `.message-sent` bubbles (green gradient for SMS, blue gradient for RCS) with timestamps and delivery indicators. Source display in header ("From: [VMN/Short Code/RCS Agent]")
+- **Conversation List (Left):** Uses Fillow's `.chat-bx` class pattern with purple left border (3px) for active state, search, filter (All/Unread/SMS/RCS), source filter (VMN/Short Code/RCS Agent), sort (Newest/Oldest/A-Z/Unread First), unread badges, and channel pills (`.channel-pill-sms` green #34C759, `.channel-pill-rcs` blue #007AFF)
+- **Filters & Sorting:** Fully functional with 35 mock conversations. Filters work in combination (channel + source + search). Sort uses numeric timestamps for newest/oldest ordering. Console logging for debugging.
+- **Conversation Item Layout:** Flex layout with 6px gaps, contact name truncates at 120px, time/unread badge right-aligned. SMS/RCS pills use `badge rounded-pill channel-pill-*` classes (10px font, 3px×8px padding, 50rem radius).
+- **Chat Pane (Center):** Uses `.message-received` (gray, left-aligned) and channel-specific `.message-sent` bubbles (green gradient for SMS, blue gradient for RCS) with timestamps and delivery indicators. Both bubble types use max-width: 65% for consistent width. Source display in header ("From: [VMN/Short Code/RCS Agent]")
 - **Contact Info (Right):** Collapsible sidebar toggled via three-dot menu, shows contact details (tags, lists, notes) with "+ Add" links, "View Contact" button for modal preview, or "Add to Contacts" for unknown numbers. Notes section with add/save functionality and user attribution timestamps
 - **Search in Conversation:** Header search bar with previous/next navigation and highlight matching (`.search-highlight`)
-- **Reply Composer:** Redesigned as a larger card matching Send Message UI with full-width channel picker (SMS only, Basic RCS, Rich RCS), conditional sender controls (SenderID for SMS, RCS Agent for RCS), Template dropdown + "Improve with AI" button, content editor with placeholder/emoji picker, character/encoding/segment counters with GSM-7/Unicode detection
+- **Reply Composer:** Card matching Send Message UI with channel picker (SMS only, Basic RCS, Rich RCS), conditional sender controls (SenderID for SMS, RCS Agent for RCS), Template dropdown + "Improve with AI" button, content editor with placeholder modal, AI assistant modal, emoji picker modal, character/encoding/segment counters with GSM-7/Unicode detection
 - **RCS Rich Cards:** Inline rendering of rich card messages (`.rcs-rich-card-inbox`) with image, title, description, action button
-- **Mock Data:** 6 sample conversations including RCS rich card example (Sophie Brown)
+- **Mock Data:** 35 sample conversations with varied channels, sources, timestamps, unread states for filter/sort testing
 - **GDPR Compliance:** Phone numbers are masked (+44 77** ***111), message previews use placeholders only (@{{firstName}}, @{{orderNumber}})
 
 ## RCS Preview System
