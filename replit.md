@@ -30,6 +30,8 @@ The system uses an SQLite database for development, with a clear separation betw
 
 ## Inbox / Conversation Workspace
 The Messages Inbox provides a three-panel conversation workspace at `/messages/inbox`:
+- **Fixed Viewport Layout:** Page never scrolls. Uses `.inbox-page-container` with `height: calc(100vh - 120px)` and flex layout. Card-body has `d-flex flex-nowrap p-0` for horizontal panel arrangement.
+- **Independent Scrolling:** Each panel scrolls independently. Conversation list uses `overflow-y: auto` on `.chat-sidebar`. Chat thread uses `flex: 1; min-height: 0; overflow-y: auto` on `.chat-box-area`. Composer stays fixed at bottom with `flex-shrink: 0`.
 - **Conversation List (Left):** Uses Fillow's `.chat-bx` class pattern with purple left border (3px) for active state, search, filter (All/Unread/SMS/RCS), source filter (VMN/Short Code/RCS Agent), sort (Newest/Oldest/A-Z/Unread First), unread badges, and channel pills (`.channel-pill-sms` green #34C759, `.channel-pill-rcs` blue #007AFF)
 - **Filters & Sorting:** Fully functional with 35 mock conversations. Filters work in combination (channel + source + search). Sort uses numeric timestamps for newest/oldest ordering. Console logging for debugging.
 - **Conversation Item Layout:** Flex layout with 6px gaps, contact name truncates at 120px, time/unread badge right-aligned. SMS/RCS pills use `badge rounded-pill channel-pill-*` classes (10px font, 3px×8px padding, 50rem radius).
