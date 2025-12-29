@@ -82,7 +82,7 @@
                                         </svg>
                                     </span>
                                     <div class="media-body">
-                                        <p class="mb-1">Inbound (Unresponded)</p>
+                                        <p class="mb-1">Unread Messages</p>
                                         <h4 class="mb-0 tile-value" id="inbound-value">0</h4>
                                     </div>
                                 </div>
