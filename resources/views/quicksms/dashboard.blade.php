@@ -382,27 +382,23 @@
             </div>
             
             <div class="col-xl-6 col-lg-6 mb-3" id="tile-register-rcs-wrapper">
-                <a href="{{ route('management.rcs-agent') }}" class="text-decoration-none">
-                    <div class="card dashboard-tile h-100" id="tile-register-rcs" style="background: linear-gradient(135deg, #9575cd 0%, #7e57c2 100%); min-height: 200px;">
-                        <div class="card-body d-flex align-items-center justify-content-between h-100 p-4">
-                            <div class="text-white" style="max-width: 60%;">
-                                <h4 class="text-white fw-bold mb-2">Register for RCS</h4>
-                                <p class="mb-3 opacity-75" style="font-size: 0.95rem;">Get your brand verified and start sending rich, interactive messages to your customers.</p>
-                                <span class="btn btn-light text-dark fw-semibold" id="btnRegisterRcs">
-                                    Register Now
-                                </span>
-                            </div>
-                            <div class="rcs-register-icon d-flex align-items-center justify-content-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                    <circle cx="9" cy="10" r="1" fill="rgba(255,255,255,0.8)"></circle>
-                                    <circle cx="12" cy="10" r="1" fill="rgba(255,255,255,0.8)"></circle>
-                                    <circle cx="15" cy="10" r="1" fill="rgba(255,255,255,0.8)"></circle>
-                                </svg>
-                            </div>
+                <div class="card tryal-gradient h-100" id="tile-register-rcs">
+                    <div class="card-body tryal row">
+                        <div class="col-xl-7 col-sm-7">
+                            <h2 class="mb-0">Register for RCS</h2>
+                            <span>Get your brand verified and start sending rich, interactive messages to your customers.</span>
+                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-rounded" id="btnRegisterRcs">Register Now</a>
+                        </div>
+                        <div class="col-xl-5 col-sm-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sd-shape">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                <circle cx="9" cy="10" r="1" fill="rgba(255,255,255,0.7)"></circle>
+                                <circle cx="12" cy="10" r="1" fill="rgba(255,255,255,0.7)"></circle>
+                                <circle cx="15" cy="10" r="1" fill="rgba(255,255,255,0.7)"></circle>
+                            </svg>
                         </div>
                     </div>
-                </a>
+                </div>
             </div>
         </div>
     </section>
