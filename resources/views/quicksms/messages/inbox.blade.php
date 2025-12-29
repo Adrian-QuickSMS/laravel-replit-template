@@ -4,103 +4,43 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
-<link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
 <style>
-/* ==========================================
-   INBOX LAYOUT - CRITICAL: No Main Page Scroll
-   ========================================== */
-
-/* CRITICAL: Prevent main page scroll */
-html, body {
-    overflow: hidden !important;
-    height: 100vh !important;
-}
-
-/* Main inbox wrapper */
-.inbox-page-wrapper {
-    height: calc(100vh - 100px);
-    padding: 0.5rem;
+.inbox-main-container {
+    height: calc(100vh - 80px);
     overflow: hidden;
 }
-
-/* Card fills all available space */
-.inbox-card.card {
+.inbox-row {
+    display: flex !important;
+    flex-direction: row !important;
     height: 100%;
-    margin-bottom: 0;
 }
-
-/* Card body with Bootstrap row */
-.inbox-card-body.card-body {
-    height: 100%;
-    padding: 0;
-}
-
-/* Row fills card body */
-.inbox-card-body .row {
-    height: 100%;
-    flex-wrap: nowrap;
-}
-
-/* ==========================================
-   LEFT PANEL - Conversation List (340px fixed)
-   ========================================== */
-.inbox-sidebar {
-    width: 340px;
-    max-width: 340px;
+.chat-left-body {
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 340px !important;
+    flex-shrink: 0 !important;
     display: flex;
     flex-direction: column;
     height: 100%;
     border-right: 1px solid #e9ecef;
-    overflow: hidden;
-    background: white;
 }
-
-/* Sidebar header (title + filters) - FIXED, no scroll */
-.inbox-sidebar-header {
-    flex-shrink: 0;
-    background: white;
-}
-
-/* Conversation list - SCROLLABLE */
 .chat-sidebar {
     flex: 1;
     overflow-y: auto;
-    min-height: 0;
 }
-
-/* ==========================================
-   CENTER PANEL - Chat Area (flexible width)
-   ========================================== */
 .chat-pane-wrapper {
     display: flex;
     flex-direction: column;
+    flex: 1 !important;
     min-width: 0;
     height: 100%;
-    overflow: hidden;
-    background: white;
-}
-
-/* Chat header - FIXED, no scroll */
-.chat-header {
-    flex-shrink: 0;
-    background: white;
-}
-
-/* Chat search bar (hidden by default) - FIXED when visible */
-.chat-search-bar {
-    flex-shrink: 0;
-}
-
-/* Chat messages area - SCROLLABLE */
-.chat-box-area {
-    flex: 1;
     overflow-y: auto;
-    padding: 1rem;
-    min-height: 0;
-    background: #f8f9fa;
 }
-
-/* Reply composer - FIXED at bottom */
+.chat-box-area {
+    flex: 1 1 auto;
+    padding: 1rem;
+    min-height: 200px;
+}
 #replyComposerCard {
     flex-shrink: 0;
     border-radius: 0;
@@ -108,27 +48,6 @@ html, body {
     border-right: 0;
     border-bottom: 0;
     background: white;
-}
-
-/* ==========================================
-   RIGHT PANEL - Contact Details (280px fixed)
-   ========================================== */
-.contact-sidebar {
-    width: 280px;
-    max-width: 280px;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-left: 1px solid #e9ecef;
-    overflow: hidden;
-    background: white;
-}
-
-/* Contact sidebar content - SCROLLABLE */
-.contact-sidebar-content {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
 }
 .chat-bx {
     cursor: pointer;
@@ -315,57 +234,61 @@ html, body {
 @endpush
 
 @section('content')
-<div class="inbox-page-wrapper">
-    <div class="inbox-card card">
-        <div class="inbox-card-body card-body p-0">
-            <div class="row g-0 h-100">
-                <!-- LEFT PANEL: Conversation List -->
-                <div class="col-auto inbox-sidebar">
-                    <!-- Header (FIXED) -->
-                    <div class="inbox-sidebar-header">
-                        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <h4 class="mb-0 me-2">Inbox</h4>
-                                <span class="badge bg-danger text-white" id="unreadBadge">{{ $unread_count }} unread</span>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
+                <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%;">
+                    <div style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
+                        <div class="meassge-left-side">
+                            <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                                <div class="d-flex align-items-center">
+                                    <h4 class="mb-0 me-2">Inbox</h4>
+                                    <span class="badge bg-danger text-white" id="unreadBadge">{{ $unread_count }} unread</span>
+                                </div>
+                            </div>
+                            <div class="p-3 border-bottom">
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" class="form-control border-start-0" id="conversationSearch" placeholder="Search conversations..." onkeyup="filterConversations()" oninput="filterConversations()">
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <div class="d-flex align-items-center">
+                                        <select class="form-select form-select-sm" id="filterConversations" style="width: auto; font-size: 12px; padding-right: 28px;" onchange="console.log('Status changed'); filterConversations();">
+                                            <option value="all">All</option>
+                                            <option value="unread">Unread</option>
+                                            <option value="sms">SMS</option>
+                                            <option value="rcs">RCS</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <select class="form-select form-select-sm" id="filterSource" style="width: auto; font-size: 12px; padding-right: 28px;" onchange="console.log('Source changed'); filterConversations();">
+                                            <option value="all">All Sources</option>
+                                            <optgroup label="By Type">
+                                                <option value="type:vmn">All VMNs</option>
+                                                <option value="type:shortcode">All Short Codes</option>
+                                                <option value="type:rcs_agent">All RCS Agents</option>
+                                            </optgroup>
+                                            <optgroup label="Specific Sources">
+                                                <option value="source:60777">60777 (Short Code)</option>
+                                                <option value="source:+447700900100">+44 7700 900100 (VMN)</option>
+                                                <option value="source:QuickSMS Brand">QuickSMS Brand (RCS Agent)</option>
+                                                <option value="source:RetailBot">RetailBot (RCS Agent)</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <select class="form-select form-select-sm" id="sortConversations" style="width: auto; font-size: 12px; padding-right: 28px;">
+                                            <option value="newest">Newest</option>
+                                            <option value="oldest">Oldest</option>
+                                            <option value="alphabetical">A-Z</option>
+                                            <option value="unread">Unread</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="p-3 border-bottom">
-                            <div class="input-group input-group-sm mb-2">
-                                <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                <input type="text" class="form-control border-start-0" id="conversationSearch" placeholder="Search conversations...">
-                            </div>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <select class="form-select form-select-sm" id="filterConversations" style="width: auto; font-size: 12px; padding-right: 28px;">
-                                    <option value="all">All</option>
-                                    <option value="unread">Unread</option>
-                                    <option value="sms">SMS</option>
-                                    <option value="rcs">RCS</option>
-                                </select>
-                                <select class="form-select form-select-sm" id="filterSource" style="width: auto; font-size: 12px; padding-right: 28px;">
-                                    <option value="all">All Sources</option>
-                                    <optgroup label="By Type">
-                                        <option value="type:vmn">All VMNs</option>
-                                        <option value="type:shortcode">All Short Codes</option>
-                                        <option value="type:rcs_agent">All RCS Agents</option>
-                                    </optgroup>
-                                    <optgroup label="Specific Sources">
-                                        <option value="source:60777">60777 (Short Code)</option>
-                                        <option value="source:+447700900100">+44 7700 900100 (VMN)</option>
-                                        <option value="source:QuickSMS Brand">QuickSMS Brand (RCS Agent)</option>
-                                        <option value="source:RetailBot">RetailBot (RCS Agent)</option>
-                                    </optgroup>
-                                </select>
-                                <select class="form-select form-select-sm" id="sortConversations" style="width: auto; font-size: 12px; padding-right: 28px;">
-                                    <option value="newest">Newest</option>
-                                    <option value="oldest">Oldest</option>
-                                    <option value="alphabetical">A-Z</option>
-                                    <option value="unread">Unread</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Conversation List (SCROLLABLE) -->
-                    <div class="chat-sidebar" id="conversationList">
+                        <div class="chat-sidebar" id="conversationList">
                                 @forelse($conversations as $conversation)
                                 <div class="chat-bx d-flex border-bottom {{ $conversation['unread'] ? 'unread' : '' }} {{ $loop->first ? 'active' : '' }}"
                                      data-id="{{ $conversation['id'] }}"
@@ -404,13 +327,11 @@ html, body {
                                     <p class="mb-0 text-muted">No conversations yet</p>
                                 </div>
                             @endforelse
+                        </div>
                     </div>
-                </div>
-                
-                <!-- CENTER PANEL: Chat Area -->
-                <div class="col chat-pane-wrapper" id="chatPaneWrapper">
-                    <!-- Chat Header (FIXED) -->
-                    <div class="chat-header d-flex justify-content-between align-items-center border-bottom px-4 py-3">
+                    
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: flex; flex-direction: column; flex: 1; min-width: 0; height: 100%; overflow: hidden;">
+                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
@@ -453,19 +374,17 @@ html, body {
                                 </div>
                             </div>
                             
-                    <!-- Chat Search Bar (FIXED when visible) -->
-                    <div class="chat-search-bar px-4 py-2 border-bottom d-none" id="chatSearchBar">
-                        <div class="input-group input-group-sm">
-                            <input type="text" class="form-control" id="chatSearchInput" placeholder="Search messages in this conversation...">
-                            <button class="btn btn-outline-secondary" type="button" onclick="searchPrev()"><i class="fas fa-chevron-up"></i></button>
-                            <button class="btn btn-outline-secondary" type="button" onclick="searchNext()"><i class="fas fa-chevron-down"></i></button>
-                            <button class="btn btn-outline-secondary" type="button" onclick="closeChatSearch()"><i class="fas fa-times"></i></button>
-                        </div>
-                        <small class="text-muted" id="chatSearchResults"></small>
-                    </div>
-                    
-                    <!-- Chat Messages (SCROLLABLE) -->
-                    <div class="chat-box-area" id="chatArea">
+                            <div class="px-4 py-2 border-bottom d-none" id="chatSearchBar">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="chatSearchInput" placeholder="Search messages in this conversation...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="searchPrev()"><i class="fas fa-chevron-up"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="searchNext()"><i class="fas fa-chevron-down"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="closeChatSearch()"><i class="fas fa-times"></i></button>
+                                </div>
+                                <small class="text-muted" id="chatSearchResults"></small>
+                            </div>
+                            
+                            <div class="chat-box-area dz-scroll" id="chatArea">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -520,118 +439,121 @@ html, body {
                                         </div>
                                         @endif
                                     @endforeach
-                    @endif
-                    </div>
-                    
-                    <!-- Reply Composer (FIXED at bottom) -->
-                    <div class="card border-top" id="replyComposerCard">
-                        <div class="card-body p-2">
-                            <div class="row mb-2">
-                                <div class="col-12 mb-1">
-                                    <label class="form-label small fw-bold mb-1">Channel & Sender</label>
-                                    <div class="btn-group w-100" role="group">
-                                        <input type="radio" class="btn-check" name="replyChannel" id="replySms" value="sms" checked>
-                                        <label class="btn btn-outline-primary" for="replySms"><i class="fas fa-sms me-1"></i>SMS only</label>
-                                        <input type="radio" class="btn-check" name="replyChannel" id="replyRcsBasic" value="rcs_basic">
-                                        <label class="btn btn-outline-primary" for="replyRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
-                                        <input type="radio" class="btn-check" name="replyChannel" id="replyRcsRich" value="rcs_rich">
-                                        <label class="btn btn-outline-primary" for="replyRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                                @endif
+                            </div>
+                            
+                            <div class="card border-top" id="replyComposerCard">
+                                <div class="card-body p-2">
+                                    <div class="row mb-2">
+                                        <div class="col-12 mb-1">
+                                            <label class="form-label small fw-bold mb-1">Channel & Sender</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <input type="radio" class="btn-check" name="replyChannel" id="replySms" value="sms" checked>
+                                                <label class="btn btn-outline-primary" for="replySms"><i class="fas fa-sms me-1"></i>SMS only</label>
+                                                <input type="radio" class="btn-check" name="replyChannel" id="replyRcsBasic" value="rcs_basic">
+                                                <label class="btn btn-outline-primary" for="replyRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                                                <input type="radio" class="btn-check" name="replyChannel" id="replyRcsRich" value="rcs_rich">
+                                                <label class="btn btn-outline-primary" for="replyRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="senderIdSection">
+                                            <label class="form-label small mb-1">SMS Sender ID <span class="text-danger">*</span></label>
+                                            <select class="form-select form-select-sm" id="senderSelect">
+                                                <option value="">Select sender...</option>
+                                                @foreach($sender_ids as $sid)
+                                                <option value="{{ $sid['id'] }}">{{ $sid['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 d-none" id="rcsAgentSection">
+                                            <label class="form-label small mb-1">RCS Agent <span class="text-danger">*</span></label>
+                                            <select class="form-select form-select-sm" id="rcsAgentSelect">
+                                                <option value="">Select agent...</option>
+                                                @foreach($rcs_agents as $agent)
+                                                <option value="{{ $agent['id'] }}">{{ $agent['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 d-none" id="smsFallbackSection">
+                                            <label class="form-label small mb-1">SMS Fallback Sender <span class="text-danger">*</span></label>
+                                            <select class="form-select form-select-sm" id="smsFallbackSelect">
+                                                <option value="">Select fallback...</option>
+                                                @foreach($sender_ids as $sid)
+                                                <option value="{{ $sid['id'] }}">{{ $sid['name'] }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row align-items-center mb-2">
+                                        <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label class="form-label mb-0 text-nowrap small">Template</label>
+                                                <select class="form-select form-select-sm" id="templateSelector" onchange="applyTemplate()">
+                                                    <option value="">-- None --</option>
+                                                    @foreach($templates as $tpl)
+                                                    <option value="{{ $tpl['id'] }}" data-content="{{ addslashes($tpl['content']) }}">{{ $tpl['name'] }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-7 text-md-end">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
+                                                <i class="fas fa-magic me-1"></i>Improve with AI
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
+                                    <div class="position-relative border rounded mb-2">
+                                        <textarea class="form-control border-0" id="replyMessage" rows="3" placeholder="Type your message here..." oninput="updateCharCount()" style="padding-bottom: 40px; resize: none;"></textarea>
+                                        <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" onclick="toggleEmojiPicker()" title="Insert emoji">
+                                                <i class="fas fa-smile"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <span class="text-muted small me-3">Characters: <strong id="charCount">0</strong></span>
+                                            <span class="text-muted small me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
+                                            <span class="text-muted small" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
+                                        </div>
+                                        <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-none" id="rcsRichContentSection">
+                                        <div class="border rounded p-3 bg-light text-center mb-2">
+                                            <i class="fas fa-image fa-2x text-success mb-2"></i>
+                                            <h6 class="mb-2">Rich RCS Card</h6>
+                                            <p class="text-muted small mb-2">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="showComingSoon('Create RCS Message')">
+                                                <i class="fas fa-magic me-1"></i>Create RCS Message
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-primary" onclick="sendReply()">
+                                            <i class="far fa-paper-plane me-1"></i>Send Message
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="col-md-6" id="senderIdSection">
-                                    <label class="form-label small mb-1">SMS Sender ID <span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm" id="senderSelect">
-                                        <option value="">Select sender...</option>
-                                        @foreach($sender_ids as $sid)
-                                        <option value="{{ $sid['id'] }}">{{ $sid['name'] }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-6 d-none" id="rcsAgentSection">
-                                    <label class="form-label small mb-1">RCS Agent <span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm" id="rcsAgentSelect">
-                                        <option value="">Select agent...</option>
-                                        @foreach($rcs_agents as $agent)
-                                        <option value="{{ $agent['id'] }}">{{ $agent['name'] }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-6 d-none" id="smsFallbackSection">
-                                    <label class="form-label small mb-1">SMS Fallback Sender <span class="text-danger">*</span></label>
-                                    <select class="form-select form-select-sm" id="smsFallbackSelect">
-                                        <option value="">Select fallback...</option>
-                                        @foreach($sender_ids as $sid)
-                                        <option value="{{ $sid['id'] }}">{{ $sid['name'] }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row align-items-center mb-2">
-                                <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <label class="form-label mb-0 text-nowrap small">Template</label>
-                                        <select class="form-select form-select-sm" id="templateSelector" onchange="applyTemplate()">
-                                            <option value="">-- None --</option>
-                                            @foreach($templates as $tpl)
-                                            <option value="{{ $tpl['id'] }}" data-content="{{ addslashes($tpl['content']) }}">{{ $tpl['name'] }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 col-lg-7 text-md-end">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
-                                        <i class="fas fa-magic me-1"></i>Improve with AI
-                                    </button>
-                                </div>
-                            </div>
-                            <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
-                            <div class="position-relative border rounded mb-2">
-                                <textarea class="form-control border-0" id="replyMessage" rows="3" placeholder="Type your message here..." oninput="updateCharCount()" style="padding-bottom: 40px; resize: none;"></textarea>
-                                <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
-                                    <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
-                                        <i class="fas fa-user-tag"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" onclick="toggleEmojiPicker()" title="Insert emoji">
-                                        <i class="fas fa-smile"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <span class="text-muted small me-3">Characters: <strong id="charCount">0</strong></span>
-                                    <span class="text-muted small me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
-                                    <span class="text-muted small" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
-                                </div>
-                                <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>Unicode
-                                </span>
-                            </div>
-                            <div class="d-none" id="rcsRichContentSection">
-                                <div class="border rounded p-3 bg-light text-center mb-2">
-                                    <i class="fas fa-image fa-2x text-success mb-2"></i>
-                                    <h6 class="mb-2">Rich RCS Card</h6>
-                                    <p class="text-muted small mb-2">Create rich media cards with images, descriptions, and interactive buttons.</p>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="showComingSoon('Create RCS Message')">
-                                        <i class="fas fa-magic me-1"></i>Create RCS Message
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-primary" onclick="sendReply()">
-                                    <i class="far fa-paper-plane me-1"></i>Send Message
-                                </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- RIGHT PANEL: Contact Details -->
-                <div class="col-auto contact-sidebar" id="contactSidebar">
-                    <div class="contact-sidebar-content p-3">
-                    <div class="mb-3">
-                        <h6 class="mb-0">Contact Details</h6>
-                    </div>
-                    <div id="contactExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? '' : 'd-none' }}">
+                        
+                        <div class="contact-sidebar p-3" id="contactSidebar">
+                            <div class="mb-3">
+                                <h6 class="mb-0">Contact Details</h6>
+                            </div>
+                            
+                            <div id="contactExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? '' : 'd-none' }}">
                                 <div class="text-center mb-3">
                                     <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px; font-weight: 600;" id="contactAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
@@ -700,17 +622,18 @@ html, body {
                                     <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2" onclick="openManageListsModal()">
                                         <i class="fas fa-list me-1"></i>Add to List
                                     </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="openManageTagsModal()">
-                            <i class="fas fa-tags me-1"></i>Add Tag
-                        </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="openManageTagsModal()">
+                                        <i class="fas fa-tags me-1"></i>Add Tag
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                    </div><!-- /.contact-sidebar-content -->
-            </div><!-- /.contact-sidebar -->
-            </div><!-- /.row -->
-        </div><!-- /.inbox-card-body -->
-    </div><!-- /.inbox-card -->
-</div><!-- /.inbox-page-wrapper -->
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="addContactModal" tabindex="-1">
     <div class="modal-dialog">
@@ -1103,6 +1026,7 @@ html, body {
 @endsection
 
 @push('scripts')
+<link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
 <script>
 // ========================================
 // INBOX FILTER SYSTEM - Complete Implementation

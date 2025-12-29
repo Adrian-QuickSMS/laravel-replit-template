@@ -1,7 +1,3 @@
-/* ==========================================
-   MESSAGE BUBBLE STYLES
-   ========================================== */
-
 /* Message Bubble Width - both inbound and outbound use same max-width */
 .chat-box-area .message-received,
 .chat-box-area .media .message-received {
