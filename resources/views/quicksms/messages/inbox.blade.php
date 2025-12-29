@@ -364,6 +364,7 @@
                                         </div>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item" href="javascript:void(0);" onclick="markAsRead()"><i class="fas fa-check-double me-2"></i>Mark as Read</a></li>
+                                            <li><a class="dropdown-item" href="javascript:void(0);" onclick="markAsUnread()"><i class="fas fa-envelope me-2"></i>Mark as Unread</a></li>
                                             <li><a class="dropdown-item" href="javascript:void(0);" onclick="showComingSoon('Archive')"><i class="fas fa-archive me-2"></i>Archive</a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="showComingSoon('Delete')"><i class="fas fa-trash me-2"></i>Delete</a></li>
@@ -1490,11 +1491,12 @@ function filterConversations() {
     document.querySelectorAll('.chat-bx').forEach(function(el) {
         totalCount++;
         var name = el.querySelector('.chat-name').textContent.toLowerCase();
+        var phone = (el.dataset.phone || '').toLowerCase();
         var channel = el.dataset.channel;
         var source = el.dataset.source || '';
         var unread = el.dataset.unread === '1';
         
-        var matchesSearch = name.includes(searchTerm) || searchTerm === '';
+        var matchesSearch = searchTerm === '' || name.includes(searchTerm) || phone.includes(searchTerm);
         var matchesFilter = filterVal === 'all' ||
             (filterVal === 'unread' && unread) ||
             (filterVal === 'sms' && channel === 'sms') ||
@@ -1665,8 +1667,38 @@ function markAsRead() {
         item.dataset.unread = '0';
         var badge = item.querySelector('.badge.bg-primary');
         if (badge) badge.remove();
+        updateUnreadCount();
     }
     console.log('TODO: PATCH /api/conversations/' + currentConversationId + '/read');
+}
+
+function markAsUnread() {
+    var item = document.querySelector('.chat-bx[data-id="' + currentConversationId + '"]');
+    if (item) {
+        item.classList.add('unread');
+        item.dataset.unread = '1';
+        var existingBadge = item.querySelector('.badge.bg-primary.rounded-pill');
+        if (!existingBadge) {
+            var timeContainer = item.querySelector('.justify-content-between .d-flex.align-items-center:last-child');
+            if (timeContainer) {
+                var newBadge = document.createElement('span');
+                newBadge.className = 'badge bg-primary rounded-pill';
+                newBadge.style.cssText = 'font-size: 9px; padding: 3px 6px; min-width: 18px;';
+                newBadge.textContent = '1';
+                timeContainer.appendChild(newBadge);
+            }
+        }
+        updateUnreadCount();
+    }
+    console.log('TODO: PATCH /api/conversations/' + currentConversationId + '/unread');
+}
+
+function updateUnreadCount() {
+    var unreadCount = document.querySelectorAll('.chat-bx[data-unread="1"]').length;
+    var countBadge = document.getElementById('unreadBadge');
+    if (countBadge) {
+        countBadge.textContent = unreadCount + ' unread';
+    }
 }
 
 function showComingSoon(feature) {

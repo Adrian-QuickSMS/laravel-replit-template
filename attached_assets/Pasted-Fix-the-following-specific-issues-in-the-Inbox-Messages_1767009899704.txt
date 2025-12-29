@@ -1,0 +1,107 @@
+Fix the following specific issues in the Inbox / Messages screen. No redesign, only wiring and layout fixes.
+
+────────────────────────
+A) FILTERS — MUST WORK
+
+The following filters in the conversation list are NOT working and must be fully functional:
+
+1. Status filter:
+   - All
+   - Unread
+   - SMS
+   - RCS
+
+Expected behaviour:
+- All → show all conversations.
+- Unread → only threads with at least one unread message.
+- SMS → only conversations where the latest message is SMS.
+- RCS → only conversations where the latest message is RCS.
+
+2. Source filter:
+   - All Sources
+   - Specific Short Codes
+   - Specific VMNs
+   - Specific RCS Agents
+
+Expected behaviour:
+- All Sources → no source restriction.
+- Specific Short Codes → show only conversations associated with the selected shortcode(s).
+- Specific VMNs → show only conversations associated with the selected VMN(s).
+- Specific RCS Agents → show only conversations associated with the selected RCS agent(s).
+
+Implementation notes:
+- Ensure the filter logic actually filters the list data (even if using mock data).
+- Combining Status + Source filters should work (AND logic, not OR).
+- If the data model uses different field names, map filters correctly to those fields.
+
+────────────────────────
+B) SEARCH BAR IN CHAT LIST — MUST WORK
+
+The search bar above the conversation list must be functional.
+
+Requirements:
+- Search should filter the conversation list by:
+  - Contact name
+  - Mobile number
+
+Behaviour:
+- Typing in the search box should update the visible list to only show matching conversations.
+- Case-insensitive match is fine.
+- Clearing the search box restores the full list.
+- Do NOT search message content here – only name and number.
+
+────────────────────────
+C) MESSAGE BUBBLE WIDTH — MAKE IT FEEL LIKE IPHONE / ANDROID / WHATSAPP
+
+Current issue:
+- Message bubbles (both customer and user) are still too narrow and do not look like typical chat apps.
+
+Required behaviour:
+- Both inbound (customer) and outbound (user) bubbles should:
+  - Expand up to roughly 3/5 (60–70%) of the chat area width.
+  - Only wrap/appear narrower if:
+    - The message itself is very short, or
+    - There are explicit line breaks.
+
+Implementation hints:
+- Remove or relax any restrictive width classes (e.g. `max-w-xs` or very small fixed widths).
+- Use a responsive max-width based on the chat container (e.g. `max-w-[60%]` or equivalent).
+- Ensure this logic is applied consistently to all message bubbles (SMS and RCS).
+
+Goal:
+- Visually, bubbles should feel similar to iPhone/Android/WhatsApp width behaviour, not cramped.
+
+────────────────────────
+D) THREE-DOT MENU — ADD “MARK AS UNREAD”
+
+Current behaviour:
+- The three-dot menu in the chat header only has “Mark as read” (or equivalent).
+
+Required update:
+- Add an additional option: “Mark as unread”.
+
+Behaviour:
+- When “Mark as unread” is selected:
+  - The conversation is flagged as unread.
+  - The unread notification icon/dot reappears in the conversation list.
+  - The conversation appears in the “Unread” filter results.
+- This should update the front-end state and work with the existing filters.
+- You can stub backend integration with TODOs if required, but the UI state must update correctly.
+
+────────────────────────
+Constraints:
+- Do NOT redesign the UI.
+- Reuse existing components and styling patterns.
+- Limit changes to:
+  - Inbox/Messages conversation list
+  - Filters/search logic
+  - Bubble layout
+  - Three-dot menu actions
+
+────────────────────────
+Acceptance checklist:
+- Status filter (All / Unread / SMS / RCS) works correctly.
+- Source filter (All Sources / Specific Short Codes / Specific VMNs / Specific RCS Agents) works correctly.
+- Search bar filters conversations by name or mobile number and is clearly working.
+- Message bubbles expand up to ~3/5 of the chat width and no longer appear as very narrow columns.
+- “Mark as unread” appears in the three-dot menu and correctly restores the unread state + notification icon in the list.
