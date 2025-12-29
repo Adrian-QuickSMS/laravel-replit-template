@@ -15,15 +15,16 @@
             <h4 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Operational Overview</h4>
         </div>
         
-        <!-- Row 1: Balance, Inbound, Messages Sent -->
+        <!-- Row 1: Four stat tiles -->
         <div class="row">
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+            <!-- Balance Tile -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('purchase') }}" class="text-decoration-none">
                     <div class="widget-stat card" id="tile-balance">
                         <div class="card-body p-4">
                             <div class="tile-loading d-none">
                                 <div class="d-flex align-items-center">
-                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 85px; height: 85px;"></div>
                                     <div class="flex-grow-1">
                                         <div class="skeleton-shimmer mb-2" style="height: 14px; width: 50%;"></div>
                                         <div class="skeleton-shimmer" style="height: 28px; width: 70%;"></div>
@@ -38,8 +39,11 @@
                             </div>
                             <div class="tile-content">
                                 <div class="media ai-icon">
-                                    <span class="me-3 bgl-primary text-primary" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                                        <i class="fas fa-sterling-sign fa-2x"></i>
+                                    <span class="me-3 bgl-primary text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                        </svg>
                                     </span>
                                     <div class="media-body">
                                         <p class="mb-1">Balance</p>
@@ -51,13 +55,15 @@
                     </div>
                 </a>
             </div>
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+            
+            <!-- Inbound Tile -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('messages.inbox') }}?filter=waiting" class="text-decoration-none">
                     <div class="widget-stat card" id="tile-inbound">
                         <div class="card-body p-4">
                             <div class="tile-loading d-none">
                                 <div class="d-flex align-items-center">
-                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 85px; height: 85px;"></div>
                                     <div class="flex-grow-1">
                                         <div class="skeleton-shimmer mb-2" style="height: 14px; width: 60%;"></div>
                                         <div class="skeleton-shimmer" style="height: 28px; width: 40%;"></div>
@@ -72,8 +78,11 @@
                             </div>
                             <div class="tile-content">
                                 <div class="media ai-icon">
-                                    <span class="me-3 bgl-warning text-warning" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                                        <i class="fas fa-envelope fa-2x"></i>
+                                    <span class="me-3 bgl-warning text-warning">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                            <polyline points="22,6 12,13 2,6"></polyline>
+                                        </svg>
                                     </span>
                                     <div class="media-body">
                                         <p class="mb-1">Inbound (Unresponded)</p>
@@ -85,13 +94,15 @@
                     </div>
                 </a>
             </div>
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+            
+            <!-- Messages Sent Today Tile -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('messages.campaign-history') }}?date=today" class="text-decoration-none">
                     <div class="widget-stat card" id="tile-messages-today">
                         <div class="card-body p-4">
                             <div class="tile-loading d-none">
                                 <div class="d-flex align-items-center">
-                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 85px; height: 85px;"></div>
                                     <div class="flex-grow-1">
                                         <div class="skeleton-shimmer mb-2" style="height: 14px; width: 70%;"></div>
                                         <div class="skeleton-shimmer" style="height: 28px; width: 35%;"></div>
@@ -106,8 +117,11 @@
                             </div>
                             <div class="tile-content">
                                 <div class="media ai-icon">
-                                    <span class="me-3 bgl-success text-success" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                                        <i class="fas fa-paper-plane fa-2x"></i>
+                                    <span class="me-3 bgl-success text-success">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                        </svg>
                                     </span>
                                     <div class="media-body">
                                         <p class="mb-1">Messages Sent Today</p>
@@ -119,16 +133,14 @@
                     </div>
                 </a>
             </div>
-        </div>
-        
-        <!-- Row 2: Delivery Rate, Make a Payment, Buy Number -->
-        <div class="row">
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+            
+            <!-- Delivery Rate Tile -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <div class="widget-stat card" id="tile-delivery-rate">
                     <div class="card-body p-4">
                         <div class="tile-loading d-none">
                             <div class="d-flex align-items-center">
-                                <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                <div class="skeleton-shimmer rounded-circle me-3" style="width: 85px; height: 85px;"></div>
                                 <div class="flex-grow-1">
                                     <div class="skeleton-shimmer mb-2" style="height: 14px; width: 55%;"></div>
                                     <div class="skeleton-shimmer" style="height: 28px; width: 40%;"></div>
@@ -143,8 +155,12 @@
                         </div>
                         <div class="tile-content">
                             <div class="media ai-icon">
-                                <span class="me-3 bgl-info text-info" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                                    <i class="fas fa-percent fa-2x"></i>
+                                <span class="me-3 bgl-info text-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="19" y1="5" x2="5" y2="19"></line>
+                                        <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                                        <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                                    </svg>
                                 </span>
                                 <div class="media-body">
                                     <p class="mb-1">Delivery Rate</p>
@@ -155,34 +171,47 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+        </div>
+        
+        <!-- Row 2: Quick Action tiles (left-justified) -->
+        <div class="row">
+            <!-- Make a Payment -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('purchase') }}" class="text-decoration-none">
-                    <div class="widget-stat card cta-widget-purple" id="tile-make-payment" style="background: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%);">
+                    <div class="widget-stat card bg-secondary" id="tile-make-payment">
                         <div class="card-body p-4">
                             <div class="media">
-                                <span class="me-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%;">
-                                    <i class="fas fa-credit-card fa-2x text-white"></i>
+                                <span class="me-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                                    </svg>
                                 </span>
-                                <div class="media-body text-white">
-                                    <p class="mb-1 text-white-50">Quick Action</p>
-                                    <h4 class="mb-0 text-white">Make a Payment</h4>
+                                <div class="media-body text-white text-end">
+                                    <p class="mb-1">Quick Action</p>
+                                    <h4 class="text-white">Make a Payment</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+            
+            <!-- Buy Number -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('management.numbers') }}" class="text-decoration-none">
-                    <div class="widget-stat card cta-widget-pink" id="tile-buy-number" style="background: linear-gradient(135deg, #EC4899 0%, #BE185D 100%);">
+                    <div class="widget-stat card bg-primary" id="tile-buy-number">
                         <div class="card-body p-4">
                             <div class="media">
-                                <span class="me-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%;">
-                                    <i class="fas fa-mobile-alt fa-2x text-white"></i>
+                                <span class="me-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                    </svg>
                                 </span>
-                                <div class="media-body text-white">
-                                    <p class="mb-1 text-white-50">Quick Action</p>
-                                    <h4 class="mb-0 text-white">Buy Number</h4>
+                                <div class="media-body text-white text-end">
+                                    <p class="mb-1">Quick Action</p>
+                                    <h4 class="text-white">Buy Number</h4>
                                 </div>
                             </div>
                         </div>

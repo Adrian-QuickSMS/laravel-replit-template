@@ -18,10 +18,10 @@ Key UI/UX decisions include:
 
 Feature specifications include:
 - **Dashboard:** Main overview with three sections (Operational Overview, RCS Promotion & Tools, Support & Notifications).
-  - **Operational Overview:** Uses Fillow's widget-stat pattern with two rows of three tiles (col-xl-4):
-    - Row 1: Balance (£ icon, bgl-primary), Inbound/Unresponded (envelope icon, bgl-warning), Messages Sent Today (paper-plane icon, bgl-success)
-    - Row 2: Delivery Rate (% icon, bgl-info with color-coded thresholds), Make a Payment (purple gradient CTA), Buy Number (pink gradient CTA)
-  - Tiles use circular 60px icons with `.ai-icon` media layout, loading/error states, and mock API with random delays for testing
+  - **Operational Overview:** Uses Fillow's widget-stat pattern with proper circular icons (85px circles, 30px SVGs):
+    - Row 1 (4 tiles, col-xl-3): Balance ($ icon, bgl-primary), Inbound (envelope, bgl-warning), Messages Sent Today (send, bgl-success), Delivery Rate (%, bgl-info)
+    - Row 2 (2 tiles, left-justified): Make a Payment (bg-secondary), Buy Number (bg-primary)
+  - All tiles follow Fillow's `.media.ai-icon` structure without inline style overrides. Loading/error states and mock API with random delays for testing
 - **Messages:** Send Message, Inbox, Campaign History.
 - **Contact Book:** All Contacts, Lists (Static & Dynamic), Tags, Opt-Out Lists.
 - **Reporting:** Dashboard, Message Log, Finance Data, Invoices, Download Area.
