@@ -403,12 +403,42 @@
 
 @push('styles')
 <style>
+/* ========================================
+   DASHBOARD LAYOUT & SPACING
+   ======================================== */
+
+/* Consistent section spacing */
+#operationalOverview,
+#rcsPromotion,
+#supportNotifications {
+    margin-bottom: 1.5rem;
+}
+
+/* Section headers consistent spacing */
+#operationalOverview > .d-flex,
+#rcsPromotion > .d-flex,
+#supportNotifications > .d-flex {
+    margin-bottom: 1rem !important;
+}
+
+/* Ensure rows have consistent gutters */
+#operationalOverview .row,
+#rcsPromotion .row,
+#supportNotifications .row {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+
+/* ========================================
+   ICON BOXES
+   ======================================== */
 .icon-box {
     width: 48px;
     height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 .icon-box-sm {
     width: 32px;
@@ -416,32 +446,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-.bg-primary-light {
-    background-color: rgba(136, 108, 192, 0.1);
-}
-.bg-success-light {
-    background-color: rgba(40, 167, 69, 0.1);
-}
-.bg-info-light {
-    background-color: rgba(23, 162, 184, 0.1);
-}
-.bg-warning-light {
-    background-color: rgba(255, 193, 7, 0.1);
-}
-.bg-danger-light {
-    background-color: rgba(220, 53, 69, 0.1);
+    flex-shrink: 0;
 }
 
+/* Light background variants */
+.bg-primary-light { background-color: rgba(136, 108, 192, 0.1); }
+.bg-success-light { background-color: rgba(40, 167, 69, 0.1); }
+.bg-info-light { background-color: rgba(23, 162, 184, 0.1); }
+.bg-warning-light { background-color: rgba(255, 193, 7, 0.1); }
+.bg-danger-light { background-color: rgba(220, 53, 69, 0.1); }
+
+/* ========================================
+   DASHBOARD TILES
+   ======================================== */
 .dashboard-tile {
     transition: all 0.2s ease;
     cursor: pointer;
     border: 1px solid rgba(0,0,0,0.08);
+    height: 100%;
 }
 .dashboard-tile:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
+
 .dashboard-action-tile {
     min-height: 110px;
     background: linear-gradient(135deg, #fafbfc 0%, #f4f5f7 100%);
@@ -450,12 +478,35 @@
     background: linear-gradient(135deg, #f0f1f3 0%, #e8e9eb 100%);
 }
 
+/* Tile values - centered alignment */
 .tile-value {
     font-size: 1.5rem;
     font-weight: 600;
     color: #333;
+    text-align: left;
 }
 
+/* Metric tiles value alignment */
+#tile-balance .tile-value,
+#tile-inbound .tile-value,
+#tile-messages-today .tile-value,
+#tile-delivery-rate .tile-value {
+    text-align: left;
+}
+
+/* Support ticket count centered */
+#tile-support-tickets h2 {
+    text-align: center;
+}
+
+/* Calculator outputs centered */
+#tile-rcs-calculator .col-4 h5 {
+    text-align: center;
+}
+
+/* ========================================
+   SKELETON LOADING ANIMATION
+   ======================================== */
 .skeleton-shimmer {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
@@ -467,24 +518,210 @@
     100% { background-position: -200% 0; }
 }
 
-.delivery-rate-green {
-    color: #28a745 !important;
-}
-.delivery-rate-amber {
-    color: #ffc107 !important;
-}
-.delivery-rate-red {
-    color: #dc3545 !important;
-}
+/* ========================================
+   DELIVERY RATE COLOR CODING
+   ======================================== */
+.delivery-rate-green { color: #28a745 !important; }
+.delivery-rate-amber { color: #ffc107 !important; }
+.delivery-rate-red { color: #dc3545 !important; }
 
+/* ========================================
+   CARD HOVER EFFECTS
+   ======================================== */
 #operationalOverview .card,
 #rcsPromotion .card,
 #supportNotifications .card {
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 #rcsPromotion .card:hover,
 #supportNotifications .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================
+   CTA BUTTONS - PLATFORM CONSISTENT STYLE
+   ======================================== */
+#rcsPromotion .btn,
+#supportNotifications .btn,
+#tile-test-rcs .btn,
+#tile-register-rcs .btn {
+    font-weight: 500;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+/* Primary CTA */
+#tile-rcs-advertisement .btn-primary,
+#tile-register-rcs .btn-warning {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+#tile-rcs-advertisement .btn-primary:hover,
+#tile-register-rcs .btn-warning:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   TOOLTIPS Z-INDEX FIX
+   ======================================== */
+.tooltip {
+    z-index: 1080 !important;
+}
+.tooltip-inner {
+    max-width: 250px;
+}
+
+/* ApexCharts tooltip fix */
+.apexcharts-tooltip {
+    z-index: 1070 !important;
+}
+
+/* ========================================
+   RESPONSIVE HANDLING
+   ======================================== */
+
+/* Prevent horizontal scroll */
+.container-fluid {
+    overflow-x: hidden;
+}
+
+/* Tablet breakpoint (< 992px) */
+@media (max-width: 991.98px) {
+    /* RCS Advertisement tile stacks vertically */
+    #tile-rcs-advertisement .row {
+        flex-direction: column;
+    }
+    #tile-rcs-advertisement .col-md-5,
+    #tile-rcs-advertisement .col-md-7 {
+        width: 100%;
+    }
+    #tile-rcs-advertisement .rcs-ad-image {
+        border-radius: 0.625rem 0.625rem 0 0 !important;
+        min-height: 150px !important;
+    }
+    
+    /* Register RCS tile stacks */
+    #tile-register-rcs .card-body {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    #tile-register-rcs .btn {
+        margin-left: 0 !important;
+        margin-top: 0.5rem;
+    }
+    
+    /* Calculator inputs 2 per row */
+    #tile-rcs-calculator .col-md-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* Mobile breakpoint (< 576px) */
+@media (max-width: 575.98px) {
+    /* Section headers smaller */
+    #operationalOverview h4,
+    #rcsPromotion h4,
+    #supportNotifications h4 {
+        font-size: 1.1rem;
+    }
+    
+    /* Metric tiles full width */
+    #operationalOverview .col-sm-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    
+    /* Tile values smaller on mobile */
+    .tile-value {
+        font-size: 1.25rem;
+    }
+    
+    /* Calculator outputs smaller */
+    #tile-rcs-calculator .col-4 h5 {
+        font-size: 0.9rem;
+    }
+    #tile-rcs-calculator .col-4 p {
+        font-size: 0.7rem;
+    }
+    
+    /* Test RCS input stacks */
+    #tile-test-rcs .row.g-2 {
+        flex-direction: column;
+    }
+    #tile-test-rcs .col-auto {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    #tile-test-rcs .btn {
+        width: 100%;
+    }
+    
+    /* Notifications tile adjustments */
+    .notification-item {
+        padding: 0.75rem !important;
+    }
+    .notification-item h6 {
+        font-size: 0.9rem;
+    }
+    
+    /* Support tiles stack nicely */
+    #supportNotifications .col-xl-3,
+    #supportNotifications .col-lg-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Extra small devices (< 400px) */
+@media (max-width: 399.98px) {
+    /* Metric tiles single column */
+    #operationalOverview .col-sm-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    /* Calculator inputs single column */
+    #tile-rcs-calculator .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    /* Traffic graph period buttons wrap */
+    #trafficToggle {
+        flex-wrap: wrap;
+    }
+    #trafficToggle .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* ========================================
+   FORM INPUT CONSISTENCY
+   ======================================== */
+#tile-rcs-calculator .form-control-sm,
+#tile-test-rcs .form-control {
+    border-radius: 0.375rem;
+}
+
+/* Valid/invalid states */
+#tile-test-rcs .form-control.is-valid {
+    border-color: #28a745;
+    background-image: none;
+}
+#tile-test-rcs .form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+/* ========================================
+   ALERT MESSAGES
+   ======================================== */
+#testRcsResult .alert {
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
 }
 </style>
 @endpush
