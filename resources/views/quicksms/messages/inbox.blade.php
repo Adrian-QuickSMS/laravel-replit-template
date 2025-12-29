@@ -7,13 +7,20 @@
 <link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
 <style>
 /* ==========================================
-   INBOX LAYOUT - Bootstrap Grid System
+   INBOX LAYOUT - CRITICAL: No Main Page Scroll
    ========================================== */
+
+/* CRITICAL: Prevent main page scroll */
+html, body {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
 
 /* Main inbox wrapper */
 .inbox-page-wrapper {
     height: calc(100vh - 100px);
     padding: 0.5rem;
+    overflow: hidden;
 }
 
 /* Card fills all available space */
@@ -109,10 +116,19 @@
 .contact-sidebar {
     width: 280px;
     max-width: 280px;
-    border-left: 1px solid #e9ecef;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    border-left: 1px solid #e9ecef;
+    overflow: hidden;
     background: white;
+}
+
+/* Contact sidebar content - SCROLLABLE */
+.contact-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
 .chat-bx {
     cursor: pointer;
@@ -610,7 +626,8 @@
                 </div>
                 
                 <!-- RIGHT PANEL: Contact Details -->
-                <div class="col-auto contact-sidebar p-3" id="contactSidebar">
+                <div class="col-auto contact-sidebar" id="contactSidebar">
+                    <div class="contact-sidebar-content p-3">
                     <div class="mb-3">
                         <h6 class="mb-0">Contact Details</h6>
                     </div>
@@ -688,7 +705,8 @@
                         </button>
                     </div>
                 </div>
-            </div>
+                    </div><!-- /.contact-sidebar-content -->
+            </div><!-- /.contact-sidebar -->
             </div><!-- /.row -->
         </div><!-- /.inbox-card-body -->
     </div><!-- /.inbox-card -->
