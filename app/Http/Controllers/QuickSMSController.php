@@ -8,10 +8,9 @@ class QuickSMSController extends Controller
 {
     public function dashboard()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Dashboard',
-            'purpose' => 'Central overview of your QuickSMS account activity, statistics, and quick actions.',
-            'sub_modules' => []
+        // TODO: Replace with actual data from API
+        return view('quicksms.dashboard', [
+            'page_title' => 'Dashboard'
         ]);
     }
 

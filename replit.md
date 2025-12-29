@@ -17,7 +17,7 @@ Key UI/UX decisions include:
 - **Content Editor:** An enhanced text editor with personalization, emoji picker, AI assistance, and channel-aware behavior (GSM-7/Unicode detection).
 
 Feature specifications include:
-- **Dashboard:** Main overview.
+- **Dashboard:** Main overview with three sections (Operational Overview, RCS Promotion & Tools, Support & Notifications).
 - **Messages:** Send Message, Inbox, Campaign History.
 - **Contact Book:** All Contacts, Lists (Static & Dynamic), Tags, Opt-Out Lists.
 - **Reporting:** Dashboard, Message Log, Finance Data, Invoices, Download Area.
