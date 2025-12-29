@@ -495,6 +495,167 @@
 <script src="/vendor/apexchart/apexchart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ========================================
+    // MOCK API SERVICE - Simulates backend calls
+    // ========================================
+    var MockAPI = {
+        // Simulate network delay (300-800ms)
+        delay: function() {
+            return Math.floor(Math.random() * 500) + 300;
+        },
+        
+        // Simulate random failures (2% chance - set higher to test error states)
+        shouldFail: function() {
+            return Math.random() < 0.02;
+        },
+        
+        // GET /api/dashboard/balance
+        getBalance: function() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch balance'));
+                    } else {
+                        resolve({
+                            balance: 1247.85,
+                            currency: 'GBP',
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        },
+        
+        // GET /api/dashboard/inbound-unresponded
+        getInboundUnresponded: function() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch inbound count'));
+                    } else {
+                        resolve({
+                            count: 12,
+                            urgent: 3,
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        },
+        
+        // GET /api/dashboard/messages-today
+        getMessagesToday: function() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch messages count'));
+                    } else {
+                        resolve({
+                            sent: 1856,
+                            delivered: 1798,
+                            failed: 58,
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        },
+        
+        // GET /api/dashboard/delivery-rate
+        getDeliveryRate: function() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch delivery rate'));
+                    } else {
+                        resolve({
+                            rate: 96.8,
+                            trend: 'up',
+                            change: 1.2,
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        },
+        
+        // GET /api/dashboard/traffic?period=today|7days|30days
+        getTrafficData: function(period) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch traffic data'));
+                    } else {
+                        var categories = [];
+                        var data = [];
+                        
+                        if (period === 'today') {
+                            categories = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+                            data = [12, 8, 25, 189, 356, 284, 198, 95];
+                        } else if (period === '7days') {
+                            categories = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                            data = [1842, 2156, 1989, 2312, 2478, 1234, 989];
+                        } else if (period === '30days') {
+                            for (var i = 1; i <= 30; i++) {
+                                categories.push('Day ' + i);
+                                data.push(Math.floor(Math.random() * 2000) + 800);
+                            }
+                        }
+                        
+                        resolve({
+                            categories: categories,
+                            data: data,
+                            period: period,
+                            total: data.reduce(function(a, b) { return a + b; }, 0)
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        },
+        
+        // GET /api/dashboard/support-tickets
+        getSupportTickets: function() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch support tickets'));
+                    } else {
+                        resolve({
+                            open: 3,
+                            pending: 1,
+                            closed: 47,
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        },
+        
+        // GET /api/pricing/rcs-calculator
+        getCalculatorDefaults: function() {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (MockAPI.shouldFail()) {
+                        reject(new Error('Failed to fetch pricing data'));
+                    } else {
+                        resolve({
+                            smsPrice: 0.035,
+                            rcsPrice: 0.045,
+                            avgFragments: 2.3,
+                            rcsPenetration: 62,
+                            vatRate: 20
+                        });
+                    }
+                }, MockAPI.delay());
+            });
+        }
+    };
+    
+    // ========================================
+    // TILE UTILITY FUNCTIONS
+    // ========================================
+    
     function updateDeliveryRateColor() {
         var rateEl = document.getElementById('delivery-rate-value');
         if (!rateEl) return;
@@ -546,45 +707,144 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // TODO: Replace with actual API calls to load tile data
+    // ========================================
+    // TILE DATA LOADERS
+    // ========================================
     
-    updateDeliveryRateColor();
+    function loadBalance() {
+        setTileLoading('tile-balance', true);
+        MockAPI.getBalance()
+            .then(function(data) {
+                var valueEl = document.getElementById('balance-value');
+                if (valueEl && data.balance !== undefined) {
+                    valueEl.textContent = '£' + data.balance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                setTileLoading('tile-balance', false);
+            })
+            .catch(function(err) {
+                console.error('Balance error:', err);
+                setTileError('tile-balance', true);
+            });
+    }
+    
+    function loadInboundUnresponded() {
+        setTileLoading('tile-inbound', true);
+        MockAPI.getInboundUnresponded()
+            .then(function(data) {
+                var valueEl = document.getElementById('inbound-value');
+                if (valueEl && data.count !== undefined) {
+                    valueEl.textContent = data.count.toLocaleString();
+                }
+                setTileLoading('tile-inbound', false);
+            })
+            .catch(function(err) {
+                console.error('Inbound error:', err);
+                setTileError('tile-inbound', true);
+            });
+    }
+    
+    function loadMessagesToday() {
+        setTileLoading('tile-messages-today', true);
+        MockAPI.getMessagesToday()
+            .then(function(data) {
+                var valueEl = document.getElementById('messages-today-value');
+                if (valueEl && data.sent !== undefined) {
+                    valueEl.textContent = data.sent.toLocaleString();
+                }
+                setTileLoading('tile-messages-today', false);
+            })
+            .catch(function(err) {
+                console.error('Messages today error:', err);
+                setTileError('tile-messages-today', true);
+            });
+    }
+    
+    function loadDeliveryRate() {
+        setTileLoading('tile-delivery-rate', true);
+        MockAPI.getDeliveryRate()
+            .then(function(data) {
+                var valueEl = document.getElementById('delivery-rate-value');
+                if (valueEl && data.rate !== undefined) {
+                    valueEl.textContent = data.rate.toFixed(1) + '%';
+                    valueEl.dataset.rate = data.rate;
+                    updateDeliveryRateColor();
+                }
+                setTileLoading('tile-delivery-rate', false);
+            })
+            .catch(function(err) {
+                console.error('Delivery rate error:', err);
+                setTileError('tile-delivery-rate', true);
+            });
+    }
+    
+    function loadSupportTickets() {
+        var ticketCountEl = document.getElementById('support-tickets-count');
+        if (!ticketCountEl) return;
+        
+        // Show loading state inline
+        ticketCountEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        MockAPI.getSupportTickets()
+            .then(function(data) {
+                if (data.open !== undefined) {
+                    ticketCountEl.textContent = data.open;
+                }
+            })
+            .catch(function(err) {
+                console.error('Support tickets error:', err);
+                ticketCountEl.innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
+            });
+    }
+    
+    function loadCalculatorDefaults() {
+        MockAPI.getCalculatorDefaults()
+            .then(function(data) {
+                if (data.smsPrice !== undefined) {
+                    document.getElementById('calcSmsPrice').value = data.smsPrice;
+                }
+                if (data.rcsPrice !== undefined) {
+                    document.getElementById('calcRcsPrice').value = data.rcsPrice;
+                }
+                if (data.avgFragments !== undefined) {
+                    document.getElementById('calcFragments').value = data.avgFragments;
+                }
+                if (data.rcsPenetration !== undefined) {
+                    document.getElementById('calcPenetration').value = data.rcsPenetration;
+                }
+                // Trigger initial calculation
+                calculateSavings();
+            })
+            .catch(function(err) {
+                console.error('Calculator defaults error:', err);
+                // Use fallback defaults already in HTML
+                calculateSavings();
+            });
+    }
+    
+    // ========================================
+    // INITIALIZE ALL TILES
+    // ========================================
+    
+    loadBalance();
+    loadInboundUnresponded();
+    loadMessagesToday();
+    loadDeliveryRate();
+    loadSupportTickets();
+    loadCalculatorDefaults();
     
     window.setTileLoading = setTileLoading;
     window.setTileError = setTileError;
     window.updateDeliveryRateColor = updateDeliveryRateColor;
+    window.MockAPI = MockAPI;
     
     // Traffic Graph
     var trafficChart = null;
     
-    function getDummyData(period) {
-        var categories = [];
-        var data = [];
-        
-        if (period === 'today') {
-            categories = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
-            data = [12, 8, 25, 89, 156, 134, 98, 45];
-        } else if (period === '7days') {
-            var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            categories = days;
-            data = [342, 456, 389, 512, 478, 234, 189];
-        } else if (period === '30days') {
-            for (var i = 1; i <= 30; i++) {
-                categories.push('Day ' + i);
-                data.push(Math.floor(Math.random() * 400) + 100);
-            }
-        }
-        
-        return { categories: categories, data: data };
-    }
-    
-    function renderTrafficChart(period) {
-        var dummyData = getDummyData(period);
-        
+    function renderTrafficChart(chartData) {
         var options = {
             series: [{
                 name: 'Total Messages',
-                data: dummyData.data
+                data: chartData.data
             }],
             chart: {
                 type: 'area',
@@ -615,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             xaxis: {
-                categories: dummyData.categories,
+                categories: chartData.categories,
                 labels: {
                     style: {
                         colors: '#888',
@@ -664,18 +924,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // TODO: Replace with actual API call
     function loadTrafficData(period) {
-        // setTileLoading('tile-traffic-graph', true);
-        // fetch('/api/traffic?period=' + period)
-        //     .then(res => res.json())
-        //     .then(data => {
-        //         renderTrafficChart(period, data);
-        //         setTileLoading('tile-traffic-graph', false);
-        //     })
-        //     .catch(() => setTileError('tile-traffic-graph', true));
-        
-        renderTrafficChart(period);
+        setTileLoading('tile-traffic-graph', true);
+        MockAPI.getTrafficData(period)
+            .then(function(data) {
+                renderTrafficChart(data);
+                setTileLoading('tile-traffic-graph', false);
+            })
+            .catch(function(err) {
+                console.error('Traffic data error:', err);
+                setTileError('tile-traffic-graph', true);
+            });
     }
     
     // Toggle handlers
@@ -732,12 +991,48 @@ function sendTestRcs() {
     }, 1500);
 }
 
-// TODO: Placeholder calculator function - no math yet
 function calculateSavings() {
-    // Will be implemented when backend is ready
-    // Read: calcSmsPrice, calcRcsPrice, calcFragments, calcPenetration, calcMessages, calcVat
-    // Update: calcSmsOnlyCost, calcBlendedCost, calcSavings
+    var smsPrice = parseFloat(document.getElementById('calcSmsPrice').value) || 0;
+    var rcsPrice = parseFloat(document.getElementById('calcRcsPrice').value) || 0;
+    var fragments = parseFloat(document.getElementById('calcFragments').value) || 1;
+    var penetration = parseFloat(document.getElementById('calcPenetration').value) || 0;
+    var messages = parseFloat(document.getElementById('calcMessages').value) || 0;
+    var includeVat = document.getElementById('calcVat').checked;
+    var vatMultiplier = includeVat ? 1.20 : 1;
+    
+    // SMS only: each message costs fragments * smsPrice
+    var smsOnlyCost = messages * fragments * smsPrice * vatMultiplier;
+    
+    // Blended: RCS messages cost rcsPrice (1 fragment), SMS messages cost fragments * smsPrice
+    var rcsMessages = messages * (penetration / 100);
+    var smsMessages = messages - rcsMessages;
+    var blendedCost = ((rcsMessages * rcsPrice) + (smsMessages * fragments * smsPrice)) * vatMultiplier;
+    
+    // Calculate savings
+    var savings = smsOnlyCost > 0 ? ((smsOnlyCost - blendedCost) / smsOnlyCost) * 100 : 0;
+    
+    // Update display
+    document.getElementById('calcSmsOnlyCost').textContent = '£' + smsOnlyCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('calcBlendedCost').textContent = '£' + blendedCost.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('calcSavings').textContent = savings.toFixed(1) + '%';
+    
+    // Color coding for savings
+    var savingsEl = document.getElementById('calcSavings');
+    savingsEl.classList.remove('text-primary', 'text-success', 'text-danger');
+    if (savings > 10) {
+        savingsEl.classList.add('text-success');
+    } else if (savings > 0) {
+        savingsEl.classList.add('text-primary');
+    } else {
+        savingsEl.classList.add('text-danger');
+    }
 }
+
+// Add event listeners for calculator inputs
+document.querySelectorAll('#tile-rcs-calculator input').forEach(function(input) {
+    input.addEventListener('input', calculateSavings);
+    input.addEventListener('change', calculateSavings);
+});
 
 function dismissNotification(notificationId) {
     var notification = document.getElementById(notificationId);
