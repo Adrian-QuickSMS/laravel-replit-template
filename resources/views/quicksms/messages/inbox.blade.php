@@ -1042,6 +1042,8 @@ var chatSearchMatches = [];
 var chatSearchIndex = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('[Inbox] DOMContentLoaded fired');
+    
     addContactModal = new bootstrap.Modal(document.getElementById('addContactModal'));
     templateModal = new bootstrap.Modal(document.getElementById('templateModal'));
     comingSoonModal = new bootstrap.Modal(document.getElementById('comingSoonModal'));
@@ -1060,10 +1062,43 @@ document.addEventListener('DOMContentLoaded', function() {
         replyMsg.addEventListener('input', updateCharCount);
     }
     
-    document.getElementById('conversationSearch').addEventListener('input', filterConversations);
-    document.getElementById('filterConversations').addEventListener('change', filterConversations);
-    document.getElementById('filterSource').addEventListener('change', filterConversations);
-    document.getElementById('sortConversations').addEventListener('change', sortConversations);
+    // Attach filter/search event listeners using vanilla JS (no jQuery dependency)
+    var searchEl = document.getElementById('conversationSearch');
+    var filterEl = document.getElementById('filterConversations');
+    var sourceEl = document.getElementById('filterSource');
+    var sortEl = document.getElementById('sortConversations');
+    
+    console.log('[Inbox] Elements found - Search:', !!searchEl, 'Filter:', !!filterEl, 'Source:', !!sourceEl, 'Sort:', !!sortEl);
+    
+    if (searchEl) {
+        searchEl.addEventListener('input', function() {
+            console.log('[Filter] Search input triggered');
+            filterConversations();
+        });
+        searchEl.addEventListener('keyup', function() {
+            filterConversations();
+        });
+    }
+    if (filterEl) {
+        filterEl.addEventListener('change', function() {
+            console.log('[Filter] Status filter changed to:', this.value);
+            filterConversations();
+        });
+    }
+    if (sourceEl) {
+        sourceEl.addEventListener('change', function() {
+            console.log('[Filter] Source filter changed to:', this.value);
+            filterConversations();
+        });
+    }
+    if (sortEl) {
+        sortEl.addEventListener('change', function() {
+            console.log('[Sort] Sort changed to:', this.value);
+            sortConversations();
+        });
+    }
+    
+    console.log('[Inbox] Event listeners attached');
     
     document.getElementById('chatSearchInput').addEventListener('input', function() {
         searchInConversation(this.value);
@@ -1482,9 +1517,20 @@ function insertPlaceholder(field) {
 
 function filterConversations() {
     // TODO: Replace with API call to GET /api/conversations?search=&status=&source= when backend is ready
-    var searchTerm = document.getElementById('conversationSearch').value.toLowerCase();
-    var filterVal = document.getElementById('filterConversations').value;
-    var sourceVal = document.getElementById('filterSource').value;
+    console.log('[Filter] filterConversations called');
+    
+    var searchEl = document.getElementById('conversationSearch');
+    var filterEl = document.getElementById('filterConversations');
+    var sourceEl = document.getElementById('filterSource');
+    
+    if (!searchEl || !filterEl || !sourceEl) {
+        console.error('[Filter] Missing elements:', !searchEl, !filterEl, !sourceEl);
+        return;
+    }
+    
+    var searchTerm = searchEl.value.toLowerCase();
+    var filterVal = filterEl.value;
+    var sourceVal = sourceEl.value;
     
     console.log('[Filter] Applying filters - Search:', searchTerm, 'Status:', filterVal, 'Source:', sourceVal);
     
