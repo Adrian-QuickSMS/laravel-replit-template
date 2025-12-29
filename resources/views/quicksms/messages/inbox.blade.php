@@ -15,34 +15,31 @@
     height: 100%;
 }
 .chat-left-body {
-    width: 280px !important;
-    min-width: 280px !important;
-    max-width: 280px !important;
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 340px !important;
     flex-shrink: 0 !important;
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 0;
     border-right: 1px solid #e9ecef;
 }
 .chat-sidebar {
-    flex: 1 1 0;
+    flex: 1;
     overflow-y: auto;
-    min-height: 0;
 }
 .chat-pane-wrapper {
     display: flex;
     flex-direction: column;
     flex: 1 !important;
     min-width: 0;
-    min-height: 0;
     height: 100%;
+    overflow-y: auto;
 }
 .chat-box-area {
-    flex: 1 1 0;
-    overflow-y: auto;
+    flex: 1 1 auto;
     padding: 1rem;
-    min-height: 0;
+    min-height: 200px;
 }
 #replyComposerCard {
     flex-shrink: 0;
@@ -51,17 +48,6 @@
     border-right: 0;
     border-bottom: 0;
     background: white;
-    max-height: 45%;
-    overflow-y: auto;
-}
-.contact-sidebar {
-    width: 220px !important;
-    min-width: 220px !important;
-    max-width: 220px !important;
-    flex-shrink: 0 !important;
-    overflow-y: auto;
-    min-height: 0;
-    border-left: 1px solid #e9ecef;
 }
 .chat-bx {
     cursor: pointer;
@@ -338,7 +324,7 @@
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper">
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: flex; flex-direction: column; flex: 1; min-width: 0; height: 100%; overflow: hidden;">
                             <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
@@ -547,7 +533,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="d-flex justify-content-end mt-2">
+                                    <div class="d-flex justify-content-end">
                                         <button type="button" class="btn btn-primary" onclick="sendReply()">
                                             <i class="far fa-paper-plane me-1"></i>Send Message
                                         </button>
