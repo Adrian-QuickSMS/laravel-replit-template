@@ -183,9 +183,5 @@
 			</div>
 		</div>
 		
-		<div class="copyright">
-			<p><strong>QuickSMS</strong> </p>
-			<p class="fs-12">© 2025 All Rights Reserved</p>
-		</div>
 	</div>
 </div>
