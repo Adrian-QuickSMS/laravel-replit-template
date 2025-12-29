@@ -14,133 +14,177 @@
         <div class="d-flex align-items-center mb-3">
             <h4 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Operational Overview</h4>
         </div>
+        
+        <!-- Row 1: Balance, Inbound, Messages Sent -->
         <div class="row">
-            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('purchase') }}" class="text-decoration-none">
-                    <div class="card dashboard-tile h-100" id="tile-balance">
-                        <div class="card-body p-3">
+                    <div class="widget-stat card" id="tile-balance">
+                        <div class="card-body p-4">
                             <div class="tile-loading d-none">
-                                <div class="skeleton-shimmer mb-2" style="height: 14px; width: 60%;"></div>
-                                <div class="skeleton-shimmer" style="height: 28px; width: 80%;"></div>
+                                <div class="d-flex align-items-center">
+                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-shimmer mb-2" style="height: 14px; width: 50%;"></div>
+                                        <div class="skeleton-shimmer" style="height: 28px; width: 70%;"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tile-error d-none">
-                                <div class="text-center text-danger">
-                                    <i class="fas fa-exclamation-triangle mb-1"></i>
-                                    <p class="mb-0 small">Error loading</p>
+                                <div class="text-center text-danger py-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                    <p class="mb-0">Error loading</p>
                                 </div>
                             </div>
                             <div class="tile-content">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <span class="text-muted small">Balance</span>
-                                    <div class="icon-box-sm bg-primary-light rounded-circle">
-                                        <i class="fas fa-sterling-sign text-primary"></i>
+                                <div class="media ai-icon">
+                                    <span class="me-3 bgl-primary text-primary" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        <i class="fas fa-sterling-sign fa-2x"></i>
+                                    </span>
+                                    <div class="media-body">
+                                        <p class="mb-1">Balance</p>
+                                        <h4 class="mb-0 tile-value" id="balance-value">£0.00</h4>
                                     </div>
                                 </div>
-                                <h3 class="mb-0 tile-value" id="balance-value">£0.00</h3>
                             </div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('messages.inbox') }}?filter=waiting" class="text-decoration-none">
-                    <div class="card dashboard-tile h-100" id="tile-inbound">
-                        <div class="card-body p-3">
+                    <div class="widget-stat card" id="tile-inbound">
+                        <div class="card-body p-4">
                             <div class="tile-loading d-none">
-                                <div class="skeleton-shimmer mb-2" style="height: 14px; width: 80%;"></div>
-                                <div class="skeleton-shimmer" style="height: 28px; width: 50%;"></div>
+                                <div class="d-flex align-items-center">
+                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-shimmer mb-2" style="height: 14px; width: 60%;"></div>
+                                        <div class="skeleton-shimmer" style="height: 28px; width: 40%;"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tile-error d-none">
-                                <div class="text-center text-danger">
-                                    <i class="fas fa-exclamation-triangle mb-1"></i>
-                                    <p class="mb-0 small">Error loading</p>
+                                <div class="text-center text-danger py-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                    <p class="mb-0">Error loading</p>
                                 </div>
                             </div>
                             <div class="tile-content">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <span class="text-muted small">Inbound (Unresponded)</span>
-                                    <div class="icon-box-sm bg-warning-light rounded-circle">
-                                        <i class="fas fa-inbox text-warning"></i>
+                                <div class="media ai-icon">
+                                    <span class="me-3 bgl-warning text-warning" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        <i class="fas fa-envelope fa-2x"></i>
+                                    </span>
+                                    <div class="media-body">
+                                        <p class="mb-1">Inbound (Unresponded)</p>
+                                        <h4 class="mb-0 tile-value" id="inbound-value">0</h4>
                                     </div>
                                 </div>
-                                <h3 class="mb-0 tile-value" id="inbound-value">0</h3>
                             </div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('messages.campaign-history') }}?date=today" class="text-decoration-none">
-                    <div class="card dashboard-tile h-100" id="tile-messages-today">
-                        <div class="card-body p-3">
+                    <div class="widget-stat card" id="tile-messages-today">
+                        <div class="card-body p-4">
                             <div class="tile-loading d-none">
-                                <div class="skeleton-shimmer mb-2" style="height: 14px; width: 90%;"></div>
-                                <div class="skeleton-shimmer" style="height: 28px; width: 40%;"></div>
+                                <div class="d-flex align-items-center">
+                                    <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-shimmer mb-2" style="height: 14px; width: 70%;"></div>
+                                        <div class="skeleton-shimmer" style="height: 28px; width: 35%;"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tile-error d-none">
-                                <div class="text-center text-danger">
-                                    <i class="fas fa-exclamation-triangle mb-1"></i>
-                                    <p class="mb-0 small">Error loading</p>
+                                <div class="text-center text-danger py-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                    <p class="mb-0">Error loading</p>
                                 </div>
                             </div>
                             <div class="tile-content">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <span class="text-muted small">Messages Sent Today</span>
-                                    <div class="icon-box-sm bg-success-light rounded-circle">
-                                        <i class="fas fa-paper-plane text-success"></i>
+                                <div class="media ai-icon">
+                                    <span class="me-3 bgl-success text-success" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        <i class="fas fa-paper-plane fa-2x"></i>
+                                    </span>
+                                    <div class="media-body">
+                                        <p class="mb-1">Messages Sent Today</p>
+                                        <h4 class="mb-0 tile-value" id="messages-today-value">0</h4>
                                     </div>
                                 </div>
-                                <h3 class="mb-0 tile-value" id="messages-today-value">0</h3>
                             </div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
-                <div class="card dashboard-tile h-100" id="tile-delivery-rate">
-                    <div class="card-body p-3">
+        </div>
+        
+        <!-- Row 2: Delivery Rate, Make a Payment, Buy Number -->
+        <div class="row">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <div class="widget-stat card" id="tile-delivery-rate">
+                    <div class="card-body p-4">
                         <div class="tile-loading d-none">
-                            <div class="skeleton-shimmer mb-2" style="height: 14px; width: 70%;"></div>
-                            <div class="skeleton-shimmer" style="height: 28px; width: 45%;"></div>
+                            <div class="d-flex align-items-center">
+                                <div class="skeleton-shimmer rounded-circle me-3" style="width: 60px; height: 60px;"></div>
+                                <div class="flex-grow-1">
+                                    <div class="skeleton-shimmer mb-2" style="height: 14px; width: 55%;"></div>
+                                    <div class="skeleton-shimmer" style="height: 28px; width: 40%;"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="tile-error d-none">
-                            <div class="text-center text-danger">
-                                <i class="fas fa-exclamation-triangle mb-1"></i>
-                                <p class="mb-0 small">Error loading</p>
+                            <div class="text-center text-danger py-3">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                <p class="mb-0">Error loading</p>
                             </div>
                         </div>
                         <div class="tile-content">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="text-muted small">Delivery Rate (%)</span>
-                                <div class="icon-box-sm bg-info-light rounded-circle">
-                                    <i class="fas fa-check-double text-info"></i>
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-info text-info" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                    <i class="fas fa-percent fa-2x"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Delivery Rate</p>
+                                    <h4 class="mb-0 tile-value delivery-rate-value" id="delivery-rate-value" data-rate="0">0%</h4>
                                 </div>
                             </div>
-                            <h3 class="mb-0 tile-value delivery-rate-value" id="delivery-rate-value" data-rate="0">0%</h3>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('purchase') }}" class="text-decoration-none">
-                    <div class="card dashboard-tile dashboard-action-tile h-100" id="tile-make-payment">
-                        <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center text-center">
-                            <div class="icon-box bg-primary rounded-circle mb-2" style="width: 48px; height: 48px;">
-                                <i class="fas fa-credit-card text-white fa-lg"></i>
+                    <div class="widget-stat card cta-widget-purple" id="tile-make-payment" style="background: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%);">
+                        <div class="card-body p-4">
+                            <div class="media">
+                                <span class="me-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%;">
+                                    <i class="fas fa-credit-card fa-2x text-white"></i>
+                                </span>
+                                <div class="media-body text-white">
+                                    <p class="mb-1 text-white-50">Quick Action</p>
+                                    <h4 class="mb-0 text-white">Make a Payment</h4>
+                                </div>
                             </div>
-                            <span class="fw-medium text-dark">Make Payment</span>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6 mb-3">
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('management.numbers') }}" class="text-decoration-none">
-                    <div class="card dashboard-tile dashboard-action-tile h-100" id="tile-buy-number">
-                        <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center text-center">
-                            <div class="icon-box bg-success rounded-circle mb-2" style="width: 48px; height: 48px;">
-                                <i class="fas fa-sim-card text-white fa-lg"></i>
+                    <div class="widget-stat card cta-widget-pink" id="tile-buy-number" style="background: linear-gradient(135deg, #EC4899 0%, #BE185D 100%);">
+                        <div class="card-body p-4">
+                            <div class="media">
+                                <span class="me-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%;">
+                                    <i class="fas fa-mobile-alt fa-2x text-white"></i>
+                                </span>
+                                <div class="media-body text-white">
+                                    <p class="mb-1 text-white-50">Quick Action</p>
+                                    <h4 class="mb-0 text-white">Buy Number</h4>
+                                </div>
                             </div>
-                            <span class="fw-medium text-dark">Buy Number</span>
                         </div>
                     </div>
                 </a>
