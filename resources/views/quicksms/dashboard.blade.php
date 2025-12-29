@@ -189,49 +189,80 @@
             <h4 class="mb-0"><i class="fas fa-rocket me-2 text-primary"></i>RCS Promotion & Tools</h4>
         </div>
         <div class="row">
-            <div class="col-xl-4 col-lg-6">
-                <div class="card" id="tile-rcs-upgrade">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="icon-box bg-primary rounded me-3" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-comment-dots text-white fa-lg"></i>
+            <div class="col-xl-6 col-lg-6 mb-3">
+                <a href="#" class="text-decoration-none" id="rcs-ad-link">
+                    <div class="card dashboard-tile h-100" id="tile-rcs-advertisement">
+                        <div class="row g-0 h-100">
+                            <div class="col-md-5">
+                                <div class="rcs-ad-image d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #886cc0 0%, #6a4fa0 100%); border-radius: 0.625rem 0 0 0.625rem; min-height: 200px;">
+                                    <div class="text-center text-white p-3">
+                                        <i class="fas fa-comment-dots fa-4x mb-2 opacity-75"></i>
+                                        <p class="mb-0 small opacity-75">Promo Image</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-1">Upgrade to RCS</h5>
-                                <p class="text-muted mb-2 small">Enhance your messaging with rich media, carousels, and interactive buttons.</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary disabled">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-lg-6">
-                <div class="card" id="tile-rcs-agents">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="icon-box bg-success rounded me-3" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-robot text-white fa-lg"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-1">RCS Agents</h5>
-                                <p class="text-muted mb-2 small">Manage your verified RCS agents and brand identities.</p>
-                                <a href="{{ route('management.rcs-agent') }}" class="btn btn-sm btn-outline-success">Manage Agents</a>
+                            <div class="col-md-7">
+                                <div class="card-body d-flex flex-column justify-content-center h-100">
+                                    <span class="badge bg-primary mb-2" style="width: fit-content;">New Feature</span>
+                                    <h4 class="card-title mb-2" id="rcs-ad-header">Unlock RCS Messaging</h4>
+                                    <p class="card-text text-muted mb-3" id="rcs-ad-subtitle">Transform your customer engagement with rich, interactive messages. Get higher open rates and better conversions.</p>
+                                    <button class="btn btn-primary" style="width: fit-content;" id="rcs-ad-cta">
+                                        <i class="fas fa-arrow-right me-2"></i>Get Started
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
-            <div class="col-xl-4 col-lg-6">
-                <div class="card" id="tile-rcs-templates">
+            
+            <div class="col-xl-6 col-lg-6 mb-3">
+                <div class="card dashboard-tile h-100" id="tile-rcs-calculator">
+                    <div class="card-header border-0 pb-0">
+                        <h5 class="card-title mb-0"><i class="fas fa-calculator me-2 text-success"></i>RCS vs SMS Savings Calculator</h5>
+                    </div>
                     <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="icon-box bg-info rounded me-3" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-layer-group text-white fa-lg"></i>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small mb-1">SMS Price (£)</label>
+                                <input type="number" class="form-control form-control-sm" id="calcSmsPrice" placeholder="0.035" step="0.001" value="0.035">
                             </div>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-1">RCS Templates</h5>
-                                <p class="text-muted mb-2 small">Create and manage rich card templates for consistent messaging.</p>
-                                <a href="{{ route('management.templates') }}" class="btn btn-sm btn-outline-info">View Templates</a>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small mb-1">RCS Price (£)</label>
+                                <input type="number" class="form-control form-control-sm" id="calcRcsPrice" placeholder="0.045" step="0.001" value="0.045">
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small mb-1">Avg Fragments</label>
+                                <input type="number" class="form-control form-control-sm" id="calcFragments" placeholder="2" min="1" value="2">
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small mb-1">RCS Penetration %</label>
+                                <input type="number" class="form-control form-control-sm" id="calcPenetration" placeholder="60" min="0" max="100" value="60">
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small mb-1">Messages</label>
+                                <input type="number" class="form-control form-control-sm" id="calcMessages" placeholder="10000" value="10000">
+                            </div>
+                            <div class="col-6 col-md-4 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="calcVat">
+                                    <label class="form-check-label small" for="calcVat">Include VAT</label>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row g-2">
+                            <div class="col-4 text-center">
+                                <p class="mb-1 text-muted small">SMS Only Cost</p>
+                                <h5 class="mb-0 text-danger" id="calcSmsOnlyCost">£0.00</h5>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p class="mb-1 text-muted small">Blended Cost</p>
+                                <h5 class="mb-0 text-success" id="calcBlendedCost">£0.00</h5>
+                            </div>
+                            <div class="col-4 text-center">
+                                <p class="mb-1 text-muted small">You Save</p>
+                                <h5 class="mb-0 text-primary" id="calcSavings">0%</h5>
                             </div>
                         </div>
                     </div>
@@ -240,38 +271,52 @@
         </div>
         
         <div class="row">
-            <div class="col-12">
-                <div class="card" id="tile-rcs-quick-actions">
+            <div class="col-xl-6 col-lg-6 mb-3">
+                <div class="card dashboard-tile h-100" id="tile-test-rcs">
                     <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0">Quick Actions</h5>
+                        <h5 class="card-title mb-0"><i class="fas fa-mobile-alt me-2 text-info"></i>Test RCS Message</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-xl-3 col-lg-4 col-md-6">
-                                <a href="{{ route('messages.send') }}" class="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-paper-plane"></i>
-                                    <span>Send Message</span>
-                                </a>
+                        <p class="text-muted small mb-3">Send a test RCS message to your mobile to see it in action.</p>
+                        <div class="row g-2 align-items-end">
+                            <div class="col">
+                                <label class="form-label small mb-1">Mobile Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000">
+                                </div>
                             </div>
-                            <div class="col-xl-3 col-lg-4 col-md-6">
-                                <a href="{{ route('messages.inbox') }}" class="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-inbox"></i>
-                                    <span>View Inbox</span>
-                                </a>
-                            </div>
-                            <div class="col-xl-3 col-lg-4 col-md-6">
-                                <a href="{{ route('contacts.lists') }}" class="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-list"></i>
-                                    <span>Manage Lists</span>
-                                </a>
-                            </div>
-                            <div class="col-xl-3 col-lg-4 col-md-6">
-                                <a href="{{ route('purchase') }}" class="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-shopping-cart"></i>
-                                    <span>Buy Credits</span>
-                                </a>
+                            <div class="col-auto">
+                                <button class="btn btn-info" id="btnSendTestRcs" onclick="sendTestRcs()">
+                                    <i class="fas fa-paper-plane me-1"></i>Send Test
+                                </button>
                             </div>
                         </div>
+                        <div class="mt-3 d-none" id="testRcsResult">
+                            <div class="alert alert-success mb-0 py-2" id="testRcsSuccess">
+                                <i class="fas fa-check-circle me-2"></i>Test message sent successfully!
+                            </div>
+                            <div class="alert alert-danger mb-0 py-2 d-none" id="testRcsFail">
+                                <i class="fas fa-times-circle me-2"></i>Failed to send test message. Please try again.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-6 col-lg-6 mb-3" id="tile-register-rcs-wrapper">
+                <div class="card dashboard-tile h-100" id="tile-register-rcs">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="icon-box bg-warning rounded-circle me-3" style="width: 56px; height: 56px; flex-shrink: 0;">
+                            <i class="fas fa-id-card text-white fa-lg"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">Register for RCS</h5>
+                            <p class="text-muted mb-0 small">Get your brand verified and start sending rich messages to your customers.</p>
+                        </div>
+                        <a href="{{ route('management.rcs-agent') }}" class="btn btn-warning ms-3" id="btnRegisterRcs">
+                            <i class="fas fa-arrow-right me-1"></i>Register Now
+                        </a>
                     </div>
                 </div>
             </div>
@@ -677,6 +722,52 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadTrafficData = loadTrafficData;
     window.renderTrafficChart = renderTrafficChart;
 });
+
+function sendTestRcs() {
+    var mobileInput = document.getElementById('testRcsMobile');
+    var resultDiv = document.getElementById('testRcsResult');
+    var successDiv = document.getElementById('testRcsSuccess');
+    var failDiv = document.getElementById('testRcsFail');
+    var btn = document.getElementById('btnSendTestRcs');
+    
+    var mobile = mobileInput.value.trim();
+    
+    if (!mobile) {
+        mobileInput.classList.add('is-invalid');
+        return;
+    }
+    
+    mobileInput.classList.remove('is-invalid');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+    
+    // TODO: Replace with actual API call
+    // POST /api/rcs/test { mobile: mobile }
+    setTimeout(function() {
+        resultDiv.classList.remove('d-none');
+        
+        // Placeholder: randomly show success or fail for demo
+        var isSuccess = Math.random() > 0.3;
+        
+        if (isSuccess) {
+            successDiv.classList.remove('d-none');
+            failDiv.classList.add('d-none');
+        } else {
+            successDiv.classList.add('d-none');
+            failDiv.classList.remove('d-none');
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send Test';
+    }, 1500);
+}
+
+// TODO: Placeholder calculator function - no math yet
+function calculateSavings() {
+    // Will be implemented when backend is ready
+    // Read: calcSmsPrice, calcRcsPrice, calcFragments, calcPenetration, calcMessages, calcVat
+    // Update: calcSmsOnlyCost, calcBlendedCost, calcSavings
+}
 </script>
 @endpush
 @endsection
