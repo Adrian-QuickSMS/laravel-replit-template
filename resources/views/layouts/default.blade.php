@@ -36,7 +36,6 @@
         @endforeach
     @endif
         
-    @stack('styles')
 </head>
 <body>
 
