@@ -346,16 +346,25 @@
                     <div class="card-body">
                         <p class="text-muted small mb-3">Send a test RCS message to your mobile to see it in action.</p>
                         <div class="row g-2 align-items-end">
-                            <div class="col">
+                            <div class="col-12 col-md-5">
+                                <label class="form-label small mb-1">Message Type</label>
+                                <select class="form-select" id="testRcsMessageType">
+                                    <option value="basic-text" selected>Basic Text</option>
+                                    <option value="rich-card">Rich Card</option>
+                                    <option value="appointment-reminder">Appointment Reminder</option>
+                                    <option value="carousel">Carousel</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small mb-1">UK Mobile Number</label>
                                 <div class="input-group has-validation">
                                     <span class="input-group-text"><i class="fas fa-phone"></i></span>
                                     <input type="tel" class="form-control" id="testRcsMobile" placeholder="+44 7700 900000" aria-describedby="testRcsFeedback">
-                                    <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number (e.g., +44 7700 900000 or 07700 900000)</div>
+                                    <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number</div>
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <button class="btn btn-info" id="btnSendTestRcs" onclick="sendTestRcs()">
+                            <div class="col-12 col-md-3">
+                                <button class="btn btn-info w-100" id="btnSendTestRcs" onclick="sendTestRcs()">
                                     <i class="fas fa-paper-plane me-1"></i>Send Test
                                 </button>
                             </div>
@@ -373,20 +382,27 @@
             </div>
             
             <div class="col-xl-6 col-lg-6 mb-3" id="tile-register-rcs-wrapper">
-                <div class="card dashboard-tile h-100" id="tile-register-rcs">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-box bg-warning rounded-circle me-3" style="width: 56px; height: 56px; flex-shrink: 0;">
-                            <i class="fas fa-id-card text-white fa-lg"></i>
+                <a href="{{ route('management.rcs-agent') }}" class="text-decoration-none">
+                    <div class="card dashboard-tile h-100" id="tile-register-rcs" style="background: linear-gradient(135deg, #9575cd 0%, #7e57c2 100%); min-height: 200px;">
+                        <div class="card-body d-flex align-items-center justify-content-between h-100 p-4">
+                            <div class="text-white" style="max-width: 60%;">
+                                <h4 class="text-white fw-bold mb-2">Register for RCS</h4>
+                                <p class="mb-3 opacity-75" style="font-size: 0.95rem;">Get your brand verified and start sending rich, interactive messages to your customers.</p>
+                                <span class="btn btn-light text-dark fw-semibold" id="btnRegisterRcs">
+                                    Register Now
+                                </span>
+                            </div>
+                            <div class="rcs-register-icon d-flex align-items-center justify-content-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="9" cy="10" r="1" fill="rgba(255,255,255,0.8)"></circle>
+                                    <circle cx="12" cy="10" r="1" fill="rgba(255,255,255,0.8)"></circle>
+                                    <circle cx="15" cy="10" r="1" fill="rgba(255,255,255,0.8)"></circle>
+                                </svg>
+                            </div>
                         </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">Register for RCS</h5>
-                            <p class="text-muted mb-0 small">Get your brand verified and start sending rich messages to your customers.</p>
-                        </div>
-                        <a href="{{ route('management.rcs-agent') }}" class="btn btn-warning ms-3" id="btnRegisterRcs">
-                            <i class="fas fa-arrow-right me-1"></i>Register Now
-                        </a>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
