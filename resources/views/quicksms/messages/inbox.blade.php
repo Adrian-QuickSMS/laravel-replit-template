@@ -34,12 +34,13 @@
     flex: 1 !important;
     min-width: 0;
     height: 100%;
-    overflow-y: auto;
+    overflow: hidden;
 }
 .chat-box-area {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    overflow-y: auto;
     padding: 1rem;
-    min-height: 200px;
+    min-height: 0;
 }
 #replyComposerCard {
     flex-shrink: 0;
@@ -48,6 +49,20 @@
     border-right: 0;
     border-bottom: 0;
     background: white;
+}
+#replyComposerCard .card-body {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(50vh - 40px);
+}
+#replyComposerCard .composer-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+#replyComposerCard .composer-footer {
+    flex-shrink: 0;
+    padding-top: 0.5rem;
 }
 .chat-bx {
     cursor: pointer;
@@ -438,6 +453,7 @@
                             
                             <div class="card border-top" id="replyComposerCard">
                                 <div class="card-body p-2">
+                                    <div class="composer-scrollable">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
                                             <label class="form-label small fw-bold mb-1">Channel & Sender</label>
@@ -532,8 +548,9 @@
                                             </button>
                                         </div>
                                     </div>
+                                    </div>
                                     
-                                    <div class="d-flex justify-content-end">
+                                    <div class="composer-footer d-flex justify-content-end">
                                         <button type="button" class="btn btn-primary" onclick="sendReply()">
                                             <i class="far fa-paper-plane me-1"></i>Send Message
                                         </button>
