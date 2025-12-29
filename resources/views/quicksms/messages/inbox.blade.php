@@ -1134,9 +1134,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
-    // Set initial reply channel based on first conversation
+    // Set initial reply channel and sender based on first conversation
     if (conversationsData.length > 0) {
         setReplyChannel(conversationsData[0].channel);
+        setSender(conversationsData[0]);
     }
 });
 
@@ -1150,6 +1151,51 @@ function setReplyChannel(channel) {
     } else {
         smsRadio.checked = true;
         smsRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+
+function setSender(conv) {
+    var senderSelect = document.getElementById('senderSelect');
+    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    var smsFallbackSelect = document.getElementById('smsFallbackSelect');
+    
+    // Always clear SMS fallback - user must choose
+    smsFallbackSelect.value = '';
+    
+    if (conv.channel === 'rcs') {
+        // Pre-populate RCS Agent based on conversation source
+        var agentOptions = rcsAgentSelect.options;
+        var matched = false;
+        for (var i = 0; i < agentOptions.length; i++) {
+            if (agentOptions[i].text === conv.source || 
+                (conv.rcs_agent_id && agentOptions[i].value === conv.rcs_agent_id)) {
+                rcsAgentSelect.value = agentOptions[i].value;
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            rcsAgentSelect.value = '';
+        }
+        // Clear SMS sender when on RCS
+        senderSelect.value = '';
+    } else {
+        // Pre-populate SMS Sender based on conversation source
+        var senderOptions = senderSelect.options;
+        var matched = false;
+        for (var i = 0; i < senderOptions.length; i++) {
+            if (senderOptions[i].text === conv.source || 
+                (conv.sender_id && senderOptions[i].value === conv.sender_id)) {
+                senderSelect.value = senderOptions[i].value;
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            senderSelect.value = '';
+        }
+        // Clear RCS agent when on SMS
+        rcsAgentSelect.value = '';
     }
 }
 
@@ -1168,6 +1214,7 @@ function selectConversation(id) {
     document.getElementById('chatPhone').textContent = conv.phone_masked;
     
     setReplyChannel(conv.channel);
+    setSender(conv);
     
     var channelBadge = document.getElementById('chatChannelBadge');
     channelBadge.textContent = conv.channel.toUpperCase();
