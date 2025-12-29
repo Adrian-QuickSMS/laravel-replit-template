@@ -5,9 +5,36 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-.inbox-main-container {
-    height: calc(100vh - 120px);
-    overflow: hidden;
+/* Inbox page container - fills available space */
+.inbox-page-container {
+    height: calc(100vh - 120px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+}
+.inbox-page-container > .row {
+    flex: 1 !important;
+    margin: 0 !important;
+}
+.inbox-page-container > .row > .col-12 {
+    padding: 0 !important;
+}
+.inbox-page-container .card {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    margin-bottom: 0 !important;
+    height: 100% !important;
+}
+.inbox-page-container .card > .card-body {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
 }
 .inbox-row {
     display: flex !important;
@@ -36,23 +63,51 @@
     height: 100%;
     overflow: hidden;
 }
-.chat-box-area {
+.inbox-left-column {
+    width: 340px;
+    min-width: 340px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-right: 1px solid #e9ecef;
+    overflow: hidden;
+}
+.inbox-left-column .chat-sidebar {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+.inbox-chat-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+}
+.inbox-chat-pane .chat-box-area {
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
-    padding-bottom: 280px;
     min-height: 0;
 }
-#replyComposerCard {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
+.inbox-chat-pane #replyComposerCard {
     flex-shrink: 0;
+    z-index: 10;
     border-radius: 0;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
     background: white;
+    border-top: 1px solid #e9ecef;
+}
+.inbox-contact-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    border-left: 1px solid #e9ecef;
+    overflow-y: auto;
+    height: 100%;
 }
 .chat-bx {
     cursor: pointer;
@@ -239,12 +294,12 @@
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-xl-12">
-            <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
-                <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%;">
-                    <div style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
+<div class="container-fluid inbox-page-container">
+    <div class="row h-100">
+        <div class="col-12 h-100">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-nowrap p-0">
+                    <div class="inbox-left-column">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center">
@@ -329,7 +384,7 @@
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: flex; flex-direction: column; flex: 1; min-width: 0; height: 100%; overflow: hidden;">
+                    <div class="inbox-chat-pane" id="chatPaneWrapper">
                             <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
@@ -546,8 +601,9 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="contact-sidebar p-3" id="contactSidebar">
+                    </div>
+                    
+                    <div class="inbox-contact-sidebar p-3" id="contactSidebar">
                             <div class="mb-3">
                                 <h6 class="mb-0">Contact Details</h6>
                             </div>
