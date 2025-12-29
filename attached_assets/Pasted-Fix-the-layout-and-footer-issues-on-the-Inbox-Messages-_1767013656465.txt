@@ -1,0 +1,52 @@
+Fix the layout and footer issues on the Inbox / Messages screen. Use the existing app layout and Messages template. Do NOT redesign.
+
+A) Remove footer copyright / “designed by” text
+- Remove the copyright / “designed by” text that appears at the very bottom of the page.
+- This text should not be shown anywhere on the Inbox / Messages screen.
+- Do not add any replacement footer there.
+
+B) Restore Contact Details panel to right-hand side
+Current problem:
+- The Contact Details panel has moved to the bottom-left of the page and is causing extra scroll.
+
+Required behaviour:
+- The Contact Details panel must be a RIGHT-HAND SIDEBAR, not a bottom block.
+- It should sit to the right of the chat thread, as a vertical column, consistent with previous design.
+- It must not push content down or create extra vertical scroll.
+
+Implementation notes:
+- Ensure the layout is a 3-column structure:
+  - Left: Inbox list
+  - Centre: Chat thread + composer
+  - Right: Contact Details sidebar
+- Remove any positioning or layout changes that placed the Contact Details block at the bottom (e.g. flex-wrap, wrong grid area, or stacking on small screens where not intended).
+- The Contact Details panel should scroll internally if content is long, not force the whole page to scroll.
+
+C) Fix the Channel / Send Message composer so it is always visible at the bottom
+Current problem:
+- The channel + send message composer section now requires scrolling to reach; it is not always visible.
+
+Required behaviour:
+- The composer (channel selector + SenderID/RCS agent + content editor + send button) must be “anchored” to the bottom of the central chat area and always visible without page scroll.
+- User should never have to scroll the main page to access the send controls.
+
+Implementation notes:
+- Inside the central column (chat area), structure it as:
+  - Chat header
+  - Scrollable messages container (overflow-y: auto)
+  - Fixed/sticky composer at the bottom of this column.
+
+- Add sufficient bottom padding to the messages container so the last message is not hidden behind the composer.
+- Do NOT move the composer outside the central column.
+- Do NOT add any global page scroll hacks that break the app’s base layout.
+
+Constraints:
+- Reuse the existing layout/container structure used by the Messages template in other screens (e.g., Send Message page).
+- Do NOT change global layout, headers, or other pages.
+- Limit changes to the Inbox/Messages layout, Contact Details positioning, and composer positioning.
+
+Acceptance checklist:
+- No footer “designed by” text appears at the bottom of the page.
+- Contact Details panel appears on the RIGHT side as a sidebar (not bottom-left) and does not create extra page scroll.
+- Channel/Send Message composer is fixed/anchored at the bottom of the chat column and is always visible without scrolling the main page.
+- Only the Inbox list and chat messages scroll in their own areas; the composer stays visible.

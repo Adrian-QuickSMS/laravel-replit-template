@@ -5,34 +5,47 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-/* Inbox uses Fillow's standard chat viewport height pattern */
-.inbox-left-column .chat-sidebar {
-    height: calc(80vh - 200px);
-    overflow-y: auto;
+/* Hide all footer/copyright on Inbox page */
+.footer,
+.copyright {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Force inbox 3-column layout at lg breakpoint */
+@media (min-width: 992px) {
+    .inbox-left-column {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .inbox-contact-sidebar {
+        max-height: 600px;
+        overflow-y: auto;
+    }
 }
 
 /* Center pane - flex layout to pin composer at bottom */
 .inbox-chat-pane {
     display: flex;
     flex-direction: column;
-    height: calc(80vh - 100px);
+    min-height: 500px;
+    max-height: 700px;
 }
 .inbox-chat-pane .chat-box-area {
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
-    min-height: 0;
+    min-height: 200px;
 }
 .inbox-chat-pane #replyComposerCard {
     flex-shrink: 0;
     border-top: 1px solid #e9ecef;
 }
 
-/* Right sidebar - contact details */
-.inbox-contact-sidebar {
-    height: calc(80vh - 150px);
-    overflow-y: auto;
-}
 .chat-bx {
     cursor: pointer;
     padding: 0.75rem 1rem;
@@ -224,11 +237,13 @@
 @section('content')
 <div class="container-fluid">
     <div class="row">
-        <div class="col-xl-3 col-lg-4">
-            <div class="card">
+        <div class="col-xl-12">
+            <div class="card mb-0 h-auto">
                 <div class="card-body p-0">
-                    <div class="inbox-left-column">
-                        <div class="meassge-left-side">
+                    <div class="row">
+                        <div class="col-xl-3 col-xxl-3 border-end pe-0 chat-left-body">
+                            <div class="inbox-left-column p-0">
+                                <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center">
                                     <h4 class="mb-0 me-2">Inbox</h4>
@@ -314,7 +329,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-6 col-lg-5">
+        <div class="col-xl-6 col-lg-5 col-12">
             <div class="card">
                 <div class="card-body p-0">
                     <div class="inbox-chat-pane" id="chatPaneWrapper">
@@ -538,7 +553,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-3">
+        <div class="col-xl-3 col-lg-3 col-12">
             <div class="card">
                 <div class="card-body p-3">
                     <div class="inbox-contact-sidebar" id="contactSidebar">
