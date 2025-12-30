@@ -1434,34 +1434,26 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
     });
     
-    // Multi-select dropdown handlers
-    function setupMultiselect(menuId, toggleId, stateKey, defaultText) {
-        const menu = document.getElementById(menuId);
-        const toggle = document.getElementById(toggleId);
-        if (!menu || !toggle) return;
-        menu.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const selected = Array.from(menu.querySelectorAll('input:checked')).map(cb => cb.value);
-                pendingFilters[stateKey] = selected;
-                updateMultiselectToggle(toggle, selected.length, defaultText);
-            });
+    // Single-select dropdown handlers
+    function setupSelectFilter(selectId, stateKey) {
+        const select = document.getElementById(selectId);
+        if (!select) {
+            console.log('[Filter] Select not found:', selectId);
+            return;
+        }
+        select.addEventListener('change', function() {
+            const value = this.value;
+            pendingFilters[stateKey] = value ? [value] : [];
+            console.log('[Filter] ' + stateKey + ' changed to:', pendingFilters[stateKey]);
         });
     }
     
-    function updateMultiselectToggle(toggle, count, defaultText) {
-        if (count > 0) {
-            toggle.querySelector('.filter-text').textContent = `${count} selected`;
-        } else {
-            toggle.querySelector('.filter-text').textContent = defaultText;
-        }
-    }
-    
-    setupMultiselect('subAccountsMenu', 'subAccountsDropdown', 'subAccounts', 'All Sub Accounts');
-    setupMultiselect('usersMenu', 'usersDropdown', 'users', 'All Users');
-    setupMultiselect('originsMenu', 'originsDropdown', 'origins', 'All Origins');
-    setupMultiselect('statusesMenu', 'statusesDropdown', 'statuses', 'All Statuses');
-    setupMultiselect('countriesMenu', 'countriesDropdown', 'countries', 'All Countries');
-    setupMultiselect('messageTypesMenu', 'messageTypesDropdown', 'messageTypes', 'All Types');
+    setupSelectFilter('filterSubAccountToggle', 'subAccounts');
+    setupSelectFilter('filterUserToggle', 'users');
+    setupSelectFilter('filterOriginToggle', 'origins');
+    setupSelectFilter('filterStatusToggle', 'statuses');
+    setupSelectFilter('filterCountryToggle', 'countries');
+    setupSelectFilter('filterTypeToggle', 'messageTypes');
     
     // Free text multi-value inputs (Mobile Number, Message ID)
     function setupMultiValueInput(inputId, stateKey) {
@@ -1516,15 +1508,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('filterMessageId').value = '';
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
         
-        // Reset multi-selects
-        document.querySelectorAll('.dropdown-menu input[type="checkbox"]').forEach(cb => {
-            cb.checked = false;
-        });
-        
-        // Reset toggle text
-        ['subAccountsDropdown', 'usersDropdown', 'originsDropdown', 'statusesDropdown', 'countriesDropdown', 'messageTypesDropdown'].forEach(id => {
-            const toggle = document.getElementById(id);
-            if (toggle) toggle.querySelector('.filter-text').textContent = toggle.dataset.default || 'All';
+        // Reset select dropdowns
+        ['filterSubAccountToggle', 'filterUserToggle', 'filterOriginToggle', 'filterStatusToggle', 'filterCountryToggle', 'filterTypeToggle'].forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.value = '';
         });
         
         console.log('[Filter] Pending filters reset (not applied)');
@@ -1728,13 +1715,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (Array.isArray(filterState[filterKey])) {
             filterState[filterKey] = [];
             pendingFilters[filterKey] = [];
-            // Uncheck related checkboxes
-            const menuId = filterKey + 'Menu';
-            document.querySelectorAll(`#${menuId} input[type="checkbox"]`).forEach(cb => cb.checked = false);
-            // Reset dropdown text
-            const dropdownId = filterKey + 'Dropdown';
-            const toggle = document.getElementById(dropdownId);
-            if (toggle) toggle.querySelector('.filter-text').textContent = toggle.dataset.default || 'All';
+            // Reset the corresponding select dropdown
+            const selectIdMap = {
+                'subAccounts': 'filterSubAccountToggle',
+                'users': 'filterUserToggle',
+                'origins': 'filterOriginToggle',
+                'statuses': 'filterStatusToggle',
+                'countries': 'filterCountryToggle',
+                'messageTypes': 'filterTypeToggle'
+            };
+            const selectId = selectIdMap[filterKey];
+            if (selectId) {
+                const select = document.getElementById(selectId);
+                if (select) select.value = '';
+            }
         }
         
         // Re-run query with updated filters
