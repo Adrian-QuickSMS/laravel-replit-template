@@ -284,7 +284,7 @@
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Sub Account</label>
                                     <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                             <span class="dropdown-label">All Sub Accounts</span>
                                         </button>
                                         <div class="dropdown-menu w-100 p-2">
@@ -302,7 +302,7 @@
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">User</label>
                                     <div class="dropdown multiselect-dropdown" data-filter="users">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                             <span class="dropdown-label">All Users</span>
                                         </button>
                                         <div class="dropdown-menu w-100 p-2">
@@ -321,7 +321,7 @@
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Origin</label>
                                     <div class="dropdown multiselect-dropdown" data-filter="origins">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                             <span class="dropdown-label">All Origins</span>
                                         </button>
                                         <div class="dropdown-menu w-100 p-2">
@@ -351,7 +351,7 @@
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Status</label>
                                     <div class="dropdown multiselect-dropdown" data-filter="statuses">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                             <span class="dropdown-label">All Statuses</span>
                                         </button>
                                         <div class="dropdown-menu w-100 p-2">
@@ -370,7 +370,7 @@
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Country</label>
                                     <div class="dropdown multiselect-dropdown" data-filter="countries">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                             <span class="dropdown-label">All Countries</span>
                                         </button>
                                         <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
@@ -408,7 +408,7 @@
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Type</label>
                                     <div class="dropdown multiselect-dropdown" data-filter="messageTypes">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                             <span class="dropdown-label">All Types</span>
                                         </button>
                                         <div class="dropdown-menu w-100 p-2">
