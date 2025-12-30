@@ -1079,7 +1079,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // TODO: Replace mock API base with production warehouse endpoint
     // Production endpoint: /api/v1/reporting
     const API_BASE = '/api/reporting/dashboard';
-    let chartInstances = {};
     
     /**
      * Reporting Service - Stub functions for backend integration
@@ -1836,95 +1835,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ========================================
-    // Sub Account -> User Filtering
+    // (Legacy filter code removed - now using multi-select dropdowns)
     // ========================================
-    const userSelect = document.getElementById('filterUser');
-    const allUserOptions = userSelect ? Array.from(userSelect.querySelectorAll('option[data-subaccount]')) : [];
-    
-    document.getElementById('filterSubAccount')?.addEventListener('change', function() {
-        const selectedSubAccount = this.value;
-        pendingFilters.subAccount = selectedSubAccount;
-        
-        // Reset user selection
-        userSelect.value = '';
-        pendingFilters.user = '';
-        
-        // Filter user options
-        allUserOptions.forEach(opt => {
-            if (!selectedSubAccount || opt.dataset.subaccount === selectedSubAccount) {
-                opt.style.display = '';
-            } else {
-                opt.style.display = 'none';
-            }
-        });
-    });
-    
-    document.getElementById('filterUser')?.addEventListener('change', function() {
-        pendingFilters.user = this.value;
-    });
-    
-    // ========================================
-    // Origin Multi-select with Integration Type Toggle
-    // ========================================
-    const originDropdown = document.querySelector('[data-filter="origins"]');
-    const integrationWrapper = document.getElementById('integrationTypeWrapper');
-    
-    function updateOriginLabel() {
-        const checkboxes = originDropdown.querySelectorAll('input[type="checkbox"]');
-        const checked = Array.from(checkboxes).filter(cb => cb.checked);
-        const label = originDropdown.querySelector('.dropdown-label');
-        
-        pendingFilters.origins = checked.map(cb => cb.value);
-        
-        if (checked.length === 0 || checked.length === checkboxes.length) {
-            label.textContent = 'All Origins';
-        } else if (checked.length === 1) {
-            label.textContent = checked[0].value;
-        } else {
-            label.textContent = `${checked.length} selected`;
-        }
-        
-        // Toggle Integration Type visibility
-        const hasIntegration = pendingFilters.origins.includes('Integration');
-        integrationWrapper.style.display = hasIntegration ? '' : 'none';
-        if (!hasIntegration) {
-            document.getElementById('filterIntegrationType').value = '';
-            pendingFilters.integrationType = '';
-        }
-    }
-    
-    if (originDropdown) {
-        originDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', updateOriginLabel);
-        });
-        
-        originDropdown.querySelector('.select-all-btn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            originDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
-            updateOriginLabel();
-        });
-        
-        originDropdown.querySelector('.clear-all-btn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            originDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-            updateOriginLabel();
-        });
-    }
-    
-    // ========================================
-    // Other Filter Inputs
-    // ========================================
-    document.getElementById('filterIntegrationType')?.addEventListener('change', function() {
-        pendingFilters.integrationType = this.value;
-    });
-    
-    document.getElementById('filterGroupName')?.addEventListener('change', function() {
-        pendingFilters.groupName = this.value;
-    });
-    
-    document.getElementById('filterSenderId')?.addEventListener('input', function() {
-        pendingFilters.senderId = this.value;
-    });
     
     // ========================================
     // Active Filter Chips
