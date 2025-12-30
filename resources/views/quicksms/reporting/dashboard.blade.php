@@ -12,6 +12,15 @@
     overflow: hidden;
 }
 
+/* Ensure KPI tiles show badges without clipping */
+.qs-tile .widget-stat .media-body {
+    overflow: visible;
+}
+.qs-tile .widget-stat .media-body h4 {
+    overflow: visible;
+    flex-wrap: wrap;
+}
+
 .qs-reporting-dashboard .qs-filter-section {
     flex-shrink: 0;
 }
@@ -1374,15 +1383,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
-            // Helper function for trend badges
+            // Helper function for trend badges - always show, even when 0%
             function getTrendBadge(trend, invertColors = false) {
-                if (trend === 0) return '';
-                const isPositive = trend >= 0;
+                const trendValue = trend ?? 0;
+                const isPositive = trendValue >= 0;
                 const badgeClass = invertColors 
                     ? (isPositive ? 'badge-pink' : 'badge-info')
                     : (isPositive ? 'badge-info' : 'badge-pink');
-                const sign = isPositive ? '+' : '';
-                return `<span class="badge ${badgeClass} ms-2" style="font-size: 11px; font-weight: 500;">${sign}${trend}%</span>`;
+                const sign = trendValue > 0 ? '+' : '';
+                return `<span class="badge ${badgeClass} ms-2" style="font-size: 11px; font-weight: 500;">${sign}${trendValue}%</span>`;
             }
             
             // Delivery Rate with tooltip and trend pill
