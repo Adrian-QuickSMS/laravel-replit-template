@@ -186,7 +186,7 @@
                                 </span>
                                 <div class="media-body text-white text-end">
                                     <p class="mb-1">Make a</p>
-                                    <h3 class="text-white">Payment</h3>
+                                    <h4 class="text-white mb-0">Payment</h4>
                                 </div>
                             </div>
                         </div>
@@ -208,7 +208,7 @@
                                 </span>
                                 <div class="media-body text-white text-end">
                                     <p class="mb-1">Buy a</p>
-                                    <h3 class="text-white">Number</h3>
+                                    <h4 class="text-white mb-0">Number</h4>
                                 </div>
                             </div>
                         </div>
@@ -233,7 +233,7 @@
                                 </span>
                                 <div class="media-body text-white text-end">
                                     <p class="mb-1">View latest</p>
-                                    <h3 class="text-white">Invoice</h3>
+                                    <h4 class="text-white mb-0">Invoice</h4>
                                 </div>
                             </div>
                         </div>
@@ -248,11 +248,17 @@
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
-                                    <i class="flaticon-381-speaker"></i>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 11l18-5v12L3 13v-2z"></path>
+                                        <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
+                                        <line x1="21" y1="3" x2="23" y2="1"></line>
+                                        <line x1="21" y1="11" x2="24" y2="11"></line>
+                                        <line x1="21" y1="19" x2="23" y2="21"></line>
+                                    </svg>
                                 </span>
                                 <div class="media-body text-white text-end">
                                     <p class="mb-1">Send a</p>
-                                    <h3 class="text-white">Campaign</h3>
+                                    <h4 class="text-white mb-0">Campaign</h4>
                                 </div>
                             </div>
                         </div>
