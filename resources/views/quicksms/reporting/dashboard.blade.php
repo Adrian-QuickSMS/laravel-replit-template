@@ -1336,8 +1336,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     : 'Final billing complete for this period.';
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">TOTAL SPEND</p>
-                    <h4 class="mb-0" title="${spendTooltip}" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
-                    <small class="text-muted">(Excludes VAT)</small>
+                    <h4 class="mb-0 d-flex align-items-center" title="${spendTooltip}" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
+                    <small class="text-muted" style="display: block; margin-top: 4px;">(Excludes VAT)</small>
                 `;
             } else {
                 // Viewers see credits only, not cost
