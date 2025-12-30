@@ -285,30 +285,31 @@
                                     <label class="form-label small fw-bold">Sub Account</label>
                                     <select class="form-select form-select-sm" id="filterSubAccountToggle">
                                         <option value="">All Sub Accounts</option>
-                                        <option value="main">Main Account</option>
-                                        <option value="marketing">Marketing Team</option>
-                                        <option value="support">Support Team</option>
-                                        <option value="sales">Sales Team</option>
+                                        <option value="Main Account">Main Account</option>
+                                        <option value="Marketing Team">Marketing Team</option>
+                                        <option value="Support Team">Support Team</option>
+                                        <option value="Sales Team">Sales Team</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">User</label>
                                     <select class="form-select form-select-sm" id="filterUserToggle">
                                         <option value="">All Users</option>
-                                        <option value="john">John Smith</option>
-                                        <option value="sarah">Sarah Johnson</option>
-                                        <option value="mike">Mike Williams</option>
-                                        <option value="emma">Emma Davis</option>
+                                        <option value="John Smith">John Smith</option>
+                                        <option value="Sarah Johnson">Sarah Johnson</option>
+                                        <option value="Mike Williams">Mike Williams</option>
+                                        <option value="Emma Davis">Emma Davis</option>
+                                        <option value="James Wilson">James Wilson</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Origin</label>
                                     <select class="form-select form-select-sm" id="filterOriginToggle">
                                         <option value="">All Origins</option>
-                                        <option value="portal">Portal</option>
-                                        <option value="api">API</option>
-                                        <option value="email-to-sms">Email-to-SMS</option>
-                                        <option value="integration">Integration</option>
+                                        <option value="Portal">Portal</option>
+                                        <option value="API">API</option>
+                                        <option value="Email-to-SMS">Email-to-SMS</option>
+                                        <option value="Integration">Integration</option>
                                     </select>
                                 </div>
                             </div>
@@ -327,31 +328,36 @@
                                     <label class="form-label small fw-bold">Message Status</label>
                                     <select class="form-select form-select-sm" id="filterStatusToggle">
                                         <option value="">All Statuses</option>
-                                        <option value="delivered">Delivered</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="undeliverable">Undeliverable</option>
-                                        <option value="rejected">Rejected</option>
+                                        <option value="Delivered">Delivered</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Undeliverable">Undeliverable</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Expired">Expired</option>
+                                        <option value="Failed">Failed</option>
+                                        <option value="Blocked">Blocked</option>
+                                        <option value="Blacklisted">Blacklisted</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Country</label>
                                     <select class="form-select form-select-sm" id="filterCountryToggle">
                                         <option value="">All Countries</option>
-                                        <option value="uk">United Kingdom</option>
-                                        <option value="us">United States</option>
-                                        <option value="de">Germany</option>
-                                        <option value="fr">France</option>
-                                        <option value="es">Spain</option>
-                                        <option value="ie">Ireland</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <option value="US">United States</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="ES">Spain</option>
+                                        <option value="IE">Ireland</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Type</label>
                                     <select class="form-select form-select-sm" id="filterTypeToggle">
                                         <option value="">All Types</option>
-                                        <option value="sms">SMS</option>
-                                        <option value="rcs-basic">RCS Basic</option>
-                                        <option value="rcs-rich">RCS Rich</option>
+                                        <option value="SMS">SMS</option>
+                                        <option value="RCS Basic">RCS Basic</option>
+                                        <option value="RCS Single">RCS Single</option>
+                                        <option value="RCS Carousel">RCS Carousel</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
@@ -1052,19 +1058,22 @@ const MockAPI = (function() {
                 results = results.filter(msg => msg.senderId.toLowerCase().includes(senderSearch));
             }
             
-            // Status filter (multi-select)
+            // Status filter (case-insensitive)
             if (filters.statuses && filters.statuses.length > 0) {
-                results = results.filter(msg => filters.statuses.includes(msg.status.text));
+                const statusLower = filters.statuses.map(s => s.toLowerCase());
+                results = results.filter(msg => statusLower.includes(msg.status.text.toLowerCase()));
             }
             
-            // Country filter (multi-select)
+            // Country filter (case-insensitive)
             if (filters.countries && filters.countries.length > 0) {
-                results = results.filter(msg => filters.countries.includes(msg.country));
+                const countryLower = filters.countries.map(c => c.toLowerCase());
+                results = results.filter(msg => countryLower.includes(msg.country.toLowerCase()));
             }
             
-            // Message Type filter (multi-select)
+            // Message Type filter (case-insensitive)
             if (filters.messageTypes && filters.messageTypes.length > 0) {
-                results = results.filter(msg => filters.messageTypes.includes(msg.messageType.text));
+                const typeLower = filters.messageTypes.map(t => t.toLowerCase());
+                results = results.filter(msg => typeLower.includes(msg.messageType.text.toLowerCase()));
             }
             
             // Message ID filter (multiple values, partial match)
