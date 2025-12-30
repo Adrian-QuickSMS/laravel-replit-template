@@ -990,10 +990,187 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ========================================
-    // Dashboard API Service
+    // Reporting API Service Layer
     // ========================================
+    // TODO: Replace mock API base with production warehouse endpoint
+    // Production endpoint: /api/v1/reporting
     const API_BASE = '/api/reporting/dashboard';
     let chartInstances = {};
+    
+    /**
+     * Reporting Service - Stub functions for backend integration
+     * 
+     * Each function:
+     * - Accepts standard filter parameters
+     * - Returns a Promise that resolves with mock data
+     * - Is isolated (tiles load independently, no blocking)
+     * 
+     * TODO: Wire these to real warehouse endpoints when backend is ready
+     */
+    const ReportingService = {
+        
+        /**
+         * Build query string from filter parameters
+         * @param {Object} filters - Filter parameters
+         * @returns {string} - URL query string
+         */
+        buildQueryParams(filters = {}) {
+            const params = new URLSearchParams();
+            if (filters.dateRange?.from) params.append('date_from', filters.dateRange.from);
+            if (filters.dateRange?.to) params.append('date_to', filters.dateRange.to);
+            if (filters.subAccount) params.append('sub_account', filters.subAccount);
+            if (filters.user) params.append('user', filters.user);
+            if (filters.origin) params.append('origin', filters.origin);
+            if (filters.groupName) params.append('group_name', filters.groupName);
+            if (filters.senderID) params.append('sender_id', filters.senderID);
+            return params.toString();
+        },
+        
+        /**
+         * GET /reporting/summary - KPI summary data
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/summary
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { deliveryRate, spend, rcsSeenRate, optOutRate }
+         */
+        async getSummary(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/summary?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/kpis?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/volume - Message volume over time
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/volume
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { categories, series, totals }
+         */
+        async getVolume(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/volume?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/volume?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/status - Delivery status breakdown
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/status
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { delivered, pending, failed, total }
+         */
+        async getDeliveryStatus(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/status?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/delivery-status?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/channel - Channel split (SMS vs RCS)
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/channel
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { sms, rcs, total }
+         */
+        async getChannelSplit(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/channel?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/channel-split?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/countries - Top countries by volume
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/countries
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { countries, categories, values }
+         */
+        async getTopCountries(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/countries?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/top-countries?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/senderids - Top sender IDs
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/senderids
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { senderIds: [{ senderId, messages, delivered, deliveryRate }] }
+         */
+        async getTopSenderIds(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/senderids?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/top-sender-ids?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/cost - Cost and spend data
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/cost
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { amount, currency, creditsUsed, isEstimated, vatNote }
+         */
+        async getCost(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/cost?${queryString}`).then(r => r.json());
+            // Currently bundled with KPIs, extract spend portion
+            return fetch(`${API_BASE}/kpis?${queryString}`)
+                .then(r => r.json())
+                .then(data => data.spend);
+        },
+        
+        /**
+         * GET /reporting/failure-reasons - Failure breakdown
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/failure-reasons
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { totalFailed, reasons: [{ reason, count, percentage }] }
+         */
+        async getFailureReasons(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/failure-reasons?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/failure-reasons?${queryString}`).then(r => r.json());
+        },
+        
+        /**
+         * GET /reporting/opt-outs - Opt-out statistics
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/opt-outs
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { value, optOutCount, hasOptOutData }
+         */
+        async getOptOuts(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/opt-outs?${queryString}`).then(r => r.json());
+            // Currently bundled with KPIs, extract opt-out portion
+            return fetch(`${API_BASE}/kpis?${queryString}`)
+                .then(r => r.json())
+                .then(data => data.optOutRate);
+        },
+        
+        /**
+         * GET /reporting/peak-time - Peak sending time insight
+         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/peak-time
+         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
+         * @returns {Promise<Object>} - { peakHour, peakDay, peakVolumeCount, recommendation }
+         */
+        async getPeakTime(filters = {}) {
+            const queryString = this.buildQueryParams(filters);
+            // TODO: Replace with: return fetch(`/api/v1/reporting/peak-time?${queryString}`).then(r => r.json());
+            return fetch(`${API_BASE}/peak-time?${queryString}`).then(r => r.json());
+        }
+    };
+    
+    /**
+     * Get current filter state from UI
+     * @returns {Object} - Current filter parameters
+     */
+    function getCurrentFilters() {
+        // TODO: Extract actual filter values from UI when filters are applied
+        return {
+            dateRange: {
+                from: document.getElementById('filterDateFrom')?.value || null,
+                to: document.getElementById('filterDateTo')?.value || null
+            },
+            subAccount: document.getElementById('filterSubAccount')?.value || null,
+            user: document.getElementById('filterUser')?.value || null,
+            origin: null, // TODO: Extract from multi-select dropdown
+            groupName: document.getElementById('filterGroupName')?.value || null,
+            senderID: document.getElementById('filterSenderId')?.value || null
+        };
+    }
     
     // ========================================
     // Drill-Through Navigation Helpers

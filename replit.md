@@ -37,6 +37,19 @@ The application is built on PHP 8.1+ and Laravel 10, using the Fillow SaaS Admin
 - **Reporting Dashboard Components:** Row 1: KPI tiles (Delivery Rate %, Spend, RCS Seen Rate conditional, Opt-out Rate conditional). Row 2: Volume Over Time line chart (SMS/RCS), Channel Split horizontal stacked bar. Row 3: Delivery Status Breakdown pie chart, Top 10 Countries vertical bar, Top SenderIDs table. Row 4: Peak Sending Time insight tile, Failure Reasons table. All charts use ApexCharts with mock API data.
 - **Mock API Service (`app/Http/Controllers/Api/ReportingDashboardApiController.php`):** Provides 8 independent endpoints at `/api/reporting/dashboard/*` with simulated 100-400ms delays and randomized realistic data. Endpoints: `/kpis`, `/volume`, `/channel-split`, `/delivery-status`, `/top-countries`, `/top-sender-ids`, `/peak-time`, `/failure-reasons`. Each tile loads independently from its API endpoint with loading skeleton states (Fillow-style animations) and error retry functionality. Routes defined in `routes/api.php`.
 - **Drill-Through Interactions:** Dashboard tiles support click-through navigation to filtered views. Volume chart points → Campaign History (by date), Delivery Status pie segments → Message Log (by status), Country bars → Message Log (by country), SenderID rows → Message Log (by sender_id), Failure Reason rows → Message Log (by status=failed + reason), Opt-out tile → Opt-out List, Peak Time button → Send Message with schedule params. Uses existing routes with URL query parameters for filter pre-population.
+- **Role-Based Access Control (Placeholder):** JavaScript-based role system with three roles: Viewer (cannot see cost, cannot export), Analyst (can see cost, can export), Admin (full access, can manage layout). Uses `data-requires-cost`, `data-requires-export`, `data-requires-admin` attributes for conditional rendering. Placeholder `currentUserRole` variable to be replaced with backend session data.
+- **Service Layer (`ReportingService`):** Frontend JavaScript service with stub functions for backend integration. Each function accepts standard filters (dateRange, subAccount, user, origin, groupName, senderID) and returns a Promise. Designed for isolated tile loading (no blocking). 9 endpoints defined:
+  - `getSummary()` → GET /reporting/summary (KPIs)
+  - `getVolume()` → GET /reporting/volume (message volume over time)
+  - `getDeliveryStatus()` → GET /reporting/status (delivery breakdown)
+  - `getChannelSplit()` → GET /reporting/channel (SMS vs RCS)
+  - `getTopCountries()` → GET /reporting/countries (top 10 countries)
+  - `getTopSenderIds()` → GET /reporting/senderids (top sender IDs)
+  - `getCost()` → GET /reporting/cost (spend data)
+  - `getFailureReasons()` → GET /reporting/failure-reasons (failure breakdown)
+  - `getOptOuts()` → GET /reporting/opt-outs (opt-out statistics)
+  - `getPeakTime()` → GET /reporting/peak-time (peak sending insight)
+  All functions include TODO comments for warehouse integration.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
