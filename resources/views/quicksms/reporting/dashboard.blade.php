@@ -1321,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Delivery Rate with tooltip
             const deliveryTooltip = `Formula: ${data.deliveryRate.formula}\nDelivered: ${formatNumber(data.deliveryRate.delivered)}\nUndelivered: ${formatNumber(data.deliveryRate.undelivered)}\nRejected: ${formatNumber(data.deliveryRate.rejected)}`;
-            const trendClass = data.deliveryRate.trend >= 0 ? 'badge-info' : 'badge-danger';
+            const trendClass = data.deliveryRate.trend >= 0 ? 'badge-info' : 'badge-pink';
             const trendText = data.deliveryRate.trend >= 0 ? `+${data.deliveryRate.trend}%` : `${data.deliveryRate.trend}%`;
             document.getElementById('kpiDeliveryRateContent').innerHTML = `
                 <p class="mb-1">DELIVERY RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
