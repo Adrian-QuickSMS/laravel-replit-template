@@ -34,6 +34,27 @@
 .bg-info-light {
     background-color: rgba(23, 162, 184, 0.1);
 }
+.drag-handle {
+    cursor: grab;
+    opacity: 0.5;
+}
+.drag-handle:hover {
+    opacity: 1;
+}
+#columnConfigMenu .form-check {
+    padding-left: 1.5em;
+}
+#columnConfigMenu .form-check-label {
+    display: flex;
+    align-items: center;
+}
+#tableContainer thead th {
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+#messageLogTable tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.05);
+}
 .date-preset-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
@@ -456,110 +477,252 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive" id="tableContainer" style="max-height: 600px; overflow-y: auto;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-muted small" id="rowCountInfo">
+                            <span id="renderedCount">0</span> rows loaded (max 10,000)
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                <i class="fas fa-columns me-1"></i> Columns
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" id="columnConfigMenu">
+                                <h6 class="dropdown-header px-0">Show/Hide Columns</h6>
+                                <div class="column-list" id="columnVisibilityList">
+                                    <div class="form-check mb-2" data-column="mobileNumber">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-mobileNumber" checked>
+                                        <label class="form-check-label small" for="col-mobileNumber">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Mobile Number
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="senderId">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-senderId" checked>
+                                        <label class="form-check-label small" for="col-senderId">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>SenderID
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="status">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-status" checked>
+                                        <label class="form-check-label small" for="col-status">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Message Status
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="sentTime">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-sentTime" checked>
+                                        <label class="form-check-label small" for="col-sentTime">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Sent Time
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="deliveryTime">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-deliveryTime" checked>
+                                        <label class="form-check-label small" for="col-deliveryTime">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Delivery Time
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="completedTime">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-completedTime" checked>
+                                        <label class="form-check-label small" for="col-completedTime">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Completed Time
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="cost">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-cost" checked>
+                                        <label class="form-check-label small" for="col-cost">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Cost
+                                        </label>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                                <h6 class="dropdown-header px-0">Optional Columns</h6>
+                                <div class="column-list" id="optionalColumnsList">
+                                    <div class="form-check mb-2" data-column="messageId">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-messageId">
+                                        <label class="form-check-label small" for="col-messageId">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Message ID
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="country">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-country">
+                                        <label class="form-check-label small" for="col-country">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Country
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="parts">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-parts">
+                                        <label class="form-check-label small" for="col-parts">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Parts/Segments
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="channel">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-channel">
+                                        <label class="form-check-label small" for="col-channel">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Channel
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2" data-column="origin">
+                                        <input class="form-check-input column-toggle" type="checkbox" id="col-origin">
+                                        <label class="form-check-label small" for="col-origin">
+                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Origin
+                                        </label>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="btnResetColumns">
+                                    <i class="fas fa-undo me-1"></i> Reset to Default
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive" id="tableContainer" style="max-height: 500px; overflow-y: auto;">
                         <table class="table table-hover mb-0" id="messageLogTable">
-                            <thead class="sticky-top bg-white">
-                                <tr>
-                                    <th>
+                            <thead class="sticky-top bg-white" style="z-index: 10;">
+                                <tr id="tableHeaderRow">
+                                    <th data-column="mobileNumber">Mobile Number</th>
+                                    <th data-column="senderId">SenderID</th>
+                                    <th data-column="status">
                                         <div class="dropdown d-inline-block">
                                             <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
-                                                Date/Time <i class="fas fa-sort ms-1 text-muted"></i>
+                                                Status <i class="fas fa-sort ms-1 text-muted"></i>
                                             </span>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#!"><i class="fas fa-calendar-alt me-2"></i> Most Recent</a></li>
-                                                <li><a class="dropdown-item" href="#!"><i class="fas fa-calendar me-2"></i> Oldest First</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('status', 'asc'); return false;"><i class="fas fa-check-circle me-2 text-success"></i> Delivered First</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('status', 'desc'); return false;"><i class="fas fa-times-circle me-2 text-danger"></i> Failed First</a></li>
                                             </ul>
                                         </div>
                                     </th>
-                                    <th>Direction</th>
-                                    <th>Recipient</th>
-                                    <th>Sender</th>
-                                    <th>Channel</th>
-                                    <th>Status</th>
-                                    <th>Message Preview</th>
-                                    <th>Credits</th>
+                                    <th data-column="sentTime">
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Sent Time <i class="fas fa-sort ms-1 text-muted"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('sentTime', 'desc'); return false;"><i class="fas fa-calendar-alt me-2"></i> Most Recent</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('sentTime', 'asc'); return false;"><i class="fas fa-calendar me-2"></i> Oldest First</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
+                                    <th data-column="deliveryTime">Delivery Time</th>
+                                    <th data-column="completedTime">Completed Time</th>
+                                    <th data-column="cost">Cost</th>
+                                    <th data-column="messageId" class="d-none">Message ID</th>
+                                    <th data-column="country" class="d-none">Country</th>
+                                    <th data-column="parts" class="d-none">Parts</th>
+                                    <th data-column="channel" class="d-none">Channel</th>
+                                    <th data-column="origin" class="d-none">Origin</th>
                                 </tr>
                             </thead>
                             <tbody id="messageLogTableBody">
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:23</td>
-                                    <td class="py-2"><span class="badge bg-primary"><i class="fas fa-arrow-up me-1"></i>Out</span></td>
-                                    <td class="py-2">+44 77** ***456</td>
-                                    <td class="py-2">QuickSMS</td>
-                                    <td class="py-2"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">Hi @{{firstName}}, your order #@{{orderNumber}} has been shipped...</td>
-                                    <td class="py-2">1</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***456</span></td>
+                                    <td class="py-2" data-column="senderId">QuickSMS</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:23</td>
+                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:23</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:23</td>
+                                    <td class="py-2" data-column="cost">£0.035</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234567</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:21</td>
-                                    <td class="py-2"><span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>In</span></td>
-                                    <td class="py-2">+44 78** ***789</td>
-                                    <td class="py-2">+447700900100</td>
-                                    <td class="py-2"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2"><span class="badge bg-info">Received</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">Yes please, I'd like to confirm my appointment</td>
-                                    <td class="py-2">-</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***789</span></td>
+                                    <td class="py-2" data-column="senderId">ALERTS</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-warning text-dark">Pending</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:21</td>
+                                    <td class="py-2" data-column="deliveryTime">-</td>
+                                    <td class="py-2" data-column="completedTime">-</td>
+                                    <td class="py-2" data-column="cost">£0.035</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234568</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">API</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:18</td>
-                                    <td class="py-2"><span class="badge bg-primary"><i class="fas fa-arrow-up me-1"></i>Out</span></td>
-                                    <td class="py-2">+44 79** ***123</td>
-                                    <td class="py-2">ALERTS</td>
-                                    <td class="py-2"><span class="badge bg-info">RCS</span></td>
-                                    <td class="py-2"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">Your appointment reminder for tomorrow at 10:00 AM...</td>
-                                    <td class="py-2">0.5</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***123</span></td>
+                                    <td class="py-2" data-column="senderId">QuickSMS Brand</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:18</td>
+                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:18</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:18</td>
+                                    <td class="py-2" data-column="cost">£0.025</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234569</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-info">RCS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:15</td>
-                                    <td class="py-2"><span class="badge bg-primary"><i class="fas fa-arrow-up me-1"></i>Out</span></td>
-                                    <td class="py-2">+44 77** ***321</td>
-                                    <td class="py-2">QuickSMS</td>
-                                    <td class="py-2"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2"><span class="badge bg-danger">Failed</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">Special offer: Get 20% off your next purchase...</td>
-                                    <td class="py-2">0</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***321</span></td>
+                                    <td class="py-2" data-column="senderId">QuickSMS</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-danger">Undeliverable</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:15</td>
+                                    <td class="py-2" data-column="deliveryTime">-</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:16</td>
+                                    <td class="py-2" data-column="cost">£0.000</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234570</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:12</td>
-                                    <td class="py-2"><span class="badge bg-primary"><i class="fas fa-arrow-up me-1"></i>Out</span></td>
-                                    <td class="py-2">+44 78** ***654</td>
-                                    <td class="py-2">QuickSMS</td>
-                                    <td class="py-2"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2"><span class="badge bg-warning text-dark">Pending</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">Thank you for your order! Tracking: @{{trackingNumber}}</td>
-                                    <td class="py-2">1</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***654</span></td>
+                                    <td class="py-2" data-column="senderId">QuickSMS</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:12</td>
+                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:12</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:12</td>
+                                    <td class="py-2" data-column="cost">£0.070</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234571</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">2</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">Integration</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:08</td>
-                                    <td class="py-2"><span class="badge bg-primary"><i class="fas fa-arrow-up me-1"></i>Out</span></td>
-                                    <td class="py-2">+44 79** ***987</td>
-                                    <td class="py-2">QuickSMS Brand</td>
-                                    <td class="py-2"><span class="badge bg-info">RCS</span></td>
-                                    <td class="py-2"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">[Rich Card] Check out our new arrivals!</td>
-                                    <td class="py-2">0.5</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***987</span></td>
+                                    <td class="py-2" data-column="senderId">QuickSMS Brand</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:08</td>
+                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:08</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:08</td>
+                                    <td class="py-2" data-column="cost">£0.025</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234572</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-info">RCS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:05</td>
-                                    <td class="py-2"><span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>In</span></td>
-                                    <td class="py-2">+44 77** ***147</td>
-                                    <td class="py-2">+447700900100</td>
-                                    <td class="py-2"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2"><span class="badge bg-info">Received</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">STOP</td>
-                                    <td class="py-2">-</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***147</span></td>
+                                    <td class="py-2" data-column="senderId">PROMO</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-secondary">Rejected</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:05</td>
+                                    <td class="py-2" data-column="deliveryTime">-</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:05</td>
+                                    <td class="py-2" data-column="cost">£0.000</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234573</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">Email-to-SMS</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2">30/12/2024 14:02</td>
-                                    <td class="py-2"><span class="badge bg-primary"><i class="fas fa-arrow-up me-1"></i>Out</span></td>
-                                    <td class="py-2">+44 78** ***258</td>
-                                    <td class="py-2">ALERTS</td>
-                                    <td class="py-2"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2"><span class="badge bg-secondary">Expired</span></td>
-                                    <td class="py-2 text-truncate" style="max-width: 200px;">Your verification code is: ******</td>
-                                    <td class="py-2">1</td>
+                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***258</span></td>
+                                    <td class="py-2" data-column="senderId">ALERTS</td>
+                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
+                                    <td class="py-2" data-column="sentTime">30/12/2024 14:02</td>
+                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:02</td>
+                                    <td class="py-2" data-column="completedTime">30/12/2024 14:02</td>
+                                    <td class="py-2" data-column="cost">£0.035</td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234574</td>
+                                    <td class="py-2 d-none" data-column="country">UK</td>
+                                    <td class="py-2 d-none" data-column="parts">1</td>
+                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="origin">API</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -998,6 +1161,185 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('btnResetFilters').click();
         document.getElementById('btnApplyFilters').click();
     });
+    
+    // ========================================
+    // Column Configuration
+    // ========================================
+    const STORAGE_KEY = 'messageLogColumnConfig';
+    const MAX_ROWS = 10000;
+    
+    const defaultColumns = {
+        visible: ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost'],
+        order: ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost', 'messageId', 'country', 'parts', 'channel', 'origin']
+    };
+    
+    let columnConfig = loadColumnConfig();
+    
+    function loadColumnConfig() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Error loading column config:', e);
+        }
+        return { ...defaultColumns };
+    }
+    
+    function saveColumnConfig() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(columnConfig));
+            console.log('Column config saved:', columnConfig);
+        } catch (e) {
+            console.error('Error saving column config:', e);
+        }
+    }
+    
+    function applyColumnVisibility() {
+        const allColumns = document.querySelectorAll('[data-column]');
+        allColumns.forEach(el => {
+            const colName = el.getAttribute('data-column');
+            if (columnConfig.visible.includes(colName)) {
+                el.classList.remove('d-none');
+            } else {
+                el.classList.add('d-none');
+            }
+        });
+        
+        document.querySelectorAll('.column-toggle').forEach(cb => {
+            const colName = cb.id.replace('col-', '');
+            cb.checked = columnConfig.visible.includes(colName);
+        });
+        
+        updateRenderedCount();
+    }
+    
+    function updateRenderedCount() {
+        const rowCount = document.querySelectorAll('#messageLogTableBody tr').length;
+        document.getElementById('renderedCount').textContent = Math.min(rowCount, MAX_ROWS).toLocaleString();
+    }
+    
+    document.querySelectorAll('.column-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const colName = this.id.replace('col-', '');
+            if (this.checked) {
+                if (!columnConfig.visible.includes(colName)) {
+                    columnConfig.visible.push(colName);
+                }
+            } else {
+                columnConfig.visible = columnConfig.visible.filter(c => c !== colName);
+            }
+            saveColumnConfig();
+            applyColumnVisibility();
+        });
+    });
+    
+    document.getElementById('btnResetColumns')?.addEventListener('click', function() {
+        columnConfig = { 
+            visible: [...defaultColumns.visible], 
+            order: [...defaultColumns.order] 
+        };
+        saveColumnConfig();
+        applyColumnVisibility();
+        console.log('Columns reset to default');
+    });
+    
+    applyColumnVisibility();
+    
+    // ========================================
+    // Infinite Scroll
+    // ========================================
+    let isLoading = false;
+    let currentPage = 1;
+    let totalRowsRendered = 8;
+    
+    const tableContainer = document.getElementById('tableContainer');
+    
+    tableContainer?.addEventListener('scroll', function() {
+        if (isLoading || totalRowsRendered >= MAX_ROWS) return;
+        
+        const scrollTop = this.scrollTop;
+        const scrollHeight = this.scrollHeight;
+        const clientHeight = this.clientHeight;
+        
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
+            loadMoreRows();
+        }
+    });
+    
+    function loadMoreRows() {
+        if (isLoading || totalRowsRendered >= MAX_ROWS) return;
+        
+        isLoading = true;
+        document.getElementById('loadingMore').classList.remove('d-none');
+        
+        // TODO: Replace with actual API call
+        setTimeout(() => {
+            const tbody = document.getElementById('messageLogTableBody');
+            const mockStatuses = [
+                { class: 'bg-success', text: 'Delivered' },
+                { class: 'bg-warning text-dark', text: 'Pending' },
+                { class: 'bg-danger', text: 'Undeliverable' },
+                { class: 'bg-secondary', text: 'Rejected' }
+            ];
+            const mockSenders = ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand'];
+            const mockOrigins = ['Portal', 'API', 'Email-to-SMS', 'Integration'];
+            const mockChannels = [
+                { class: 'bg-secondary', text: 'SMS' },
+                { class: 'bg-info', text: 'RCS' }
+            ];
+            
+            const rowsToAdd = Math.min(50, MAX_ROWS - totalRowsRendered);
+            
+            for (let i = 0; i < rowsToAdd; i++) {
+                const status = mockStatuses[Math.floor(Math.random() * mockStatuses.length)];
+                const sender = mockSenders[Math.floor(Math.random() * mockSenders.length)];
+                const origin = mockOrigins[Math.floor(Math.random() * mockOrigins.length)];
+                const channel = mockChannels[Math.floor(Math.random() * mockChannels.length)];
+                const parts = Math.floor(Math.random() * 3) + 1;
+                const cost = (parts * 0.035).toFixed(3);
+                const msgId = `MSG-${String(totalRowsRendered + i + 1).padStart(9, '0')}`;
+                const phone = `+44 7${Math.floor(Math.random() * 3) + 7}** ***${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+                
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - (totalRowsRendered + i) * 5);
+                const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const deliveryTime = status.text === 'Delivered' ? timeStr : '-';
+                const completedTime = status.text !== 'Pending' ? timeStr : '-';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="py-2 ${!columnConfig.visible.includes('mobileNumber') ? 'd-none' : ''}" data-column="mobileNumber"><span class="mobile-masked">${phone}</span></td>
+                    <td class="py-2 ${!columnConfig.visible.includes('senderId') ? 'd-none' : ''}" data-column="senderId">${sender}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('status') ? 'd-none' : ''}" data-column="status"><span class="badge ${status.class}">${status.text}</span></td>
+                    <td class="py-2 ${!columnConfig.visible.includes('sentTime') ? 'd-none' : ''}" data-column="sentTime">${timeStr}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('deliveryTime') ? 'd-none' : ''}" data-column="deliveryTime">${deliveryTime}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('completedTime') ? 'd-none' : ''}" data-column="completedTime">${completedTime}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('cost') ? 'd-none' : ''}" data-column="cost">£${cost}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('messageId') ? 'd-none' : ''}" data-column="messageId">${msgId}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('country') ? 'd-none' : ''}" data-column="country">UK</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('parts') ? 'd-none' : ''}" data-column="parts">${parts}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('channel') ? 'd-none' : ''}" data-column="channel"><span class="badge ${channel.class}">${channel.text}</span></td>
+                    <td class="py-2 ${!columnConfig.visible.includes('origin') ? 'd-none' : ''}" data-column="origin">${origin}</td>
+                `;
+                tbody.appendChild(row);
+                totalRowsRendered++;
+            }
+            
+            updateRenderedCount();
+            isLoading = false;
+            document.getElementById('loadingMore').classList.add('d-none');
+            currentPage++;
+            
+            console.log(`Loaded ${rowsToAdd} rows. Total: ${totalRowsRendered}`);
+        }, 500);
+    }
+    
+    function sortTable(column, direction) {
+        console.log(`Sort by ${column} ${direction}`);
+        // TODO: Implement server-side sorting with API call
+    }
 });
 </script>
 @endpush

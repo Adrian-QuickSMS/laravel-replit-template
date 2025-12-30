@@ -81,9 +81,15 @@ The Message Log page at `/reporting/message-log` provides detailed message histo
   10. Message ID (free text, multi-value with Enter key)
 - **Filter Behavior:** Filters do NOT auto-apply; changes only apply when clicking "Apply Filters". Reset Filters only resets state without applying.
 - **Filter State:** Uses `pendingFilters` for UI state and `filterState` for applied filters.
-- **Table Columns:** Date/Time (sortable), Direction, Recipient (masked), Sender, Channel, Status, Message Preview, Credits
-- **Export Bar:** Placeholder with disabled CSV/Excel export buttons
-- **Summary Bar:** Hidden until filters applied (Total Messages, Delivered, Failed, Credits Used)
+- **Summary Bar:** Dashboard-style metric tiles (Total Messages, Total Parts/Fragments) - hidden until filters applied
+- **Results Table:**
+  - **Default Columns:** Mobile Number (masked), SenderID, Message Status, Sent Time, Delivery Time, Completed Time, Cost
+  - **Optional Columns:** Message ID, Country, Parts/Segments, Channel, Origin
+  - **Column Configuration:** Dropdown menu to show/hide columns, saved to localStorage per user, Reset to Default option
+  - **Table Features:** Sticky header, hover row highlight, scrollable container (500px max-height), 10,000 row hard cap
+  - **Infinite Scroll:** Loads 50 rows per batch on scroll, shows loading spinner, respects MAX_ROWS limit
+  - **Sortable Columns:** Status and Sent Time have sort dropdown menus
+- **Export Bar:** Shows row counts, placeholder with disabled CSV/Excel export buttons
 
 ## CSS Architecture Notes
 - **Inbox Module:** Uses `public/css/quicksms-inbox.css` loaded after Fillow styles to override message bubble colors with channel-specific gradients (SMS green, RCS blue)
