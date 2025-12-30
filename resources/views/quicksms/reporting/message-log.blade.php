@@ -481,96 +481,9 @@
                         <div class="text-muted small" id="rowCountInfo">
                             <span id="renderedCount">0</span> rows loaded (max 10,000)
                         </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                                <i class="fas fa-columns me-1"></i> Columns
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" id="columnConfigMenu">
-                                <h6 class="dropdown-header px-0">Show/Hide Columns</h6>
-                                <div class="column-list" id="columnVisibilityList">
-                                    <div class="form-check mb-2" data-column="mobileNumber">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-mobileNumber" checked>
-                                        <label class="form-check-label small" for="col-mobileNumber">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Mobile Number
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="senderId">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-senderId" checked>
-                                        <label class="form-check-label small" for="col-senderId">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>SenderID
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="status">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-status" checked>
-                                        <label class="form-check-label small" for="col-status">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Message Status
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="sentTime">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-sentTime" checked>
-                                        <label class="form-check-label small" for="col-sentTime">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Sent Time
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="deliveryTime">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-deliveryTime" checked>
-                                        <label class="form-check-label small" for="col-deliveryTime">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Delivery Time
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="completedTime">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-completedTime" checked>
-                                        <label class="form-check-label small" for="col-completedTime">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Completed Time
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="cost">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-cost" checked>
-                                        <label class="form-check-label small" for="col-cost">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Cost
-                                        </label>
-                                    </div>
-                                </div>
-                                <hr class="my-2">
-                                <h6 class="dropdown-header px-0">Optional Columns</h6>
-                                <div class="column-list" id="optionalColumnsList">
-                                    <div class="form-check mb-2" data-column="messageId">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-messageId">
-                                        <label class="form-check-label small" for="col-messageId">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Message ID
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="country">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-country">
-                                        <label class="form-check-label small" for="col-country">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Country
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="parts">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-parts">
-                                        <label class="form-check-label small" for="col-parts">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Parts/Segments
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="channel">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-channel">
-                                        <label class="form-check-label small" for="col-channel">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Channel
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2" data-column="origin">
-                                        <input class="form-check-input column-toggle" type="checkbox" id="col-origin">
-                                        <label class="form-check-label small" for="col-origin">
-                                            <i class="fas fa-grip-vertical text-muted me-2 drag-handle"></i>Origin
-                                        </label>
-                                    </div>
-                                </div>
-                                <hr class="my-2">
-                                <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="btnResetColumns">
-                                    <i class="fas fa-undo me-1"></i> Reset to Default
-                                </button>
-                            </div>
-                        </div>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#columnSettingsModal">
+                            <i class="fas fa-cog me-1"></i> Column Settings
+                        </button>
                     </div>
                     
                     <div class="table-responsive" id="tableContainer" style="max-height: 500px; overflow-y: auto;">
@@ -604,11 +517,15 @@
                                     <th data-column="deliveryTime">Delivery Time</th>
                                     <th data-column="completedTime">Completed Time</th>
                                     <th data-column="cost">Cost</th>
-                                    <th data-column="messageId" class="d-none">Message ID</th>
-                                    <th data-column="country" class="d-none">Country</th>
-                                    <th data-column="parts" class="d-none">Parts</th>
-                                    <th data-column="channel" class="d-none">Channel</th>
+                                    <th data-column="messageType" class="d-none">Message Type</th>
+                                    <th data-column="subAccount" class="d-none">Sub Account</th>
+                                    <th data-column="user" class="d-none">User</th>
                                     <th data-column="origin" class="d-none">Origin</th>
+                                    <th data-column="country" class="d-none">Country</th>
+                                    <th data-column="parts" class="d-none">Fragments/Parts</th>
+                                    <th data-column="encoding" class="d-none">Encoding</th>
+                                    <th data-column="messageId" class="d-none">Message ID</th>
+                                    <th data-column="content" class="d-none">Content</th>
                                 </tr>
                             </thead>
                             <tbody id="messageLogTableBody">
@@ -620,11 +537,15 @@
                                     <td class="py-2" data-column="deliveryTime">30/12/2024 14:23</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:23</td>
                                     <td class="py-2" data-column="cost">£0.035</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234567</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Main Account</td>
+                                    <td class="py-2 d-none" data-column="user">John Smith</td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234567</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***789</span></td>
@@ -634,11 +555,15 @@
                                     <td class="py-2" data-column="deliveryTime">-</td>
                                     <td class="py-2" data-column="completedTime">-</td>
                                     <td class="py-2" data-column="cost">£0.035</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234568</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Marketing Team</td>
+                                    <td class="py-2 d-none" data-column="user">Sarah Johnson</td>
+                                    <td class="py-2 d-none" data-column="origin">API</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">API</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234568</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***123</span></td>
@@ -648,11 +573,15 @@
                                     <td class="py-2" data-column="deliveryTime">30/12/2024 14:18</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:18</td>
                                     <td class="py-2" data-column="cost">£0.025</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234569</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-info">RCS Rich</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Main Account</td>
+                                    <td class="py-2 d-none" data-column="user">John Smith</td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-info">RCS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234569</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***321</span></td>
@@ -662,11 +591,15 @@
                                     <td class="py-2" data-column="deliveryTime">-</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:16</td>
                                     <td class="py-2" data-column="cost">£0.000</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234570</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Support Team</td>
+                                    <td class="py-2 d-none" data-column="user">Mike Williams</td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234570</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***654</span></td>
@@ -676,11 +609,15 @@
                                     <td class="py-2" data-column="deliveryTime">30/12/2024 14:12</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:12</td>
                                     <td class="py-2" data-column="cost">£0.070</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234571</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Sales Team</td>
+                                    <td class="py-2 d-none" data-column="user">Emma Davis</td>
+                                    <td class="py-2 d-none" data-column="origin">Integration</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">2</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">Integration</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234571</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***987</span></td>
@@ -690,11 +627,15 @@
                                     <td class="py-2" data-column="deliveryTime">30/12/2024 14:08</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:08</td>
                                     <td class="py-2" data-column="cost">£0.025</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234572</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-info">RCS Basic</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Main Account</td>
+                                    <td class="py-2 d-none" data-column="user">John Smith</td>
+                                    <td class="py-2 d-none" data-column="origin">Portal</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-info">RCS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234572</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***147</span></td>
@@ -704,11 +645,15 @@
                                     <td class="py-2" data-column="deliveryTime">-</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:05</td>
                                     <td class="py-2" data-column="cost">£0.000</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234573</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Marketing Team</td>
+                                    <td class="py-2 d-none" data-column="user">Sarah Johnson</td>
+                                    <td class="py-2 d-none" data-column="origin">Email-to-SMS</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">Email-to-SMS</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234573</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***258</span></td>
@@ -718,11 +663,15 @@
                                     <td class="py-2" data-column="deliveryTime">30/12/2024 14:02</td>
                                     <td class="py-2" data-column="completedTime">30/12/2024 14:02</td>
                                     <td class="py-2" data-column="cost">£0.035</td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234574</td>
+                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
+                                    <td class="py-2 d-none" data-column="subAccount">Support Team</td>
+                                    <td class="py-2 d-none" data-column="user">Mike Williams</td>
+                                    <td class="py-2 d-none" data-column="origin">API</td>
                                     <td class="py-2 d-none" data-column="country">UK</td>
                                     <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="channel"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="origin">API</td>
+                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
+                                    <td class="py-2 d-none" data-column="messageId">MSG-001234574</td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -758,6 +707,104 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="columnSettingsModal" tabindex="-1" aria-labelledby="columnSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="columnSettingsModalLabel">
+                    <i class="fas fa-columns me-2 text-primary"></i>Column Settings
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Select which columns to display in the results table. Changes are saved automatically.</p>
+                
+                <h6 class="text-muted small fw-bold text-uppercase mb-2">Default Columns</h6>
+                <div class="list-group list-group-flush mb-3" id="defaultColumnsList">
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-mobileNumber" data-column="mobileNumber" checked>
+                        <span>Mobile Number</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-senderId" data-column="senderId" checked>
+                        <span>SenderID</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-status" data-column="status" checked>
+                        <span>Message Status</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-sentTime" data-column="sentTime" checked>
+                        <span>Sent Time</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-deliveryTime" data-column="deliveryTime" checked>
+                        <span>Delivery Time</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-completedTime" data-column="completedTime" checked>
+                        <span>Completed Time</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-cost" data-column="cost" checked>
+                        <span>Cost</span>
+                    </label>
+                </div>
+                
+                <h6 class="text-muted small fw-bold text-uppercase mb-2">Optional Columns</h6>
+                <div class="list-group list-group-flush" id="optionalColumnsList">
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-messageType" data-column="messageType">
+                        <span>Message Type</span>
+                        <span class="badge bg-light text-muted ms-auto small">SMS / RCS</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-subAccount" data-column="subAccount">
+                        <span>Sub Account</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-user" data-column="user">
+                        <span>User</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-origin" data-column="origin">
+                        <span>Origin</span>
+                        <span class="badge bg-light text-muted ms-auto small">Portal / API / etc.</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-country" data-column="country">
+                        <span>Country</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-parts" data-column="parts">
+                        <span>Fragments / Parts</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-encoding" data-column="encoding">
+                        <span>Encoding</span>
+                        <span class="badge bg-light text-muted ms-auto small">GSM-7 / Unicode</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-messageId" data-column="messageId">
+                        <span>Message ID</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-content" data-column="content">
+                        <span>Content</span>
+                        <span class="badge bg-warning text-dark ms-auto small"><i class="fas fa-lock me-1"></i>Security Controlled</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="btnResetColumns">
+                    <i class="fas fa-undo me-1"></i> Reset to Default
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
             </div>
         </div>
     </div>
@@ -1168,9 +1215,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const STORAGE_KEY = 'messageLogColumnConfig';
     const MAX_ROWS = 10000;
     
+    const allColumnsList = [
+        'mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost',
+        'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'messageId', 'content'
+    ];
+    
     const defaultColumns = {
         visible: ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost'],
-        order: ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost', 'messageId', 'country', 'parts', 'channel', 'origin']
+        order: allColumnsList
     };
     
     let columnConfig = loadColumnConfig();
@@ -1179,12 +1231,15 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
-                return JSON.parse(saved);
+                const parsed = JSON.parse(saved);
+                if (parsed.visible && Array.isArray(parsed.visible)) {
+                    return parsed;
+                }
             }
         } catch (e) {
             console.error('Error loading column config:', e);
         }
-        return { ...defaultColumns };
+        return { visible: [...defaultColumns.visible], order: [...defaultColumns.order] };
     }
     
     function saveColumnConfig() {
@@ -1208,7 +1263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.querySelectorAll('.column-toggle').forEach(cb => {
-            const colName = cb.id.replace('col-', '');
+            const colName = cb.getAttribute('data-column') || cb.id.replace('col-', '');
             cb.checked = columnConfig.visible.includes(colName);
         });
         
@@ -1222,7 +1277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.querySelectorAll('.column-toggle').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
-            const colName = this.id.replace('col-', '');
+            const colName = this.getAttribute('data-column') || this.id.replace('col-', '');
             if (this.checked) {
                 if (!columnConfig.visible.includes(colName)) {
                     columnConfig.visible.push(colName);
@@ -1285,9 +1340,16 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
             const mockSenders = ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand'];
             const mockOrigins = ['Portal', 'API', 'Email-to-SMS', 'Integration'];
-            const mockChannels = [
+            const mockMessageTypes = [
                 { class: 'bg-secondary', text: 'SMS' },
-                { class: 'bg-info', text: 'RCS' }
+                { class: 'bg-info', text: 'RCS Basic' },
+                { class: 'bg-info', text: 'RCS Rich' }
+            ];
+            const mockSubAccounts = ['Main Account', 'Marketing Team', 'Support Team', 'Sales Team'];
+            const mockUsers = ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emma Davis'];
+            const mockEncodings = [
+                { class: 'bg-light text-dark border', text: 'GSM-7' },
+                { class: 'bg-primary text-white', text: 'Unicode' }
             ];
             
             const rowsToAdd = Math.min(50, MAX_ROWS - totalRowsRendered);
@@ -1296,7 +1358,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const status = mockStatuses[Math.floor(Math.random() * mockStatuses.length)];
                 const sender = mockSenders[Math.floor(Math.random() * mockSenders.length)];
                 const origin = mockOrigins[Math.floor(Math.random() * mockOrigins.length)];
-                const channel = mockChannels[Math.floor(Math.random() * mockChannels.length)];
+                const messageType = mockMessageTypes[Math.floor(Math.random() * mockMessageTypes.length)];
+                const subAccount = mockSubAccounts[Math.floor(Math.random() * mockSubAccounts.length)];
+                const user = mockUsers[Math.floor(Math.random() * mockUsers.length)];
+                const encoding = mockEncodings[Math.floor(Math.random() * mockEncodings.length)];
                 const parts = Math.floor(Math.random() * 3) + 1;
                 const cost = (parts * 0.035).toFixed(3);
                 const msgId = `MSG-${String(totalRowsRendered + i + 1).padStart(9, '0')}`;
@@ -1317,11 +1382,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="py-2 ${!columnConfig.visible.includes('deliveryTime') ? 'd-none' : ''}" data-column="deliveryTime">${deliveryTime}</td>
                     <td class="py-2 ${!columnConfig.visible.includes('completedTime') ? 'd-none' : ''}" data-column="completedTime">${completedTime}</td>
                     <td class="py-2 ${!columnConfig.visible.includes('cost') ? 'd-none' : ''}" data-column="cost">£${cost}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('messageId') ? 'd-none' : ''}" data-column="messageId">${msgId}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('messageType') ? 'd-none' : ''}" data-column="messageType"><span class="badge ${messageType.class}">${messageType.text}</span></td>
+                    <td class="py-2 ${!columnConfig.visible.includes('subAccount') ? 'd-none' : ''}" data-column="subAccount">${subAccount}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('user') ? 'd-none' : ''}" data-column="user">${user}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('origin') ? 'd-none' : ''}" data-column="origin">${origin}</td>
                     <td class="py-2 ${!columnConfig.visible.includes('country') ? 'd-none' : ''}" data-column="country">UK</td>
                     <td class="py-2 ${!columnConfig.visible.includes('parts') ? 'd-none' : ''}" data-column="parts">${parts}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('channel') ? 'd-none' : ''}" data-column="channel"><span class="badge ${channel.class}">${channel.text}</span></td>
-                    <td class="py-2 ${!columnConfig.visible.includes('origin') ? 'd-none' : ''}" data-column="origin">${origin}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('encoding') ? 'd-none' : ''}" data-column="encoding"><span class="badge ${encoding.class}">${encoding.text}</span></td>
+                    <td class="py-2 ${!columnConfig.visible.includes('messageId') ? 'd-none' : ''}" data-column="messageId">${msgId}</td>
+                    <td class="py-2 ${!columnConfig.visible.includes('content') ? 'd-none' : ''}" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
                 `;
                 tbody.appendChild(row);
                 totalRowsRendered++;
