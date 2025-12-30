@@ -202,8 +202,10 @@ class ReportingDashboardApiController extends Controller
     {
         $delivered = rand(10000, 14000);
         $pending = rand(200, 600);
-        $failed = rand(150, 400);
-        $total = $delivered + $pending + $failed;
+        $undelivered = rand(150, 400);
+        $expired = rand(50, 150);
+        $rejected = rand(30, 100);
+        $total = $delivered + $pending + $undelivered + $expired + $rejected;
         
         return [
             'delivered' => [
@@ -214,9 +216,17 @@ class ReportingDashboardApiController extends Controller
                 'count' => $pending,
                 'percentage' => round(($pending / $total) * 100, 1),
             ],
-            'failed' => [
-                'count' => $failed,
-                'percentage' => round(($failed / $total) * 100, 1),
+            'undelivered' => [
+                'count' => $undelivered,
+                'percentage' => round(($undelivered / $total) * 100, 1),
+            ],
+            'expired' => [
+                'count' => $expired,
+                'percentage' => round(($expired / $total) * 100, 1),
+            ],
+            'rejected' => [
+                'count' => $rejected,
+                'percentage' => round(($rejected / $total) * 100, 1),
             ],
             'total' => $total,
         ];

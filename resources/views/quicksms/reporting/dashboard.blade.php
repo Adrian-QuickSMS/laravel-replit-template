@@ -752,9 +752,11 @@ table .cursor-pointer:hover {
                     </div>
                     <div id="deliveryStatusLegend" class="chart-point mt-2">
                         <ul class="chart-point-list mb-0 small">
-                            <li><i class="fa fa-circle text-success me-1"></i> Delivered: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></li>
-                            <li><i class="fa fa-circle text-warning me-1"></i> Pending: <span class="qs-skeleton" style="display:inline-block;width:30px;height:12px"></span></li>
-                            <li><i class="fa fa-circle text-danger me-1"></i> Failed: <span class="qs-skeleton" style="display:inline-block;width:25px;height:12px"></span></li>
+                            <li><i class="fa fa-circle me-1" style="color:#28a745"></i> Delivered: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></li>
+                            <li><i class="fa fa-circle me-1" style="color:#8B5CF6"></i> Pending: <span class="qs-skeleton" style="display:inline-block;width:30px;height:12px"></span></li>
+                            <li><i class="fa fa-circle me-1" style="color:#dc3545"></i> Undelivered: <span class="qs-skeleton" style="display:inline-block;width:25px;height:12px"></span></li>
+                            <li><i class="fa fa-circle me-1" style="color:#D653C1"></i> Expired: <span class="qs-skeleton" style="display:inline-block;width:25px;height:12px"></span></li>
+                            <li><i class="fa fa-circle me-1" style="color:#ffc107"></i> Rejected: <span class="qs-skeleton" style="display:inline-block;width:25px;height:12px"></span></li>
                         </ul>
                     </div>
                 </div>
@@ -1500,7 +1502,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 7. Delivery Status Chart
+    // 7. Delivery Status Chart (Pie Chart with 5 statuses)
     async function loadDeliveryStatus() {
         try {
             const response = await fetch(`${API_BASE}/delivery-status`);
@@ -1510,13 +1512,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const chartEl = document.getElementById('deliveryStatusPieChart');
             chartEl.innerHTML = '';
             
-            const statusLabels = ['Delivered', 'Pending', 'Failed'];
-            const statusValues = ['delivered', 'pending', 'failed'];
+            const statusLabels = ['Delivered', 'Pending', 'Undelivered', 'Expired', 'Rejected'];
+            const statusValues = ['delivered', 'pending', 'undelivered', 'expired', 'rejected'];
             const options = {
-                series: [data.delivered.count, data.pending.count, data.failed.count],
+                series: [
+                    data.delivered.count, 
+                    data.pending.count, 
+                    data.undelivered.count,
+                    data.expired.count,
+                    data.rejected.count
+                ],
                 chart: { 
-                    type: 'donut', 
-                    height: 200,
+                    type: 'pie', 
+                    height: 220,
                     events: {
                         dataPointSelection: function(event, chartContext, config) {
                             const status = statusValues[config.dataPointIndex];
@@ -1525,15 +1533,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 labels: statusLabels,
-                colors: ['#28a745', '#ffc107', '#dc3545'],
+                colors: ['#28a745', '#8B5CF6', '#dc3545', '#D653C1', '#ffc107'],
                 legend: { show: false },
-                plotOptions: {
-                    pie: { 
-                        donut: { 
-                            size: '70%', 
-                            labels: { show: true, total: { show: true, label: 'Total', formatter: () => formatNumber(data.total) } } 
-                        },
-                        expandOnClick: false
+                dataLabels: { 
+                    enabled: true,
+                    formatter: function(val) {
+                        return val.toFixed(1) + '%';
                     }
                 },
                 states: { hover: { filter: { type: 'darken', value: 0.9 } } }
@@ -1544,9 +1549,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             document.getElementById('deliveryStatusLegend').innerHTML = `
                 <ul class="chart-point-list mb-0 small">
-                    <li><i class="fa fa-circle text-success me-1"></i> Delivered: ${formatNumber(data.delivered.count)}</li>
-                    <li><i class="fa fa-circle text-warning me-1"></i> Pending: ${formatNumber(data.pending.count)}</li>
-                    <li><i class="fa fa-circle text-danger me-1"></i> Failed: ${formatNumber(data.failed.count)}</li>
+                    <li><i class="fa fa-circle me-1" style="color:#28a745"></i> Delivered: ${formatNumber(data.delivered.count)}</li>
+                    <li><i class="fa fa-circle me-1" style="color:#8B5CF6"></i> Pending: ${formatNumber(data.pending.count)}</li>
+                    <li><i class="fa fa-circle me-1" style="color:#dc3545"></i> Undelivered: ${formatNumber(data.undelivered.count)}</li>
+                    <li><i class="fa fa-circle me-1" style="color:#D653C1"></i> Expired: ${formatNumber(data.expired.count)}</li>
+                    <li><i class="fa fa-circle me-1" style="color:#ffc107"></i> Rejected: ${formatNumber(data.rejected.count)}</li>
                 </ul>
             `;
             console.log('[Dashboard] Delivery status loaded');
