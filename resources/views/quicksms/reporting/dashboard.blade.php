@@ -1367,9 +1367,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const optoutTile = document.querySelector('[data-conditional="optout"]');
             if (data.optOutRate.hasOptOutData) {
                 document.getElementById('kpiOptoutContent').innerHTML = `
-                    <p class="mb-1">Opt-out Rate</p>
-                    <h4 class="mb-0">${data.optOutRate.value}%</h4>
-                    <small class="text-muted">${data.optOutRate.optOutCount} opt-outs this period</small>
+                    <p class="mb-1">OPT-OUT RATE</p>
+                    <h4 class="mb-0 d-flex align-items-center flex-wrap">${data.optOutRate.value}% <span class="badge badge-danger ms-2" style="font-size: 10px; font-weight: 500;">${formatNumber(data.optOutRate.optOutCount)} opts</span></h4>
                 `;
                 // Make the entire opt-out tile clickable
                 const optoutCard = document.getElementById('kpiOptout');
