@@ -252,16 +252,16 @@
 
                         <div class="collapse mb-3" id="filtersPanel">
                         <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                            <!-- Row 1: Date Range + 3 dropdowns -->
+                            <!-- Row 1: Date Range with datetime -->
                             <div class="row g-3 align-items-end">
                                 <div class="col-12 col-lg-6">
                                     <label class="form-label small fw-bold">Date Range</label>
-                                    <div class="d-flex gap-2 align-items-center mb-2">
-                                        <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" placeholder="dd/mm/yyyy hh:mm:ss">
                                         <span class="text-muted small">to</span>
-                                        <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                                        <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" placeholder="dd/mm/yyyy hh:mm:ss">
                                     </div>
-                                    <div class="d-flex flex-wrap gap-1">
+                                    <div class="d-flex flex-wrap gap-1 mt-2">
                                         <button type="button" class="btn btn-outline-primary btn-xs" data-preset="today">Today</button>
                                         <button type="button" class="btn btn-outline-primary btn-xs" data-preset="yesterday">Yesterday</button>
                                         <button type="button" class="btn btn-outline-primary btn-xs" data-preset="7days">Last 7 Days</button>
@@ -302,18 +302,17 @@
                                 </div>
                             </div>
                             
-                            <!-- Row 2: Mobile Number + SenderID + Status + Country + Type -->
-                            <div class="row g-3 align-items-end mt-1">
-                                <div class="col-12 col-md-6 col-lg-4">
+                            <!-- Row 2: Mobile Number + SenderID + Status + Country + Type (all same width) -->
+                            <div class="row g-3 align-items-end mt-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Mobile Number</label>
-                                    <input type="text" class="form-control form-control-sm" id="filterMobileInput" placeholder="Enter number and press Enter...">
-                                    <small class="text-muted">Enter multiple numbers separated by Enter</small>
+                                    <input type="text" class="form-control form-control-sm" id="filterMobileInput" placeholder="Enter number...">
                                 </div>
-                                <div class="col-6 col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">SenderID</label>
-                                    <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." autocomplete="off">
+                                    <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search...">
                                 </div>
-                                <div class="col-6 col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Status</label>
                                     <select class="form-select form-select-sm" id="filterStatusToggle">
                                         <option value="">All Statuses</option>
@@ -323,7 +322,7 @@
                                         <option value="rejected">Rejected</option>
                                     </select>
                                 </div>
-                                <div class="col-6 col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Country</label>
                                     <select class="form-select form-select-sm" id="filterCountryToggle">
                                         <option value="">All Countries</option>
@@ -335,7 +334,7 @@
                                         <option value="ie">Ireland</option>
                                     </select>
                                 </div>
-                                <div class="col-6 col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Type</label>
                                     <select class="form-select form-select-sm" id="filterTypeToggle">
                                         <option value="">All Types</option>
@@ -344,16 +343,15 @@
                                         <option value="rcs-rich">RCS Rich</option>
                                     </select>
                                 </div>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">Message ID</label>
+                                    <input type="text" class="form-control form-control-sm" id="filterMessageIdInput" placeholder="Enter ID...">
+                                </div>
                             </div>
                             
-                            <!-- Row 3: Message ID + Action buttons -->
-                            <div class="row g-3 align-items-end mt-1">
-                                <div class="col-12 col-md-6 col-lg-4">
-                                    <label class="form-label small fw-bold">Message ID</label>
-                                    <input type="text" class="form-control form-control-sm" id="filterMessageIdInput" placeholder="Enter Message ID and press Enter...">
-                                    <small class="text-muted">Enter multiple IDs separated by Enter</small>
-                                </div>
-                                <div class="col-12 col-md-6 col-lg-8 d-flex gap-2 align-items-end pb-1">
+                            <!-- Row 3: Action buttons aligned right -->
+                            <div class="row mt-3">
+                                <div class="col-12 d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
                                         <i class="fas fa-check me-1"></i> Apply Filters
                                     </button>
