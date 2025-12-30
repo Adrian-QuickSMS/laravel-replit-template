@@ -1481,7 +1481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 },
-                colors: ['#8B5CF6', '#a8e6cf', '#7cb5ec'],
+                colors: ['#8B5CF6', '#5CB85C', '#5B9BD5'],
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
                 legend: { position: 'top', horizontalAlign: 'right' },
