@@ -2,6 +2,34 @@
 
 @section('title', 'All Contacts')
 
+@push('styles')
+<style>
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+}
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row page-titles">
@@ -53,62 +81,102 @@
                     </div>
 
                     <div class="collapse mb-3" id="filterPanel">
-                        <div class="card card-body bg-light border">
-                            <div class="row g-3">
-                                <div class="col-md-3 col-lg-2">
+                        <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Status</label>
-                                    <select class="form-select form-select-sm" id="filterStatus">
-                                        <option value="">All Statuses</option>
-                                        <option value="active">Active</option>
-                                        <option value="opted-out">Opted Out</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Statuses</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="active" id="statusActive"><label class="form-check-label small" for="statusActive">Active</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="opted-out" id="statusOptedOut"><label class="form-check-label small" for="statusOptedOut">Opted Out</label></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Tags</label>
-                                    <select class="form-select form-select-sm" id="filterTags">
-                                        <option value="">All Tags</option>
-                                        @foreach($available_tags as $tag)
-                                        <option value="{{ $tag }}">{{ $tag }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="tags">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Tags</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            @foreach($available_tags as $index => $tag)
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $tag }}" id="tag{{ $index }}"><label class="form-check-label small" for="tag{{ $index }}">{{ $tag }}</label></div>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Lists</label>
-                                    <select class="form-select form-select-sm" id="filterLists">
-                                        <option value="">All Lists</option>
-                                        @foreach($available_lists as $list)
-                                        <option value="{{ $list }}">{{ $list }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="lists">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Lists</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            @foreach($available_lists as $index => $list)
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $list }}" id="list{{ $index }}"><label class="form-check-label small" for="list{{ $index }}">{{ $list }}</label></div>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Source</label>
-                                    <select class="form-select form-select-sm" id="filterSource">
-                                        <option value="">All Sources</option>
-                                        <option value="UI">UI</option>
-                                        <option value="Import">Import</option>
-                                        <option value="API">API</option>
-                                        <option value="Email-to-SMS">Email-to-SMS</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="sources">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Sources</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="UI" id="sourceUI"><label class="form-check-label small" for="sourceUI">UI</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Import" id="sourceImport"><label class="form-check-label small" for="sourceImport">Import</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="sourceAPI"><label class="form-check-label small" for="sourceAPI">API</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="sourceEmail"><label class="form-check-label small" for="sourceEmail">Email-to-SMS</label></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Date of Birth</label>
-                                    <input type="date" class="form-control form-control-sm" id="filterDOB" disabled title="TODO: Implement date range filter">
-                                </div>
-                                <div class="col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Created Date</label>
-                                    <input type="date" class="form-control form-control-sm" id="filterCreatedDate" disabled title="TODO: Implement date range filter">
+                                    <input type="date" class="form-control form-control-sm" id="filterCreatedDate">
+                                </div>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">&nbsp;</label>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="btnApplyFilters">
+                                            <i class="fas fa-check me-1"></i> Apply
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row g-3 mt-1">
-                                <div class="col-12">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Custom field filters will appear here when custom fields are defined.
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="mt-3" id="activeFilters"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="activeFiltersContainer" style="display: none;">
+                        <div class="d-flex flex-wrap align-items-center">
+                            <span class="small text-muted me-2">Active filters:</span>
+                            <div id="activeFiltersChips"></div>
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                                Clear all
+                            </button>
                         </div>
                     </div>
 

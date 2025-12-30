@@ -59,6 +59,47 @@ $permissions = [
 #campaignsTable tbody tr:hover {
     background-color: rgba(111, 66, 193, 0.05);
 }
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+}
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+.date-preset-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.date-preset-btn:hover {
+    background: #f8f9fa;
+    border-color: #6f42c1;
+}
+.date-preset-btn.active {
+    background: #6f42c1;
+    color: #fff;
+    border-color: #6f42c1;
+}
 </style>
 @endpush
 
@@ -95,76 +136,155 @@ $permissions = [
                     </div>
 
                     <div class="collapse mb-3" id="filtersPanel">
-                        <div class="card card-body bg-light border">
-                            <div class="row g-3">
-                                <div class="col-md-3 col-lg-2">
+                        <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                            <!-- Row 1: Date Range -->
+                            <div class="row g-3 align-items-end">
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label small fw-bold">Date Range</label>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                        <span class="text-muted small">to</span>
+                                        <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1 mt-2">
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="7days">Last 7 Days</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="thismonth">This Month</button>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Status</label>
-                                    <select class="form-select form-select-sm" id="filterStatus">
-                                        <option value="">All Statuses</option>
-                                        <option value="scheduled">Scheduled</option>
-                                        <option value="sending">Sending</option>
-                                        <option value="complete">Complete</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Statuses</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="scheduled" id="statusScheduled"><label class="form-check-label small" for="statusScheduled">Scheduled</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="sending" id="statusSending"><label class="form-check-label small" for="statusSending">Sending</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="complete" id="statusComplete"><label class="form-check-label small" for="statusComplete">Complete</label></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Channel</label>
-                                    <select class="form-select form-select-sm" id="filterChannel">
-                                        <option value="">All Channels</option>
-                                        <option value="sms_only">SMS</option>
-                                        <option value="basic_rcs">Basic RCS</option>
-                                        <option value="rich_rcs">Rich RCS</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="channels">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Channels</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="sms_only" id="channelSMS"><label class="form-check-label small" for="channelSMS">SMS</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="basic_rcs" id="channelBasicRCS"><label class="form-check-label small" for="channelBasicRCS">Basic RCS</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="rich_rcs" id="channelRichRCS"><label class="form-check-label small" for="channelRichRCS">Rich RCS</label></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Sender ID</label>
-                                    <select class="form-select form-select-sm" id="filterSenderId">
-                                        <option value="">All Sender IDs</option>
-                                        @php
-                                            $senderIds = collect($campaigns)->pluck('sender_id')->unique()->sort();
-                                        @endphp
-                                        @foreach($senderIds as $sid)
-                                            <option value="{{ $sid }}">{{ $sid }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">RCS Agent</label>
-                                    <select class="form-select form-select-sm" id="filterRcsAgent">
-                                        <option value="">All Agents</option>
-                                        @php
-                                            $agents = collect($campaigns)->pluck('rcs_agent')->filter()->unique()->sort();
-                                        @endphp
-                                        @foreach($agents as $agent)
-                                            <option value="{{ $agent }}">{{ $agent }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Date From</label>
-                                    <input type="date" class="form-control form-control-sm" id="filterDateFrom">
-                                </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Date To</label>
-                                    <input type="date" class="form-control form-control-sm" id="filterDateTo">
-                                </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Has Tracking</label>
-                                    <select class="form-select form-select-sm" id="filterTracking">
-                                        <option value="">Any</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Has Opt-Out</label>
-                                    <select class="form-select form-select-sm" id="filterOptout">
-                                        <option value="">Any</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
+                                    @php
+                                        $senderIds = collect($campaigns)->pluck('sender_id')->unique()->sort();
+                                    @endphp
+                                    <div class="dropdown multiselect-dropdown" data-filter="senderIds">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Sender IDs</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            @foreach($senderIds as $index => $sid)
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $sid }}" id="sender{{ $index }}"><label class="form-check-label small" for="sender{{ $index }}">{{ $sid }}</label></div>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mt-3" id="activeFilters"></div>
+                            
+                            <!-- Row 2: Additional Filters -->
+                            <div class="row g-3 align-items-end mt-2">
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">RCS Agent</label>
+                                    @php
+                                        $agents = collect($campaigns)->pluck('rcs_agent')->filter()->unique()->sort();
+                                    @endphp
+                                    <div class="dropdown multiselect-dropdown" data-filter="rcsAgents">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All Agents</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            @foreach($agents as $index => $agent)
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $agent }}" id="agent{{ $index }}"><label class="form-check-label small" for="agent{{ $index }}">{{ $agent }}</label></div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">Has Tracking</label>
+                                    <div class="dropdown multiselect-dropdown" data-filter="tracking">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">Any</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="yes" id="trackingYes"><label class="form-check-label small" for="trackingYes">Yes</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="no" id="trackingNo"><label class="form-check-label small" for="trackingNo">No</label></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">Has Opt-Out</label>
+                                    <div class="dropdown multiselect-dropdown" data-filter="optout">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">Any</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="yes" id="optoutYes"><label class="form-check-label small" for="optoutYes">Yes</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="no" id="optoutNo"><label class="form-check-label small" for="optoutNo">No</label></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4 col-lg-2 offset-lg-4">
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="btnApplyFilters">
+                                            <i class="fas fa-check me-1"></i> Apply Filters
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                                            <i class="fas fa-undo me-1"></i> Reset
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="activeFiltersContainer" style="display: none;">
+                        <div class="d-flex flex-wrap align-items-center">
+                            <span class="small text-muted me-2">Active filters:</span>
+                            <div id="activeFiltersChips"></div>
+                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                                Clear all
+                            </button>
                         </div>
                     </div>
 
