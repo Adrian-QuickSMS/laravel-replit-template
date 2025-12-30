@@ -99,6 +99,13 @@
     letter-spacing: 2px;
     font-family: monospace;
 }
+.action-dots {
+    color: inherit;
+    opacity: 0.7;
+}
+.action-dots:hover {
+    opacity: 1;
+}
 .date-preset-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
@@ -238,6 +245,9 @@
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="fas fa-download me-1"></i> Export
                         </button>
                     </div>
                 </div>
@@ -710,6 +720,38 @@
         </div>
     </div>
 </div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel"><i class="fas fa-download me-2 text-primary"></i>Export Message Log</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Choose your preferred export format:</p>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="exportData('csv')">
+                        <i class="fas fa-file-csv me-2"></i> Export as CSV
+                        <small class="text-muted d-block ms-4">Comma-separated values, compatible with Excel</small>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="exportData('xlsx')">
+                        <i class="fas fa-file-excel me-2"></i> Export as XLSX
+                        <small class="text-muted d-block ms-4">Microsoft Excel format</small>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary text-start" onclick="exportData('txt')">
+                        <i class="fas fa-file-alt me-2"></i> Export as TXT
+                        <small class="text-muted d-block ms-4">Plain text file, tab-separated</small>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -753,6 +795,22 @@ function createToastContainer() {
     container.style.zIndex = '1100';
     document.body.appendChild(container);
     return container;
+}
+
+function exportData(format) {
+    // Close the modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+    if (modal) modal.hide();
+    
+    // Show processing toast
+    showToast(`Preparing ${format.toUpperCase()} export...`, 'success');
+    
+    // TODO: Backend Integration - Implement actual export
+    // For now, simulate export with a delay
+    setTimeout(() => {
+        showToast(`${format.toUpperCase()} export ready for download`, 'success');
+        // TODO: Trigger actual file download
+    }, 1500);
 }
 
 function exportMessages(format) {
@@ -1087,9 +1145,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="py-2 ${columnConfig.visible.includes('content') ? '' : 'd-none'}" data-column="content">${renderMessageContent(msg.content)}</td>
             <td class="py-2 text-center" data-column="actions">
                 <div class="dropdown">
-                    <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="action-dots" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
                         <i class="fas fa-ellipsis-v"></i>
-                    </button>
+                    </span>
                     <div class="dropdown-menu dropdown-menu-end border py-0">
                         <div class="dropdown-content">
                             <a class="dropdown-item" href="#!" onclick="viewMessageDetails('${msg.id}'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
