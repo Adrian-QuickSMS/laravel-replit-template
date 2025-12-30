@@ -565,7 +565,64 @@ table .cursor-pointer:hover {
         
         <!-- ========== ROW 1: KPI Tiles (small) ========== -->
         
-        <!-- 1. Delivery Rate KPI -->
+        <!-- 1. Total Spend (requires cost permission) -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small" data-api="kpis" data-requires-cost>
+            <div class="widget-stat card" id="kpiSpend">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-primary text-primary">
+                            <i class="fas fa-pound-sign"></i>
+                        </span>
+                        <div class="media-body" id="kpiSpendContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:70px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:80px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2. Messages Sent -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-messages-sent" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiMessagesSent">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-success text-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </span>
+                        <div class="media-body" id="kpiMessagesSentContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:60px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 3. Inbound Received -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-inbound" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiInbound">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-warning text-warning">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                        </span>
+                        <div class="media-body" id="kpiInboundContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:110px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 4. Delivery Rate KPI -->
         <div class="qs-tile tile-small" data-tile-id="kpi-delivery-rate" data-size="small" data-api="kpis">
             <div class="widget-stat card" id="kpiDeliveryRate">
                 <div class="card-body p-4">
@@ -580,32 +637,15 @@ table .cursor-pointer:hover {
                         <div class="media-body" id="kpiDeliveryRateContent">
                             <div class="qs-skeleton qs-skeleton-text" style="width:80px"></div>
                             <div class="qs-skeleton qs-skeleton-h4" style="width:60px"></div>
-                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:100px"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- 2. Spend KPI (requires cost permission) -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small" data-api="kpis" data-requires-cost>
-            <div class="widget-stat card" id="kpiSpend">
-                <div class="card-body p-4">
-                    <div class="media ai-icon">
-                        <span class="me-3 bgl-primary text-primary">
-                            <i class="fas fa-pound-sign"></i>
-                        </span>
-                        <div class="media-body" id="kpiSpendContent">
-                            <div class="qs-skeleton qs-skeleton-text" style="width:70px"></div>
-                            <div class="qs-skeleton qs-skeleton-h4" style="width:80px"></div>
-                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:90px"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- ========== ROW 2: Secondary KPIs ========== -->
         
-        <!-- 3. RCS Seen Rate (conditional) -->
+        <!-- 5. RCS Seen Rate (conditional) -->
         <div class="qs-tile tile-small" data-tile-id="kpi-rcs-seen" data-size="small" data-conditional="rcs" data-api="kpis">
             <div class="widget-stat card" id="kpiRcsSeen">
                 <div class="card-body p-4">
@@ -616,47 +656,6 @@ table .cursor-pointer:hover {
                         <div class="media-body" id="kpiRcsSeenContent">
                             <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
                             <div class="qs-skeleton qs-skeleton-h4" style="width:55px"></div>
-                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:100px"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 4. Opt-out Rate (conditional) -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-optout" data-size="small" data-conditional="optout" data-api="kpis">
-            <div class="widget-stat card" id="kpiOptout">
-                <div class="card-body p-4">
-                    <div class="media ai-icon">
-                        <span class="me-3 bgl-danger text-danger">
-                            <i class="fas fa-user-slash"></i>
-                        </span>
-                        <div class="media-body" id="kpiOptoutContent">
-                            <div class="qs-skeleton qs-skeleton-text" style="width:80px"></div>
-                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
-                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:110px"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ========== ROW 1B: Secondary KPIs ========== -->
-        
-        <!-- 5. Messages Sent -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-messages-sent" data-size="small" data-api="kpis">
-            <div class="widget-stat card" id="kpiMessagesSent">
-                <div class="card-body p-4">
-                    <div class="media ai-icon">
-                        <span class="me-3 bgl-success text-success">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </span>
-                        <div class="media-body" id="kpiMessagesSentContent">
-                            <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
-                            <div class="qs-skeleton qs-skeleton-h4" style="width:60px"></div>
                         </div>
                     </div>
                 </div>
@@ -680,27 +679,7 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 7. Inbound Received -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-inbound" data-size="small" data-api="kpis">
-            <div class="widget-stat card" id="kpiInbound">
-                <div class="card-body p-4">
-                    <div class="media ai-icon">
-                        <span class="me-3 bgl-warning text-warning">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                <polyline points="22,6 12,13 2,6"></polyline>
-                            </svg>
-                        </span>
-                        <div class="media-body" id="kpiInboundContent">
-                            <div class="qs-skeleton qs-skeleton-text" style="width:110px"></div>
-                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 8. Undelivered Messages -->
+        <!-- 7. Undelivered Messages -->
         <div class="qs-tile tile-small" data-tile-id="kpi-undelivered" data-size="small" data-api="kpis">
             <div class="widget-stat card" id="kpiUndelivered">
                 <div class="card-body p-4">
@@ -717,7 +696,24 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- ========== ROW 2: Charts (medium/large) ========== -->
+        <!-- 8. Opt-out Rate (conditional) -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-optout" data-size="small" data-conditional="optout" data-api="kpis">
+            <div class="widget-stat card" id="kpiOptout">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-danger text-danger">
+                            <i class="fas fa-user-slash"></i>
+                        </span>
+                        <div class="media-body" id="kpiOptoutContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:80px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== ROW 3: Charts (medium/large) ========== -->
         
         <!-- 5. Volume Over Time (Line Chart) -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge" data-api="volume">
@@ -1378,31 +1374,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
-            // Delivery Rate with tooltip
+            // Delivery Rate with tooltip - NO trend badge
             const deliveryTooltip = `Formula: ${data.deliveryRate.formula}\nDelivered: ${formatNumber(data.deliveryRate.delivered)}\nUndelivered: ${formatNumber(data.deliveryRate.undelivered)}\nRejected: ${formatNumber(data.deliveryRate.rejected)}`;
-            const trendClass = data.deliveryRate.trend >= 0 ? 'badge-info' : 'badge-pink';
-            const trendText = data.deliveryRate.trend >= 0 ? `+${data.deliveryRate.trend}%` : `${data.deliveryRate.trend}%`;
             document.getElementById('kpiDeliveryRateContent').innerHTML = `
                 <p class="mb-1">DELIVERY RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
-                <h4 class="mb-0 d-flex align-items-center">${data.deliveryRate.value}% <span class="badge ${trendClass} ms-2" style="font-size: 11px; font-weight: 500;">${trendText}</span></h4>
+                <h4 class="mb-0">${data.deliveryRate.value}%</h4>
             `;
             
-            // Spend with estimated label and VAT note (role-based)
+            // Spend - NO Estimated badge, just value with VAT tooltip (role-based)
             if (hasPermission('canSeeCost')) {
-                const estimatedBadge = data.spend.isEstimated ? '<span class="badge badge-primary" style="font-size: 9px; font-weight: 500; margin-left: 4px; vertical-align: middle;">Estimated</span>' : '';
-                const spendTooltip = data.spend.isEstimated 
-                    ? 'Some messages are still processing. Final cost may vary.'
-                    : 'Final billing complete for this period.';
                 document.getElementById('kpiSpendContent').innerHTML = `
-                    <p class="mb-1">TOTAL SPEND <i class="fas fa-info-circle text-muted ms-1" style="font-size: 10px;" title="Excludes VAT. ${spendTooltip}"></i></p>
-                    <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
+                    <p class="mb-1">TOTAL SPEND <i class="fas fa-info-circle text-muted ms-1" style="font-size: 10px;" title="Excludes VAT"></i></p>
+                    <h4 class="mb-0">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
                 `;
             } else {
                 // Viewers see credits only, not cost
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">Credits Used</p>
                     <h4 class="mb-0">${formatNumber(data.spend.creditsUsed)}</h4>
-                    <small class="text-muted">Cost hidden (Viewer role)</small>
                 `;
             }
             
@@ -1437,27 +1426,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 optoutTile.style.display = 'none';
             }
             
-            // Messages Sent - green theme with trend pill
-            const msgTrend = data.messagesSent.trend;
-            const msgTrendBadge = msgTrend !== 0 
-                ? `<span class="badge ${msgTrend >= 0 ? 'badge-info' : 'badge-pink'} ms-2" style="font-size: 11px; font-weight: 500;">${msgTrend >= 0 ? '+' : ''}${msgTrend}%</span>` 
-                : '';
+            // Messages Sent - green theme, NO trend badge
             document.getElementById('kpiMessagesSentContent').innerHTML = `
                 <p class="mb-1">MESSAGES SENT</p>
-                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.messagesSent.count)}${msgTrendBadge}</h4>
+                <h4 class="mb-0">${formatNumber(data.messagesSent.count)}</h4>
             `;
             
-            // RCS Penetration - blue theme with trend pill
-            const rcsPenTrend = data.rcsPenetration.trend;
-            const rcsPenTrendBadge = rcsPenTrend !== 0 
-                ? `<span class="badge ${rcsPenTrend >= 0 ? 'badge-info' : 'badge-pink'} ms-2" style="font-size: 11px; font-weight: 500;">${rcsPenTrend >= 0 ? '+' : ''}${rcsPenTrend}%</span>` 
-                : '';
+            // RCS Penetration - blue theme, NO trend badge
             document.getElementById('kpiRcsPenetrationContent').innerHTML = `
                 <p class="mb-1">RCS PENETRATION</p>
-                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.rcsPenetration.percentage}%${rcsPenTrendBadge}</h4>
+                <h4 class="mb-0">${data.rcsPenetration.percentage}%</h4>
             `;
             
-            // Inbound Received - orange/warning theme with unread count pill
+            // Inbound Received - orange/warning theme WITH unread count badge
             const unreadBadge = data.inboundReceived.unreadCount > 0 
                 ? `<span class="badge badge-warning ms-2" style="font-size: 11px; font-weight: 500;">${data.inboundReceived.unreadCount} Unread</span>` 
                 : '';
@@ -1466,14 +1447,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.inboundReceived.count)}${unreadBadge}</h4>
             `;
             
-            // Undelivered Messages - red theme with trend pill
-            const undelTrend = data.undeliveredMessages.trend;
-            const undelTrendBadge = undelTrend !== 0 
-                ? `<span class="badge ${undelTrend <= 0 ? 'badge-info' : 'badge-pink'} ms-2" style="font-size: 11px; font-weight: 500;">${undelTrend >= 0 ? '+' : ''}${undelTrend}%</span>` 
-                : '';
+            // Undelivered Messages - red theme, NO trend badge
             document.getElementById('kpiUndeliveredContent').innerHTML = `
                 <p class="mb-1">UNDELIVERED MESSAGES</p>
-                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.undeliveredMessages.count)}${undelTrendBadge}</h4>
+                <h4 class="mb-0">${formatNumber(data.undeliveredMessages.count)}</h4>
             `;
             
             console.log('[Dashboard] KPIs loaded');
