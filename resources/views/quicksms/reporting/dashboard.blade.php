@@ -1384,14 +1384,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             // Helper function for trend badges - always show, even when 0%
+            // Colors: cyan (#17a2b8) for positive/good, magenta (#D653C1) for negative/bad
+            // InvertColors: for metrics where decrease is good (e.g., Undelivered Messages)
             function getTrendBadge(trend, invertColors = false) {
                 const trendValue = trend ?? 0;
                 const isPositive = trendValue >= 0;
-                const badgeClass = invertColors 
-                    ? (isPositive ? 'badge-pink' : 'badge-info')
-                    : (isPositive ? 'badge-info' : 'badge-pink');
+                // Cyan for good, magenta for bad - inverted for metrics where decrease is good
+                const bgColor = invertColors 
+                    ? (isPositive ? '#D653C1' : '#17a2b8')  // Inverted: positive=bad(magenta), negative=good(cyan)
+                    : (isPositive ? '#17a2b8' : '#D653C1'); // Normal: positive=good(cyan), negative=bad(magenta)
                 const sign = trendValue > 0 ? '+' : '';
-                return `<span class="badge ${badgeClass} ms-2" style="font-size: 11px; font-weight: 500;">${sign}${trendValue}%</span>`;
+                return `<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: ${bgColor}; color: white;">${sign}${trendValue}%</span>`;
             }
             
             // Delivery Rate with tooltip and trend pill
@@ -1402,14 +1405,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.deliveryRate.value}%${deliveryTrendBadge}</h4>
             `;
             
-            // Spend with Estimated pill (when applicable)
+            // Spend with status pill (always show - Estimated or Finalised)
             if (hasPermission('canSeeCost')) {
-                const estimatedBadge = data.spend.isEstimated 
-                    ? '<span class="badge badge-primary ms-2" style="font-size: 11px; font-weight: 500;">Estimated</span>' 
-                    : '';
+                const statusBadge = data.spend.isEstimated 
+                    ? '<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: #FFBF00; color: #333;">Estimated</span>' 
+                    : '<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: #09BD3C; color: white;">Finalised</span>';
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">TOTAL SPEND <i class="fas fa-info-circle text-muted ms-1" style="font-size: 10px;" title="Excludes VAT"></i></p>
-                    <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
+                    <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${statusBadge}</h4>
                 `;
             } else {
                 document.getElementById('kpiSpendContent').innerHTML = `
