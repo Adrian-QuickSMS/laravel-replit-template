@@ -1524,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 },
                 labels: statusLabels,
-                colors: ['#28a745', '#8B5CF6', '#dc3545', '#D653C1', '#ffc107'],
+                colors: ['#28a745', '#886CC0', '#dc3545', '#D653C1', '#ffc107'],
                 stroke: { show: false, width: 0 },
                 legend: { show: false },
                 dataLabels: { enabled: false },
