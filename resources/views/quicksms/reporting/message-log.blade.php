@@ -48,6 +48,119 @@
     color: #6c757d;
     text-transform: uppercase;
 }
+.date-preset-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.date-preset-btn:hover {
+    background: #f8f9fa;
+    border-color: #6f42c1;
+}
+.date-preset-btn.active {
+    background: #6f42c1;
+    color: #fff;
+    border-color: #6f42c1;
+}
+.multi-value-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    min-height: 38px;
+    background: #fff;
+}
+.multi-value-input:focus-within {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+.multi-value-input input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 100px;
+    font-size: 0.875rem;
+    padding: 0.25rem;
+}
+.multi-value-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    background: #e9ecef;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+}
+.multi-value-tag .remove-tag {
+    margin-left: 0.25rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.multi-value-tag .remove-tag:hover {
+    opacity: 1;
+}
+.multiselect-dropdown {
+    position: relative;
+}
+.multiselect-dropdown .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 100%;
+}
+.multiselect-dropdown .form-check {
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+}
+.multiselect-dropdown .form-check:hover {
+    background: #f8f9fa;
+}
+.multiselect-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    background: #fff;
+}
+.multiselect-toggle .selected-count {
+    background: #6f42c1;
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.75rem;
+    margin-left: 0.5rem;
+}
+.predictive-input-wrapper {
+    position: relative;
+}
+.predictive-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+.predictive-suggestions.show {
+    display: block;
+}
+.predictive-suggestion {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+.predictive-suggestion:hover {
+    background: #f8f9fa;
+}
 </style>
 @endpush
 
@@ -83,75 +196,226 @@
                     <div class="collapse mb-3" id="filtersPanel">
                         <div class="card card-body bg-light border">
                             <div class="row g-3">
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Direction</label>
-                                    <select class="form-select form-select-sm" id="filterDirection">
-                                        <option value="">All Directions</option>
-                                        <option value="outbound">Outbound</option>
-                                        <option value="inbound">Inbound</option>
-                                    </select>
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label small fw-bold">Date Range</label>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <input type="date" class="form-control form-control-sm" id="filterDateFrom" style="flex: 1;">
+                                        <span class="align-self-center text-muted small">to</span>
+                                        <input type="date" class="form-control form-control-sm" id="filterDateTo" style="flex: 1;">
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <button type="button" class="date-preset-btn" data-preset="today">Today</button>
+                                        <button type="button" class="date-preset-btn" data-preset="yesterday">Yesterday</button>
+                                        <button type="button" class="date-preset-btn" data-preset="7days">Last 7 Days</button>
+                                        <button type="button" class="date-preset-btn" data-preset="30days">Last 30 Days</button>
+                                        <button type="button" class="date-preset-btn" data-preset="thismonth">This Month</button>
+                                        <button type="button" class="date-preset-btn" data-preset="lastmonth">Last Month</button>
+                                    </div>
                                 </div>
+                                
                                 <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Status</label>
-                                    <select class="form-select form-select-sm" id="filterStatus">
-                                        <option value="">All Statuses</option>
-                                        <option value="delivered">Delivered</option>
-                                        <option value="sent">Sent</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="failed">Failed</option>
-                                        <option value="expired">Expired</option>
-                                    </select>
+                                    <label class="form-label small fw-bold">Sub Account</label>
+                                    <div class="multiselect-dropdown dropdown">
+                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterSubAccountToggle">
+                                            <span class="toggle-text">All Sub Accounts</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2" id="filterSubAccountMenu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="main" id="subaccount-main">
+                                                <label class="form-check-label small" for="subaccount-main">Main Account</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="marketing" id="subaccount-marketing">
+                                                <label class="form-check-label small" for="subaccount-marketing">Marketing Team</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="support" id="subaccount-support">
+                                                <label class="form-check-label small" for="subaccount-support">Support Team</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="sales" id="subaccount-sales">
+                                                <label class="form-check-label small" for="subaccount-sales">Sales Team</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                
                                 <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Channel</label>
-                                    <select class="form-select form-select-sm" id="filterChannel">
-                                        <option value="">All Channels</option>
-                                        <option value="sms">SMS</option>
-                                        <option value="rcs">RCS</option>
-                                    </select>
+                                    <label class="form-label small fw-bold">User</label>
+                                    <div class="multiselect-dropdown dropdown">
+                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterUserToggle">
+                                            <span class="toggle-text">All Users</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2" id="filterUserMenu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="john" id="user-john">
+                                                <label class="form-check-label small" for="user-john">John Smith</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="sarah" id="user-sarah">
+                                                <label class="form-check-label small" for="user-sarah">Sarah Johnson</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="mike" id="user-mike">
+                                                <label class="form-check-label small" for="user-mike">Mike Williams</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="emma" id="user-emma">
+                                                <label class="form-check-label small" for="user-emma">Emma Davis</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                
                                 <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Sender ID</label>
-                                    <select class="form-select form-select-sm" id="filterSenderId">
-                                        <option value="">All Sender IDs</option>
-                                        <option value="QuickSMS">QuickSMS</option>
-                                        <option value="ALERTS">ALERTS</option>
-                                        <option value="+447700900100">+447700900100</option>
-                                    </select>
+                                    <label class="form-label small fw-bold">Origin</label>
+                                    <div class="multiselect-dropdown dropdown">
+                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterOriginToggle">
+                                            <span class="toggle-text">All Origins</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2" id="filterOriginMenu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="portal" id="origin-portal">
+                                                <label class="form-check-label small" for="origin-portal">Portal</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="api" id="origin-api">
+                                                <label class="form-check-label small" for="origin-api">API</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="email-to-sms" id="origin-email">
+                                                <label class="form-check-label small" for="origin-email">Email-to-SMS</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="integration" id="origin-integration">
+                                                <label class="form-check-label small" for="origin-integration">Integration</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Date From</label>
-                                    <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label small fw-bold">Mobile Number</label>
+                                    <div class="multi-value-input" id="filterMobileContainer">
+                                        <input type="text" placeholder="Enter number and press Enter..." id="filterMobileInput">
+                                    </div>
+                                    <small class="text-muted">Enter multiple numbers separated by Enter</small>
                                 </div>
+                                
                                 <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Date To</label>
-                                    <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                                    <label class="form-label small fw-bold">SenderID</label>
+                                    <div class="predictive-input-wrapper">
+                                        <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." autocomplete="off">
+                                        <div class="predictive-suggestions" id="senderIdSuggestions">
+                                            <div class="predictive-suggestion" data-value="QuickSMS">QuickSMS</div>
+                                            <div class="predictive-suggestion" data-value="ALERTS">ALERTS</div>
+                                            <div class="predictive-suggestion" data-value="PROMO">PROMO</div>
+                                            <div class="predictive-suggestion" data-value="INFO">INFO</div>
+                                            <div class="predictive-suggestion" data-value="NOTIFY">NOTIFY</div>
+                                        </div>
+                                    </div>
                                 </div>
+                                
                                 <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Campaign</label>
-                                    <select class="form-select form-select-sm" id="filterCampaign">
-                                        <option value="">All Campaigns</option>
-                                        <option value="summer-sale">Summer Sale 2024</option>
-                                        <option value="black-friday">Black Friday Promo</option>
-                                        <option value="newsletter">Weekly Newsletter</option>
-                                    </select>
+                                    <label class="form-label small fw-bold">Message Status</label>
+                                    <div class="multiselect-dropdown dropdown">
+                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterStatusToggle">
+                                            <span class="toggle-text">All Statuses</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2" id="filterStatusMenu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="delivered" id="status-delivered">
+                                                <label class="form-check-label small" for="status-delivered">Delivered</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="pending" id="status-pending">
+                                                <label class="form-check-label small" for="status-pending">Pending</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="undeliverable" id="status-undeliverable">
+                                                <label class="form-check-label small" for="status-undeliverable">Undeliverable</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="rejected" id="status-rejected">
+                                                <label class="form-check-label small" for="status-rejected">Rejected</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                
                                 <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Source</label>
-                                    <select class="form-select form-select-sm" id="filterSource">
-                                        <option value="">All Sources</option>
-                                        <option value="campaign">Campaign</option>
-                                        <option value="api">API</option>
-                                        <option value="inbox">Inbox Reply</option>
-                                    </select>
+                                    <label class="form-label small fw-bold">Country</label>
+                                    <div class="multiselect-dropdown dropdown">
+                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterCountryToggle">
+                                            <span class="toggle-text">All Countries</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2" id="filterCountryMenu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="uk" id="country-uk">
+                                                <label class="form-check-label small" for="country-uk">United Kingdom</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="us" id="country-us">
+                                                <label class="form-check-label small" for="country-us">United States</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="de" id="country-de">
+                                                <label class="form-check-label small" for="country-de">Germany</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="fr" id="country-fr">
+                                                <label class="form-check-label small" for="country-fr">France</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="es" id="country-es">
+                                                <label class="form-check-label small" for="country-es">Spain</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="ie" id="country-ie">
+                                                <label class="form-check-label small" for="country-ie">Ireland</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold">Message Type</label>
+                                    <div class="multiselect-dropdown dropdown">
+                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterTypeToggle">
+                                            <span class="toggle-text">All Types</span>
+                                        </button>
+                                        <div class="dropdown-menu p-2" id="filterTypeMenu">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="sms" id="type-sms">
+                                                <label class="form-check-label small" for="type-sms">SMS</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="rcs-basic" id="type-rcs-basic">
+                                                <label class="form-check-label small" for="type-rcs-basic">RCS Basic</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" value="rcs-rich" id="type-rcs-rich">
+                                                <label class="form-check-label small" for="type-rcs-rich">RCS Rich</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label small fw-bold">Message ID</label>
+                                    <div class="multi-value-input" id="filterMessageIdContainer">
+                                        <input type="text" placeholder="Enter Message ID and press Enter..." id="filterMessageIdInput">
+                                    </div>
+                                    <small class="text-muted">Enter multiple IDs separated by Enter</small>
                                 </div>
                             </div>
-                            <div class="mt-3 d-flex gap-2">
+                            
+                            <div class="mt-4 pt-3 border-top d-flex gap-2">
                                 <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
                                     <i class="fas fa-check me-1"></i> Apply Filters
                                 </button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
-                                    <i class="fas fa-times me-1"></i> Reset Filters
+                                    <i class="fas fa-undo me-1"></i> Reset Filters
                                 </button>
                             </div>
                         </div>
@@ -336,30 +600,243 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // TODO: Implement filter logic
+    // TODO: Connect to backend API: GET /api/messages?page=X&limit=Y&filters=Z
     // TODO: Implement infinite scroll
     // TODO: Implement export functionality
-    // TODO: Connect to backend API: GET /api/messages?page=X&limit=Y&filters=Z
     
-    const btnApplyFilters = document.getElementById('btnApplyFilters');
-    const btnResetFilters = document.getElementById('btnResetFilters');
-    const btnClearAllFilters = document.getElementById('btnClearAllFilters');
-    const btnClearFiltersEmpty = document.getElementById('btnClearFiltersEmpty');
+    // Filter state - changes only apply when "Apply Filters" is clicked
+    const filterState = {
+        dateFrom: '',
+        dateTo: '',
+        subAccounts: [],
+        users: [],
+        origins: [],
+        mobileNumbers: [],
+        senderId: '',
+        statuses: [],
+        countries: [],
+        messageTypes: [],
+        messageIds: []
+    };
     
-    btnApplyFilters?.addEventListener('click', function() {
-        console.log('TODO: Apply filters');
+    // Pending filter state (before Apply is clicked)
+    const pendingFilters = { ...filterState };
+    
+    // Date preset buttons
+    document.querySelectorAll('.date-preset-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const preset = this.dataset.preset;
+            const today = new Date();
+            let fromDate, toDate = today;
+            
+            switch(preset) {
+                case 'today':
+                    fromDate = today;
+                    break;
+                case 'yesterday':
+                    fromDate = new Date(today);
+                    fromDate.setDate(fromDate.getDate() - 1);
+                    toDate = fromDate;
+                    break;
+                case '7days':
+                    fromDate = new Date(today);
+                    fromDate.setDate(fromDate.getDate() - 7);
+                    break;
+                case '30days':
+                    fromDate = new Date(today);
+                    fromDate.setDate(fromDate.getDate() - 30);
+                    break;
+                case 'thismonth':
+                    fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    break;
+                case 'lastmonth':
+                    fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    toDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+            }
+            
+            document.getElementById('filterDateFrom').value = formatDate(fromDate);
+            document.getElementById('filterDateTo').value = formatDate(toDate);
+            pendingFilters.dateFrom = formatDate(fromDate);
+            pendingFilters.dateTo = formatDate(toDate);
+        });
     });
     
-    btnResetFilters?.addEventListener('click', function() {
-        console.log('TODO: Reset filters');
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    // Date input changes
+    document.getElementById('filterDateFrom')?.addEventListener('change', function() {
+        pendingFilters.dateFrom = this.value;
+        document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
     });
     
-    btnClearAllFilters?.addEventListener('click', function() {
-        console.log('TODO: Clear all filters');
+    document.getElementById('filterDateTo')?.addEventListener('change', function() {
+        pendingFilters.dateTo = this.value;
+        document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
     });
     
-    btnClearFiltersEmpty?.addEventListener('click', function() {
-        console.log('TODO: Clear filters from empty state');
+    // Multi-select dropdown handlers
+    function setupMultiselect(menuId, toggleId, stateKey, defaultText) {
+        const menu = document.getElementById(menuId);
+        const toggle = document.getElementById(toggleId);
+        if (!menu || !toggle) return;
+        
+        menu.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const selected = Array.from(menu.querySelectorAll('input:checked')).map(cb => cb.value);
+                pendingFilters[stateKey] = selected;
+                updateMultiselectToggle(toggle, selected.length, defaultText);
+            });
+        });
+    }
+    
+    function updateMultiselectToggle(toggle, count, defaultText) {
+        const textSpan = toggle.querySelector('.toggle-text');
+        if (count === 0) {
+            textSpan.innerHTML = defaultText;
+        } else {
+            textSpan.innerHTML = `${defaultText} <span class="selected-count">${count}</span>`;
+        }
+    }
+    
+    setupMultiselect('filterSubAccountMenu', 'filterSubAccountToggle', 'subAccounts', 'All Sub Accounts');
+    setupMultiselect('filterUserMenu', 'filterUserToggle', 'users', 'All Users');
+    setupMultiselect('filterOriginMenu', 'filterOriginToggle', 'origins', 'All Origins');
+    setupMultiselect('filterStatusMenu', 'filterStatusToggle', 'statuses', 'All Statuses');
+    setupMultiselect('filterCountryMenu', 'filterCountryToggle', 'countries', 'All Countries');
+    setupMultiselect('filterTypeMenu', 'filterTypeToggle', 'messageTypes', 'All Types');
+    
+    // Multi-value input handlers (Mobile Number, Message ID)
+    function setupMultiValueInput(containerId, inputId, stateKey) {
+        const container = document.getElementById(containerId);
+        const input = document.getElementById(inputId);
+        if (!container || !input) return;
+        
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                e.preventDefault();
+                addTag(container, input, this.value.trim(), stateKey);
+                this.value = '';
+            }
+        });
+    }
+    
+    function addTag(container, input, value, stateKey) {
+        if (pendingFilters[stateKey].includes(value)) return;
+        
+        pendingFilters[stateKey].push(value);
+        
+        const tag = document.createElement('span');
+        tag.className = 'multi-value-tag';
+        tag.innerHTML = `${value} <i class="fas fa-times remove-tag"></i>`;
+        tag.dataset.value = value;
+        
+        tag.querySelector('.remove-tag').addEventListener('click', function() {
+            pendingFilters[stateKey] = pendingFilters[stateKey].filter(v => v !== value);
+            tag.remove();
+        });
+        
+        container.insertBefore(tag, input);
+    }
+    
+    setupMultiValueInput('filterMobileContainer', 'filterMobileInput', 'mobileNumbers');
+    setupMultiValueInput('filterMessageIdContainer', 'filterMessageIdInput', 'messageIds');
+    
+    // Predictive suggestions for SenderID
+    const senderIdInput = document.getElementById('filterSenderId');
+    const senderIdSuggestions = document.getElementById('senderIdSuggestions');
+    
+    senderIdInput?.addEventListener('focus', function() {
+        senderIdSuggestions?.classList.add('show');
+    });
+    
+    senderIdInput?.addEventListener('blur', function() {
+        setTimeout(() => senderIdSuggestions?.classList.remove('show'), 200);
+    });
+    
+    senderIdInput?.addEventListener('input', function() {
+        pendingFilters.senderId = this.value;
+        const query = this.value.toLowerCase();
+        senderIdSuggestions?.querySelectorAll('.predictive-suggestion').forEach(item => {
+            const match = item.dataset.value.toLowerCase().includes(query);
+            item.style.display = match ? 'block' : 'none';
+        });
+    });
+    
+    senderIdSuggestions?.querySelectorAll('.predictive-suggestion').forEach(item => {
+        item.addEventListener('click', function() {
+            senderIdInput.value = this.dataset.value;
+            pendingFilters.senderId = this.dataset.value;
+            senderIdSuggestions.classList.remove('show');
+        });
+    });
+    
+    // Apply Filters button
+    document.getElementById('btnApplyFilters')?.addEventListener('click', function() {
+        Object.assign(filterState, JSON.parse(JSON.stringify(pendingFilters)));
+        console.log('Filters applied:', filterState);
+        // TODO: Call API with filterState and reload table
+    });
+    
+    // Reset Filters button - resets pending state only, does not apply
+    document.getElementById('btnResetFilters')?.addEventListener('click', function() {
+        // Reset pending filters
+        pendingFilters.dateFrom = '';
+        pendingFilters.dateTo = '';
+        pendingFilters.subAccounts = [];
+        pendingFilters.users = [];
+        pendingFilters.origins = [];
+        pendingFilters.mobileNumbers = [];
+        pendingFilters.senderId = '';
+        pendingFilters.statuses = [];
+        pendingFilters.countries = [];
+        pendingFilters.messageTypes = [];
+        pendingFilters.messageIds = [];
+        
+        // Reset UI elements
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
+        document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+        
+        // Reset all multiselect checkboxes
+        document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        
+        // Reset multiselect toggle texts
+        document.querySelectorAll('.multiselect-toggle .toggle-text').forEach(span => {
+            const toggle = span.closest('.multiselect-toggle');
+            if (toggle.id.includes('SubAccount')) span.textContent = 'All Sub Accounts';
+            else if (toggle.id.includes('User')) span.textContent = 'All Users';
+            else if (toggle.id.includes('Origin')) span.textContent = 'All Origins';
+            else if (toggle.id.includes('Status')) span.textContent = 'All Statuses';
+            else if (toggle.id.includes('Country')) span.textContent = 'All Countries';
+            else if (toggle.id.includes('Type')) span.textContent = 'All Types';
+        });
+        
+        // Clear multi-value tags
+        document.querySelectorAll('.multi-value-tag').forEach(tag => tag.remove());
+        
+        // Reset SenderID
+        document.getElementById('filterSenderId').value = '';
+        
+        console.log('Filters reset (pending). Click Apply to confirm.');
+    });
+    
+    // Clear all filters (from active filters area)
+    document.getElementById('btnClearAllFilters')?.addEventListener('click', function() {
+        document.getElementById('btnResetFilters').click();
+        document.getElementById('btnApplyFilters').click();
+    });
+    
+    document.getElementById('btnClearFiltersEmpty')?.addEventListener('click', function() {
+        document.getElementById('btnResetFilters').click();
+        document.getElementById('btnApplyFilters').click();
     });
 });
 </script>

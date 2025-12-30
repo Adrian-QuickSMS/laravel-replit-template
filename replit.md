@@ -66,6 +66,25 @@ The application includes a schema-driven RCS message preview renderer at `/rcs/p
 - **Alpine.js Controller:** Interactive example selector with live JSON payload display
 - **Sample Payloads:** 5 example message types demonstrating rich card and carousel variations
 
+## Message Log (Reporting)
+The Message Log page at `/reporting/message-log` provides detailed message history with comprehensive filtering:
+- **Filters (in order):**
+  1. Date Range Picker with presets (Today, Yesterday, Last 7 Days, Last 30 Days, This Month, Last Month)
+  2. Sub Account (multi-select dropdown)
+  3. User (multi-select dropdown)
+  4. Origin (multi-select: Portal / API / Email-to-SMS / Integration)
+  5. Mobile Number (free text, multi-value with Enter key)
+  6. SenderID (free text with predictive suggestions)
+  7. Message Status (multi-select: Delivered / Pending / Undeliverable / Rejected)
+  8. Country (multi-select dropdown)
+  9. Message Type (multi-select: SMS / RCS Basic / RCS Rich)
+  10. Message ID (free text, multi-value with Enter key)
+- **Filter Behavior:** Filters do NOT auto-apply; changes only apply when clicking "Apply Filters". Reset Filters only resets state without applying.
+- **Filter State:** Uses `pendingFilters` for UI state and `filterState` for applied filters.
+- **Table Columns:** Date/Time (sortable), Direction, Recipient (masked), Sender, Channel, Status, Message Preview, Credits
+- **Export Bar:** Placeholder with disabled CSV/Excel export buttons
+- **Summary Bar:** Hidden until filters applied (Total Messages, Delivered, Failed, Credits Used)
+
 ## CSS Architecture Notes
 - **Inbox Module:** Uses `public/css/quicksms-inbox.css` loaded after Fillow styles to override message bubble colors with channel-specific gradients (SMS green, RCS blue)
 - **CSS Specificity:** Inbox overrides use `.chat-box-area .message-sent p` and `.chat-box-area .media .message-sent p` selectors to match Fillow's specificity
