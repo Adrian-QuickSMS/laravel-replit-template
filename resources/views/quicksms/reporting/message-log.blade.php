@@ -28,25 +28,11 @@
 .filter-chip .remove-chip:hover {
     opacity: 1;
 }
-.summary-bar {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 0.375rem;
-    padding: 1rem;
+.bg-primary-light {
+    background-color: rgba(111, 66, 193, 0.1);
 }
-.summary-stat {
-    text-align: center;
-    padding: 0.5rem;
-}
-.summary-stat .stat-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #6f42c1;
-}
-.summary-stat .stat-label {
-    font-size: 0.75rem;
-    color: #6c757d;
-    text-transform: uppercase;
+.bg-info-light {
+    background-color: rgba(23, 162, 184, 0.1);
 }
 .date-preset-btn {
     padding: 0.25rem 0.5rem;
@@ -431,23 +417,41 @@
                         </div>
                     </div>
 
-                    <div class="summary-bar mb-3" id="summaryBar" style="display: none;">
-                        <div class="row">
-                            <div class="col-6 col-md-3 summary-stat">
-                                <div class="stat-value" id="summaryTotal">0</div>
-                                <div class="stat-label">Total Messages</div>
+                    <div class="mb-3" id="summaryBar" style="display: none;">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="card">
+                                    <div class="card-body py-3 px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <span class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                                    <i class="fas fa-envelope text-primary"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0 text-muted small">Total Messages</p>
+                                                <h4 class="mb-0 fw-bold" id="summaryTotal">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-6 col-md-3 summary-stat">
-                                <div class="stat-value text-success" id="summaryDelivered">0</div>
-                                <div class="stat-label">Delivered</div>
-                            </div>
-                            <div class="col-6 col-md-3 summary-stat">
-                                <div class="stat-value text-danger" id="summaryFailed">0</div>
-                                <div class="stat-label">Failed</div>
-                            </div>
-                            <div class="col-6 col-md-3 summary-stat">
-                                <div class="stat-value text-info" id="summaryCredits">0</div>
-                                <div class="stat-label">Credits Used</div>
+                            <div class="col-6 col-md-3">
+                                <div class="card">
+                                    <div class="card-body py-3 px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <span class="bg-info-light rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                                    <i class="fas fa-puzzle-piece text-info"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0 text-muted small">Total Parts/Fragments</p>
+                                                <h4 class="mb-0 fw-bold" id="summaryParts">0</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -924,7 +928,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const hasFilters = Object.values(appliedFilters).some(v => 
             Array.isArray(v) ? v.length > 0 : v !== ''
         );
-        document.getElementById('summaryBar').style.display = hasFilters ? 'block' : 'none';
+        
+        if (hasFilters) {
+            // TODO: Replace with actual API response data
+            // Mock summary data for UI demonstration
+            document.getElementById('summaryTotal').textContent = '1,247';
+            document.getElementById('summaryParts').textContent = '1,892';
+            document.getElementById('summaryBar').style.display = 'block';
+        } else {
+            document.getElementById('summaryBar').style.display = 'none';
+        }
         
         console.log('Filters applied:', appliedFilters);
         // TODO: Call API with appliedFilters and reload table
