@@ -1102,13 +1102,13 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="py-2 ${columnConfig.visible.includes('deliveryTime') ? '' : 'd-none'}" data-column="deliveryTime">${formatDateTime(msg.deliveryTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('completedTime') ? '' : 'd-none'}" data-column="completedTime">${formatDateTime(msg.completedTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('cost') ? '' : 'd-none'}" data-column="cost">£${msg.cost}</td>
-            <td class="py-2 ${columnConfig.visible.includes('messageType') ? '' : 'd-none'}" data-column="messageType"><span class="badge ${typeClass}">${typeText}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('messageType') ? '' : 'd-none'}" data-column="messageType">${typeText}</td>
             <td class="py-2 ${columnConfig.visible.includes('subAccount') ? '' : 'd-none'}" data-column="subAccount">${msg.subAccount}</td>
             <td class="py-2 ${columnConfig.visible.includes('user') ? '' : 'd-none'}" data-column="user">${msg.user}</td>
             <td class="py-2 ${columnConfig.visible.includes('origin') ? '' : 'd-none'}" data-column="origin">${msg.origin}</td>
             <td class="py-2 ${columnConfig.visible.includes('country') ? '' : 'd-none'}" data-column="country">${msg.country}</td>
             <td class="py-2 ${columnConfig.visible.includes('parts') ? '' : 'd-none'}" data-column="parts">${msg.parts}</td>
-            <td class="py-2 ${columnConfig.visible.includes('encoding') ? '' : 'd-none'}" data-column="encoding"><span class="badge ${encodingClass}">${encodingText}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('encoding') ? '' : 'd-none'}" data-column="encoding">${encodingText}</td>
             <td class="py-2 ${columnConfig.visible.includes('messageId') ? '' : 'd-none'}" data-column="messageId">${msg.id}</td>
             <td class="py-2 ${columnConfig.visible.includes('content') ? '' : 'd-none'}" data-column="content">${renderMessageContent(msg.content)}</td>
             <td class="py-2 text-center" data-column="actions">
