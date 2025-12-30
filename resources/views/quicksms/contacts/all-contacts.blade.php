@@ -157,8 +157,13 @@
                                                 Contact <i class="fas fa-sort ms-1 text-muted"></i>
                                             </span>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#!" onclick="sortContacts('contact', 'asc'); return false;"><i class="fas fa-sort-alpha-down me-2"></i> A-Z</a></li>
-                                                <li><a class="dropdown-item" href="#!" onclick="sortContacts('contact', 'desc'); return false;"><i class="fas fa-sort-alpha-up me-2"></i> Z-A</a></li>
+                                                <li class="dropdown-header small text-muted">First Name</li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortContacts('firstName', 'asc'); return false;"><i class="fas fa-sort-alpha-down me-2"></i> A-Z</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortContacts('firstName', 'desc'); return false;"><i class="fas fa-sort-alpha-up me-2"></i> Z-A</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li class="dropdown-header small text-muted">Last Name</li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortContacts('lastName', 'asc'); return false;"><i class="fas fa-sort-alpha-down me-2"></i> A-Z</a></li>
+                                                <li><a class="dropdown-item" href="#!" onclick="sortContacts('lastName', 'desc'); return false;"><i class="fas fa-sort-alpha-up me-2"></i> Z-A</a></li>
                                             </ul>
                                         </div>
                                     </th>
@@ -529,10 +534,23 @@ function clearAllFilters() {
 }
 
 function sortContacts(sortKey, direction) {
+    /**
+     * TODO: Replace client-side sorting with server-side for scalability
+     * - Call GET /api/contacts?sort={sortKey}&order={direction}&page=X
+     * - Server should use indexed columns for firstName/lastName sorting
+     */
     var sortedContacts = [...contactsData].sort((a, b) => {
         let valA, valB;
         
         switch(sortKey) {
+            case 'firstName':
+                valA = (a.first_name || '').toLowerCase();
+                valB = (b.first_name || '').toLowerCase();
+                break;
+            case 'lastName':
+                valA = (a.last_name || '').toLowerCase();
+                valB = (b.last_name || '').toLowerCase();
+                break;
             case 'contact':
                 valA = (a.first_name + ' ' + a.last_name).toLowerCase();
                 valB = (b.first_name + ' ' + b.last_name).toLowerCase();

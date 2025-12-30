@@ -1,0 +1,120 @@
+Fix design and layout inconsistencies in the Inbox / Messages module. Use existing UI components and styles from the Messages and Contact Book templates. Do NOT redesign or introduce new visual systems.
+
+────────────────────────
+A) Conversation list (left column) – width, spacing, pills
+
+1) Make the conversation list wider
+- Increase the width of the left column so the content has more breathing room.
+- Ensure there is enough horizontal padding between:
+  - Contact name
+  - SMS/RCS pill
+  - Timestamp
+  - Unread notification circle
+
+2) SMS/RCS pill styling
+- The SMS/RCS channel indicators in the conversation list must be:
+  - Presented as pills/badges
+  - With clearly rounded edges (fully pill-shaped, not sharp rectangles)
+- Keep the previously-defined colours:
+  - SMS pill = green
+  - RCS pill = blue
+- Ensure they align neatly and do not crowd the text.
+
+3) VMN/Short Code/RCS Agent filter dropdown
+- The arrow/chevron for the filter dropdown must not overlap the text.
+- Fix the layout so the arrow sits correctly aligned to the right, like other selects in the template.
+- Options in this filter must list:
+  - The actual numbers or agent names on the account
+  - Followed by a label in brackets indicating type, e.g.:
+    - "07123 456789 (VMN)"
+    - "60777 (Short Code)"
+    - "Acme Banking Bot (RCS Agent)"
+
+────────────────────────
+B) Chat thread header – “To” and channel text
+
+In the chat thread heading (where contact name, avatar and masked mobile number appear):
+
+1) Channel text format
+- Remove the icon currently used next to VMN/Short Code/RCS Agent.
+- Change wording from “From” to “To”.
+- Show the destination like:
+  - “To 60777 (Short Code)”
+  - “To 07123 456789 (VMN)”
+  - “To Acme Banking Bot (RCS Agent)”
+
+2) Typography
+- The “To …” text should match the contact name in:
+  - Font family
+  - Font size
+  - Weight
+- It should visually feel like part of the same heading hierarchy, not secondary tiny metadata.
+
+3) SMS/RCS pill in header
+- SMS/RCS pill in the header should:
+  - Use the same green/blue pill styling as the conversation list
+  - Have rounded/pill edges
+
+────────────────────────
+C) Chat thread message bubbles – colours and width
+
+1) Bubble colours
+- Message bubbles should NOT be purple.
+- They must use:
+  - Green background for SMS messages
+  - Blue background for RCS messages
+- Ensure text is readable (white or dark text depending on contrast) and consistent with the template.
+
+2) Bubble width
+- Inbound/customer bubbles are currently too narrow (often one word per line).
+- Increase the maximum width for bubbles to a sensible value (e.g. around 65–75% of the chat pane width) so messages wrap naturally and are easy to read.
+
+────────────────────────
+D) Avatar styling everywhere – match Contact Book
+
+Avatar styling must be consistent with Contact Book across:
+
+- Conversation list (left column)
+- Chat thread (next to messages, where used)
+- Chat thread header
+- Contact details (right sidebar)
+
+Requirements:
+- Purple circular background (same purple used for brand/accent in the template).
+- White initials text, bold.
+- Initials must be perfectly centered both vertically and horizontally.
+- Reuse the same avatar component or styles from Contact Book, rather than duplicating logic.
+
+────────────────────────
+E) Channel & Sender selector – standardised purple theme
+
+The Channel selector and Sender selector components used in:
+- Inbox mini composer
+- Send Message screen
+
+Currently change colour depending on channel selection. Change this:
+
+- All Channel and Sender selector controls (the selector UI itself, not the SMS/RCS pills) must use the standard purple styling consistently, regardless of the selected channel.
+- Only the SMS/RCS pills and message bubbles should use green/blue channel colours.
+- Ensure this is applied identically on both:
+  - Inbox composer
+  - Send Message screen
+
+────────────────────────
+Constraints
+
+- Reuse existing components and styles from Messages and Contact Book (avatar, pills, dropdowns).
+- Do NOT introduce new colour tokens or fonts.
+- Do NOT change global layout structure beyond widening the conversation list and fixing spacing.
+- Limit changes strictly to: Inbox/Messages UI and shared components for avatars, pills, filters, and selectors.
+
+────────────────────────
+Acceptance checklist
+
+- Conversation list column is wider with good spacing between pills, timestamps, and unread badges.
+- VMN/Short Code/RCS Agent filter shows values like “60777 (Short Code)” with a correctly positioned arrow.
+- Chat thread header shows “To … (VMN/Short Code/RCS Agent)” with the same typography as the contact name, no extra icon.
+- SMS/RCS pills are green/blue with rounded edges in both the list and header.
+- Bubbles are green for SMS, blue for RCS, with sensible widths.
+- Avatars in all three locations are purple circles with centered white initials, matching Contact Book.
+- Channel/Sender selector components are consistently purple on both Inbox and Send Message screens.

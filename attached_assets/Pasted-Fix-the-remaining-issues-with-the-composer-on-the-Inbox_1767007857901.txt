@@ -1,0 +1,93 @@
+Fix the remaining issues with the composer on the Inbox / Messages screen. Use existing components and behaviour from the Send Message screen and Contact Book. Do NOT redesign.
+
+────────────────────────
+A) Placeholder (“Insert field”) – must be connected to Contact Book
+
+Problem:
+- The placeholder selector in the text field does not work and is not connected to contact data.
+
+Requirements:
+- Wire the placeholder/merge-field selector to the Contact Book:
+  - It must load available fields from Contact Book:
+    - Standard fields (e.g. firstName, lastName, postcode, etc.)
+    - Custom contact fields (if supported).
+- Selecting a placeholder inserts it at the current cursor position in the message text area.
+- Placeholders must use the same format as Send Message (e.g. {{firstName}}).
+
+Implementation note:
+- Reuse the same placeholder/insert-field component and logic used on the Send Message screen.
+- If a reusable service/helper exists, call it instead of duplicating logic.
+
+────────────────────────
+B) AI button – must match Send Message behaviour
+
+Problem:
+- The AI button in the Inbox composer currently does nothing or behaves differently from the Send Message AI button.
+
+Requirements:
+- Make the Inbox AI button use the SAME behaviour as the Send Message AI button:
+  - Same pop-up/modal UI.
+  - Same options (e.g., improve message, rewrite, change tone, etc., as implemented in Send Message).
+  - Same flow for applying AI-suggested content back into the editor.
+
+Implementation note:
+- Reuse the same AI modal component and handler functions from Send Message.
+- Do not create a new AI workflow just for Inbox.
+
+────────────────────────
+C) Emoji picker – full pop-up with search and “recently used”
+
+Problem:
+- The emoji picker is basic / non-functional and does not meet requirements.
+
+Requirements:
+- Emoji picker opens as a pop-up/modal aligned to the emoji icon near the editor.
+- Features:
+  - Search bar at the top to search emojis by name/keyword.
+  - Scrollable emoji library organised into categories (if available).
+  - “Recently used” section showing the last used emojis.
+- Inserting an emoji:
+  - Inserts at the cursor position in the message text area.
+  - Updates the “recently used” list.
+
+Implementation note:
+- If there is an existing emoji component elsewhere, reuse or extend it.
+- Keep styling consistent with the app (no third-party visual style clashes).
+
+────────────────────────
+D) SMS and RCS pills – must use rounded Tag/List pill styling
+
+Problem:
+- SMS and RCS pills are still square; they don’t match existing pill styling.
+- Screenshots show SMS/RCS pills circled in red and correct Tag/List pills circled in blue.
+
+Requirements:
+- Apply the same pill styling used for Tags/Lists to ALL SMS/RCS pills:
+  - Fully rounded pill shape (large border radius).
+  - Same padding and typography as Tag/List pills.
+- The only differences should be colour:
+  - SMS pill = green (as already defined).
+  - RCS pill = blue (as already defined).
+
+Locations:
+- Conversation list (left column).
+- Chat thread header.
+- Anywhere else SMS/RCS pills appear in Inbox/Messages.
+
+Implementation note:
+- Find the Tag/List pill component or CSS class used in Contact Book and reuse that exact component/class.
+- Do not hand-code new rectangles for SMS/RCS.
+
+────────────────────────
+Constraints:
+- Reuse existing components and logic from:
+  - Send Message (AI button, placeholder/merge fields, emoji behaviour if present).
+  - Contact Book (placeholder fields, tag/list pill styles).
+- Do NOT introduce new visual styles or redesign the composer.
+- Limit changes strictly to the Inbox/Messages composer and shared components.
+
+Acceptance checklist:
+- Placeholder selector shows Contact Book fields and inserts tokens like {{firstName}} at the cursor.
+- AI button opens the same modal and behaviour as Send Message and can apply AI-generated content.
+- Emoji picker is a pop-up with search, scrollable library, and a “recently used” section, inserting emojis at cursor.
+- All SMS/RCS pills in Inbox/Messages use the same pill shape as Tag/List pills, just with green/blue colours.

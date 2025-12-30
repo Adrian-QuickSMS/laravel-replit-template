@@ -35,6 +35,9 @@
             <link href="{{ asset($style) }}" rel="stylesheet" type="text/css"/>
         @endforeach
     @endif
+
+    {{-- Page-specific styles --}}
+    @stack('styles')
         
 </head>
 <body>

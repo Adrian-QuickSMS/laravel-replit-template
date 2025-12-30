@@ -1,0 +1,145 @@
+Fix design inconsistencies and add missing capabilities in the Inbox / Messages module.
+
+IMPORTANT:
+- Reuse existing UI components and styles from:
+  - Contact Book (avatars, tags, lists)
+  - Messages / Send Message (bubbles, pills, inputs)
+- Do NOT invent new styles or components.
+- Goal is consistency across the whole platform.
+
+────────────────────────
+A) Avatar consistency with Contact Book
+
+Use the SAME avatar design principles everywhere:
+
+1) Conversation list (left column)
+- Current: two grey letters with no coloured circle.
+- Required:
+  - Purple circular background (same purple as in Contact Book).
+  - White, bold initials text.
+  - Center the initials vertically and horizontally.
+
+2) Chat thread (message bubbles area)
+- Same avatar style as above when avatars are shown near messages.
+
+3) Contact details (right sidebar)
+- Current: square avatar, badly centred initials.
+- Required:
+  - Circular avatar, same size and style as Contact Book.
+  - Purple fill, white centered initials.
+- Reuse the same avatar component used in Contact Book so it’s consistent across the platform.
+
+────────────────────────
+B) SMS / RCS pill colours + message bubble colours
+
+Standardise SMS/RCS colours across the platform:
+
+1) Channel pills/tags
+- SMS pill: Green, using “Apple SMS green” (or the closest existing green token).
+- RCS pill: Blue, using “iMessage blue” (or the closest existing blue token).
+- Apply this styling:
+  - In the left Inbox conversation list.
+  - Anywhere else SMS/RCS pills are displayed.
+
+2) Message bubble colours
+- Instead of purple text boxes:
+  - SMS messages should use the SMS green colour.
+  - RCS messages should use the RCS blue colour.
+- Keep text readable and accessible (white or dark text as appropriate).
+- Keep alignment and bubble shapes consistent with the Messages template.
+
+────────────────────────
+C) Inbox filter by inbound channel (VMN / Short Code / RCS Agent)
+
+Add filter capability to the Inbox list:
+
+- New filter to allow filtering conversations by:
+  - VMN (Virtual Mobile Number)
+  - Short code
+  - RCS Agent
+- Use existing filter UI pattern (dropdowns / chips) from the app.
+- Filter should apply to the conversation list and update the results in real time.
+
+────────────────────────
+D) Conversation header: show where the message was sent from
+
+At the top of the message thread (header where contact name + avatar + masked mobile number appear):
+
+- Also display where the conversation is being handled:
+  - For SMS: the VMN or short code (e.g. “From: 60777”).
+  - For RCS: the RCS Agent name (and logo if available).
+- This should be clearly visible but styled consistently with existing header metadata.
+
+────────────────────────
+E) Tag and List colour consistency in Contact Details
+
+In the contact details section on the right:
+
+- Tags:
+  - Use the exact same colours as defined when tags are created in the Contact Book.
+- Lists:
+  - Display lists with the same pinky-purple style used in the Contact Book lists UI.
+- Do NOT introduce new tag/list colours; reuse what exists in Contact Book.
+
+────────────────────────
+F) Notes in contact details (with audit info)
+
+Add a Notes capability in the contact details section:
+
+- UI:
+  - A text area/input to add a new note.
+  - A button to save the note.
+
+- On save:
+  - The note is stored with:
+    - Timestamp (date + time)
+    - User ID / user name who added the note
+  - Notes are displayed in a list with newest first.
+
+- Display format:
+  - Show note text.
+  - Show “Added by [User Name] on [Date Time]”.
+
+────────────────────────
+G) Tag and List management actions in contact details
+
+In the contact details section on Inbox:
+
+1) Buttons:
+- “Add to List” button
+- “Add Tag” button
+
+Behaviour:
+- Reuse the same components/flows as in Contact Book:
+  - Add to existing list(s).
+  - Add existing tags or create new ones if allowed.
+
+2) View Contact button:
+- Add a “View Contact” button.
+- Clicking it opens a pop-up/modal showing the detailed contact information used in the Contact Book (same fields, layout reused where possible).
+- This is for viewing/editing contact details without leaving the Inbox.
+
+────────────────────────
+Constraints
+
+- Use existing components/partials for:
+  - Avatars
+  - Tags and lists
+  - Pills/badges
+  - Modals
+  - Filters
+- Do NOT redesign the overall layout.
+- Do NOT introduce new global colours or fonts.
+- Limit changes to the Messages/Inbox and shared contact components.
+
+────────────────────────
+Acceptance checklist
+
+- Avatars in Inbox + chat thread + contact details match Contact Book (purple circles, white initials, centred).
+- SMS and RCS indicators are green and blue pills everywhere they appear.
+- Chat bubbles use green (SMS) and blue (RCS) backgrounds instead of purple, aligned with template style.
+- Inbox has a working filter for VMN / Short code / RCS Agent.
+- Conversation header indicates the number/agent the messages are sent from.
+- Tags and lists in contact details use the same colours as Contact Book.
+- Notes can be added in contact details with timestamp and user attribution.
+- Contact details supports “Add to List”, “Add Tag”, and “View Contact” (modal) using existing patterns.

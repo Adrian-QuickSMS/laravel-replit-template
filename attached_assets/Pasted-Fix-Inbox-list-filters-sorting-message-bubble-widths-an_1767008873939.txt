@@ -1,0 +1,97 @@
+Fix Inbox list filters/sorting, message bubble widths, and pill layout/formatting. Use existing UI components and patterns; do NOT redesign.
+
+────────────────────────
+A) Filters & Sorting – add realistic mock data and make them work
+
+Problem:
+- Filters and sort controls do not appear to be working for the Inbox conversation list.
+- It’s hard to validate behaviour with the current small/limited dataset.
+
+Requirements:
+1) Create/extend a mock dataset for the Inbox conversation list:
+   - At least 25–50 conversation items with varied values:
+     - Different contacts
+     - Different SMS/RCS combinations
+     - Different timestamps (new/old)
+     - Different VMN/short code/RCS agent sources
+     - Mix of unread/read and messages waiting for reply
+
+2) Wire filters and sorting to this mock dataset:
+   - Filters should correctly filter the list when applied.
+   - Sorting options (e.g. newest, oldest, etc.) should visibly change the list order.
+   - Ensure multiple filters + sort can be used together.
+
+3) Add a clear way to confirm they are working:
+   - For now, console logs or inline comments are fine (TODO: replace with real data later).
+
+────────────────────────
+B) Chat bubbles – width logic for customer and user messages
+
+Problem:
+- Customer (inbound) chat bubbles are visually too narrow.
+- They should expand naturally across the chat pane unless constrained by line breaks or a reasonable max width.
+
+Requirements:
+- Apply the SAME width logic to both:
+  - Customer (inbound) messages
+  - User (outbound) messages
+
+Bubble width behaviour:
+- Bubbles should expand across the chat thread up to a sensible maximum width (e.g. about 3/5 of the chat thread width, 60–70%), unless:
+  - There is a manual line break in the text, or
+  - The message naturally wraps due to length.
+- Do NOT limit bubbles to a very narrow column or fixed small width.
+- Long messages should wrap nicely within that max width.
+- Short messages should still appear as normal bubbles, not tiny skinny ones.
+
+Implementation notes:
+- Check tailwind/CSS classes that might be forcing narrow widths (e.g. max-w-xs, strict flex-basis, etc.) and adjust to a wider, responsive max width.
+- Ensure the width logic is applied consistently across all message types.
+
+────────────────────────
+C) Pills – shape and spacing must be uniform
+
+Problems:
+- SMS/RCS pills are still not displaying correctly.
+- Spacing between:
+  - Contact name
+  - SMS/RCS pill
+  - Time of last message
+  - Notification (unread) icon
+  is inconsistent/non-uniform.
+
+Requirements:
+
+1) Pill styling:
+   - SMS/RCS pills must use the same pill style as existing Tag/List pills:
+     - Rounded edges (full pill shape, not square)
+     - Consistent padding and font size
+   - Only the colours should differ (green for SMS, blue for RCS).
+
+2) Horizontal spacing / alignment:
+   - On each conversation row, ensure consistent spacing between:
+     - Contact name
+     - SMS/RCS pill
+     - Timestamp
+     - Unread notification icon
+   - Use a consistent gap strategy (e.g. flex with gap utilities or consistent margin classes) so items do not appear squashed or randomly spaced.
+   - Items should align horizontally on the same baseline where appropriate.
+
+Implementation notes:
+- Locate the existing Tag/List pill component or CSS and reuse it directly for SMS/RCS pills.
+- Use a single layout pattern (e.g. flex-row + gap-x-*) for the line that holds name, pill, time, and notification.
+
+────────────────────────
+Constraints:
+- Do NOT redesign the overall UI.
+- Reuse existing components/styles from Messages and Contact Book (pills, typography, layout).
+- Limit changes to:
+  - Inbox/Messages module
+  - Shared components for pills and bubbles as needed.
+
+────────────────────────
+Acceptance checklist:
+- Filters and sorting are clearly working on a larger mock dataset for the Inbox list.
+- Customer and user chat bubbles expand naturally up to ~3/5 of the chat width and are no longer unreasonably narrow.
+- SMS/RCS pills are true pills (rounded) and visually match Tag/List pill styling.
+- Spacing between contact name, pill, time, and notification icon is clean, uniform, and consistent across all rows.

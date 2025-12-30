@@ -1,0 +1,122 @@
+Fix and fully wire the Inbox / Messages filters and search, using mock data so I can verify behaviour before we connect a real database.
+
+────────────────────────
+A) Create/extend realistic mock data for testing
+
+First, create a clear mock dataset for the Inbox conversation list and use it as the data source for filters and search.
+
+Mock data requirements (per conversation):
+- contactName (optional for some rows, to test number-only)
+- mobileNumber
+- channel (SMS or RCS)
+- unreadCount (0 or >0)
+- lastMessageIsSMS (boolean or derived from channel)
+- lastMessageIsRCS (boolean or derived from channel)
+- sourceType: "VMN" | "ShortCode" | "RCSAgent"
+- sourceLabel: e.g. "07123 456789", "60777", "Acme Banking Bot"
+- combinedSourceDisplay: e.g. "07123 456789 (VMN)", "60777 (Short Code)", "Acme Banking Bot (RCS Agent)"
+
+Use at least 25–30 conversations with a mix of:
+- Some SMS, some RCS.
+- Some unread, some fully read.
+- Mix of VMNs, Short Codes, RCS Agents.
+- Some with only numbers (no contact name), some with names.
+
+Make sure these values are also what you display:
+- In the chat list pills/indicators (SMS/RCS, unread).
+- Under the contact name in the central chat window: the same “source” label (e.g. "60777 (Short Code)").
+
+────────────────────────
+B) Status filter: All / Unread / SMS / RCS
+
+Fix the Status filter so it actually filters the mock data.
+
+Filter options:
+- All
+- Unread
+- SMS
+- RCS
+
+Expected behaviour:
+- All:
+  - Show all conversations (no status restriction).
+- Unread:
+  - Show only conversations where unreadCount > 0.
+- SMS:
+  - Show only conversations where channel = "SMS" (or last message is SMS, depending on your model).
+- RCS:
+  - Show only conversations where channel = "RCS" (or last message is RCS).
+
+Notes:
+- The filter should match what is visually implied by the pills/notification icons in the chat list.
+- Only ONE of these (All / Unread / SMS / RCS) should be active at a time.
+
+────────────────────────
+C) Source filter: All Sources / Specific ShortCodes / Specific VMNs / Specific RCS Agents
+
+Fix the Source filter so it uses the same data you show under the contact name in the central chat header.
+
+Filter options:
+- All Sources
+- Specific ShortCodes
+- Specific VMNs
+- Specific RCS Agents
+
+Expected behaviour:
+- All Sources:
+  - Do not restrict by sourceType (show all).
+- Specific ShortCodes:
+  - Show only conversations where sourceType = "ShortCode".
+- Specific VMNs:
+  - Show only conversations where sourceType = "VMN".
+- Specific RCS Agents:
+  - Show only conversations where sourceType = "RCSAgent".
+
+Dropdown / selection:
+- The dropdown for selecting a specific source must list:
+  - The actual sourceLabel values on the account, in this format:
+    - "07123 456789 (VMN)"
+    - "60777 (Short Code)"
+    - "Acme Banking Bot (RCS Agent)"
+
+The same label must:
+- Appear under the contact name in the central chat window.
+- Be used as the filter value for Source filtering.
+
+Combination:
+- Status filter and Source filter must work together (AND logic):
+  - e.g. Unread + Specific VMNs → only unread VMN conversations.
+
+────────────────────────
+D) Search bar in chat list
+
+The search bar above the chat list must be functional and search against the mock data.
+
+Search behaviour:
+- Filter the conversation list by:
+  - contactName
+  - OR mobileNumber
+- Case-insensitive matching is fine.
+- Typing should update the list as you type OR when pressing Enter (choose one, but make it consistent).
+- Clearing the search restores the full filtered set (respecting the active Status + Source filters).
+
+Important:
+- Search must apply on top of the active filters:
+  - Example: Unread + VMNs + search “John” → only unread VMN conversations where name or number matches “John”.
+
+────────────────────────
+E) Constraints
+
+- Do NOT redesign the UI.
+- Do NOT change pill/label visuals here; only fix wiring and logic.
+- Keep everything backed by the mock dataset so behaviour is visible and testable now.
+- Add clear TODO comments wherever this will later be replaced by real database queries / API calls.
+
+────────────────────────
+F) Acceptance checklist
+
+- I can switch between All / Unread / SMS / RCS and see the list visibly change based on mock data.
+- I can switch between All Sources / Specific ShortCodes / Specific VMNs / Specific RCS Agents and see the list change.
+- The source shown under the contact name in the central chat header matches the source filter values.
+- I can type a name or mobile number in the search bar and see only matching conversations.
+- Filters and search work together (Status + Source + Search) and produce sensible results.

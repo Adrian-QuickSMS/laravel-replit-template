@@ -1,0 +1,94 @@
+The Message Log filters, search, and sorting are currently NOT functioning.  
+Fix them so they work end-to-end with the existing Message Log table.  
+Use the existing data model and mock data source (or current API), but ensure functionality works.
+
+──────────────────────────────
+A) FILTERS — MUST WORK CORRECTLY
+──────────────────────────────
+All filters must operate on the dataset and update the table after clicking "Apply Filters".
+DO NOT apply filters automatically as the user adjusts fields.
+
+Filters to make functional:
+- Date Range (sentTime)
+- Sub Account (multi-select)
+- User (multi-select)
+- Origin (multi-select)
+- Mobile Number (free text, multiple values)
+- SenderID (free text + suggestion)
+- Message Status (Delivered / Pending / Undeliverable / Rejected / Expired)
+- Country (multi-select)
+- Message Type (SMS / RCS Basic / RCS Rich)
+- Message ID (free text, multiple values)
+
+Rules:
+• Filters combine with AND logic
+• Reset Filters clears values but does not query until Apply is clicked
+• Active filter chips update and remove correctly; removing a chip affects query after Apply
+
+──────────────────────────────
+B) SEARCH — MUST WORK
+──────────────────────────────
+Search bar must search both:
+• `mobileNumber`
+• `senderID`
+
+Behaviour:
+• Case-insensitive
+• Partial matches allowed
+• Search applies on top of filters (intersection)
+• Clearing search restores filtered result set, not the full dataset
+
+──────────────────────────────
+C) SORTING — NEW REQUIREMENT
+──────────────────────────────
+Add sorting controls for the following columns:
+
+1. SenderID  
+   - Sort A → Z
+   - Sort Z → A
+
+2. Sent Time  
+3. Delivery Time  
+4. Completed Time  
+   For all three timestamps:
+   - Sort Newest → Oldest
+   - Sort Oldest → Newest
+
+Sorting must:
+• Not break filters or search
+• Indicate active sort direction in the UI (arrow or highlight)
+• Revert to “no sort” state if toggled off
+
+──────────────────────────────
+D) DATA SOURCE EXPECTATION
+──────────────────────────────
+If real API is not yet connected, use mock data, but ensure logic is complete:
+- Create a single mock dataset array with realistic fields
+- Filtering, searching, and sorting must operate on that dataset
+- Dataset must contain at least 100 test rows for scrolling validation
+
+DO NOT leave filters or sorting as placeholders.
+
+──────────────────────────────
+E) VISUAL RULES (NO CHANGES TO DESIGN)
+──────────────────────────────
+• Keep Bootstrap Contextual Table rows and colour rules
+• No pills or badges added
+• No design changes to filters; use existing input components
+
+Contextual colour logic must remain:
+- Delivered      → Green row (template class)
+- Pending        → Purple row (template class)
+- Undeliverable / Rejected / Expired → Red row (template class)
+
+──────────────────────────────
+F) ACCEPTANCE CRITERIA
+──────────────────────────────
+✔ Apply Filters updates results correctly  
+✔ Reset Filters clears but does NOT auto-refresh  
+✔ Filter chips update properly  
+✔ Search works on name+number and respects filters  
+✔ Sorting works for SenderID + all timestamp columns  
+✔ Row colour rules remain intact  
+✔ No layout changes or design regressions  
+✔ No full-page scroll — only table body scrolls

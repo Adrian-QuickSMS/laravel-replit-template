@@ -1,0 +1,80 @@
+Inbox UI refinement required — it currently does NOT match the provided “Messages” UI template. You MUST use the existing purchased UI template for Messages/chat functionality and align this screen to it.
+
+Reference:
+- Use the attached “Messages” template screenshot as the visual standard.
+- Also use the previously-created inbox screenshot (the one that labels SMS/RCS well and renders RCS rich cards correctly) as a behavioural/content reference.
+- Do NOT invent a new chat UI.
+
+────────────────────────────────
+A) Left conversation list (Inbox list) — match template styling
+
+Make the conversation list look/behave like the Messages template:
+
+1) Typography + hierarchy
+- Conversation Name/Number: use the template’s primary text styling (not heavy black everywhere).
+- Last message snippet: lighter/secondary text styling.
+- Timestamp: subtle, aligned like the template.
+- Unread count badge: match template style and placement.
+
+2) Active/selected conversation highlight
+- When a conversation is selected, it must be clearly highlighted like the template:
+  - Selected row background highlight
+  - A vertical accent line (dark purple) running the full height of the selected row on the left edge
+- Hover state should match the template (subtle).
+
+3) Channel indicators
+- Keep clear SMS/RCS labels in the left list (as per the “previous design” screenshot).
+- Ensure the label styling matches the template badges/pills.
+
+────────────────────────────────
+B) Chat pane — message bubbles + rich content rendering
+
+1) Message bubbles
+- Messages must appear as chat bubbles (not plain text blocks).
+- Outbound vs inbound alignment should follow the template pattern.
+- Keep timestamps/metadata consistent and subtle.
+
+2) RCS rich cards rendering
+- Ensure Rich RCS cards/carousels render cleanly in the conversation (as per the previous inbox screenshot that already handled rich cards well).
+- Do not change the underlying rich-card renderer logic if it already exists; reuse it.
+
+────────────────────────────────
+C) Top-right controls + right sidebar behaviour (Contact Details)
+
+1) Three-dot menu (top-right of chat header)
+- Ensure the three-dot menu exists in the upper right, styled like the template.
+- Clicking it should toggle the Contact Details right sidebar:
+  - Open/close (collapsible)
+  - When collapsed, the chat pane expands to use the freed space.
+
+2) Contact Details sidebar
+- Must be collapsible (not permanently fixed width).
+- Collapsing should not break layout or cause overflow.
+
+3) Search within chat history
+- Keep the magnifying glass/search control in the chat header.
+- It must search ONLY within the currently selected conversation’s message history.
+- Search results should highlight matches and allow next/prev navigation if the template supports it (otherwise add TODO, but do not invent a new UI pattern).
+
+────────────────────────────────
+D) Hard constraints (do not drift)
+
+- You MUST reuse the Messages UI template components/partials/layout for:
+  - conversation list rows
+  - selection states
+  - badges/pills
+  - chat bubbles
+  - header controls (search, 3-dot menu)
+  - right sidebar layout
+- Do NOT redesign colours, fonts, spacing, or add new UI frameworks.
+- Do NOT introduce new global styling files; fix via existing template classes/components.
+- Limit changes to the Inbox/Messages module files only (do not modify unrelated screens).
+
+────────────────────────────────
+Acceptance criteria
+
+- Side-by-side with the Messages template screenshot, the Inbox screen looks and feels the same (layout, spacing, typography, states).
+- Selected conversation has a clear highlight + full-height purple accent line.
+- Messages render as bubbles; RCS rich cards render properly.
+- Three-dot menu toggles Contact Details sidebar open/closed; collapsing increases chat area.
+- Chat search searches within the selected conversation only.

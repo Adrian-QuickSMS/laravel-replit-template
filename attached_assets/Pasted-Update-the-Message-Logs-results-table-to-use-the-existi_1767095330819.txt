@@ -1,0 +1,47 @@
+Update the Message Logs results table to use the existing Bootstrap contextual table styles from the template:
+
+📌 LOCATION OF STYLE REFERENCE:
+Use the table definitions from:
+Table → Bootstrap → Contextual table
+(Do NOT invent new colours or classes. Use the colours and font colours exactly as shown in the template examples.)
+
+📌 APPLY ROW COLOUR BASED ON `messageStatus`:
+
+Row colour rules (NO pills, NO badges, NO labels inside cells):
+- If status === "Delivered"
+  → Apply the contextual class that matches template GREEN row styling.
+  → Must include the corresponding template font colour.
+
+- If status === "Pending"
+  → Apply the contextual class that matches template PURPLE row styling.
+  → Must include the corresponding template font colour.
+
+- If status === "Undeliverable" OR "Rejected" OR "Expired"
+  → Apply the contextual class that matches template RED row styling.
+  → Must include the corresponding template font colour.
+
+- All other statuses fallback to the **default table row** style.
+
+🎯 Example (pseudo mapping — replace with template classes):
+Delivered       → `table-success` (or template equivalent green)
+Pending         → `table-secondary` or template’s purple highlight class
+Undeliverable   → `table-danger` (or template equivalent red)
+Rejected        → `table-danger`
+Expired         → `table-danger`
+
+⚠️ IMPORTANT:
+- DO NOT use pills, badges, chips, or coloured labels inside the row.
+- DO NOT change the cell content format; the colour should come ONLY from the row class.
+- Apply this at render time based on each row’s `messageStatus`.
+
+✔️ Behaviour Requirements:
+- Hover state should still respect contextual colour (like the template).
+- Stripe / hover / sticky header remain active.
+- Infinite scrolling or pagination logic must still work.
+- Should gracefully handle long result sets.
+
+Acceptance Criteria:
+- Delivered rows are green.
+- Pending rows are purple.
+- Failed/Expired/Rejected rows are red.
+- All colours + fonts match EXACT contextual table design in template.

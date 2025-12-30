@@ -1,0 +1,171 @@
+/**
+ * INBOX FILTER SYSTEM - COMPLETE IMPLEMENTATION
+ * Add this to your Inbox component/page
+ */
+
+class InboxFilterSystem {
+    constructor() {
+        this.allConversations = [];
+        this.filteredConversations = [];
+        this.filters = {
+            status: 'all',
+            source: 'all',
+            search: '',
+            sort: 'newest'
+        };
+        
+        this.init();
+    }
+    
+    init() {
+        // Load conversations from API
+        this.loadConversations();
+        
+        // Attach event listeners
+        this.attachEventListeners();
+    }
+    
+    async loadConversations() {
+        try {
+            const response = await fetch('/api/inbox/conversations');
+            this.allConversations = await response.json();
+            this.applyFilters();
+        } catch (error) {
+            console.error('Failed to load conversations:', error);
+        }
+    }
+    
+    attachEventListeners() {
+        // Status filter
+        document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+            this.filters.status = e.target.value;
+            this.applyFilters();
+        });
+        
+        // Source filter
+        document.getElementById('sourceFilter')?.addEventListener('change', (e) => {
+            this.filters.source = e.target.value;
+            this.applyFilters();
+        });
+        
+        // Search input
+        document.getElementById('searchInput')?.addEventListener('input', (e) => {
+            this.filters.search = e.target.value;
+            this.applyFilters();
+        });
+        
+        // Sort filter
+        document.getElementById('sortFilter')?.addEventListener('change', (e) => {
+            this.filters.sort = e.target.value;
+            this.applyFilters();
+        });
+    }
+    
+    applyFilters() {
+        let results = [...this.allConversations];
+        
+        // Apply status filter
+        if (this.filters.status !== 'all') {
+            results = results.filter(conv => this.matchesStatus(conv, this.filters.status));
+        }
+        
+        // Apply source filter
+        if (this.filters.source !== 'all') {
+            results = results.filter(conv => conv.sourceId === this.filters.source);
+        }
+        
+        // Apply search
+        if (this.filters.search) {
+            results = results.filter(conv => this.matchesSearch(conv, this.filters.search));
+        }
+        
+        // Apply sort
+        results = this.sortConversations(results, this.filters.sort);
+        
+        this.filteredConversations = results;
+        this.render();
+    }
+    
+    matchesStatus(conversation, status) {
+        switch (status) {
+            case 'unread':
+                return conversation.unread === true;
+            case 'sms':
+                return conversation.type === 'SMS';
+            case 'rcs':
+                return conversation.type?.includes('RCS');
+            default:
+                return true;
+        }
+    }
+    
+    matchesSearch(conversation, searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const searchNumber = searchTerm.replace(/\D/g, '');
+        
+        const nameMatch = conversation.contactName?.toLowerCase().includes(searchLower);
+        const numberMatch = conversation.phoneNumber?.replace(/\D/g, '').includes(searchNumber);
+        
+        return nameMatch || numberMatch;
+    }
+    
+    sortConversations(conversations, order) {
+        return conversations.sort((a, b) => {
+            const dateA = new Date(a.lastMessageDate);
+            const dateB = new Date(b.lastMessageDate);
+            return order === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+    }
+    
+    render() {
+        const container = document.getElementById('conversationsList');
+        if (!container) return;
+        
+        container.innerHTML = this.filteredConversations.map(conv => 
+            this.createConversationHTML(conv)
+        ).join('');
+        
+        this.updateUnreadBadge();
+    }
+    
+    createConversationHTML(conversation) {
+        return `
+            <div class="conversation-item" data-id="${conversation.id}">
+                <div class="avatar">${conversation.contactName?.charAt(0) || '?'}</div>
+                <div class="details">
+                    <div class="name">${conversation.contactName || conversation.phoneNumber}</div>
+                    <div class="message">${conversation.lastMessageText}</div>
+                </div>
+                <div class="meta">
+                    <div class="time">${this.formatTime(conversation.lastMessageDate)}</div>
+                    ${conversation.unread ? `<span class="badge">${conversation.unreadCount}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    updateUnreadBadge() {
+        const unreadCount = this.filteredConversations.filter(c => c.unread).length;
+        const badge = document.querySelector('.inbox-unread-badge');
+        if (badge) {
+            badge.textContent = unreadCount;
+            badge.style.display = unreadCount > 0 ? 'inline' : 'none';
+        }
+    }
+    
+    formatTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+        return date.toLocaleDateString();
+    }
+}
+
+// Initialize the filter system when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.inboxFilters = new InboxFilterSystem();
+});

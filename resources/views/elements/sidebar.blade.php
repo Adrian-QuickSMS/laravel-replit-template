@@ -183,9 +183,5 @@
 			</div>
 		</div>
 		
-		<div class="copyright">
-			<p><strong>Fillow Saas Admin</strong> © 2024 All Rights Reserved</p>
-			<p class="fs-12">Made with <span class="heart"></span> by DexignLab</p>
-		</div>
 	</div>
 </div>

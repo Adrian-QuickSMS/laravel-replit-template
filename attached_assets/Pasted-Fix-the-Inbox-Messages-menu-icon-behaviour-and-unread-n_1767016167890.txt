@@ -1,0 +1,37 @@
+Fix the Inbox / Messages menu icon behaviour and unread notification indicators.
+
+A) Inbox/Messages icon click behaviour
+- The Inbox/Messages icon in the main navigation (the one circled in red) must navigate to the Inbox module/screen when clicked.
+- It should not open notifications or any other screen.
+- Use the same route as the current Inbox module entry point.
+
+B) Notification counter in navigation
+- The red notification badge on the Inbox/Messages icon must show the TOTAL number of unread inbox conversations.
+- This value should match the unread count shown in the Inbox conversation list.
+- If the count is currently coming from another state or variable, correct it so it uses the unread inbox count.
+
+C) Notification badge colour consistency
+- The red badge in the navigation and the unread notification badge inside the chat list must use the SAME red colour token/class.
+- Use the same red styling as the main navigation notification badge:
+  - Background colour
+  - Text colour
+  - Border radius
+  - Padding
+- Do NOT introduce a new red; only reuse the existing notification colour that is already used in the navbar badge.
+
+D) Unread indicator in chat list
+- The unread notification dot/badge in the chat list (next to each conversation) must match:
+  - The same red colour
+  - The same style rules (badge shape/pill/dot)
+- When a conversation is marked as read or unread, this badge should update immediately and the navigation badge count should also change.
+
+E) Constraints
+- Do NOT modify routes for any other navigation items.
+- Do NOT create a new design system; use existing colour and badge styles.
+- Only adjust the Inbox icon click handler, unread count state, and badge styling.
+
+Acceptance checklist:
+- Clicking the Inbox/Messages icon correctly loads the Inbox module.
+- The badge number in the nav matches the unread count in the inbox list.
+- All unread badges use the SAME red colour and consistent style.
+- Mark as read / mark as unread updates the nav badge count immediately.
