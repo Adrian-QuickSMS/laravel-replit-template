@@ -755,7 +755,7 @@ table .cursor-pointer:hover {
         </div>
         
         <!-- 8. Top 10 Countries (Horizontal Bar Chart) -->
-        <div class="qs-tile tile-large" data-tile-id="chart-top-countries" data-size="large" data-api="top-countries">
+        <div class="qs-tile tile-xlarge" data-tile-id="chart-top-countries" data-size="xlarge" data-api="top-countries">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0">Top 10 Countries</h4>
@@ -1619,30 +1619,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!chartEl) return;
         chartEl.innerHTML = '';
         
-        // Use full country names from the countries array
-        const countryNames = data.countries.map(c => c.name);
-        const countryValues = data.countries.map(c => c.count);
-        const countryCodes = data.countries.map(c => c.code);
+        // Build data points with x (name) and y (count) for horizontal bar
+        const seriesData = data.countries.map(c => ({
+            x: c.name,
+            y: c.count,
+            code: c.code
+        }));
         
         const options = {
-            series: [{ name: 'Messages', data: countryValues }],
+            series: [{ name: 'Messages', data: seriesData }],
             chart: { 
                 type: 'bar', 
                 height: height, 
                 toolbar: { show: false },
                 events: {
                     dataPointSelection: function(event, chartContext, config) {
-                        const countryCode = countryCodes[config.dataPointIndex];
+                        const countryCode = seriesData[config.dataPointIndex].code;
                         navigateWithFilters(ROUTES.messageLog, { country: countryCode });
                     }
                 }
             },
             colors: ['var(--primary)'],
-            plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '70%' } },
+            plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '60%' } },
             dataLabels: { enabled: false },
-            xaxis: { title: { text: 'Messages' } },
+            xaxis: { 
+                title: { text: 'Messages' },
+                labels: { formatter: function(val) { return formatNumber(val); } }
+            },
             yaxis: { 
-                categories: countryNames,
                 labels: { style: { fontSize: '12px' } }
             },
             states: { hover: { filter: { type: 'darken', value: 0.9 } } }
