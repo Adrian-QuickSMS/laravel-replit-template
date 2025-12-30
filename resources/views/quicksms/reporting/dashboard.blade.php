@@ -768,32 +768,35 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 9. Top SenderIDs (Table) -->
+        <!-- 9. Top SenderIDs (About Me Style) -->
         <div class="qs-tile tile-medium" data-tile-id="table-top-senderids" data-size="medium" data-api="top-sender-ids">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                <div class="card-header border-0 pb-0">
                     <h4 class="card-title mb-0">Top SenderIDs</h4>
-                    <a href="{{ route('reporting.message-log') }}" class="btn btn-outline-primary btn-sm">View All</a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive table-scroll-container">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light sticky-top bg-white">
-                                <tr>
-                                    <th>SenderID</th>
-                                    <th class="text-end">Messages</th>
-                                    <th class="text-end">Delivered</th>
-                                    <th class="text-end">Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody id="topSenderIdsTableBody">
-                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                            </tbody>
-                        </table>
+                <div class="card-body pt-3">
+                    <div id="topSenderIdsList">
+                        <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:80px;height:14px"></div><div class="qs-skeleton" style="width:50px;height:14px"></div></div>
+                        <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:100px;height:14px"></div><div class="qs-skeleton" style="width:40px;height:14px"></div></div>
+                        <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:70px;height:14px"></div><div class="qs-skeleton" style="width:55px;height:14px"></div></div>
+                        <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:90px;height:14px"></div><div class="qs-skeleton" style="width:45px;height:14px"></div></div>
+                        <div class="d-flex justify-content-between py-2"><div class="qs-skeleton" style="width:85px;height:14px"></div><div class="qs-skeleton" style="width:50px;height:14px"></div></div>
+                    </div>
+                    <div id="topSenderIdsStats" class="border-top mt-3 pt-3 d-none">
+                        <div class="d-flex justify-content-between text-center">
+                            <div class="flex-fill">
+                                <h4 class="mb-0 text-primary" id="senderIdStatSent">-</h4>
+                                <small class="text-muted">Messages Sent</small>
+                            </div>
+                            <div class="flex-fill border-start border-end">
+                                <h4 class="mb-0 text-success" id="senderIdStatDelivered">-</h4>
+                                <small class="text-muted">Delivered</small>
+                            </div>
+                            <div class="flex-fill">
+                                <h4 class="mb-0 text-info" id="senderIdStatRate">-</h4>
+                                <small class="text-muted">Delivery Rate</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1590,27 +1593,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 9. Top SenderIDs Table
+    // 9. Top SenderIDs (About Me Style)
+    let senderIdsData = [];
     async function loadTopSenderIds() {
         try {
             const response = await fetch(`${API_BASE}/top-sender-ids`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
+            senderIdsData = data.senderIds;
             
-            const tbody = document.getElementById('topSenderIdsTableBody');
-            tbody.innerHTML = data.senderIds.map(item => `
-                <tr class="cursor-pointer" onclick="navigateWithFilters(ROUTES.messageLog, { sender_id: '${item.senderId}' })" title="Click to view messages from ${item.senderId}">
-                    <td><span class="badge badge-primary light">${item.senderId}</span></td>
-                    <td class="text-end">${formatNumber(item.messages)}</td>
-                    <td class="text-end">${formatNumber(item.delivered)}</td>
-                    <td class="text-end"><span class="${item.deliveryRate >= 95 ? 'text-success' : 'text-warning'}">${item.deliveryRate}%</span></td>
-                </tr>
+            const listEl = document.getElementById('topSenderIdsList');
+            listEl.innerHTML = data.senderIds.map((item, index) => `
+                <div class="d-flex justify-content-between py-2 ${index < data.senderIds.length - 1 ? 'border-bottom' : ''} cursor-pointer sender-id-row" 
+                     data-index="${index}" 
+                     onclick="selectSenderId(${index})"
+                     style="transition: background-color 0.2s;">
+                    <span class="fw-bold">${item.senderId}</span>
+                    <span class="text-muted">${formatNumber(item.messages)}</span>
+                </div>
             `).join('');
-            console.log('[Dashboard] Top SenderIDs loaded (click rows to drill-through)');
+            
+            // Auto-select the first item
+            if (data.senderIds.length > 0) {
+                selectSenderId(0);
+            }
+            
+            console.log('[Dashboard] Top SenderIDs loaded (click rows to view stats)');
         } catch (error) {
             console.error('[Dashboard] Top SenderIDs error:', error);
-            document.getElementById('topSenderIdsTableBody').innerHTML = `<tr><td colspan="4" class="text-center text-danger">Failed to load</td></tr>`;
+            document.getElementById('topSenderIdsList').innerHTML = `<div class="text-center text-danger py-3">Failed to load</div>`;
         }
+    }
+    
+    function selectSenderId(index) {
+        const item = senderIdsData[index];
+        if (!item) return;
+        
+        // Update stats
+        document.getElementById('senderIdStatSent').textContent = formatNumber(item.messages);
+        document.getElementById('senderIdStatDelivered').textContent = formatNumber(item.delivered);
+        document.getElementById('senderIdStatRate').textContent = item.deliveryRate + '%';
+        
+        // Show stats section
+        document.getElementById('topSenderIdsStats').classList.remove('d-none');
+        
+        // Highlight selected row
+        document.querySelectorAll('.sender-id-row').forEach((row, i) => {
+            if (i === index) {
+                row.style.backgroundColor = 'var(--rgba-primary-1)';
+            } else {
+                row.style.backgroundColor = '';
+            }
+        });
     }
     
     // 10. Peak Sending Time
