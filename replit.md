@@ -95,6 +95,11 @@ The Message Log page at `/reporting/message-log` provides detailed message histo
   - **Table Features:** Sticky header, hover row highlight, scrollable container (500px max-height), 10,000 row hard cap
   - **Infinite Scroll:** Loads 50 rows per batch on scroll, shows loading spinner, respects MAX_ROWS limit
   - **Sortable Columns:** Status and Sent Time have sort dropdown menus
+- **Row Actions:** 3-dot kebab menu on each row with:
+  - View Details (opens placeholder modal with all message fields)
+  - Copy Message ID (copies to clipboard with toast notification)
+  - Copy Mobile Number (copies unmasked number to clipboard)
+- **Toast Notifications:** Success/error feedback for copy actions using Bootstrap toast component
 - **Export Bar:** Shows row counts, placeholder with disabled CSV/Excel export buttons
 
 ## CSS Architecture Notes

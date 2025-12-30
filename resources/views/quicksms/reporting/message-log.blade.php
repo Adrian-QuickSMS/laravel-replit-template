@@ -530,6 +530,7 @@
                                     <th data-column="encoding" class="d-none">Encoding</th>
                                     <th data-column="messageId" class="d-none">Message ID</th>
                                     <th data-column="content" class="d-none">Content</th>
+                                    <th data-column="actions" style="width: 50px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="messageLogTableBody">
@@ -550,6 +551,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234567</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234567'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234567', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447712345456', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***789</span></td>
@@ -568,6 +583,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234568</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234568'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234568', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447823456789', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***123</span></td>
@@ -586,6 +615,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234569</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234569'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234569', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447934567123', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***321</span></td>
@@ -604,6 +647,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234570</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234570'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234570', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447745678321', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***654</span></td>
@@ -622,6 +679,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234571</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234571'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234571', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447856789654', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***987</span></td>
@@ -640,6 +711,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234572</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234572'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234572', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447967890987', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***147</span></td>
@@ -658,6 +743,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234573</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234573'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234573', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447701234147', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***258</span></td>
@@ -676,6 +775,20 @@
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234574</td>
                                     <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
+                                    <td class="py-2 text-center" data-column="actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                                <div class="dropdown-content">
+                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234574'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234574', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447823456258', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -813,10 +926,174 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="messageDetailsModal" tabindex="-1" aria-labelledby="messageDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageDetailsModalLabel">
+                    <i class="fas fa-envelope me-2 text-primary"></i>Message Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Message ID</label>
+                        <p class="mb-0 fw-medium" id="detailMessageId">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Status</label>
+                        <p class="mb-0" id="detailStatus">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Mobile Number</label>
+                        <p class="mb-0" id="detailMobile">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">SenderID</label>
+                        <p class="mb-0" id="detailSenderId">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Sent Time</label>
+                        <p class="mb-0" id="detailSentTime">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Delivery Time</label>
+                        <p class="mb-0" id="detailDeliveryTime">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Completed Time</label>
+                        <p class="mb-0" id="detailCompletedTime">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Message Type</label>
+                        <p class="mb-0" id="detailType">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Encoding</label>
+                        <p class="mb-0" id="detailEncoding">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Parts / Cost</label>
+                        <p class="mb-0" id="detailCost">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Sub Account</label>
+                        <p class="mb-0" id="detailSubAccount">-</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">User</label>
+                        <p class="mb-0" id="detailUser">-</p>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small mb-1">Origin</label>
+                        <p class="mb-0" id="detailOrigin">-</p>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small mb-1">Content</label>
+                        <div class="bg-light rounded p-3" id="detailContent">
+                            <span class="text-muted fst-italic">Content not available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="copyToClipboard(document.getElementById('detailMessageId').textContent, 'Message ID')">
+                    <i class="fas fa-copy me-1"></i> Copy Message ID
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
+// ========================================
+// Row Action Functions (Global scope for onclick handlers)
+// ========================================
+
+function copyToClipboard(text, label) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(`${label} copied to clipboard`, 'success');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showToast('Failed to copy to clipboard', 'error');
+    });
+}
+
+function showToast(message, type) {
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white border-0 ${type === 'success' ? 'bg-success' : 'bg-danger'}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    container.style.zIndex = '1100';
+    document.body.appendChild(container);
+    return container;
+}
+
+function viewMessageDetails(messageId) {
+    // TODO: Backend Integration - Fetch message details from API
+    // GET /api/messages/{messageId}
+    
+    // Mock data for placeholder modal
+    const mockMessage = {
+        messageId: messageId,
+        status: 'Delivered',
+        mobile: '+44 77** ***456',
+        senderId: 'QuickSMS',
+        sentTime: '30/12/2024 14:23',
+        deliveryTime: '30/12/2024 14:23',
+        completedTime: '30/12/2024 14:23',
+        type: 'SMS',
+        encoding: 'GSM-7',
+        parts: 1,
+        cost: '£0.035',
+        subAccount: 'Main Account',
+        user: 'John Smith',
+        origin: 'Portal',
+        content: 'Content not available - requires Super Admin permission'
+    };
+    
+    document.getElementById('detailMessageId').textContent = mockMessage.messageId;
+    document.getElementById('detailStatus').innerHTML = `<span class="badge bg-success">Delivered</span>`;
+    document.getElementById('detailMobile').textContent = mockMessage.mobile;
+    document.getElementById('detailSenderId').textContent = mockMessage.senderId;
+    document.getElementById('detailSentTime').textContent = mockMessage.sentTime;
+    document.getElementById('detailDeliveryTime').textContent = mockMessage.deliveryTime;
+    document.getElementById('detailCompletedTime').textContent = mockMessage.completedTime;
+    document.getElementById('detailType').innerHTML = `<span class="badge bg-secondary">SMS</span>`;
+    document.getElementById('detailEncoding').innerHTML = `<span class="badge bg-light text-dark border">GSM-7</span>`;
+    document.getElementById('detailCost').textContent = `${mockMessage.parts} part(s) / ${mockMessage.cost}`;
+    document.getElementById('detailSubAccount').textContent = mockMessage.subAccount;
+    document.getElementById('detailUser').textContent = mockMessage.user;
+    document.getElementById('detailOrigin').textContent = mockMessage.origin;
+    document.getElementById('detailContent').innerHTML = `<span class="text-muted fst-italic">${mockMessage.content}</span>`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('messageDetailsModal'));
+    modal.show();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // TODO: Connect to backend API: GET /api/messages?page=X&limit=Y&filters=Z
     // TODO: Implement infinite scroll
@@ -1423,6 +1700,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="py-2 ${!columnConfig.visible.includes('encoding') ? 'd-none' : ''}" data-column="encoding"><span class="badge ${encoding.class}">${encoding.text}</span></td>
                     <td class="py-2 ${!columnConfig.visible.includes('messageId') ? 'd-none' : ''}" data-column="messageId">${msgId}</td>
                     <td class="py-2 ${!columnConfig.visible.includes('content') ? 'd-none' : ''}" data-column="content">${renderMessageContent('Hi there! Your order #12345 has been shipped and will arrive tomorrow.')}</td>
+                    <td class="py-2 text-center" data-column="actions">
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end border py-0">
+                                <div class="dropdown-content">
+                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('${msgId}'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msgId}', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('${phone.replace(/[^0-9+]/g, '')}', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(row);
                 totalRowsRendered++;
