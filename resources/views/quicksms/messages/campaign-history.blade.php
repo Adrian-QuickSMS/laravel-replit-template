@@ -264,12 +264,12 @@ $permissions = [
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-4 col-lg-2 offset-lg-4">
-                                    <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="btnApplyFilters">
-                                            <i class="fas fa-check me-1"></i> Apply Filters
+                                <div class="col-6 col-md-4 col-lg-4 offset-lg-2">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters" style="white-space: nowrap;">
+                                            <i class="fas fa-check me-1"></i> Apply
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters" style="white-space: nowrap;">
                                             <i class="fas fa-undo me-1"></i> Reset
                                         </button>
                                     </div>
