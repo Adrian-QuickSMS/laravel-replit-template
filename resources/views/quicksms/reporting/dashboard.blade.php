@@ -122,6 +122,21 @@ table .cursor-pointer:hover {
     background-color: rgba(114, 46, 209, 0.08);
 }
 
+/* Fillow-style Tooltips */
+.qs-tooltip {
+    cursor: help;
+    font-size: 0.75rem;
+}
+
+.qs-tooltip:hover {
+    color: var(--primary) !important;
+}
+
+/* Tooltip styling overrides for Fillow consistency */
+[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
 .btn-xs {
     padding: 0.15rem 0.5rem;
     font-size: 0.7rem;
@@ -893,14 +908,16 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Dashboard] Loading data from API...');
         
         // Load each tile independently for better UX
-        loadKpis();
-        loadVolumeChart();
-        loadChannelSplit();
-        loadDeliveryStatus();
-        loadTopCountries();
-        loadTopSenderIds();
-        loadPeakTime();
-        loadFailureReasons();
+        return Promise.all([
+            loadKpis(),
+            loadVolumeChart(),
+            loadChannelSplit(),
+            loadDeliveryStatus(),
+            loadTopCountries(),
+            loadTopSenderIds(),
+            loadPeakTime(),
+            loadFailureReasons()
+        ]);
     }
     
     // 1-4. KPIs
@@ -910,9 +927,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
-            // Delivery Rate
+            // Delivery Rate with tooltip
+            const deliveryTooltip = `Formula: ${data.deliveryRate.formula}\nDelivered: ${formatNumber(data.deliveryRate.delivered)}\nUndelivered: ${formatNumber(data.deliveryRate.undelivered)}\nRejected: ${formatNumber(data.deliveryRate.rejected)}`;
             document.getElementById('kpiDeliveryRateContent').innerHTML = `
-                <p class="mb-1">Delivery Rate</p>
+                <p class="mb-1">Delivery Rate <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
                 <h4 class="mb-0">${data.deliveryRate.value}%</h4>
                 <small class="${data.deliveryRate.trend >= 0 ? 'text-success' : 'text-danger'}">
                     <i class="fas fa-arrow-${data.deliveryRate.trend >= 0 ? 'up' : 'down'} me-1"></i>
@@ -920,21 +938,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 </small>
             `;
             
-            // Spend
-            const costLabel = data.spend.costType === 'estimated' ? '(est.)' : '';
+            // Spend with estimated label and VAT note
+            const estimatedLabel = data.spend.isEstimated ? '<span class="badge badge-warning light ms-1">Estimated</span>' : '';
+            const spendTooltip = data.spend.isEstimated 
+                ? 'Some messages are still processing. Final cost may vary.'
+                : 'Final billing complete for this period.';
             document.getElementById('kpiSpendContent').innerHTML = `
-                <p class="mb-1">Total Spend ${costLabel}</p>
-                <h4 class="mb-0">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
-                <small class="text-muted">${formatNumber(data.spend.creditsUsed)} credits used</small>
+                <p class="mb-1">Total Spend ${estimatedLabel}</p>
+                <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
+                <small class="text-muted">${formatNumber(data.spend.creditsUsed)} credits <span class="text-muted">(${data.spend.vatNote})</span></small>
             `;
             
-            // RCS Seen Rate (conditional)
+            // RCS Seen Rate (conditional) - only show if read receipts available
             const rcsTile = document.querySelector('[data-conditional="rcs"]');
-            if (data.rcsSeenRate.hasRcsData) {
+            if (data.rcsSeenRate.hasRcsData && data.rcsSeenRate.hasReadReceiptSupport) {
+                const rcsTooltip = data.rcsSeenRate.tooltip;
                 document.getElementById('kpiRcsSeenContent').innerHTML = `
-                    <p class="mb-1">RCS Seen Rate</p>
+                    <p class="mb-1">RCS Seen Rate <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${rcsTooltip}"></i></p>
                     <h4 class="mb-0">${data.rcsSeenRate.value}%</h4>
-                    <small class="text-info"><i class="fas fa-comment-dots me-1"></i>RCS messages only</small>
+                    <small class="text-info"><i class="fas fa-comment-dots me-1"></i>${formatNumber(data.rcsSeenRate.seenCount)} of ${formatNumber(data.rcsSeenRate.rcsWithReadReceipts)} read</small>
                 `;
             } else if (rcsTile) {
                 rcsTile.style.display = 'none';
@@ -1175,15 +1197,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const ampmLabel = hourNum >= 12 ? 'PM' : 'AM';
             const displayHour = hourNum > 12 ? hourNum - 12 : hourNum;
             
+            // Use the formatted peak hour display from API
+            const peakHourDisplay = data.peakHourDisplay || `${data.peakHour}–${data.peakHour.replace(':00', ':59')}`;
+            
             document.getElementById('peakTimeContent').innerHTML = `
                 <div class="d-flex align-items-center mb-3">
                     <div class="me-3">
-                        <span class="display-6 text-primary fw-bold">${displayHour}:00</span>
-                        <span class="text-muted">${ampmLabel}</span>
+                        <span class="badge badge-primary light p-2 fs-6">Peak hour: ${peakHourDisplay}</span>
                     </div>
                     <div>
-                        <p class="mb-0 text-muted small">Most messages sent</p>
-                        <strong>${data.peakDay} mornings</strong>
+                        <p class="mb-0 text-muted small">Most messages sent on</p>
+                        <strong>${data.peakDay}s</strong>
                     </div>
                 </div>
                 <div class="border-top pt-3">
@@ -1231,12 +1255,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Initialize Bootstrap tooltips after content loads
+    function initTooltips() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggerList.forEach(el => {
+            new bootstrap.Tooltip(el, {
+                html: true,
+                trigger: 'hover focus'
+            });
+        });
+    }
+    
     // Initialize dashboard data load
     if (typeof ApexCharts !== 'undefined') {
-        loadDashboardData();
+        loadDashboardData().then(() => {
+            setTimeout(initTooltips, 500); // Initialize tooltips after content renders
+        });
     } else {
         console.error('[Dashboard] ApexCharts not loaded');
     }
+    
+    // Re-initialize tooltips periodically for dynamically loaded content
+    setInterval(initTooltips, 2000);
     
     // ========================================
     // Filter State Model

@@ -39,36 +39,59 @@ class ReportingDashboardApiController extends Controller
 
     private function getKpiData(): array
     {
-        $totalMessages = rand(10000, 15000);
-        $delivered = (int)($totalMessages * (rand(920, 980) / 1000));
-        $failed = rand(150, 400);
-        $pending = $totalMessages - $delivered - $failed;
+        // Delivery Rate: Delivered / (Delivered + Undelivered + Rejected)
+        $delivered = rand(10000, 12000);
+        $undelivered = rand(200, 500); // Network issues, temporary failures
+        $rejected = rand(100, 300); // Carrier rejected, invalid numbers
+        $totalForDeliveryCalc = $delivered + $undelivered + $rejected;
+        $deliveryRate = round(($delivered / $totalForDeliveryCalc) * 100, 1);
+        
+        $totalMessages = $delivered + $undelivered + $rejected + rand(100, 400); // + pending
         
         $smsCount = (int)($totalMessages * 0.66);
         $rcsCount = $totalMessages - $smsCount;
-        $rcsSeenCount = (int)($rcsCount * (rand(750, 850) / 1000));
+        
+        // RCS Seen Rate - only where read receipts are available
+        $rcsWithReadReceipts = (int)($rcsCount * (rand(70, 85) / 100)); // Not all RCS support read receipts
+        $rcsSeenCount = (int)($rcsWithReadReceipts * (rand(750, 880) / 1000));
+        
         $optOutCount = rand(20, 80);
         
-        $spend = $totalMessages * 0.10; // £0.10 per message avg
-        $creditsUsed = $totalMessages;
+        // Spend calculation - matches Message Log cost rules
+        $smsCostPerMessage = 0.08; // £0.08 per SMS
+        $rcsCostPerMessage = 0.12; // £0.12 per RCS
+        $spend = ($smsCount * $smsCostPerMessage) + ($rcsCount * $rcsCostPerMessage);
+        $creditsUsed = $smsCount + ($rcsCount * 1.5); // RCS costs 1.5 credits
+        
+        // Billing status - estimated if any messages still pending/processing
+        $hasPendingBilling = rand(0, 1);
         
         return [
             'deliveryRate' => [
-                'value' => round(($delivered / $totalMessages) * 100, 1),
+                'value' => $deliveryRate,
+                'delivered' => $delivered,
+                'undelivered' => $undelivered,
+                'rejected' => $rejected,
+                'formula' => 'Delivered / (Delivered + Undelivered + Rejected)',
                 'trend' => rand(-30, 50) / 10,
-                'previousPeriod' => round((($delivered - rand(100, 500)) / ($totalMessages - rand(500, 1000))) * 100, 1),
+                'previousPeriod' => round($deliveryRate - (rand(-20, 30) / 10), 1),
             ],
             'spend' => [
                 'amount' => round($spend, 2),
                 'currency' => 'GBP',
-                'creditsUsed' => $creditsUsed,
-                'costType' => rand(0, 1) ? 'estimated' : 'final',
+                'creditsUsed' => round($creditsUsed),
+                'isEstimated' => (bool)$hasPendingBilling,
+                'excludesVat' => true,
+                'vatNote' => 'Excludes VAT',
             ],
             'rcsSeenRate' => [
-                'value' => round(($rcsSeenCount / $rcsCount) * 100, 1),
+                'value' => round(($rcsSeenCount / max($rcsWithReadReceipts, 1)) * 100, 1),
                 'rcsMessageCount' => $rcsCount,
+                'rcsWithReadReceipts' => $rcsWithReadReceipts,
                 'seenCount' => $rcsSeenCount,
-                'hasRcsData' => true,
+                'hasRcsData' => $rcsCount > 0,
+                'hasReadReceiptSupport' => $rcsWithReadReceipts > 0,
+                'tooltip' => 'Based on recipients where read receipts are supported',
             ],
             'optOutRate' => [
                 'value' => round(($optOutCount / $totalMessages) * 100, 2),
@@ -264,15 +287,45 @@ class ReportingDashboardApiController extends Controller
 
     private function getPeakSendingTimeData(): array
     {
-        $hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00'];
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         
+        // Generate hourly distribution (8 AM to 6 PM business hours)
+        $hourlyDistribution = [];
+        $maxVolume = 0;
+        $peakHourIndex = 0;
+        
+        for ($h = 8; $h <= 17; $h++) {
+            // Simulate realistic distribution - higher mid-morning
+            $baseVolume = 200;
+            if ($h >= 9 && $h <= 11) {
+                $volume = rand(800, 1500); // Morning peak
+            } elseif ($h >= 14 && $h <= 16) {
+                $volume = rand(600, 1000); // Afternoon secondary peak
+            } else {
+                $volume = rand($baseVolume, 500);
+            }
+            
+            $hourlyDistribution[$h] = $volume;
+            
+            if ($volume > $maxVolume) {
+                $maxVolume = $volume;
+                $peakHourIndex = $h;
+            }
+        }
+        
+        // Format peak hour as "HH:00–HH:59"
+        $peakHourStart = sprintf('%02d:00', $peakHourIndex);
+        $peakHourEnd = sprintf('%02d:59', $peakHourIndex);
+        $peakHourDisplay = "{$peakHourStart}–{$peakHourEnd}";
+        
         return [
-            'peakHour' => $hours[array_rand($hours)],
+            'peakHour' => sprintf('%02d:00', $peakHourIndex),
+            'peakHourDisplay' => $peakHourDisplay,
             'peakDay' => $days[array_rand($days)],
-            'peakVolumeCount' => rand(800, 1500),
+            'peakVolumeCount' => $maxVolume,
+            'hourlyDistribution' => $hourlyDistribution,
             'bestDeliveryRate' => rand(960, 990) / 10,
-            'recommendation' => 'Consider scheduling campaigns between 9-11 AM for optimal delivery.',
+            'recommendation' => "Consider scheduling campaigns during {$peakHourDisplay} for optimal delivery.",
         ];
     }
 
