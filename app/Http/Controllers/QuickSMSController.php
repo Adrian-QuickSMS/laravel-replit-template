@@ -1455,10 +1455,8 @@ class QuickSMSController extends Controller
 
     public function reportingDashboard()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Reporting Dashboard',
-            'purpose' => 'Visual overview of messaging statistics and key performance indicators.',
-            'sub_modules' => []
+        return view('quicksms.reporting.dashboard', [
+            'page_title' => 'Reporting Dashboard'
         ]);
     }
 
