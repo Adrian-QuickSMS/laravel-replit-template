@@ -21,7 +21,14 @@ class FillowAdminController extends Controller
         $page_description = $this->page_description();
         return view('fillow.dashboard.index_2', compact('page_title', 'page_description'));
     }
-	
+
+	// Reporting Dashboard
+	public function reporting_dashboard(){
+        $page_title = 'Reporting Dashboard';
+        $page_description = $this->page_description();
+        return view('fillow.dashboard.reporting', compact('page_title', 'page_description'));
+    }
+
 	// order-list 
 	
 	public function project_page(){

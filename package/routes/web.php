@@ -19,6 +19,7 @@ Route::controller(FillowAdminController::class)->group(function () {
     Route::get('/', 'dashboard');
     Route::get('/index', 'dashboard')->name('dashboard');
     Route::get('/index-2','dashboard_2')->name('dashboard_2');
+    Route::get('/reporting-dashboard','reporting_dashboard')->name('reporting_dashboard');
     Route::get('/project-page','project_page')->name('project_page');
 	Route::get('/contacts', 'contacts')->name('contacts');
     Route::get('/kanban', 'kanban')->name('kanban');
