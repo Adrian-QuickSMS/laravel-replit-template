@@ -103,6 +103,25 @@
     z-index: 10;
 }
 
+/* Drill-through clickable elements */
+.cursor-pointer {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.cursor-pointer:hover {
+    background-color: rgba(var(--primary-rgb), 0.05) !important;
+}
+
+table .cursor-pointer:hover {
+    background-color: rgba(var(--primary-rgb), 0.08) !important;
+}
+
+#topSenderIdsTableBody tr:hover,
+#failureReasonsTableBody tr:hover {
+    background-color: rgba(114, 46, 209, 0.08);
+}
+
 .btn-xs {
     padding: 0.15rem 0.5rem;
     font-size: 0.7rem;
@@ -831,6 +850,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const API_BASE = '/api/reporting/dashboard';
     let chartInstances = {};
     
+    // ========================================
+    // Drill-Through Navigation Helpers
+    // ========================================
+    const ROUTES = {
+        messageLog: '{{ route("reporting.message-log") }}',
+        campaignHistory: '{{ route("messages.campaign-history") }}',
+        optOutList: '{{ route("contacts.opt-out") }}',
+        sendMessage: '{{ route("messages.send") }}'
+    };
+    
+    function navigateWithFilters(baseUrl, filters = {}) {
+        const params = new URLSearchParams(filters);
+        const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+        console.log('[Dashboard] Drill-through:', url);
+        window.location.href = url;
+    }
+    
     // Helper to show error state
     function showError(elementId, message = 'Failed to load data') {
         const el = document.getElementById(elementId);
@@ -904,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rcsTile.style.display = 'none';
             }
             
-            // Opt-out Rate (conditional)
+            // Opt-out Rate (conditional) - clickable to opt-out list
             const optoutTile = document.querySelector('[data-conditional="optout"]');
             if (data.optOutRate.hasOptOutData) {
                 document.getElementById('kpiOptoutContent').innerHTML = `
@@ -912,6 +948,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h4 class="mb-0">${data.optOutRate.value}%</h4>
                     <small class="text-muted">${data.optOutRate.optOutCount} opt-outs this period</small>
                 `;
+                // Make the entire opt-out tile clickable
+                const optoutCard = document.getElementById('kpiOptout');
+                if (optoutCard) {
+                    optoutCard.classList.add('cursor-pointer');
+                    optoutCard.title = 'Click to view opt-out list';
+                    optoutCard.onclick = () => navigateWithFilters(ROUTES.optOutList);
+                }
             } else if (optoutTile) {
                 optoutTile.style.display = 'none';
             }
@@ -935,19 +978,30 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const options = {
                 series: data.series,
-                chart: { height: 280, type: 'line', toolbar: { show: false } },
+                chart: { 
+                    height: 280, 
+                    type: 'line', 
+                    toolbar: { show: false },
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const dateLabel = data.categories[config.dataPointIndex];
+                            navigateWithFilters(ROUTES.campaignHistory, { date: dateLabel });
+                        }
+                    }
+                },
                 colors: ['#6c757d', '#17a2b8'],
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
                 legend: { position: 'top', horizontalAlign: 'right' },
                 xaxis: { categories: data.categories },
                 yaxis: { title: { text: 'Messages' } },
-                tooltip: { shared: true, intersect: false }
+                tooltip: { shared: true, intersect: false },
+                markers: { size: 5, hover: { size: 7 } }
             };
             
             chartInstances.volume = new ApexCharts(chartEl, options);
             chartInstances.volume.render();
-            console.log('[Dashboard] Volume chart loaded');
+            console.log('[Dashboard] Volume chart loaded (click points to drill-through)');
         } catch (error) {
             console.error('[Dashboard] Volume chart error:', error);
             showError('volumeLineChart', 'Failed to load chart');
@@ -1000,15 +1054,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const chartEl = document.getElementById('deliveryStatusPieChart');
             chartEl.innerHTML = '';
             
+            const statusLabels = ['Delivered', 'Pending', 'Failed'];
+            const statusValues = ['delivered', 'pending', 'failed'];
             const options = {
                 series: [data.delivered.count, data.pending.count, data.failed.count],
-                chart: { type: 'donut', height: 200 },
-                labels: ['Delivered', 'Pending', 'Failed'],
+                chart: { 
+                    type: 'donut', 
+                    height: 200,
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const status = statusValues[config.dataPointIndex];
+                            navigateWithFilters(ROUTES.messageLog, { status: status });
+                        }
+                    }
+                },
+                labels: statusLabels,
                 colors: ['#28a745', '#ffc107', '#dc3545'],
                 legend: { show: false },
                 plotOptions: {
-                    pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: () => formatNumber(data.total) } } } }
-                }
+                    pie: { 
+                        donut: { 
+                            size: '70%', 
+                            labels: { show: true, total: { show: true, label: 'Total', formatter: () => formatNumber(data.total) } } 
+                        },
+                        expandOnClick: false
+                    }
+                },
+                states: { hover: { filter: { type: 'darken', value: 0.9 } } }
             };
             
             chartInstances.deliveryStatus = new ApexCharts(chartEl, options);
@@ -1040,17 +1112,28 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const options = {
                 series: [{ name: 'Messages', data: data.values }],
-                chart: { type: 'bar', height: 250, toolbar: { show: false } },
+                chart: { 
+                    type: 'bar', 
+                    height: 250, 
+                    toolbar: { show: false },
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const countryCode = data.categories[config.dataPointIndex];
+                            navigateWithFilters(ROUTES.messageLog, { country: countryCode });
+                        }
+                    }
+                },
                 colors: ['var(--primary)'],
                 plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '60%' } },
                 dataLabels: { enabled: false },
                 xaxis: { categories: data.categories, labels: { style: { fontSize: '10px' } } },
-                yaxis: { title: { text: 'Messages' } }
+                yaxis: { title: { text: 'Messages' } },
+                states: { hover: { filter: { type: 'darken', value: 0.9 } } }
             };
             
             chartInstances.topCountries = new ApexCharts(chartEl, options);
             chartInstances.topCountries.render();
-            console.log('[Dashboard] Top countries loaded');
+            console.log('[Dashboard] Top countries loaded (click bars to drill-through)');
         } catch (error) {
             console.error('[Dashboard] Top countries error:', error);
             showError('topCountriesBarChart', 'Failed to load');
@@ -1066,14 +1149,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const tbody = document.getElementById('topSenderIdsTableBody');
             tbody.innerHTML = data.senderIds.map(item => `
-                <tr>
+                <tr class="cursor-pointer" onclick="navigateWithFilters(ROUTES.messageLog, { sender_id: '${item.senderId}' })" title="Click to view messages from ${item.senderId}">
                     <td><span class="badge badge-primary light">${item.senderId}</span></td>
                     <td class="text-end">${formatNumber(item.messages)}</td>
                     <td class="text-end">${formatNumber(item.delivered)}</td>
                     <td class="text-end"><span class="${item.deliveryRate >= 95 ? 'text-success' : 'text-warning'}">${item.deliveryRate}%</span></td>
                 </tr>
             `).join('');
-            console.log('[Dashboard] Top SenderIDs loaded');
+            console.log('[Dashboard] Top SenderIDs loaded (click rows to drill-through)');
         } catch (error) {
             console.error('[Dashboard] Top SenderIDs error:', error);
             document.getElementById('topSenderIdsTableBody').innerHTML = `<tr><td colspan="4" class="text-center text-danger">Failed to load</td></tr>`;
@@ -1113,12 +1196,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <strong class="text-success">${data.bestDeliveryRate}%</strong>
                     </div>
                 </div>
-                <div class="alert alert-light mt-3 mb-0 py-2 px-3 small">
-                    <i class="fas fa-info-circle text-primary me-1"></i>
-                    ${data.recommendation}
-                </div>
+                <a href="${ROUTES.sendMessage}?schedule_time=${data.peakHour}&schedule_day=${data.peakDay}" class="btn btn-outline-primary btn-sm w-100 mt-3">
+                    <i class="fas fa-clock me-1"></i>Schedule at Peak Time
+                </a>
             `;
-            console.log('[Dashboard] Peak time loaded');
+            console.log('[Dashboard] Peak time loaded (click button to schedule)');
         } catch (error) {
             console.error('[Dashboard] Peak time error:', error);
             showError('peakTimeContent', 'Failed to load insight');
@@ -1136,13 +1218,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const tbody = document.getElementById('failureReasonsTableBody');
             tbody.innerHTML = data.reasons.map(item => `
-                <tr>
+                <tr class="cursor-pointer" onclick="navigateWithFilters(ROUTES.messageLog, { status: 'failed', failure_reason: '${item.reason}' })" title="Click to view failed messages: ${item.reason}">
                     <td><i class="fas ${item.icon} ${item.iconColor} me-1"></i> ${item.reason}</td>
                     <td class="text-end">${item.count}</td>
                     <td class="text-end">${item.percentage}%</td>
                 </tr>
             `).join('');
-            console.log('[Dashboard] Failure reasons loaded');
+            console.log('[Dashboard] Failure reasons loaded (click rows to drill-through)');
         } catch (error) {
             console.error('[Dashboard] Failure reasons error:', error);
             document.getElementById('failureReasonsTableBody').innerHTML = `<tr><td colspan="3" class="text-center text-danger">Failed to load</td></tr>`;
