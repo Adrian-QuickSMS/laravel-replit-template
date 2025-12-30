@@ -570,8 +570,12 @@ table .cursor-pointer:hover {
             <div class="widget-stat card" id="kpiDeliveryRate">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
-                        <span class="me-3 bgl-success text-success">
-                            <i class="fas fa-percentage"></i>
+                        <span class="me-3 bgl-info text-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="5" x2="5" y2="19"></line>
+                                <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                                <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                            </svg>
                         </span>
                         <div class="media-body" id="kpiDeliveryRateContent">
                             <div class="qs-skeleton qs-skeleton-text" style="width:80px"></div>
@@ -1317,13 +1321,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Delivery Rate with tooltip
             const deliveryTooltip = `Formula: ${data.deliveryRate.formula}\nDelivered: ${formatNumber(data.deliveryRate.delivered)}\nUndelivered: ${formatNumber(data.deliveryRate.undelivered)}\nRejected: ${formatNumber(data.deliveryRate.rejected)}`;
+            const trendClass = data.deliveryRate.trend >= 0 ? 'badge-info' : 'badge-danger';
+            const trendText = data.deliveryRate.trend >= 0 ? `+${data.deliveryRate.trend}%` : `${data.deliveryRate.trend}%`;
             document.getElementById('kpiDeliveryRateContent').innerHTML = `
-                <p class="mb-1">Delivery Rate <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
-                <h4 class="mb-0">${data.deliveryRate.value}%</h4>
-                <small class="${data.deliveryRate.trend >= 0 ? 'text-success' : 'text-danger'}">
-                    <i class="fas fa-arrow-${data.deliveryRate.trend >= 0 ? 'up' : 'down'} me-1"></i>
-                    ${data.deliveryRate.trend >= 0 ? '+' : ''}${data.deliveryRate.trend}% vs last period
-                </small>
+                <p class="mb-1">DELIVERY RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
+                <h4 class="mb-0 d-flex align-items-center">${data.deliveryRate.value}% <span class="badge ${trendClass} ms-2" style="font-size: 11px; font-weight: 500;">${trendText}</span></h4>
             `;
             
             // Spend with estimated label and VAT note (role-based)
