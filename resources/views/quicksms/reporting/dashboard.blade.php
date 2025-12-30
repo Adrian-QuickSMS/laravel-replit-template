@@ -288,80 +288,87 @@
     <!-- Section 2: Tiles & Charts Grid -->
     <div class="qs-dashboard-grid" id="dashboardGrid">
         
-        <!-- KPI Tiles -->
-        <div class="qs-tile tile-small" data-tile-id="tile-total" data-size="small">
-            <div class="widget-stat card">
-                <div class="card-body p-4">
-                    <div class="media ai-icon">
-                        <span class="me-3 bgl-primary text-primary">
-                            <i class="fas fa-paper-plane"></i>
-                        </span>
-                        <div class="media-body">
-                            <p class="mb-1">Total Messages</p>
-                            <h4 class="mb-0">--</h4>
-                            <small class="text-muted">Placeholder</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- ========== ROW 1: KPI Tiles (small) ========== -->
         
-        <div class="qs-tile tile-small" data-tile-id="tile-delivered" data-size="small">
+        <!-- 1. Delivery Rate KPI -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-delivery-rate" data-size="small">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-success text-success">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-percentage"></i>
                         </span>
                         <div class="media-body">
-                            <p class="mb-1">Delivered</p>
-                            <h4 class="mb-0">--</h4>
-                            <small class="text-muted">Placeholder</small>
+                            <p class="mb-1">Delivery Rate</p>
+                            <h4 class="mb-0">94.7%</h4>
+                            <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+2.3% vs last period</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="qs-tile tile-small" data-tile-id="tile-pending" data-size="small">
+        <!-- 2. Spend KPI -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
-                        <span class="me-3 bgl-warning text-warning">
-                            <i class="fas fa-clock"></i>
+                        <span class="me-3 bgl-primary text-primary">
+                            <i class="fas fa-pound-sign"></i>
                         </span>
                         <div class="media-body">
-                            <p class="mb-1">Pending</p>
-                            <h4 class="mb-0">--</h4>
-                            <small class="text-muted">Placeholder</small>
+                            <p class="mb-1">Total Spend</p>
+                            <h4 class="mb-0">£1,247.50</h4>
+                            <small class="text-muted">12,475 credits used</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="qs-tile tile-small" data-tile-id="tile-failed" data-size="small">
+        <!-- 3. RCS Seen Rate (conditional) -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-rcs-seen" data-size="small" data-conditional="rcs">
+            <div class="widget-stat card">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-info text-info">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">RCS Seen Rate</p>
+                            <h4 class="mb-0">78.3%</h4>
+                            <small class="text-info"><i class="fas fa-comment-dots me-1"></i>RCS messages only</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 4. Opt-out Rate (conditional) -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-optout" data-size="small" data-conditional="optout">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-danger text-danger">
-                            <i class="fas fa-times-circle"></i>
+                            <i class="fas fa-user-slash"></i>
                         </span>
                         <div class="media-body">
-                            <p class="mb-1">Failed</p>
-                            <h4 class="mb-0">--</h4>
-                            <small class="text-muted">Placeholder</small>
+                            <p class="mb-1">Opt-out Rate</p>
+                            <h4 class="mb-0">0.8%</h4>
+                            <small class="text-muted">42 opt-outs this period</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Message Volume Chart -->
+        <!-- ========== ROW 2: Charts (medium/large) ========== -->
+        
+        <!-- 5. Volume Over Time (Line Chart) -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Message Volume Over Time</h4>
+                    <h4 class="card-title mb-0">Volume Over Time</h4>
                     <div class="card-tabs">
                         <ul class="nav nav-tabs" role="tablist">
                             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#daily" role="tab">Daily</a></li>
@@ -373,94 +380,207 @@
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="daily" role="tabpanel">
-                            <div id="messageVolumeChart" class="chart-placeholder"></div>
+                            <div id="volumeLineChart" class="chart-placeholder"></div>
                         </div>
                         <div class="tab-pane fade" id="weekly" role="tabpanel">
-                            <div class="chart-placeholder"><div class="text-center text-muted">Weekly View</div></div>
+                            <div class="chart-placeholder"><div class="text-center text-muted py-5">Weekly View - Coming Soon</div></div>
                         </div>
                         <div class="tab-pane fade" id="monthly" role="tabpanel">
-                            <div class="chart-placeholder"><div class="text-center text-muted">Monthly View</div></div>
+                            <div class="chart-placeholder"><div class="text-center text-muted py-5">Monthly View - Coming Soon</div></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Delivery Status -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-status" data-size="medium">
+        <!-- 6. Channel Split SMS vs RCS (Horizontal Stacked Bar) -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-channel-split" data-size="medium">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Delivery Status</h4>
+                    <h4 class="card-title">Channel Split</h4>
                 </div>
                 <div class="card-body">
-                    <div id="deliveryStatusChart" class="chart-placeholder"></div>
+                    <div id="channelSplitChart" class="chart-placeholder"></div>
+                    <div class="d-flex justify-content-around mt-3 small">
+                        <span><i class="fa fa-circle text-secondary me-1"></i> SMS: 8,234</span>
+                        <span><i class="fa fa-circle text-info me-1"></i> RCS: 4,241</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== ROW 3: Performance Charts & Tables ========== -->
+        
+        <!-- 7. Delivery Status Breakdown (Pie Chart) -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium">
+            <div class="card h-100">
+                <div class="card-header border-0 pb-0">
+                    <h4 class="card-title">Delivery Status Breakdown</h4>
+                </div>
+                <div class="card-body">
+                    <div id="deliveryStatusPieChart" class="chart-placeholder"></div>
                     <div class="chart-point mt-2">
                         <ul class="chart-point-list mb-0 small">
-                            <li><i class="fa fa-circle text-success me-1"></i> Delivered: --</li>
-                            <li><i class="fa fa-circle text-warning me-1"></i> Pending: --</li>
-                            <li><i class="fa fa-circle text-danger me-1"></i> Failed: --</li>
+                            <li><i class="fa fa-circle text-success me-1"></i> Delivered: 11,823</li>
+                            <li><i class="fa fa-circle text-warning me-1"></i> Pending: 412</li>
+                            <li><i class="fa fa-circle text-danger me-1"></i> Failed: 240</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Messages by Country -->
-        <div class="qs-tile tile-large" data-tile-id="chart-country" data-size="large">
+        <!-- 8. Top 10 Countries (Vertical Bar Chart) -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-top-countries" data-size="medium">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Messages by Country</h4>
+                    <h4 class="card-title">Top 10 Countries</h4>
                 </div>
                 <div class="card-body">
-                    <div id="countryChart" class="chart-placeholder"></div>
+                    <div id="topCountriesBarChart" class="chart-placeholder"></div>
                 </div>
             </div>
         </div>
         
-        <!-- Message Type Breakdown -->
-        <div class="qs-tile tile-large" data-tile-id="chart-type" data-size="large">
+        <!-- 9. Top SenderIDs (Table) -->
+        <div class="qs-tile tile-medium" data-tile-id="table-top-senderids" data-size="medium">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Message Type Breakdown</h4>
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Top SenderIDs</h4>
+                    <a href="{{ route('reporting.message-log') }}" class="btn btn-outline-primary btn-sm">View All</a>
                 </div>
-                <div class="card-body">
-                    <div id="messageTypeChart" class="chart-placeholder"></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>SenderID</th>
+                                    <th class="text-end">Messages</th>
+                                    <th class="text-end">Delivered</th>
+                                    <th class="text-end">Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge badge-primary light">PROMO</span></td>
+                                    <td class="text-end">3,456</td>
+                                    <td class="text-end">3,298</td>
+                                    <td class="text-end"><span class="text-success">95.4%</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-primary light">ALERTS</span></td>
+                                    <td class="text-end">2,891</td>
+                                    <td class="text-end">2,834</td>
+                                    <td class="text-end"><span class="text-success">98.0%</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-primary light">QuickSMS</span></td>
+                                    <td class="text-end">2,234</td>
+                                    <td class="text-end">2,089</td>
+                                    <td class="text-end"><span class="text-success">93.5%</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-primary light">INFO</span></td>
+                                    <td class="text-end">1,987</td>
+                                    <td class="text-end">1,876</td>
+                                    <td class="text-end"><span class="text-success">94.4%</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-primary light">NOTIFY</span></td>
+                                    <td class="text-end">1,654</td>
+                                    <td class="text-end">1,548</td>
+                                    <td class="text-end"><span class="text-warning">93.6%</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Cost Summary -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-cost" data-size="medium">
+        <!-- ========== ROW 4: Intelligence Tiles (small) ========== -->
+        
+        <!-- 10. Peak Sending Time Insight -->
+        <div class="qs-tile tile-large" data-tile-id="tile-peak-time" data-size="large">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Cost Summary</h4>
+                    <h4 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>Peak Sending Time</h4>
                 </div>
                 <div class="card-body">
-                    <div id="costChart" class="chart-placeholder"></div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <span class="display-6 text-primary fw-bold">10:00</span>
+                            <span class="text-muted">AM</span>
+                        </div>
+                        <div>
+                            <p class="mb-0 text-muted small">Most messages sent</p>
+                            <strong>Tuesday mornings</strong>
+                        </div>
+                    </div>
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Peak Hour Volume</span>
+                            <strong class="text-dark">1,234 messages</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Best Delivery Rate</span>
+                            <strong class="text-success">97.2%</strong>
+                        </div>
+                    </div>
+                    <div class="alert alert-light mt-3 mb-0 py-2 px-3 small">
+                        <i class="fas fa-info-circle text-primary me-1"></i>
+                        Consider scheduling campaigns between 9-11 AM for optimal delivery.
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Top Senders -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-senders" data-size="medium">
+        <!-- 11. Failure Reasons (small table) -->
+        <div class="qs-tile tile-large" data-tile-id="table-failure-reasons" data-size="large">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Top Senders</h4>
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Failure Reasons</h4>
+                    <span class="badge badge-danger light">240 failed</span>
                 </div>
-                <div class="card-body">
-                    <div id="topSendersChart" class="chart-placeholder"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Delivery Rate Trend -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-rate" data-size="medium">
-            <div class="card h-100">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Delivery Rate Trend</h4>
-                </div>
-                <div class="card-body">
-                    <div id="deliveryRateChart" class="chart-placeholder"></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Reason</th>
+                                    <th class="text-end">Count</th>
+                                    <th class="text-end">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fas fa-phone-slash text-danger me-1"></i> Invalid Number</td>
+                                    <td class="text-end">98</td>
+                                    <td class="text-end">40.8%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-signal text-warning me-1"></i> Network Error</td>
+                                    <td class="text-end">62</td>
+                                    <td class="text-end">25.8%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-ban text-secondary me-1"></i> Carrier Rejected</td>
+                                    <td class="text-end">45</td>
+                                    <td class="text-end">18.8%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-clock text-info me-1"></i> Timeout</td>
+                                    <td class="text-end">23</td>
+                                    <td class="text-end">9.6%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-question-circle text-muted me-1"></i> Other</td>
+                                    <td class="text-end">12</td>
+                                    <td class="text-end">5.0%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -524,10 +644,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Default tile order
     const defaultOrder = [
-        'tile-total', 'tile-delivered', 'tile-pending', 'tile-failed',
-        'chart-volume', 'chart-status',
-        'chart-country', 'chart-type',
-        'chart-cost', 'chart-senders', 'chart-rate'
+        'kpi-delivery-rate', 'kpi-spend', 'kpi-rcs-seen', 'kpi-optout',
+        'chart-volume', 'chart-channel-split',
+        'chart-delivery-status', 'chart-top-countries', 'table-top-senderids',
+        'tile-peak-time', 'table-failure-reasons'
     ];
     
     // Size options for resize
@@ -613,10 +733,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Reset sizes to default
         const defaultSizes = {
-            'tile-total': 'small', 'tile-delivered': 'small', 'tile-pending': 'small', 'tile-failed': 'small',
-            'chart-volume': 'xlarge', 'chart-status': 'medium',
-            'chart-country': 'large', 'chart-type': 'large',
-            'chart-cost': 'medium', 'chart-senders': 'medium', 'chart-rate': 'medium'
+            'kpi-delivery-rate': 'small', 'kpi-spend': 'small', 'kpi-rcs-seen': 'small', 'kpi-optout': 'small',
+            'chart-volume': 'xlarge', 'chart-channel-split': 'medium',
+            'chart-delivery-status': 'medium', 'chart-top-countries': 'medium', 'table-top-senderids': 'medium',
+            'tile-peak-time': 'large', 'table-failure-reasons': 'large'
         };
         
         Object.entries(defaultSizes).forEach(([id, size]) => {
@@ -650,46 +770,96 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Placeholder: Initialize charts with dummy data when ApexCharts is loaded
+    // Initialize charts with dummy data when ApexCharts is loaded
     if (typeof ApexCharts !== 'undefined') {
         
-        // Message Volume Line Chart (dummy data)
+        // 5. Volume Over Time Line Chart (dummy data)
         const volumeOptions = {
             series: [{
-                name: 'Messages',
-                data: [120, 180, 150, 220, 190, 250, 280, 310, 275, 320, 290, 350]
+                name: 'SMS',
+                data: [1200, 1450, 1320, 1580, 1420, 1680, 1820, 1950, 1780, 2100, 1920, 2250]
+            }, {
+                name: 'RCS',
+                data: [320, 450, 380, 520, 480, 620, 710, 780, 690, 850, 760, 920]
             }],
             chart: {
-                height: 250,
-                type: 'area',
+                height: 280,
+                type: 'line',
                 toolbar: { show: false }
             },
-            colors: ['var(--primary)'],
+            colors: ['#6c757d', '#17a2b8'],
             dataLabels: { enabled: false },
             stroke: { curve: 'smooth', width: 2 },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.4,
-                    opacityTo: 0.1,
-                    stops: [0, 90, 100]
-                }
+            legend: {
+                position: 'top',
+                horizontalAlign: 'right'
             },
             xaxis: {
-                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                categories: ['24 Dec', '25 Dec', '26 Dec', '27 Dec', '28 Dec', '29 Dec', '30 Dec']
+            },
+            yaxis: {
+                title: { text: 'Messages' }
+            },
+            tooltip: {
+                shared: true,
+                intersect: false
             }
         };
-        const volumeChartEl = document.querySelector("#messageVolumeChart");
+        const volumeChartEl = document.querySelector("#volumeLineChart");
         if (volumeChartEl) {
             volumeChartEl.innerHTML = '';
             chartInstances.volume = new ApexCharts(volumeChartEl, volumeOptions);
             chartInstances.volume.render();
         }
 
-        // Delivery Status Donut Chart (dummy data)
-        const statusOptions = {
-            series: [68, 22, 10],
+        // 6. Channel Split Horizontal Stacked Bar (dummy data)
+        const channelSplitOptions = {
+            series: [{
+                name: 'SMS',
+                data: [8234]
+            }, {
+                name: 'RCS',
+                data: [4241]
+            }],
+            chart: {
+                type: 'bar',
+                height: 120,
+                stacked: true,
+                stackType: '100%',
+                toolbar: { show: false }
+            },
+            colors: ['#6c757d', '#17a2b8'],
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    borderRadius: 4,
+                    barHeight: '60%'
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val) {
+                    return val.toFixed(0) + '%';
+                }
+            },
+            xaxis: {
+                categories: ['Messages'],
+                labels: { show: false }
+            },
+            yaxis: { labels: { show: false } },
+            legend: { show: false },
+            grid: { show: false }
+        };
+        const channelSplitChartEl = document.querySelector("#channelSplitChart");
+        if (channelSplitChartEl) {
+            channelSplitChartEl.innerHTML = '';
+            chartInstances.channelSplit = new ApexCharts(channelSplitChartEl, channelSplitOptions);
+            chartInstances.channelSplit.render();
+        }
+
+        // 7. Delivery Status Pie Chart (dummy data)
+        const deliveryStatusOptions = {
+            series: [11823, 412, 240],
             chart: {
                 type: 'donut',
                 height: 200
@@ -706,25 +876,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             total: {
                                 show: true,
                                 label: 'Total',
-                                formatter: () => '--'
+                                formatter: () => '12,475'
                             }
                         }
                     }
                 }
             }
         };
-        const statusChartEl = document.querySelector("#deliveryStatusChart");
-        if (statusChartEl) {
-            statusChartEl.innerHTML = '';
-            chartInstances.status = new ApexCharts(statusChartEl, statusOptions);
-            chartInstances.status.render();
+        const deliveryStatusChartEl = document.querySelector("#deliveryStatusPieChart");
+        if (deliveryStatusChartEl) {
+            deliveryStatusChartEl.innerHTML = '';
+            chartInstances.deliveryStatus = new ApexCharts(deliveryStatusChartEl, deliveryStatusOptions);
+            chartInstances.deliveryStatus.render();
         }
 
-        // Country Bar Chart (dummy data)
-        const countryOptions = {
+        // 8. Top 10 Countries Vertical Bar Chart (dummy data)
+        const topCountriesOptions = {
             series: [{
                 name: 'Messages',
-                data: [450, 320, 180, 120, 90]
+                data: [4520, 3280, 1820, 1240, 980, 720, 450, 320, 180, 95]
             }],
             chart: {
                 type: 'bar',
@@ -736,135 +906,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 bar: {
                     borderRadius: 4,
                     horizontal: false,
+                    columnWidth: '60%'
                 }
             },
             dataLabels: { enabled: false },
             xaxis: {
-                categories: ['UK', 'US', 'Germany', 'France', 'Ireland'],
-            }
-        };
-        const countryChartEl = document.querySelector("#countryChart");
-        if (countryChartEl) {
-            countryChartEl.innerHTML = '';
-            chartInstances.country = new ApexCharts(countryChartEl, countryOptions);
-            chartInstances.country.render();
-        }
-
-        // Message Type Pie Chart (dummy data)
-        const typeOptions = {
-            series: [65, 25, 10],
-            chart: {
-                type: 'pie',
-                height: 250
-            },
-            labels: ['SMS', 'RCS Basic', 'RCS Rich'],
-            colors: ['#6c757d', '#17a2b8', '#6f42c1'],
-            legend: {
-                position: 'bottom'
-            }
-        };
-        const typeChartEl = document.querySelector("#messageTypeChart");
-        if (typeChartEl) {
-            typeChartEl.innerHTML = '';
-            chartInstances.type = new ApexCharts(typeChartEl, typeOptions);
-            chartInstances.type.render();
-        }
-
-        // Cost Area Chart (dummy data)
-        const costOptions = {
-            series: [{
-                name: 'Cost',
-                data: [45, 52, 38, 65, 73, 68, 82, 94, 87, 105, 98, 120]
-            }],
-            chart: {
-                height: 200,
-                type: 'area',
-                toolbar: { show: false }
-            },
-            colors: ['#28a745'],
-            dataLabels: { enabled: false },
-            stroke: { curve: 'smooth', width: 2 },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.4,
-                    opacityTo: 0.1,
-                    stops: [0, 90, 100]
-                }
-            },
-            xaxis: {
-                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            }
-        };
-        const costChartEl = document.querySelector("#costChart");
-        if (costChartEl) {
-            costChartEl.innerHTML = '';
-            chartInstances.cost = new ApexCharts(costChartEl, costOptions);
-            chartInstances.cost.render();
-        }
-
-        // Top Senders Horizontal Bar (dummy data)
-        const sendersOptions = {
-            series: [{
-                data: [320, 280, 220, 180, 150]
-            }],
-            chart: {
-                type: 'bar',
-                height: 200,
-                toolbar: { show: false }
-            },
-            colors: ['var(--primary)'],
-            plotOptions: {
-                bar: {
-                    borderRadius: 4,
-                    horizontal: true,
-                }
-            },
-            dataLabels: { enabled: false },
-            xaxis: {
-                categories: ['PROMO', 'ALERTS', 'QuickSMS', 'INFO', 'NOTIFY'],
-            }
-        };
-        const sendersChartEl = document.querySelector("#topSendersChart");
-        if (sendersChartEl) {
-            sendersChartEl.innerHTML = '';
-            chartInstances.senders = new ApexCharts(sendersChartEl, sendersOptions);
-            chartInstances.senders.render();
-        }
-
-        // Delivery Rate Line Chart (dummy data)
-        const rateOptions = {
-            series: [{
-                name: 'Delivery Rate %',
-                data: [92, 94, 91, 95, 93, 96, 94, 97, 95, 98, 96, 97]
-            }],
-            chart: {
-                height: 200,
-                type: 'line',
-                toolbar: { show: false }
-            },
-            colors: ['#17a2b8'],
-            dataLabels: { enabled: false },
-            stroke: { curve: 'smooth', width: 3 },
-            markers: { size: 4 },
-            yaxis: {
-                min: 80,
-                max: 100,
+                categories: ['UK', 'US', 'DE', 'FR', 'IE', 'ES', 'IT', 'NL', 'BE', 'AU'],
                 labels: {
-                    formatter: (val) => val + '%'
+                    style: { fontSize: '10px' }
                 }
             },
-            xaxis: {
-                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            yaxis: {
+                title: { text: 'Messages' }
             }
         };
-        const rateChartEl = document.querySelector("#deliveryRateChart");
-        if (rateChartEl) {
-            rateChartEl.innerHTML = '';
-            chartInstances.rate = new ApexCharts(rateChartEl, rateOptions);
-            chartInstances.rate.render();
+        const topCountriesChartEl = document.querySelector("#topCountriesBarChart");
+        if (topCountriesChartEl) {
+            topCountriesChartEl.innerHTML = '';
+            chartInstances.topCountries = new ApexCharts(topCountriesChartEl, topCountriesOptions);
+            chartInstances.topCountries.render();
         }
+
+        // Legacy charts removed - replaced with new dashboard components
+        console.log('[Dashboard] Charts initialized with dummy data');
+    }
+    
+    // ========================================
+    // Conditional Tile Visibility
+    // ========================================
+    // TODO: Backend integration - show/hide conditional tiles based on actual data
+    // For now, all conditional tiles are visible with dummy data
+    const hasRcsData = true; // Replace with actual check
+    const hasOptoutData = true; // Replace with actual check
+    
+    const rcsTile = document.querySelector('[data-conditional="rcs"]');
+    const optoutTile = document.querySelector('[data-conditional="optout"]');
+    
+    if (rcsTile && !hasRcsData) {
+        rcsTile.style.display = 'none';
+    }
+    if (optoutTile && !hasOptoutData) {
+        optoutTile.style.display = 'none';
     }
     
     // ========================================
