@@ -576,262 +576,15 @@
                                 </tr>
                             </thead>
                             <tbody id="messageLogTableBody">
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***456</span></td>
-                                    <td class="py-2" data-column="senderId">QuickSMS</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:23</td>
-                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:23</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:23</td>
-                                    <td class="py-2" data-column="cost">£0.035</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Main Account</td>
-                                    <td class="py-2 d-none" data-column="user">John Smith</td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234567</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234567'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234567', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447712345456', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
+                                <tr id="loadingInitialRow">
+                                    <td colspan="17" class="text-center py-5">
+                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
                                         </div>
+                                        <span class="text-muted">Loading messages...</span>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***789</span></td>
-                                    <td class="py-2" data-column="senderId">ALERTS</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-warning text-dark">Pending</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:21</td>
-                                    <td class="py-2" data-column="deliveryTime">-</td>
-                                    <td class="py-2" data-column="completedTime">-</td>
-                                    <td class="py-2" data-column="cost">£0.035</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Marketing Team</td>
-                                    <td class="py-2 d-none" data-column="user">Sarah Johnson</td>
-                                    <td class="py-2 d-none" data-column="origin">API</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234568</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234568'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234568', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447823456789', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***123</span></td>
-                                    <td class="py-2" data-column="senderId">QuickSMS Brand</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:18</td>
-                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:18</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:18</td>
-                                    <td class="py-2" data-column="cost">£0.025</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-info">RCS Rich</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Main Account</td>
-                                    <td class="py-2 d-none" data-column="user">John Smith</td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234569</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234569'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234569', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447934567123', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***321</span></td>
-                                    <td class="py-2" data-column="senderId">QuickSMS</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-danger">Undeliverable</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:15</td>
-                                    <td class="py-2" data-column="deliveryTime">-</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:16</td>
-                                    <td class="py-2" data-column="cost">£0.000</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Support Team</td>
-                                    <td class="py-2 d-none" data-column="user">Mike Williams</td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234570</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234570'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234570', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447745678321', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***654</span></td>
-                                    <td class="py-2" data-column="senderId">QuickSMS</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:12</td>
-                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:12</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:12</td>
-                                    <td class="py-2" data-column="cost">£0.070</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Sales Team</td>
-                                    <td class="py-2 d-none" data-column="user">Emma Davis</td>
-                                    <td class="py-2 d-none" data-column="origin">Integration</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">2</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234571</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234571'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234571', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447856789654', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***987</span></td>
-                                    <td class="py-2" data-column="senderId">QuickSMS Brand</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:08</td>
-                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:08</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:08</td>
-                                    <td class="py-2" data-column="cost">£0.025</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-info">RCS Basic</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Main Account</td>
-                                    <td class="py-2 d-none" data-column="user">John Smith</td>
-                                    <td class="py-2 d-none" data-column="origin">Portal</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234572</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234572'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234572', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447967890987', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***147</span></td>
-                                    <td class="py-2" data-column="senderId">PROMO</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-secondary">Rejected</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:05</td>
-                                    <td class="py-2" data-column="deliveryTime">-</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:05</td>
-                                    <td class="py-2" data-column="cost">£0.000</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Marketing Team</td>
-                                    <td class="py-2 d-none" data-column="user">Sarah Johnson</td>
-                                    <td class="py-2 d-none" data-column="origin">Email-to-SMS</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234573</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234573'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234573', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447701234147', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***258</span></td>
-                                    <td class="py-2" data-column="senderId">ALERTS</td>
-                                    <td class="py-2" data-column="status"><span class="badge bg-success">Delivered</span></td>
-                                    <td class="py-2" data-column="sentTime">30/12/2024 14:02</td>
-                                    <td class="py-2" data-column="deliveryTime">30/12/2024 14:02</td>
-                                    <td class="py-2" data-column="completedTime">30/12/2024 14:02</td>
-                                    <td class="py-2" data-column="cost">£0.035</td>
-                                    <td class="py-2 d-none" data-column="messageType"><span class="badge bg-secondary">SMS</span></td>
-                                    <td class="py-2 d-none" data-column="subAccount">Support Team</td>
-                                    <td class="py-2 d-none" data-column="user">Mike Williams</td>
-                                    <td class="py-2 d-none" data-column="origin">API</td>
-                                    <td class="py-2 d-none" data-column="country">UK</td>
-                                    <td class="py-2 d-none" data-column="parts">1</td>
-                                    <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
-                                    <td class="py-2 d-none" data-column="messageId">MSG-001234574</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
-                                    <td class="py-2 text-center" data-column="actions">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                                <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('MSG-001234574'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('MSG-001234574', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('+447823456258', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <!-- Rows populated by mock API -->
                             </tbody>
                         </table>
                             <div id="noResultsState" class="text-center py-5 text-muted d-none">
@@ -854,7 +607,7 @@
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div class="text-muted small">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Showing <span id="displayedCount">8</span> of <span id="totalCount">1,247</span> messages
+                                Showing <span id="displayedCount">0</span> of <span id="totalCount">0</span> messages
                             </div>
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="text-muted small me-2">Export:</span>
@@ -1151,27 +904,6 @@ function exportMessages(format) {
             }, 2000);
         }, 1500);
     }
-    
-    // TODO: Implement actual API call
-    // fetch('/api/messages/export', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //         format: format,
-    //         filters: appliedFilters,
-    //         columns: visibleColumns
-    //     })
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.downloadUrl) {
-    //         window.location.href = data.downloadUrl; // Direct download
-    //     } else {
-    //         showToast('Export queued. Check Download Area.', 'success');
-    //         // Optionally redirect: window.location.href = '/reporting/download-area';
-    //     }
-    // })
-    // .catch(err => showToast('Export failed. Please try again.', 'error'));
 }
 
 function viewMessageDetails(messageId) {
@@ -1216,13 +948,129 @@ function viewMessageDetails(messageId) {
     modal.show();
 }
 
+// ========================================
+// Mock API Layer
+// ========================================
+const MockAPI = {
+    // Mock data constants
+    statuses: [
+        { class: 'bg-success', text: 'Delivered', weight: 70 },
+        { class: 'bg-warning text-dark', text: 'Pending', weight: 10 },
+        { class: 'bg-danger', text: 'Undeliverable', weight: 15 },
+        { class: 'bg-secondary', text: 'Rejected', weight: 5 }
+    ],
+    senders: ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand', 'INFO', 'NOTIFY'],
+    origins: ['Portal', 'API', 'Email-to-SMS', 'Integration'],
+    messageTypes: [
+        { class: 'bg-secondary', text: 'SMS', weight: 60 },
+        { class: 'bg-info', text: 'RCS Basic', weight: 25 },
+        { class: 'bg-info', text: 'RCS Rich', weight: 15 }
+    ],
+    subAccounts: ['Main Account', 'Marketing Team', 'Support Team', 'Sales Team'],
+    users: ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emma Davis', 'James Wilson'],
+    encodings: [
+        { class: 'bg-light text-dark border', text: 'GSM-7', weight: 80 },
+        { class: 'bg-primary text-white', text: 'Unicode', weight: 20 }
+    ],
+    countries: ['UK', 'US', 'DE', 'FR', 'ES', 'IE'],
+    messages: [
+        'Your order has been dispatched and will arrive tomorrow.',
+        'Reminder: Your appointment is scheduled for tomorrow at 2pm.',
+        'Your verification code is 123456. Valid for 5 minutes.',
+        'Thank you for your purchase! Your receipt is attached.',
+        'Flash sale! 50% off all items this weekend only.',
+        'Your account balance is low. Please top up soon.',
+        'Delivery update: Your package is out for delivery.',
+        'Welcome to QuickSMS! Your account is now active.'
+    ],
+    
+    // Weighted random selection
+    weightedRandom(items) {
+        const totalWeight = items.reduce((sum, item) => sum + (item.weight || 1), 0);
+        let random = Math.random() * totalWeight;
+        for (const item of items) {
+            random -= (item.weight || 1);
+            if (random <= 0) return item;
+        }
+        return items[0];
+    },
+    
+    // Generate a single mock message
+    generateMessage(index, baseTime) {
+        const status = this.weightedRandom(this.statuses);
+        const messageType = this.weightedRandom(this.messageTypes);
+        const encoding = this.weightedRandom(this.encodings);
+        const parts = Math.random() < 0.2 ? Math.floor(Math.random() * 3) + 2 : 1;
+        
+        const sentTime = new Date(baseTime);
+        sentTime.setMinutes(sentTime.getMinutes() - index * 2);
+        
+        const deliveryTime = status.text === 'Delivered' ? new Date(sentTime.getTime() + Math.random() * 30000) : null;
+        const completedTime = status.text !== 'Pending' ? new Date(sentTime.getTime() + Math.random() * 60000) : null;
+        
+        const phoneDigits = String(Math.floor(Math.random() * 10000000000)).padStart(10, '0');
+        const phone = `+44 7${phoneDigits.substring(0, 1)}** ***${phoneDigits.substring(7)}`;
+        const phoneRaw = `+447${phoneDigits}`;
+        
+        return {
+            id: `MSG-${String(index + 1).padStart(9, '0')}`,
+            mobileNumber: phone,
+            mobileNumberRaw: phoneRaw,
+            senderId: this.senders[Math.floor(Math.random() * this.senders.length)],
+            status: status,
+            sentTime: sentTime,
+            deliveryTime: deliveryTime,
+            completedTime: completedTime,
+            cost: (parts * 0.035).toFixed(3),
+            messageType: messageType,
+            subAccount: this.subAccounts[Math.floor(Math.random() * this.subAccounts.length)],
+            user: this.users[Math.floor(Math.random() * this.users.length)],
+            origin: this.origins[Math.floor(Math.random() * this.origins.length)],
+            country: this.countries[Math.floor(Math.random() * this.countries.length)],
+            parts: parts,
+            encoding: encoding,
+            content: this.messages[Math.floor(Math.random() * this.messages.length)]
+        };
+    },
+    
+    // Fetch messages (simulates API call)
+    async fetchMessages(filters, page = 1, limit = 50) {
+        // Simulate network delay (200-500ms)
+        await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
+        
+        const totalAvailable = 1247; // Mock total count
+        const baseTime = new Date();
+        const startIndex = (page - 1) * limit;
+        
+        // Generate mock data
+        const messages = [];
+        const count = Math.min(limit, totalAvailable - startIndex);
+        
+        for (let i = 0; i < count; i++) {
+            messages.push(this.generateMessage(startIndex + i, baseTime));
+        }
+        
+        console.log(`[Mock API] Fetched page ${page}, ${messages.length} rows (filters:`, filters, ')');
+        
+        return {
+            data: messages,
+            meta: {
+                currentPage: page,
+                perPage: limit,
+                total: totalAvailable,
+                totalPages: Math.ceil(totalAvailable / limit),
+                hasMore: startIndex + count < totalAvailable
+            }
+        };
+    }
+};
+
+// ========================================
+// Main Application Logic
+// ========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // TODO: Connect to backend API: GET /api/messages?page=X&limit=Y&filters=Z
-    // TODO: Implement infinite scroll
-    // TODO: Implement export functionality
-    
-    // Applied filter state - represents what's currently filtering the table
-    const appliedFilters = {
+    // State management
+    let filterState = {
         dateFrom: '',
         dateTo: '',
         subAccounts: [],
@@ -1236,22 +1084,211 @@ document.addEventListener('DOMContentLoaded', function() {
         messageIds: []
     };
     
-    // Pending filter state (before Apply is clicked) - represents UI state
-    const pendingFilters = {
-        dateFrom: '',
-        dateTo: '',
-        subAccounts: [],
-        users: [],
-        origins: [],
-        mobileNumbers: [],
-        senderId: '',
-        statuses: [],
-        countries: [],
-        messageTypes: [],
-        messageIds: []
-    };
+    let pendingFilters = { ...filterState };
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
+    let totalMessages = 0;
+    const PAGE_SIZE = 50;
+    const MAX_ROWS = 10000;
+
+    // DOM elements
+    const tableBody = document.getElementById('messageLogTableBody');
+    const tableContainer = document.getElementById('tableContainer');
+    const loadingMore = document.getElementById('loadingMore');
+    const noResultsState = document.getElementById('noResultsState');
+    const displayedCount = document.getElementById('displayedCount');
+    const totalCount = document.getElementById('totalCount');
+    const summaryBar = document.getElementById('summaryBar');
     
-    // Label mappings for readable chip text
+    // Column configuration
+    const STORAGE_KEY = 'messageLogColumnConfig';
+    const currentUserRole = 'user'; // TODO: Replace with Auth::user()->role
+    
+    function canViewMessageContent() {
+        return currentUserRole === 'super_admin';
+    }
+    
+    function renderMessageContent(plaintext) {
+        if (canViewMessageContent()) {
+            const truncated = plaintext.length > 50 ? plaintext.substring(0, 50) + '...' : plaintext;
+            return `<span class="text-dark" title="${plaintext.replace(/"/g, '&quot;')}">${truncated}</span>`;
+        } else {
+            return `<span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span>`;
+        }
+    }
+    
+    const allColumnsList = ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost', 'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'messageId', 'content'];
+    const defaultColumns = { visible: ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost'], order: allColumnsList };
+    let columnConfig = loadColumnConfig();
+    
+    function loadColumnConfig() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.visible && Array.isArray(parsed.visible)) return parsed;
+            }
+        } catch (e) { console.error('Error loading column config:', e); }
+        return { visible: [...defaultColumns.visible], order: [...defaultColumns.order] };
+    }
+    
+    function saveColumnConfig() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(columnConfig)); } catch (e) { console.error('Error saving column config:', e); }
+    }
+    
+    function applyColumnVisibility() {
+        document.querySelectorAll('[data-column]').forEach(el => {
+            const colName = el.getAttribute('data-column');
+            if (columnConfig.visible.includes(colName) || colName === 'actions') {
+                el.classList.remove('d-none');
+            } else {
+                el.classList.add('d-none');
+            }
+        });
+        document.querySelectorAll('.column-toggle').forEach(cb => {
+            const colName = cb.getAttribute('data-column') || cb.id.replace('col-', '');
+            cb.checked = columnConfig.visible.includes(colName);
+        });
+    }
+    
+    // Format date for display
+    function formatDateTime(date) {
+        if (!date) return '-';
+        const d = new Date(date);
+        return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Create table row from message data
+    function createRow(msg) {
+        const statusClass = msg.status.class;
+        const statusText = msg.status.text;
+        const typeClass = msg.messageType.class;
+        const typeText = msg.messageType.text;
+        const encodingClass = msg.encoding.class;
+        const encodingText = msg.encoding.text;
+        
+        return `<tr>
+            <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber"><span class="mobile-masked">${msg.mobileNumber}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('senderId') ? '' : 'd-none'}" data-column="senderId">${msg.senderId}</td>
+            <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status"><span class="badge ${statusClass}">${statusText}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('sentTime') ? '' : 'd-none'}" data-column="sentTime">${formatDateTime(msg.sentTime)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('deliveryTime') ? '' : 'd-none'}" data-column="deliveryTime">${formatDateTime(msg.deliveryTime)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('completedTime') ? '' : 'd-none'}" data-column="completedTime">${formatDateTime(msg.completedTime)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('cost') ? '' : 'd-none'}" data-column="cost">£${msg.cost}</td>
+            <td class="py-2 ${columnConfig.visible.includes('messageType') ? '' : 'd-none'}" data-column="messageType"><span class="badge ${typeClass}">${typeText}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('subAccount') ? '' : 'd-none'}" data-column="subAccount">${msg.subAccount}</td>
+            <td class="py-2 ${columnConfig.visible.includes('user') ? '' : 'd-none'}" data-column="user">${msg.user}</td>
+            <td class="py-2 ${columnConfig.visible.includes('origin') ? '' : 'd-none'}" data-column="origin">${msg.origin}</td>
+            <td class="py-2 ${columnConfig.visible.includes('country') ? '' : 'd-none'}" data-column="country">${msg.country}</td>
+            <td class="py-2 ${columnConfig.visible.includes('parts') ? '' : 'd-none'}" data-column="parts">${msg.parts}</td>
+            <td class="py-2 ${columnConfig.visible.includes('encoding') ? '' : 'd-none'}" data-column="encoding"><span class="badge ${encodingClass}">${encodingText}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('messageId') ? '' : 'd-none'}" data-column="messageId">${msg.id}</td>
+            <td class="py-2 ${columnConfig.visible.includes('content') ? '' : 'd-none'}" data-column="content">${renderMessageContent(msg.content)}</td>
+            <td class="py-2 text-center" data-column="actions">
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end border py-0">
+                        <div class="dropdown-content">
+                            <a class="dropdown-item" href="#!" onclick="viewMessageDetails('${msg.id}'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
+                            <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msg.id}', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
+                            <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msg.mobileNumberRaw}', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>`;
+    }
+    
+    // Load messages from mock API
+    async function loadMessages(reset = false) {
+        if (isLoading) return;
+        if (!reset && !hasMore) return;
+        
+        isLoading = true;
+        
+        if (reset) {
+            currentPage = 1;
+            tableBody.innerHTML = `<tr id="loadingInitialRow"><td colspan="17" class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div><span class="text-muted">Loading messages...</span></td></tr>`;
+            noResultsState.classList.add('d-none');
+        } else {
+            loadingMore.classList.remove('d-none');
+        }
+        
+        try {
+            const response = await MockAPI.fetchMessages(filterState, currentPage, PAGE_SIZE);
+            const { data, meta } = response;
+            
+            if (reset) {
+                tableBody.innerHTML = '';
+                totalMessages = meta.total;
+                if (totalCount) totalCount.textContent = totalMessages.toLocaleString();
+                
+                // Update summary bar if it exists
+                const summaryTotalEl = document.getElementById('summaryTotal');
+                const summaryPartsEl = document.getElementById('summaryParts');
+                const renderedCountEl = document.getElementById('renderedCount');
+                if (summaryTotalEl) summaryTotalEl.textContent = totalMessages.toLocaleString();
+                if (summaryPartsEl) summaryPartsEl.textContent = Math.floor(totalMessages * 1.15).toLocaleString();
+                if (summaryBar) summaryBar.style.display = 'block';
+            }
+            
+            // Check max rows limit
+            const currentRows = tableBody.querySelectorAll('tr').length;
+            if (currentRows >= MAX_ROWS) {
+                hasMore = false;
+                console.log('[Message Log] Max rows limit reached');
+                return;
+            }
+            
+            // Append rows
+            data.forEach(msg => {
+                tableBody.insertAdjacentHTML('beforeend', createRow(msg));
+            });
+            
+            // Update counts
+            const rowCount = tableBody.querySelectorAll('tr').length;
+            if (displayedCount) displayedCount.textContent = rowCount.toLocaleString();
+            const renderedCount = document.getElementById('renderedCount');
+            if (renderedCount) renderedCount.textContent = rowCount.toLocaleString();
+            
+            // Update pagination state
+            hasMore = meta.hasMore && rowCount < MAX_ROWS;
+            currentPage++;
+            
+            // Show no results state
+            if (reset && data.length === 0) {
+                noResultsState.classList.remove('d-none');
+            }
+            
+        } catch (error) {
+            console.error('[Message Log] Error loading messages:', error);
+            if (reset) {
+                tableBody.innerHTML = `<tr><td colspan="17" class="text-center py-5 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading messages. Please try again.</td></tr>`;
+            }
+        } finally {
+            isLoading = false;
+            loadingMore.classList.add('d-none');
+        }
+    }
+    
+    // Infinite scroll
+    tableContainer?.addEventListener('scroll', function() {
+        if (isLoading || !hasMore) return;
+        const { scrollTop, scrollHeight, clientHeight } = this;
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
+            loadMessages(false);
+        }
+    });
+    
+    // Initial load
+    loadMessages(true);
+    
+    // ========================================
+    // Filter handling (existing logic)
+    // ========================================
     const labelMappings = {
         subAccounts: { main: 'Main Account', marketing: 'Marketing Team', support: 'Support Team', sales: 'Sales Team' },
         users: { john: 'John Smith', sarah: 'Sarah Johnson', mike: 'Mike Williams', emma: 'Emma Davis' },
@@ -1261,54 +1298,33 @@ document.addEventListener('DOMContentLoaded', function() {
         messageTypes: { sms: 'SMS', 'rcs-basic': 'RCS Basic', 'rcs-rich': 'RCS Rich' }
     };
     
+    function formatDateInput(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
     // Date preset buttons
     document.querySelectorAll('.date-preset-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
             const preset = this.dataset.preset;
             const today = new Date();
             let fromDate, toDate = today;
-            
             switch(preset) {
-                case 'today':
-                    fromDate = today;
-                    break;
-                case 'yesterday':
-                    fromDate = new Date(today);
-                    fromDate.setDate(fromDate.getDate() - 1);
-                    toDate = fromDate;
-                    break;
-                case '7days':
-                    fromDate = new Date(today);
-                    fromDate.setDate(fromDate.getDate() - 7);
-                    break;
-                case '30days':
-                    fromDate = new Date(today);
-                    fromDate.setDate(fromDate.getDate() - 30);
-                    break;
-                case 'thismonth':
-                    fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                    break;
-                case 'lastmonth':
-                    fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                    toDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                    break;
+                case 'today': fromDate = today; break;
+                case 'yesterday': fromDate = new Date(today); fromDate.setDate(fromDate.getDate() - 1); toDate = fromDate; break;
+                case '7days': fromDate = new Date(today); fromDate.setDate(fromDate.getDate() - 7); break;
+                case '30days': fromDate = new Date(today); fromDate.setDate(fromDate.getDate() - 30); break;
+                case 'thismonth': fromDate = new Date(today.getFullYear(), today.getMonth(), 1); break;
+                case 'lastmonth': fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); toDate = new Date(today.getFullYear(), today.getMonth(), 0); break;
             }
-            
-            document.getElementById('filterDateFrom').value = formatDate(fromDate);
-            document.getElementById('filterDateTo').value = formatDate(toDate);
-            pendingFilters.dateFrom = formatDate(fromDate);
-            pendingFilters.dateTo = formatDate(toDate);
+            document.getElementById('filterDateFrom').value = formatDateInput(fromDate);
+            document.getElementById('filterDateTo').value = formatDateInput(toDate);
+            pendingFilters.dateFrom = formatDateInput(fromDate);
+            pendingFilters.dateTo = formatDateInput(toDate);
         });
     });
     
-    function formatDate(date) {
-        return date.toISOString().split('T')[0];
-    }
-    
-    // Date input changes
     document.getElementById('filterDateFrom')?.addEventListener('change', function() {
         pendingFilters.dateFrom = this.value;
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
@@ -1324,7 +1340,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const menu = document.getElementById(menuId);
         const toggle = document.getElementById(toggleId);
         if (!menu || !toggle) return;
-        
         menu.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 const selected = Array.from(menu.querySelectorAll('input:checked')).map(cb => cb.value);
@@ -1335,384 +1350,143 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateMultiselectToggle(toggle, count, defaultText) {
-        const textSpan = toggle.querySelector('.toggle-text');
-        if (count === 0) {
-            textSpan.innerHTML = defaultText;
+        if (count > 0) {
+            toggle.querySelector('.filter-text').textContent = `${count} selected`;
         } else {
-            textSpan.innerHTML = `${defaultText} <span class="selected-count">${count}</span>`;
+            toggle.querySelector('.filter-text').textContent = defaultText;
         }
     }
     
-    setupMultiselect('filterSubAccountMenu', 'filterSubAccountToggle', 'subAccounts', 'All Sub Accounts');
-    setupMultiselect('filterUserMenu', 'filterUserToggle', 'users', 'All Users');
-    setupMultiselect('filterOriginMenu', 'filterOriginToggle', 'origins', 'All Origins');
-    setupMultiselect('filterStatusMenu', 'filterStatusToggle', 'statuses', 'All Statuses');
-    setupMultiselect('filterCountryMenu', 'filterCountryToggle', 'countries', 'All Countries');
-    setupMultiselect('filterTypeMenu', 'filterTypeToggle', 'messageTypes', 'All Types');
+    setupMultiselect('subAccountsMenu', 'subAccountsDropdown', 'subAccounts', 'All Sub Accounts');
+    setupMultiselect('usersMenu', 'usersDropdown', 'users', 'All Users');
+    setupMultiselect('originsMenu', 'originsDropdown', 'origins', 'All Origins');
+    setupMultiselect('statusesMenu', 'statusesDropdown', 'statuses', 'All Statuses');
+    setupMultiselect('countriesMenu', 'countriesDropdown', 'countries', 'All Countries');
+    setupMultiselect('messageTypesMenu', 'messageTypesDropdown', 'messageTypes', 'All Types');
     
-    // Multi-value input handlers (Mobile Number, Message ID)
-    function setupMultiValueInput(containerId, inputId, stateKey) {
-        const container = document.getElementById(containerId);
+    // Free text multi-value inputs (Mobile Number, Message ID)
+    function setupMultiValueInput(inputId, stateKey) {
         const input = document.getElementById(inputId);
-        if (!container || !input) return;
-        
+        if (!input) return;
         input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && this.value.trim()) {
+            if (e.key === 'Enter') {
                 e.preventDefault();
-                addTag(container, input, this.value.trim(), stateKey);
+                const value = this.value.trim();
+                if (value && !pendingFilters[stateKey].includes(value)) {
+                    pendingFilters[stateKey].push(value);
+                    updateMultiValueDisplay(inputId, stateKey);
+                }
                 this.value = '';
             }
         });
     }
     
-    function addTag(container, input, value, stateKey) {
-        if (pendingFilters[stateKey].includes(value)) return;
-        
-        pendingFilters[stateKey].push(value);
-        
-        const tag = document.createElement('span');
-        tag.className = 'multi-value-tag';
-        tag.innerHTML = `${value} <i class="fas fa-times remove-tag"></i>`;
-        tag.dataset.value = value;
-        
-        tag.querySelector('.remove-tag').addEventListener('click', function() {
-            pendingFilters[stateKey] = pendingFilters[stateKey].filter(v => v !== value);
-            tag.remove();
-        });
-        
-        container.insertBefore(tag, input);
+    function updateMultiValueDisplay(inputId, stateKey) {
+        console.log(`[Filter] ${stateKey}:`, pendingFilters[stateKey]);
     }
     
-    setupMultiValueInput('filterMobileContainer', 'filterMobileInput', 'mobileNumbers');
-    setupMultiValueInput('filterMessageIdContainer', 'filterMessageIdInput', 'messageIds');
+    setupMultiValueInput('filterMobileNumber', 'mobileNumbers');
+    setupMultiValueInput('filterMessageId', 'messageIds');
     
-    // Predictive suggestions for SenderID
-    const senderIdInput = document.getElementById('filterSenderId');
-    const senderIdSuggestions = document.getElementById('senderIdSuggestions');
-    
-    senderIdInput?.addEventListener('focus', function() {
-        senderIdSuggestions?.classList.add('show');
+    // SenderID input
+    document.getElementById('filterSenderId')?.addEventListener('input', function() {
+        pendingFilters.senderId = this.value.trim();
     });
     
-    senderIdInput?.addEventListener('blur', function() {
-        setTimeout(() => senderIdSuggestions?.classList.remove('show'), 200);
-    });
-    
-    senderIdInput?.addEventListener('input', function() {
-        pendingFilters.senderId = this.value;
-        const query = this.value.toLowerCase();
-        senderIdSuggestions?.querySelectorAll('.predictive-suggestion').forEach(item => {
-            const match = item.dataset.value.toLowerCase().includes(query);
-            item.style.display = match ? 'block' : 'none';
-        });
-    });
-    
-    senderIdSuggestions?.querySelectorAll('.predictive-suggestion').forEach(item => {
-        item.addEventListener('click', function() {
-            senderIdInput.value = this.dataset.value;
-            pendingFilters.senderId = this.dataset.value;
-            senderIdSuggestions.classList.remove('show');
-        });
-    });
-    
-    // Render active filter chips based on applied filters
-    function renderActiveFilterChips() {
-        const container = document.getElementById('activeFiltersChips');
-        const wrapper = document.getElementById('activeFiltersContainer');
-        if (!container || !wrapper) return;
-        
-        container.innerHTML = '';
-        let hasFilters = false;
-        
-        // Date range chip
-        if (appliedFilters.dateFrom || appliedFilters.dateTo) {
-            hasFilters = true;
-            const dateText = appliedFilters.dateFrom && appliedFilters.dateTo 
-                ? `${appliedFilters.dateFrom} to ${appliedFilters.dateTo}`
-                : appliedFilters.dateFrom || appliedFilters.dateTo;
-            createChip(container, 'Date', dateText, () => {
-                pendingFilters.dateFrom = '';
-                pendingFilters.dateTo = '';
-                document.getElementById('filterDateFrom').value = '';
-                document.getElementById('filterDateTo').value = '';
-                document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
-            });
-        }
-        
-        // Multi-select chips
-        const multiSelectConfigs = [
-            { key: 'subAccounts', label: 'Sub Account', menuId: 'filterSubAccountMenu', toggleId: 'filterSubAccountToggle', defaultText: 'All Sub Accounts' },
-            { key: 'users', label: 'User', menuId: 'filterUserMenu', toggleId: 'filterUserToggle', defaultText: 'All Users' },
-            { key: 'origins', label: 'Origin', menuId: 'filterOriginMenu', toggleId: 'filterOriginToggle', defaultText: 'All Origins' },
-            { key: 'statuses', label: 'Status', menuId: 'filterStatusMenu', toggleId: 'filterStatusToggle', defaultText: 'All Statuses' },
-            { key: 'countries', label: 'Country', menuId: 'filterCountryMenu', toggleId: 'filterCountryToggle', defaultText: 'All Countries' },
-            { key: 'messageTypes', label: 'Type', menuId: 'filterTypeMenu', toggleId: 'filterTypeToggle', defaultText: 'All Types' }
-        ];
-        
-        multiSelectConfigs.forEach(config => {
-            appliedFilters[config.key].forEach(value => {
-                hasFilters = true;
-                const displayText = labelMappings[config.key]?.[value] || value;
-                createChip(container, config.label, displayText, () => {
-                    // Remove from pending state
-                    pendingFilters[config.key] = pendingFilters[config.key].filter(v => v !== value);
-                    // Update UI checkbox
-                    const checkbox = document.querySelector(`#${config.menuId} input[value="${value}"]`);
-                    if (checkbox) checkbox.checked = false;
-                    // Update toggle text
-                    const toggle = document.getElementById(config.toggleId);
-                    if (toggle) updateMultiselectToggle(toggle, pendingFilters[config.key].length, config.defaultText);
-                });
-            });
-        });
-        
-        // SenderID chip
-        if (appliedFilters.senderId) {
-            hasFilters = true;
-            createChip(container, 'SenderID', appliedFilters.senderId, () => {
-                pendingFilters.senderId = '';
-                document.getElementById('filterSenderId').value = '';
-            });
-        }
-        
-        // Mobile number chips
-        appliedFilters.mobileNumbers.forEach(number => {
-            hasFilters = true;
-            createChip(container, 'Mobile', number, () => {
-                pendingFilters.mobileNumbers = pendingFilters.mobileNumbers.filter(n => n !== number);
-                // Remove tag from UI
-                document.querySelectorAll('#filterMobileContainer .multi-value-tag').forEach(tag => {
-                    if (tag.dataset.value === number) tag.remove();
-                });
-            });
-        });
-        
-        // Message ID chips
-        appliedFilters.messageIds.forEach(id => {
-            hasFilters = true;
-            createChip(container, 'Message ID', id, () => {
-                pendingFilters.messageIds = pendingFilters.messageIds.filter(i => i !== id);
-                // Remove tag from UI
-                document.querySelectorAll('#filterMessageIdContainer .multi-value-tag').forEach(tag => {
-                    if (tag.dataset.value === id) tag.remove();
-                });
-            });
-        });
-        
-        wrapper.style.display = hasFilters ? 'block' : 'none';
-    }
-    
-    // Create a single filter chip
-    function createChip(container, label, value, onRemove) {
-        const chip = document.createElement('span');
-        chip.className = 'filter-chip';
-        chip.innerHTML = `<span class="fw-medium">${label}:</span> ${value} <i class="fas fa-times remove-chip"></i>`;
-        
-        chip.querySelector('.remove-chip').addEventListener('click', function(e) {
-            e.stopPropagation();
-            onRemove();
-            // Remove chip visually but DO NOT refresh table - user must click Apply
-            chip.remove();
-            // Check if any chips remain
-            if (container.children.length === 0) {
-                document.getElementById('activeFiltersContainer').style.display = 'none';
-            }
-            console.log('Filter chip removed. Pending state updated. Click Apply to refresh table.');
-        });
-        
-        container.appendChild(chip);
-    }
-    
-    // Apply Filters button - commits pending state and refreshes table
+    // Apply Filters button
     document.getElementById('btnApplyFilters')?.addEventListener('click', function() {
-        // Copy pending filters to applied filters
-        Object.keys(appliedFilters).forEach(key => {
-            if (Array.isArray(pendingFilters[key])) {
-                appliedFilters[key] = [...pendingFilters[key]];
-            } else {
-                appliedFilters[key] = pendingFilters[key];
-            }
-        });
-        
-        // Render chips based on applied filters
-        renderActiveFilterChips();
-        
-        // Show summary bar if filters are applied
-        const hasFilters = Object.values(appliedFilters).some(v => 
-            Array.isArray(v) ? v.length > 0 : v !== ''
-        );
-        
-        if (hasFilters) {
-            // TODO: Replace with actual API response data
-            // Mock summary data for UI demonstration
-            document.getElementById('summaryTotal').textContent = '1,247';
-            document.getElementById('summaryParts').textContent = '1,892';
-            document.getElementById('summaryBar').style.display = 'block';
-        } else {
-            document.getElementById('summaryBar').style.display = 'none';
-        }
-        
-        console.log('Filters applied:', appliedFilters);
-        // TODO: Call API with appliedFilters and reload table
+        filterState = JSON.parse(JSON.stringify(pendingFilters));
+        console.log('[Filter] Applied filters:', filterState);
+        updateActiveFilterChips();
+        hasMore = true;
+        loadMessages(true);
     });
     
-    // Reset Filters button - resets pending state only, does NOT refresh table
+    // Reset Filters button (only resets UI state, does not apply)
     document.getElementById('btnResetFilters')?.addEventListener('click', function() {
-        // Reset pending filters
-        pendingFilters.dateFrom = '';
-        pendingFilters.dateTo = '';
-        pendingFilters.subAccounts = [];
-        pendingFilters.users = [];
-        pendingFilters.origins = [];
-        pendingFilters.mobileNumbers = [];
-        pendingFilters.senderId = '';
-        pendingFilters.statuses = [];
-        pendingFilters.countries = [];
-        pendingFilters.messageTypes = [];
-        pendingFilters.messageIds = [];
+        pendingFilters = {
+            dateFrom: '', dateTo: '', subAccounts: [], users: [], origins: [],
+            mobileNumbers: [], senderId: '', statuses: [], countries: [], messageTypes: [], messageIds: []
+        };
         
         // Reset UI elements
         document.getElementById('filterDateFrom').value = '';
         document.getElementById('filterDateTo').value = '';
+        document.getElementById('filterMobileNumber').value = '';
+        document.getElementById('filterSenderId').value = '';
+        document.getElementById('filterMessageId').value = '';
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
         
-        // Reset all multiselect checkboxes
-        document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(cb => {
+        // Reset multi-selects
+        document.querySelectorAll('.dropdown-menu input[type="checkbox"]').forEach(cb => {
             cb.checked = false;
         });
         
-        // Reset multiselect toggle texts
-        document.querySelectorAll('.multiselect-toggle .toggle-text').forEach(span => {
-            const toggle = span.closest('.multiselect-toggle');
-            if (toggle.id.includes('SubAccount')) span.textContent = 'All Sub Accounts';
-            else if (toggle.id.includes('User')) span.textContent = 'All Users';
-            else if (toggle.id.includes('Origin')) span.textContent = 'All Origins';
-            else if (toggle.id.includes('Status')) span.textContent = 'All Statuses';
-            else if (toggle.id.includes('Country')) span.textContent = 'All Countries';
-            else if (toggle.id.includes('Type')) span.textContent = 'All Types';
+        // Reset toggle text
+        ['subAccountsDropdown', 'usersDropdown', 'originsDropdown', 'statusesDropdown', 'countriesDropdown', 'messageTypesDropdown'].forEach(id => {
+            const toggle = document.getElementById(id);
+            if (toggle) toggle.querySelector('.filter-text').textContent = toggle.dataset.default || 'All';
         });
         
-        // Clear multi-value tags
-        document.querySelectorAll('.multi-value-tag').forEach(tag => tag.remove());
+        console.log('[Filter] Pending filters reset (not applied)');
+    });
+    
+    // Update active filter chips
+    function updateActiveFilterChips() {
+        const container = document.getElementById('activeFiltersChips');
+        const wrapper = document.getElementById('activeFiltersContainer');
+        if (!container) return;
+        container.innerHTML = '';
         
-        // Reset SenderID
-        document.getElementById('filterSenderId').value = '';
+        let hasFilters = false;
         
-        console.log('Filters reset (pending state only). Click Apply Filters to update table.');
-    });
-    
-    // Clear all filters - resets pending AND applies (refreshes table)
-    document.getElementById('btnClearAllFilters')?.addEventListener('click', function() {
-        document.getElementById('btnResetFilters').click();
-        document.getElementById('btnApplyFilters').click();
-    });
-    
-    document.getElementById('btnClearFiltersEmpty')?.addEventListener('click', function() {
-        document.getElementById('btnResetFilters').click();
-        document.getElementById('btnApplyFilters').click();
-    });
-    
-    // ========================================
-    // Column Configuration
-    // ========================================
-    const STORAGE_KEY = 'messageLogColumnConfig';
-    const MAX_ROWS = 10000;
-    
-    // TODO: Backend Integration - Replace with actual user role from session/API
-    // GET /api/user/permissions or use Laravel Auth::user()->role
-    // Roles: 'super_admin', 'admin', 'user', 'viewer'
-    const currentUserRole = 'user'; // Mock: Change to 'super_admin' to test content visibility
-    
-    // Check if user can view message content (Super Admin only)
-    function canViewMessageContent() {
-        // TODO: Backend Integration - Check actual permission from server
-        // Example: return window.userPermissions?.includes('view_message_content');
-        return currentUserRole === 'super_admin';
-    }
-    
-    // Render message content based on user permissions
-    // Reuses masking pattern from mobile number display in contacts module
-    function renderMessageContent(plaintext) {
-        if (canViewMessageContent()) {
-            // Super Admin can see actual content
-            const truncated = plaintext.length > 50 ? plaintext.substring(0, 50) + '...' : plaintext;
-            return `<span class="text-dark" title="${plaintext.replace(/"/g, '&quot;')}">${truncated}</span>`;
-        } else {
-            // Non-authorized users see masked content
-            return `<span class="text-muted">
-                <i class="fas fa-lock me-1 small"></i>
-                <span class="content-masked">••••••••</span>
-            </span>`;
+        if (filterState.dateFrom || filterState.dateTo) {
+            const dateText = `${filterState.dateFrom || 'Start'} to ${filterState.dateTo || 'End'}`;
+            container.innerHTML += createChip('Date Range', dateText, 'dateRange');
+            hasFilters = true;
         }
-    }
-    
-    const allColumnsList = [
-        'mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost',
-        'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'messageId', 'content'
-    ];
-    
-    const defaultColumns = {
-        visible: ['mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost'],
-        order: allColumnsList
-    };
-    
-    let columnConfig = loadColumnConfig();
-    
-    function loadColumnConfig() {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (parsed.visible && Array.isArray(parsed.visible)) {
-                    return parsed;
-                }
-            }
-        } catch (e) {
-            console.error('Error loading column config:', e);
-        }
-        return { visible: [...defaultColumns.visible], order: [...defaultColumns.order] };
-    }
-    
-    function saveColumnConfig() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(columnConfig));
-            console.log('Column config saved:', columnConfig);
-        } catch (e) {
-            console.error('Error saving column config:', e);
-        }
-    }
-    
-    function applyColumnVisibility() {
-        const allColumns = document.querySelectorAll('[data-column]');
-        allColumns.forEach(el => {
-            const colName = el.getAttribute('data-column');
-            if (columnConfig.visible.includes(colName)) {
-                el.classList.remove('d-none');
-            } else {
-                el.classList.add('d-none');
+        
+        ['subAccounts', 'users', 'origins', 'statuses', 'countries', 'messageTypes'].forEach(key => {
+            if (filterState[key].length > 0) {
+                const labels = filterState[key].map(v => labelMappings[key]?.[v] || v);
+                container.innerHTML += createChip(key.replace(/([A-Z])/g, ' $1').trim(), labels.join(', '), key);
+                hasFilters = true;
             }
         });
         
-        document.querySelectorAll('.column-toggle').forEach(cb => {
-            const colName = cb.getAttribute('data-column') || cb.id.replace('col-', '');
-            cb.checked = columnConfig.visible.includes(colName);
-        });
+        if (filterState.senderId) {
+            container.innerHTML += createChip('SenderID', filterState.senderId, 'senderId');
+            hasFilters = true;
+        }
         
-        updateRenderedCount();
+        if (filterState.mobileNumbers.length > 0) {
+            container.innerHTML += createChip('Mobile', `${filterState.mobileNumbers.length} number(s)`, 'mobileNumbers');
+            hasFilters = true;
+        }
+        
+        if (filterState.messageIds.length > 0) {
+            container.innerHTML += createChip('Message ID', `${filterState.messageIds.length} ID(s)`, 'messageIds');
+            hasFilters = true;
+        }
+        
+        if (wrapper) {
+            wrapper.style.display = hasFilters ? 'block' : 'none';
+        }
     }
     
-    function updateRenderedCount() {
-        const rowCount = document.querySelectorAll('#messageLogTableBody tr').length;
-        document.getElementById('renderedCount').textContent = Math.min(rowCount, MAX_ROWS).toLocaleString();
+    function createChip(label, value, key) {
+        return `<span class="badge bg-primary bg-opacity-10 text-primary me-2 mb-1 d-inline-flex align-items-center">
+            <span class="fw-bold me-1">${label}:</span> ${value}
+            <button type="button" class="btn-close btn-close-sm ms-2" style="font-size: 0.6rem;" data-filter="${key}"></button>
+        </span>`;
     }
     
+    // Column toggle handlers
     document.querySelectorAll('.column-toggle').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const colName = this.getAttribute('data-column') || this.id.replace('col-', '');
             if (this.checked) {
-                if (!columnConfig.visible.includes(colName)) {
-                    columnConfig.visible.push(colName);
-                }
+                if (!columnConfig.visible.includes(colName)) columnConfig.visible.push(colName);
             } else {
                 columnConfig.visible = columnConfig.visible.filter(c => c !== colName);
             }
@@ -1722,138 +1496,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('btnResetColumns')?.addEventListener('click', function() {
-        columnConfig = { 
-            visible: [...defaultColumns.visible], 
-            order: [...defaultColumns.order] 
-        };
+        columnConfig = { visible: [...defaultColumns.visible], order: [...defaultColumns.order] };
         saveColumnConfig();
         applyColumnVisibility();
-        console.log('Columns reset to default');
     });
     
+    // Clear filters from empty state
+    document.getElementById('btnClearFiltersEmpty')?.addEventListener('click', function() {
+        document.getElementById('btnResetFilters').click();
+        document.getElementById('btnApplyFilters').click();
+    });
+    
+    // Apply initial column visibility
     applyColumnVisibility();
-    
-    // ========================================
-    // Infinite Scroll
-    // ========================================
-    let isLoading = false;
-    let currentPage = 1;
-    let totalRowsRendered = 8;
-    
-    const tableContainer = document.getElementById('tableContainer');
-    
-    tableContainer?.addEventListener('scroll', function() {
-        if (isLoading || totalRowsRendered >= MAX_ROWS) return;
-        
-        const scrollTop = this.scrollTop;
-        const scrollHeight = this.scrollHeight;
-        const clientHeight = this.clientHeight;
-        
-        if (scrollTop + clientHeight >= scrollHeight - 100) {
-            loadMoreRows();
-        }
-    });
-    
-    function loadMoreRows() {
-        if (isLoading || totalRowsRendered >= MAX_ROWS) return;
-        
-        isLoading = true;
-        document.getElementById('loadingMore').classList.remove('d-none');
-        
-        // TODO: Replace with actual API call
-        setTimeout(() => {
-            const tbody = document.getElementById('messageLogTableBody');
-            const mockStatuses = [
-                { class: 'bg-success', text: 'Delivered' },
-                { class: 'bg-warning text-dark', text: 'Pending' },
-                { class: 'bg-danger', text: 'Undeliverable' },
-                { class: 'bg-secondary', text: 'Rejected' }
-            ];
-            const mockSenders = ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand'];
-            const mockOrigins = ['Portal', 'API', 'Email-to-SMS', 'Integration'];
-            const mockMessageTypes = [
-                { class: 'bg-secondary', text: 'SMS' },
-                { class: 'bg-info', text: 'RCS Basic' },
-                { class: 'bg-info', text: 'RCS Rich' }
-            ];
-            const mockSubAccounts = ['Main Account', 'Marketing Team', 'Support Team', 'Sales Team'];
-            const mockUsers = ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emma Davis'];
-            const mockEncodings = [
-                { class: 'bg-light text-dark border', text: 'GSM-7' },
-                { class: 'bg-primary text-white', text: 'Unicode' }
-            ];
-            
-            const rowsToAdd = Math.min(50, MAX_ROWS - totalRowsRendered);
-            
-            for (let i = 0; i < rowsToAdd; i++) {
-                const status = mockStatuses[Math.floor(Math.random() * mockStatuses.length)];
-                const sender = mockSenders[Math.floor(Math.random() * mockSenders.length)];
-                const origin = mockOrigins[Math.floor(Math.random() * mockOrigins.length)];
-                const messageType = mockMessageTypes[Math.floor(Math.random() * mockMessageTypes.length)];
-                const subAccount = mockSubAccounts[Math.floor(Math.random() * mockSubAccounts.length)];
-                const user = mockUsers[Math.floor(Math.random() * mockUsers.length)];
-                const encoding = mockEncodings[Math.floor(Math.random() * mockEncodings.length)];
-                const parts = Math.floor(Math.random() * 3) + 1;
-                const cost = (parts * 0.035).toFixed(3);
-                const msgId = `MSG-${String(totalRowsRendered + i + 1).padStart(9, '0')}`;
-                const phone = `+44 7${Math.floor(Math.random() * 3) + 7}** ***${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
-                
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - (totalRowsRendered + i) * 5);
-                const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                const deliveryTime = status.text === 'Delivered' ? timeStr : '-';
-                const completedTime = status.text !== 'Pending' ? timeStr : '-';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="py-2 ${!columnConfig.visible.includes('mobileNumber') ? 'd-none' : ''}" data-column="mobileNumber"><span class="mobile-masked">${phone}</span></td>
-                    <td class="py-2 ${!columnConfig.visible.includes('senderId') ? 'd-none' : ''}" data-column="senderId">${sender}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('status') ? 'd-none' : ''}" data-column="status"><span class="badge ${status.class}">${status.text}</span></td>
-                    <td class="py-2 ${!columnConfig.visible.includes('sentTime') ? 'd-none' : ''}" data-column="sentTime">${timeStr}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('deliveryTime') ? 'd-none' : ''}" data-column="deliveryTime">${deliveryTime}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('completedTime') ? 'd-none' : ''}" data-column="completedTime">${completedTime}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('cost') ? 'd-none' : ''}" data-column="cost">£${cost}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('messageType') ? 'd-none' : ''}" data-column="messageType"><span class="badge ${messageType.class}">${messageType.text}</span></td>
-                    <td class="py-2 ${!columnConfig.visible.includes('subAccount') ? 'd-none' : ''}" data-column="subAccount">${subAccount}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('user') ? 'd-none' : ''}" data-column="user">${user}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('origin') ? 'd-none' : ''}" data-column="origin">${origin}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('country') ? 'd-none' : ''}" data-column="country">UK</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('parts') ? 'd-none' : ''}" data-column="parts">${parts}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('encoding') ? 'd-none' : ''}" data-column="encoding"><span class="badge ${encoding.class}">${encoding.text}</span></td>
-                    <td class="py-2 ${!columnConfig.visible.includes('messageId') ? 'd-none' : ''}" data-column="messageId">${msgId}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('content') ? 'd-none' : ''}" data-column="content">${renderMessageContent('Hi there! Your order #12345 has been shipped and will arrive tomorrow.')}</td>
-                    <td class="py-2 text-center" data-column="actions">
-                        <div class="dropdown">
-                            <button class="btn btn-light btn-sm border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end border py-0">
-                                <div class="dropdown-content">
-                                    <a class="dropdown-item" href="#!" onclick="viewMessageDetails('${msgId}'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msgId}', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                                    <a class="dropdown-item" href="#!" onclick="copyToClipboard('${phone.replace(/[^0-9+]/g, '')}', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-                totalRowsRendered++;
-            }
-            
-            updateRenderedCount();
-            isLoading = false;
-            document.getElementById('loadingMore').classList.add('d-none');
-            currentPage++;
-            
-            console.log(`Loaded ${rowsToAdd} rows. Total: ${totalRowsRendered}`);
-        }, 500);
-    }
-    
-    function sortTable(column, direction) {
-        console.log(`Sort by ${column} ${direction}`);
-        // TODO: Implement server-side sorting with API call
-    }
 });
 </script>
 @endpush

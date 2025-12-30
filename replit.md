@@ -100,6 +100,16 @@ The Message Log page at `/reporting/message-log` provides detailed message histo
   - Copy Message ID (copies to clipboard with toast notification)
   - Copy Mobile Number (copies unmasked number to clipboard)
 - **Toast Notifications:** Success/error feedback for copy actions using Bootstrap toast component
+- **Mock API Layer:** Client-side data generation for development/testing:
+  - `MockAPI` object with weighted random data generators
+  - `fetchMessages(filters, page, limit)` returns ~50 rows per page with simulated 200-500ms delay
+  - Weighted distributions: 70% Delivered, 60% SMS, 80% GSM-7 encoding
+  - Mock data includes: statuses, senders, origins, message types, sub accounts, users, encodings, countries
+  - Total mock count: 1,247 messages
+  - Apply Filters triggers fresh mock request with `loadMessages(true)`
+  - Reset Filters clears UI state (pendingFilters) but does NOT trigger data reload
+  - Infinite scroll loads next page on scroll-to-bottom (100px threshold)
+  - Console logging for debugging: `[Mock API] Fetched page X, Y rows (filters: {...})`
 - **Export Section:**
   - Three format options: CSV (primary), Excel (success), TXT (secondary)
   - Progress indicator with spinner during export
