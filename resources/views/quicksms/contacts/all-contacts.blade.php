@@ -155,14 +155,14 @@
                                     <label class="form-label small fw-bold">Created Date</label>
                                     <input type="date" class="form-control form-control-sm" id="filterCreatedDate">
                                 </div>
-                                <div class="col-6 col-md-4 col-lg-2">
+                                <div class="col-6 col-md-4 col-lg-4">
                                     <label class="form-label small fw-bold">&nbsp;</label>
-                                    <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="btnApplyFilters">
-                                            <i class="fas fa-check me-1"></i> Apply
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters" style="white-space: nowrap;">
+                                            <i class="fas fa-check me-1"></i> Apply Filters
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
-                                            <i class="fas fa-undo"></i>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters" style="white-space: nowrap;">
+                                            <i class="fas fa-undo me-1"></i> Reset
                                         </button>
                                     </div>
                                 </div>
