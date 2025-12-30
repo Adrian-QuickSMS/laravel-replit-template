@@ -611,10 +611,7 @@ table .cursor-pointer:hover {
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-success text-success">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
+                            <i class="fas fa-eye"></i>
                         </span>
                         <div class="media-body" id="kpiRcsSeenContent">
                             <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
@@ -1333,14 +1330,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Spend with estimated label and VAT note (role-based)
             if (hasPermission('canSeeCost')) {
-                const estimatedLabel = data.spend.isEstimated ? '<span class="badge badge-warning light ms-1">Estimated</span>' : '';
+                const estimatedBadge = data.spend.isEstimated ? '<span class="badge badge-warning" style="font-size: 10px; font-weight: 500;">Estimated</span>' : '';
                 const spendTooltip = data.spend.isEstimated 
                     ? 'Some messages are still processing. Final cost may vary.'
                     : 'Final billing complete for this period.';
                 document.getElementById('kpiSpendContent').innerHTML = `
-                    <p class="mb-1">Total Spend ${estimatedLabel}</p>
-                    <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
-                    <small class="text-muted">${formatNumber(data.spend.creditsUsed)} credits <span class="text-muted">(${data.spend.vatNote})</span></small>
+                    <p class="mb-1">TOTAL SPEND ${estimatedBadge}</p>
+                    <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))} <small class="text-muted" style="font-size: 12px;">${formatNumber(data.spend.creditsUsed)} credits</small></h4>
+                    <small class="text-muted">(Excludes VAT)</small>
                 `;
             } else {
                 // Viewers see credits only, not cost
