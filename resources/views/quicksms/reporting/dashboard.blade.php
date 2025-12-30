@@ -1374,21 +1374,35 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
-            // Delivery Rate with tooltip - NO trend badge
+            // Helper function for trend badges
+            function getTrendBadge(trend, invertColors = false) {
+                if (trend === 0) return '';
+                const isPositive = trend >= 0;
+                const badgeClass = invertColors 
+                    ? (isPositive ? 'badge-pink' : 'badge-info')
+                    : (isPositive ? 'badge-info' : 'badge-pink');
+                const sign = isPositive ? '+' : '';
+                return `<span class="badge ${badgeClass} ms-2" style="font-size: 11px; font-weight: 500;">${sign}${trend}%</span>`;
+            }
+            
+            // Delivery Rate with tooltip and trend pill
             const deliveryTooltip = `Formula: ${data.deliveryRate.formula}\nDelivered: ${formatNumber(data.deliveryRate.delivered)}\nUndelivered: ${formatNumber(data.deliveryRate.undelivered)}\nRejected: ${formatNumber(data.deliveryRate.rejected)}`;
+            const deliveryTrendBadge = getTrendBadge(data.deliveryRate.trend);
             document.getElementById('kpiDeliveryRateContent').innerHTML = `
                 <p class="mb-1">DELIVERY RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
-                <h4 class="mb-0">${data.deliveryRate.value}%</h4>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.deliveryRate.value}%${deliveryTrendBadge}</h4>
             `;
             
-            // Spend - NO Estimated badge, just value with VAT tooltip (role-based)
+            // Spend with Estimated pill (when applicable)
             if (hasPermission('canSeeCost')) {
+                const estimatedBadge = data.spend.isEstimated 
+                    ? '<span class="badge badge-primary ms-2" style="font-size: 11px; font-weight: 500;">Estimated</span>' 
+                    : '';
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">TOTAL SPEND <i class="fas fa-info-circle text-muted ms-1" style="font-size: 10px;" title="Excludes VAT"></i></p>
-                    <h4 class="mb-0">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
+                    <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
                 `;
             } else {
-                // Viewers see credits only, not cost
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">Credits Used</p>
                     <h4 class="mb-0">${formatNumber(data.spend.creditsUsed)}</h4>
@@ -1426,19 +1440,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 optoutTile.style.display = 'none';
             }
             
-            // Messages Sent - green theme, NO trend badge
+            // Messages Sent - green theme with trend pill
+            const msgTrendBadge = getTrendBadge(data.messagesSent.trend);
             document.getElementById('kpiMessagesSentContent').innerHTML = `
                 <p class="mb-1">MESSAGES SENT</p>
-                <h4 class="mb-0">${formatNumber(data.messagesSent.count)}</h4>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.messagesSent.count)}${msgTrendBadge}</h4>
             `;
             
-            // RCS Penetration - blue theme, NO trend badge
+            // RCS Penetration - blue theme with trend pill
+            const rcsPenTrendBadge = getTrendBadge(data.rcsPenetration.trend);
             document.getElementById('kpiRcsPenetrationContent').innerHTML = `
                 <p class="mb-1">RCS PENETRATION</p>
-                <h4 class="mb-0">${data.rcsPenetration.percentage}%</h4>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.rcsPenetration.percentage}%${rcsPenTrendBadge}</h4>
             `;
             
-            // Inbound Received - orange/warning theme WITH unread count badge
+            // Inbound Received - orange/warning theme with unread count pill
             const unreadBadge = data.inboundReceived.unreadCount > 0 
                 ? `<span class="badge badge-warning ms-2" style="font-size: 11px; font-weight: 500;">${data.inboundReceived.unreadCount} Unread</span>` 
                 : '';
@@ -1447,10 +1463,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.inboundReceived.count)}${unreadBadge}</h4>
             `;
             
-            // Undelivered Messages - red theme, NO trend badge
+            // Undelivered Messages - red theme with trend pill (inverted colors - decrease is good)
+            const undelTrendBadge = getTrendBadge(data.undeliveredMessages.trend, true);
             document.getElementById('kpiUndeliveredContent').innerHTML = `
                 <p class="mb-1">UNDELIVERED MESSAGES</p>
-                <h4 class="mb-0">${formatNumber(data.undeliveredMessages.count)}</h4>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.undeliveredMessages.count)}${undelTrendBadge}</h4>
             `;
             
             console.log('[Dashboard] KPIs loaded');
