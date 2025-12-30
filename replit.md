@@ -100,7 +100,12 @@ The Message Log page at `/reporting/message-log` provides detailed message histo
   - Copy Message ID (copies to clipboard with toast notification)
   - Copy Mobile Number (copies unmasked number to clipboard)
 - **Toast Notifications:** Success/error feedback for copy actions using Bootstrap toast component
-- **Export Bar:** Shows row counts, placeholder with disabled CSV/Excel export buttons
+- **Export Section:**
+  - Three format options: CSV (primary), Excel (success), TXT (secondary)
+  - Progress indicator with spinner during export
+  - Exports respect applied filters and selected columns
+  - Info text with link to Download Area for large async exports
+  - TODO: Backend async export with Download Centre handoff (POST /api/messages/export)
 
 ## CSS Architecture Notes
 - **Inbox Module:** Uses `public/css/quicksms-inbox.css` loaded after Fillow styles to override message bubble colors with channel-specific gradients (SMS green, RCS blue)

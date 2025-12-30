@@ -808,20 +808,36 @@
                     </div>
 
                     <div class="card card-body bg-light border mt-3" id="exportBar">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div class="text-muted small">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Showing <span id="displayedCount">8</span> of <span id="totalCount">1,247</span> messages
                             </div>
-                            <div class="d-flex gap-2 mt-2 mt-md-0">
-                                <button type="button" class="btn btn-outline-primary btn-sm" disabled>
-                                    <i class="fas fa-file-csv me-1"></i> Export CSV
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="text-muted small me-2">Export:</span>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv" onclick="exportMessages('csv')">
+                                    <i class="fas fa-file-csv me-1"></i> CSV
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" disabled>
-                                    <i class="fas fa-file-excel me-1"></i> Export Excel
+                                <button type="button" class="btn btn-outline-success btn-sm" id="btnExportExcel" onclick="exportMessages('excel')">
+                                    <i class="fas fa-file-excel me-1"></i> Excel
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnExportTxt" onclick="exportMessages('txt')">
+                                    <i class="fas fa-file-alt me-1"></i> TXT
                                 </button>
                             </div>
                         </div>
+                        <div class="mt-2 pt-2 border-top d-none" id="exportProgressBar">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                    <span class="visually-hidden">Exporting...</span>
+                                </div>
+                                <span class="text-muted small" id="exportProgressText">Preparing export...</span>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-0 mt-2">
+                            <i class="fas fa-lightbulb me-1 text-warning"></i>
+                            Exports respect applied filters and selected columns. Large exports are processed in the background and available in the <a href="/reporting/download-area" class="text-primary">Download Area</a>.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -1050,6 +1066,69 @@ function createToastContainer() {
     container.style.zIndex = '1100';
     document.body.appendChild(container);
     return container;
+}
+
+function exportMessages(format) {
+    // TODO: Backend Integration - Async export with Download Centre handoff
+    // POST /api/messages/export
+    // Request body: { format: 'csv'|'excel'|'txt', filters: {...}, columns: [...] }
+    // Response: { exportId: 'xxx', status: 'queued', estimatedTime: 30 }
+    // For large exports (>1000 rows), queue job and redirect to Download Area
+    // For small exports (<1000 rows), return file directly
+    
+    // Get current applied filters
+    const appliedFilters = typeof filterState !== 'undefined' ? filterState : {};
+    
+    // Get currently visible columns
+    const visibleColumns = typeof columnConfig !== 'undefined' ? columnConfig.visible : [];
+    
+    // Log export request details
+    console.log('=== Export Request ===');
+    console.log('Format:', format.toUpperCase());
+    console.log('Applied Filters:', JSON.stringify(appliedFilters, null, 2));
+    console.log('Selected Columns:', visibleColumns);
+    console.log('Total Records:', document.getElementById('totalCount')?.textContent || 'Unknown');
+    console.log('======================');
+    
+    // Show progress indicator
+    const progressBar = document.getElementById('exportProgressBar');
+    const progressText = document.getElementById('exportProgressText');
+    
+    if (progressBar && progressText) {
+        progressBar.classList.remove('d-none');
+        progressText.textContent = `Preparing ${format.toUpperCase()} export...`;
+        
+        // Simulate async export process
+        setTimeout(() => {
+            progressText.textContent = `Export queued. Check Download Area for your file.`;
+            
+            setTimeout(() => {
+                progressBar.classList.add('d-none');
+                showToast(`${format.toUpperCase()} export queued. Visit Download Area when ready.`, 'success');
+            }, 2000);
+        }, 1500);
+    }
+    
+    // TODO: Implement actual API call
+    // fetch('/api/messages/export', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //         format: format,
+    //         filters: appliedFilters,
+    //         columns: visibleColumns
+    //     })
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //     if (data.downloadUrl) {
+    //         window.location.href = data.downloadUrl; // Direct download
+    //     } else {
+    //         showToast('Export queued. Check Download Area.', 'success');
+    //         // Optionally redirect: window.location.href = '/reporting/download-area';
+    //     }
+    // })
+    // .catch(err => showToast('Export failed. Please try again.', 'error'));
 }
 
 function viewMessageDetails(messageId) {
