@@ -610,8 +610,11 @@ table .cursor-pointer:hover {
             <div class="widget-stat card" id="kpiRcsSeen">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
-                        <span class="me-3 bgl-info text-info">
-                            <i class="fas fa-eye"></i>
+                        <span class="me-3 bgl-success text-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
                         </span>
                         <div class="media-body" id="kpiRcsSeenContent">
                             <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
@@ -1353,9 +1356,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.rcsSeenRate.hasRcsData && data.rcsSeenRate.hasReadReceiptSupport) {
                 const rcsTooltip = data.rcsSeenRate.tooltip;
                 document.getElementById('kpiRcsSeenContent').innerHTML = `
-                    <p class="mb-1">RCS Seen Rate <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${rcsTooltip}"></i></p>
-                    <h4 class="mb-0">${data.rcsSeenRate.value}%</h4>
-                    <small class="text-info"><i class="fas fa-comment-dots me-1"></i>${formatNumber(data.rcsSeenRate.seenCount)} of ${formatNumber(data.rcsSeenRate.rcsWithReadReceipts)} read</small>
+                    <p class="mb-1">RCS SEEN RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${rcsTooltip}"></i></p>
+                    <h4 class="mb-0 d-flex align-items-center">${data.rcsSeenRate.value}% <span class="badge badge-success ms-2" style="font-size: 11px; font-weight: 500;">${formatNumber(data.rcsSeenRate.seenCount)} Seen</span></h4>
                 `;
             } else if (rcsTile) {
                 rcsTile.style.display = 'none';
