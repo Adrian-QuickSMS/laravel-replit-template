@@ -646,29 +646,12 @@ table .cursor-pointer:hover {
         <!-- 5. Volume Over Time (Line Chart) -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge" data-api="volume">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                <div class="card-header border-0 pb-0">
                     <h4 class="card-title mb-0">Volume Over Time</h4>
-                    <div class="card-tabs">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#daily" role="tab">Daily</a></li>
-                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#weekly" role="tab">Weekly</a></li>
-                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#monthly" role="tab">Monthly</a></li>
-                        </ul>
-                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="daily" role="tabpanel">
-                            <div id="volumeLineChart" class="chart-placeholder">
-                                <div class="qs-skeleton qs-skeleton-chart w-100"></div>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="weekly" role="tabpanel">
-                            <div class="chart-placeholder"><div class="text-center text-muted py-5">Weekly View - Coming Soon</div></div>
-                        </div>
-                        <div class="tab-pane fade" id="monthly" role="tabpanel">
-                            <div class="chart-placeholder"><div class="text-center text-muted py-5">Monthly View - Coming Soon</div></div>
-                        </div>
+                    <div id="volumeLineChart" class="chart-placeholder">
+                        <div class="qs-skeleton qs-skeleton-chart w-100"></div>
                     </div>
                 </div>
             </div>
@@ -1408,7 +1391,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 },
-                colors: ['#6c757d', '#17a2b8'],
+                colors: ['#a8e6cf', '#7cb5ec'],
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
                 legend: { position: 'top', horizontalAlign: 'right' },
