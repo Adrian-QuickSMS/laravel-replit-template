@@ -1649,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', function() {
                  data-index="${index}" 
                  ${isClickable ? `onclick="window.selectSenderId(${index})"` : ''}
                  style="transition: background-color 0.2s;">
-                <span class="fw-bold" style="font-size: 1.125rem;">${item.senderId}</span>
+                <span class="fw-bold">${item.senderId}</span>
                 <span class="text-muted">${formatNumber(item.messages)}</span>
             </div>
         `).join('');
