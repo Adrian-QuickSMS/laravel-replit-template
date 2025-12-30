@@ -267,9 +267,9 @@
                                 <div class="col-12 col-lg-6">
                                     <label class="form-label small fw-bold">Date Range</label>
                                     <div class="d-flex gap-2 align-items-center">
-                                        <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" placeholder="dd/mm/yyyy hh:mm:ss">
+                                        <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1">
                                         <span class="text-muted small">to</span>
-                                        <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" placeholder="dd/mm/yyyy hh:mm:ss">
+                                        <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
                                     </div>
                                     <div class="d-flex flex-wrap gap-1 mt-2">
                                         <button type="button" class="btn btn-outline-primary btn-xs" data-preset="today">Today</button>
@@ -1069,11 +1069,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Format date for display
+    // Format date for display (includes seconds)
     function formatDateTime(date) {
         if (!date) return '-';
         const d = new Date(date);
-        return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
     
     // Create table row from message data
