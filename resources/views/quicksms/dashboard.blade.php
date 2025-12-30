@@ -179,14 +179,11 @@
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                                    </svg>
+                                    <i class="flaticon-381-calendar-1"></i>
                                 </span>
                                 <div class="media-body text-white text-end">
-                                    <p class="mb-1">Quick Action</p>
-                                    <h4 class="text-white">Make a Payment</h4>
+                                    <p class="mb-1">Make a</p>
+                                    <h3 class="text-white">Payment</h3>
                                 </div>
                             </div>
                         </div>
@@ -194,21 +191,56 @@
                 </a>
             </div>
             
-            <!-- Buy Number -->
+            <!-- Buy a Number -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('management.numbers') }}" class="text-decoration-none">
-                    <div class="widget-stat card bg-primary" id="tile-buy-number">
+                    <div class="widget-stat card bg-success" id="tile-buy-number">
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                                    </svg>
+                                    <i class="flaticon-381-smartphone-4"></i>
                                 </span>
                                 <div class="media-body text-white text-end">
-                                    <p class="mb-1">Quick Action</p>
-                                    <h4 class="text-white">Buy Number</h4>
+                                    <p class="mb-1">Buy a</p>
+                                    <h3 class="text-white">Number</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- View latest Invoice -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('reporting.invoices') }}" class="text-decoration-none">
+                    <div class="widget-stat card bg-info" id="tile-view-invoice">
+                        <div class="card-body p-4">
+                            <div class="media">
+                                <span class="me-3">
+                                    <i class="flaticon-381-file-1"></i>
+                                </span>
+                                <div class="media-body text-white text-end">
+                                    <p class="mb-1">View latest</p>
+                                    <h3 class="text-white">Invoice</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Send a Campaign -->
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
+                <a href="{{ route('messages.send') }}" class="text-decoration-none">
+                    <div class="widget-stat card bg-primary" id="tile-send-campaign">
+                        <div class="card-body p-4">
+                            <div class="media">
+                                <span class="me-3">
+                                    <i class="flaticon-381-loudspeaker"></i>
+                                </span>
+                                <div class="media-body text-white text-end">
+                                    <p class="mb-1">Send a</p>
+                                    <h3 class="text-white">Campaign</h3>
                                 </div>
                             </div>
                         </div>
