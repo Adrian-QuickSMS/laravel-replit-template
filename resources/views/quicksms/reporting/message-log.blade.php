@@ -283,34 +283,58 @@
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Sub Account</label>
-                                    <select class="form-select form-select-sm" id="filterSubAccountToggle">
-                                        <option value="">All Sub Accounts</option>
-                                        <option value="Main Account">Main Account</option>
-                                        <option value="Marketing Team">Marketing Team</option>
-                                        <option value="Support Team">Support Team</option>
-                                        <option value="Sales Team">Sales Team</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                            <span class="dropdown-label">All Sub Accounts</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Account</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales Team" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales Team</label></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">User</label>
-                                    <select class="form-select form-select-sm" id="filterUserToggle">
-                                        <option value="">All Users</option>
-                                        <option value="John Smith">John Smith</option>
-                                        <option value="Sarah Johnson">Sarah Johnson</option>
-                                        <option value="Mike Williams">Mike Williams</option>
-                                        <option value="Emma Davis">Emma Davis</option>
-                                        <option value="James Wilson">James Wilson</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="users">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                            <span class="dropdown-label">All Users</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="John Smith" id="user1"><label class="form-check-label small" for="user1">John Smith</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Sarah Johnson" id="user2"><label class="form-check-label small" for="user2">Sarah Johnson</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Mike Williams" id="user3"><label class="form-check-label small" for="user3">Mike Williams</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Emma Davis" id="user4"><label class="form-check-label small" for="user4">Emma Davis</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="James Wilson" id="user5"><label class="form-check-label small" for="user5">James Wilson</label></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Origin</label>
-                                    <select class="form-select form-select-sm" id="filterOriginToggle">
-                                        <option value="">All Origins</option>
-                                        <option value="Portal">Portal</option>
-                                        <option value="API">API</option>
-                                        <option value="Email-to-SMS">Email-to-SMS</option>
-                                        <option value="Integration">Integration</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="origins">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                            <span class="dropdown-label">All Origins</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="origin1"><label class="form-check-label small" for="origin1">Portal</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="origin2"><label class="form-check-label small" for="origin2">API</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="origin3"><label class="form-check-label small" for="origin3">Email-to-SMS</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="origin4"><label class="form-check-label small" for="origin4">Integration</label></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -326,35 +350,77 @@
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Status</label>
-                                    <select class="form-select form-select-sm" id="filterStatusToggle">
-                                        <option value="">All Statuses</option>
-                                        <option value="Delivered">Delivered</option>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Expired">Expired</option>
-                                        <option value="Rejected">Rejected</option>
-                                        <option value="Undeliverable">Undeliverable</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                            <span class="dropdown-label">All Statuses</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Delivered" id="status1"><label class="form-check-label small" for="status1">Delivered</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Pending" id="status2"><label class="form-check-label small" for="status2">Pending</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Expired" id="status3"><label class="form-check-label small" for="status3">Expired</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Rejected" id="status4"><label class="form-check-label small" for="status4">Rejected</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Undeliverable" id="status5"><label class="form-check-label small" for="status5">Undeliverable</label></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Country</label>
-                                    <select class="form-select form-select-sm" id="filterCountryToggle">
-                                        <option value="">All Countries</option>
-                                        <option value="UK">United Kingdom</option>
-                                        <option value="US">United States</option>
-                                        <option value="DE">Germany</option>
-                                        <option value="FR">France</option>
-                                        <option value="ES">Spain</option>
-                                        <option value="IE">Ireland</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="countries">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                            <span class="dropdown-label">All Countries</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="UK" id="countryUK"><label class="form-check-label small" for="countryUK">United Kingdom</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="AF" id="countryAF"><label class="form-check-label small" for="countryAF">Afghanistan</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="AL" id="countryAL"><label class="form-check-label small" for="countryAL">Albania</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="DZ" id="countryDZ"><label class="form-check-label small" for="countryDZ">Algeria</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="AU" id="countryAU"><label class="form-check-label small" for="countryAU">Australia</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="AT" id="countryAT"><label class="form-check-label small" for="countryAT">Austria</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="BE" id="countryBE"><label class="form-check-label small" for="countryBE">Belgium</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="BR" id="countryBR"><label class="form-check-label small" for="countryBR">Brazil</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="CA" id="countryCA"><label class="form-check-label small" for="countryCA">Canada</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="CN" id="countryCN"><label class="form-check-label small" for="countryCN">China</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="DE" id="countryDE"><label class="form-check-label small" for="countryDE">Germany</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="ES" id="countryES"><label class="form-check-label small" for="countryES">Spain</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="FR" id="countryFR"><label class="form-check-label small" for="countryFR">France</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="IE" id="countryIE"><label class="form-check-label small" for="countryIE">Ireland</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="IN" id="countryIN"><label class="form-check-label small" for="countryIN">India</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="IT" id="countryIT"><label class="form-check-label small" for="countryIT">Italy</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="JP" id="countryJP"><label class="form-check-label small" for="countryJP">Japan</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="NL" id="countryNL"><label class="form-check-label small" for="countryNL">Netherlands</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="NZ" id="countryNZ"><label class="form-check-label small" for="countryNZ">New Zealand</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="PL" id="countryPL"><label class="form-check-label small" for="countryPL">Poland</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="PT" id="countryPT"><label class="form-check-label small" for="countryPT">Portugal</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="SE" id="countrySE"><label class="form-check-label small" for="countrySE">Sweden</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="CH" id="countryCH"><label class="form-check-label small" for="countryCH">Switzerland</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="US" id="countryUS"><label class="form-check-label small" for="countryUS">United States</label></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Type</label>
-                                    <select class="form-select form-select-sm" id="filterTypeToggle">
-                                        <option value="">All Types</option>
-                                        <option value="SMS">SMS</option>
-                                        <option value="RCS Basic">RCS Basic</option>
-                                        <option value="RCS Rich">RCS Rich</option>
-                                    </select>
+                                    <div class="dropdown multiselect-dropdown" data-filter="messageTypes">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                            <span class="dropdown-label">All Types</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="SMS" id="type1"><label class="form-check-label small" for="type1">SMS</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="RCS Basic" id="type2"><label class="form-check-label small" for="type2">RCS Basic</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="RCS Rich" id="type3"><label class="form-check-label small" for="type3">RCS Rich</label></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message ID</label>
@@ -1440,26 +1506,61 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
     });
     
-    // Single-select dropdown handlers
-    function setupSelectFilter(selectId, stateKey) {
-        const select = document.getElementById(selectId);
-        if (!select) {
-            console.log('[Filter] Select not found:', selectId);
-            return;
+    // Multi-select dropdown handlers
+    const defaultLabels = {
+        subAccounts: 'All Sub Accounts',
+        users: 'All Users',
+        origins: 'All Origins',
+        statuses: 'All Statuses',
+        countries: 'All Countries',
+        messageTypes: 'All Types'
+    };
+    
+    function updateMultiselectLabel(dropdown) {
+        const filterKey = dropdown.dataset.filter;
+        const checkboxes = dropdown.querySelectorAll('.form-check-input:checked');
+        const labelSpan = dropdown.querySelector('.dropdown-label');
+        const count = checkboxes.length;
+        
+        if (count === 0) {
+            labelSpan.textContent = defaultLabels[filterKey];
+        } else if (count === 1) {
+            labelSpan.textContent = checkboxes[0].nextElementSibling.textContent;
+        } else if (count <= 2) {
+            const names = Array.from(checkboxes).map(cb => cb.nextElementSibling.textContent);
+            labelSpan.textContent = names.join(', ');
+        } else {
+            labelSpan.textContent = `${count} selected`;
         }
-        select.addEventListener('change', function() {
-            const value = this.value;
-            pendingFilters[stateKey] = value ? [value] : [];
-            console.log('[Filter] ' + stateKey + ' changed to:', pendingFilters[stateKey]);
-        });
     }
     
-    setupSelectFilter('filterSubAccountToggle', 'subAccounts');
-    setupSelectFilter('filterUserToggle', 'users');
-    setupSelectFilter('filterOriginToggle', 'origins');
-    setupSelectFilter('filterStatusToggle', 'statuses');
-    setupSelectFilter('filterCountryToggle', 'countries');
-    setupSelectFilter('filterTypeToggle', 'messageTypes');
+    function syncMultiselectToPending(dropdown) {
+        const filterKey = dropdown.dataset.filter;
+        const checkboxes = dropdown.querySelectorAll('.form-check-input:checked');
+        pendingFilters[filterKey] = Array.from(checkboxes).map(cb => cb.value);
+        console.log('[Filter] ' + filterKey + ' changed to:', pendingFilters[filterKey]);
+        updateMultiselectLabel(dropdown);
+    }
+    
+    document.querySelectorAll('.multiselect-dropdown').forEach(dropdown => {
+        const filterKey = dropdown.dataset.filter;
+        
+        dropdown.querySelectorAll('.form-check-input').forEach(checkbox => {
+            checkbox.addEventListener('change', () => syncMultiselectToPending(dropdown));
+        });
+        
+        dropdown.querySelector('.select-all-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = true);
+            syncMultiselectToPending(dropdown);
+        });
+        
+        dropdown.querySelector('.clear-all-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = false);
+            syncMultiselectToPending(dropdown);
+        });
+    });
     
     // Free text multi-value inputs (Mobile Number, Message ID)
     function setupMultiValueInput(inputId, stateKey) {
@@ -1514,10 +1615,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('filterMessageId').value = '';
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
         
-        // Reset select dropdowns
-        ['filterSubAccountToggle', 'filterUserToggle', 'filterOriginToggle', 'filterStatusToggle', 'filterCountryToggle', 'filterTypeToggle'].forEach(id => {
-            const select = document.getElementById(id);
-            if (select) select.value = '';
+        // Reset multi-select dropdowns
+        document.querySelectorAll('.multiselect-dropdown').forEach(dropdown => {
+            dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = false);
+            updateMultiselectLabel(dropdown);
         });
         
         console.log('[Filter] Pending filters reset (not applied)');
@@ -1721,19 +1822,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (Array.isArray(filterState[filterKey])) {
             filterState[filterKey] = [];
             pendingFilters[filterKey] = [];
-            // Reset the corresponding select dropdown
-            const selectIdMap = {
-                'subAccounts': 'filterSubAccountToggle',
-                'users': 'filterUserToggle',
-                'origins': 'filterOriginToggle',
-                'statuses': 'filterStatusToggle',
-                'countries': 'filterCountryToggle',
-                'messageTypes': 'filterTypeToggle'
-            };
-            const selectId = selectIdMap[filterKey];
-            if (selectId) {
-                const select = document.getElementById(selectId);
-                if (select) select.value = '';
+            // Reset the corresponding multi-select dropdown
+            const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterKey}"]`);
+            if (dropdown) {
+                dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = false);
+                updateMultiselectLabel(dropdown);
             }
         }
         
