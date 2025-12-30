@@ -251,27 +251,27 @@
                         </div>
 
                         <div class="collapse mb-3" id="filtersPanel">
-                        <div class="card card-body bg-primary border-0 rounded-3">
+                        <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
                             <!-- Row 1: Date Range + 3 dropdowns -->
                             <div class="row g-3 align-items-end">
                                 <div class="col-12 col-lg-6">
-                                    <label class="form-label small fw-bold text-white">Date Range</label>
+                                    <label class="form-label small fw-bold">Date Range</label>
                                     <div class="d-flex gap-2 align-items-center mb-2">
                                         <input type="date" class="form-control form-control-sm" id="filterDateFrom">
-                                        <span class="text-white-50 small">to</span>
+                                        <span class="text-muted small">to</span>
                                         <input type="date" class="form-control form-control-sm" id="filterDateTo">
                                     </div>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="today">Today</button>
-                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="yesterday">Yesterday</button>
-                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="7days">Last 7 Days</button>
-                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="30days">Last 30 Days</button>
-                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="thismonth">This Month</button>
-                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="lastmonth">Last Month</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="today">Today</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="yesterday">Yesterday</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="7days">Last 7 Days</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="30days">Last 30 Days</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="thismonth">This Month</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="lastmonth">Last Month</button>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">Sub Account</label>
+                                    <label class="form-label small fw-bold">Sub Account</label>
                                     <select class="form-select form-select-sm" id="filterSubAccountToggle">
                                         <option value="">All Sub Accounts</option>
                                         <option value="main">Main Account</option>
@@ -281,7 +281,7 @@
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">User</label>
+                                    <label class="form-label small fw-bold">User</label>
                                     <select class="form-select form-select-sm" id="filterUserToggle">
                                         <option value="">All Users</option>
                                         <option value="john">John Smith</option>
@@ -291,7 +291,7 @@
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">Origin</label>
+                                    <label class="form-label small fw-bold">Origin</label>
                                     <select class="form-select form-select-sm" id="filterOriginToggle">
                                         <option value="">All Origins</option>
                                         <option value="portal">Portal</option>
@@ -305,16 +305,16 @@
                             <!-- Row 2: Mobile Number + SenderID + Status + Country + Type -->
                             <div class="row g-3 align-items-end mt-1">
                                 <div class="col-12 col-md-6 col-lg-4">
-                                    <label class="form-label small fw-bold text-white">Mobile Number</label>
+                                    <label class="form-label small fw-bold">Mobile Number</label>
                                     <input type="text" class="form-control form-control-sm" id="filterMobileInput" placeholder="Enter number and press Enter...">
-                                    <small class="text-white-50">Enter multiple numbers separated by Enter</small>
+                                    <small class="text-muted">Enter multiple numbers separated by Enter</small>
                                 </div>
                                 <div class="col-6 col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">SenderID</label>
+                                    <label class="form-label small fw-bold">SenderID</label>
                                     <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." autocomplete="off">
                                 </div>
                                 <div class="col-6 col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">Message Status</label>
+                                    <label class="form-label small fw-bold">Message Status</label>
                                     <select class="form-select form-select-sm" id="filterStatusToggle">
                                         <option value="">All Statuses</option>
                                         <option value="delivered">Delivered</option>
@@ -324,7 +324,7 @@
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">Country</label>
+                                    <label class="form-label small fw-bold">Country</label>
                                     <select class="form-select form-select-sm" id="filterCountryToggle">
                                         <option value="">All Countries</option>
                                         <option value="uk">United Kingdom</option>
@@ -336,7 +336,7 @@
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold text-white">Message Type</label>
+                                    <label class="form-label small fw-bold">Message Type</label>
                                     <select class="form-select form-select-sm" id="filterTypeToggle">
                                         <option value="">All Types</option>
                                         <option value="sms">SMS</option>
@@ -349,15 +349,15 @@
                             <!-- Row 3: Message ID + Action buttons -->
                             <div class="row g-3 align-items-end mt-1">
                                 <div class="col-12 col-md-6 col-lg-4">
-                                    <label class="form-label small fw-bold text-white">Message ID</label>
+                                    <label class="form-label small fw-bold">Message ID</label>
                                     <input type="text" class="form-control form-control-sm" id="filterMessageIdInput" placeholder="Enter Message ID and press Enter...">
-                                    <small class="text-white-50">Enter multiple IDs separated by Enter</small>
+                                    <small class="text-muted">Enter multiple IDs separated by Enter</small>
                                 </div>
                                 <div class="col-12 col-md-6 col-lg-8 d-flex gap-2 align-items-end pb-1">
-                                    <button type="button" class="btn btn-light btn-sm" id="btnApplyFilters">
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
                                         <i class="fas fa-check me-1"></i> Apply Filters
                                     </button>
-                                    <button type="button" class="btn btn-outline-light btn-sm" id="btnResetFilters">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
                                         <i class="fas fa-undo me-1"></i> Reset Filters
                                     </button>
                                 </div>
