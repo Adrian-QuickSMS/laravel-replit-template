@@ -5,7 +5,7 @@
 @push('styles')
 <style>
 .chart-placeholder {
-    min-height: 250px;
+    min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -25,6 +25,93 @@
 .multiselect-dropdown .dropdown-menu {
     max-height: 200px;
     overflow-y: auto;
+}
+
+.qs-dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(12, 1fr) !important;
+    gap: 1rem !important;
+    width: 100% !important;
+}
+
+.qs-dashboard-grid > .qs-tile {
+    float: none !important;
+    width: auto !important;
+    display: block !important;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.qs-tile.sortable-ghost {
+    opacity: 0.4;
+}
+
+.qs-tile.sortable-drag {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    transform: rotate(1deg);
+}
+
+.qs-tile.sortable-chosen {
+    cursor: grabbing;
+}
+
+.qs-tile .card,
+.qs-tile .widget-stat {
+    height: 100%;
+    margin-bottom: 0 !important;
+    cursor: grab;
+}
+
+.qs-tile .card:active,
+.qs-tile .widget-stat:active {
+    cursor: grabbing;
+}
+
+.qs-tile.tile-small { grid-column: span 3; }
+.qs-tile.tile-medium { grid-column: span 4; }
+.qs-tile.tile-large { grid-column: span 6; }
+.qs-tile.tile-xlarge { grid-column: span 8; }
+.qs-tile.tile-full { grid-column: span 12; }
+
+@media (max-width: 1200px) {
+    .qs-tile.tile-small { grid-column: span 6; }
+    .qs-tile.tile-medium { grid-column: span 6; }
+    .qs-tile.tile-large { grid-column: span 12; }
+    .qs-tile.tile-xlarge { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+    .qs-dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .qs-tile.tile-small, .qs-tile.tile-medium, .qs-tile.tile-large, .qs-tile.tile-xlarge, .qs-tile.tile-full {
+        grid-column: span 1;
+    }
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+}
+
+
+.tile-drag-handle {
+    cursor: grab;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.15s;
+}
+
+.tile-drag-handle:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.tile-drag-handle:active {
+    cursor: grabbing;
+}
+
+.tile-resize-dropdown .dropdown-menu {
+    min-width: auto;
 }
 </style>
 @endpush
@@ -182,11 +269,27 @@
         </div>
     </div>
 
+    <!-- Layout Toolbar -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted"><i class="fas fa-grip-vertical me-1"></i> Drag tiles to reposition</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" id="btnResetLayout">
+                        <i class="fas fa-undo me-1"></i> Reset Layout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Section 2: Tiles & Charts Grid -->
-    
-    <!-- Row 1: KPI Summary Tiles -->
-    <div class="row">
-        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+    <div class="qs-dashboard-grid" id="dashboardGrid">
+        
+        <!-- KPI Tiles -->
+        <div class="qs-tile tile-small" data-tile-id="tile-total" data-size="small">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
@@ -202,7 +305,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+        
+        <div class="qs-tile tile-small" data-tile-id="tile-delivered" data-size="small">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
@@ -218,7 +322,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+        
+        <div class="qs-tile tile-small" data-tile-id="tile-pending" data-size="small">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
@@ -234,7 +339,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+        
+        <div class="qs-tile tile-small" data-tile-id="tile-failed" data-size="small">
             <div class="widget-stat card">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
@@ -250,74 +356,46 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Row 2: Main Charts -->
-    <div class="row">
-        <div class="col-xl-8 col-lg-12">
-            <div class="card">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Message Volume Over Time</h4>
+        
+        <!-- Message Volume Chart -->
+        <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge">
+            <div class="card h-100">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Message Volume Over Time</h4>
                     <div class="card-tabs">
                         <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#daily" role="tab">Daily</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#weekly" role="tab">Weekly</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#monthly" role="tab">Monthly</a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#daily" role="tab">Daily</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#weekly" role="tab">Weekly</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#monthly" role="tab">Monthly</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="daily" role="tabpanel">
-                            <div id="messageVolumeChart" class="chart-placeholder">
-                                <div class="text-center text-muted">
-                                    <i class="fas fa-chart-line fa-3x mb-2"></i>
-                                    <p class="mb-0">Line Chart Placeholder</p>
-                                    <small>Message volume trend data</small>
-                                </div>
-                            </div>
+                            <div id="messageVolumeChart" class="chart-placeholder"></div>
                         </div>
                         <div class="tab-pane fade" id="weekly" role="tabpanel">
-                            <div class="chart-placeholder">
-                                <div class="text-center text-muted">
-                                    <i class="fas fa-chart-line fa-3x mb-2"></i>
-                                    <p class="mb-0">Weekly View Placeholder</p>
-                                </div>
-                            </div>
+                            <div class="chart-placeholder"><div class="text-center text-muted">Weekly View</div></div>
                         </div>
                         <div class="tab-pane fade" id="monthly" role="tabpanel">
-                            <div class="chart-placeholder">
-                                <div class="text-center text-muted">
-                                    <i class="fas fa-chart-line fa-3x mb-2"></i>
-                                    <p class="mb-0">Monthly View Placeholder</p>
-                                </div>
-                            </div>
+                            <div class="chart-placeholder"><div class="text-center text-muted">Monthly View</div></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 col-lg-6">
-            <div class="card">
+        
+        <!-- Delivery Status -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-status" data-size="medium">
+            <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Delivery Status</h4>
                 </div>
                 <div class="card-body">
-                    <div id="deliveryStatusChart" class="chart-placeholder">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-chart-pie fa-3x mb-2"></i>
-                            <p class="mb-0">Donut Chart Placeholder</p>
-                            <small>Status distribution</small>
-                        </div>
-                    </div>
-                    <div class="chart-point mt-3">
-                        <ul class="chart-point-list mb-0">
+                    <div id="deliveryStatusChart" class="chart-placeholder"></div>
+                    <div class="chart-point mt-2">
+                        <ul class="chart-point-list mb-0 small">
                             <li><i class="fa fa-circle text-success me-1"></i> Delivered: --</li>
                             <li><i class="fa fa-circle text-warning me-1"></i> Pending: --</li>
                             <li><i class="fa fa-circle text-danger me-1"></i> Failed: --</li>
@@ -326,94 +404,67 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Row 3: Secondary Charts -->
-    <div class="row">
-        <div class="col-xl-6 col-lg-6">
-            <div class="card">
+        
+        <!-- Messages by Country -->
+        <div class="qs-tile tile-large" data-tile-id="chart-country" data-size="large">
+            <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Messages by Country</h4>
                 </div>
                 <div class="card-body">
-                    <div id="countryChart" class="chart-placeholder">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-chart-bar fa-3x mb-2"></i>
-                            <p class="mb-0">Bar Chart Placeholder</p>
-                            <small>Geographic distribution</small>
-                        </div>
-                    </div>
+                    <div id="countryChart" class="chart-placeholder"></div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-6 col-lg-6">
-            <div class="card">
+        
+        <!-- Message Type Breakdown -->
+        <div class="qs-tile tile-large" data-tile-id="chart-type" data-size="large">
+            <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Message Type Breakdown</h4>
                 </div>
                 <div class="card-body">
-                    <div id="messageTypeChart" class="chart-placeholder">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-chart-pie fa-3x mb-2"></i>
-                            <p class="mb-0">Pie Chart Placeholder</p>
-                            <small>SMS vs RCS breakdown</small>
-                        </div>
-                    </div>
+                    <div id="messageTypeChart" class="chart-placeholder"></div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Row 4: Additional KPIs -->
-    <div class="row">
-        <div class="col-xl-4 col-lg-6">
-            <div class="card">
+        
+        <!-- Cost Summary -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-cost" data-size="medium">
+            <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Cost Summary</h4>
                 </div>
                 <div class="card-body">
-                    <div id="costChart" class="chart-placeholder">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-chart-area fa-3x mb-2"></i>
-                            <p class="mb-0">Area Chart Placeholder</p>
-                            <small>Cost trend over time</small>
-                        </div>
-                    </div>
+                    <div id="costChart" class="chart-placeholder"></div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 col-lg-6">
-            <div class="card">
+        
+        <!-- Top Senders -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-senders" data-size="medium">
+            <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Top Senders</h4>
                 </div>
                 <div class="card-body">
-                    <div id="topSendersChart" class="chart-placeholder">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-chart-bar fa-3x mb-2"></i>
-                            <p class="mb-0">Horizontal Bar Placeholder</p>
-                            <small>Most active SenderIDs</small>
-                        </div>
-                    </div>
+                    <div id="topSendersChart" class="chart-placeholder"></div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 col-lg-12">
-            <div class="card">
+        
+        <!-- Delivery Rate Trend -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-rate" data-size="medium">
+            <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Delivery Rate Trend</h4>
                 </div>
                 <div class="card-body">
-                    <div id="deliveryRateChart" class="chart-placeholder">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-percentage fa-3x mb-2"></i>
-                            <p class="mb-0">Gauge/Line Placeholder</p>
-                            <small>Delivery % over time</small>
-                        </div>
-                    </div>
+                    <div id="deliveryRateChart" class="chart-placeholder"></div>
                 </div>
             </div>
         </div>
+        
     </div>
 
     <!-- Section 3: Drill-Through Links -->
@@ -459,9 +510,146 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="{{ asset('vendor/apexchart/apexchart.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ========================================
+    // Dashboard Grid Layout with SortableJS
+    // ========================================
+    const STORAGE_KEY = 'quicksms_dashboard_layout';
+    const gridEl = document.getElementById('dashboardGrid');
+    let sortable = null;
+    
+    // Default tile order
+    const defaultOrder = [
+        'tile-total', 'tile-delivered', 'tile-pending', 'tile-failed',
+        'chart-volume', 'chart-status',
+        'chart-country', 'chart-type',
+        'chart-cost', 'chart-senders', 'chart-rate'
+    ];
+    
+    // Size options for resize
+    const sizeClasses = {
+        small: 'tile-small',
+        medium: 'tile-medium', 
+        large: 'tile-large',
+        xlarge: 'tile-xlarge',
+        full: 'tile-full'
+    };
+    
+    if (gridEl && typeof Sortable !== 'undefined') {
+        sortable = Sortable.create(gridEl, {
+            animation: 200,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            chosenClass: 'sortable-chosen',
+            handle: '.card-header, .widget-stat, .card-body',
+            filter: '.no-drag',
+            onEnd: function(evt) {
+                saveLayout();
+                setTimeout(rerenderCharts, 100);
+            }
+        });
+        
+        // Load saved layout
+        loadLayout();
+        
+        console.log('[Dashboard] SortableJS initialized with drag & reposition');
+    }
+    
+    function saveLayout() {
+        const tiles = gridEl.querySelectorAll('.qs-tile');
+        const layout = Array.from(tiles).map(tile => ({
+            id: tile.dataset.tileId,
+            size: tile.dataset.size
+        }));
+        
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+            console.log('[Dashboard] Layout saved');
+        } catch (e) {
+            console.warn('[Dashboard] Could not save layout:', e);
+        }
+    }
+    
+    function loadLayout() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const layout = JSON.parse(saved);
+                const fragment = document.createDocumentFragment();
+                
+                layout.forEach(item => {
+                    const tile = gridEl.querySelector(`[data-tile-id="${item.id}"]`);
+                    if (tile) {
+                        // Apply saved size
+                        if (item.size && sizeClasses[item.size]) {
+                            Object.values(sizeClasses).forEach(cls => tile.classList.remove(cls));
+                            tile.classList.add(sizeClasses[item.size]);
+                            tile.dataset.size = item.size;
+                        }
+                        fragment.appendChild(tile);
+                    }
+                });
+                
+                gridEl.appendChild(fragment);
+                console.log('[Dashboard] Layout loaded from storage');
+            }
+        } catch (e) {
+            console.warn('[Dashboard] Could not load layout:', e);
+        }
+    }
+    
+    function resetLayout() {
+        // Reorder tiles to default
+        defaultOrder.forEach(id => {
+            const tile = gridEl.querySelector(`[data-tile-id="${id}"]`);
+            if (tile) {
+                gridEl.appendChild(tile);
+            }
+        });
+        
+        // Reset sizes to default
+        const defaultSizes = {
+            'tile-total': 'small', 'tile-delivered': 'small', 'tile-pending': 'small', 'tile-failed': 'small',
+            'chart-volume': 'xlarge', 'chart-status': 'medium',
+            'chart-country': 'large', 'chart-type': 'large',
+            'chart-cost': 'medium', 'chart-senders': 'medium', 'chart-rate': 'medium'
+        };
+        
+        Object.entries(defaultSizes).forEach(([id, size]) => {
+            const tile = gridEl.querySelector(`[data-tile-id="${id}"]`);
+            if (tile) {
+                Object.values(sizeClasses).forEach(cls => tile.classList.remove(cls));
+                tile.classList.add(sizeClasses[size]);
+                tile.dataset.size = size;
+            }
+        });
+        
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+        
+        setTimeout(rerenderCharts, 100);
+        console.log('[Dashboard] Layout reset to default');
+    }
+    
+    // Reset layout button
+    document.getElementById('btnResetLayout')?.addEventListener('click', resetLayout);
+    
+    // Chart instances for re-rendering
+    let chartInstances = {};
+    
+    function rerenderCharts() {
+        Object.values(chartInstances).forEach(chart => {
+            if (chart && typeof chart.updateOptions === 'function') {
+                chart.updateOptions({}, false, true);
+            }
+        });
+    }
+    
     // Placeholder: Initialize charts with dummy data when ApexCharts is loaded
     if (typeof ApexCharts !== 'undefined') {
         
@@ -495,7 +683,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const volumeChartEl = document.querySelector("#messageVolumeChart");
         if (volumeChartEl) {
             volumeChartEl.innerHTML = '';
-            new ApexCharts(volumeChartEl, volumeOptions).render();
+            chartInstances.volume = new ApexCharts(volumeChartEl, volumeOptions);
+            chartInstances.volume.render();
         }
 
         // Delivery Status Donut Chart (dummy data)
@@ -527,7 +716,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusChartEl = document.querySelector("#deliveryStatusChart");
         if (statusChartEl) {
             statusChartEl.innerHTML = '';
-            new ApexCharts(statusChartEl, statusOptions).render();
+            chartInstances.status = new ApexCharts(statusChartEl, statusOptions);
+            chartInstances.status.render();
         }
 
         // Country Bar Chart (dummy data)
@@ -556,7 +746,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const countryChartEl = document.querySelector("#countryChart");
         if (countryChartEl) {
             countryChartEl.innerHTML = '';
-            new ApexCharts(countryChartEl, countryOptions).render();
+            chartInstances.country = new ApexCharts(countryChartEl, countryOptions);
+            chartInstances.country.render();
         }
 
         // Message Type Pie Chart (dummy data)
@@ -575,7 +766,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const typeChartEl = document.querySelector("#messageTypeChart");
         if (typeChartEl) {
             typeChartEl.innerHTML = '';
-            new ApexCharts(typeChartEl, typeOptions).render();
+            chartInstances.type = new ApexCharts(typeChartEl, typeOptions);
+            chartInstances.type.render();
         }
 
         // Cost Area Chart (dummy data)
@@ -608,7 +800,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const costChartEl = document.querySelector("#costChart");
         if (costChartEl) {
             costChartEl.innerHTML = '';
-            new ApexCharts(costChartEl, costOptions).render();
+            chartInstances.cost = new ApexCharts(costChartEl, costOptions);
+            chartInstances.cost.render();
         }
 
         // Top Senders Horizontal Bar (dummy data)
@@ -636,7 +829,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const sendersChartEl = document.querySelector("#topSendersChart");
         if (sendersChartEl) {
             sendersChartEl.innerHTML = '';
-            new ApexCharts(sendersChartEl, sendersOptions).render();
+            chartInstances.senders = new ApexCharts(sendersChartEl, sendersOptions);
+            chartInstances.senders.render();
         }
 
         // Delivery Rate Line Chart (dummy data)
@@ -668,7 +862,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const rateChartEl = document.querySelector("#deliveryRateChart");
         if (rateChartEl) {
             rateChartEl.innerHTML = '';
-            new ApexCharts(rateChartEl, rateOptions).render();
+            chartInstances.rate = new ApexCharts(rateChartEl, rateOptions);
+            chartInstances.rate.render();
         }
     }
     
