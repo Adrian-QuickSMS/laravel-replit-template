@@ -1161,17 +1161,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create table row from message data
     function createRow(msg) {
-        const statusClass = msg.status.class;
         const statusText = msg.status.text;
         const typeClass = msg.messageType.class;
         const typeText = msg.messageType.text;
         const encodingClass = msg.encoding.class;
         const encodingText = msg.encoding.text;
         
-        return `<tr>
+        // Determine row class based on status (Fillow contextual table classes)
+        let rowClass = '';
+        if (statusText === 'Delivered') {
+            rowClass = 'table-success';
+        } else if (statusText === 'Pending') {
+            rowClass = 'table-primary';
+        } else if (['Undeliverable', 'Rejected', 'Expired', 'Failed', 'Blocked', 'Blacklisted'].includes(statusText)) {
+            rowClass = 'table-danger';
+        }
+        
+        return `<tr class="${rowClass}">
             <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber"><span class="mobile-masked">${msg.mobileNumber}</span></td>
             <td class="py-2 ${columnConfig.visible.includes('senderId') ? '' : 'd-none'}" data-column="senderId">${msg.senderId}</td>
-            <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status"><span class="badge ${statusClass}">${statusText}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status">${statusText}</td>
             <td class="py-2 ${columnConfig.visible.includes('sentTime') ? '' : 'd-none'}" data-column="sentTime">${formatDateTime(msg.sentTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('deliveryTime') ? '' : 'd-none'}" data-column="deliveryTime">${formatDateTime(msg.deliveryTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('completedTime') ? '' : 'd-none'}" data-column="completedTime">${formatDateTime(msg.completedTime)}</td>
