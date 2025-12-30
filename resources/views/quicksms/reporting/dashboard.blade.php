@@ -1330,13 +1330,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Spend with estimated label and VAT note (role-based)
             if (hasPermission('canSeeCost')) {
-                const estimatedBadge = data.spend.isEstimated ? '<span class="badge badge-warning" style="font-size: 10px; font-weight: 500;">Estimated</span>' : '';
+                const estimatedBadge = data.spend.isEstimated ? '<span class="badge badge-primary" style="font-size: 10px; font-weight: 500;">Estimated</span>' : '';
                 const spendTooltip = data.spend.isEstimated 
                     ? 'Some messages are still processing. Final cost may vary.'
                     : 'Final billing complete for this period.';
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">TOTAL SPEND ${estimatedBadge}</p>
-                    <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))} <small class="text-muted" style="font-size: 12px;">${formatNumber(data.spend.creditsUsed)} credits</small></h4>
+                    <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))} <small class="text-muted" style="font-size: 12px;">${formatNumber(data.spend.creditsUsed)}</small></h4>
+                    <small class="text-muted d-block">credits</small>
                     <small class="text-muted">(Excludes VAT)</small>
                 `;
             } else {
