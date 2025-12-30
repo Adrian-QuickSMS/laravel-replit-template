@@ -117,6 +117,11 @@
     color: #fff;
     border-color: #6f42c1;
 }
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
 .multi-value-input {
     display: flex;
     flex-wrap: wrap;
@@ -246,230 +251,118 @@
                         </div>
 
                         <div class="collapse mb-3" id="filtersPanel">
-                        <div class="card card-body bg-light border">
-                            <div class="row g-3">
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-label small fw-bold">Date Range</label>
-                                    <div class="d-flex gap-2 mb-2">
-                                        <input type="date" class="form-control form-control-sm" id="filterDateFrom" style="flex: 1;">
-                                        <span class="align-self-center text-muted small">to</span>
-                                        <input type="date" class="form-control form-control-sm" id="filterDateTo" style="flex: 1;">
+                        <div class="card card-body bg-primary border-0 rounded-3">
+                            <!-- Row 1: Date Range + 3 dropdowns -->
+                            <div class="row g-3 align-items-end">
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label small fw-bold text-white">Date Range</label>
+                                    <div class="d-flex gap-2 align-items-center mb-2">
+                                        <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                        <span class="text-white-50 small">to</span>
+                                        <input type="date" class="form-control form-control-sm" id="filterDateTo">
                                     </div>
                                     <div class="d-flex flex-wrap gap-1">
-                                        <button type="button" class="date-preset-btn" data-preset="today">Today</button>
-                                        <button type="button" class="date-preset-btn" data-preset="yesterday">Yesterday</button>
-                                        <button type="button" class="date-preset-btn" data-preset="7days">Last 7 Days</button>
-                                        <button type="button" class="date-preset-btn" data-preset="30days">Last 30 Days</button>
-                                        <button type="button" class="date-preset-btn" data-preset="thismonth">This Month</button>
-                                        <button type="button" class="date-preset-btn" data-preset="lastmonth">Last Month</button>
+                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="today">Today</button>
+                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="yesterday">Yesterday</button>
+                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="7days">Last 7 Days</button>
+                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="30days">Last 30 Days</button>
+                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="thismonth">This Month</button>
+                                        <button type="button" class="btn btn-outline-light btn-xs" data-preset="lastmonth">Last Month</button>
                                     </div>
                                 </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Sub Account</label>
-                                    <div class="multiselect-dropdown dropdown">
-                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterSubAccountToggle">
-                                            <span class="toggle-text">All Sub Accounts</span>
-                                        </button>
-                                        <div class="dropdown-menu p-2" id="filterSubAccountMenu">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="main" id="subaccount-main">
-                                                <label class="form-check-label small" for="subaccount-main">Main Account</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="marketing" id="subaccount-marketing">
-                                                <label class="form-check-label small" for="subaccount-marketing">Marketing Team</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="support" id="subaccount-support">
-                                                <label class="form-check-label small" for="subaccount-support">Support Team</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="sales" id="subaccount-sales">
-                                                <label class="form-check-label small" for="subaccount-sales">Sales Team</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">Sub Account</label>
+                                    <select class="form-select form-select-sm" id="filterSubAccountToggle">
+                                        <option value="">All Sub Accounts</option>
+                                        <option value="main">Main Account</option>
+                                        <option value="marketing">Marketing Team</option>
+                                        <option value="support">Support Team</option>
+                                        <option value="sales">Sales Team</option>
+                                    </select>
                                 </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">User</label>
-                                    <div class="multiselect-dropdown dropdown">
-                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterUserToggle">
-                                            <span class="toggle-text">All Users</span>
-                                        </button>
-                                        <div class="dropdown-menu p-2" id="filterUserMenu">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="john" id="user-john">
-                                                <label class="form-check-label small" for="user-john">John Smith</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="sarah" id="user-sarah">
-                                                <label class="form-check-label small" for="user-sarah">Sarah Johnson</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="mike" id="user-mike">
-                                                <label class="form-check-label small" for="user-mike">Mike Williams</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="emma" id="user-emma">
-                                                <label class="form-check-label small" for="user-emma">Emma Davis</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">User</label>
+                                    <select class="form-select form-select-sm" id="filterUserToggle">
+                                        <option value="">All Users</option>
+                                        <option value="john">John Smith</option>
+                                        <option value="sarah">Sarah Johnson</option>
+                                        <option value="mike">Mike Williams</option>
+                                        <option value="emma">Emma Davis</option>
+                                    </select>
                                 </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Origin</label>
-                                    <div class="multiselect-dropdown dropdown">
-                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterOriginToggle">
-                                            <span class="toggle-text">All Origins</span>
-                                        </button>
-                                        <div class="dropdown-menu p-2" id="filterOriginMenu">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="portal" id="origin-portal">
-                                                <label class="form-check-label small" for="origin-portal">Portal</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="api" id="origin-api">
-                                                <label class="form-check-label small" for="origin-api">API</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="email-to-sms" id="origin-email">
-                                                <label class="form-check-label small" for="origin-email">Email-to-SMS</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="integration" id="origin-integration">
-                                                <label class="form-check-label small" for="origin-integration">Integration</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-label small fw-bold">Mobile Number</label>
-                                    <div class="multi-value-input" id="filterMobileContainer">
-                                        <input type="text" placeholder="Enter number and press Enter..." id="filterMobileInput">
-                                    </div>
-                                    <small class="text-muted">Enter multiple numbers separated by Enter</small>
-                                </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">SenderID</label>
-                                    <div class="predictive-input-wrapper">
-                                        <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." autocomplete="off">
-                                        <div class="predictive-suggestions" id="senderIdSuggestions">
-                                            <div class="predictive-suggestion" data-value="QuickSMS">QuickSMS</div>
-                                            <div class="predictive-suggestion" data-value="ALERTS">ALERTS</div>
-                                            <div class="predictive-suggestion" data-value="PROMO">PROMO</div>
-                                            <div class="predictive-suggestion" data-value="INFO">INFO</div>
-                                            <div class="predictive-suggestion" data-value="NOTIFY">NOTIFY</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Message Status</label>
-                                    <div class="multiselect-dropdown dropdown">
-                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterStatusToggle">
-                                            <span class="toggle-text">All Statuses</span>
-                                        </button>
-                                        <div class="dropdown-menu p-2" id="filterStatusMenu">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="delivered" id="status-delivered">
-                                                <label class="form-check-label small" for="status-delivered">Delivered</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="pending" id="status-pending">
-                                                <label class="form-check-label small" for="status-pending">Pending</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="undeliverable" id="status-undeliverable">
-                                                <label class="form-check-label small" for="status-undeliverable">Undeliverable</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="rejected" id="status-rejected">
-                                                <label class="form-check-label small" for="status-rejected">Rejected</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Country</label>
-                                    <div class="multiselect-dropdown dropdown">
-                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterCountryToggle">
-                                            <span class="toggle-text">All Countries</span>
-                                        </button>
-                                        <div class="dropdown-menu p-2" id="filterCountryMenu">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="uk" id="country-uk">
-                                                <label class="form-check-label small" for="country-uk">United Kingdom</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="us" id="country-us">
-                                                <label class="form-check-label small" for="country-us">United States</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="de" id="country-de">
-                                                <label class="form-check-label small" for="country-de">Germany</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="fr" id="country-fr">
-                                                <label class="form-check-label small" for="country-fr">France</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="es" id="country-es">
-                                                <label class="form-check-label small" for="country-es">Spain</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="ie" id="country-ie">
-                                                <label class="form-check-label small" for="country-ie">Ireland</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-3 col-lg-2">
-                                    <label class="form-label small fw-bold">Message Type</label>
-                                    <div class="multiselect-dropdown dropdown">
-                                        <button class="form-select form-select-sm multiselect-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" id="filterTypeToggle">
-                                            <span class="toggle-text">All Types</span>
-                                        </button>
-                                        <div class="dropdown-menu p-2" id="filterTypeMenu">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="sms" id="type-sms">
-                                                <label class="form-check-label small" for="type-sms">SMS</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="rcs-basic" id="type-rcs-basic">
-                                                <label class="form-check-label small" for="type-rcs-basic">RCS Basic</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="rcs-rich" id="type-rcs-rich">
-                                                <label class="form-check-label small" for="type-rcs-rich">RCS Rich</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-label small fw-bold">Message ID</label>
-                                    <div class="multi-value-input" id="filterMessageIdContainer">
-                                        <input type="text" placeholder="Enter Message ID and press Enter..." id="filterMessageIdInput">
-                                    </div>
-                                    <small class="text-muted">Enter multiple IDs separated by Enter</small>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">Origin</label>
+                                    <select class="form-select form-select-sm" id="filterOriginToggle">
+                                        <option value="">All Origins</option>
+                                        <option value="portal">Portal</option>
+                                        <option value="api">API</option>
+                                        <option value="email-to-sms">Email-to-SMS</option>
+                                        <option value="integration">Integration</option>
+                                    </select>
                                 </div>
                             </div>
                             
-                            <div class="mt-4 pt-3 border-top d-flex gap-2">
-                                <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
-                                    <i class="fas fa-check me-1"></i> Apply Filters
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
-                                    <i class="fas fa-undo me-1"></i> Reset Filters
-                                </button>
+                            <!-- Row 2: Mobile Number + SenderID + Status + Country + Type -->
+                            <div class="row g-3 align-items-end mt-1">
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label class="form-label small fw-bold text-white">Mobile Number</label>
+                                    <input type="text" class="form-control form-control-sm" id="filterMobileInput" placeholder="Enter number and press Enter...">
+                                    <small class="text-white-50">Enter multiple numbers separated by Enter</small>
+                                </div>
+                                <div class="col-6 col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">SenderID</label>
+                                    <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." autocomplete="off">
+                                </div>
+                                <div class="col-6 col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">Message Status</label>
+                                    <select class="form-select form-select-sm" id="filterStatusToggle">
+                                        <option value="">All Statuses</option>
+                                        <option value="delivered">Delivered</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="undeliverable">Undeliverable</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">Country</label>
+                                    <select class="form-select form-select-sm" id="filterCountryToggle">
+                                        <option value="">All Countries</option>
+                                        <option value="uk">United Kingdom</option>
+                                        <option value="us">United States</option>
+                                        <option value="de">Germany</option>
+                                        <option value="fr">France</option>
+                                        <option value="es">Spain</option>
+                                        <option value="ie">Ireland</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3 col-lg-2">
+                                    <label class="form-label small fw-bold text-white">Message Type</label>
+                                    <select class="form-select form-select-sm" id="filterTypeToggle">
+                                        <option value="">All Types</option>
+                                        <option value="sms">SMS</option>
+                                        <option value="rcs-basic">RCS Basic</option>
+                                        <option value="rcs-rich">RCS Rich</option>
+                                    </select>
+                                </div>
                             </div>
+                            
+                            <!-- Row 3: Message ID + Action buttons -->
+                            <div class="row g-3 align-items-end mt-1">
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label class="form-label small fw-bold text-white">Message ID</label>
+                                    <input type="text" class="form-control form-control-sm" id="filterMessageIdInput" placeholder="Enter Message ID and press Enter...">
+                                    <small class="text-white-50">Enter multiple IDs separated by Enter</small>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-8 d-flex gap-2 align-items-end pb-1">
+                                    <button type="button" class="btn btn-light btn-sm" id="btnApplyFilters">
+                                        <i class="fas fa-check me-1"></i> Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-light btn-sm" id="btnResetFilters">
+                                        <i class="fas fa-undo me-1"></i> Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         </div>
 
                         <div class="mb-3" id="activeFiltersContainer" style="display: none;">
