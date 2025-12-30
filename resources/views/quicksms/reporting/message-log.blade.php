@@ -256,7 +256,8 @@
                         <div class="mb-3">
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="messageSearch" placeholder="Search by recipient, sender, message content...">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search by mobile number or sender ID...">
+                                <button class="btn btn-primary" type="button" id="searchBtn"><i class="fas fa-search"></i></button>
                             </div>
                         </div>
 
@@ -316,7 +317,7 @@
                             <div class="row g-3 align-items-end mt-2">
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Mobile Number</label>
-                                    <input type="text" class="form-control form-control-sm" id="filterMobileInput" placeholder="Enter number...">
+                                    <input type="text" class="form-control form-control-sm" id="filterMobileNumber" placeholder="Enter number...">
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">SenderID</label>
@@ -355,7 +356,7 @@
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message ID</label>
-                                    <input type="text" class="form-control form-control-sm" id="filterMessageIdInput" placeholder="Enter ID...">
+                                    <input type="text" class="form-control form-control-sm" id="filterMessageId" placeholder="Enter ID...">
                                 </div>
                             </div>
                             
@@ -438,31 +439,59 @@
                             <thead class="sticky-top bg-white" style="z-index: 10;">
                                 <tr id="tableHeaderRow">
                                     <th data-column="mobileNumber">Mobile Number</th>
-                                    <th data-column="senderId">SenderID</th>
-                                    <th data-column="status">
+                                    <th data-column="senderId">
                                         <div class="dropdown d-inline-block">
                                             <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
-                                                Status <i class="fas fa-sort ms-1 text-muted"></i>
+                                                SenderID <i class="fas fa-sort ms-1 text-muted" id="sortIconSenderId"></i>
                                             </span>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('status', 'asc'); return false;"><i class="fas fa-check-circle me-2 text-success"></i> Delivered First</a></li>
-                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('status', 'desc'); return false;"><i class="fas fa-times-circle me-2 text-danger"></i> Failed First</a></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="senderId" data-direction="asc"><i class="fas fa-sort-alpha-down me-2"></i> A → Z</a></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="senderId" data-direction="desc"><i class="fas fa-sort-alpha-up me-2"></i> Z → A</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="senderId" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
                                             </ul>
                                         </div>
                                     </th>
+                                    <th data-column="status">Status</th>
                                     <th data-column="sentTime">
                                         <div class="dropdown d-inline-block">
                                             <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
-                                                Sent Time <i class="fas fa-sort ms-1 text-muted"></i>
+                                                Sent Time <i class="fas fa-sort ms-1 text-muted" id="sortIconSentTime"></i>
                                             </span>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('sentTime', 'desc'); return false;"><i class="fas fa-calendar-alt me-2"></i> Most Recent</a></li>
-                                                <li><a class="dropdown-item" href="#!" onclick="sortTable('sentTime', 'asc'); return false;"><i class="fas fa-calendar me-2"></i> Oldest First</a></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="sentTime" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Newest First</a></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="sentTime" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Oldest First</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="sentTime" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
                                             </ul>
                                         </div>
                                     </th>
-                                    <th data-column="deliveryTime">Delivery Time</th>
-                                    <th data-column="completedTime">Completed Time</th>
+                                    <th data-column="deliveryTime">
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Delivery Time <i class="fas fa-sort ms-1 text-muted" id="sortIconDeliveryTime"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="deliveryTime" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Newest First</a></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="deliveryTime" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Oldest First</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="deliveryTime" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
+                                    <th data-column="completedTime">
+                                        <div class="dropdown d-inline-block">
+                                            <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                Completed Time <i class="fas fa-sort ms-1 text-muted" id="sortIconCompletedTime"></i>
+                                            </span>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="completedTime" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Newest First</a></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="completedTime" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Oldest First</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item sort-option" href="#!" data-field="completedTime" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
+                                            </ul>
+                                        </div>
+                                    </th>
                                     <th data-column="cost">Cost</th>
                                     <th data-column="messageType" class="d-none">Message Type</th>
                                     <th data-column="subAccount" class="d-none">Sub Account</th>
@@ -866,31 +895,35 @@ function viewMessageDetails(messageId) {
 }
 
 // ========================================
-// Mock API Layer
+// Mock API Layer - Stable Dataset with Full Filtering/Search/Sort
 // ========================================
-const MockAPI = {
-    // Mock data constants
-    statuses: [
-        { class: 'bg-success', text: 'Delivered', weight: 70 },
-        { class: 'bg-warning text-dark', text: 'Pending', weight: 10 },
-        { class: 'bg-danger', text: 'Undeliverable', weight: 15 },
-        { class: 'bg-secondary', text: 'Rejected', weight: 5 }
-    ],
-    senders: ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand', 'INFO', 'NOTIFY'],
-    origins: ['Portal', 'API', 'Email-to-SMS', 'Integration'],
-    messageTypes: [
-        { class: 'bg-secondary', text: 'SMS', weight: 60 },
-        { class: 'bg-info', text: 'RCS Basic', weight: 25 },
-        { class: 'bg-info', text: 'RCS Rich', weight: 15 }
-    ],
-    subAccounts: ['Main Account', 'Marketing Team', 'Support Team', 'Sales Team'],
-    users: ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emma Davis', 'James Wilson'],
-    encodings: [
-        { class: 'bg-light text-dark border', text: 'GSM-7', weight: 80 },
-        { class: 'bg-primary text-white', text: 'Unicode', weight: 20 }
-    ],
-    countries: ['UK', 'US', 'DE', 'FR', 'ES', 'IE'],
-    messages: [
+const MockAPI = (function() {
+    // Data constants
+    const statuses = [
+        { text: 'Delivered', weight: 50 },
+        { text: 'Pending', weight: 15 },
+        { text: 'Undeliverable', weight: 10 },
+        { text: 'Rejected', weight: 8 },
+        { text: 'Expired', weight: 7 },
+        { text: 'Failed', weight: 5 },
+        { text: 'Blocked', weight: 3 },
+        { text: 'Blacklisted', weight: 2 }
+    ];
+    const senders = ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand', 'INFO', 'NOTIFY'];
+    const origins = ['Portal', 'API', 'Email-to-SMS', 'Integration'];
+    const messageTypes = [
+        { text: 'SMS', weight: 60 },
+        { text: 'RCS Basic', weight: 25 },
+        { text: 'RCS Rich', weight: 15 }
+    ];
+    const subAccounts = ['Main Account', 'Marketing Team', 'Support Team', 'Sales Team'];
+    const users = ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emma Davis', 'James Wilson'];
+    const encodings = [
+        { text: 'GSM-7', weight: 80 },
+        { text: 'Unicode', weight: 20 }
+    ];
+    const countries = ['UK', 'US', 'DE', 'FR', 'ES', 'IE'];
+    const messages = [
         'Your order has been dispatched and will arrive tomorrow.',
         'Reminder: Your appointment is scheduled for tomorrow at 2pm.',
         'Your verification code is 123456. Valid for 5 minutes.',
@@ -899,94 +932,231 @@ const MockAPI = {
         'Your account balance is low. Please top up soon.',
         'Delivery update: Your package is out for delivery.',
         'Welcome to QuickSMS! Your account is now active.'
-    ],
+    ];
+
+    // Seeded random for consistent data generation
+    let seed = 12345;
+    function seededRandom() {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return seed / 0x7fffffff;
+    }
     
-    // Weighted random selection
-    weightedRandom(items) {
+    function weightedRandom(items) {
         const totalWeight = items.reduce((sum, item) => sum + (item.weight || 1), 0);
-        let random = Math.random() * totalWeight;
+        let random = seededRandom() * totalWeight;
         for (const item of items) {
             random -= (item.weight || 1);
             if (random <= 0) return item;
         }
         return items[0];
-    },
+    }
     
-    // Generate a single mock message
-    generateMessage(index, baseTime) {
-        const status = this.weightedRandom(this.statuses);
-        const messageType = this.weightedRandom(this.messageTypes);
-        const encoding = this.weightedRandom(this.encodings);
-        const parts = Math.random() < 0.2 ? Math.floor(Math.random() * 3) + 2 : 1;
+    function pickRandom(arr) {
+        return arr[Math.floor(seededRandom() * arr.length)];
+    }
+
+    // Generate stable dataset once (200 records)
+    const TOTAL_RECORDS = 200;
+    const baseTime = new Date();
+    const dataset = [];
+    
+    for (let i = 0; i < TOTAL_RECORDS; i++) {
+        const status = weightedRandom(statuses);
+        const messageType = weightedRandom(messageTypes);
+        const encoding = weightedRandom(encodings);
+        const parts = seededRandom() < 0.2 ? Math.floor(seededRandom() * 3) + 2 : 1;
         
         const sentTime = new Date(baseTime);
-        sentTime.setMinutes(sentTime.getMinutes() - index * 2);
+        sentTime.setMinutes(sentTime.getMinutes() - i * 5 - Math.floor(seededRandom() * 10));
         
-        const deliveryTime = status.text === 'Delivered' ? new Date(sentTime.getTime() + Math.random() * 30000) : null;
-        const completedTime = status.text !== 'Pending' ? new Date(sentTime.getTime() + Math.random() * 60000) : null;
+        const deliveryTime = status.text === 'Delivered' ? new Date(sentTime.getTime() + seededRandom() * 30000 + 5000) : null;
+        const completedTime = status.text !== 'Pending' ? new Date(sentTime.getTime() + seededRandom() * 60000 + 10000) : null;
         
-        const phoneDigits = String(Math.floor(Math.random() * 10000000000)).padStart(10, '0');
+        const phoneDigits = String(Math.floor(seededRandom() * 10000000000)).padStart(10, '0');
         const phone = `+44 7${phoneDigits.substring(0, 1)}** ***${phoneDigits.substring(7)}`;
         const phoneRaw = `+447${phoneDigits}`;
         
-        return {
-            id: `MSG-${String(index + 1).padStart(9, '0')}`,
+        dataset.push({
+            id: `MSG-${String(i + 1).padStart(9, '0')}`,
             mobileNumber: phone,
             mobileNumberRaw: phoneRaw,
-            senderId: this.senders[Math.floor(Math.random() * this.senders.length)],
-            status: status,
+            senderId: pickRandom(senders),
+            status: { text: status.text },
             sentTime: sentTime,
             deliveryTime: deliveryTime,
             completedTime: completedTime,
             cost: (parts * 0.035).toFixed(3),
-            messageType: messageType,
-            subAccount: this.subAccounts[Math.floor(Math.random() * this.subAccounts.length)],
-            user: this.users[Math.floor(Math.random() * this.users.length)],
-            origin: this.origins[Math.floor(Math.random() * this.origins.length)],
-            country: this.countries[Math.floor(Math.random() * this.countries.length)],
+            messageType: { text: messageType.text },
+            subAccount: pickRandom(subAccounts),
+            user: pickRandom(users),
+            origin: pickRandom(origins),
+            country: pickRandom(countries),
             parts: parts,
-            encoding: encoding,
-            content: this.messages[Math.floor(Math.random() * this.messages.length)]
-        };
-    },
-    
-    // Fetch messages (simulates API call)
-    async fetchMessages(filters, page = 1, limit = 50) {
-        // Simulate network delay (200-500ms)
-        await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
-        
-        const totalAvailable = 1247; // Mock total count
-        const baseTime = new Date();
-        const startIndex = (page - 1) * limit;
-        
-        // Generate mock data
-        const messages = [];
-        const count = Math.min(limit, totalAvailable - startIndex);
-        
-        for (let i = 0; i < count; i++) {
-            messages.push(this.generateMessage(startIndex + i, baseTime));
-        }
-        
-        console.log(`[Mock API] Fetched page ${page}, ${messages.length} rows (filters:`, filters, ')');
-        
-        return {
-            data: messages,
-            meta: {
-                currentPage: page,
-                perPage: limit,
-                total: totalAvailable,
-                totalPages: Math.ceil(totalAvailable / limit),
-                hasMore: startIndex + count < totalAvailable
-            }
-        };
+            encoding: { text: encoding.text },
+            content: pickRandom(messages)
+        });
     }
-};
+    
+    console.log('[MockAPI] Generated stable dataset with', dataset.length, 'records');
+
+    return {
+        // Fetch messages with full filtering, searching, and sorting
+        async fetchMessages(filters = {}, search = '', sort = { field: '', direction: '' }, page = 1, limit = 50) {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 150 + Math.random() * 150));
+            
+            let results = [...dataset];
+            
+            // === APPLY FILTERS (AND logic) ===
+            
+            // Date Range filter (on sentTime)
+            if (filters.dateFrom) {
+                const fromDate = new Date(filters.dateFrom);
+                results = results.filter(msg => msg.sentTime >= fromDate);
+            }
+            if (filters.dateTo) {
+                const toDate = new Date(filters.dateTo);
+                results = results.filter(msg => msg.sentTime <= toDate);
+            }
+            
+            // Sub Account filter (multi-select)
+            if (filters.subAccounts && filters.subAccounts.length > 0) {
+                results = results.filter(msg => filters.subAccounts.includes(msg.subAccount));
+            }
+            
+            // User filter (multi-select)
+            if (filters.users && filters.users.length > 0) {
+                results = results.filter(msg => filters.users.includes(msg.user));
+            }
+            
+            // Origin filter (multi-select)
+            if (filters.origins && filters.origins.length > 0) {
+                results = results.filter(msg => filters.origins.includes(msg.origin));
+            }
+            
+            // Mobile Number filter (multiple values, partial match)
+            if (filters.mobileNumbers && filters.mobileNumbers.length > 0) {
+                results = results.filter(msg => {
+                    const rawNum = msg.mobileNumberRaw.toLowerCase();
+                    const displayNum = msg.mobileNumber.toLowerCase();
+                    return filters.mobileNumbers.some(num => {
+                        const searchNum = num.toLowerCase().replace(/\s+/g, '');
+                        return rawNum.includes(searchNum) || displayNum.includes(searchNum);
+                    });
+                });
+            }
+            
+            // SenderID filter (partial match)
+            if (filters.senderId && filters.senderId.trim()) {
+                const senderSearch = filters.senderId.toLowerCase().trim();
+                results = results.filter(msg => msg.senderId.toLowerCase().includes(senderSearch));
+            }
+            
+            // Status filter (multi-select)
+            if (filters.statuses && filters.statuses.length > 0) {
+                results = results.filter(msg => filters.statuses.includes(msg.status.text));
+            }
+            
+            // Country filter (multi-select)
+            if (filters.countries && filters.countries.length > 0) {
+                results = results.filter(msg => filters.countries.includes(msg.country));
+            }
+            
+            // Message Type filter (multi-select)
+            if (filters.messageTypes && filters.messageTypes.length > 0) {
+                results = results.filter(msg => filters.messageTypes.includes(msg.messageType.text));
+            }
+            
+            // Message ID filter (multiple values, partial match)
+            if (filters.messageIds && filters.messageIds.length > 0) {
+                results = results.filter(msg => {
+                    return filters.messageIds.some(id => 
+                        msg.id.toLowerCase().includes(id.toLowerCase())
+                    );
+                });
+            }
+            
+            // === APPLY SEARCH (mobileNumber OR senderId, case-insensitive) ===
+            if (search && search.trim()) {
+                const searchTerm = search.toLowerCase().trim();
+                results = results.filter(msg => {
+                    const mobile = (msg.mobileNumberRaw + ' ' + msg.mobileNumber).toLowerCase();
+                    const sender = msg.senderId.toLowerCase();
+                    return mobile.includes(searchTerm) || sender.includes(searchTerm);
+                });
+            }
+            
+            // === APPLY SORTING ===
+            if (sort.field && sort.direction) {
+                results.sort((a, b) => {
+                    let aVal, bVal;
+                    
+                    switch (sort.field) {
+                        case 'senderId':
+                            aVal = a.senderId.toLowerCase();
+                            bVal = b.senderId.toLowerCase();
+                            break;
+                        case 'sentTime':
+                            aVal = a.sentTime ? a.sentTime.getTime() : 0;
+                            bVal = b.sentTime ? b.sentTime.getTime() : 0;
+                            break;
+                        case 'deliveryTime':
+                            aVal = a.deliveryTime ? a.deliveryTime.getTime() : 0;
+                            bVal = b.deliveryTime ? b.deliveryTime.getTime() : 0;
+                            break;
+                        case 'completedTime':
+                            aVal = a.completedTime ? a.completedTime.getTime() : 0;
+                            bVal = b.completedTime ? b.completedTime.getTime() : 0;
+                            break;
+                        default:
+                            return 0;
+                    }
+                    
+                    if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+            
+            // === PAGINATION ===
+            const total = results.length;
+            const startIndex = (page - 1) * limit;
+            const paginatedResults = results.slice(startIndex, startIndex + limit);
+            
+            console.log(`[MockAPI] Query: page=${page}, filters=${JSON.stringify(filters)}, search="${search}", sort=${JSON.stringify(sort)} => ${total} total, returning ${paginatedResults.length}`);
+            
+            return {
+                data: paginatedResults,
+                meta: {
+                    currentPage: page,
+                    perPage: limit,
+                    total: total,
+                    totalPages: Math.ceil(total / limit),
+                    hasMore: startIndex + paginatedResults.length < total
+                }
+            };
+        },
+        
+        // Get available filter options (for dynamic dropdowns if needed)
+        getFilterOptions() {
+            return {
+                statuses: statuses.map(s => s.text),
+                messageTypes: messageTypes.map(t => t.text),
+                subAccounts,
+                users,
+                origins,
+                countries,
+                senders
+            };
+        }
+    };
+})();
 
 // ========================================
 // Main Application Logic
 // ========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // State management
+    // State management - filters, search, and sort
     let filterState = {
         dateFrom: '',
         dateTo: '',
@@ -1001,7 +1171,10 @@ document.addEventListener('DOMContentLoaded', function() {
         messageIds: []
     };
     
-    let pendingFilters = { ...filterState };
+    let pendingFilters = JSON.parse(JSON.stringify(filterState));
+    let searchState = '';
+    let sortState = { field: '', direction: '' };
+    
     let currentPage = 1;
     let isLoading = false;
     let hasMore = true;
@@ -1144,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            const response = await MockAPI.fetchMessages(filterState, currentPage, PAGE_SIZE);
+            const response = await MockAPI.fetchMessages(filterState, searchState, sortState, currentPage, PAGE_SIZE);
             const { data, meta } = response;
             
             if (reset) {
@@ -1435,6 +1608,213 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Apply initial column visibility
     applyColumnVisibility();
+    
+    // ========================================
+    // Search functionality
+    // ========================================
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    
+    function performSearch() {
+        const searchValue = searchInput?.value.trim() || '';
+        searchState = searchValue;
+        console.log('[Search] Searching for:', searchState);
+        hasMore = true;
+        loadMessages(true);
+        updateActiveFilterChips();
+    }
+    
+    // Search on Enter key
+    searchInput?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+    
+    // Search on button click
+    searchBtn?.addEventListener('click', performSearch);
+    
+    // ========================================
+    // Sorting functionality
+    // ========================================
+    function updateSortIcons() {
+        // Reset all sort icons
+        ['sortIconSenderId', 'sortIconSentTime', 'sortIconDeliveryTime', 'sortIconCompletedTime'].forEach(id => {
+            const icon = document.getElementById(id);
+            if (icon) {
+                icon.className = 'fas fa-sort ms-1 text-muted';
+            }
+        });
+        
+        // Highlight active sort
+        if (sortState.field && sortState.direction) {
+            const iconId = 'sortIcon' + sortState.field.charAt(0).toUpperCase() + sortState.field.slice(1);
+            const icon = document.getElementById(iconId);
+            if (icon) {
+                if (sortState.field === 'senderId') {
+                    icon.className = sortState.direction === 'asc' 
+                        ? 'fas fa-sort-alpha-down ms-1 text-primary'
+                        : 'fas fa-sort-alpha-up ms-1 text-primary';
+                } else {
+                    icon.className = sortState.direction === 'asc'
+                        ? 'fas fa-sort-up ms-1 text-primary'
+                        : 'fas fa-sort-down ms-1 text-primary';
+                }
+            }
+        }
+    }
+    
+    // Handle sort option clicks
+    document.querySelectorAll('.sort-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            const field = this.dataset.field;
+            const direction = this.dataset.direction;
+            
+            if (direction === '') {
+                // Clear sort
+                sortState = { field: '', direction: '' };
+            } else {
+                sortState = { field, direction };
+            }
+            
+            console.log('[Sort] Sort updated:', sortState);
+            updateSortIcons();
+            updateActiveFilterChips();
+            hasMore = true;
+            loadMessages(true);
+        });
+    });
+    
+    // ========================================
+    // Filter chip removal
+    // ========================================
+    document.getElementById('activeFiltersChips')?.addEventListener('click', function(e) {
+        const closeBtn = e.target.closest('.btn-close');
+        if (!closeBtn) return;
+        
+        const filterKey = closeBtn.dataset.filter;
+        if (!filterKey) return;
+        
+        console.log('[Chip] Removing filter:', filterKey);
+        
+        // Clear the specific filter
+        if (filterKey === 'dateRange') {
+            filterState.dateFrom = '';
+            filterState.dateTo = '';
+            pendingFilters.dateFrom = '';
+            pendingFilters.dateTo = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+        } else if (filterKey === 'senderId') {
+            filterState.senderId = '';
+            pendingFilters.senderId = '';
+            document.getElementById('filterSenderId').value = '';
+        } else if (filterKey === 'mobileNumbers') {
+            filterState.mobileNumbers = [];
+            pendingFilters.mobileNumbers = [];
+            document.getElementById('filterMobileNumber').value = '';
+        } else if (filterKey === 'messageIds') {
+            filterState.messageIds = [];
+            pendingFilters.messageIds = [];
+            document.getElementById('filterMessageId').value = '';
+        } else if (filterKey === 'search') {
+            searchState = '';
+            if (searchInput) searchInput.value = '';
+        } else if (filterKey === 'sort') {
+            sortState = { field: '', direction: '' };
+            updateSortIcons();
+        } else if (Array.isArray(filterState[filterKey])) {
+            filterState[filterKey] = [];
+            pendingFilters[filterKey] = [];
+            // Uncheck related checkboxes
+            const menuId = filterKey + 'Menu';
+            document.querySelectorAll(`#${menuId} input[type="checkbox"]`).forEach(cb => cb.checked = false);
+            // Reset dropdown text
+            const dropdownId = filterKey + 'Dropdown';
+            const toggle = document.getElementById(dropdownId);
+            if (toggle) toggle.querySelector('.filter-text').textContent = toggle.dataset.default || 'All';
+        }
+        
+        // Re-run query with updated filters
+        updateActiveFilterChips();
+        hasMore = true;
+        loadMessages(true);
+    });
+    
+    // Enhanced updateActiveFilterChips to include search and sort
+    const originalUpdateChips = updateActiveFilterChips;
+    updateActiveFilterChips = function() {
+        const container = document.getElementById('activeFiltersChips');
+        const wrapper = document.getElementById('activeFiltersContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        let hasFilters = false;
+        
+        // Date Range
+        if (filterState.dateFrom || filterState.dateTo) {
+            const fromText = filterState.dateFrom ? new Date(filterState.dateFrom).toLocaleDateString('en-GB') : 'Start';
+            const toText = filterState.dateTo ? new Date(filterState.dateTo).toLocaleDateString('en-GB') : 'End';
+            container.innerHTML += createChip('Date', `${fromText} to ${toText}`, 'dateRange');
+            hasFilters = true;
+        }
+        
+        // Multi-select filters
+        ['subAccounts', 'users', 'origins', 'statuses', 'countries', 'messageTypes'].forEach(key => {
+            if (filterState[key] && filterState[key].length > 0) {
+                const labels = filterState[key].map(v => labelMappings[key]?.[v] || v);
+                const displayLabel = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+                container.innerHTML += createChip(displayLabel, labels.join(', '), key);
+                hasFilters = true;
+            }
+        });
+        
+        // SenderID filter
+        if (filterState.senderId) {
+            container.innerHTML += createChip('SenderID', filterState.senderId, 'senderId');
+            hasFilters = true;
+        }
+        
+        // Mobile Numbers
+        if (filterState.mobileNumbers && filterState.mobileNumbers.length > 0) {
+            container.innerHTML += createChip('Mobile', `${filterState.mobileNumbers.length} number(s)`, 'mobileNumbers');
+            hasFilters = true;
+        }
+        
+        // Message IDs
+        if (filterState.messageIds && filterState.messageIds.length > 0) {
+            container.innerHTML += createChip('Message ID', `${filterState.messageIds.length} ID(s)`, 'messageIds');
+            hasFilters = true;
+        }
+        
+        // Search chip
+        if (searchState) {
+            container.innerHTML += createChip('Search', searchState, 'search');
+            hasFilters = true;
+        }
+        
+        // Sort chip
+        if (sortState.field && sortState.direction) {
+            const sortLabels = {
+                senderId: 'SenderID',
+                sentTime: 'Sent Time',
+                deliveryTime: 'Delivery Time',
+                completedTime: 'Completed Time'
+            };
+            const dirLabels = {
+                asc: sortState.field === 'senderId' ? 'A→Z' : 'Oldest',
+                desc: sortState.field === 'senderId' ? 'Z→A' : 'Newest'
+            };
+            container.innerHTML += createChip('Sort', `${sortLabels[sortState.field]} ${dirLabels[sortState.direction]}`, 'sort');
+            hasFilters = true;
+        }
+        
+        if (wrapper) {
+            wrapper.style.display = hasFilters ? 'block' : 'none';
+        }
+    };
 });
 </script>
 @endpush
