@@ -1464,10 +1464,9 @@ class QuickSMSController extends Controller
 
     public function messageLog()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Message Log',
-            'purpose' => 'Detailed log of all sent and received messages.',
-            'sub_modules' => []
+        // TODO: Replace with database query - GET /api/messages?page=X&limit=Y&filters=Z
+        return view('quicksms.reporting.message-log', [
+            'page_title' => 'Message Log'
         ]);
     }
 
