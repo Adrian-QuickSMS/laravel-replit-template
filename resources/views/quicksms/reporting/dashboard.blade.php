@@ -10,6 +10,22 @@
     align-items: center;
     justify-content: center;
 }
+
+.btn-xs {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+}
+
+.date-preset-btn.active {
+    background-color: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+}
+
+.multiselect-dropdown .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+}
 </style>
 @endpush
 
@@ -27,48 +43,120 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-body py-3">
+                <div class="card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                    <!-- Row 1: Date Range with presets -->
                     <div class="row g-3 align-items-end">
-                        <div class="col-12 col-md-4 col-lg-3">
-                            <label class="form-label small fw-bold mb-1">Date Range</label>
+                        <div class="col-12 col-lg-6">
+                            <label class="form-label small fw-bold">Date Range</label>
                             <div class="d-flex gap-2 align-items-center">
-                                <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1">
                                 <span class="text-muted small">to</span>
-                                <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                                <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
+                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
+                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn active" data-preset="7days">Last 7 Days</button>
+                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
+                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="mtd">MTD</button>
+                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="custom">Custom Range</button>
                             </div>
                         </div>
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label class="form-label small fw-bold mb-1">Sub Account</label>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <label class="form-label small fw-bold">Sub Account</label>
                             <select class="form-select form-select-sm" id="filterSubAccount">
                                 <option value="">All Sub Accounts</option>
-                                <option value="main">Main Account</option>
-                                <option value="marketing">Marketing Team</option>
-                                <option value="support">Support Team</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label class="form-label small fw-bold mb-1">Message Type</label>
-                            <select class="form-select form-select-sm" id="filterMessageType">
-                                <option value="">All Types</option>
-                                <option value="sms">SMS</option>
-                                <option value="rcs-basic">RCS Basic</option>
-                                <option value="rcs-rich">RCS Rich</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label class="form-label small fw-bold mb-1">Country</label>
-                            <select class="form-select form-select-sm" id="filterCountry">
-                                <option value="">All Countries</option>
-                                <option value="uk">United Kingdom</option>
-                                <option value="us">United States</option>
-                                <option value="de">Germany</option>
-                                <option value="fr">France</option>
+                                <option value="Main Account">Main Account</option>
+                                <option value="Marketing Team">Marketing Team</option>
+                                <option value="Support Team">Support Team</option>
+                                <option value="Sales Team">Sales Team</option>
                             </select>
                         </div>
                         <div class="col-6 col-md-4 col-lg-3">
-                            <div class="d-flex gap-2">
+                            <label class="form-label small fw-bold">User</label>
+                            <select class="form-select form-select-sm" id="filterUser">
+                                <option value="">All Users</option>
+                                <option value="John Smith" data-subaccount="Main Account">John Smith</option>
+                                <option value="Sarah Johnson" data-subaccount="Main Account">Sarah Johnson</option>
+                                <option value="Mike Williams" data-subaccount="Marketing Team">Mike Williams</option>
+                                <option value="Emma Davis" data-subaccount="Support Team">Emma Davis</option>
+                                <option value="James Wilson" data-subaccount="Sales Team">James Wilson</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 2: Origin, Integration Type, Group Name, SenderID -->
+                    <div class="row g-3 align-items-end mt-2">
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <label class="form-label small fw-bold">Origin</label>
+                            <div class="dropdown multiselect-dropdown" data-filter="origins">
+                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                    <span class="dropdown-label">All Origins</span>
+                                </button>
+                                <div class="dropdown-menu w-100 p-2">
+                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                    </div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="originPortal"><label class="form-check-label small" for="originPortal">Portal</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="originAPI"><label class="form-check-label small" for="originAPI">API</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="originEmail"><label class="form-check-label small" for="originEmail">Email-to-SMS</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="originIntegration"><label class="form-check-label small" for="originIntegration">Integration</label></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2" id="integrationTypeWrapper" style="display: none;">
+                            <label class="form-label small fw-bold">Integration Type</label>
+                            <select class="form-select form-select-sm" id="filterIntegrationType">
+                                <option value="">All Types</option>
+                                <option value="Zapier">Zapier</option>
+                                <option value="HubSpot">HubSpot</option>
+                                <option value="Salesforce">Salesforce</option>
+                                <option value="Slack">Slack</option>
+                                <option value="Microsoft Teams">Microsoft Teams</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <label class="form-label small fw-bold">Group Name</label>
+                            <select class="form-select form-select-sm" id="filterGroupName">
+                                <option value="">All Groups</option>
+                                <optgroup label="Campaigns">
+                                    <option value="Summer Sale 2024">Summer Sale 2024</option>
+                                    <option value="Welcome Series">Welcome Series</option>
+                                    <option value="Black Friday">Black Friday</option>
+                                </optgroup>
+                                <optgroup label="API Connections">
+                                    <option value="Main API">Main API</option>
+                                    <option value="Mobile App">Mobile App</option>
+                                    <option value="Website Integration">Website Integration</option>
+                                </optgroup>
+                                <optgroup label="Email Groups">
+                                    <option value="Support Notifications">Support Notifications</option>
+                                    <option value="Order Updates">Order Updates</option>
+                                </optgroup>
+                                <optgroup label="Integrations">
+                                    <option value="Zapier Flow 1">Zapier Flow 1</option>
+                                    <option value="HubSpot Workflow">HubSpot Workflow</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <label class="form-label small fw-bold">SenderID</label>
+                            <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." list="senderIdSuggestions" autocomplete="off">
+                            <datalist id="senderIdSuggestions">
+                                <option value="QuickSMS">
+                                <option value="ALERTS">
+                                <option value="PROMO">
+                                <option value="QuickSMS Brand">
+                                <option value="INFO">
+                                <option value="NOTIFY">
+                                <option value="VERIFY">
+                            </datalist>
+                        </div>
+                        <div class="col-12 col-lg-2">
+                            <div class="d-flex gap-2 justify-content-end">
                                 <button class="btn btn-primary btn-sm" id="btnApplyFilters">
-                                    <i class="fas fa-filter me-1"></i> Apply
+                                    <i class="fas fa-check me-1"></i> Apply
                                 </button>
                                 <button class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
                                     <i class="fas fa-undo me-1"></i> Reset
@@ -77,6 +165,19 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Filters Chips -->
+    <div class="row mb-3" id="activeFiltersContainer" style="display: none;">
+        <div class="col-12">
+            <div class="d-flex flex-wrap align-items-center">
+                <span class="small text-muted me-2">Active filters:</span>
+                <div id="activeFiltersChips"></div>
+                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                    Clear all
+                </button>
             </div>
         </div>
     </div>
@@ -571,19 +672,339 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Filter button handlers (placeholder)
-    document.getElementById('btnApplyFilters')?.addEventListener('click', function() {
-        console.log('[Dashboard] Apply filters clicked - TODO: Implement data refresh');
+    // ========================================
+    // Filter State Model
+    // ========================================
+    const filterState = {
+        dateFrom: null,
+        dateTo: null,
+        datePreset: '7days',
+        subAccount: '',
+        user: '',
+        origins: [],
+        integrationType: '',
+        groupName: '',
+        senderId: ''
+    };
+    
+    const pendingFilters = { ...filterState };
+    
+    // ========================================
+    // Date Preset Helpers
+    // ========================================
+    function getDateRange(preset) {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        let from, to;
+        
+        switch(preset) {
+            case 'today':
+                from = new Date(today);
+                to = new Date(today);
+                to.setHours(23, 59, 59);
+                break;
+            case 'yesterday':
+                from = new Date(today);
+                from.setDate(from.getDate() - 1);
+                to = new Date(from);
+                to.setHours(23, 59, 59);
+                break;
+            case '7days':
+                from = new Date(today);
+                from.setDate(from.getDate() - 6);
+                to = new Date(today);
+                to.setHours(23, 59, 59);
+                break;
+            case '30days':
+                from = new Date(today);
+                from.setDate(from.getDate() - 29);
+                to = new Date(today);
+                to.setHours(23, 59, 59);
+                break;
+            case 'mtd':
+                from = new Date(today.getFullYear(), today.getMonth(), 1);
+                to = new Date(today);
+                to.setHours(23, 59, 59);
+                break;
+            case 'custom':
+            default:
+                return { from: null, to: null };
+        }
+        return { from, to };
+    }
+    
+    function formatDatetimeLocal(date) {
+        if (!date) return '';
+        const pad = n => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+    
+    function setDateInputs(preset) {
+        const range = getDateRange(preset);
+        document.getElementById('filterDateFrom').value = formatDatetimeLocal(range.from);
+        document.getElementById('filterDateTo').value = formatDatetimeLocal(range.to);
+        pendingFilters.dateFrom = range.from;
+        pendingFilters.dateTo = range.to;
+        pendingFilters.datePreset = preset;
+    }
+    
+    // Initialize with Last 7 Days
+    setDateInputs('7days');
+    
+    // ========================================
+    // Date Preset Buttons
+    // ========================================
+    document.querySelectorAll('.date-preset-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            setDateInputs(this.dataset.preset);
+        });
     });
     
-    document.getElementById('btnResetFilters')?.addEventListener('click', function() {
-        document.getElementById('filterDateFrom').value = '';
-        document.getElementById('filterDateTo').value = '';
-        document.getElementById('filterSubAccount').value = '';
-        document.getElementById('filterMessageType').value = '';
-        document.getElementById('filterCountry').value = '';
-        console.log('[Dashboard] Filters reset');
+    // Custom date input changes
+    document.getElementById('filterDateFrom')?.addEventListener('change', function() {
+        document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-preset="custom"]')?.classList.add('active');
+        pendingFilters.dateFrom = this.value ? new Date(this.value) : null;
+        pendingFilters.datePreset = 'custom';
     });
+    
+    document.getElementById('filterDateTo')?.addEventListener('change', function() {
+        document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-preset="custom"]')?.classList.add('active');
+        pendingFilters.dateTo = this.value ? new Date(this.value) : null;
+        pendingFilters.datePreset = 'custom';
+    });
+    
+    // ========================================
+    // Sub Account -> User Filtering
+    // ========================================
+    const userSelect = document.getElementById('filterUser');
+    const allUserOptions = userSelect ? Array.from(userSelect.querySelectorAll('option[data-subaccount]')) : [];
+    
+    document.getElementById('filterSubAccount')?.addEventListener('change', function() {
+        const selectedSubAccount = this.value;
+        pendingFilters.subAccount = selectedSubAccount;
+        
+        // Reset user selection
+        userSelect.value = '';
+        pendingFilters.user = '';
+        
+        // Filter user options
+        allUserOptions.forEach(opt => {
+            if (!selectedSubAccount || opt.dataset.subaccount === selectedSubAccount) {
+                opt.style.display = '';
+            } else {
+                opt.style.display = 'none';
+            }
+        });
+    });
+    
+    document.getElementById('filterUser')?.addEventListener('change', function() {
+        pendingFilters.user = this.value;
+    });
+    
+    // ========================================
+    // Origin Multi-select with Integration Type Toggle
+    // ========================================
+    const originDropdown = document.querySelector('[data-filter="origins"]');
+    const integrationWrapper = document.getElementById('integrationTypeWrapper');
+    
+    function updateOriginLabel() {
+        const checkboxes = originDropdown.querySelectorAll('input[type="checkbox"]');
+        const checked = Array.from(checkboxes).filter(cb => cb.checked);
+        const label = originDropdown.querySelector('.dropdown-label');
+        
+        pendingFilters.origins = checked.map(cb => cb.value);
+        
+        if (checked.length === 0 || checked.length === checkboxes.length) {
+            label.textContent = 'All Origins';
+        } else if (checked.length === 1) {
+            label.textContent = checked[0].value;
+        } else {
+            label.textContent = `${checked.length} selected`;
+        }
+        
+        // Toggle Integration Type visibility
+        const hasIntegration = pendingFilters.origins.includes('Integration');
+        integrationWrapper.style.display = hasIntegration ? '' : 'none';
+        if (!hasIntegration) {
+            document.getElementById('filterIntegrationType').value = '';
+            pendingFilters.integrationType = '';
+        }
+    }
+    
+    if (originDropdown) {
+        originDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', updateOriginLabel);
+        });
+        
+        originDropdown.querySelector('.select-all-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            originDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateOriginLabel();
+        });
+        
+        originDropdown.querySelector('.clear-all-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            originDropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateOriginLabel();
+        });
+    }
+    
+    // ========================================
+    // Other Filter Inputs
+    // ========================================
+    document.getElementById('filterIntegrationType')?.addEventListener('change', function() {
+        pendingFilters.integrationType = this.value;
+    });
+    
+    document.getElementById('filterGroupName')?.addEventListener('change', function() {
+        pendingFilters.groupName = this.value;
+    });
+    
+    document.getElementById('filterSenderId')?.addEventListener('input', function() {
+        pendingFilters.senderId = this.value;
+    });
+    
+    // ========================================
+    // Active Filter Chips
+    // ========================================
+    function renderFilterChips() {
+        const container = document.getElementById('activeFiltersChips');
+        const wrapper = document.getElementById('activeFiltersContainer');
+        if (!container || !wrapper) return;
+        
+        container.innerHTML = '';
+        const chips = [];
+        
+        // Date range chip
+        if (filterState.datePreset && filterState.datePreset !== 'custom') {
+            const presetLabels = {
+                'today': 'Today',
+                'yesterday': 'Yesterday',
+                '7days': 'Last 7 Days',
+                '30days': 'Last 30 Days',
+                'mtd': 'MTD'
+            };
+            chips.push({ key: 'dateRange', label: presetLabels[filterState.datePreset] || filterState.datePreset, type: 'date' });
+        } else if (filterState.dateFrom || filterState.dateTo) {
+            chips.push({ key: 'dateRange', label: 'Custom Date Range', type: 'date' });
+        }
+        
+        if (filterState.subAccount) chips.push({ key: 'subAccount', label: `Sub: ${filterState.subAccount}` });
+        if (filterState.user) chips.push({ key: 'user', label: `User: ${filterState.user}` });
+        if (filterState.origins.length > 0 && filterState.origins.length < 4) {
+            chips.push({ key: 'origins', label: `Origin: ${filterState.origins.join(', ')}` });
+        }
+        if (filterState.integrationType) chips.push({ key: 'integrationType', label: `Integration: ${filterState.integrationType}` });
+        if (filterState.groupName) chips.push({ key: 'groupName', label: `Group: ${filterState.groupName}` });
+        if (filterState.senderId) chips.push({ key: 'senderId', label: `SenderID: ${filterState.senderId}` });
+        
+        // Only show if non-default filters are active
+        const hasNonDefaultFilters = filterState.subAccount || filterState.user || filterState.origins.length > 0 || 
+                                     filterState.integrationType || filterState.groupName || filterState.senderId ||
+                                     (filterState.datePreset !== '7days');
+        
+        wrapper.style.display = hasNonDefaultFilters ? '' : 'none';
+        
+        chips.forEach(chip => {
+            const el = document.createElement('span');
+            el.className = 'badge me-1 mb-1 d-inline-flex align-items-center';
+            el.style.cssText = 'background-color: #7c3aed; color: white; font-weight: 500; padding: 0.35rem 0.65rem;';
+            el.innerHTML = `${chip.label} <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6rem;" data-filter-key="${chip.key}"></button>`;
+            container.appendChild(el);
+        });
+        
+        // Chip removal handlers
+        container.querySelectorAll('.btn-close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const key = this.dataset.filterKey;
+                removeFilter(key);
+            });
+        });
+    }
+    
+    function removeFilter(key) {
+        switch(key) {
+            case 'dateRange':
+                setDateInputs('7days');
+                document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('[data-preset="7days"]')?.classList.add('active');
+                break;
+            case 'subAccount':
+                document.getElementById('filterSubAccount').value = '';
+                pendingFilters.subAccount = '';
+                break;
+            case 'user':
+                document.getElementById('filterUser').value = '';
+                pendingFilters.user = '';
+                break;
+            case 'origins':
+                originDropdown?.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                updateOriginLabel();
+                break;
+            case 'integrationType':
+                document.getElementById('filterIntegrationType').value = '';
+                pendingFilters.integrationType = '';
+                break;
+            case 'groupName':
+                document.getElementById('filterGroupName').value = '';
+                pendingFilters.groupName = '';
+                break;
+            case 'senderId':
+                document.getElementById('filterSenderId').value = '';
+                pendingFilters.senderId = '';
+                break;
+        }
+        applyFilters();
+    }
+    
+    // ========================================
+    // Apply/Reset Handlers
+    // ========================================
+    function applyFilters() {
+        Object.assign(filterState, { ...pendingFilters });
+        renderFilterChips();
+        
+        console.log('[Dashboard] Filters applied:', JSON.stringify(filterState, null, 2));
+        // TODO: Implement API call to refresh dashboard data with filterState
+    }
+    
+    function resetFilters() {
+        // Reset to defaults: Last 7 Days + All Sub Accounts
+        setDateInputs('7days');
+        document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-preset="7days"]')?.classList.add('active');
+        
+        document.getElementById('filterSubAccount').value = '';
+        document.getElementById('filterUser').value = '';
+        originDropdown?.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        updateOriginLabel();
+        document.getElementById('filterIntegrationType').value = '';
+        document.getElementById('filterGroupName').value = '';
+        document.getElementById('filterSenderId').value = '';
+        
+        // Reset pending filters
+        pendingFilters.subAccount = '';
+        pendingFilters.user = '';
+        pendingFilters.origins = [];
+        pendingFilters.integrationType = '';
+        pendingFilters.groupName = '';
+        pendingFilters.senderId = '';
+        pendingFilters.datePreset = '7days';
+        
+        // Show all users again
+        allUserOptions.forEach(opt => opt.style.display = '');
+        
+        applyFilters();
+        console.log('[Dashboard] Filters reset to defaults');
+    }
+    
+    document.getElementById('btnApplyFilters')?.addEventListener('click', applyFilters);
+    document.getElementById('btnResetFilters')?.addEventListener('click', resetFilters);
+    document.getElementById('btnClearAllFilters')?.addEventListener('click', resetFilters);
 });
 </script>
 @endpush
