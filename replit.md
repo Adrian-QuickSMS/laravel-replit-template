@@ -86,6 +86,12 @@ The Message Log page at `/reporting/message-log` provides detailed message histo
   - **Default Columns:** Mobile Number (masked), SenderID, Message Status, Sent Time, Delivery Time, Completed Time, Cost
   - **Optional Columns:** Message Type (SMS/RCS), Sub Account, User, Origin, Country, Fragments/Parts, Encoding (GSM-7/Unicode), Message ID, Content (security controlled)
   - **Column Settings Modal:** Full modal panel with Default Columns and Optional Columns sections, checkboxes to show/hide, security badge for Content column, saved to localStorage, Reset to Default button
+  - **Content Column Security:**
+    - Hidden by default (not in defaultColumns.visible)
+    - Super Admin role: Shows plaintext content (truncated to 50 chars with full content in tooltip)
+    - Non-authorized users: Shows lock icon + "••••••••" masked placeholder
+    - Uses `canViewMessageContent()` function with `currentUserRole` variable
+    - TODO: Backend integration required - replace mock role with `Auth::user()->role` or API permission check
   - **Table Features:** Sticky header, hover row highlight, scrollable container (500px max-height), 10,000 row hard cap
   - **Infinite Scroll:** Loads 50 rows per batch on scroll, shows loading spinner, respects MAX_ROWS limit
   - **Sortable Columns:** Status and Sent Time have sort dropdown menus

@@ -55,6 +55,10 @@
 #messageLogTable tbody tr:hover {
     background-color: rgba(111, 66, 193, 0.05);
 }
+.content-masked {
+    letter-spacing: 2px;
+    font-family: monospace;
+}
 .date-preset-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
@@ -545,7 +549,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234567</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***789</span></td>
@@ -563,7 +567,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234568</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***123</span></td>
@@ -581,7 +585,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234569</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***321</span></td>
@@ -599,7 +603,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234570</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***654</span></td>
@@ -617,7 +621,7 @@
                                     <td class="py-2 d-none" data-column="parts">2</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234571</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 79** ***987</span></td>
@@ -635,7 +639,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-primary text-white">Unicode</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234572</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 77** ***147</span></td>
@@ -653,7 +657,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234573</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                                 <tr>
                                     <td class="py-2" data-column="mobileNumber"><span class="mobile-masked">+44 78** ***258</span></td>
@@ -671,7 +675,7 @@
                                     <td class="py-2 d-none" data-column="parts">1</td>
                                     <td class="py-2 d-none" data-column="encoding"><span class="badge bg-light text-dark border">GSM-7</span></td>
                                     <td class="py-2 d-none" data-column="messageId">MSG-001234574</td>
-                                    <td class="py-2 d-none" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                                    <td class="py-2 d-none" data-column="content"><span class="text-muted"><i class="fas fa-lock me-1 small"></i><span class="content-masked">••••••••</span></span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1215,6 +1219,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const STORAGE_KEY = 'messageLogColumnConfig';
     const MAX_ROWS = 10000;
     
+    // TODO: Backend Integration - Replace with actual user role from session/API
+    // GET /api/user/permissions or use Laravel Auth::user()->role
+    // Roles: 'super_admin', 'admin', 'user', 'viewer'
+    const currentUserRole = 'user'; // Mock: Change to 'super_admin' to test content visibility
+    
+    // Check if user can view message content (Super Admin only)
+    function canViewMessageContent() {
+        // TODO: Backend Integration - Check actual permission from server
+        // Example: return window.userPermissions?.includes('view_message_content');
+        return currentUserRole === 'super_admin';
+    }
+    
+    // Render message content based on user permissions
+    // Reuses masking pattern from mobile number display in contacts module
+    function renderMessageContent(plaintext) {
+        if (canViewMessageContent()) {
+            // Super Admin can see actual content
+            const truncated = plaintext.length > 50 ? plaintext.substring(0, 50) + '...' : plaintext;
+            return `<span class="text-dark" title="${plaintext.replace(/"/g, '&quot;')}">${truncated}</span>`;
+        } else {
+            // Non-authorized users see masked content
+            return `<span class="text-muted">
+                <i class="fas fa-lock me-1 small"></i>
+                <span class="content-masked">••••••••</span>
+            </span>`;
+        }
+    }
+    
     const allColumnsList = [
         'mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost',
         'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'messageId', 'content'
@@ -1390,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="py-2 ${!columnConfig.visible.includes('parts') ? 'd-none' : ''}" data-column="parts">${parts}</td>
                     <td class="py-2 ${!columnConfig.visible.includes('encoding') ? 'd-none' : ''}" data-column="encoding"><span class="badge ${encoding.class}">${encoding.text}</span></td>
                     <td class="py-2 ${!columnConfig.visible.includes('messageId') ? 'd-none' : ''}" data-column="messageId">${msgId}</td>
-                    <td class="py-2 ${!columnConfig.visible.includes('content') ? 'd-none' : ''}" data-column="content"><span class="text-muted fst-italic">[Content hidden]</span></td>
+                    <td class="py-2 ${!columnConfig.visible.includes('content') ? 'd-none' : ''}" data-column="content">${renderMessageContent('Hi there! Your order #12345 has been shipped and will arrive tomorrow.')}</td>
                 `;
                 tbody.appendChild(row);
                 totalRowsRendered++;
