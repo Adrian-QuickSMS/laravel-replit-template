@@ -504,38 +504,6 @@
                         </div>
                     </div>
 
-                    <div class="card card-body bg-light border mt-2 message-log-footer" id="exportBar">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <div class="text-muted small">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Showing <span id="displayedCount">0</span> of <span id="totalCount">0</span> messages
-                            </div>
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <span class="text-muted small me-2">Export:</span>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv" onclick="exportMessages('csv')">
-                                    <i class="fas fa-file-csv me-1"></i> CSV
-                                </button>
-                                <button type="button" class="btn btn-outline-success btn-sm" id="btnExportExcel" onclick="exportMessages('excel')">
-                                    <i class="fas fa-file-excel me-1"></i> Excel
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnExportTxt" onclick="exportMessages('txt')">
-                                    <i class="fas fa-file-alt me-1"></i> TXT
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-2 pt-2 border-top d-none" id="exportProgressBar">
-                            <div class="d-flex align-items-center">
-                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-                                    <span class="visually-hidden">Exporting...</span>
-                                </div>
-                                <span class="text-muted small" id="exportProgressText">Preparing export...</span>
-                            </div>
-                        </div>
-                        <p class="text-muted small mb-0 mt-2">
-                            <i class="fas fa-lightbulb me-1 text-warning"></i>
-                            Exports respect applied filters and selected columns. Large exports are processed in the background and available in the <a href="/reporting/download-area" class="text-primary">Download Area</a>.
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
