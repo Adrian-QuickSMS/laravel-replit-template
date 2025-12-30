@@ -604,8 +604,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // TODO: Implement infinite scroll
     // TODO: Implement export functionality
     
-    // Filter state - changes only apply when "Apply Filters" is clicked
-    const filterState = {
+    // Applied filter state - represents what's currently filtering the table
+    const appliedFilters = {
         dateFrom: '',
         dateTo: '',
         subAccounts: [],
@@ -619,8 +619,30 @@ document.addEventListener('DOMContentLoaded', function() {
         messageIds: []
     };
     
-    // Pending filter state (before Apply is clicked)
-    const pendingFilters = { ...filterState };
+    // Pending filter state (before Apply is clicked) - represents UI state
+    const pendingFilters = {
+        dateFrom: '',
+        dateTo: '',
+        subAccounts: [],
+        users: [],
+        origins: [],
+        mobileNumbers: [],
+        senderId: '',
+        statuses: [],
+        countries: [],
+        messageTypes: [],
+        messageIds: []
+    };
+    
+    // Label mappings for readable chip text
+    const labelMappings = {
+        subAccounts: { main: 'Main Account', marketing: 'Marketing Team', support: 'Support Team', sales: 'Sales Team' },
+        users: { john: 'John Smith', sarah: 'Sarah Johnson', mike: 'Mike Williams', emma: 'Emma Davis' },
+        origins: { portal: 'Portal', api: 'API', 'email-to-sms': 'Email-to-SMS', integration: 'Integration' },
+        statuses: { delivered: 'Delivered', pending: 'Pending', undeliverable: 'Undeliverable', rejected: 'Rejected' },
+        countries: { uk: 'United Kingdom', us: 'United States', de: 'Germany', fr: 'France', es: 'Spain', ie: 'Ireland' },
+        messageTypes: { sms: 'SMS', 'rcs-basic': 'RCS Basic', 'rcs-rich': 'RCS Rich' }
+    };
     
     // Date preset buttons
     document.querySelectorAll('.date-preset-btn').forEach(btn => {
@@ -776,14 +798,139 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Apply Filters button
+    // Render active filter chips based on applied filters
+    function renderActiveFilterChips() {
+        const container = document.getElementById('activeFiltersChips');
+        const wrapper = document.getElementById('activeFiltersContainer');
+        if (!container || !wrapper) return;
+        
+        container.innerHTML = '';
+        let hasFilters = false;
+        
+        // Date range chip
+        if (appliedFilters.dateFrom || appliedFilters.dateTo) {
+            hasFilters = true;
+            const dateText = appliedFilters.dateFrom && appliedFilters.dateTo 
+                ? `${appliedFilters.dateFrom} to ${appliedFilters.dateTo}`
+                : appliedFilters.dateFrom || appliedFilters.dateTo;
+            createChip(container, 'Date', dateText, () => {
+                pendingFilters.dateFrom = '';
+                pendingFilters.dateTo = '';
+                document.getElementById('filterDateFrom').value = '';
+                document.getElementById('filterDateTo').value = '';
+                document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+            });
+        }
+        
+        // Multi-select chips
+        const multiSelectConfigs = [
+            { key: 'subAccounts', label: 'Sub Account', menuId: 'filterSubAccountMenu', toggleId: 'filterSubAccountToggle', defaultText: 'All Sub Accounts' },
+            { key: 'users', label: 'User', menuId: 'filterUserMenu', toggleId: 'filterUserToggle', defaultText: 'All Users' },
+            { key: 'origins', label: 'Origin', menuId: 'filterOriginMenu', toggleId: 'filterOriginToggle', defaultText: 'All Origins' },
+            { key: 'statuses', label: 'Status', menuId: 'filterStatusMenu', toggleId: 'filterStatusToggle', defaultText: 'All Statuses' },
+            { key: 'countries', label: 'Country', menuId: 'filterCountryMenu', toggleId: 'filterCountryToggle', defaultText: 'All Countries' },
+            { key: 'messageTypes', label: 'Type', menuId: 'filterTypeMenu', toggleId: 'filterTypeToggle', defaultText: 'All Types' }
+        ];
+        
+        multiSelectConfigs.forEach(config => {
+            appliedFilters[config.key].forEach(value => {
+                hasFilters = true;
+                const displayText = labelMappings[config.key]?.[value] || value;
+                createChip(container, config.label, displayText, () => {
+                    // Remove from pending state
+                    pendingFilters[config.key] = pendingFilters[config.key].filter(v => v !== value);
+                    // Update UI checkbox
+                    const checkbox = document.querySelector(`#${config.menuId} input[value="${value}"]`);
+                    if (checkbox) checkbox.checked = false;
+                    // Update toggle text
+                    const toggle = document.getElementById(config.toggleId);
+                    if (toggle) updateMultiselectToggle(toggle, pendingFilters[config.key].length, config.defaultText);
+                });
+            });
+        });
+        
+        // SenderID chip
+        if (appliedFilters.senderId) {
+            hasFilters = true;
+            createChip(container, 'SenderID', appliedFilters.senderId, () => {
+                pendingFilters.senderId = '';
+                document.getElementById('filterSenderId').value = '';
+            });
+        }
+        
+        // Mobile number chips
+        appliedFilters.mobileNumbers.forEach(number => {
+            hasFilters = true;
+            createChip(container, 'Mobile', number, () => {
+                pendingFilters.mobileNumbers = pendingFilters.mobileNumbers.filter(n => n !== number);
+                // Remove tag from UI
+                document.querySelectorAll('#filterMobileContainer .multi-value-tag').forEach(tag => {
+                    if (tag.dataset.value === number) tag.remove();
+                });
+            });
+        });
+        
+        // Message ID chips
+        appliedFilters.messageIds.forEach(id => {
+            hasFilters = true;
+            createChip(container, 'Message ID', id, () => {
+                pendingFilters.messageIds = pendingFilters.messageIds.filter(i => i !== id);
+                // Remove tag from UI
+                document.querySelectorAll('#filterMessageIdContainer .multi-value-tag').forEach(tag => {
+                    if (tag.dataset.value === id) tag.remove();
+                });
+            });
+        });
+        
+        wrapper.style.display = hasFilters ? 'block' : 'none';
+    }
+    
+    // Create a single filter chip
+    function createChip(container, label, value, onRemove) {
+        const chip = document.createElement('span');
+        chip.className = 'filter-chip';
+        chip.innerHTML = `<span class="fw-medium">${label}:</span> ${value} <i class="fas fa-times remove-chip"></i>`;
+        
+        chip.querySelector('.remove-chip').addEventListener('click', function(e) {
+            e.stopPropagation();
+            onRemove();
+            // Remove chip visually but DO NOT refresh table - user must click Apply
+            chip.remove();
+            // Check if any chips remain
+            if (container.children.length === 0) {
+                document.getElementById('activeFiltersContainer').style.display = 'none';
+            }
+            console.log('Filter chip removed. Pending state updated. Click Apply to refresh table.');
+        });
+        
+        container.appendChild(chip);
+    }
+    
+    // Apply Filters button - commits pending state and refreshes table
     document.getElementById('btnApplyFilters')?.addEventListener('click', function() {
-        Object.assign(filterState, JSON.parse(JSON.stringify(pendingFilters)));
-        console.log('Filters applied:', filterState);
-        // TODO: Call API with filterState and reload table
+        // Copy pending filters to applied filters
+        Object.keys(appliedFilters).forEach(key => {
+            if (Array.isArray(pendingFilters[key])) {
+                appliedFilters[key] = [...pendingFilters[key]];
+            } else {
+                appliedFilters[key] = pendingFilters[key];
+            }
+        });
+        
+        // Render chips based on applied filters
+        renderActiveFilterChips();
+        
+        // Show summary bar if filters are applied
+        const hasFilters = Object.values(appliedFilters).some(v => 
+            Array.isArray(v) ? v.length > 0 : v !== ''
+        );
+        document.getElementById('summaryBar').style.display = hasFilters ? 'block' : 'none';
+        
+        console.log('Filters applied:', appliedFilters);
+        // TODO: Call API with appliedFilters and reload table
     });
     
-    // Reset Filters button - resets pending state only, does not apply
+    // Reset Filters button - resets pending state only, does NOT refresh table
     document.getElementById('btnResetFilters')?.addEventListener('click', function() {
         // Reset pending filters
         pendingFilters.dateFrom = '';
@@ -825,10 +972,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset SenderID
         document.getElementById('filterSenderId').value = '';
         
-        console.log('Filters reset (pending). Click Apply to confirm.');
+        console.log('Filters reset (pending state only). Click Apply Filters to update table.');
     });
     
-    // Clear all filters (from active filters area)
+    // Clear all filters - resets pending AND applies (refreshes table)
     document.getElementById('btnClearAllFilters')?.addEventListener('click', function() {
         document.getElementById('btnResetFilters').click();
         document.getElementById('btnApplyFilters').click();
