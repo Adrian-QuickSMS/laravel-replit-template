@@ -11,6 +11,98 @@
     justify-content: center;
 }
 
+/* Fillow-style Loading Skeletons */
+.qs-skeleton {
+    animation: qs-skeleton-pulse 1.5s ease-in-out infinite;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: 4px;
+}
+
+@keyframes qs-skeleton-pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.qs-skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.qs-skeleton-text-sm {
+    height: 0.75rem;
+    width: 60%;
+}
+
+.qs-skeleton-h4 {
+    height: 1.5rem;
+    width: 80%;
+    margin-bottom: 0.25rem;
+}
+
+.qs-skeleton-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.qs-skeleton-chart {
+    height: 200px;
+    width: 100%;
+}
+
+.qs-skeleton-bar {
+    height: 20px;
+    margin-bottom: 8px;
+}
+
+.qs-skeleton-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.qs-skeleton-cell {
+    height: 1rem;
+    flex: 1;
+}
+
+/* Error State */
+.qs-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    color: #dc3545;
+}
+
+.qs-error-state i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.qs-error-state .retry-btn {
+    margin-top: 0.5rem;
+}
+
+/* Loading overlay for tiles */
+.qs-tile-loading .card-body {
+    position: relative;
+}
+
+.qs-tile-loading .card-body::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.8);
+    z-index: 10;
+}
+
 .btn-xs {
     padding: 0.15rem 0.5rem;
     font-size: 0.7rem;
@@ -291,17 +383,17 @@
         <!-- ========== ROW 1: KPI Tiles (small) ========== -->
         
         <!-- 1. Delivery Rate KPI -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-delivery-rate" data-size="small">
-            <div class="widget-stat card">
+        <div class="qs-tile tile-small" data-tile-id="kpi-delivery-rate" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiDeliveryRate">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-success text-success">
                             <i class="fas fa-percentage"></i>
                         </span>
-                        <div class="media-body">
-                            <p class="mb-1">Delivery Rate</p>
-                            <h4 class="mb-0">94.7%</h4>
-                            <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+2.3% vs last period</small>
+                        <div class="media-body" id="kpiDeliveryRateContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:80px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:60px"></div>
+                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:100px"></div>
                         </div>
                     </div>
                 </div>
@@ -309,17 +401,17 @@
         </div>
         
         <!-- 2. Spend KPI -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small">
-            <div class="widget-stat card">
+        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiSpend">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-primary text-primary">
                             <i class="fas fa-pound-sign"></i>
                         </span>
-                        <div class="media-body">
-                            <p class="mb-1">Total Spend</p>
-                            <h4 class="mb-0">£1,247.50</h4>
-                            <small class="text-muted">12,475 credits used</small>
+                        <div class="media-body" id="kpiSpendContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:70px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:80px"></div>
+                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:90px"></div>
                         </div>
                     </div>
                 </div>
@@ -327,17 +419,17 @@
         </div>
         
         <!-- 3. RCS Seen Rate (conditional) -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-rcs-seen" data-size="small" data-conditional="rcs">
-            <div class="widget-stat card">
+        <div class="qs-tile tile-small" data-tile-id="kpi-rcs-seen" data-size="small" data-conditional="rcs" data-api="kpis">
+            <div class="widget-stat card" id="kpiRcsSeen">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-info text-info">
                             <i class="fas fa-eye"></i>
                         </span>
-                        <div class="media-body">
-                            <p class="mb-1">RCS Seen Rate</p>
-                            <h4 class="mb-0">78.3%</h4>
-                            <small class="text-info"><i class="fas fa-comment-dots me-1"></i>RCS messages only</small>
+                        <div class="media-body" id="kpiRcsSeenContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:55px"></div>
+                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:100px"></div>
                         </div>
                     </div>
                 </div>
@@ -345,17 +437,17 @@
         </div>
         
         <!-- 4. Opt-out Rate (conditional) -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-optout" data-size="small" data-conditional="optout">
-            <div class="widget-stat card">
+        <div class="qs-tile tile-small" data-tile-id="kpi-optout" data-size="small" data-conditional="optout" data-api="kpis">
+            <div class="widget-stat card" id="kpiOptout">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
                         <span class="me-3 bgl-danger text-danger">
                             <i class="fas fa-user-slash"></i>
                         </span>
-                        <div class="media-body">
-                            <p class="mb-1">Opt-out Rate</p>
-                            <h4 class="mb-0">0.8%</h4>
-                            <small class="text-muted">42 opt-outs this period</small>
+                        <div class="media-body" id="kpiOptoutContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:80px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
+                            <div class="qs-skeleton qs-skeleton-text-sm" style="width:110px"></div>
                         </div>
                     </div>
                 </div>
@@ -365,7 +457,7 @@
         <!-- ========== ROW 2: Charts (medium/large) ========== -->
         
         <!-- 5. Volume Over Time (Line Chart) -->
-        <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge">
+        <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge" data-api="volume">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0">Volume Over Time</h4>
@@ -380,7 +472,9 @@
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="daily" role="tabpanel">
-                            <div id="volumeLineChart" class="chart-placeholder"></div>
+                            <div id="volumeLineChart" class="chart-placeholder">
+                                <div class="qs-skeleton qs-skeleton-chart w-100"></div>
+                            </div>
                         </div>
                         <div class="tab-pane fade" id="weekly" role="tabpanel">
                             <div class="chart-placeholder"><div class="text-center text-muted py-5">Weekly View - Coming Soon</div></div>
@@ -394,16 +488,18 @@
         </div>
         
         <!-- 6. Channel Split SMS vs RCS (Horizontal Stacked Bar) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-channel-split" data-size="medium">
+        <div class="qs-tile tile-medium" data-tile-id="chart-channel-split" data-size="medium" data-api="channel-split">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Channel Split</h4>
                 </div>
                 <div class="card-body">
-                    <div id="channelSplitChart" class="chart-placeholder"></div>
-                    <div class="d-flex justify-content-around mt-3 small">
-                        <span><i class="fa fa-circle text-secondary me-1"></i> SMS: 8,234</span>
-                        <span><i class="fa fa-circle text-info me-1"></i> RCS: 4,241</span>
+                    <div id="channelSplitChart" class="chart-placeholder">
+                        <div class="qs-skeleton" style="height:80px;width:100%"></div>
+                    </div>
+                    <div id="channelSplitLegend" class="d-flex justify-content-around mt-3 small">
+                        <span><i class="fa fa-circle text-secondary me-1"></i> SMS: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></span>
+                        <span><i class="fa fa-circle text-info me-1"></i> RCS: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></span>
                     </div>
                 </div>
             </div>
@@ -412,18 +508,20 @@
         <!-- ========== ROW 3: Performance Charts & Tables ========== -->
         
         <!-- 7. Delivery Status Breakdown (Pie Chart) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium">
+        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Delivery Status Breakdown</h4>
                 </div>
                 <div class="card-body">
-                    <div id="deliveryStatusPieChart" class="chart-placeholder"></div>
-                    <div class="chart-point mt-2">
+                    <div id="deliveryStatusPieChart" class="chart-placeholder">
+                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
+                    </div>
+                    <div id="deliveryStatusLegend" class="chart-point mt-2">
                         <ul class="chart-point-list mb-0 small">
-                            <li><i class="fa fa-circle text-success me-1"></i> Delivered: 11,823</li>
-                            <li><i class="fa fa-circle text-warning me-1"></i> Pending: 412</li>
-                            <li><i class="fa fa-circle text-danger me-1"></i> Failed: 240</li>
+                            <li><i class="fa fa-circle text-success me-1"></i> Delivered: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></li>
+                            <li><i class="fa fa-circle text-warning me-1"></i> Pending: <span class="qs-skeleton" style="display:inline-block;width:30px;height:12px"></span></li>
+                            <li><i class="fa fa-circle text-danger me-1"></i> Failed: <span class="qs-skeleton" style="display:inline-block;width:25px;height:12px"></span></li>
                         </ul>
                     </div>
                 </div>
@@ -431,19 +529,21 @@
         </div>
         
         <!-- 8. Top 10 Countries (Vertical Bar Chart) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-top-countries" data-size="medium">
+        <div class="qs-tile tile-medium" data-tile-id="chart-top-countries" data-size="medium" data-api="top-countries">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title">Top 10 Countries</h4>
                 </div>
                 <div class="card-body">
-                    <div id="topCountriesBarChart" class="chart-placeholder"></div>
+                    <div id="topCountriesBarChart" class="chart-placeholder">
+                        <div class="qs-skeleton qs-skeleton-chart w-100"></div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- 9. Top SenderIDs (Table) -->
-        <div class="qs-tile tile-medium" data-tile-id="table-top-senderids" data-size="medium">
+        <div class="qs-tile tile-medium" data-tile-id="table-top-senderids" data-size="medium" data-api="top-sender-ids">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0">Top SenderIDs</h4>
@@ -460,37 +560,12 @@
                                     <th class="text-end">Rate</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span class="badge badge-primary light">PROMO</span></td>
-                                    <td class="text-end">3,456</td>
-                                    <td class="text-end">3,298</td>
-                                    <td class="text-end"><span class="text-success">95.4%</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge badge-primary light">ALERTS</span></td>
-                                    <td class="text-end">2,891</td>
-                                    <td class="text-end">2,834</td>
-                                    <td class="text-end"><span class="text-success">98.0%</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge badge-primary light">QuickSMS</span></td>
-                                    <td class="text-end">2,234</td>
-                                    <td class="text-end">2,089</td>
-                                    <td class="text-end"><span class="text-success">93.5%</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge badge-primary light">INFO</span></td>
-                                    <td class="text-end">1,987</td>
-                                    <td class="text-end">1,876</td>
-                                    <td class="text-end"><span class="text-success">94.4%</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge badge-primary light">NOTIFY</span></td>
-                                    <td class="text-end">1,654</td>
-                                    <td class="text-end">1,548</td>
-                                    <td class="text-end"><span class="text-warning">93.6%</span></td>
-                                </tr>
+                            <tbody id="topSenderIdsTableBody">
+                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="4"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -501,12 +576,12 @@
         <!-- ========== ROW 4: Intelligence Tiles (small) ========== -->
         
         <!-- 10. Peak Sending Time Insight -->
-        <div class="qs-tile tile-large" data-tile-id="tile-peak-time" data-size="large">
+        <div class="qs-tile tile-large" data-tile-id="tile-peak-time" data-size="large" data-api="peak-time">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
                     <h4 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>Peak Sending Time</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="peakTimeContent">
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <span class="display-6 text-primary fw-bold">10:00</span>
@@ -536,11 +611,11 @@
         </div>
         
         <!-- 11. Failure Reasons (small table) -->
-        <div class="qs-tile tile-large" data-tile-id="table-failure-reasons" data-size="large">
+        <div class="qs-tile tile-large" data-tile-id="table-failure-reasons" data-size="large" data-api="failure-reasons">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Failure Reasons</h4>
-                    <span class="badge badge-danger light">240 failed</span>
+                    <span id="failureReasonsBadge" class="badge badge-danger light"><span class="qs-skeleton" style="display:inline-block;width:30px;height:12px"></span></span>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -552,32 +627,12 @@
                                     <th class="text-end">%</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><i class="fas fa-phone-slash text-danger me-1"></i> Invalid Number</td>
-                                    <td class="text-end">98</td>
-                                    <td class="text-end">40.8%</td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-signal text-warning me-1"></i> Network Error</td>
-                                    <td class="text-end">62</td>
-                                    <td class="text-end">25.8%</td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-ban text-secondary me-1"></i> Carrier Rejected</td>
-                                    <td class="text-end">45</td>
-                                    <td class="text-end">18.8%</td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-clock text-info me-1"></i> Timeout</td>
-                                    <td class="text-end">23</td>
-                                    <td class="text-end">9.6%</td>
-                                </tr>
-                                <tr>
-                                    <td><i class="fas fa-question-circle text-muted me-1"></i> Other</td>
-                                    <td class="text-end">12</td>
-                                    <td class="text-end">5.0%</td>
-                                </tr>
+                            <tbody id="failureReasonsTableBody">
+                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
+                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -770,183 +825,335 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize charts with dummy data when ApexCharts is loaded
-    if (typeof ApexCharts !== 'undefined') {
+    // ========================================
+    // Dashboard API Service
+    // ========================================
+    const API_BASE = '/api/reporting/dashboard';
+    let chartInstances = {};
+    
+    // Helper to show error state
+    function showError(elementId, message = 'Failed to load data') {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.innerHTML = `
+                <div class="qs-error-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span class="small">${message}</span>
+                    <button class="btn btn-outline-primary btn-sm retry-btn" onclick="loadDashboardData()">
+                        <i class="fas fa-redo me-1"></i>Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+    
+    // Format number with commas
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    // Load all dashboard data independently
+    async function loadDashboardData() {
+        console.log('[Dashboard] Loading data from API...');
         
-        // 5. Volume Over Time Line Chart (dummy data)
-        const volumeOptions = {
-            series: [{
-                name: 'SMS',
-                data: [1200, 1450, 1320, 1580, 1420, 1680, 1820, 1950, 1780, 2100, 1920, 2250]
-            }, {
-                name: 'RCS',
-                data: [320, 450, 380, 520, 480, 620, 710, 780, 690, 850, 760, 920]
-            }],
-            chart: {
-                height: 280,
-                type: 'line',
-                toolbar: { show: false }
-            },
-            colors: ['#6c757d', '#17a2b8'],
-            dataLabels: { enabled: false },
-            stroke: { curve: 'smooth', width: 2 },
-            legend: {
-                position: 'top',
-                horizontalAlign: 'right'
-            },
-            xaxis: {
-                categories: ['24 Dec', '25 Dec', '26 Dec', '27 Dec', '28 Dec', '29 Dec', '30 Dec']
-            },
-            yaxis: {
-                title: { text: 'Messages' }
-            },
-            tooltip: {
-                shared: true,
-                intersect: false
+        // Load each tile independently for better UX
+        loadKpis();
+        loadVolumeChart();
+        loadChannelSplit();
+        loadDeliveryStatus();
+        loadTopCountries();
+        loadTopSenderIds();
+        loadPeakTime();
+        loadFailureReasons();
+    }
+    
+    // 1-4. KPIs
+    async function loadKpis() {
+        try {
+            const response = await fetch(`${API_BASE}/kpis`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            // Delivery Rate
+            document.getElementById('kpiDeliveryRateContent').innerHTML = `
+                <p class="mb-1">Delivery Rate</p>
+                <h4 class="mb-0">${data.deliveryRate.value}%</h4>
+                <small class="${data.deliveryRate.trend >= 0 ? 'text-success' : 'text-danger'}">
+                    <i class="fas fa-arrow-${data.deliveryRate.trend >= 0 ? 'up' : 'down'} me-1"></i>
+                    ${data.deliveryRate.trend >= 0 ? '+' : ''}${data.deliveryRate.trend}% vs last period
+                </small>
+            `;
+            
+            // Spend
+            const costLabel = data.spend.costType === 'estimated' ? '(est.)' : '';
+            document.getElementById('kpiSpendContent').innerHTML = `
+                <p class="mb-1">Total Spend ${costLabel}</p>
+                <h4 class="mb-0">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
+                <small class="text-muted">${formatNumber(data.spend.creditsUsed)} credits used</small>
+            `;
+            
+            // RCS Seen Rate (conditional)
+            const rcsTile = document.querySelector('[data-conditional="rcs"]');
+            if (data.rcsSeenRate.hasRcsData) {
+                document.getElementById('kpiRcsSeenContent').innerHTML = `
+                    <p class="mb-1">RCS Seen Rate</p>
+                    <h4 class="mb-0">${data.rcsSeenRate.value}%</h4>
+                    <small class="text-info"><i class="fas fa-comment-dots me-1"></i>RCS messages only</small>
+                `;
+            } else if (rcsTile) {
+                rcsTile.style.display = 'none';
             }
-        };
-        const volumeChartEl = document.querySelector("#volumeLineChart");
-        if (volumeChartEl) {
-            volumeChartEl.innerHTML = '';
-            chartInstances.volume = new ApexCharts(volumeChartEl, volumeOptions);
+            
+            // Opt-out Rate (conditional)
+            const optoutTile = document.querySelector('[data-conditional="optout"]');
+            if (data.optOutRate.hasOptOutData) {
+                document.getElementById('kpiOptoutContent').innerHTML = `
+                    <p class="mb-1">Opt-out Rate</p>
+                    <h4 class="mb-0">${data.optOutRate.value}%</h4>
+                    <small class="text-muted">${data.optOutRate.optOutCount} opt-outs this period</small>
+                `;
+            } else if (optoutTile) {
+                optoutTile.style.display = 'none';
+            }
+            
+            console.log('[Dashboard] KPIs loaded');
+        } catch (error) {
+            console.error('[Dashboard] KPIs error:', error);
+            showError('kpiDeliveryRateContent', 'Error');
+        }
+    }
+    
+    // 5. Volume Over Time Chart
+    async function loadVolumeChart() {
+        try {
+            const response = await fetch(`${API_BASE}/volume`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            const chartEl = document.getElementById('volumeLineChart');
+            chartEl.innerHTML = '';
+            
+            const options = {
+                series: data.series,
+                chart: { height: 280, type: 'line', toolbar: { show: false } },
+                colors: ['#6c757d', '#17a2b8'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                legend: { position: 'top', horizontalAlign: 'right' },
+                xaxis: { categories: data.categories },
+                yaxis: { title: { text: 'Messages' } },
+                tooltip: { shared: true, intersect: false }
+            };
+            
+            chartInstances.volume = new ApexCharts(chartEl, options);
             chartInstances.volume.render();
+            console.log('[Dashboard] Volume chart loaded');
+        } catch (error) {
+            console.error('[Dashboard] Volume chart error:', error);
+            showError('volumeLineChart', 'Failed to load chart');
         }
-
-        // 6. Channel Split Horizontal Stacked Bar (dummy data)
-        const channelSplitOptions = {
-            series: [{
-                name: 'SMS',
-                data: [8234]
-            }, {
-                name: 'RCS',
-                data: [4241]
-            }],
-            chart: {
-                type: 'bar',
-                height: 120,
-                stacked: true,
-                stackType: '100%',
-                toolbar: { show: false }
-            },
-            colors: ['#6c757d', '#17a2b8'],
-            plotOptions: {
-                bar: {
-                    horizontal: true,
-                    borderRadius: 4,
-                    barHeight: '60%'
-                }
-            },
-            dataLabels: {
-                enabled: true,
-                formatter: function(val) {
-                    return val.toFixed(0) + '%';
-                }
-            },
-            xaxis: {
-                categories: ['Messages'],
-                labels: { show: false }
-            },
-            yaxis: { labels: { show: false } },
-            legend: { show: false },
-            grid: { show: false }
-        };
-        const channelSplitChartEl = document.querySelector("#channelSplitChart");
-        if (channelSplitChartEl) {
-            channelSplitChartEl.innerHTML = '';
-            chartInstances.channelSplit = new ApexCharts(channelSplitChartEl, channelSplitOptions);
+    }
+    
+    // 6. Channel Split Chart
+    async function loadChannelSplit() {
+        try {
+            const response = await fetch(`${API_BASE}/channel-split`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            const chartEl = document.getElementById('channelSplitChart');
+            chartEl.innerHTML = '';
+            
+            const options = {
+                series: [{ name: 'SMS', data: [data.sms.count] }, { name: 'RCS', data: [data.rcs.count] }],
+                chart: { type: 'bar', height: 120, stacked: true, stackType: '100%', toolbar: { show: false } },
+                colors: ['#6c757d', '#17a2b8'],
+                plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
+                dataLabels: { enabled: true, formatter: val => val.toFixed(0) + '%' },
+                xaxis: { categories: ['Messages'], labels: { show: false } },
+                yaxis: { labels: { show: false } },
+                legend: { show: false },
+                grid: { show: false }
+            };
+            
+            chartInstances.channelSplit = new ApexCharts(chartEl, options);
             chartInstances.channelSplit.render();
+            
+            document.getElementById('channelSplitLegend').innerHTML = `
+                <span><i class="fa fa-circle text-secondary me-1"></i> SMS: ${formatNumber(data.sms.count)}</span>
+                <span><i class="fa fa-circle text-info me-1"></i> RCS: ${formatNumber(data.rcs.count)}</span>
+            `;
+            console.log('[Dashboard] Channel split loaded');
+        } catch (error) {
+            console.error('[Dashboard] Channel split error:', error);
+            showError('channelSplitChart', 'Failed to load');
         }
-
-        // 7. Delivery Status Pie Chart (dummy data)
-        const deliveryStatusOptions = {
-            series: [11823, 412, 240],
-            chart: {
-                type: 'donut',
-                height: 200
-            },
-            labels: ['Delivered', 'Pending', 'Failed'],
-            colors: ['#28a745', '#ffc107', '#dc3545'],
-            legend: { show: false },
-            plotOptions: {
-                pie: {
-                    donut: {
-                        size: '70%',
-                        labels: {
-                            show: true,
-                            total: {
-                                show: true,
-                                label: 'Total',
-                                formatter: () => '12,475'
-                            }
-                        }
-                    }
+    }
+    
+    // 7. Delivery Status Chart
+    async function loadDeliveryStatus() {
+        try {
+            const response = await fetch(`${API_BASE}/delivery-status`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            const chartEl = document.getElementById('deliveryStatusPieChart');
+            chartEl.innerHTML = '';
+            
+            const options = {
+                series: [data.delivered.count, data.pending.count, data.failed.count],
+                chart: { type: 'donut', height: 200 },
+                labels: ['Delivered', 'Pending', 'Failed'],
+                colors: ['#28a745', '#ffc107', '#dc3545'],
+                legend: { show: false },
+                plotOptions: {
+                    pie: { donut: { size: '70%', labels: { show: true, total: { show: true, label: 'Total', formatter: () => formatNumber(data.total) } } } }
                 }
-            }
-        };
-        const deliveryStatusChartEl = document.querySelector("#deliveryStatusPieChart");
-        if (deliveryStatusChartEl) {
-            deliveryStatusChartEl.innerHTML = '';
-            chartInstances.deliveryStatus = new ApexCharts(deliveryStatusChartEl, deliveryStatusOptions);
+            };
+            
+            chartInstances.deliveryStatus = new ApexCharts(chartEl, options);
             chartInstances.deliveryStatus.render();
+            
+            document.getElementById('deliveryStatusLegend').innerHTML = `
+                <ul class="chart-point-list mb-0 small">
+                    <li><i class="fa fa-circle text-success me-1"></i> Delivered: ${formatNumber(data.delivered.count)}</li>
+                    <li><i class="fa fa-circle text-warning me-1"></i> Pending: ${formatNumber(data.pending.count)}</li>
+                    <li><i class="fa fa-circle text-danger me-1"></i> Failed: ${formatNumber(data.failed.count)}</li>
+                </ul>
+            `;
+            console.log('[Dashboard] Delivery status loaded');
+        } catch (error) {
+            console.error('[Dashboard] Delivery status error:', error);
+            showError('deliveryStatusPieChart', 'Failed to load');
         }
-
-        // 8. Top 10 Countries Vertical Bar Chart (dummy data)
-        const topCountriesOptions = {
-            series: [{
-                name: 'Messages',
-                data: [4520, 3280, 1820, 1240, 980, 720, 450, 320, 180, 95]
-            }],
-            chart: {
-                type: 'bar',
-                height: 250,
-                toolbar: { show: false }
-            },
-            colors: ['var(--primary)'],
-            plotOptions: {
-                bar: {
-                    borderRadius: 4,
-                    horizontal: false,
-                    columnWidth: '60%'
-                }
-            },
-            dataLabels: { enabled: false },
-            xaxis: {
-                categories: ['UK', 'US', 'DE', 'FR', 'IE', 'ES', 'IT', 'NL', 'BE', 'AU'],
-                labels: {
-                    style: { fontSize: '10px' }
-                }
-            },
-            yaxis: {
-                title: { text: 'Messages' }
-            }
-        };
-        const topCountriesChartEl = document.querySelector("#topCountriesBarChart");
-        if (topCountriesChartEl) {
-            topCountriesChartEl.innerHTML = '';
-            chartInstances.topCountries = new ApexCharts(topCountriesChartEl, topCountriesOptions);
+    }
+    
+    // 8. Top Countries Chart
+    async function loadTopCountries() {
+        try {
+            const response = await fetch(`${API_BASE}/top-countries`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            const chartEl = document.getElementById('topCountriesBarChart');
+            chartEl.innerHTML = '';
+            
+            const options = {
+                series: [{ name: 'Messages', data: data.values }],
+                chart: { type: 'bar', height: 250, toolbar: { show: false } },
+                colors: ['var(--primary)'],
+                plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '60%' } },
+                dataLabels: { enabled: false },
+                xaxis: { categories: data.categories, labels: { style: { fontSize: '10px' } } },
+                yaxis: { title: { text: 'Messages' } }
+            };
+            
+            chartInstances.topCountries = new ApexCharts(chartEl, options);
             chartInstances.topCountries.render();
+            console.log('[Dashboard] Top countries loaded');
+        } catch (error) {
+            console.error('[Dashboard] Top countries error:', error);
+            showError('topCountriesBarChart', 'Failed to load');
         }
-
-        // Legacy charts removed - replaced with new dashboard components
-        console.log('[Dashboard] Charts initialized with dummy data');
     }
     
-    // ========================================
-    // Conditional Tile Visibility
-    // ========================================
-    // TODO: Backend integration - show/hide conditional tiles based on actual data
-    // For now, all conditional tiles are visible with dummy data
-    const hasRcsData = true; // Replace with actual check
-    const hasOptoutData = true; // Replace with actual check
-    
-    const rcsTile = document.querySelector('[data-conditional="rcs"]');
-    const optoutTile = document.querySelector('[data-conditional="optout"]');
-    
-    if (rcsTile && !hasRcsData) {
-        rcsTile.style.display = 'none';
+    // 9. Top SenderIDs Table
+    async function loadTopSenderIds() {
+        try {
+            const response = await fetch(`${API_BASE}/top-sender-ids`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            const tbody = document.getElementById('topSenderIdsTableBody');
+            tbody.innerHTML = data.senderIds.map(item => `
+                <tr>
+                    <td><span class="badge badge-primary light">${item.senderId}</span></td>
+                    <td class="text-end">${formatNumber(item.messages)}</td>
+                    <td class="text-end">${formatNumber(item.delivered)}</td>
+                    <td class="text-end"><span class="${item.deliveryRate >= 95 ? 'text-success' : 'text-warning'}">${item.deliveryRate}%</span></td>
+                </tr>
+            `).join('');
+            console.log('[Dashboard] Top SenderIDs loaded');
+        } catch (error) {
+            console.error('[Dashboard] Top SenderIDs error:', error);
+            document.getElementById('topSenderIdsTableBody').innerHTML = `<tr><td colspan="4" class="text-center text-danger">Failed to load</td></tr>`;
+        }
     }
-    if (optoutTile && !hasOptoutData) {
-        optoutTile.style.display = 'none';
+    
+    // 10. Peak Sending Time
+    async function loadPeakTime() {
+        try {
+            const response = await fetch(`${API_BASE}/peak-time`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            const [hour, ampm] = data.peakHour.split(':');
+            const hourNum = parseInt(hour);
+            const ampmLabel = hourNum >= 12 ? 'PM' : 'AM';
+            const displayHour = hourNum > 12 ? hourNum - 12 : hourNum;
+            
+            document.getElementById('peakTimeContent').innerHTML = `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        <span class="display-6 text-primary fw-bold">${displayHour}:00</span>
+                        <span class="text-muted">${ampmLabel}</span>
+                    </div>
+                    <div>
+                        <p class="mb-0 text-muted small">Most messages sent</p>
+                        <strong>${data.peakDay} mornings</strong>
+                    </div>
+                </div>
+                <div class="border-top pt-3">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Peak Hour Volume</span>
+                        <strong class="text-dark">${formatNumber(data.peakVolumeCount)} messages</strong>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Best Delivery Rate</span>
+                        <strong class="text-success">${data.bestDeliveryRate}%</strong>
+                    </div>
+                </div>
+                <div class="alert alert-light mt-3 mb-0 py-2 px-3 small">
+                    <i class="fas fa-info-circle text-primary me-1"></i>
+                    ${data.recommendation}
+                </div>
+            `;
+            console.log('[Dashboard] Peak time loaded');
+        } catch (error) {
+            console.error('[Dashboard] Peak time error:', error);
+            showError('peakTimeContent', 'Failed to load insight');
+        }
+    }
+    
+    // 11. Failure Reasons Table
+    async function loadFailureReasons() {
+        try {
+            const response = await fetch(`${API_BASE}/failure-reasons`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            
+            document.getElementById('failureReasonsBadge').textContent = `${data.totalFailed} failed`;
+            
+            const tbody = document.getElementById('failureReasonsTableBody');
+            tbody.innerHTML = data.reasons.map(item => `
+                <tr>
+                    <td><i class="fas ${item.icon} ${item.iconColor} me-1"></i> ${item.reason}</td>
+                    <td class="text-end">${item.count}</td>
+                    <td class="text-end">${item.percentage}%</td>
+                </tr>
+            `).join('');
+            console.log('[Dashboard] Failure reasons loaded');
+        } catch (error) {
+            console.error('[Dashboard] Failure reasons error:', error);
+            document.getElementById('failureReasonsTableBody').innerHTML = `<tr><td colspan="3" class="text-center text-danger">Failed to load</td></tr>`;
+        }
+    }
+    
+    // Initialize dashboard data load
+    if (typeof ApexCharts !== 'undefined') {
+        loadDashboardData();
+    } else {
+        console.error('[Dashboard] ApexCharts not loaded');
     }
     
     // ========================================
