@@ -175,7 +175,7 @@
             <!-- Make a Payment -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('purchase') }}" class="text-decoration-none">
-                    <div class="widget-stat card bg-secondary" id="tile-make-payment">
+                    <div class="widget-stat card bg-primary" id="tile-make-payment">
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
@@ -197,7 +197,7 @@
             <!-- Buy a Number -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('management.numbers') }}" class="text-decoration-none">
-                    <div class="widget-stat card bg-success" id="tile-buy-number">
+                    <div class="widget-stat card bg-warning" id="tile-buy-number">
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
@@ -219,7 +219,7 @@
             <!-- View latest Invoice -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('reporting.invoices') }}" class="text-decoration-none">
-                    <div class="widget-stat card bg-info" id="tile-view-invoice">
+                    <div class="widget-stat card bg-success" id="tile-view-invoice">
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
@@ -244,7 +244,7 @@
             <!-- Send a Campaign -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('messages.send') }}" class="text-decoration-none">
-                    <div class="widget-stat card bg-primary" id="tile-send-campaign">
+                    <div class="widget-stat card bg-info" id="tile-send-campaign">
                         <div class="card-body p-4">
                             <div class="media">
                                 <span class="me-3">
