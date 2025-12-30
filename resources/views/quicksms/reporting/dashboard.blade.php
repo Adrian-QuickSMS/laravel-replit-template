@@ -301,6 +301,78 @@ table .cursor-pointer:hover {
 .tile-resize-dropdown .dropdown-menu {
     min-width: auto;
 }
+
+/* Filter Panel Styles (matching Message Log) */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+}
+.date-preset-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.date-preset-btn:hover {
+    background: #f8f9fa;
+    border-color: #6f42c1;
+}
+.date-preset-btn.active {
+    background: #6f42c1;
+    color: #fff;
+    border-color: #6f42c1;
+}
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+.multiselect-dropdown {
+    position: relative;
+}
+.multiselect-dropdown .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 100%;
+}
+.multiselect-dropdown .form-check {
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+}
+.multiselect-dropdown .form-check:hover {
+    background: #f8f9fa;
+}
+.multiselect-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    background: #fff;
+}
+.multiselect-toggle .selected-count {
+    background: #6f42c1;
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.75rem;
+    margin-left: 0.5rem;
+}
 </style>
 @endpush
 
@@ -315,141 +387,167 @@ table .cursor-pointer:hover {
             </ol>
         </div>
 
-        <!-- Section 1: Global Filters Bar -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                    <!-- Row 1: Date Range with presets -->
-                    <div class="row g-3 align-items-end">
-                        <div class="col-12 col-lg-6">
-                            <label class="form-label small fw-bold">Date Range</label>
-                            <div class="d-flex gap-2 align-items-center">
-                                <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1">
-                                <span class="text-muted small">to</span>
-                                <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
-                            </div>
-                            <div class="d-flex flex-wrap gap-1 mt-2">
-                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
-                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
-                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn active" data-preset="7days">Last 7 Days</button>
-                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
-                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="mtd">MTD</button>
-                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="custom">Custom Range</button>
-                            </div>
+        <!-- Dashboard Toolbar -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted" data-requires-admin><i class="fas fa-grip-vertical me-1"></i> Drag tiles to reposition</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" id="btnToggleFilters">
+                            <i class="fas fa-filter me-1"></i> Filters
+                            <span class="badge bg-primary ms-1" id="filterCountBadge" style="display: none;">0</span>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" id="btnResetLayout" data-requires-admin>
+                            <i class="fas fa-undo me-1"></i> Reset Layout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collapsible Filters Panel -->
+        <div class="collapse mb-3" id="filtersPanel">
+            <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                <!-- Row 1: Date Range + Sub Account + User -->
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-lg-6">
+                        <label class="form-label small fw-bold">Date Range</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1">
+                            <span class="text-muted small">to</span>
+                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
                         </div>
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <label class="form-label small fw-bold">Sub Account</label>
-                            <select class="form-select form-select-sm" id="filterSubAccount">
-                                <option value="">All Sub Accounts</option>
-                                <option value="Main Account">Main Account</option>
-                                <option value="Marketing Team">Marketing Team</option>
-                                <option value="Support Team">Support Team</option>
-                                <option value="Sales Team">Sales Team</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <label class="form-label small fw-bold">User</label>
-                            <select class="form-select form-select-sm" id="filterUser">
-                                <option value="">All Users</option>
-                                <option value="John Smith" data-subaccount="Main Account">John Smith</option>
-                                <option value="Sarah Johnson" data-subaccount="Main Account">Sarah Johnson</option>
-                                <option value="Mike Williams" data-subaccount="Marketing Team">Mike Williams</option>
-                                <option value="Emma Davis" data-subaccount="Support Team">Emma Davis</option>
-                                <option value="James Wilson" data-subaccount="Sales Team">James Wilson</option>
-                            </select>
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
+                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
+                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn active" data-preset="7days">Last 7 Days</button>
+                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
+                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="mtd">This Month</button>
+                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="lastmonth">Last Month</button>
                         </div>
                     </div>
-                    
-                    <!-- Row 2: Origin, Integration Type, Group Name, SenderID -->
-                    <div class="row g-3 align-items-end mt-2">
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label class="form-label small fw-bold">Origin</label>
-                            <div class="dropdown multiselect-dropdown" data-filter="origins">
-                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                    <span class="dropdown-label">All Origins</span>
-                                </button>
-                                <div class="dropdown-menu w-100 p-2">
-                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
-                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
-                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
-                                    </div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="originPortal"><label class="form-check-label small" for="originPortal">Portal</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="originAPI"><label class="form-check-label small" for="originAPI">API</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="originEmail"><label class="form-check-label small" for="originEmail">Email-to-SMS</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="originIntegration"><label class="form-check-label small" for="originIntegration">Integration</label></div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label small fw-bold">Sub Account</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Sub Accounts</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Account</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales Team" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales Team</label></div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-4 col-lg-2" id="integrationTypeWrapper" style="display: none;">
-                            <label class="form-label small fw-bold">Integration Type</label>
-                            <select class="form-select form-select-sm" id="filterIntegrationType">
-                                <option value="">All Types</option>
-                                <option value="Zapier">Zapier</option>
-                                <option value="HubSpot">HubSpot</option>
-                                <option value="Salesforce">Salesforce</option>
-                                <option value="Slack">Slack</option>
-                                <option value="Microsoft Teams">Microsoft Teams</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <label class="form-label small fw-bold">Group Name</label>
-                            <select class="form-select form-select-sm" id="filterGroupName">
-                                <option value="">All Groups</option>
-                                <optgroup label="Campaigns">
-                                    <option value="Summer Sale 2024">Summer Sale 2024</option>
-                                    <option value="Welcome Series">Welcome Series</option>
-                                    <option value="Black Friday">Black Friday</option>
-                                </optgroup>
-                                <optgroup label="API Connections">
-                                    <option value="Main API">Main API</option>
-                                    <option value="Mobile App">Mobile App</option>
-                                    <option value="Website Integration">Website Integration</option>
-                                </optgroup>
-                                <optgroup label="Email Groups">
-                                    <option value="Support Notifications">Support Notifications</option>
-                                    <option value="Order Updates">Order Updates</option>
-                                </optgroup>
-                                <optgroup label="Integrations">
-                                    <option value="Zapier Flow 1">Zapier Flow 1</option>
-                                    <option value="HubSpot Workflow">HubSpot Workflow</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-3">
-                            <label class="form-label small fw-bold">SenderID</label>
-                            <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search..." list="senderIdSuggestions" autocomplete="off">
-                            <datalist id="senderIdSuggestions">
-                                <option value="QuickSMS">
-                                <option value="ALERTS">
-                                <option value="PROMO">
-                                <option value="QuickSMS Brand">
-                                <option value="INFO">
-                                <option value="NOTIFY">
-                                <option value="VERIFY">
-                            </datalist>
-                        </div>
-                        <div class="col-12 col-lg-2">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <button class="btn btn-primary btn-sm" id="btnApplyFilters">
-                                    <i class="fas fa-check me-1"></i> Apply
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
-                                    <i class="fas fa-undo me-1"></i> Reset
-                                </button>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label small fw-bold">User</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="users">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Users</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="John Smith" id="user1"><label class="form-check-label small" for="user1">John Smith</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sarah Johnson" id="user2"><label class="form-check-label small" for="user2">Sarah Johnson</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Mike Williams" id="user3"><label class="form-check-label small" for="user3">Mike Williams</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Emma Davis" id="user4"><label class="form-check-label small" for="user4">Emma Davis</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="James Wilson" id="user5"><label class="form-check-label small" for="user5">James Wilson</label></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Row 2: Origin + Group Name + SenderID -->
+                <div class="row g-3 align-items-end mt-2">
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label small fw-bold">Origin</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="origins">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Origins</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="originPortal"><label class="form-check-label small" for="originPortal">Portal</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="originAPI"><label class="form-check-label small" for="originAPI">API</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="originEmail"><label class="form-check-label small" for="originEmail">Email-to-SMS</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="originIntegration"><label class="form-check-label small" for="originIntegration">Integration</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label small fw-bold">Group Name</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="groupNames">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Groups</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="small text-muted mb-1 px-2">Campaigns</div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Summer Sale 2024" id="group1"><label class="form-check-label small" for="group1">Summer Sale 2024</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Welcome Series" id="group2"><label class="form-check-label small" for="group2">Welcome Series</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Black Friday" id="group3"><label class="form-check-label small" for="group3">Black Friday</label></div>
+                                <div class="small text-muted mb-1 mt-2 px-2">API Connections</div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main API" id="group4"><label class="form-check-label small" for="group4">Main API</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Mobile App" id="group5"><label class="form-check-label small" for="group5">Mobile App</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Website Integration" id="group6"><label class="form-check-label small" for="group6">Website Integration</label></div>
+                                <div class="small text-muted mb-1 mt-2 px-2">Integrations</div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Zapier Flow 1" id="group7"><label class="form-check-label small" for="group7">Zapier Flow 1</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="HubSpot Workflow" id="group8"><label class="form-check-label small" for="group8">HubSpot Workflow</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <label class="form-label small fw-bold">SenderID</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="senderIds">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All SenderIDs</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="QuickSMS" id="sender1"><label class="form-check-label small" for="sender1">QuickSMS</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ALERTS" id="sender2"><label class="form-check-label small" for="sender2">ALERTS</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="PROMO" id="sender3"><label class="form-check-label small" for="sender3">PROMO</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="INFO" id="sender4"><label class="form-check-label small" for="sender4">INFO</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NOTIFY" id="sender5"><label class="form-check-label small" for="sender5">NOTIFY</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="VERIFY" id="sender6"><label class="form-check-label small" for="sender6">VERIFY</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn btn-primary btn-sm" id="btnApplyFilters">
+                                <i class="fas fa-check me-1"></i> Apply Filters
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                                <i class="fas fa-undo me-1"></i> Reset Filters
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    </div><!-- end qs-filter-section -->
-    
-    <div class="qs-dashboard-scroll-container">
-    <!-- Active Filters Chips -->
-    <div class="row mb-3" id="activeFiltersContainer" style="display: none;">
-        <div class="col-12">
+
+        <!-- Active Filters Chips -->
+        <div class="mb-3" id="activeFiltersContainer" style="display: none;">
             <div class="d-flex flex-wrap align-items-center">
                 <span class="small text-muted me-2">Active filters:</span>
                 <div id="activeFiltersChips"></div>
@@ -458,23 +556,9 @@ table .cursor-pointer:hover {
                 </button>
             </div>
         </div>
-    </div>
-
-    <!-- Layout Toolbar -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="small text-muted" data-requires-admin><i class="fas fa-grip-vertical me-1"></i> Drag tiles to reposition</span>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary btn-sm" id="btnResetLayout" data-requires-admin>
-                        <i class="fas fa-undo me-1"></i> Reset Layout
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    </div><!-- end qs-filter-section -->
+    
+    <div class="qs-dashboard-scroll-container">
 
     <!-- Section 2: Tiles & Charts Grid -->
     <div class="qs-dashboard-grid" id="dashboardGrid">
@@ -1154,22 +1238,58 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     /**
-     * Get current filter state from UI
+     * Get current filter state from UI (multi-select aware)
      * @returns {Object} - Current filter parameters
      */
     function getCurrentFilters() {
-        // TODO: Extract actual filter values from UI when filters are applied
         return {
             dateRange: {
                 from: document.getElementById('filterDateFrom')?.value || null,
                 to: document.getElementById('filterDateTo')?.value || null
             },
-            subAccount: document.getElementById('filterSubAccount')?.value || null,
-            user: document.getElementById('filterUser')?.value || null,
-            origin: null, // TODO: Extract from multi-select dropdown
-            groupName: document.getElementById('filterGroupName')?.value || null,
-            senderID: document.getElementById('filterSenderId')?.value || null
+            subAccounts: getMultiselectValues('subAccounts'),
+            users: getMultiselectValues('users'),
+            origins: getMultiselectValues('origins'),
+            groupNames: getMultiselectValues('groupNames'),
+            senderIds: getMultiselectValues('senderIds')
         };
+    }
+    
+    /**
+     * Get selected values from a multiselect dropdown
+     * @param {string} filterKey - The data-filter attribute value
+     * @returns {Array} - Array of selected values
+     */
+    function getMultiselectValues(filterKey) {
+        const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterKey}"]`);
+        if (!dropdown) return [];
+        const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    /**
+     * Update multiselect dropdown label to show selected count
+     * @param {HTMLElement} dropdown - The dropdown container
+     */
+    function updateMultiselectLabel(dropdown) {
+        const filterKey = dropdown.dataset.filter;
+        const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+        const labelSpan = dropdown.querySelector('.dropdown-label');
+        const defaultLabels = {
+            subAccounts: 'All Sub Accounts',
+            users: 'All Users',
+            origins: 'All Origins',
+            groupNames: 'All Groups',
+            senderIds: 'All SenderIDs'
+        };
+        
+        if (checkboxes.length === 0) {
+            labelSpan.innerHTML = defaultLabels[filterKey] || 'All';
+        } else if (checkboxes.length === 1) {
+            labelSpan.innerHTML = checkboxes[0].value;
+        } else {
+            labelSpan.innerHTML = `${checkboxes.length} selected`;
+        }
     }
     
     // ========================================
@@ -1603,21 +1723,29 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(initTooltips, 2000);
     
     // ========================================
-    // Filter State Model
+    // Filter State Model (multi-select aware)
     // ========================================
     const filterState = {
         dateFrom: null,
         dateTo: null,
         datePreset: '7days',
-        subAccount: '',
-        user: '',
+        subAccounts: [],
+        users: [],
         origins: [],
-        integrationType: '',
-        groupName: '',
-        senderId: ''
+        groupNames: [],
+        senderIds: []
     };
     
-    const pendingFilters = { ...filterState };
+    const pendingFilters = JSON.parse(JSON.stringify(filterState));
+    
+    // Default labels for multiselect dropdowns
+    const defaultLabels = {
+        subAccounts: 'All Sub Accounts',
+        users: 'All Users',
+        origins: 'All Origins',
+        groupNames: 'All Groups',
+        senderIds: 'All SenderIDs'
+    };
     
     // ========================================
     // Date Preset Helpers
@@ -1804,6 +1932,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderFilterChips() {
         const container = document.getElementById('activeFiltersChips');
         const wrapper = document.getElementById('activeFiltersContainer');
+        const badge = document.getElementById('filterCountBadge');
         if (!container || !wrapper) return;
         
         container.innerHTML = '';
@@ -1816,39 +1945,73 @@ document.addEventListener('DOMContentLoaded', function() {
                 'yesterday': 'Yesterday',
                 '7days': 'Last 7 Days',
                 '30days': 'Last 30 Days',
-                'mtd': 'MTD'
+                'mtd': 'This Month',
+                'lastmonth': 'Last Month'
             };
             chips.push({ key: 'dateRange', label: presetLabels[filterState.datePreset] || filterState.datePreset, type: 'date' });
         } else if (filterState.dateFrom || filterState.dateTo) {
             chips.push({ key: 'dateRange', label: 'Custom Date Range', type: 'date' });
         }
         
-        if (filterState.subAccount) chips.push({ key: 'subAccount', label: `Sub: ${filterState.subAccount}` });
-        if (filterState.user) chips.push({ key: 'user', label: `User: ${filterState.user}` });
-        if (filterState.origins.length > 0 && filterState.origins.length < 4) {
+        // Multi-select chips
+        if (filterState.subAccounts && filterState.subAccounts.length > 0) {
+            if (filterState.subAccounts.length <= 2) {
+                chips.push({ key: 'subAccounts', label: `Sub: ${filterState.subAccounts.join(', ')}` });
+            } else {
+                chips.push({ key: 'subAccounts', label: `Sub: ${filterState.subAccounts.length} selected` });
+            }
+        }
+        if (filterState.users && filterState.users.length > 0) {
+            if (filterState.users.length <= 2) {
+                chips.push({ key: 'users', label: `User: ${filterState.users.join(', ')}` });
+            } else {
+                chips.push({ key: 'users', label: `User: ${filterState.users.length} selected` });
+            }
+        }
+        if (filterState.origins && filterState.origins.length > 0) {
             chips.push({ key: 'origins', label: `Origin: ${filterState.origins.join(', ')}` });
         }
-        if (filterState.integrationType) chips.push({ key: 'integrationType', label: `Integration: ${filterState.integrationType}` });
-        if (filterState.groupName) chips.push({ key: 'groupName', label: `Group: ${filterState.groupName}` });
-        if (filterState.senderId) chips.push({ key: 'senderId', label: `SenderID: ${filterState.senderId}` });
+        if (filterState.groupNames && filterState.groupNames.length > 0) {
+            if (filterState.groupNames.length <= 2) {
+                chips.push({ key: 'groupNames', label: `Group: ${filterState.groupNames.join(', ')}` });
+            } else {
+                chips.push({ key: 'groupNames', label: `Group: ${filterState.groupNames.length} selected` });
+            }
+        }
+        if (filterState.senderIds && filterState.senderIds.length > 0) {
+            if (filterState.senderIds.length <= 2) {
+                chips.push({ key: 'senderIds', label: `SenderID: ${filterState.senderIds.join(', ')}` });
+            } else {
+                chips.push({ key: 'senderIds', label: `SenderID: ${filterState.senderIds.length} selected` });
+            }
+        }
         
-        // Only show if non-default filters are active
-        const hasNonDefaultFilters = filterState.subAccount || filterState.user || filterState.origins.length > 0 || 
-                                     filterState.integrationType || filterState.groupName || filterState.senderId ||
-                                     (filterState.datePreset !== '7days');
+        // Count non-default filters
+        const nonDefaultCount = (filterState.subAccounts?.length || 0) + 
+                                (filterState.users?.length || 0) + 
+                                (filterState.origins?.length || 0) + 
+                                (filterState.groupNames?.length || 0) + 
+                                (filterState.senderIds?.length || 0) +
+                                (filterState.datePreset !== '7days' ? 1 : 0);
         
-        wrapper.style.display = hasNonDefaultFilters ? '' : 'none';
+        // Update badge
+        if (badge) {
+            badge.style.display = nonDefaultCount > 0 ? '' : 'none';
+            badge.textContent = nonDefaultCount;
+        }
+        
+        // Only show chips if non-default filters are active
+        wrapper.style.display = nonDefaultCount > 0 ? '' : 'none';
         
         chips.forEach(chip => {
             const el = document.createElement('span');
-            el.className = 'badge me-1 mb-1 d-inline-flex align-items-center';
-            el.style.cssText = 'background-color: #7c3aed; color: white; font-weight: 500; padding: 0.35rem 0.65rem;';
-            el.innerHTML = `${chip.label} <button type="button" class="btn-close btn-close-white ms-2" style="font-size: 0.6rem;" data-filter-key="${chip.key}"></button>`;
+            el.className = 'filter-chip';
+            el.innerHTML = `${chip.label} <span class="remove-chip" data-filter-key="${chip.key}">&times;</span>`;
             container.appendChild(el);
         });
         
         // Chip removal handlers
-        container.querySelectorAll('.btn-close').forEach(btn => {
+        container.querySelectorAll('.remove-chip').forEach(btn => {
             btn.addEventListener('click', function() {
                 const key = this.dataset.filterKey;
                 removeFilter(key);
@@ -1862,75 +2025,117 @@ document.addEventListener('DOMContentLoaded', function() {
                 setDateInputs('7days');
                 document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector('[data-preset="7days"]')?.classList.add('active');
+                filterState.datePreset = '7days';
+                pendingFilters.datePreset = '7days';
                 break;
-            case 'subAccount':
-                document.getElementById('filterSubAccount').value = '';
-                pendingFilters.subAccount = '';
+            case 'subAccounts':
+                filterState.subAccounts = [];
+                pendingFilters.subAccounts = [];
+                clearMultiselect('subAccounts');
                 break;
-            case 'user':
-                document.getElementById('filterUser').value = '';
-                pendingFilters.user = '';
+            case 'users':
+                filterState.users = [];
+                pendingFilters.users = [];
+                clearMultiselect('users');
                 break;
             case 'origins':
-                originDropdown?.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-                updateOriginLabel();
+                filterState.origins = [];
+                pendingFilters.origins = [];
+                clearMultiselect('origins');
                 break;
-            case 'integrationType':
-                document.getElementById('filterIntegrationType').value = '';
-                pendingFilters.integrationType = '';
+            case 'groupNames':
+                filterState.groupNames = [];
+                pendingFilters.groupNames = [];
+                clearMultiselect('groupNames');
                 break;
-            case 'groupName':
-                document.getElementById('filterGroupName').value = '';
-                pendingFilters.groupName = '';
-                break;
-            case 'senderId':
-                document.getElementById('filterSenderId').value = '';
-                pendingFilters.senderId = '';
+            case 'senderIds':
+                filterState.senderIds = [];
+                pendingFilters.senderIds = [];
+                clearMultiselect('senderIds');
                 break;
         }
-        applyFilters();
+        renderFilterChips();
+        console.log('[Dashboard] Filter removed:', key);
+    }
+    
+    function clearMultiselect(filterKey) {
+        const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterKey}"]`);
+        if (dropdown) {
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateMultiselectLabel(dropdown);
+        }
     }
     
     // ========================================
     // Apply/Reset Handlers
     // ========================================
     function applyFilters() {
-        Object.assign(filterState, { ...pendingFilters });
+        // Collect values from all multiselect dropdowns
+        pendingFilters.subAccounts = getMultiselectValues('subAccounts');
+        pendingFilters.users = getMultiselectValues('users');
+        pendingFilters.origins = getMultiselectValues('origins');
+        pendingFilters.groupNames = getMultiselectValues('groupNames');
+        pendingFilters.senderIds = getMultiselectValues('senderIds');
+        
+        // Copy pending to active
+        Object.assign(filterState, JSON.parse(JSON.stringify(pendingFilters)));
         renderFilterChips();
         
         console.log('[Dashboard] Filters applied:', JSON.stringify(filterState, null, 2));
         // TODO: Implement API call to refresh dashboard data with filterState
+        // loadDashboardData();
     }
     
     function resetFilters() {
-        // Reset to defaults: Last 7 Days + All Sub Accounts
+        // Reset date to Last 7 Days
         setDateInputs('7days');
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('[data-preset="7days"]')?.classList.add('active');
         
-        document.getElementById('filterSubAccount').value = '';
-        document.getElementById('filterUser').value = '';
-        originDropdown?.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        updateOriginLabel();
-        document.getElementById('filterIntegrationType').value = '';
-        document.getElementById('filterGroupName').value = '';
-        document.getElementById('filterSenderId').value = '';
+        // Clear all multiselect dropdowns
+        ['subAccounts', 'users', 'origins', 'groupNames', 'senderIds'].forEach(filterKey => {
+            clearMultiselect(filterKey);
+        });
         
-        // Reset pending filters
-        pendingFilters.subAccount = '';
-        pendingFilters.user = '';
+        // Reset pending and active filters
+        pendingFilters.subAccounts = [];
+        pendingFilters.users = [];
         pendingFilters.origins = [];
-        pendingFilters.integrationType = '';
-        pendingFilters.groupName = '';
-        pendingFilters.senderId = '';
+        pendingFilters.groupNames = [];
+        pendingFilters.senderIds = [];
         pendingFilters.datePreset = '7days';
-        
-        // Show all users again
-        allUserOptions.forEach(opt => opt.style.display = '');
         
         applyFilters();
         console.log('[Dashboard] Filters reset to defaults');
     }
+    
+    // ========================================
+    // Multiselect Dropdown Event Handlers
+    // ========================================
+    document.querySelectorAll('.multiselect-dropdown').forEach(dropdown => {
+        const filterKey = dropdown.dataset.filter;
+        
+        // Checkbox change - update label
+        dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                updateMultiselectLabel(dropdown);
+            });
+        });
+        
+        // Select All button
+        dropdown.querySelector('.select-all-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            updateMultiselectLabel(dropdown);
+        });
+        
+        // Clear button
+        dropdown.querySelector('.clear-all-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateMultiselectLabel(dropdown);
+        });
+    });
     
     document.getElementById('btnApplyFilters')?.addEventListener('click', applyFilters);
     document.getElementById('btnResetFilters')?.addEventListener('click', resetFilters);
