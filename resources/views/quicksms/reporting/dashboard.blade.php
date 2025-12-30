@@ -1335,9 +1335,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     ? 'Some messages are still processing. Final cost may vary.'
                     : 'Final billing complete for this period.';
                 document.getElementById('kpiSpendContent').innerHTML = `
-                    <p class="mb-1">TOTAL SPEND</p>
-                    <h4 class="mb-0 d-flex align-items-center" title="${spendTooltip}" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
-                    <small class="text-muted" style="display: block; margin-top: 4px;">(Excludes VAT)</small>
+                    <p class="mb-1">TOTAL SPEND <i class="fas fa-info-circle text-muted ms-1" style="font-size: 10px;" title="Excludes VAT. ${spendTooltip}"></i></p>
+                    <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${estimatedBadge}</h4>
                 `;
             } else {
                 // Viewers see credits only, not cost
