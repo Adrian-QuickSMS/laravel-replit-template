@@ -98,10 +98,10 @@
                     </div>
                     
                     <div class="d-flex gap-2 mb-4">
-                        <button type="button" class="btn btn-light" onclick="triggerFileUpload()">
+                        <button type="button" class="btn btn-outline-primary" onclick="triggerFileUpload()">
                             <i class="fas fa-upload me-1"></i>Upload CSV
                         </button>
-                        <button type="button" class="btn btn-light" onclick="openContactBookModal()">
+                        <button type="button" class="btn btn-outline-primary" onclick="openContactBookModal()">
                             <i class="fas fa-users me-1"></i>Select from Contact Book
                         </button>
                         <input type="file" class="d-none" id="recipientFile" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
