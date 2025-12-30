@@ -273,12 +273,12 @@
                                         <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
                                     </div>
                                     <div class="d-flex flex-wrap gap-1 mt-2">
-                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="today">Today</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="yesterday">Yesterday</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="7days">Last 7 Days</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="30days">Last 30 Days</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="thismonth">This Month</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs" data-preset="lastmonth">Last Month</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="7days">Last 7 Days</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="thismonth">This Month</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="lastmonth">Last Month</button>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
@@ -903,13 +903,10 @@ const MockAPI = (function() {
     // Data constants
     const statuses = [
         { text: 'Delivered', weight: 50 },
-        { text: 'Pending', weight: 15 },
-        { text: 'Undeliverable', weight: 10 },
-        { text: 'Rejected', weight: 8 },
-        { text: 'Expired', weight: 7 },
-        { text: 'Failed', weight: 5 },
-        { text: 'Blocked', weight: 3 },
-        { text: 'Blacklisted', weight: 2 }
+        { text: 'Pending', weight: 20 },
+        { text: 'Expired', weight: 12 },
+        { text: 'Rejected', weight: 10 },
+        { text: 'Undeliverable', weight: 8 }
     ];
     const senders = ['QuickSMS', 'ALERTS', 'PROMO', 'QuickSMS Brand', 'INFO', 'NOTIFY'];
     const origins = ['Portal', 'API', 'Email-to-SMS', 'Integration'];
@@ -1402,8 +1399,12 @@ document.addEventListener('DOMContentLoaded', function() {
         messageTypes: { sms: 'SMS', 'rcs-basic': 'RCS Basic', 'rcs-rich': 'RCS Rich' }
     };
     
-    function formatDateInput(date) {
-        return date.toISOString().split('T')[0];
+    function formatDateInput(date, isEndOfDay = false) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const time = isEndOfDay ? '23:59:59' : '00:00:00';
+        return `${year}-${month}-${day}T${time}`;
     }
     
     // Date preset buttons
@@ -1422,10 +1423,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'thismonth': fromDate = new Date(today.getFullYear(), today.getMonth(), 1); break;
                 case 'lastmonth': fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); toDate = new Date(today.getFullYear(), today.getMonth(), 0); break;
             }
-            document.getElementById('filterDateFrom').value = formatDateInput(fromDate);
-            document.getElementById('filterDateTo').value = formatDateInput(toDate);
-            pendingFilters.dateFrom = formatDateInput(fromDate);
-            pendingFilters.dateTo = formatDateInput(toDate);
+            document.getElementById('filterDateFrom').value = formatDateInput(fromDate, false);
+            document.getElementById('filterDateTo').value = formatDateInput(toDate, true);
+            pendingFilters.dateFrom = formatDateInput(fromDate, false);
+            pendingFilters.dateTo = formatDateInput(toDate, true);
         });
     });
     
@@ -1566,9 +1567,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createChip(label, value, key) {
-        return `<span class="badge bg-primary bg-opacity-10 text-primary me-2 mb-1 d-inline-flex align-items-center">
+        return `<span class="badge bg-primary text-white me-2 mb-1 d-inline-flex align-items-center" style="padding: 0.5em 0.75em;">
             <span class="fw-bold me-1">${label}:</span> ${value}
-            <button type="button" class="btn-close btn-close-sm ms-2" style="font-size: 0.6rem;" data-filter="${key}"></button>
+            <button type="button" class="btn-close btn-close-white btn-close-sm ms-2" style="font-size: 0.6rem;" data-filter="${key}"></button>
         </span>`;
     }
     
