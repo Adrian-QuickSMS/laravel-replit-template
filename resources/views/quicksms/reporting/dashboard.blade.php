@@ -4,6 +4,25 @@
 
 @push('styles')
 <style>
+/* Fixed viewport layout - page does not scroll */
+.qs-reporting-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 80px);
+    overflow: hidden;
+}
+
+.qs-reporting-dashboard .qs-filter-section {
+    flex-shrink: 0;
+}
+
+.qs-reporting-dashboard .qs-dashboard-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 1rem;
+}
+
 .chart-placeholder {
     min-height: 200px;
     display: flex;
@@ -137,6 +156,49 @@ table .cursor-pointer:hover {
     cursor: help;
 }
 
+/* Individual tile table scroll containers */
+.qs-tile .table-scroll-container {
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.qs-tile .table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.qs-tile .table-scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.qs-tile .table-scroll-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.qs-tile .table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Dashboard scroll container styling */
+.qs-dashboard-scroll-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.qs-dashboard-scroll-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+.qs-dashboard-scroll-container::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 4px;
+}
+
+.qs-dashboard-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #ced4da;
+}
+
 .btn-xs {
     padding: 0.15rem 0.5rem;
     font-size: 0.7rem;
@@ -243,16 +305,17 @@ table .cursor-pointer:hover {
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row page-titles">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('reporting') }}">Reporting</a></li>
-            <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-    </div>
+<div class="container-fluid qs-reporting-dashboard">
+    <div class="qs-filter-section">
+        <div class="row page-titles">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('reporting') }}">Reporting</a></li>
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+        </div>
 
-    <!-- Section 1: Global Filters Bar -->
+        <!-- Section 1: Global Filters Bar -->
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -381,7 +444,9 @@ table .cursor-pointer:hover {
             </div>
         </div>
     </div>
+    </div><!-- end qs-filter-section -->
     
+    <div class="qs-dashboard-scroll-container">
     <!-- Active Filters Chips -->
     <div class="row mb-3" id="activeFiltersContainer" style="display: none;">
         <div class="col-12">
@@ -584,9 +649,9 @@ table .cursor-pointer:hover {
                     <a href="{{ route('reporting.message-log') }}" class="btn btn-outline-primary btn-sm">View All</a>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="table-responsive table-scroll-container">
                         <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                            <thead class="table-light sticky-top bg-white">
                                 <tr>
                                     <th>SenderID</th>
                                     <th class="text-end">Messages</th>
@@ -652,9 +717,9 @@ table .cursor-pointer:hover {
                     <span id="failureReasonsBadge" class="badge badge-danger light"><span class="qs-skeleton" style="display:inline-block;width:30px;height:12px"></span></span>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="table-responsive table-scroll-container">
                         <table class="table table-sm mb-0">
-                            <thead class="table-light">
+                            <thead class="table-light sticky-top bg-white">
                                 <tr>
                                     <th>Reason</th>
                                     <th class="text-end">Count</th>
@@ -714,6 +779,7 @@ table .cursor-pointer:hover {
             </div>
         </div>
     </div>
+    </div><!-- end qs-dashboard-scroll-container -->
 
 </div>
 @endsection
