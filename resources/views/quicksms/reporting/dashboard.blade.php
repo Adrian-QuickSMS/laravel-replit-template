@@ -771,8 +771,11 @@ table .cursor-pointer:hover {
         <!-- 9. Top SenderIDs (About Me Style) -->
         <div class="qs-tile tile-medium" data-tile-id="table-top-senderids" data-size="medium" data-api="top-sender-ids">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0">Top SenderIDs</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#topSenderIdsModal" title="View Top 10">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
                 </div>
                 <div class="card-body pt-3">
                     <div id="topSenderIdsList">
@@ -789,11 +792,11 @@ table .cursor-pointer:hover {
                                 <small class="text-muted">Messages Sent</small>
                             </div>
                             <div class="flex-fill border-start border-end">
-                                <h4 class="mb-0 text-success" id="senderIdStatDelivered">-</h4>
+                                <h4 class="mb-0 text-primary" id="senderIdStatDelivered">-</h4>
                                 <small class="text-muted">Delivered</small>
                             </div>
                             <div class="flex-fill">
-                                <h4 class="mb-0 text-info" id="senderIdStatRate">-</h4>
+                                <h4 class="mb-0 text-primary" id="senderIdStatRate">-</h4>
                                 <small class="text-muted">Delivery Rate</small>
                             </div>
                         </div>
@@ -873,6 +876,25 @@ table .cursor-pointer:hover {
 
     </div><!-- end qs-dashboard-scroll-container -->
 
+</div>
+
+<!-- Top SenderIDs Modal -->
+<div class="modal fade" id="topSenderIdsModal" tabindex="-1" aria-labelledby="topSenderIdsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="topSenderIdsModalLabel">Top 10 SenderIDs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div id="topSenderIdsModalList">
+                    <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:80px;height:14px"></div><div class="qs-skeleton" style="width:50px;height:14px"></div></div>
+                    <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:100px;height:14px"></div><div class="qs-skeleton" style="width:40px;height:14px"></div></div>
+                    <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:70px;height:14px"></div><div class="qs-skeleton" style="width:55px;height:14px"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -1602,20 +1624,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             senderIdsData = data.senderIds;
             
-            const listEl = document.getElementById('topSenderIdsList');
-            listEl.innerHTML = data.senderIds.map((item, index) => `
-                <div class="d-flex justify-content-between py-2 ${index < data.senderIds.length - 1 ? 'border-bottom' : ''} cursor-pointer sender-id-row" 
-                     data-index="${index}" 
-                     onclick="selectSenderId(${index})"
-                     style="transition: background-color 0.2s;">
-                    <span class="fw-bold">${item.senderId}</span>
-                    <span class="text-muted">${formatNumber(item.messages)}</span>
-                </div>
-            `).join('');
+            // Render tile list (top 5)
+            renderSenderIdList(document.getElementById('topSenderIdsList'), data.senderIds.slice(0, 5), true);
+            
+            // Render modal list (top 10)
+            renderSenderIdList(document.getElementById('topSenderIdsModalList'), data.senderIds, false);
             
             // Auto-select the first item
             if (data.senderIds.length > 0) {
-                selectSenderId(0);
+                window.selectSenderId(0);
             }
             
             console.log('[Dashboard] Top SenderIDs loaded (click rows to view stats)');
@@ -1625,7 +1642,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function selectSenderId(index) {
+    function renderSenderIdList(container, items, isClickable) {
+        if (!container) return;
+        container.innerHTML = items.map((item, index) => `
+            <div class="d-flex justify-content-between py-2 ${index < items.length - 1 ? 'border-bottom' : ''} ${isClickable ? 'cursor-pointer sender-id-row' : ''}" 
+                 data-index="${index}" 
+                 ${isClickable ? `onclick="window.selectSenderId(${index})"` : ''}
+                 style="transition: background-color 0.2s;">
+                <span class="fw-bold" style="font-size: 1.125rem;">${item.senderId}</span>
+                <span class="text-muted">${formatNumber(item.messages)}</span>
+            </div>
+        `).join('');
+    }
+    
+    window.selectSenderId = function(index) {
         const item = senderIdsData[index];
         if (!item) return;
         
@@ -1645,7 +1675,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.style.backgroundColor = '';
             }
         });
-    }
+    };
     
     // 10. Peak Sending Time
     async function loadPeakTime() {
