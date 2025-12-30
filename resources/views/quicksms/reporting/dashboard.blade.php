@@ -825,44 +825,6 @@ table .cursor-pointer:hover {
         
     </div>
 
-    <!-- Section 3: Drill-Through Links -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Detailed Reports</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
-                            <a href="{{ route('reporting.message-log') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-list-alt fa-2x mb-2 d-block"></i>
-                                Message Log
-                            </a>
-                        </div>
-                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
-                            <a href="{{ route('reporting.finance-data') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-coins fa-2x mb-2 d-block"></i>
-                                Finance Data
-                            </a>
-                        </div>
-                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
-                            <a href="{{ route('reporting.invoices') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-file-invoice fa-2x mb-2 d-block"></i>
-                                Invoices
-                            </a>
-                        </div>
-                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3" data-requires-export>
-                            <a href="{{ route('reporting.download-area') }}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="fas fa-download fa-2x mb-2 d-block"></i>
-                                Download Area
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     </div><!-- end qs-dashboard-scroll-container -->
 
 </div>
