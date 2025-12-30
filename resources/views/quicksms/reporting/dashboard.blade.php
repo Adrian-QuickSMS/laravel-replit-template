@@ -410,14 +410,14 @@ table .cursor-pointer:hover {
         <!-- Collapsible Filters Panel -->
         <div class="collapse mb-3" id="filtersPanel">
             <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                <!-- Row 1: Date Range + Sub Account + User -->
-                <div class="row g-3 align-items-end">
+                <!-- Row 1: Date Range (with presets) + Sub Account + User -->
+                <div class="row g-3 align-items-start">
                     <div class="col-12 col-lg-6">
                         <label class="form-label small fw-bold">Date Range</label>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1">
+                            <input type="date" class="form-control form-control-sm" id="filterDateFrom">
                             <span class="text-muted small">to</span>
-                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
+                            <input type="date" class="form-control form-control-sm" id="filterDateTo">
                         </div>
                         <div class="d-flex flex-wrap gap-1 mt-2">
                             <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
@@ -428,7 +428,7 @@ table .cursor-pointer:hover {
                             <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="lastmonth">Last Month</button>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4 col-lg-3">
+                    <div class="col-6 col-lg-3">
                         <label class="form-label small fw-bold">Sub Account</label>
                         <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
@@ -446,7 +446,7 @@ table .cursor-pointer:hover {
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4 col-lg-3">
+                    <div class="col-6 col-lg-3">
                         <label class="form-label small fw-bold">User</label>
                         <div class="dropdown multiselect-dropdown" data-filter="users">
                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
@@ -467,7 +467,7 @@ table .cursor-pointer:hover {
                     </div>
                 </div>
                 
-                <!-- Row 2: Origin + Group Name + SenderID -->
+                <!-- Row 2: Origin + Group Name + SenderID + Action Buttons -->
                 <div class="row g-3 align-items-end mt-2">
                     <div class="col-6 col-md-4 col-lg-2">
                         <label class="form-label small fw-bold">Origin</label>
