@@ -4,6 +4,46 @@
 
 @push('styles')
 <style>
+.message-log-container {
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.message-log-container .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+}
+.message-log-container .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0;
+}
+.message-log-fixed-header {
+    flex-shrink: 0;
+}
+.message-log-table-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+#tableContainer {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    min-height: 0;
+}
+.message-log-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+}
 #messageLogTable tbody tr {
     cursor: pointer;
 }
@@ -176,8 +216,8 @@
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row page-titles">
+<div class="container-fluid message-log-container">
+    <div class="row page-titles mb-2" style="flex-shrink: 0;">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ route('reporting') }}">Reporting</a></li>
@@ -185,10 +225,10 @@
         </ol>
     </div>
     
-    <div class="row">
-        <div class="col-12">
+    <div class="row flex-grow-1" style="min-height: 0;">
+        <div class="col-12 d-flex flex-column" style="min-height: 0;">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap message-log-fixed-header">
                     <h5 class="card-title mb-2 mb-md-0">Message Log</h5>
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
@@ -197,14 +237,15 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="messageSearch" placeholder="Search by recipient, sender, message content...">
+                    <div class="message-log-fixed-header">
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="messageSearch" placeholder="Search by recipient, sender, message content...">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="collapse mb-3" id="filtersPanel">
+                        <div class="collapse mb-3" id="filtersPanel">
                         <div class="card card-body bg-light border">
                             <div class="row g-3">
                                 <div class="col-md-6 col-lg-4">
@@ -430,19 +471,18 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="mb-3" id="activeFiltersContainer" style="display: none;">
-                        <div class="d-flex flex-wrap align-items-center">
-                            <span class="small text-muted me-2">Active filters:</span>
-                            <div id="activeFiltersChips"></div>
-                            <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
-                                Clear all
-                            </button>
+                        <div class="mb-3" id="activeFiltersContainer" style="display: none;">
+                            <div class="d-flex flex-wrap align-items-center">
+                                <span class="small text-muted me-2">Active filters:</span>
+                                <div id="activeFiltersChips"></div>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                                    Clear all
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mb-3" id="summaryBar" style="display: none;">
+                        <div class="mb-3" id="summaryBar" style="display: none;">
                         <div class="row g-3">
                             <div class="col-6 col-md-3">
                                 <div class="card">
@@ -478,19 +518,21 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="text-muted small" id="rowCountInfo">
-                            <span id="renderedCount">0</span> rows loaded (max 10,000)
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="text-muted small" id="rowCountInfo">
+                                <span id="renderedCount">0</span> rows loaded (max 10,000)
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#columnSettingsModal">
+                                <i class="fas fa-cog me-1"></i> Column Settings
+                            </button>
                         </div>
-                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#columnSettingsModal">
-                            <i class="fas fa-cog me-1"></i> Column Settings
-                        </button>
                     </div>
                     
-                    <div class="table-responsive" id="tableContainer" style="max-height: 500px; overflow-y: auto;">
+                    <div class="message-log-table-wrapper">
+                        <div class="table-responsive" id="tableContainer">
                         <table class="table table-hover mb-0" id="messageLogTable">
                             <thead class="sticky-top bg-white" style="z-index: 10;">
                                 <tr id="tableHeaderRow">
@@ -792,22 +834,23 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div id="noResultsState" class="text-center py-5 text-muted d-none">
-                            <i class="fas fa-search fa-3x mb-3 d-block opacity-25"></i>
-                            <p class="mb-2">No messages match your filters.</p>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnClearFiltersEmpty">
-                                <i class="fas fa-times me-1"></i> Clear filters
-                            </button>
-                        </div>
-                        <div id="loadingMore" class="text-center py-3 d-none">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                            <div id="noResultsState" class="text-center py-5 text-muted d-none">
+                                <i class="fas fa-search fa-3x mb-3 d-block opacity-25"></i>
+                                <p class="mb-2">No messages match your filters.</p>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnClearFiltersEmpty">
+                                    <i class="fas fa-times me-1"></i> Clear filters
+                                </button>
                             </div>
-                            <span class="ms-2 text-muted small">Loading more messages...</span>
+                            <div id="loadingMore" class="text-center py-3 d-none">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span class="ms-2 text-muted small">Loading more messages...</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="card card-body bg-light border mt-3" id="exportBar">
+                    <div class="card card-body bg-light border mt-2 message-log-footer" id="exportBar">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div class="text-muted small">
                                 <i class="fas fa-info-circle me-1"></i>
