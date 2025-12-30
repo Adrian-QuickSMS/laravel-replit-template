@@ -330,12 +330,9 @@
                                         <option value="">All Statuses</option>
                                         <option value="Delivered">Delivered</option>
                                         <option value="Pending">Pending</option>
-                                        <option value="Undeliverable">Undeliverable</option>
-                                        <option value="Rejected">Rejected</option>
                                         <option value="Expired">Expired</option>
-                                        <option value="Failed">Failed</option>
-                                        <option value="Blocked">Blocked</option>
-                                        <option value="Blacklisted">Blacklisted</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Undeliverable">Undeliverable</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
@@ -356,8 +353,7 @@
                                         <option value="">All Types</option>
                                         <option value="SMS">SMS</option>
                                         <option value="RCS Basic">RCS Basic</option>
-                                        <option value="RCS Single">RCS Single</option>
-                                        <option value="RCS Carousel">RCS Carousel</option>
+                                        <option value="RCS Rich">RCS Rich</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
