@@ -465,10 +465,10 @@ table .cursor-pointer:hover {
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="small text-muted"><i class="fas fa-grip-vertical me-1"></i> Drag tiles to reposition</span>
+                    <span class="small text-muted" data-requires-admin><i class="fas fa-grip-vertical me-1"></i> Drag tiles to reposition</span>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary btn-sm" id="btnResetLayout">
+                    <button class="btn btn-outline-secondary btn-sm" id="btnResetLayout" data-requires-admin>
                         <i class="fas fa-undo me-1"></i> Reset Layout
                     </button>
                 </div>
@@ -499,8 +499,8 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 2. Spend KPI -->
-        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small" data-api="kpis">
+        <!-- 2. Spend KPI (requires cost permission) -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-spend" data-size="small" data-api="kpis" data-requires-cost>
             <div class="widget-stat card" id="kpiSpend">
                 <div class="card-body p-4">
                     <div class="media ai-icon">
@@ -768,7 +768,7 @@ table .cursor-pointer:hover {
                                 Invoices
                             </a>
                         </div>
-                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3" data-requires-export>
                             <a href="{{ route('reporting.download-area') }}" class="btn btn-outline-primary w-100 py-3">
                                 <i class="fas fa-download fa-2x mb-2 d-block"></i>
                                 Download Area
@@ -926,6 +926,70 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ========================================
+    // Role-Based Access Control (Placeholder)
+    // ========================================
+    // TODO: Replace with backend user role from session/API
+    const USER_ROLES = {
+        VIEWER: 'viewer',
+        ANALYST: 'analyst',
+        ADMIN: 'admin'
+    };
+    
+    // Placeholder: Set current user role (will come from backend)
+    const currentUserRole = USER_ROLES.ADMIN; // Change to test different roles
+    
+    const ROLE_PERMISSIONS = {
+        [USER_ROLES.VIEWER]: {
+            canSeeCost: false,
+            canExport: false,
+            canManageLayout: false,
+            canDrillToExports: false
+        },
+        [USER_ROLES.ANALYST]: {
+            canSeeCost: true,
+            canExport: true,
+            canManageLayout: false,
+            canDrillToExports: true
+        },
+        [USER_ROLES.ADMIN]: {
+            canSeeCost: true,
+            canExport: true,
+            canManageLayout: true,
+            canDrillToExports: true
+        }
+    };
+    
+    function hasPermission(permission) {
+        return ROLE_PERMISSIONS[currentUserRole]?.[permission] ?? false;
+    }
+    
+    // Apply role-based visibility on page load
+    function applyRoleBasedVisibility() {
+        // Hide cost-related elements for viewers
+        if (!hasPermission('canSeeCost')) {
+            document.querySelectorAll('[data-requires-cost]').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+        
+        // Hide export buttons for viewers
+        if (!hasPermission('canExport')) {
+            document.querySelectorAll('[data-requires-export]').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+        
+        // Hide layout management for non-admins
+        if (!hasPermission('canManageLayout')) {
+            document.querySelectorAll('[data-requires-admin]').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+        
+        console.log(`[Dashboard] Role: ${currentUserRole}, Permissions:`, ROLE_PERMISSIONS[currentUserRole]);
+    }
+    
+    // ========================================
     // Dashboard API Service
     // ========================================
     const API_BASE = '/api/reporting/dashboard';
@@ -1004,16 +1068,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 </small>
             `;
             
-            // Spend with estimated label and VAT note
-            const estimatedLabel = data.spend.isEstimated ? '<span class="badge badge-warning light ms-1">Estimated</span>' : '';
-            const spendTooltip = data.spend.isEstimated 
-                ? 'Some messages are still processing. Final cost may vary.'
-                : 'Final billing complete for this period.';
-            document.getElementById('kpiSpendContent').innerHTML = `
-                <p class="mb-1">Total Spend ${estimatedLabel}</p>
-                <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
-                <small class="text-muted">${formatNumber(data.spend.creditsUsed)} credits <span class="text-muted">(${data.spend.vatNote})</span></small>
-            `;
+            // Spend with estimated label and VAT note (role-based)
+            if (hasPermission('canSeeCost')) {
+                const estimatedLabel = data.spend.isEstimated ? '<span class="badge badge-warning light ms-1">Estimated</span>' : '';
+                const spendTooltip = data.spend.isEstimated 
+                    ? 'Some messages are still processing. Final cost may vary.'
+                    : 'Final billing complete for this period.';
+                document.getElementById('kpiSpendContent').innerHTML = `
+                    <p class="mb-1">Total Spend ${estimatedLabel}</p>
+                    <h4 class="mb-0" title="${spendTooltip}">£${formatNumber(data.spend.amount.toFixed(2))}</h4>
+                    <small class="text-muted">${formatNumber(data.spend.creditsUsed)} credits <span class="text-muted">(${data.spend.vatNote})</span></small>
+                `;
+            } else {
+                // Viewers see credits only, not cost
+                document.getElementById('kpiSpendContent').innerHTML = `
+                    <p class="mb-1">Credits Used</p>
+                    <h4 class="mb-0">${formatNumber(data.spend.creditsUsed)}</h4>
+                    <small class="text-muted">Cost hidden (Viewer role)</small>
+                `;
+            }
             
             // RCS Seen Rate (conditional) - only show if read receipts available
             const rcsTile = document.querySelector('[data-conditional="rcs"]');
@@ -1334,6 +1407,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize dashboard data load
     if (typeof ApexCharts !== 'undefined') {
+        // Apply role-based visibility first
+        applyRoleBasedVisibility();
+        
+        // Disable drag for non-admins
+        if (!hasPermission('canManageLayout') && typeof sortable !== 'undefined' && sortable) {
+            sortable.option('disabled', true);
+        }
+        
         loadDashboardData().then(() => {
             setTimeout(initTooltips, 500); // Initialize tooltips after content renders
         });
