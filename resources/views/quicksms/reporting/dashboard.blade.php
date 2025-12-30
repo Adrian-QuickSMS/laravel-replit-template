@@ -754,11 +754,14 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 8. Top 10 Countries (Vertical Bar Chart) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-top-countries" data-size="medium" data-api="top-countries">
+        <!-- 8. Top 10 Countries (Horizontal Bar Chart) -->
+        <div class="qs-tile tile-large" data-tile-id="chart-top-countries" data-size="large" data-api="top-countries">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Top 10 Countries</h4>
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Top 10 Countries</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#topCountriesModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="topCountriesBarChart" class="chart-placeholder">
@@ -891,6 +894,23 @@ table .cursor-pointer:hover {
                     <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:80px;height:14px"></div><div class="qs-skeleton" style="width:50px;height:14px"></div></div>
                     <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:100px;height:14px"></div><div class="qs-skeleton" style="width:40px;height:14px"></div></div>
                     <div class="d-flex justify-content-between py-2 border-bottom"><div class="qs-skeleton" style="width:70px;height:14px"></div><div class="qs-skeleton" style="width:55px;height:14px"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Countries Modal -->
+<div class="modal fade" id="topCountriesModal" tabindex="-1" aria-labelledby="topCountriesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="topCountriesModalLabel">Top 10 Countries</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="topCountriesModalChart" style="min-height: 400px;">
+                    <div class="qs-skeleton qs-skeleton-chart w-100" style="height: 400px;"></div>
                 </div>
             </div>
         </div>
@@ -1575,43 +1595,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // 8. Top Countries Chart
+    // 8. Top Countries Chart (Horizontal with full country names)
+    let topCountriesData = null;
     async function loadTopCountries() {
         try {
             const response = await fetch(`${API_BASE}/top-countries`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
+            topCountriesData = data;
             
-            const chartEl = document.getElementById('topCountriesBarChart');
-            chartEl.innerHTML = '';
+            // Render chart in tile
+            renderTopCountriesChart('topCountriesBarChart', data, 280);
             
-            const options = {
-                series: [{ name: 'Messages', data: data.values }],
-                chart: { 
-                    type: 'bar', 
-                    height: 250, 
-                    toolbar: { show: false },
-                    events: {
-                        dataPointSelection: function(event, chartContext, config) {
-                            const countryCode = data.categories[config.dataPointIndex];
-                            navigateWithFilters(ROUTES.messageLog, { country: countryCode });
-                        }
-                    }
-                },
-                colors: ['var(--primary)'],
-                plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '60%' } },
-                dataLabels: { enabled: false },
-                xaxis: { categories: data.categories, labels: { style: { fontSize: '10px' } } },
-                yaxis: { title: { text: 'Messages' } },
-                states: { hover: { filter: { type: 'darken', value: 0.9 } } }
-            };
-            
-            chartInstances.topCountries = new ApexCharts(chartEl, options);
-            chartInstances.topCountries.render();
             console.log('[Dashboard] Top countries loaded (click bars to drill-through)');
         } catch (error) {
             console.error('[Dashboard] Top countries error:', error);
             showError('topCountriesBarChart', 'Failed to load');
+        }
+    }
+    
+    function renderTopCountriesChart(containerId, data, height) {
+        const chartEl = document.getElementById(containerId);
+        if (!chartEl) return;
+        chartEl.innerHTML = '';
+        
+        // Use full country names from the countries array
+        const countryNames = data.countries.map(c => c.name);
+        const countryValues = data.countries.map(c => c.count);
+        const countryCodes = data.countries.map(c => c.code);
+        
+        const options = {
+            series: [{ name: 'Messages', data: countryValues }],
+            chart: { 
+                type: 'bar', 
+                height: height, 
+                toolbar: { show: false },
+                events: {
+                    dataPointSelection: function(event, chartContext, config) {
+                        const countryCode = countryCodes[config.dataPointIndex];
+                        navigateWithFilters(ROUTES.messageLog, { country: countryCode });
+                    }
+                }
+            },
+            colors: ['var(--primary)'],
+            plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '70%' } },
+            dataLabels: { enabled: false },
+            xaxis: { title: { text: 'Messages' } },
+            yaxis: { 
+                categories: countryNames,
+                labels: { style: { fontSize: '12px' } }
+            },
+            states: { hover: { filter: { type: 'darken', value: 0.9 } } }
+        };
+        
+        const chart = new ApexCharts(chartEl, options);
+        chart.render();
+        
+        if (containerId === 'topCountriesBarChart') {
+            chartInstances.topCountries = chart;
         }
     }
     
@@ -1755,6 +1796,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 html: true,
                 trigger: 'hover focus'
             });
+        });
+    }
+    
+    // Top Countries Modal - render chart when modal opens
+    const topCountriesModalEl = document.getElementById('topCountriesModal');
+    if (topCountriesModalEl) {
+        topCountriesModalEl.addEventListener('shown.bs.modal', function() {
+            if (topCountriesData) {
+                renderTopCountriesChart('topCountriesModalChart', topCountriesData, 400);
+            }
         });
     }
     
