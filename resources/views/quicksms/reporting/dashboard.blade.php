@@ -724,33 +724,15 @@ table .cursor-pointer:hover {
         
         <!-- ========== ROW 3: Charts (medium/large) ========== -->
         
-        <!-- 5. Volume Over Time (Line Chart) -->
+        <!-- 5. Messages Sent Chart (Line Chart with 3 series: Total, SMS, RCS) -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge" data-api="volume">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
-                    <h4 class="card-title mb-0">Volume Over Time</h4>
+                    <h4 class="card-title mb-0">Messages Sent</h4>
                 </div>
                 <div class="card-body">
                     <div id="volumeLineChart" class="chart-placeholder">
                         <div class="qs-skeleton qs-skeleton-chart w-100"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 6. Channel Split SMS vs RCS (Horizontal Stacked Bar) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-channel-split" data-size="medium" data-api="channel-split">
-            <div class="card h-100">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Channel Split</h4>
-                </div>
-                <div class="card-body">
-                    <div id="channelSplitChart" class="chart-placeholder">
-                        <div class="qs-skeleton" style="height:80px;width:100%"></div>
-                    </div>
-                    <div id="channelSplitLegend" class="d-flex justify-content-around mt-3 small">
-                        <span><i class="fa fa-circle text-secondary me-1"></i> SMS: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></span>
-                        <span><i class="fa fa-circle text-info me-1"></i> RCS: <span class="qs-skeleton" style="display:inline-block;width:40px;height:12px"></span></span>
                     </div>
                 </div>
             </div>
@@ -914,7 +896,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Default tile order
     const defaultOrder = [
         'kpi-delivery-rate', 'kpi-spend', 'kpi-rcs-seen', 'kpi-optout',
-        'chart-volume', 'chart-channel-split',
+        'chart-volume',
         'chart-delivery-status', 'chart-top-countries', 'table-top-senderids',
         'tile-peak-time', 'table-failure-reasons'
     ];
@@ -1003,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset sizes to default
         const defaultSizes = {
             'kpi-delivery-rate': 'small', 'kpi-spend': 'small', 'kpi-rcs-seen': 'small', 'kpi-optout': 'small',
-            'chart-volume': 'xlarge', 'chart-channel-split': 'medium',
+            'chart-volume': 'xlarge',
             'chart-delivery-status': 'medium', 'chart-top-countries': 'medium', 'table-top-senderids': 'medium',
             'tile-peak-time': 'large', 'table-failure-reasons': 'large'
         };
@@ -1173,18 +1155,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const queryString = this.buildQueryParams(filters);
             // TODO: Replace with: return fetch(`/api/v1/reporting/status?${queryString}`).then(r => r.json());
             return fetch(`${API_BASE}/delivery-status?${queryString}`).then(r => r.json());
-        },
-        
-        /**
-         * GET /reporting/channel - Channel split (SMS vs RCS)
-         * TODO: Wire to warehouse endpoint: GET /api/v1/reporting/channel
-         * @param {Object} filters - { dateRange, subAccount, user, origin, groupName, senderID }
-         * @returns {Promise<Object>} - { sms, rcs, total }
-         */
-        async getChannelSplit(filters = {}) {
-            const queryString = this.buildQueryParams(filters);
-            // TODO: Replace with: return fetch(`/api/v1/reporting/channel?${queryString}`).then(r => r.json());
-            return fetch(`${API_BASE}/channel-split?${queryString}`).then(r => r.json());
         },
         
         /**
@@ -1367,7 +1337,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return Promise.all([
             loadKpis(),
             loadVolumeChart(),
-            loadChannelSplit(),
             loadDeliveryStatus(),
             loadTopCountries(),
             loadTopSenderIds(),
@@ -1512,7 +1481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 },
-                colors: ['#a8e6cf', '#7cb5ec'],
+                colors: ['#8B5CF6', '#a8e6cf', '#7cb5ec'],
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
                 legend: { position: 'top', horizontalAlign: 'right' },
@@ -1528,42 +1497,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('[Dashboard] Volume chart error:', error);
             showError('volumeLineChart', 'Failed to load chart');
-        }
-    }
-    
-    // 6. Channel Split Chart
-    async function loadChannelSplit() {
-        try {
-            const response = await fetch(`${API_BASE}/channel-split`);
-            if (!response.ok) throw new Error('API error');
-            const data = await response.json();
-            
-            const chartEl = document.getElementById('channelSplitChart');
-            chartEl.innerHTML = '';
-            
-            const options = {
-                series: [{ name: 'SMS', data: [data.sms.count] }, { name: 'RCS', data: [data.rcs.count] }],
-                chart: { type: 'bar', height: 120, stacked: true, stackType: '100%', toolbar: { show: false } },
-                colors: ['#6c757d', '#17a2b8'],
-                plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
-                dataLabels: { enabled: true, formatter: val => val.toFixed(0) + '%' },
-                xaxis: { categories: ['Messages'], labels: { show: false } },
-                yaxis: { labels: { show: false } },
-                legend: { show: false },
-                grid: { show: false }
-            };
-            
-            chartInstances.channelSplit = new ApexCharts(chartEl, options);
-            chartInstances.channelSplit.render();
-            
-            document.getElementById('channelSplitLegend').innerHTML = `
-                <span><i class="fa fa-circle text-secondary me-1"></i> SMS: ${formatNumber(data.sms.count)}</span>
-                <span><i class="fa fa-circle text-info me-1"></i> RCS: ${formatNumber(data.rcs.count)}</span>
-            `;
-            console.log('[Dashboard] Channel split loaded');
-        } catch (error) {
-            console.error('[Dashboard] Channel split error:', error);
-            showError('channelSplitChart', 'Failed to load');
         }
     }
     

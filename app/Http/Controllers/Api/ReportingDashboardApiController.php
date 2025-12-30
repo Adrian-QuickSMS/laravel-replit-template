@@ -133,25 +133,30 @@ class ReportingDashboardApiController extends Controller
         $dates = [];
         $smsData = [];
         $rcsData = [];
+        $totalData = [];
         
         // Generate last 7 days of data
         for ($i = 6; $i >= 0; $i--) {
             $date = date('d M', strtotime("-{$i} days"));
             $dates[] = $date;
-            $smsData[] = rand(800, 2500);
-            $rcsData[] = rand(200, 1200);
+            $sms = rand(800, 2500);
+            $rcs = rand(200, 1200);
+            $smsData[] = $sms;
+            $rcsData[] = $rcs;
+            $totalData[] = $sms + $rcs;
         }
         
         return [
             'categories' => $dates,
             'series' => [
+                ['name' => 'Total', 'data' => $totalData],
                 ['name' => 'SMS', 'data' => $smsData],
                 ['name' => 'RCS', 'data' => $rcsData],
             ],
             'totals' => [
                 'sms' => array_sum($smsData),
                 'rcs' => array_sum($rcsData),
-                'total' => array_sum($smsData) + array_sum($rcsData),
+                'total' => array_sum($totalData),
             ],
         ];
     }
