@@ -641,6 +641,82 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
+        <!-- ========== ROW 1B: Secondary KPIs ========== -->
+        
+        <!-- 5. Messages Sent -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-messages-sent" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiMessagesSent">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-success text-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </span>
+                        <div class="media-body" id="kpiMessagesSentContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:90px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:60px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 6. RCS Penetration -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-rcs-penetration" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiRcsPenetration">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-info text-info">
+                            <i class="fas fa-chart-pie"></i>
+                        </span>
+                        <div class="media-body" id="kpiRcsPenetrationContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:100px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:55px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 7. Inbound Received -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-inbound" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiInbound">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-warning text-warning">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                        </span>
+                        <div class="media-body" id="kpiInboundContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:110px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 8. Undelivered Messages -->
+        <div class="qs-tile tile-small" data-tile-id="kpi-undelivered" data-size="small" data-api="kpis">
+            <div class="widget-stat card" id="kpiUndelivered">
+                <div class="card-body p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-danger text-danger">
+                            <i class="fas fa-times-circle"></i>
+                        </span>
+                        <div class="media-body" id="kpiUndeliveredContent">
+                            <div class="qs-skeleton qs-skeleton-text" style="width:120px"></div>
+                            <div class="qs-skeleton qs-skeleton-h4" style="width:50px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- ========== ROW 2: Charts (medium/large) ========== -->
         
         <!-- 5. Volume Over Time (Line Chart) -->
@@ -1360,6 +1436,45 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (optoutTile) {
                 optoutTile.style.display = 'none';
             }
+            
+            // Messages Sent - green theme with trend pill
+            const msgTrend = data.messagesSent.trend;
+            const msgTrendBadge = msgTrend !== 0 
+                ? `<span class="badge ${msgTrend >= 0 ? 'badge-info' : 'badge-pink'} ms-2" style="font-size: 11px; font-weight: 500;">${msgTrend >= 0 ? '+' : ''}${msgTrend}%</span>` 
+                : '';
+            document.getElementById('kpiMessagesSentContent').innerHTML = `
+                <p class="mb-1">MESSAGES SENT</p>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.messagesSent.count)}${msgTrendBadge}</h4>
+            `;
+            
+            // RCS Penetration - blue theme with trend pill
+            const rcsPenTrend = data.rcsPenetration.trend;
+            const rcsPenTrendBadge = rcsPenTrend !== 0 
+                ? `<span class="badge ${rcsPenTrend >= 0 ? 'badge-info' : 'badge-pink'} ms-2" style="font-size: 11px; font-weight: 500;">${rcsPenTrend >= 0 ? '+' : ''}${rcsPenTrend}%</span>` 
+                : '';
+            document.getElementById('kpiRcsPenetrationContent').innerHTML = `
+                <p class="mb-1">RCS PENETRATION</p>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.rcsPenetration.percentage}%${rcsPenTrendBadge}</h4>
+            `;
+            
+            // Inbound Received - orange/warning theme with unread count pill
+            const unreadBadge = data.inboundReceived.unreadCount > 0 
+                ? `<span class="badge badge-warning ms-2" style="font-size: 11px; font-weight: 500;">${data.inboundReceived.unreadCount} Unread</span>` 
+                : '';
+            document.getElementById('kpiInboundContent').innerHTML = `
+                <p class="mb-1">INBOUND RECEIVED</p>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.inboundReceived.count)}${unreadBadge}</h4>
+            `;
+            
+            // Undelivered Messages - red theme with trend pill
+            const undelTrend = data.undeliveredMessages.trend;
+            const undelTrendBadge = undelTrend !== 0 
+                ? `<span class="badge ${undelTrend <= 0 ? 'badge-info' : 'badge-pink'} ms-2" style="font-size: 11px; font-weight: 500;">${undelTrend >= 0 ? '+' : ''}${undelTrend}%</span>` 
+                : '';
+            document.getElementById('kpiUndeliveredContent').innerHTML = `
+                <p class="mb-1">UNDELIVERED MESSAGES</p>
+                <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.undeliveredMessages.count)}${undelTrendBadge}</h4>
+            `;
             
             console.log('[Dashboard] KPIs loaded');
         } catch (error) {
