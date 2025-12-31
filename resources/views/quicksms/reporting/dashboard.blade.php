@@ -1679,46 +1679,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
     
-    // 10. Peak Sending Time
+    // 10. Peak Sending Time (Outbound + Inbound)
     async function loadPeakTime() {
         try {
             const response = await fetch(`${API_BASE}/peak-time${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
-            const [hour, ampm] = data.peakHour.split(':');
-            const hourNum = parseInt(hour);
-            const ampmLabel = hourNum >= 12 ? 'PM' : 'AM';
-            const displayHour = hourNum > 12 ? hourNum - 12 : hourNum;
-            
             // Use the formatted peak hour display from API
-            const peakHourDisplay = data.peakHourDisplay || `${data.peakHour}–${data.peakHour.replace(':00', ':59')}`;
+            const outboundPeakDisplay = data.peakHourDisplay || `${data.peakHour}–${data.peakHour.replace(':00', ':59')}`;
+            const inboundPeakDisplay = data.inboundPeakHourDisplay || '09:00-09:59';
+            const inboundPeakDay = data.inboundPeakDay || 'Tuesday';
             
             document.getElementById('peakTimeContent').innerHTML = `
+                <!-- Outbound Peak (when most messages are sent) -->
                 <div class="d-flex align-items-center mb-3">
                     <div class="me-3">
-                        <span class="badge badge-primary light p-2 fs-6">Peak hour: ${peakHourDisplay}</span>
+                        <span class="badge badge-primary light px-3 py-2 fs-6">${outboundPeakDisplay}</span>
                     </div>
                     <div>
                         <p class="mb-0 text-muted small">Most messages sent on</p>
                         <strong>${data.peakDay}s</strong>
                     </div>
                 </div>
+                <!-- Inbound Peak (when most customers reply) -->
                 <div class="border-top pt-3">
-                    <div class="d-flex justify-content-between small text-muted mb-1">
-                        <span>Peak Hour Volume</span>
-                        <strong class="text-dark">${formatNumber(data.peakVolumeCount)} messages</strong>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>Best Delivery Rate</span>
-                        <strong class="text-success">${data.bestDeliveryRate}%</strong>
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <span class="badge badge-success light px-3 py-2 fs-6">${inboundPeakDisplay}</span>
+                        </div>
+                        <div>
+                            <p class="mb-0 text-muted small">Most replies received on</p>
+                            <strong>${inboundPeakDay}s</strong>
+                        </div>
                     </div>
                 </div>
-                <a href="${ROUTES.sendMessage}?schedule_time=${data.peakHour}&schedule_day=${data.peakDay}" class="btn btn-outline-primary btn-sm w-100 mt-3">
-                    <i class="fas fa-clock me-1"></i>Schedule at Peak Time
-                </a>
             `;
-            console.log('[Dashboard] Peak time loaded (click button to schedule)');
+            console.log('[Dashboard] Peak time loaded');
         } catch (error) {
             console.error('[Dashboard] Peak time error:', error);
             showError('peakTimeContent', 'Failed to load insight');
