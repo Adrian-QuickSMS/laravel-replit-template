@@ -224,6 +224,36 @@
 .predictive-suggestion:hover {
     background: #f8f9fa;
 }
+.table-style-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.table-style-toggle .form-check-input {
+    width: 2.5rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+.table-style-toggle .toggle-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+.table-style-toggle .toggle-label.active {
+    color: #6f42c1;
+    font-weight: 500;
+}
+#messageLogTable.clean-style tbody tr {
+    background-color: transparent !important;
+}
+#messageLogTable.clean-style tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.05) !important;
+}
+#messageLogTable.clean-style tbody tr.table-success,
+#messageLogTable.clean-style tbody tr.table-primary,
+#messageLogTable.clean-style tbody tr.table-danger {
+    background-color: transparent !important;
+}
 </style>
 @endpush
 
@@ -242,7 +272,14 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap message-log-fixed-header">
                     <h5 class="card-title mb-2 mb-md-0">Message Log</h5>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 gap-md-3">
+                        <div class="table-style-toggle">
+                            <span class="toggle-label" id="labelColoredRows">Coloured Rows</span>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="tableStyleToggle">
+                            </div>
+                            <span class="toggle-label" id="labelStatusBadges">Status Badges</span>
+                        </div>
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                         </button>
@@ -1317,6 +1354,49 @@ document.addEventListener('DOMContentLoaded', function() {
         return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
     
+    // Table style preference
+    var useCleanStyle = localStorage.getItem('messageLogTableStyle') === 'clean';
+    var tableStyleToggle = document.getElementById('tableStyleToggle');
+    var messageLogTable = document.getElementById('messageLogTable');
+    var labelColoredRows = document.getElementById('labelColoredRows');
+    var labelStatusBadges = document.getElementById('labelStatusBadges');
+    
+    function updateToggleLabels() {
+        if (useCleanStyle) {
+            labelColoredRows.classList.remove('active');
+            labelStatusBadges.classList.add('active');
+            messageLogTable.classList.add('clean-style');
+        } else {
+            labelColoredRows.classList.add('active');
+            labelStatusBadges.classList.remove('active');
+            messageLogTable.classList.remove('clean-style');
+        }
+    }
+    
+    // Initialize toggle state
+    tableStyleToggle.checked = useCleanStyle;
+    updateToggleLabels();
+    
+    tableStyleToggle.addEventListener('change', function() {
+        useCleanStyle = this.checked;
+        localStorage.setItem('messageLogTableStyle', useCleanStyle ? 'clean' : 'colored');
+        updateToggleLabels();
+        loadMessages(true);
+    });
+    
+    // Get status badge HTML
+    function getStatusBadge(statusText) {
+        let badgeClass = 'badge-success';
+        if (statusText === 'Delivered') {
+            badgeClass = 'badge-success';
+        } else if (statusText === 'Pending') {
+            badgeClass = 'badge-primary';
+        } else if (['Undeliverable', 'Rejected', 'Expired', 'Failed', 'Blocked', 'Blacklisted'].includes(statusText)) {
+            badgeClass = 'badge-danger';
+        }
+        return `<span class="badge light ${badgeClass}">${statusText}</span>`;
+    }
+    
     // Create table row from message data
     function createRow(msg) {
         const statusText = msg.status.text;
@@ -1327,18 +1407,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Determine row class based on status (Fillow contextual table classes)
         let rowClass = '';
-        if (statusText === 'Delivered') {
-            rowClass = 'table-success';
-        } else if (statusText === 'Pending') {
-            rowClass = 'table-primary';
-        } else if (['Undeliverable', 'Rejected', 'Expired', 'Failed', 'Blocked', 'Blacklisted'].includes(statusText)) {
-            rowClass = 'table-danger';
+        if (!useCleanStyle) {
+            if (statusText === 'Delivered') {
+                rowClass = 'table-success';
+            } else if (statusText === 'Pending') {
+                rowClass = 'table-primary';
+            } else if (['Undeliverable', 'Rejected', 'Expired', 'Failed', 'Blocked', 'Blacklisted'].includes(statusText)) {
+                rowClass = 'table-danger';
+            }
         }
+        
+        // Status display: text for colored rows, badge for clean style
+        const statusDisplay = useCleanStyle ? getStatusBadge(statusText) : statusText;
         
         return `<tr class="${rowClass}">
             <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber"><span class="mobile-masked">${msg.mobileNumber}</span></td>
             <td class="py-2 ${columnConfig.visible.includes('senderId') ? '' : 'd-none'}" data-column="senderId">${msg.senderId}</td>
-            <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status">${statusText}</td>
+            <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status">${statusDisplay}</td>
             <td class="py-2 ${columnConfig.visible.includes('sentTime') ? '' : 'd-none'}" data-column="sentTime">${formatDateTime(msg.sentTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('deliveryTime') ? '' : 'd-none'}" data-column="deliveryTime">${formatDateTime(msg.deliveryTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('completedTime') ? '' : 'd-none'}" data-column="completedTime">${formatDateTime(msg.completedTime)}</td>
