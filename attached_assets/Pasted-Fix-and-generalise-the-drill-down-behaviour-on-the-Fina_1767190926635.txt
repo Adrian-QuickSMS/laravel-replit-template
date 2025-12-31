@@ -1,0 +1,140 @@
+Fix and generalise the drill-down behaviour on the Finance Data page.
+
+A) All months must be drillable (ignore billing status)
+
+- Every Billing Month row in the primary table must be drillable, regardless of Billing Status.
+- Do NOT block drill-down for Provisional, Finalised, or Adjusted months.
+- If any condition disables drill based on billingStatus, remove it.
+- Drill availability must be controlled ONLY by user interaction (not status).
+
+B) Drill order must be chosen by the user (NOT hard-coded)
+
+Current issue:
+- Drill is effectively hard-coded to “Month → Day → Sub Account → Country”.
+
+Required behaviour:
+- The user can choose the drill order dynamically.
+
+Implementation model:
+
+1. Base level
+   - Level 0 row granularity = Billing Month (top-level table).
+
+2. Drill dimension selector
+   - Provide a control (e.g. dropdown or buttons) labelled “Drill by…”.
+   - Available dimensions:
+     * Day
+     * Sub Account
+     * Country
+     * Sender ID
+     * Product Type
+     * Group Name
+
+3. First drill:
+   - User selects a drill dimension (e.g. Day, or Sub Account, or Country, etc.).
+   - When the user clicks a Billing Month row:
+     * Drill into that month using the selected dimension as the next row granularity.
+     * Example: if “Day” is chosen → Month → Day.
+       If “Sub Account” is chosen → Month → Sub Account.
+
+4. Further drills:
+   - After drilling once, the user can choose an additional drill dimension from the remaining options.
+   - Drill path must support any order, for example:
+     * Month → Day → Sub Account
+     * Month → Sub Account → Country
+     * Month → Sender ID → Country
+   - When a new dimension is chosen and a row at the current level is clicked, add that dimension to the drill path.
+
+C) Layout examples (for how the table should render)
+
+Example 1 – User path: Month → Day
+- User selects “Day” as drill dimension, then clicks “September 2025”.
+
+Table should show:
+- Top summary row:
+  “September 2025 (Totals for all columns)”
+- Then one row per day:
+  01/09/2025
+  02/09/2025
+  03/09/2025
+  ...
+  30/09/2025
+
+Columns stay the same at each row:
+- Billable Parts
+- Non-Billable Parts
+- Total Parts
+- Total Cost (ex VAT)
+- Billing Status
+
+Example 2 – User path: Month → Day → Sub Account
+- After drilling to Day level, user chooses “Sub Account” as next drill dimension.
+- When they drill again:
+
+Table structure:
+September 2025 (Totals)
+
+01/09/2025 (Day total)
+    Sub Account 1
+    Sub Account 2
+02/09/2025 (Day total)
+    Sub Account 1
+    Sub Account 3
+...
+
+Each Sub Account row has the same columns:
+- Billable Parts
+- Non-Billable Parts
+- Total Parts
+- Total Cost (ex VAT)
+- Billing Status (if applicable to that grouping)
+
+Example 3 – User path: Month → Day → Sub Account → Country
+- At Sub Account level, user selects “Country” as next drill dimension and drills again.
+
+Layout:
+September 2025 (Totals)
+
+01/09/2025
+  Sub Account 1
+      UK
+      Germany
+  Sub Account 2
+      UK
+      Germany
+
+02/09/2025
+  Sub Account 1
+      UK
+  Sub Account 3
+      UK
+      Ireland
+
+Again, columns remain:
+- Billable Parts
+- Non-Billable Parts
+- Total Parts
+- Total Cost (ex VAT)
+- Billing Status
+
+D) Breadcrumb & export behaviour
+
+Breadcrumb:
+- Must reflect the actual, dynamic drill path the user has chosen.
+- Example:
+  Finance Data → September 2025 → Day → Sub Account → Country
+
+- Clicking any breadcrumb level returns the table to that granularity (keeping filters).
+
+Export:
+- When exporting, ALWAYS export the current table view:
+  * Same drill path
+  * Same filters
+  * Same columns and order
+
+E) Constraints
+
+- Do NOT hard-code the drill order.
+- Do NOT remove drill capability for Finalised months.
+- Do NOT add charts or visualisations; Finance Data is table-only.
+- Reuse the existing table design and contextual styling (green/purple/red etc.).

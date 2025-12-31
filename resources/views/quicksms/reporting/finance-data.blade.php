@@ -479,26 +479,32 @@
                         </nav>
                     </div>
 
-                    <div class="mb-3" id="drillDimensionTabs" style="display: none;">
+                    <div class="mb-3" id="drillDimensionSelector">
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="text-muted small me-2">Drill by:</span>
-                            <div class="btn-group" role="group" aria-label="Drill dimension selector">
+                            <span class="text-muted small me-2"><i class="fas fa-layer-group me-1"></i>Drill by:</span>
+                            <div class="btn-group flex-wrap" role="group" aria-label="Drill dimension selector" id="dimensionButtons">
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="day">
                                     <i class="fas fa-calendar-day me-1"></i>Day
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sub_account">
+                                    <i class="fas fa-building me-1"></i>Sub Account
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="country">
                                     <i class="fas fa-globe me-1"></i>Country
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sender_id">
-                                    <i class="fas fa-id-card me-1"></i>Sender ID
+                                    <i class="fas fa-signature me-1"></i>Sender ID
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="product_type">
-                                    <i class="fas fa-cube me-1"></i>Product Type
+                                    <i class="fas fa-box me-1"></i>Product Type
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="group_name">
                                     <i class="fas fa-users me-1"></i>Group Name
                                 </button>
                             </div>
+                            <span class="text-muted small ms-2" id="drillInstruction" style="display: none;">
+                                <i class="fas fa-arrow-right me-1"></i>Click a row to drill down
+                            </span>
                         </div>
                     </div>
 
@@ -1551,12 +1557,29 @@ function resetFilters() {
 
 var drillState = {
     level: 0,
-    billingMonth: null,
-    dimension: null
+    path: [],
+    selectedDimension: null
 };
 
+var DRILL_DIMENSIONS = ['day', 'sub_account', 'country', 'sender_id', 'product_type', 'group_name'];
+
+function getAvailableDimensions() {
+    var usedDimensions = drillState.path.map(function(p) { return p.dimension; });
+    return DRILL_DIMENSIONS.filter(function(d) {
+        return usedDimensions.indexOf(d) === -1;
+    });
+}
+
+function getDrillPath() {
+    return drillState.path.map(function(p) {
+        return { dimension: p.dimension, value: p.value, label: p.label };
+    });
+}
+
 var dimensionLabels = {
+    'month': 'Billing Month',
     'day': 'Day',
+    'sub_account': 'Sub Account',
     'country': 'Country',
     'sender_id': 'Sender ID',
     'product_type': 'Product Type',
@@ -1599,6 +1622,13 @@ var mockDrillData = {
         { label: 'Promotions', billable: 18765, nonBillable: 367, total: 19132, cost: '£597.88', status: 'Finalised' },
         { label: 'Alerts', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
         { label: 'General', billable: 4321, nonBillable: 87, total: 4408, cost: '£137.75', status: 'Finalised' }
+    ],
+    sub_account: [
+        { label: 'Main Account', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
+        { label: 'Marketing', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
+        { label: 'Operations', billable: 15678, nonBillable: 312, total: 15990, cost: '£499.69', status: 'Finalised' },
+        { label: 'Sales', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
+        { label: 'Support', billable: 6543, nonBillable: 123, total: 6666, cost: '£208.31', status: 'Finalised' }
     ]
 };
 
@@ -1611,44 +1641,59 @@ function initDrillDownHandlers() {
         var row = e.target.closest('tr');
         if (!row) return;
         
-        if (row.classList.contains('row-locked') || row.getAttribute('data-immutable') === 'true') {
+        if (row.classList.contains('skeleton-row') || row.classList.contains('totals-row')) {
             return;
         }
         
-        if (drillState.level === 0) {
-            var monthCell = row.querySelector('td:first-child .fw-semibold');
-            if (monthCell) {
-                drillState.billingMonth = monthCell.textContent.trim();
-                drillState.level = 1;
-                showDimensionTabs();
-                updateBreadcrumbs();
+        if (!drillState.selectedDimension && drillState.level === 0) {
+            return;
+        }
+        
+        var labelCell = row.querySelector('td:first-child .drill-label, td:first-child .fw-semibold');
+        if (!labelCell) return;
+        
+        var label = labelCell.textContent.trim();
+        var value = row.getAttribute('data-value') || label;
+        
+        if (drillState.selectedDimension) {
+            var dimension = drillState.selectedDimension;
+            
+            if (drillState.level === 0) {
+                dimension = 'month';
             }
+            
+            drillState.path.push({
+                dimension: dimension,
+                value: value,
+                label: label
+            });
+            drillState.level = drillState.path.length;
+            drillState.selectedDimension = null;
+            
+            updateDimensionSelector();
+            updateBreadcrumbs();
+            renderDrilledTable();
         }
     });
     
-    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var dimension = this.getAttribute('data-dimension');
-            selectDimension(dimension);
-        });
+    initDimensionSelector();
+}
+
+function initDimensionSelector() {
+    var container = document.getElementById('drillDimensionSelector');
+    if (!container) return;
+    
+    container.addEventListener('click', function(e) {
+        var btn = e.target.closest('.drill-dimension-btn');
+        if (!btn) return;
+        
+        var dimension = btn.getAttribute('data-dimension');
+        selectDrillDimension(dimension);
     });
 }
 
-function showDimensionTabs() {
-    document.getElementById('drillDimensionTabs').style.display = 'block';
-    document.getElementById('drillBreadcrumbs').style.display = 'block';
-}
-
-function hideDimensionTabs() {
-    document.getElementById('drillDimensionTabs').style.display = 'none';
-    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-    });
-}
-
-function selectDimension(dimension) {
-    drillState.dimension = dimension;
-    drillState.level = 2;
+function selectDrillDimension(dimension) {
+    drillState.selectedDimension = dimension;
     
     document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
         btn.classList.remove('active');
@@ -1657,72 +1702,236 @@ function selectDimension(dimension) {
         }
     });
     
-    updateBreadcrumbs();
-    renderDrillTable(dimension);
+    document.getElementById('drillInstruction').textContent = 
+        'Click a row to drill down by ' + dimensionLabels[dimension];
+    document.getElementById('drillInstruction').style.display = 'block';
+}
+
+function updateDimensionSelector() {
+    var container = document.getElementById('drillDimensionSelector');
+    var availableDimensions = getAvailableDimensions();
+    
+    if (availableDimensions.length === 0) {
+        container.style.display = 'none';
+        document.getElementById('drillInstruction').style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    var buttonsHtml = availableDimensions.map(function(dim) {
+        return '<button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="' + dim + '">' +
+            '<i class="' + getDimensionIcon(dim) + ' me-1"></i>' + dimensionLabels[dim] +
+            '</button>';
+    }).join('');
+    
+    document.getElementById('dimensionButtons').innerHTML = buttonsHtml;
+    
+    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    drillState.selectedDimension = null;
+    document.getElementById('drillInstruction').style.display = 'none';
+}
+
+function getDimensionIcon(dimension) {
+    var icons = {
+        'day': 'fas fa-calendar-day',
+        'sub_account': 'fas fa-building',
+        'country': 'fas fa-globe',
+        'sender_id': 'fas fa-signature',
+        'product_type': 'fas fa-box',
+        'group_name': 'fas fa-users'
+    };
+    return icons[dimension] || 'fas fa-layer-group';
 }
 
 function updateBreadcrumbs() {
+    var breadcrumbContainer = document.getElementById('drillBreadcrumbs');
     var breadcrumbList = document.getElementById('drillBreadcrumbList');
-    var html = '<li class="breadcrumb-item"><a href="#" onclick="resetDrillDown(); return false;">Finance Data</a></li>';
     
-    if (drillState.level >= 1 && drillState.billingMonth) {
-        if (drillState.level === 1) {
-            html += '<li class="breadcrumb-item active" aria-current="page">' + drillState.billingMonth + '</li>';
-        } else {
-            html += '<li class="breadcrumb-item"><a href="#" onclick="stepBackToBillingMonth(); return false;">' + drillState.billingMonth + '</a></li>';
+    if (drillState.path.length === 0) {
+        breadcrumbContainer.style.display = 'none';
+        return;
+    }
+    
+    breadcrumbContainer.style.display = 'block';
+    
+    var html = '<li class="breadcrumb-item"><a href="#" onclick="navigateToBreadcrumb(-1); return false;">Finance Data</a></li>';
+    
+    drillState.path.forEach(function(pathItem, index) {
+        var isLast = index === drillState.path.length - 1;
+        var label = pathItem.label;
+        
+        if (pathItem.dimension !== 'month') {
+            label = dimensionLabels[pathItem.dimension] + ': ' + pathItem.label;
         }
-    }
-    
-    if (drillState.level >= 2 && drillState.dimension) {
-        html += '<li class="breadcrumb-item active" aria-current="page">' + dimensionLabels[drillState.dimension] + '</li>';
-    }
+        
+        if (isLast) {
+            html += '<li class="breadcrumb-item active" aria-current="page">' + label + '</li>';
+        } else {
+            html += '<li class="breadcrumb-item"><a href="#" onclick="navigateToBreadcrumb(' + index + '); return false;">' + label + '</a></li>';
+        }
+    });
     
     breadcrumbList.innerHTML = html;
 }
 
+function navigateToBreadcrumb(index) {
+    if (index < 0) {
+        resetDrillDown();
+    } else {
+        drillState.path = drillState.path.slice(0, index + 1);
+        drillState.level = drillState.path.length;
+        drillState.selectedDimension = null;
+        
+        updateDimensionSelector();
+        updateBreadcrumbs();
+        renderDrilledTable();
+    }
+}
+
 function resetDrillDown() {
-    drillState = { level: 0, billingMonth: null, dimension: null };
+    drillState = { level: 0, path: [], selectedDimension: null };
     document.getElementById('drillBreadcrumbs').style.display = 'none';
-    hideDimensionTabs();
-    renderMonthlyTable();
+    document.getElementById('drillInstruction').style.display = 'none';
+    updateDimensionSelector();
+    loadInitialData();
 }
 
-function stepBackToBillingMonth() {
-    drillState.dimension = null;
-    drillState.level = 1;
-    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-    });
-    updateBreadcrumbs();
-    renderMonthlyTable();
-}
-
-function renderDrillTable(dimension) {
+function renderDrilledTable() {
     var tableHead = document.querySelector('#financeDataTable thead tr');
     var firstCol = tableHead.querySelector('th:first-child');
-    firstCol.innerHTML = dimensionLabels[dimension] + ' <i class="fas fa-sort ms-1 text-muted"></i>';
-    firstCol.setAttribute('data-sort', dimension);
+    
+    var lastDimension = drillState.path.length > 0 ? 
+        drillState.path[drillState.path.length - 1].dimension : 'month';
+    
+    var nextAvailable = getAvailableDimensions();
+    var columnLabel = nextAvailable.length > 0 ? dimensionLabels[nextAvailable[0]] : 'Details';
+    
+    if (lastDimension === 'month') {
+        columnLabel = 'Day';
+    } else {
+        columnLabel = dimensionLabels[lastDimension];
+    }
+    
+    firstCol.innerHTML = columnLabel + ' <i class="fas fa-sort ms-1 text-muted"></i>';
+    
+    var mockData = generateDrillMockData();
     
     var tbody = document.getElementById('billingTableBody');
-    var data = mockDrillData[dimension] || [];
-    
     var html = '';
-    data.forEach(function(row) {
+    
+    var totals = { billable: 0, nonBillable: 0, total: 0, cost: 0 };
+    mockData.forEach(function(row) {
+        totals.billable += row.billable;
+        totals.nonBillable += row.nonBillable;
+        totals.total += row.total;
+        totals.cost += row.costNum;
+    });
+    
+    html += '<tr class="table-light totals-row fw-bold">';
+    html += '<td><span class="fw-semibold">Total</span></td>';
+    html += '<td class="text-end">' + formatNumber(totals.billable) + '</td>';
+    html += '<td class="text-end">' + formatNumber(totals.nonBillable) + '</td>';
+    html += '<td class="text-end">' + formatNumber(totals.total) + '</td>';
+    html += '<td class="text-end">' + formatCurrency(totals.cost) + '</td>';
+    html += '<td></td>';
+    html += '</tr>';
+    
+    mockData.forEach(function(row) {
         var rowAttrs = getRowAttributes(row.status);
         
-        html += '<tr class="' + rowAttrs.classes + '" data-status="' + row.status.toLowerCase() + '"' + rowAttrs.attrs + '>';
-        html += '<td><span class="fw-semibold">' + row.label + '</span>' + rowAttrs.labelIcon + '</td>';
-        html += '<td class="text-end">' + row.billable.toLocaleString() + '</td>';
-        html += '<td class="text-end">' + row.nonBillable.toLocaleString() + '</td>';
-        html += '<td class="text-end fw-semibold">' + row.total.toLocaleString() + '</td>';
-        html += '<td class="text-end fw-semibold">' + row.cost + '</td>';
+        html += '<tr class="' + rowAttrs.classes + '" data-value="' + row.value + '" data-status="' + row.status.toLowerCase() + '"' + rowAttrs.attrs + '>';
+        html += '<td style="padding-left: ' + (row.indent * 20 + 12) + 'px;">';
+        html += '<span class="drill-label fw-semibold">' + row.label + '</span>' + rowAttrs.labelIcon;
+        html += '</td>';
+        html += '<td class="text-end">' + formatNumber(row.billable) + '</td>';
+        html += '<td class="text-end">' + formatNumber(row.nonBillable) + '</td>';
+        html += '<td class="text-end fw-semibold">' + formatNumber(row.total) + '</td>';
+        html += '<td class="text-end fw-semibold">' + formatCurrency(row.costNum) + '</td>';
         html += '<td class="text-center">' + rowAttrs.statusIcon + row.status + '</td>';
         html += '</tr>';
     });
     
     tbody.innerHTML = html;
-    document.getElementById('rowCount').textContent = data.length;
-    document.getElementById('totalCount').textContent = data.length;
+    document.getElementById('rowCount').textContent = mockData.length;
+    document.getElementById('totalCount').textContent = mockData.length;
+}
+
+function generateDrillMockData() {
+    var lastDimension = drillState.path.length > 0 ? 
+        drillState.path[drillState.path.length - 1].dimension : 'month';
+    
+    var data = [];
+    var seed = JSON.stringify(drillState.path);
+    var seedNum = hashCode(seed);
+    
+    if (lastDimension === 'month') {
+        for (var d = 1; d <= 30; d++) {
+            var dayStr = d < 10 ? '0' + d : '' + d;
+            var monthMatch = drillState.path[0].label.match(/(\w+)\s+(\d{4})/);
+            var monthNum = getMonthNumber(monthMatch ? monthMatch[1] : 'January');
+            var year = monthMatch ? monthMatch[2] : '2025';
+            
+            var billable = Math.floor(seededRandom(seedNum + d) * 5000) + 2000;
+            var nonBillable = Math.floor(seededRandom(seedNum + d + 100) * 200) + 50;
+            
+            data.push({
+                label: dayStr + '/' + monthNum + '/' + year,
+                value: year + '-' + monthNum + '-' + dayStr,
+                billable: billable,
+                nonBillable: nonBillable,
+                total: billable + nonBillable,
+                costNum: billable * 0.032,
+                status: 'Finalised',
+                indent: 0
+            });
+        }
+    } else {
+        var dimensionData = mockDrillData[lastDimension] || [];
+        dimensionData.forEach(function(item, idx) {
+            var billable = Math.floor(seededRandom(seedNum + idx) * item.billable) + Math.floor(item.billable * 0.5);
+            var nonBillable = Math.floor(seededRandom(seedNum + idx + 50) * item.nonBillable) + Math.floor(item.nonBillable * 0.3);
+            
+            data.push({
+                label: item.label,
+                value: item.label,
+                billable: billable,
+                nonBillable: nonBillable,
+                total: billable + nonBillable,
+                costNum: billable * 0.032,
+                status: item.status,
+                indent: 0
+            });
+        });
+    }
+    
+    return data;
+}
+
+function hashCode(str) {
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+        var char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash);
+}
+
+function seededRandom(seed) {
+    var x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+function getMonthNumber(monthName) {
+    var months = {
+        'January': '01', 'February': '02', 'March': '03', 'April': '04',
+        'May': '05', 'June': '06', 'July': '07', 'August': '08',
+        'September': '09', 'October': '10', 'November': '11', 'December': '12'
+    };
+    return months[monthName] || '01';
 }
 
 function renderMonthlyTable() {
@@ -1798,8 +2007,9 @@ function getRowAttributes(status) {
 function getDrillStateForExport() {
     return {
         level: drillState.level,
-        billingMonth: drillState.billingMonth,
-        dimension: drillState.dimension,
+        path: drillState.path.map(function(p) {
+            return { dimension: p.dimension, value: p.value, label: p.label };
+        }),
         filters: {
             billingMonths: getSelectedValues('billingMonths'),
             subAccounts: getSelectedValues('subAccounts'),
@@ -1855,8 +2065,7 @@ function getFullExportState() {
         },
         drillState: {
             level: drillState.level,
-            billingMonth: drillState.billingMonth,
-            dimension: drillState.dimension
+            path: getDrillPath()
         },
         costFormat: 'ex_vat'
     };
@@ -1967,10 +2176,10 @@ function updateSaveReportPreview() {
     document.getElementById('previewFilters').textContent = filters.length > 0 ? filters.join(', ') : 'None selected';
     
     var drillLevel = 'Billing Month';
-    if (drillState.level === 1) {
-        drillLevel = drillState.billingMonth;
-    } else if (drillState.level === 2) {
-        drillLevel = drillState.billingMonth + ' → ' + dimensionLabels[drillState.dimension];
+    if (drillState.path.length > 0) {
+        drillLevel = drillState.path.map(function(p) {
+            return p.dimension === 'month' ? p.label : dimensionLabels[p.dimension] + ': ' + p.label;
+        }).join(' → ');
     }
     document.getElementById('previewDrillLevel').textContent = drillLevel;
     document.getElementById('previewSort').textContent = 'Default';
@@ -1999,8 +2208,7 @@ document.getElementById('btnConfirmSaveReport')?.addEventListener('click', funct
         },
         drillState: {
             level: drillState.level,
-            billingMonth: drillState.billingMonth,
-            dimension: drillState.dimension
+            path: getDrillPath()
         },
         sortState: null
     };
@@ -2083,8 +2291,7 @@ document.getElementById('btnConfirmSchedule')?.addEventListener('click', functio
         },
         drillState: {
             level: drillState.level,
-            billingMonth: drillState.billingMonth,
-            dimension: drillState.dimension
+            path: getDrillPath()
         },
         status: 'active'
     };
