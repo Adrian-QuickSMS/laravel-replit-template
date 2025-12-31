@@ -1591,7 +1591,7 @@ var drillState = {
     pendingDimension: null
 };
 
-var DRILL_DIMENSIONS = ['day', 'sub_account', 'country', 'sender_id', 'product_type', 'group_name'];
+var DRILL_DIMENSIONS = ['day', 'product', 'sub_account', 'user', 'sender_id', 'origin', 'country', 'group_name'];
 
 function getAvailableDimensions() {
     return DRILL_DIMENSIONS.filter(function(d) {
