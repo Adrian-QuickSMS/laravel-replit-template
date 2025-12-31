@@ -646,13 +646,31 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="btnScheduleReport">
                                     <i class="fas fa-clock me-1"></i> Schedule Report Export
                                 </button>
-                                <span class="text-muted">|</span>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv">
-                                    <i class="fas fa-file-csv me-1"></i> Export CSV
-                                </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportPdf">
-                                    <i class="fas fa-file-pdf me-1"></i> Export PDF
-                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="finance-data-export border-top pt-3 mt-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <p class="small fw-bold mb-2"><i class="fas fa-download me-1 text-primary"></i>Export Data</p>
+                                <p class="small text-muted mb-0">Exports currently displayed data with active filters and drill level. Costs shown as ex VAT.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-md-end gap-2 mt-2 mt-md-0">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv">
+                                        <i class="fas fa-file-csv me-1"></i> Export CSV
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportExcel">
+                                        <i class="fas fa-file-excel me-1"></i> Export Excel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2" id="exportLargeDatasetWarning" style="display: none;">
+                            <div class="alert alert-info small py-2 mb-0">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Large dataset detected.</strong> This export will be processed in the background and delivered to your Download Centre.
                             </div>
                         </div>
                     </div>
@@ -662,33 +680,38 @@
     </div>
 </div>
 
-<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="exportProgressModal" tabindex="-1" aria-labelledby="exportProgressModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">Export Finance Data</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="exportProgressModalLabel"><i class="fas fa-download me-2 text-primary"></i>Exporting Data</h5>
             </div>
-            <div class="modal-body">
-                <p class="text-muted">Export functionality will be available in a future update.</p>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Export Format</label>
-                    <select class="form-select form-select-sm" disabled>
-                        <option>CSV</option>
-                        <option>PDF</option>
-                        <option>Excel</option>
-                    </select>
+            <div class="modal-body text-center py-4">
+                <div id="exportInProgress">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Exporting...</span>
+                    </div>
+                    <p class="mb-1">Preparing your export...</p>
+                    <p class="small text-muted mb-0" id="exportProgressText">Processing <span id="exportRowsCount">0</span> rows</p>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Date Range</label>
-                    <p class="text-muted small mb-0">Uses current filter settings</p>
+                <div id="exportComplete" style="display: none;">
+                    <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                    <p class="mb-1 fw-bold">Export Complete!</p>
+                    <p class="small text-muted mb-0" id="exportCompleteText">Your file is ready for download.</p>
+                </div>
+                <div id="exportQueued" style="display: none;">
+                    <i class="fas fa-clock text-info fa-3x mb-3"></i>
+                    <p class="mb-1 fw-bold">Export Queued</p>
+                    <p class="small text-muted mb-0">Large dataset detected. Your export has been queued and will be available in the Download Centre when ready.</p>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" disabled>
-                    <i class="fas fa-download me-1"></i> Export
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary btn-sm" id="btnCloseExportModal" data-bs-dismiss="modal" style="display: none;">
+                    <i class="fas fa-check me-1"></i> Done
                 </button>
+                <a href="/reporting/download-area" class="btn btn-outline-primary btn-sm" id="btnGoToDownloads" style="display: none;">
+                    <i class="fas fa-folder-open me-1"></i> Go to Download Centre
+                </a>
             </div>
         </div>
     </div>
@@ -1443,17 +1466,132 @@ function getDrillStateForExport() {
     };
 }
 
+var LARGE_DATASET_THRESHOLD = 10000;
+
 document.getElementById('btnExportCsv')?.addEventListener('click', function() {
-    var exportState = getDrillStateForExport();
-    console.log('[Finance Data] Export CSV with drill state:', exportState);
-    new bootstrap.Modal(document.getElementById('exportModal')).show();
+    triggerExport('csv');
 });
 
-document.getElementById('btnExportPdf')?.addEventListener('click', function() {
-    var exportState = getDrillStateForExport();
-    console.log('[Finance Data] Export PDF with drill state:', exportState);
-    new bootstrap.Modal(document.getElementById('exportModal')).show();
+document.getElementById('btnExportExcel')?.addEventListener('click', function() {
+    triggerExport('xlsx');
 });
+
+function triggerExport(format) {
+    var exportState = getFullExportState();
+    var rowCount = parseInt(document.getElementById('totalCount').textContent) || 0;
+    
+    console.log('[Finance Data] Export ' + format.toUpperCase() + ' with state:', exportState);
+    
+    if (rowCount > LARGE_DATASET_THRESHOLD) {
+        triggerAsyncExport(format, exportState, rowCount);
+    } else {
+        triggerSyncExport(format, exportState, rowCount);
+    }
+}
+
+function getFullExportState() {
+    var columns = [];
+    document.querySelectorAll('#financeDataTable thead th').forEach(function(th) {
+        columns.push(th.textContent.trim().replace(/\s+/g, ' '));
+    });
+    
+    return {
+        format: null,
+        columns: columns,
+        filters: {
+            billingMonths: getSelectedValues('billingMonths'),
+            subAccounts: getSelectedValues('subAccounts'),
+            users: getSelectedValues('users'),
+            groupNames: getSelectedValues('groupNames'),
+            productTypes: getSelectedValues('productTypes'),
+            senderIds: selectedSenderIds,
+            messageTypes: getSelectedValues('messageTypes')
+        },
+        drillState: {
+            level: drillState.level,
+            billingMonth: drillState.billingMonth,
+            dimension: drillState.dimension
+        },
+        costFormat: 'ex_vat'
+    };
+}
+
+function triggerSyncExport(format, exportState, rowCount) {
+    exportState.format = format;
+    
+    var modal = new bootstrap.Modal(document.getElementById('exportProgressModal'));
+    document.getElementById('exportInProgress').style.display = 'block';
+    document.getElementById('exportComplete').style.display = 'none';
+    document.getElementById('exportQueued').style.display = 'none';
+    document.getElementById('btnCloseExportModal').style.display = 'none';
+    document.getElementById('btnGoToDownloads').style.display = 'none';
+    document.getElementById('exportRowsCount').textContent = rowCount;
+    
+    modal.show();
+    
+    // TODO: Replace with actual backend export endpoint
+    // exportToBackend(exportState).then(function(response) { ... });
+    
+    setTimeout(function() {
+        document.getElementById('exportInProgress').style.display = 'none';
+        document.getElementById('exportComplete').style.display = 'block';
+        document.getElementById('btnCloseExportModal').style.display = 'inline-block';
+        
+        var filename = 'finance_data_' + new Date().toISOString().split('T')[0] + '.' + format;
+        document.getElementById('exportCompleteText').textContent = 'File: ' + filename;
+        
+        console.log('[Finance Data] Sync export complete:', { format: format, filename: filename, state: exportState });
+        
+        // TODO: Trigger actual file download
+        // downloadFile(response.downloadUrl);
+    }, 1500);
+}
+
+function triggerAsyncExport(format, exportState, rowCount) {
+    exportState.format = format;
+    
+    var modal = new bootstrap.Modal(document.getElementById('exportProgressModal'));
+    document.getElementById('exportInProgress').style.display = 'block';
+    document.getElementById('exportComplete').style.display = 'none';
+    document.getElementById('exportQueued').style.display = 'none';
+    document.getElementById('btnCloseExportModal').style.display = 'none';
+    document.getElementById('btnGoToDownloads').style.display = 'none';
+    document.getElementById('exportRowsCount').textContent = rowCount.toLocaleString();
+    
+    modal.show();
+    
+    // TODO: Replace with backend queue/job endpoint
+    // queueExportJob(exportState).then(function(response) { ... });
+    
+    setTimeout(function() {
+        document.getElementById('exportInProgress').style.display = 'none';
+        document.getElementById('exportQueued').style.display = 'block';
+        document.getElementById('btnGoToDownloads').style.display = 'inline-block';
+        
+        console.log('[Finance Data] Async export queued:', { format: format, rowCount: rowCount, state: exportState });
+        
+        showToast('Export queued! You will be notified when it is ready in the Download Centre.');
+    }, 1000);
+}
+
+function exportToBackend(exportState) {
+    // TODO: Connect to backend export endpoint
+    // POST /api/reporting/finance-data/export
+    // Body: exportState
+    // Returns: { downloadUrl: string, filename: string }
+    console.log('[Finance Data] TODO: POST to /api/reporting/finance-data/export', exportState);
+    return Promise.resolve({ downloadUrl: '#', filename: 'export.csv' });
+}
+
+function queueExportJob(exportState) {
+    // TODO: Connect to backend queue/job system for large exports
+    // POST /api/reporting/finance-data/export-async
+    // Body: exportState
+    // Returns: { jobId: string, estimatedTime: number }
+    // Job delivers to Download Centre when complete
+    console.log('[Finance Data] TODO: POST to /api/reporting/finance-data/export-async', exportState);
+    return Promise.resolve({ jobId: 'job_' + Date.now(), estimatedTime: 60 });
+}
 
 var savedReports = JSON.parse(localStorage.getItem('financeDataSavedReports') || '[]');
 var scheduledReports = JSON.parse(localStorage.getItem('financeDataScheduledReports') || '[]');
