@@ -26,6 +26,28 @@
 }
 .finance-data-fixed-header {
     flex-shrink: 0;
+    overflow: visible;
+}
+#filtersPanel {
+    overflow: visible !important;
+}
+#filtersPanel .card-body {
+    overflow: visible !important;
+}
+#filtersPanel .row {
+    overflow: visible;
+}
+#filtersPanel .dropdown-menu {
+    z-index: 1050;
+}
+.multiselect-dropdown {
+    position: relative;
+}
+.predictive-input-wrapper {
+    position: relative;
+}
+.predictive-suggestions {
+    z-index: 1050;
 }
 .finance-data-table-wrapper {
     flex: 1;
