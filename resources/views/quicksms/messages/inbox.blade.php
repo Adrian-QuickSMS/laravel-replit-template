@@ -381,7 +381,7 @@
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="chat-box-area dz-scroll" id="chatArea">
+                            <div class="chat-box-area dz-scroll" id="chatArea" style="flex: 1; overflow-y: auto; min-height: 0;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -439,7 +439,7 @@
                                 @endif
                             </div>
                             
-                            <div class="card border-top" id="replyComposerCard">
+                            <div class="card border-top" id="replyComposerCard" style="flex-shrink: 0;">
                                 <div class="card-body p-2">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
