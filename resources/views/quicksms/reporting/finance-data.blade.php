@@ -344,13 +344,13 @@
                         <div class="collapse mb-3" id="filtersPanel">
                             <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-12 col-lg-4">
+                                    <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Billing Month</label>
                                         <div class="dropdown multiselect-dropdown" data-filter="billingMonths">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Months</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2">
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 280px; overflow-y: auto;">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
@@ -368,13 +368,6 @@
                                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="2025-02" id="month202502"><label class="form-check-label small" for="month202502">February 2025</label></div>
                                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="2025-01" id="month202501"><label class="form-check-label small" for="month202501">January 2025</label></div>
                                             </div>
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-1 mt-2">
-                                            <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="current">Current Month</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last">Last Month</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last3">Last 3 Months</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last6">Last 6 Months</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="ytd">Year to Date</button>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
@@ -401,7 +394,7 @@
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Users</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2">
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
@@ -423,7 +416,7 @@
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Groups</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2">
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
@@ -459,27 +452,31 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="row g-3 align-items-end mt-2">
-                                    <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Sender ID</label>
-                                        <div class="predictive-input-wrapper">
-                                            <div class="multi-value-input" id="senderIdContainer">
-                                                <input type="text" id="filterSenderId" placeholder="Type to search..." autocomplete="off">
-                                            </div>
-                                            <div class="predictive-suggestions" id="senderIdSuggestions">
-                                                <div class="predictive-suggestion" data-value="QuickSMS">QuickSMS</div>
-                                                <div class="predictive-suggestion" data-value="PROMO">PROMO</div>
-                                                <div class="predictive-suggestion" data-value="ALERTS">ALERTS</div>
-                                                <div class="predictive-suggestion" data-value="INFO">INFO</div>
-                                                <div class="predictive-suggestion" data-value="NOTIFY">NOTIFY</div>
-                                                <div class="predictive-suggestion" data-value="VERIFY">VERIFY</div>
-                                                <div class="predictive-suggestion" data-value="UPDATES">UPDATES</div>
-                                                <div class="predictive-suggestion" data-value="NEWS">NEWS</div>
+                                        <div class="dropdown multiselect-dropdown" data-filter="senderIds">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Sender IDs</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="QuickSMS" id="sender1"><label class="form-check-label small" for="sender1">QuickSMS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="PROMO" id="sender2"><label class="form-check-label small" for="sender2">PROMO</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ALERTS" id="sender3"><label class="form-check-label small" for="sender3">ALERTS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="INFO" id="sender4"><label class="form-check-label small" for="sender4">INFO</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NOTIFY" id="sender5"><label class="form-check-label small" for="sender5">NOTIFY</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="VERIFY" id="sender6"><label class="form-check-label small" for="sender6">VERIFY</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="UPDATES" id="sender7"><label class="form-check-label small" for="sender7">UPDATES</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NEWS" id="sender8"><label class="form-check-label small" for="sender8">NEWS</label></div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <div class="row g-3 align-items-end mt-2">
                                     <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Origin</label>
                                         <div class="dropdown multiselect-dropdown" data-filter="origins">
@@ -521,6 +518,13 @@
                                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="Australia" id="country10"><label class="form-check-label small" for="country10">Australia</label></div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="col-12 col-lg-4 d-flex flex-wrap gap-1 align-items-end">
+                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="current">Current Month</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last">Last Month</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last3">Last 3 Months</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last6">Last 6 Months</button>
+                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="ytd">Year to Date</button>
                                     </div>
                                 </div>
                                 
