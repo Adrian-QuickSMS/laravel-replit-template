@@ -29,23 +29,35 @@
     overflow-y: auto;
 }
 #chatPaneWrapper {
-    display: grid !important;
-    grid-template-rows: auto auto 1fr auto !important;
-    flex: 1 1 0 !important;
+    flex: 1 !important;
     min-width: 0 !important;
-    min-height: 0 !important;
-    align-self: stretch !important;
+    height: 100% !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
     overflow: hidden !important;
 }
 #chatHeader {
+    flex: 0 0 auto !important;
     background: white !important;
 }
+#chatSearchBar {
+    flex: 0 0 auto !important;
+}
 #chatArea {
-    min-height: 0 !important;
+    flex: 1 1 0 !important;
     overflow-y: auto !important;
-    padding: 1rem !important;
+    background: white !important;
+    padding-bottom: 270px !important;
 }
 #replyComposerCard {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+    max-height: 280px !important;
+    overflow-y: auto !important;
     margin: 0 !important;
     border-radius: 0 !important;
     border-left: 0 !important;
@@ -243,7 +255,7 @@
     <div class="row">
         <div class="col-xl-12">
             <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
-                <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%;">
+                <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%; min-height: 0;">
                     <div style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
@@ -332,8 +344,8 @@
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: grid; grid-template-rows: auto auto 1fr auto; flex: 1 1 0; min-width: 0; min-height: 0; align-self: stretch; overflow: hidden;">
-                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="background: white;">
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="flex: 1; min-width: 0; height: 100%; position: relative; display: flex; flex-direction: column; overflow: hidden;">
+                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="flex: 0 0 auto; background: white;">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
@@ -376,7 +388,7 @@
                                 </div>
                             </div>
                             
-                            <div class="px-4 py-2 border-bottom d-none" id="chatSearchBar">
+                            <div class="px-4 py-2 border-bottom d-none" id="chatSearchBar" style="flex: 0 0 auto;">
                                 <div class="input-group input-group-sm">
                                     <input type="text" class="form-control" id="chatSearchInput" placeholder="Search messages in this conversation...">
                                     <button class="btn btn-outline-secondary" type="button" onclick="searchPrev()"><i class="fas fa-chevron-up"></i></button>
@@ -386,7 +398,7 @@
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="qs-chat-messages" id="chatArea" style="min-height: 0; overflow-y: auto; padding: 15px; background-color: #ffffff;">
+                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 290px 15px; background-color: #ffffff;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -444,7 +456,7 @@
                                 @endif
                             </div>
                             
-                            <div class="card border-top" id="replyComposerCard" style="margin: 0; border-radius: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08);">
+                            <div class="card border-top" id="replyComposerCard" style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; border-radius: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100; max-height: 280px; overflow-y: auto;">
                                 <div class="card-body p-2">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
@@ -1086,6 +1098,33 @@ var chatSearchIndex = 0;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] DOMContentLoaded fired');
     console.log('[Inbox] Loaded', conversationsData.length, 'conversations');
+    
+    // Fix layout after Fillow JS runs - ensure chat pane has proper height
+    setTimeout(function() {
+        var wrapper = document.getElementById('chatPaneWrapper');
+        var chatArea = document.getElementById('chatArea');
+        var composer = document.getElementById('replyComposerCard');
+        var header = document.getElementById('chatHeader');
+        
+        if (wrapper && chatArea && composer && header) {
+            var wrapperHeight = wrapper.offsetHeight || wrapper.clientHeight;
+            var headerHeight = header.offsetHeight || header.clientHeight || 75;
+            var composerHeight = composer.offsetHeight || composer.clientHeight || 250;
+            
+            // Calculate available height for chat area
+            var chatAreaHeight = wrapperHeight - headerHeight - composerHeight;
+            
+            console.log('[Layout] Wrapper:', wrapperHeight, 'Header:', headerHeight, 'Composer:', composerHeight, 'ChatArea:', chatAreaHeight);
+            
+            // If wrapper has valid height, set chat area height explicitly
+            if (wrapperHeight > 0 && chatAreaHeight > 100) {
+                chatArea.style.height = chatAreaHeight + 'px';
+                chatArea.style.minHeight = chatAreaHeight + 'px';
+                chatArea.style.maxHeight = chatAreaHeight + 'px';
+                console.log('[Layout] Chat area height set to:', chatAreaHeight);
+            }
+        }
+    }, 100);
     
     // Initialize modals with error handling
     try {
