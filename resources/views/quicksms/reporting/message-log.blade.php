@@ -17,12 +17,18 @@
     overflow: hidden;
     margin-bottom: 0 !important;
 }
-.message-log-container .card-body {
+.message-log-container > .row > .col-12 > .card > .card-body {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     padding-bottom: 0;
+}
+#summaryBar .card-body {
+    display: block !important;
+    flex: none !important;
+    overflow: visible !important;
+    padding: 1.25rem !important;
 }
 .message-log-fixed-header {
     flex-shrink: 0;
@@ -38,10 +44,6 @@
     z-index: 1050;
 }
 #summaryBar .card {
-    flex: none !important;
-    overflow: visible !important;
-}
-#summaryBar .card-body {
     flex: none !important;
     overflow: visible !important;
 }
