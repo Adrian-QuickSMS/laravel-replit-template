@@ -385,7 +385,28 @@
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">SenderID</label>
-                                    <input type="text" class="form-control form-control-sm" id="filterSenderId" placeholder="Type to search...">
+                                    <div class="dropdown searchable-dropdown" data-filter="senderIds">
+                                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">All SenderIDs</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="min-width: 220px;">
+                                            <input type="text" class="form-control form-control-sm mb-2 sender-search-input" placeholder="Type to search..." id="senderIdSearchInput">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="sender-options" style="max-height: 180px; overflow-y: auto;">
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="QuickSMS" id="senderId1"><label class="form-check-label small" for="senderId1">QuickSMS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="QuickSMS Brand" id="senderId2"><label class="form-check-label small" for="senderId2">QuickSMS Brand</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ALERTS" id="senderId3"><label class="form-check-label small" for="senderId3">ALERTS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="PROMO" id="senderId4"><label class="form-check-label small" for="senderId4">PROMO</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="INFO" id="senderId5"><label class="form-check-label small" for="senderId5">INFO</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NOTIFY" id="senderId6"><label class="form-check-label small" for="senderId6">NOTIFY</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="VERIFY" id="senderId7"><label class="form-check-label small" for="senderId7">VERIFY</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="UPDATES" id="senderId8"><label class="form-check-label small" for="senderId8">UPDATES</label></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Message Status</label>
@@ -1279,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() {
         users: [],
         origins: [],
         mobileNumbers: [],
-        senderId: '',
+        senderIds: [],
         statuses: [],
         countries: [],
         messageTypes: [],
@@ -1605,7 +1626,8 @@ document.addEventListener('DOMContentLoaded', function() {
         origins: 'All Origins',
         statuses: 'All Statuses',
         countries: 'All Countries',
-        messageTypes: 'All Types'
+        messageTypes: 'All Types',
+        senderIds: 'All SenderIDs'
     };
     
     function updateMultiselectLabel(dropdown) {
@@ -1678,9 +1700,46 @@ document.addEventListener('DOMContentLoaded', function() {
     setupMultiValueInput('filterMobileNumber', 'mobileNumbers');
     setupMultiValueInput('filterMessageId', 'messageIds');
     
-    // SenderID input
-    document.getElementById('filterSenderId')?.addEventListener('input', function() {
-        pendingFilters.senderId = this.value.trim();
+    // Searchable SenderID dropdown
+    document.querySelectorAll('.searchable-dropdown').forEach(dropdown => {
+        const filterKey = dropdown.dataset.filter;
+        const searchInput = dropdown.querySelector('.sender-search-input');
+        const optionsContainer = dropdown.querySelector('.sender-options');
+        
+        // Search filtering
+        if (searchInput && optionsContainer) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                optionsContainer.querySelectorAll('.form-check').forEach(option => {
+                    const label = option.querySelector('.form-check-label').textContent.toLowerCase();
+                    option.style.display = label.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+        
+        // Checkbox handlers
+        dropdown.querySelectorAll('.form-check-input').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const checkboxes = dropdown.querySelectorAll('.form-check-input:checked');
+                pendingFilters[filterKey] = Array.from(checkboxes).map(cb => cb.value);
+                updateMultiselectLabel(dropdown);
+            });
+        });
+        
+        dropdown.querySelector('.select-all-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            dropdown.querySelectorAll('.form-check:not([style*="display: none"]) .form-check-input').forEach(cb => cb.checked = true);
+            const checkboxes = dropdown.querySelectorAll('.form-check-input:checked');
+            pendingFilters[filterKey] = Array.from(checkboxes).map(cb => cb.value);
+            updateMultiselectLabel(dropdown);
+        });
+        
+        dropdown.querySelector('.clear-all-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = false);
+            pendingFilters[filterKey] = [];
+            updateMultiselectLabel(dropdown);
+        });
     });
     
     // Apply Filters button
@@ -1696,20 +1755,28 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btnResetFilters')?.addEventListener('click', function() {
         pendingFilters = {
             dateFrom: '', dateTo: '', subAccounts: [], users: [], origins: [],
-            mobileNumbers: [], senderId: '', statuses: [], countries: [], messageTypes: [], messageIds: []
+            mobileNumbers: [], senderIds: [], statuses: [], countries: [], messageTypes: [], messageIds: []
         };
         
         // Reset UI elements
         document.getElementById('filterDateFrom').value = '';
         document.getElementById('filterDateTo').value = '';
         document.getElementById('filterMobileNumber').value = '';
-        document.getElementById('filterSenderId').value = '';
         document.getElementById('filterMessageId').value = '';
         document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
         
         // Reset multi-select dropdowns
         document.querySelectorAll('.multiselect-dropdown').forEach(dropdown => {
             dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = false);
+            updateMultiselectLabel(dropdown);
+        });
+        
+        // Reset searchable dropdowns
+        document.querySelectorAll('.searchable-dropdown').forEach(dropdown => {
+            dropdown.querySelectorAll('.form-check-input').forEach(cb => cb.checked = false);
+            const searchInput = dropdown.querySelector('.sender-search-input');
+            if (searchInput) searchInput.value = '';
+            dropdown.querySelectorAll('.form-check').forEach(opt => opt.style.display = '');
             updateMultiselectLabel(dropdown);
         });
         
@@ -1731,18 +1798,14 @@ document.addEventListener('DOMContentLoaded', function() {
             hasFilters = true;
         }
         
-        ['subAccounts', 'users', 'origins', 'statuses', 'countries', 'messageTypes'].forEach(key => {
+        ['subAccounts', 'users', 'origins', 'senderIds', 'statuses', 'countries', 'messageTypes'].forEach(key => {
             if (filterState[key].length > 0) {
                 const labels = filterState[key].map(v => labelMappings[key]?.[v] || v);
-                container.innerHTML += createChip(key.replace(/([A-Z])/g, ' $1').trim(), labels.join(', '), key);
+                const displayName = key === 'senderIds' ? 'SenderID' : key.replace(/([A-Z])/g, ' $1').trim();
+                container.innerHTML += createChip(displayName, labels.join(', '), key);
                 hasFilters = true;
             }
         });
-        
-        if (filterState.senderId) {
-            container.innerHTML += createChip('SenderID', filterState.senderId, 'senderId');
-            hasFilters = true;
-        }
         
         if (filterState.mobileNumbers.length > 0) {
             container.innerHTML += createChip('Mobile', `${filterState.mobileNumbers.length} number(s)`, 'mobileNumbers');
