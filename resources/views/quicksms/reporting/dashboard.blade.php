@@ -813,35 +813,33 @@ table .cursor-pointer:hover {
         <!-- ========== ROW 4: Intelligence Tiles (small) ========== -->
         
         <!-- 10. Peak Sending Time Insight -->
-        <div class="qs-tile tile-large" data-tile-id="tile-peak-time" data-size="large" data-api="peak-time">
+        <div class="qs-tile tile-medium" data-tile-id="tile-peak-time" data-size="medium" data-api="peak-time">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
-                    <h4 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>Peak Sending Time</h4>
+                    <h4 class="card-title mb-0">Peak Sending Time</h4>
                 </div>
                 <div class="card-body" id="peakTimeContent">
+                    <!-- Outbound Peak (when most messages are sent) -->
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
-                            <span class="display-6 text-primary fw-bold">10:00</span>
-                            <span class="text-muted">AM</span>
+                            <span class="badge badge-primary light px-3 py-2 fs-6" id="peakOutboundTime">06:00-06:59</span>
                         </div>
                         <div>
-                            <p class="mb-0 text-muted small">Most messages sent</p>
-                            <strong>Tuesday mornings</strong>
+                            <p class="mb-0 text-muted small">Most messages sent on</p>
+                            <strong id="peakOutboundDay">Thursdays</strong>
                         </div>
                     </div>
+                    <!-- Inbound Peak (when most customers reply) -->
                     <div class="border-top pt-3">
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Peak Hour Volume</span>
-                            <strong class="text-dark">1,234 messages</strong>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge badge-success light px-3 py-2 fs-6" id="peakInboundTime">09:00-09:59</span>
+                            </div>
+                            <div>
+                                <p class="mb-0 text-muted small">Most replies received on</p>
+                                <strong id="peakInboundDay">Tuesdays</strong>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>Best Delivery Rate</span>
-                            <strong class="text-success">97.2%</strong>
-                        </div>
-                    </div>
-                    <div class="alert alert-light mt-3 mb-0 py-2 px-3 small">
-                        <i class="fas fa-info-circle text-primary me-1"></i>
-                        Consider scheduling campaigns between 9-11 AM for optimal delivery.
                     </div>
                 </div>
             </div>
