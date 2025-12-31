@@ -83,6 +83,9 @@
 .bg-info-light {
     background-color: rgba(23, 162, 184, 0.1);
 }
+.bg-success-light {
+    background-color: rgba(28, 187, 140, 0.1);
+}
 .drag-handle {
     cursor: grab;
     opacity: 0.5;
@@ -512,7 +515,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-3" id="summaryBar" style="display: none;">
+                        <div class="mb-4" id="summaryBar" style="display: none;">
                         <div class="row g-3">
                             <div class="col-6 col-md-4 col-lg-3">
                                 <div class="card shadow-sm">
@@ -536,8 +539,8 @@
                                     <div class="card-body py-4 px-4">
                                         <div class="d-flex align-items-center">
                                             <div class="me-3">
-                                                <span class="bg-info-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                                    <i class="fas fa-puzzle-piece text-info fs-5"></i>
+                                                <span class="bg-success-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                                                    <i class="fas fa-puzzle-piece text-success fs-5"></i>
                                                 </span>
                                             </div>
                                             <div>
