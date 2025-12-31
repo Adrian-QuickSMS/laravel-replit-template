@@ -2,6 +2,54 @@
 
 @section('title', 'Lists')
 
+@push('styles')
+<style>
+/* Fillow Pastel Color Scheme for Lists */
+.list-icon-static {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(111, 66, 193, 0.15);
+    color: #6f42c1;
+}
+.list-icon-dynamic {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(232, 62, 140, 0.15);
+    color: #e83e8c;
+}
+
+/* Pastel badge styles */
+.badge-pastel-primary {
+    background-color: rgba(111, 66, 193, 0.15) !important;
+    color: #6f42c1 !important;
+}
+.badge-pastel-pink {
+    background-color: rgba(232, 62, 140, 0.15) !important;
+    color: #e83e8c !important;
+}
+.badge-pastel-secondary {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+    color: #6c757d !important;
+}
+.badge-pastel-success {
+    background-color: rgba(28, 187, 140, 0.15) !important;
+    color: #1cbb8c !important;
+}
+.badge-pastel-info {
+    background-color: rgba(48, 101, 208, 0.15) !important;
+    color: #3065D0 !important;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row page-titles">
@@ -17,12 +65,12 @@
             <ul class="nav nav-tabs" id="listsTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="static-tab" data-bs-toggle="tab" data-bs-target="#static" type="button" role="tab">
-                        <i class="fas fa-list me-2"></i>Static Lists <span class="badge bg-primary ms-1">{{ count($static_lists) }}</span>
+                        <i class="fas fa-list me-2"></i>Static Lists <span class="badge badge-pastel-primary ms-1">{{ count($static_lists) }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="dynamic-tab" data-bs-toggle="tab" data-bs-target="#dynamic" type="button" role="tab">
-                        <i class="fas fa-magic me-2"></i>Dynamic Lists <span class="badge bg-info ms-1">{{ count($dynamic_lists) }}</span>
+                        <i class="fas fa-magic me-2"></i>Dynamic Lists <span class="badge badge-pastel-pink ms-1">{{ count($dynamic_lists) }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -62,7 +110,7 @@
                                         <tr data-list-id="{{ $list['id'] }}">
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                                    <div class="list-icon-static me-2">
                                                         <i class="fas fa-list"></i>
                                                     </div>
                                                     <strong style="color: #000;">{{ $list['name'] }}</strong>
@@ -70,7 +118,7 @@
                                             </td>
                                             <td style="color: #000;">{{ $list['description'] }}</td>
                                             <td>
-                                                <span class="badge bg-light text-dark">
+                                                <span class="badge badge-pastel-secondary">
                                                     <i class="fas fa-users me-1"></i>{{ number_format($list['contact_count']) }}
                                                 </span>
                                             </td>
@@ -134,7 +182,7 @@
                                         <tr data-list-id="{{ $list['id'] }}">
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                                    <div class="list-icon-dynamic me-2">
                                                         <i class="fas fa-magic"></i>
                                                     </div>
                                                     <div>
@@ -145,13 +193,13 @@
                                             </td>
                                             <td>
                                                 @foreach($list['rules'] as $rule)
-                                                <span class="badge bg-light text-dark me-1">
+                                                <span class="badge badge-pastel-info me-1">
                                                     {{ $rule['field'] }} {{ $rule['operator'] }} "{{ $rule['value'] }}"
                                                 </span>
                                                 @endforeach
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark">
+                                                <span class="badge badge-pastel-secondary">
                                                     <i class="fas fa-users me-1"></i>{{ number_format($list['contact_count']) }}
                                                 </span>
                                             </td>
