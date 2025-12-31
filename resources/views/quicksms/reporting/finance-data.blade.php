@@ -44,11 +44,61 @@
     flex-shrink: 0;
     margin-top: auto;
 }
+#financeDataTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+#financeDataTable thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+}
 #financeDataTable tbody tr {
     cursor: pointer;
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid #e9ecef;
 }
 #financeDataTable tbody tr:hover {
-    background-color: rgba(111, 66, 193, 0.05);
+    background-color: rgba(136, 108, 192, 0.08) !important;
+}
+#financeDataTable tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.status-badge.finalised {
+    background-color: #d4edda;
+    color: #155724;
+}
+.status-badge.adjusted {
+    background-color: #fff3cd;
+    color: #856404;
+}
+.status-badge.provisional {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+.month-total-row {
+    background-color: #f3f0f9 !important;
+}
+.month-total-row td {
+    font-weight: 600;
+}
+.group-total-row {
+    background-color: #faf8fc !important;
+}
+.drill-row:hover {
+    background-color: rgba(136, 108, 192, 0.12) !important;
 }
 .filter-chip {
     display: inline-flex;
@@ -509,9 +559,9 @@
                     </div>
 
                     <div class="finance-data-table-wrapper">
-                        <div id="tableContainer">
-                            <table class="table table-striped table-hover table-bordered" id="financeDataTable">
-                                <thead class="table-light sticky-top">
+                        <div class="table-responsive" id="tableContainer">
+                            <table class="table display" id="financeDataTable" style="min-width: 800px">
+                                <thead>
                                     <tr>
                                         <th scope="col" class="sortable" data-sort="billing_month">
                                             Billing Month <i class="fas fa-sort ms-1 text-muted"></i>
@@ -534,134 +584,101 @@
                                     </tr>
                                 </thead>
                                 <tbody id="billingTableBody">
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">December 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">125,432</td>
-                                        <td class="text-end">3,218</td>
-                                        <td class="text-end fw-semibold">128,650</td>
-                                        <td class="text-end fw-semibold">£4,017.82</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
+                                    <tr class="drill-row" data-status="finalised" data-value="December 2025">
+                                        <td><span class="drill-label fw-semibold">December 2025</span></td>
+                                        <td class="text-end">130,730</td>
+                                        <td class="text-end">2,321</td>
+                                        <td class="text-end fw-semibold">133,051</td>
+                                        <td class="text-end fw-semibold">£4,183.36</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">November 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">118,756</td>
-                                        <td class="text-end">2,891</td>
-                                        <td class="text-end fw-semibold">121,647</td>
-                                        <td class="text-end fw-semibold">£3,812.45</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
+                                    <tr class="drill-row" data-status="finalised" data-value="November 2025">
+                                        <td><span class="drill-label fw-semibold">November 2025</span></td>
+                                        <td class="text-end">93,157</td>
+                                        <td class="text-end">1,559</td>
+                                        <td class="text-end fw-semibold">94,716</td>
+                                        <td class="text-end fw-semibold">£2,981.02</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">October 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">132,890</td>
-                                        <td class="text-end">4,102</td>
-                                        <td class="text-end fw-semibold">136,992</td>
-                                        <td class="text-end fw-semibold">£4,278.56</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
+                                    <tr class="drill-row" data-status="finalised" data-value="October 2025">
+                                        <td><span class="drill-label fw-semibold">October 2025</span></td>
+                                        <td class="text-end">100,439</td>
+                                        <td class="text-end">5,829</td>
+                                        <td class="text-end fw-semibold">106,268</td>
+                                        <td class="text-end fw-semibold">£3,214.05</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-warning" data-status="adjusted">
-                                        <td>
-                                            <span class="fw-semibold">September 2025</span>
-                                        </td>
+                                    <tr class="drill-row" data-status="adjusted" data-value="September 2025">
+                                        <td><span class="drill-label fw-semibold">September 2025</span></td>
+                                        <td class="text-end">90,711</td>
+                                        <td class="text-end">1,405</td>
+                                        <td class="text-end fw-semibold">92,116</td>
+                                        <td class="text-end fw-semibold">£2,902.75</td>
+                                        <td class="text-center"><span class="status-badge adjusted"><i class="fas fa-edit me-1"></i>Adjusted</span></td>
+                                    </tr>
+                                    <tr class="drill-row" data-status="provisional" data-value="August 2025">
+                                        <td><span class="drill-label fw-semibold">August 2025</span></td>
+                                        <td class="text-end">135,278</td>
+                                        <td class="text-end">5,783</td>
+                                        <td class="text-end fw-semibold">141,061</td>
+                                        <td class="text-end fw-semibold">£4,328.90</td>
+                                        <td class="text-center"><span class="status-badge provisional"><i class="fas fa-hourglass-half me-1"></i>Provisional</span></td>
+                                    </tr>
+                                    <tr class="drill-row" data-status="provisional" data-value="July 2025">
+                                        <td><span class="drill-label fw-semibold">July 2025</span></td>
+                                        <td class="text-end">121,490</td>
+                                        <td class="text-end">2,622</td>
+                                        <td class="text-end fw-semibold">124,112</td>
+                                        <td class="text-end fw-semibold">£3,887.68</td>
+                                        <td class="text-center"><span class="status-badge provisional"><i class="fas fa-hourglass-half me-1"></i>Provisional</span></td>
+                                    </tr>
+                                    <tr class="drill-row" data-status="finalised" data-value="June 2025">
+                                        <td><span class="drill-label fw-semibold">June 2025</span></td>
+                                        <td class="text-end">116,325</td>
+                                        <td class="text-end">3,201</td>
+                                        <td class="text-end fw-semibold">119,526</td>
+                                        <td class="text-end fw-semibold">£3,722.40</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
+                                    </tr>
+                                    <tr class="drill-row" data-status="finalised" data-value="May 2025">
+                                        <td><span class="drill-label fw-semibold">May 2025</span></td>
                                         <td class="text-end">98,234</td>
-                                        <td class="text-end">1,567</td>
-                                        <td class="text-end fw-semibold">99,801</td>
-                                        <td class="text-end fw-semibold">£3,118.92</td>
-                                        <td class="text-center">Adjusted</td>
+                                        <td class="text-end">2,145</td>
+                                        <td class="text-end fw-semibold">100,379</td>
+                                        <td class="text-end fw-semibold">£3,143.49</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-info" data-status="provisional" title="Provisional: Subject to reconciliation before invoice issue.">
-                                        <td>
-                                            <span class="fw-semibold">August 2025</span>
-                                        </td>
-                                        <td class="text-end">145,678</td>
-                                        <td class="text-end">5,234</td>
-                                        <td class="text-end fw-semibold">150,912</td>
-                                        <td class="text-end fw-semibold">£4,715.89</td>
-                                        <td class="text-center"><i class="fas fa-hourglass-half me-1 text-muted small"></i>Provisional</td>
+                                    <tr class="drill-row" data-status="finalised" data-value="April 2025">
+                                        <td><span class="drill-label fw-semibold">April 2025</span></td>
+                                        <td class="text-end">87,456</td>
+                                        <td class="text-end">1,876</td>
+                                        <td class="text-end fw-semibold">89,332</td>
+                                        <td class="text-end fw-semibold">£2,798.59</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-info" data-status="provisional" title="Provisional: Subject to reconciliation before invoice issue.">
-                                        <td>
-                                            <span class="fw-semibold">July 2025</span>
-                                        </td>
-                                        <td class="text-end">112,345</td>
-                                        <td class="text-end">2,456</td>
-                                        <td class="text-end fw-semibold">114,801</td>
-                                        <td class="text-end fw-semibold">£3,587.23</td>
-                                        <td class="text-center"><i class="fas fa-hourglass-half me-1 text-muted small"></i>Provisional</td>
+                                    <tr class="drill-row" data-status="finalised" data-value="March 2025">
+                                        <td><span class="drill-label fw-semibold">March 2025</span></td>
+                                        <td class="text-end">102,345</td>
+                                        <td class="text-end">2,567</td>
+                                        <td class="text-end fw-semibold">104,912</td>
+                                        <td class="text-end fw-semibold">£3,275.04</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">June 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">108,923</td>
-                                        <td class="text-end">3,012</td>
-                                        <td class="text-end fw-semibold">111,935</td>
-                                        <td class="text-end fw-semibold">£3,498.12</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
-                                    </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">May 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">95,678</td>
-                                        <td class="text-end">1,890</td>
-                                        <td class="text-end fw-semibold">97,568</td>
-                                        <td class="text-end fw-semibold">£3,048.67</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
-                                    </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">April 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">87,234</td>
-                                        <td class="text-end">2,134</td>
-                                        <td class="text-end fw-semibold">89,368</td>
-                                        <td class="text-end fw-semibold">£2,792.34</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
-                                    </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">March 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
-                                        <td class="text-end">102,456</td>
-                                        <td class="text-end">2,789</td>
-                                        <td class="text-end fw-semibold">105,245</td>
-                                        <td class="text-end fw-semibold">£3,289.01</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
-                                    </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">February 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
+                                    <tr class="drill-row" data-status="finalised" data-value="February 2025">
+                                        <td><span class="drill-label fw-semibold">February 2025</span></td>
                                         <td class="text-end">78,912</td>
                                         <td class="text-end">1,456</td>
                                         <td class="text-end fw-semibold">80,368</td>
-                                        <td class="text-end fw-semibold">£2,511.45</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
+                                        <td class="text-end fw-semibold">£2,525.18</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
-                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
-                                        <td>
-                                            <span class="fw-semibold">January 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small"></i>
-                                        </td>
+                                    <tr class="drill-row" data-status="finalised" data-value="January 2025">
+                                        <td><span class="drill-label fw-semibold">January 2025</span></td>
                                         <td class="text-end">91,345</td>
                                         <td class="text-end">2,234</td>
                                         <td class="text-end fw-semibold">93,579</td>
-                                        <td class="text-end fw-semibold">£2,924.78</td>
-                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
+                                        <td class="text-end fw-semibold">£2,923.04</td>
+                                        <td class="text-center"><span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1413,18 +1430,17 @@ function renderBillingTable(data) {
     var html = '';
     data.forEach(function(row) {
         var attrs = getRowAttributes(row.billingStatus);
-        var statusHtml = attrs.statusIcon + row.billingStatus;
         
-        html += '<tr class="' + attrs.classes + '"' + attrs.attrs + ' data-month="' + row.billingMonth + '">' +
+        html += '<tr class="' + attrs.classes + '"' + attrs.attrs + ' data-month="' + row.billingMonth + '" data-value="' + row.billingMonthLabel + '" data-status="' + row.billingStatus.toLowerCase() + '">' +
             '<td>' +
-                '<span class="fw-semibold text-primary">' + row.billingMonthLabel + '</span>' +
+                '<span class="drill-label fw-semibold">' + row.billingMonthLabel + '</span>' +
                 attrs.labelIcon +
             '</td>' +
             '<td class="text-end">' + formatNumber(row.billableParts) + '</td>' +
-            '<td class="text-end text-muted">' + formatNumber(row.nonBillableParts) + '</td>' +
-            '<td class="text-end text-primary">' + formatNumber(row.totalParts) + '</td>' +
-            '<td class="text-end">' + formatCurrency(row.totalCost) + '</td>' +
-            '<td>' + statusHtml + '</td>' +
+            '<td class="text-end">' + formatNumber(row.nonBillableParts) + '</td>' +
+            '<td class="text-end fw-semibold">' + formatNumber(row.totalParts) + '</td>' +
+            '<td class="text-end fw-semibold">' + formatCurrency(row.totalCost) + '</td>' +
+            '<td class="text-center">' + attrs.statusBadge + '</td>' +
             '</tr>';
     });
     
@@ -1850,13 +1866,13 @@ function renderHierarchicalTable() {
     var monthData = getMonthTotals(drillState.selectedMonth);
     var monthAttrs = getRowAttributes(monthData.status);
     
-    html += '<tr class="table-primary totals-row fw-bold" style="background-color: #e8e0f3 !important;">';
+    html += '<tr class="month-total-row fw-bold">';
     html += '<td><i class="fas fa-calendar-alt me-2"></i><span class="fw-bold">' + drillState.selectedMonth.label + ' (Totals)</span></td>';
     html += '<td class="text-end fw-bold">' + formatNumber(monthData.billable) + '</td>';
     html += '<td class="text-end fw-bold">' + formatNumber(monthData.nonBillable) + '</td>';
     html += '<td class="text-end fw-bold">' + formatNumber(monthData.total) + '</td>';
     html += '<td class="text-end fw-bold">' + formatCurrency(monthData.cost) + '</td>';
-    html += '<td class="text-center">' + monthAttrs.statusIcon + monthData.status + '</td>';
+    html += '<td class="text-center">' + monthAttrs.statusBadge + '</td>';
     html += '</tr>';
     rowCount++;
     
@@ -1879,20 +1895,20 @@ function renderHierarchicalTable() {
             html += '<td class="text-end">' + formatNumber(item.nonBillable) + '</td>';
             html += '<td class="text-end fw-semibold">' + formatNumber(item.total) + '</td>';
             html += '<td class="text-end fw-semibold">' + formatCurrency(item.cost) + '</td>';
-            html += '<td class="text-center">' + rowAttrs.statusIcon + item.status + '</td>';
+            html += '<td class="text-center">' + rowAttrs.statusBadge + '</td>';
             html += '</tr>';
             rowCount++;
         });
     } else {
         firstLevelData.forEach(function(parentItem) {
             var parentAttrs = getRowAttributes(parentItem.status);
-            html += '<tr class="table-light group-total-row fw-semibold" style="background-color: #f5f0fa !important;">';
+            html += '<tr class="group-total-row fw-semibold">';
             html += '<td style="padding-left: 24px;"><i class="fas fa-caret-down me-2 text-muted"></i><span class="fw-semibold">' + parentItem.label + ' (Total)</span></td>';
             html += '<td class="text-end fw-semibold">' + formatNumber(parentItem.billable) + '</td>';
             html += '<td class="text-end fw-semibold">' + formatNumber(parentItem.nonBillable) + '</td>';
             html += '<td class="text-end fw-semibold">' + formatNumber(parentItem.total) + '</td>';
             html += '<td class="text-end fw-semibold">' + formatCurrency(parentItem.cost) + '</td>';
-            html += '<td class="text-center">' + parentAttrs.statusIcon + parentItem.status + '</td>';
+            html += '<td class="text-center">' + parentAttrs.statusBadge + '</td>';
             html += '</tr>';
             rowCount++;
             
@@ -1908,20 +1924,20 @@ function renderHierarchicalTable() {
                     html += '<td class="text-end">' + formatNumber(childItem.nonBillable) + '</td>';
                     html += '<td class="text-end">' + formatNumber(childItem.total) + '</td>';
                     html += '<td class="text-end">' + formatCurrency(childItem.cost) + '</td>';
-                    html += '<td class="text-center">' + childAttrs.statusIcon + childItem.status + '</td>';
+                    html += '<td class="text-center">' + childAttrs.statusBadge + '</td>';
                     html += '</tr>';
                     rowCount++;
                 });
             } else {
                 secondLevelData.forEach(function(level2Item) {
                     var level2Attrs = getRowAttributes(level2Item.status);
-                    html += '<tr class="table-light group-total-row" style="background-color: #faf8fc !important;">';
+                    html += '<tr class="group-total-row">';
                     html += '<td style="padding-left: 48px;"><i class="fas fa-caret-down me-2 text-muted small"></i><span class="fw-medium">' + level2Item.label + ' (Total)</span></td>';
                     html += '<td class="text-end">' + formatNumber(level2Item.billable) + '</td>';
                     html += '<td class="text-end">' + formatNumber(level2Item.nonBillable) + '</td>';
                     html += '<td class="text-end">' + formatNumber(level2Item.total) + '</td>';
                     html += '<td class="text-end">' + formatCurrency(level2Item.cost) + '</td>';
-                    html += '<td class="text-center">' + level2Attrs.statusIcon + level2Item.status + '</td>';
+                    html += '<td class="text-center">' + level2Attrs.statusBadge + '</td>';
                     html += '</tr>';
                     rowCount++;
                     
@@ -1936,7 +1952,7 @@ function renderHierarchicalTable() {
                         html += '<td class="text-end">' + formatNumber(level3Item.nonBillable) + '</td>';
                         html += '<td class="text-end">' + formatNumber(level3Item.total) + '</td>';
                         html += '<td class="text-end">' + formatCurrency(level3Item.cost) + '</td>';
-                        html += '<td class="text-center">' + level3Attrs.statusIcon + level3Item.status + '</td>';
+                        html += '<td class="text-center">' + level3Attrs.statusBadge + '</td>';
                         html += '</tr>';
                         rowCount++;
                     });
@@ -2072,7 +2088,7 @@ function renderMonthlyTable() {
         html += '<td class="text-end">' + row.nonBillable.toLocaleString() + '</td>';
         html += '<td class="text-end fw-semibold">' + row.total.toLocaleString() + '</td>';
         html += '<td class="text-end fw-semibold">' + row.cost + '</td>';
-        html += '<td class="text-center">' + rowAttrs.statusIcon + row.status + '</td>';
+        html += '<td class="text-center">' + rowAttrs.statusBadge + '</td>';
         html += '</tr>';
     });
     
@@ -2083,27 +2099,27 @@ function renderMonthlyTable() {
 
 function getRowAttributes(status) {
     var result = {
-        classes: 'table-success',
+        classes: 'drill-row',
         attrs: '',
         labelIcon: '',
-        statusIcon: ''
+        statusBadge: '<span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span>'
     };
     
     if (status === 'Finalised') {
-        result.classes = 'table-success row-locked';
-        result.attrs = ' data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values."';
-        result.labelIcon = '<i class="fas fa-lock ms-2 text-muted small"></i>';
-        result.statusIcon = '<i class="fas fa-lock me-1 text-muted small"></i>';
-    } else if (status === 'Adjusted') {
-        result.classes = 'table-warning';
+        result.classes = 'drill-row';
         result.attrs = '';
         result.labelIcon = '';
-        result.statusIcon = '';
-    } else if (status === 'Provisional') {
-        result.classes = 'table-info';
-        result.attrs = ' title="Provisional: Subject to reconciliation before invoice issue."';
+        result.statusBadge = '<span class="status-badge finalised"><i class="fas fa-lock me-1"></i>Finalised</span>';
+    } else if (status === 'Adjusted') {
+        result.classes = 'drill-row';
+        result.attrs = '';
         result.labelIcon = '';
-        result.statusIcon = '<i class="fas fa-hourglass-half me-1 text-muted small"></i>';
+        result.statusBadge = '<span class="status-badge adjusted"><i class="fas fa-edit me-1"></i>Adjusted</span>';
+    } else if (status === 'Provisional') {
+        result.classes = 'drill-row';
+        result.attrs = '';
+        result.labelIcon = '';
+        result.statusBadge = '<span class="status-badge provisional"><i class="fas fa-hourglass-half me-1"></i>Provisional</span>';
     }
     
     return result;
