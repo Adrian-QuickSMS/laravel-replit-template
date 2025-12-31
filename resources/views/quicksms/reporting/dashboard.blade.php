@@ -399,19 +399,11 @@ table .cursor-pointer:hover {
         <!-- Dashboard Toolbar -->
         <div class="row mb-3">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="small text-muted" data-requires-admin><i class="fas fa-grip-vertical me-1"></i> Drag tiles to reposition</span>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" id="btnToggleFilters">
-                            <i class="fas fa-filter me-1"></i> Filters
-                            <span class="badge bg-primary ms-1" id="filterCountBadge" style="display: none;">0</span>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" id="btnResetLayout" data-requires-admin>
-                            <i class="fas fa-undo me-1"></i> Reset Layout
-                        </button>
-                    </div>
+                <div class="d-flex justify-content-end align-items-center">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" id="btnToggleFilters">
+                        <i class="fas fa-filter me-1"></i> Filters
+                        <span class="badge bg-primary ms-1" id="filterCountBadge" style="display: none;">0</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -940,145 +932,17 @@ table .cursor-pointer:hover {
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="{{ asset('vendor/apexchart/apexchart.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     
     // ========================================
-    // Dashboard Grid Layout with SortableJS
+    // Dashboard Grid Reference
     // ========================================
-    const STORAGE_KEY = 'quicksms_dashboard_layout';
     const gridEl = document.getElementById('dashboardGrid');
-    let sortable = null;
-    
-    // Default tile order
-    const defaultOrder = [
-        'kpi-delivery-rate', 'kpi-spend', 'kpi-rcs-seen', 'kpi-optout',
-        'chart-volume',
-        'chart-delivery-status', 'chart-top-countries', 'table-top-senderids',
-        'tile-peak-time', 'table-failure-reasons'
-    ];
-    
-    // Size options for resize
-    const sizeClasses = {
-        small: 'tile-small',
-        medium: 'tile-medium', 
-        large: 'tile-large',
-        xlarge: 'tile-xlarge',
-        full: 'tile-full'
-    };
-    
-    if (gridEl && typeof Sortable !== 'undefined') {
-        sortable = Sortable.create(gridEl, {
-            animation: 200,
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            chosenClass: 'sortable-chosen',
-            handle: '.card-header, .widget-stat, .card-body',
-            filter: '.no-drag',
-            onEnd: function(evt) {
-                saveLayout();
-                setTimeout(rerenderCharts, 100);
-            }
-        });
-        
-        // Load saved layout
-        loadLayout();
-        
-        console.log('[Dashboard] SortableJS initialized with drag & reposition');
-    }
-    
-    function saveLayout() {
-        const tiles = gridEl.querySelectorAll('.qs-tile');
-        const layout = Array.from(tiles).map(tile => ({
-            id: tile.dataset.tileId,
-            size: tile.dataset.size
-        }));
-        
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
-            console.log('[Dashboard] Layout saved');
-        } catch (e) {
-            console.warn('[Dashboard] Could not save layout:', e);
-        }
-    }
-    
-    function loadLayout() {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const layout = JSON.parse(saved);
-                const fragment = document.createDocumentFragment();
-                
-                layout.forEach(item => {
-                    const tile = gridEl.querySelector(`[data-tile-id="${item.id}"]`);
-                    if (tile) {
-                        // Apply saved size
-                        if (item.size && sizeClasses[item.size]) {
-                            Object.values(sizeClasses).forEach(cls => tile.classList.remove(cls));
-                            tile.classList.add(sizeClasses[item.size]);
-                            tile.dataset.size = item.size;
-                        }
-                        fragment.appendChild(tile);
-                    }
-                });
-                
-                gridEl.appendChild(fragment);
-                console.log('[Dashboard] Layout loaded from storage');
-            }
-        } catch (e) {
-            console.warn('[Dashboard] Could not load layout:', e);
-        }
-    }
-    
-    function resetLayout() {
-        // Reorder tiles to default
-        defaultOrder.forEach(id => {
-            const tile = gridEl.querySelector(`[data-tile-id="${id}"]`);
-            if (tile) {
-                gridEl.appendChild(tile);
-            }
-        });
-        
-        // Reset sizes to default
-        const defaultSizes = {
-            'kpi-delivery-rate': 'small', 'kpi-spend': 'small', 'kpi-rcs-seen': 'small', 'kpi-optout': 'small',
-            'chart-volume': 'xlarge',
-            'chart-delivery-status': 'medium', 'chart-top-countries': 'medium', 'table-top-senderids': 'medium',
-            'tile-peak-time': 'large', 'table-failure-reasons': 'large'
-        };
-        
-        Object.entries(defaultSizes).forEach(([id, size]) => {
-            const tile = gridEl.querySelector(`[data-tile-id="${id}"]`);
-            if (tile) {
-                Object.values(sizeClasses).forEach(cls => tile.classList.remove(cls));
-                tile.classList.add(sizeClasses[size]);
-                tile.dataset.size = size;
-            }
-        });
-        
-        try {
-            localStorage.removeItem(STORAGE_KEY);
-        } catch (e) {}
-        
-        setTimeout(rerenderCharts, 100);
-        console.log('[Dashboard] Layout reset to default');
-    }
-    
-    // Reset layout button
-    document.getElementById('btnResetLayout')?.addEventListener('click', resetLayout);
     
     // Chart instances for re-rendering
     let chartInstances = {};
-    
-    function rerenderCharts() {
-        Object.values(chartInstances).forEach(chart => {
-            if (chart && typeof chart.updateOptions === 'function') {
-                chart.updateOptions({}, false, true);
-            }
-        });
-    }
     
     // ========================================
     // Role-Based Access Control (Placeholder)
