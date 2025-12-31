@@ -385,7 +385,7 @@
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="qs-chat-messages" id="chatArea" style="min-height: 0; overflow-y: auto; padding: 15px; background-color: #f9f9f9;">
+                            <div class="qs-chat-messages" id="chatArea" style="min-height: 0; overflow-y: auto; padding: 15px; background-color: #ffffff;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -2059,6 +2059,11 @@ function markAsRead() {
         item.dataset.unread = '0';
         var badge = item.querySelector('.badge.bg-primary');
         if (badge) badge.remove();
+        var unreadDot = item.querySelector('.unread-dot');
+        if (unreadDot) unreadDot.remove();
+        // Update in-memory data
+        var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
+        if (conv) conv.unread = false;
         updateUnreadCount();
     }
     console.log('TODO: PATCH /api/conversations/' + currentConversationId + '/read');
@@ -2069,17 +2074,19 @@ function markAsUnread() {
     if (item) {
         item.classList.add('unread');
         item.dataset.unread = '1';
-        var existingBadge = item.querySelector('.badge.bg-primary.rounded-pill');
-        if (!existingBadge) {
+        var existingDot = item.querySelector('.unread-dot');
+        if (!existingDot) {
             var timeContainer = item.querySelector('.justify-content-between .d-flex.align-items-center:last-child');
             if (timeContainer) {
-                var newBadge = document.createElement('span');
-                newBadge.className = 'badge bg-primary rounded-pill';
-                newBadge.style.cssText = 'font-size: 9px; padding: 3px 6px; min-width: 18px;';
-                newBadge.textContent = '1';
-                timeContainer.appendChild(newBadge);
+                var newDot = document.createElement('span');
+                newDot.className = 'unread-dot';
+                newDot.style.cssText = 'width: 8px; height: 8px; background-color: #886CC0; border-radius: 50%; display: inline-block;';
+                timeContainer.appendChild(newDot);
             }
         }
+        // Update in-memory data
+        var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
+        if (conv) conv.unread = true;
         updateUnreadCount();
     }
     console.log('TODO: PATCH /api/conversations/' + currentConversationId + '/unread');
