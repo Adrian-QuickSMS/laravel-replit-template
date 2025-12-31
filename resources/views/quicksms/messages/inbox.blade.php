@@ -31,9 +31,10 @@
 #chatPaneWrapper {
     display: grid !important;
     grid-template-rows: auto auto 1fr auto !important;
-    flex: 1 1 auto !important;
+    flex: 1 1 0 !important;
     min-width: 0 !important;
-    height: 100% !important;
+    min-height: 0 !important;
+    align-self: stretch !important;
     overflow: hidden !important;
 }
 #chatHeader {
@@ -331,7 +332,7 @@
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: grid; grid-template-rows: auto auto 1fr auto; flex: 1 1 auto; min-width: 0; height: 100%; overflow: hidden;">
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: grid; grid-template-rows: auto auto 1fr auto; flex: 1 1 0; min-width: 0; min-height: 0; align-self: stretch; overflow: hidden;">
                             <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="background: white;">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
