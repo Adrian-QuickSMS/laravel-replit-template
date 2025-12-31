@@ -1982,16 +1982,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return { from, to };
     }
     
-    function formatDatetimeLocal(date) {
+    function formatDateLocal(date) {
         if (!date) return '';
         const pad = n => n.toString().padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
     }
     
     function setDateInputs(preset) {
         const range = getDateRange(preset);
-        document.getElementById('filterDateFrom').value = formatDatetimeLocal(range.from);
-        document.getElementById('filterDateTo').value = formatDatetimeLocal(range.to);
+        document.getElementById('filterDateFrom').value = formatDateLocal(range.from);
+        document.getElementById('filterDateTo').value = formatDateLocal(range.to);
         pendingFilters.dateFrom = range.from;
         pendingFilters.dateTo = range.to;
         pendingFilters.datePreset = preset;
