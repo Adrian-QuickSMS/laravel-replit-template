@@ -1975,6 +1975,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 to = new Date(today);
                 to.setHours(23, 59, 59);
                 break;
+            case 'lastmonth':
+                from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                to = new Date(today.getFullYear(), today.getMonth(), 0);
+                to.setHours(23, 59, 59);
+                break;
             case 'custom':
             default:
                 return { from: null, to: null };
