@@ -300,9 +300,6 @@
                                      data-timestamp="{{ $conversation['timestamp'] ?? 0 }}"
                                      data-contact-id="{{ $conversation['contact_id'] ?? '' }}"
                                      onclick="selectConversation('{{ $conversation['id'] }}')">
-                                    <div class="chat-img me-2">
-                                        {{ $conversation['initials'] }}
-                                    </div>
                                     <div class="flex-grow-1 min-width-0">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
                                             <div class="d-flex align-items-center" style="gap: 6px;">
@@ -311,7 +308,7 @@
                                             <div class="d-flex align-items-center" style="gap: 6px;">
                                                 <small class="text-muted" style="font-size: 11px; white-space: nowrap;">{{ $conversation['last_message_time'] }}</small>
                                                 @if($conversation['unread'])
-                                                <span class="badge bg-danger text-white rounded-pill" style="font-size: 9px; padding: 3px 6px; min-width: 18px;">{{ $conversation['unread_count'] }}</span>
+                                                <span class="unread-dot" style="width: 8px; height: 8px; background-color: #886CC0; border-radius: 50%; display: inline-block;"></span>
                                                 @endif
                                             </div>
                                         </div>
@@ -1862,7 +1859,7 @@ function createConversationHTML(conv, isActive) {
     var activeClass = isActive ? 'active' : '';
     var unreadClass = conv.unread ? 'unread' : '';
     var waitingBadge = !conv.contactId ? '<span class="waiting-badge mt-1 d-inline-block">Waiting for reply</span>' : '';
-    var unreadBadge = conv.unread ? '<span class="badge bg-danger text-white rounded-pill" style="font-size: 9px; padding: 3px 6px; min-width: 18px;">' + conv.unreadCount + '</span>' : '';
+    var unreadBadge = conv.unread ? '<span class="unread-dot" style="width: 8px; height: 8px; background-color: #886CC0; border-radius: 50%; display: inline-block;"></span>' : '';
     
     return '<div class="chat-bx d-flex border-bottom ' + unreadClass + ' ' + activeClass + '"' +
         ' data-id="' + conv.id + '"' +
@@ -1873,7 +1870,6 @@ function createConversationHTML(conv, isActive) {
         ' data-unread="' + (conv.unread ? '1' : '0') + '"' +
         ' data-timestamp="' + (conv.lastMessageDate || 0) + '"' +
         ' data-contact-id="' + (conv.contactId || '') + '">' +
-        '<div class="chat-img me-2">' + conv.initials + '</div>' +
         '<div class="flex-grow-1 min-width-0">' +
         '<div class="d-flex align-items-center justify-content-between mb-1">' +
         '<div class="d-flex align-items-center" style="gap: 6px;">' +
