@@ -14,8 +14,8 @@
     color: #e83e8c !important;
 }
 .badge-pastel-warning {
-    background-color: rgba(255, 191, 0, 0.15) !important;
-    color: #cc9900 !important;
+    background-color: var(--bs-warning-bg-subtle, #fff2cc) !important;
+    color: var(--bs-warning-text-emphasis, #664c00) !important;
 }
 .badge-pastel-secondary {
     background-color: rgba(108, 117, 125, 0.15) !important;
