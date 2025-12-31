@@ -640,7 +640,7 @@ span.badge.channel-pill-rcs,
                             
                             <div id="contactExists" class="{{ ($conversations[0]['contact_id'] ?? null) ? '' : 'd-none' }}">
                                 <div class="text-center mb-3">
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px; font-weight: 600;" id="contactAvatar">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; font-size: 20px; font-weight: 600; background-color: rgba(111, 66, 193, 0.15); color: #6f42c1;" id="contactAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
                                     </div>
                                     <h6 class="mb-0" id="contactName">{{ $conversations[0]['name'] ?? '' }}</h6>
@@ -1050,7 +1050,7 @@ span.badge.channel-pill-rcs,
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-4 text-center border-end">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600;" id="viewContactAvatar">SM</div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 28px; font-weight: 600; background-color: rgba(111, 66, 193, 0.15); color: #6f42c1;" id="viewContactAvatar">SM</div>
                         <h5 class="mb-1" id="viewContactName">Sarah Mitchell</h5>
                         <p class="text-muted mb-3" id="viewContactPhone">+44 77** ***111</p>
                         <div class="mb-3">
