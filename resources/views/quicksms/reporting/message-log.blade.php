@@ -302,8 +302,8 @@
 
                         <div class="collapse mb-3" id="filtersPanel">
                         <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                            <!-- Row 1: Date Range with datetime -->
-                            <div class="row g-3 align-items-end">
+                            <!-- Row 1: Date Range with Sub Account, User, Origin aligned -->
+                            <div class="row g-3 align-items-start">
                                 <div class="col-12 col-lg-6">
                                     <label class="form-label small fw-bold">Date Range</label>
                                     <div class="d-flex gap-2 align-items-center">
