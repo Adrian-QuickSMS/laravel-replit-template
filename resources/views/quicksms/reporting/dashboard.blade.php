@@ -1462,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 primary: { bg: 'rgba(111, 66, 193, 0.15)', text: '#6f42c1' },   // Purple - Total Spend
                 success: { bg: 'rgba(28, 187, 140, 0.15)', text: '#1cbb8c' },   // Green - Messages Sent, RCS Seen
                 warning: { bg: 'rgba(255, 191, 0, 0.15)', text: '#cc9900' },    // Amber - Inbound
-                info: { bg: 'rgba(23, 162, 184, 0.15)', text: '#17a2b8' },      // Cyan - Delivery Rate, RCS Penetration
+                info: { bg: 'rgba(214, 83, 193, 0.15)', text: '#D653C1' },      // Pink/Magenta - Delivery Rate, RCS Penetration
                 danger: { bg: 'rgba(220, 53, 69, 0.15)', text: '#dc3545' }      // Red - Undelivered, Opt-out
             };
             
