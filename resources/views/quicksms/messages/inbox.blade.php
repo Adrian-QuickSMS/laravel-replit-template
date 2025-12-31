@@ -131,7 +131,19 @@
     max-width: 65%;
 }
 .message-sent small {
-    color: rgba(255,255,255,0.8);
+    color: rgba(0,0,0,0.6);
+}
+/* SMS sent bubble - soft green with black text */
+.message-sent.sms-bubble,
+.message-sent.sms-bubble p {
+    background: rgba(52, 199, 89, 0.2) !important;
+    color: #1a1a1a !important;
+}
+/* RCS sent bubble - soft purple with black text */
+.message-sent.rcs-bubble,
+.message-sent.rcs-bubble p {
+    background: rgba(136, 108, 192, 0.2) !important;
+    color: #1a1a1a !important;
 }
 /* ===== NEW SOFT PASTEL PILL DESIGN (Fillow Colors) ===== */
 /* Base pill styling */

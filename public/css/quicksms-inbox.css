@@ -59,22 +59,24 @@
 
 .qs-chat-messages .message-sent p,
 .qs-chat-messages .media .message-sent p {
-    background: linear-gradient(135deg, #34C759 0%, #2DB84D 100%);
-    color: white;
+    background: rgba(52, 199, 89, 0.2);
+    color: #1a1a1a;
     border-radius: 0.625rem;
     border-top-right-radius: 0;
 }
 
+/* SMS sent bubble - soft green with black text */
 .qs-chat-messages .message-sent.sms-bubble p,
 .qs-chat-messages .media .message-sent.sms-bubble p {
-    background: linear-gradient(135deg, #34C759 0%, #2DB84D 100%);
-    color: white;
+    background: rgba(52, 199, 89, 0.2) !important;
+    color: #1a1a1a !important;
 }
 
+/* RCS sent bubble - soft purple with black text */
 .qs-chat-messages .message-sent.rcs-bubble p,
 .qs-chat-messages .media .message-sent.rcs-bubble p {
-    background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
-    color: white;
+    background: rgba(136, 108, 192, 0.2) !important;
+    color: #1a1a1a !important;
 }
 
 /* ===== SOFT PASTEL PILL DESIGN (Fillow Colors) ===== */
