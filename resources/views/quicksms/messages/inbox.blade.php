@@ -133,7 +133,7 @@
 .message-sent small {
     color: rgba(255,255,255,0.8);
 }
-/* ===== NEW SOFT PASTEL PILL DESIGN ===== */
+/* ===== NEW SOFT PASTEL PILL DESIGN (Fillow Colors) ===== */
 /* Base pill styling */
 .qs-pill {
     display: inline-block;
@@ -145,40 +145,48 @@
     background: none;
 }
 
-/* Unread count badge - soft red */
+/* Unread count badge - soft red/danger (Fillow danger-light derived) */
 .qs-pill-unread {
-    background-color: #fde8e8;
+    background-color: rgba(253, 96, 124, 0.15);
     color: #c53030;
 }
 
 /* Tag badges - soft neutral/grey */
 .qs-pill-tag {
-    background-color: #f0f0f0;
-    color: #525252;
+    background-color: rgba(108, 117, 125, 0.12);
+    color: #495057;
 }
 
-/* List badges - soft magenta/pink */
+/* List badges - soft pink (Fillow secondary #FFA7D7) */
 .qs-pill-list {
-    background-color: #fce7f3;
-    color: #be185d;
+    background-color: rgba(255, 167, 215, 0.2);
+    color: #c2185b;
 }
 
 /* SMS channel badge - soft green */
-.qs-pill-sms, .badge.channel-pill-sms {
-    background-color: #dcfce7 !important;
-    color: #166534 !important;
+.qs-pill-sms,
+.badge.channel-pill-sms,
+span.badge.channel-pill-sms,
+.badge.rounded-pill.channel-pill-sms {
+    background-color: rgba(52, 199, 89, 0.15) !important;
+    color: #1b7340 !important;
+    background: rgba(52, 199, 89, 0.15) !important;
 }
 
-/* RCS channel badge - soft purple */
-.qs-pill-rcs, .badge.channel-pill-rcs {
-    background-color: #ede9fe !important;
-    color: #6d28d9 !important;
+/* RCS channel badge - soft purple (Fillow primary #886CC0) */
+.qs-pill-rcs,
+.badge.channel-pill-rcs,
+span.badge.channel-pill-rcs,
+.badge.rounded-pill.channel-pill-rcs {
+    background-color: rgba(136, 108, 192, 0.15) !important;
+    color: var(--primary-dark, #402c67) !important;
+    background: rgba(136, 108, 192, 0.15) !important;
 }
 
 /* Waiting for reply - soft amber/yellow */
 .qs-pill-waiting, .waiting-badge {
-    background-color: #fef3c7;
-    color: #b45309;
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #92600c;
     font-size: 9px;
     padding: 2px 8px;
     border-radius: 9999px;

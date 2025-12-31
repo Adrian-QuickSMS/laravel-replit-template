@@ -77,22 +77,31 @@
     color: white;
 }
 
-/* Channel Pills - match Tag/List pill styling */
-.badge.channel-pill-sms {
-    background-color: #34C759 !important;
-    color: white !important;
+/* ===== SOFT PASTEL PILL DESIGN (Fillow Colors) ===== */
+
+/* SMS channel badge - soft green */
+.badge.channel-pill-sms,
+span.badge.channel-pill-sms,
+.badge.rounded-pill.channel-pill-sms {
+    background-color: rgba(52, 199, 89, 0.15) !important;
+    background: rgba(52, 199, 89, 0.15) !important;
+    color: #1b7340 !important;
     font-size: 10px !important;
-    font-weight: 500 !important;
-    padding: 3px 8px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
     border-radius: 50rem !important;
 }
 
-.badge.channel-pill-rcs {
-    background-color: #007AFF !important;
-    color: white !important;
+/* RCS channel badge - soft purple (Fillow primary) */
+.badge.channel-pill-rcs,
+span.badge.channel-pill-rcs,
+.badge.rounded-pill.channel-pill-rcs {
+    background-color: rgba(136, 108, 192, 0.15) !important;
+    background: rgba(136, 108, 192, 0.15) !important;
+    color: #402c67 !important;
     font-size: 10px !important;
-    font-weight: 500 !important;
-    padding: 3px 8px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
     border-radius: 50rem !important;
 }
 
