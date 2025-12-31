@@ -17,12 +17,12 @@
             <ul class="nav nav-tabs" id="optOutTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="manage-lists-tab" data-bs-toggle="tab" data-bs-target="#manage-lists" type="button" role="tab">
-                        <i class="fas fa-list me-2"></i>Manage Lists <span class="badge bg-primary ms-1">{{ count($opt_out_lists) }}</span>
+                        <i class="fas fa-list me-2"></i>Manage Lists <span class="badge badge-pastel-primary ms-1">{{ count($opt_out_lists) }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="view-optouts-tab" data-bs-toggle="tab" data-bs-target="#view-optouts" type="button" role="tab">
-                        <i class="fas fa-ban me-2"></i>View Opt-Outs <span class="badge bg-danger ms-1">{{ $total_opt_outs }}</span>
+                        <i class="fas fa-ban me-2"></i>View Opt-Outs <span class="badge badge-pastel-danger ms-1">{{ $total_opt_outs }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -67,20 +67,20 @@
                                         <tr data-list-id="{{ $list['id'] }}">
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="rounded-circle {{ $list['is_master'] ? 'bg-danger' : 'bg-warning' }} text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: {{ $list['is_master'] ? 'rgba(220, 53, 69, 0.15)' : 'rgba(111, 66, 193, 0.15)' }}; color: {{ $list['is_master'] ? '#dc3545' : '#6f42c1' }};">
                                                         <i class="fas {{ $list['is_master'] ? 'fa-shield-alt' : 'fa-ban' }}"></i>
                                                     </div>
                                                     <div>
                                                         <strong style="color: #000;">{{ $list['name'] }}</strong>
                                                         @if($list['is_master'])
-                                                        <span class="badge bg-danger ms-2">Master</span>
+                                                        <span class="badge badge-pastel-danger ms-2">Master</span>
                                                         @endif
                                                     </div>
                                                 </div>
                                             </td>
                                             <td style="color: #000;">{{ $list['description'] }}</td>
                                             <td>
-                                                <span class="badge bg-light text-dark">
+                                                <span class="badge badge-pastel-secondary">
                                                     <i class="fas fa-user-slash me-1"></i>{{ number_format($list['count']) }}
                                                 </span>
                                             </td>
@@ -203,13 +203,13 @@
                                             </td>
                                             <td>
                                                 @if($optout['source'] === 'sms_reply')
-                                                <span class="badge bg-info"><i class="fas fa-sms me-1"></i>SMS Reply</span>
+                                                <span class="badge badge-pastel-pink"><i class="fas fa-sms me-1"></i>SMS Reply</span>
                                                 @elseif($optout['source'] === 'url_click')
-                                                <span class="badge bg-success"><i class="fas fa-link me-1"></i>URL Click</span>
+                                                <span class="badge badge-pastel-success"><i class="fas fa-link me-1"></i>URL Click</span>
                                                 @elseif($optout['source'] === 'api')
-                                                <span class="badge bg-secondary"><i class="fas fa-code me-1"></i>API</span>
+                                                <span class="badge badge-pastel-primary"><i class="fas fa-code me-1"></i>API</span>
                                                 @else
-                                                <span class="badge bg-warning text-dark"><i class="fas fa-hand-paper me-1"></i>Manual</span>
+                                                <span class="badge badge-pastel-warning"><i class="fas fa-hand-paper me-1"></i>Manual</span>
                                                 @endif
                                             </td>
                                             <td style="color: #000;">{{ \Carbon\Carbon::parse($optout['timestamp'])->format('d-m-Y H:i') }}</td>
@@ -221,7 +221,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <span class="badge bg-light text-dark">{{ $optout['list_name'] }}</span>
+                                                <span class="badge badge-pastel-secondary">{{ $optout['list_name'] }}</span>
                                             </td>
                                             <td class="text-end">
                                                 <div class="dropdown">
