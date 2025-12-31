@@ -186,15 +186,6 @@
 .predictive-suggestion:hover {
     background: #f8f9fa;
 }
-.row-finalised {
-    background-color: rgba(0, 0, 0, 0.02) !important;
-}
-.row-finalised td {
-    color: #6c757d;
-}
-.row-finalised .fw-semibold {
-    color: #495057;
-}
 #tableContainer thead th {
     border-bottom: 2px solid #dee2e6;
     white-space: nowrap;
@@ -447,158 +438,134 @@
                                     </tr>
                                 </thead>
                                 <tbody id="billingTableBody">
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">December 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">125,432</td>
-                                        <td class="text-end text-muted">3,218</td>
+                                        <td class="text-end">3,218</td>
                                         <td class="text-end fw-semibold">128,650</td>
                                         <td class="text-end fw-semibold">£4,017.82</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">November 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">118,756</td>
-                                        <td class="text-end text-muted">2,891</td>
+                                        <td class="text-end">2,891</td>
                                         <td class="text-end fw-semibold">121,647</td>
                                         <td class="text-end fw-semibold">£3,812.45</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">October 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">132,890</td>
-                                        <td class="text-end text-muted">4,102</td>
+                                        <td class="text-end">4,102</td>
                                         <td class="text-end fw-semibold">136,992</td>
                                         <td class="text-end fw-semibold">£4,278.56</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr data-status="adjusted">
+                                    <tr class="table-warning" data-status="adjusted">
                                         <td>
                                             <span class="fw-semibold">September 2025</span>
                                         </td>
                                         <td class="text-end">98,234</td>
-                                        <td class="text-end text-muted">1,567</td>
+                                        <td class="text-end">1,567</td>
                                         <td class="text-end fw-semibold">99,801</td>
                                         <td class="text-end fw-semibold">£3,118.92</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-warning-light text-warning">Adjusted</span>
-                                        </td>
+                                        <td class="text-center">Adjusted</td>
                                     </tr>
-                                    <tr data-status="provisional">
+                                    <tr class="table-info" data-status="provisional">
                                         <td>
                                             <span class="fw-semibold">August 2025</span>
                                         </td>
                                         <td class="text-end">145,678</td>
-                                        <td class="text-end text-muted">5,234</td>
+                                        <td class="text-end">5,234</td>
                                         <td class="text-end fw-semibold">150,912</td>
                                         <td class="text-end fw-semibold">£4,715.89</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-info-light text-info">Provisional</span>
-                                        </td>
+                                        <td class="text-center">Provisional</td>
                                     </tr>
-                                    <tr data-status="provisional">
+                                    <tr class="table-info" data-status="provisional">
                                         <td>
                                             <span class="fw-semibold">July 2025</span>
                                         </td>
                                         <td class="text-end">112,345</td>
-                                        <td class="text-end text-muted">2,456</td>
+                                        <td class="text-end">2,456</td>
                                         <td class="text-end fw-semibold">114,801</td>
                                         <td class="text-end fw-semibold">£3,587.23</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-info-light text-info">Provisional</span>
-                                        </td>
+                                        <td class="text-center">Provisional</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">June 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">108,923</td>
-                                        <td class="text-end text-muted">3,012</td>
+                                        <td class="text-end">3,012</td>
                                         <td class="text-end fw-semibold">111,935</td>
                                         <td class="text-end fw-semibold">£3,498.12</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">May 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">95,678</td>
-                                        <td class="text-end text-muted">1,890</td>
+                                        <td class="text-end">1,890</td>
                                         <td class="text-end fw-semibold">97,568</td>
                                         <td class="text-end fw-semibold">£3,048.67</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">April 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">87,234</td>
-                                        <td class="text-end text-muted">2,134</td>
+                                        <td class="text-end">2,134</td>
                                         <td class="text-end fw-semibold">89,368</td>
                                         <td class="text-end fw-semibold">£2,792.34</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">March 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">102,456</td>
-                                        <td class="text-end text-muted">2,789</td>
+                                        <td class="text-end">2,789</td>
                                         <td class="text-end fw-semibold">105,245</td>
                                         <td class="text-end fw-semibold">£3,289.01</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">February 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">78,912</td>
-                                        <td class="text-end text-muted">1,456</td>
+                                        <td class="text-end">1,456</td>
                                         <td class="text-end fw-semibold">80,368</td>
                                         <td class="text-end fw-semibold">£2,511.45</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
-                                    <tr class="row-finalised" data-status="finalised">
+                                    <tr class="table-success" data-status="finalised">
                                         <td>
                                             <span class="fw-semibold">January 2025</span>
                                             <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
                                         </td>
                                         <td class="text-end">91,345</td>
-                                        <td class="text-end text-muted">2,234</td>
+                                        <td class="text-end">2,234</td>
                                         <td class="text-end fw-semibold">93,579</td>
                                         <td class="text-end fw-semibold">£2,924.78</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-light text-success">Finalised</span>
-                                        </td>
+                                        <td class="text-center">Finalised</td>
                                     </tr>
                                 </tbody>
                             </table>
