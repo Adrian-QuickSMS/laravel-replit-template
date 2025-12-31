@@ -22,8 +22,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(232, 62, 140, 0.15);
-    color: #e83e8c;
+    background-color: rgba(111, 66, 193, 0.15);
+    color: #6f42c1;
 }
 
 /* Pastel badge styles */
@@ -70,7 +70,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="dynamic-tab" data-bs-toggle="tab" data-bs-target="#dynamic" type="button" role="tab">
-                        <i class="fas fa-magic me-2"></i>Dynamic Lists <span class="badge badge-pastel-pink ms-1">{{ count($dynamic_lists) }}</span>
+                        <i class="fas fa-magic me-2"></i>Dynamic Lists <span class="badge badge-pastel-primary ms-1">{{ count($dynamic_lists) }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -193,7 +193,7 @@
                                             </td>
                                             <td>
                                                 @foreach($list['rules'] as $rule)
-                                                <span class="badge badge-pastel-info me-1">
+                                                <span class="badge badge-pastel-pink me-1">
                                                     {{ $rule['field'] }} {{ $rule['operator'] }} "{{ $rule['value'] }}"
                                                 </span>
                                                 @endforeach
