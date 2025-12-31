@@ -24,7 +24,7 @@
 #chatArea {
     flex: 1 1 0 !important;
     overflow-y: auto !important;
-    padding: 15px 15px 390px 15px !important;
+    padding: 15px 15px 490px 15px !important;
     background-color: #fff !important;
 }
 
@@ -35,7 +35,7 @@
     left: 0 !important;
     right: 0 !important;
     z-index: 100 !important;
-    max-height: 380px !important;
+    max-height: 480px !important;
     overflow: visible !important;
     margin: 0 !important;
     border-radius: 0 !important;

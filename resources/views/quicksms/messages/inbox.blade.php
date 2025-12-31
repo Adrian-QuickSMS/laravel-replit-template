@@ -56,7 +56,7 @@
     left: 0 !important;
     right: 0 !important;
     z-index: 100 !important;
-    max-height: 380px !important;
+    max-height: 480px !important;
     overflow: visible !important;
     margin: 0 !important;
     border-radius: 0 !important;
@@ -398,7 +398,7 @@
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 390px 15px; background-color: #ffffff;">
+                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 490px 15px; background-color: #ffffff;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -456,7 +456,7 @@
                                 @endif
                             </div>
                             
-                            <div class="card border-top" id="replyComposerCard" style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; border-radius: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100; max-height: 380px; overflow: visible;">
+                            <div class="card border-top" id="replyComposerCard" style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; border-radius: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100; max-height: 480px; overflow: visible;">
                                 <div class="card-body p-2">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
