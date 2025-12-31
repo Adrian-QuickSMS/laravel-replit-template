@@ -1,3 +1,23 @@
+/* Chat Pane Layout - Fixed composer at bottom */
+.chat-pane-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+.chat-pane-wrapper .chat-box-area {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 200px !important;
+    overflow-y: auto !important;
+}
+
+.chat-pane-wrapper #replyComposerCard {
+    flex: 0 0 auto !important;
+    margin-top: auto !important;
+}
+
 /* Message Bubble Width - both inbound and outbound use same max-width */
 .chat-box-area .message-received,
 .chat-box-area .media .message-received {
