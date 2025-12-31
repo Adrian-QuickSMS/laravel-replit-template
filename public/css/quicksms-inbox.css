@@ -1,32 +1,28 @@
-/* Chat Pane Layout - Consistent Flexbox Column (same as sidebars) */
-/* Using ID selectors for highest specificity */
+/* Chat Pane Layout - CSS Grid for reliable 4-row layout */
+/* Row 1: Header (auto), Row 2: Search bar (auto), Row 3: Messages (1fr), Row 4: Composer (auto) */
 #chatPaneWrapper {
-    display: flex !important;
-    flex-direction: column !important;
+    display: grid !important;
+    grid-template-rows: auto auto 1fr auto !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    min-height: 0 !important;
+    height: 100% !important;
     overflow: hidden !important;
 }
 
-/* Chat header - fixed at top (flex: 0 = doesn't grow/shrink) */
+/* Chat header - grid row 1 (auto height) */
 #chatHeader {
-    flex: 0 0 auto !important;
     background: #fff !important;
 }
 
-/* Chat messages area - fills remaining space (flex: 1 = grows to fill) */
+/* Chat messages area - grid row 2 (1fr = fills remaining space) */
 #chatArea {
-    flex: 1 1 auto !important;
-    height: auto !important;
     min-height: 0 !important;
     overflow-y: auto !important;
     padding: 15px !important;
 }
 
-/* Reply composer - fixed at bottom (flex: 0 = doesn't grow/shrink) */
+/* Reply composer - grid row 3 (auto height) */
 #replyComposerCard {
-    flex: 0 0 auto !important;
     margin: 0 !important;
     border-radius: 0 !important;
     background: #fff !important;
@@ -35,34 +31,34 @@
 }
 
 /* Message Bubble Width - both inbound and outbound use same max-width */
-.chat-box-area .message-received,
-.chat-box-area .media .message-received {
+.qs-chat-messages .message-received,
+.qs-chat-messages .media .message-received {
     max-width: 65%;
     min-width: auto;
 }
 
-.chat-box-area .message-sent,
-.chat-box-area .media .message-sent {
+.qs-chat-messages .message-sent,
+.qs-chat-messages .media .message-sent {
     max-width: 65%;
     min-width: auto;
 }
 
-.chat-box-area .message-sent p,
-.chat-box-area .media .message-sent p {
+.qs-chat-messages .message-sent p,
+.qs-chat-messages .media .message-sent p {
     background: linear-gradient(135deg, #34C759 0%, #2DB84D 100%);
     color: white;
     border-radius: 0.625rem;
     border-top-right-radius: 0;
 }
 
-.chat-box-area .message-sent.sms-bubble p,
-.chat-box-area .media .message-sent.sms-bubble p {
+.qs-chat-messages .message-sent.sms-bubble p,
+.qs-chat-messages .media .message-sent.sms-bubble p {
     background: linear-gradient(135deg, #34C759 0%, #2DB84D 100%);
     color: white;
 }
 
-.chat-box-area .message-sent.rcs-bubble p,
-.chat-box-area .media .message-sent.rcs-bubble p {
+.qs-chat-messages .message-sent.rcs-bubble p,
+.qs-chat-messages .media .message-sent.rcs-bubble p {
     background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
     color: white;
 }
