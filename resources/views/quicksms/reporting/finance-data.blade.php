@@ -186,6 +186,19 @@
 .predictive-suggestion:hover {
     background: #f8f9fa;
 }
+.row-finalised {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+}
+.row-finalised td {
+    color: #6c757d;
+}
+.row-finalised .fw-semibold {
+    color: #495057;
+}
+#tableContainer thead th {
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
 .optgroup-label {
     font-weight: 600;
     font-size: 0.75rem;
@@ -410,173 +423,206 @@
 
                     <div class="finance-data-table-wrapper">
                         <div id="tableContainer">
-                            <table class="table table-striped table-hover" id="financeDataTable">
+                            <table class="table table-striped table-hover table-bordered" id="financeDataTable">
                                 <thead class="table-light sticky-top">
                                     <tr>
-                                        <th scope="col" class="sortable" data-sort="date">
-                                            Date/Time <i class="fas fa-sort ms-1 text-muted"></i>
+                                        <th scope="col" class="sortable" data-sort="billing_month">
+                                            Billing Month <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-sort="transaction_id">
-                                            Transaction ID <i class="fas fa-sort ms-1 text-muted"></i>
+                                        <th scope="col" class="sortable text-end" data-sort="billable_parts">
+                                            Billable Parts <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-sort="sub_account">
-                                            Sub Account <i class="fas fa-sort ms-1 text-muted"></i>
+                                        <th scope="col" class="sortable text-end" data-sort="non_billable_parts">
+                                            Non-Billable Parts <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-sort="user">
-                                            User <i class="fas fa-sort ms-1 text-muted"></i>
+                                        <th scope="col" class="sortable text-end" data-sort="total_parts">
+                                            Total Parts <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-sort="type">
-                                            Type <i class="fas fa-sort ms-1 text-muted"></i>
+                                        <th scope="col" class="sortable text-end" data-sort="total_cost">
+                                            Total Cost (ex VAT) <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-sort="channel">
-                                            Channel <i class="fas fa-sort ms-1 text-muted"></i>
+                                        <th scope="col" class="sortable text-center" data-sort="billing_status">
+                                            Billing Status <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
-                                        <th scope="col" class="sortable" data-sort="country">
-                                            Country <i class="fas fa-sort ms-1 text-muted"></i>
-                                        </th>
-                                        <th scope="col" class="sortable" data-sort="quantity">
-                                            Quantity <i class="fas fa-sort ms-1 text-muted"></i>
-                                        </th>
-                                        <th scope="col" class="sortable" data-sort="unit_cost">
-                                            Unit Cost <i class="fas fa-sort ms-1 text-muted"></i>
-                                        </th>
-                                        <th scope="col" class="sortable" data-sort="total">
-                                            Total <i class="fas fa-sort ms-1 text-muted"></i>
-                                        </th>
-                                        <th scope="col" class="sortable" data-sort="balance">
-                                            Balance <i class="fas fa-sort ms-1 text-muted"></i>
-                                        </th>
-                                        <th scope="col">Description</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>31/12/2025 14:32:18</td>
-                                        <td><code>TXN-20251231-001</code></td>
-                                        <td>Main Account</td>
-                                        <td>John Smith</td>
-                                        <td><span class="badge bg-danger-light text-danger">Debit</span></td>
-                                        <td>SMS</td>
-                                        <td>UK</td>
-                                        <td class="text-end">1,250</td>
-                                        <td class="text-end">£0.032</td>
-                                        <td class="text-end text-danger">-£40.00</td>
-                                        <td class="text-end">£4,960.00</td>
-                                        <td>Campaign: Winter Sale 2025</td>
+                                <tbody id="billingTableBody">
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">December 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">125,432</td>
+                                        <td class="text-end text-muted">3,218</td>
+                                        <td class="text-end fw-semibold">128,650</td>
+                                        <td class="text-end fw-semibold">£4,017.82</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>31/12/2025 12:15:42</td>
-                                        <td><code>TXN-20251231-002</code></td>
-                                        <td>Marketing Team</td>
-                                        <td>Sarah Johnson</td>
-                                        <td><span class="badge bg-success-light text-success">Credit</span></td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td class="text-end">5,000</td>
-                                        <td class="text-end">—</td>
-                                        <td class="text-end text-success">+£150.00</td>
-                                        <td class="text-end">£5,000.00</td>
-                                        <td>Top-up: Credit Purchase</td>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">November 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">118,756</td>
+                                        <td class="text-end text-muted">2,891</td>
+                                        <td class="text-end fw-semibold">121,647</td>
+                                        <td class="text-end fw-semibold">£3,812.45</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>30/12/2025 18:45:33</td>
-                                        <td><code>TXN-20251230-001</code></td>
-                                        <td>Support Team</td>
-                                        <td>Mike Williams</td>
-                                        <td><span class="badge bg-danger-light text-danger">Debit</span></td>
-                                        <td>RCS</td>
-                                        <td>DE</td>
-                                        <td class="text-end">500</td>
-                                        <td class="text-end">£0.045</td>
-                                        <td class="text-end text-danger">-£22.50</td>
-                                        <td class="text-end">£4,850.00</td>
-                                        <td>Campaign: DE Customer Outreach</td>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">October 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">132,890</td>
+                                        <td class="text-end text-muted">4,102</td>
+                                        <td class="text-end fw-semibold">136,992</td>
+                                        <td class="text-end fw-semibold">£4,278.56</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>30/12/2025 10:22:11</td>
-                                        <td><code>TXN-20251230-002</code></td>
-                                        <td>Sales Team</td>
-                                        <td>Emma Davis</td>
-                                        <td><span class="badge bg-warning-light text-warning">Refund</span></td>
-                                        <td>SMS</td>
-                                        <td>FR</td>
-                                        <td class="text-end">100</td>
-                                        <td class="text-end">£0.038</td>
-                                        <td class="text-end text-success">+£3.80</td>
-                                        <td class="text-end">£4,872.50</td>
-                                        <td>Refund: Undelivered Messages</td>
+                                    <tr data-status="adjusted">
+                                        <td>
+                                            <span class="fw-semibold">September 2025</span>
+                                        </td>
+                                        <td class="text-end">98,234</td>
+                                        <td class="text-end text-muted">1,567</td>
+                                        <td class="text-end fw-semibold">99,801</td>
+                                        <td class="text-end fw-semibold">£3,118.92</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning-light text-warning">Adjusted</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>29/12/2025 16:08:55</td>
-                                        <td><code>TXN-20251229-001</code></td>
-                                        <td>Main Account</td>
-                                        <td>John Smith</td>
-                                        <td><span class="badge bg-danger-light text-danger">Debit</span></td>
-                                        <td>SMS</td>
-                                        <td>UK</td>
-                                        <td class="text-end">2,000</td>
-                                        <td class="text-end">£0.032</td>
-                                        <td class="text-end text-danger">-£64.00</td>
-                                        <td class="text-end">£4,868.70</td>
-                                        <td>Campaign: Holiday Greetings</td>
+                                    <tr data-status="provisional">
+                                        <td>
+                                            <span class="fw-semibold">August 2025</span>
+                                        </td>
+                                        <td class="text-end">145,678</td>
+                                        <td class="text-end text-muted">5,234</td>
+                                        <td class="text-end fw-semibold">150,912</td>
+                                        <td class="text-end fw-semibold">£4,715.89</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-light text-info">Provisional</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>29/12/2025 09:30:00</td>
-                                        <td><code>TXN-20251229-002</code></td>
-                                        <td>Marketing Team</td>
-                                        <td>Sarah Johnson</td>
-                                        <td><span class="badge bg-info-light text-info">Adjustment</span></td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td class="text-end">—</td>
-                                        <td class="text-end">—</td>
-                                        <td class="text-end text-success">+£25.00</td>
-                                        <td class="text-end">£4,932.70</td>
-                                        <td>Promotional Credit Bonus</td>
+                                    <tr data-status="provisional">
+                                        <td>
+                                            <span class="fw-semibold">July 2025</span>
+                                        </td>
+                                        <td class="text-end">112,345</td>
+                                        <td class="text-end text-muted">2,456</td>
+                                        <td class="text-end fw-semibold">114,801</td>
+                                        <td class="text-end fw-semibold">£3,587.23</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-light text-info">Provisional</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>28/12/2025 14:55:22</td>
-                                        <td><code>TXN-20251228-001</code></td>
-                                        <td>Support Team</td>
-                                        <td>Mike Williams</td>
-                                        <td><span class="badge bg-danger-light text-danger">Debit</span></td>
-                                        <td>RCS</td>
-                                        <td>US</td>
-                                        <td class="text-end">750</td>
-                                        <td class="text-end">£0.052</td>
-                                        <td class="text-end text-danger">-£39.00</td>
-                                        <td class="text-end">£4,907.70</td>
-                                        <td>API: Automated Alerts</td>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">June 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">108,923</td>
+                                        <td class="text-end text-muted">3,012</td>
+                                        <td class="text-end fw-semibold">111,935</td>
+                                        <td class="text-end fw-semibold">£3,498.12</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
                                     </tr>
-                                    <tr>
-                                        <td>28/12/2025 08:12:45</td>
-                                        <td><code>TXN-20251228-002</code></td>
-                                        <td>Sales Team</td>
-                                        <td>Emma Davis</td>
-                                        <td><span class="badge bg-danger-light text-danger">Debit</span></td>
-                                        <td>SMS</td>
-                                        <td>IE</td>
-                                        <td class="text-end">300</td>
-                                        <td class="text-end">£0.035</td>
-                                        <td class="text-end text-danger">-£10.50</td>
-                                        <td class="text-end">£4,946.70</td>
-                                        <td>Campaign: IE Promotions</td>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">May 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">95,678</td>
+                                        <td class="text-end text-muted">1,890</td>
+                                        <td class="text-end fw-semibold">97,568</td>
+                                        <td class="text-end fw-semibold">£3,048.67</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">April 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">87,234</td>
+                                        <td class="text-end text-muted">2,134</td>
+                                        <td class="text-end fw-semibold">89,368</td>
+                                        <td class="text-end fw-semibold">£2,792.34</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">March 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">102,456</td>
+                                        <td class="text-end text-muted">2,789</td>
+                                        <td class="text-end fw-semibold">105,245</td>
+                                        <td class="text-end fw-semibold">£3,289.01</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">February 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">78,912</td>
+                                        <td class="text-end text-muted">1,456</td>
+                                        <td class="text-end fw-semibold">80,368</td>
+                                        <td class="text-end fw-semibold">£2,511.45</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="row-finalised" data-status="finalised">
+                                        <td>
+                                            <span class="fw-semibold">January 2025</span>
+                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                        </td>
+                                        <td class="text-end">91,345</td>
+                                        <td class="text-end text-muted">2,234</td>
+                                        <td class="text-end fw-semibold">93,579</td>
+                                        <td class="text-end fw-semibold">£2,924.78</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-light text-success">Finalised</span>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div id="loadingIndicator" class="text-center py-3" style="display: none;">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted small">Loading more data...</span>
                         </div>
                     </div>
 
                     <div class="finance-data-footer border-top pt-3 mt-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-3">
-                                <span class="text-muted small">Showing <strong>8</strong> of <strong>8</strong> transactions</span>
+                                <span class="text-muted small">Showing <strong id="rowCount">12</strong> of <strong id="totalCount">12</strong> billing periods</span>
+                                <span class="text-muted small">|</span>
+                                <span class="text-muted small">Max display: 10,000 rows</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv" disabled>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv">
                                     <i class="fas fa-file-csv me-1"></i> Export CSV
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportPdf" disabled>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportPdf">
                                     <i class="fas fa-file-pdf me-1"></i> Export PDF
                                 </button>
                             </div>
