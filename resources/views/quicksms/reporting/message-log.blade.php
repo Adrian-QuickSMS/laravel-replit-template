@@ -272,14 +272,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap message-log-fixed-header">
                     <h5 class="card-title mb-2 mb-md-0">Message Log</h5>
-                    <div class="d-flex align-items-center gap-2 gap-md-3">
-                        <div class="table-style-toggle">
-                            <span class="toggle-label" id="labelColoredRows">Coloured Rows</span>
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" role="switch" id="tableStyleToggle">
-                            </div>
-                            <span class="toggle-label" id="labelStatusBadges">Status Badges</span>
-                        </div>
+                    <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                         </button>
@@ -532,9 +525,17 @@
                             <div class="text-muted small" id="rowCountInfo">
                                 <span id="renderedCount">0</span> rows loaded (max 10,000)
                             </div>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#columnSettingsModal">
-                                <i class="fas fa-cog me-1"></i> Column Settings
-                            </button>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="table-style-toggle">
+                                    <span class="toggle-label" id="labelColoredRows">Coloured Rows</span>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="tableStyleToggle">
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#columnSettingsModal">
+                                    <i class="fas fa-cog me-1"></i> Column Settings
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -1359,16 +1360,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var tableStyleToggle = document.getElementById('tableStyleToggle');
     var messageLogTable = document.getElementById('messageLogTable');
     var labelColoredRows = document.getElementById('labelColoredRows');
-    var labelStatusBadges = document.getElementById('labelStatusBadges');
     
     function updateToggleLabels() {
         if (useCleanStyle) {
             labelColoredRows.classList.remove('active');
-            labelStatusBadges.classList.add('active');
             messageLogTable.classList.add('clean-style');
         } else {
             labelColoredRows.classList.add('active');
-            labelStatusBadges.classList.remove('active');
             messageLogTable.classList.remove('clean-style');
         }
     }
