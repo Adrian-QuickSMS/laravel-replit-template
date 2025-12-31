@@ -225,6 +225,30 @@
 #billingTableBody tr.row-locked:hover td {
     filter: none;
 }
+/* Skeleton loader styles */
+.skeleton-row td {
+    padding: 1rem 0.75rem !important;
+}
+.skeleton-cell {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 1rem;
+    display: inline-block;
+}
+.skeleton-cell.w-80 { width: 80%; }
+.skeleton-cell.w-60 { width: 60%; }
+.skeleton-cell.w-40 { width: 40%; }
+.skeleton-cell.w-100 { width: 100%; }
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.table-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
 .optgroup-label {
     font-weight: 600;
     font-size: 0.75rem;
@@ -910,6 +934,57 @@ function hasPermission(requiredRole) {
     return userRoleLevel >= requiredLevel;
 }
 
+// Debounce utility for text filters
+function debounce(func, wait) {
+    var timeout;
+    return function() {
+        var context = this;
+        var args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(function() {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
+// Skeleton loader functions
+function showSkeletonLoader(rowCount) {
+    var tbody = document.getElementById('billingTableBody');
+    var skeletonHtml = '';
+    rowCount = rowCount || 8;
+    
+    for (var i = 0; i < rowCount; i++) {
+        skeletonHtml += '<tr class="skeleton-row">' +
+            '<td><span class="skeleton-cell w-80"></span></td>' +
+            '<td class="text-end"><span class="skeleton-cell w-60"></span></td>' +
+            '<td class="text-end"><span class="skeleton-cell w-40"></span></td>' +
+            '<td class="text-end"><span class="skeleton-cell w-40"></span></td>' +
+            '<td class="text-end"><span class="skeleton-cell w-60"></span></td>' +
+            '<td><span class="skeleton-cell w-80"></span></td>' +
+            '</tr>';
+    }
+    
+    tbody.innerHTML = skeletonHtml;
+    document.getElementById('tableContainer').classList.add('table-loading');
+}
+
+function hideSkeletonLoader() {
+    document.getElementById('tableContainer').classList.remove('table-loading');
+}
+
+// Non-blocking data loading with requestAnimationFrame
+function loadDataAsync(callback) {
+    showSkeletonLoader(10);
+    
+    // Use setTimeout to prevent UI freeze
+    setTimeout(function() {
+        requestAnimationFrame(function() {
+            callback();
+            hideSkeletonLoader();
+        });
+    }, 50);
+}
+
 var allSenderIds = ['QuickSMS', 'PROMO', 'ALERTS', 'INFO', 'NOTIFY', 'VERIFY', 'UPDATES', 'NEWS'];
 var selectedSenderIds = [];
 
@@ -1044,8 +1119,13 @@ function initSenderIdPredictive() {
         suggestions.classList.add('show');
     });
     
+    // Debounce input to prevent UI freeze on rapid typing
+    var debouncedFilter = debounce(function(value) {
+        filterSuggestions(value);
+    }, 300);
+    
     input.addEventListener('input', function() {
-        filterSuggestions(this.value);
+        debouncedFilter(this.value);
     });
     
     input.addEventListener('blur', function() {
@@ -1188,7 +1268,7 @@ function applyFilters() {
     
     renderActiveFilters(activeFilters);
     
-    console.log('[Finance Data] Applying filters:', {
+    var filterParams = {
         billingMonths: getSelectedValues('billingMonths'),
         subAccounts: getSelectedValues('subAccounts'),
         users: getSelectedValues('users'),
@@ -1196,9 +1276,77 @@ function applyFilters() {
         productTypes: getSelectedValues('productTypes'),
         senderIds: selectedSenderIds,
         messageTypes: getSelectedValues('messageTypes')
+    };
+    
+    console.log('[Finance Data] Applying filters:', filterParams);
+    
+    // Use async loading to prevent UI freeze
+    loadDataAsync(function() {
+        refreshTableData(filterParams);
+        console.log('[Finance Data] Data refresh complete');
+    });
+}
+
+function refreshTableData(filters) {
+    // TODO: Replace with actual API call
+    // For now, re-render mock data based on filters
+    var tbody = document.getElementById('billingTableBody');
+    
+    // Simulate filtering - in production this would be an API call
+    var mockData = generateMockBillingData(filters);
+    
+    var html = '';
+    mockData.forEach(function(row) {
+        var attrs = getRowAttributes(row.status);
+        html += '<tr class="' + attrs.rowClass + '" ' + attrs.dataAttrs + '>' +
+            '<td>' +
+                '<span class="fw-semibold text-primary">' + row.month + '</span>' +
+                (attrs.lockIcon ? ' <i class="fas fa-lock text-muted ms-1" style="font-size: 0.7rem;" title="Immutable billing data"></i>' : '') +
+            '</td>' +
+            '<td class="text-end">' + formatNumber(row.billableParts) + '</td>' +
+            '<td class="text-end text-muted">' + formatNumber(row.nonBillableParts) + '</td>' +
+            '<td class="text-end text-primary">' + formatNumber(row.totalParts) + '</td>' +
+            '<td class="text-end">' + formatCurrency(row.totalCost) + '</td>' +
+            '<td>' + attrs.statusHtml + '</td>' +
+            '</tr>';
     });
     
-    console.log('[Finance Data] Mock data request triggered');
+    tbody.innerHTML = html;
+    
+    // Update row counts
+    document.getElementById('rowCount').textContent = mockData.length;
+    document.getElementById('totalCount').textContent = mockData.length;
+}
+
+function generateMockBillingData(filters) {
+    // Generate mock data - in production this comes from API
+    var months = ['December 2025', 'November 2025', 'October 2025', 'September 2025', 
+                  'August 2025', 'July 2025', 'June 2025', 'May 2025', 
+                  'April 2025', 'March 2025', 'February 2025', 'January 2025'];
+    var statuses = ['Finalised', 'Finalised', 'Finalised', 'Adjusted', 
+                    'Provisional', 'Provisional', 'Finalised', 'Finalised',
+                    'Finalised', 'Finalised', 'Finalised', 'Finalised'];
+    
+    return months.map(function(month, index) {
+        var billable = Math.floor(Math.random() * 50000) + 80000;
+        var nonBillable = Math.floor(Math.random() * 5000) + 1000;
+        return {
+            month: month,
+            billableParts: billable,
+            nonBillableParts: nonBillable,
+            totalParts: billable + nonBillable,
+            totalCost: (billable * 0.032).toFixed(2),
+            status: statuses[index]
+        };
+    });
+}
+
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatCurrency(amount) {
+    return '£' + parseFloat(amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function getSelectedValues(filterName) {
