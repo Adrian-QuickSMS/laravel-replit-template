@@ -33,8 +33,12 @@
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    align-self: stretch !important;
+    min-height: 0 !important;
     overflow: hidden !important;
+}
+#chatHeader {
+    flex: 0 0 auto !important;
+    background: white !important;
 }
 #chatArea {
     flex: 1 1 auto !important;
@@ -45,6 +49,7 @@
 }
 #replyComposerCard {
     flex: 0 0 auto !important;
+    margin: 0 !important;
     border-radius: 0 !important;
     border-left: 0 !important;
     border-right: 0 !important;
@@ -330,8 +335,8 @@
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="position: relative; flex: 1 1 auto; min-width: 0; height: 100%;">
-                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="position: absolute; top: 0; left: 0; right: 0; height: 85px; background: white; z-index: 10;">
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;">
+                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="flex: 0 0 auto; background: white;">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
@@ -384,7 +389,7 @@
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="chat-box-area" id="chatArea" style="position: absolute; top: 85px; left: 0; right: 0; bottom: 310px; overflow-y: auto; padding: 15px;">
+                            <div class="chat-box-area" id="chatArea" style="flex: 1 1 auto; min-height: 0; height: auto !important; overflow-y: auto; padding: 15px;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -442,7 +447,7 @@
                                 @endif
                             </div>
                             
-                            <div class="card border-top" id="replyComposerCard" style="flex: 0 0 auto; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08);">
+                            <div class="card border-top" id="replyComposerCard" style="flex: 0 0 auto; margin: 0; border-radius: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08);">
                                 <div class="card-body p-2">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">

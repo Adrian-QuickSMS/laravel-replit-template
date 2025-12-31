@@ -1,21 +1,21 @@
-/* Chat Pane Layout - Flexbox approach */
+/* Chat Pane Layout - Consistent Flexbox Column (same as sidebars) */
 /* Using ID selectors for highest specificity */
 #chatPaneWrapper {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    align-self: stretch !important;
+    min-height: 0 !important;
     overflow: hidden !important;
 }
 
-/* Chat header - stays at top */
-#chatPaneWrapper > .d-flex.border-bottom {
+/* Chat header - fixed at top (flex: 0 = doesn't grow/shrink) */
+#chatHeader {
     flex: 0 0 auto !important;
     background: #fff !important;
 }
 
-/* Chat messages area - fills remaining space */
+/* Chat messages area - fills remaining space (flex: 1 = grows to fill) */
 #chatArea {
     flex: 1 1 auto !important;
     height: auto !important;
@@ -24,7 +24,7 @@
     padding: 15px !important;
 }
 
-/* Reply composer at bottom */
+/* Reply composer - fixed at bottom (flex: 0 = doesn't grow/shrink) */
 #replyComposerCard {
     flex: 0 0 auto !important;
     margin: 0 !important;
