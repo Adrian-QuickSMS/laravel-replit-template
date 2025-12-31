@@ -190,6 +190,29 @@
     border-bottom: 2px solid #dee2e6;
     white-space: nowrap;
 }
+#billingTableBody tr {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+#billingTableBody tr:hover td {
+    filter: brightness(0.95);
+}
+.drill-dimension-btn.active {
+    background-color: #886CC0 !important;
+    border-color: #886CC0 !important;
+    color: #fff !important;
+}
+.breadcrumb-item a {
+    color: #886CC0;
+    text-decoration: none;
+}
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+.breadcrumb-item.active {
+    color: #495057;
+    font-weight: 500;
+}
 .optgroup-label {
     font-weight: 600;
     font-size: 0.75rem;
@@ -407,6 +430,37 @@
                                 <div id="activeFiltersChips"></div>
                                 <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
                                     Clear all
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="drillBreadcrumbs" style="display: none;">
+                        <nav aria-label="Drill-down breadcrumb">
+                            <ol class="breadcrumb mb-0" id="drillBreadcrumbList">
+                                <li class="breadcrumb-item"><a href="#" onclick="resetDrillDown(); return false;">Finance Data</a></li>
+                            </ol>
+                        </nav>
+                    </div>
+
+                    <div class="mb-3" id="drillDimensionTabs" style="display: none;">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="text-muted small me-2">Drill by:</span>
+                            <div class="btn-group" role="group" aria-label="Drill dimension selector">
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="day">
+                                    <i class="fas fa-calendar-day me-1"></i>Day
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="country">
+                                    <i class="fas fa-globe me-1"></i>Country
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sender_id">
+                                    <i class="fas fa-id-card me-1"></i>Sender ID
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="product_type">
+                                    <i class="fas fa-cube me-1"></i>Product Type
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="group_name">
+                                    <i class="fas fa-users me-1"></i>Group Name
                                 </button>
                             </div>
                         </div>
@@ -1016,5 +1070,256 @@ function resetFilters() {
     document.getElementById('activeFiltersContainer').style.display = 'none';
     document.getElementById('activeFiltersChips').innerHTML = '';
 }
+
+var drillState = {
+    level: 0,
+    billingMonth: null,
+    dimension: null
+};
+
+var dimensionLabels = {
+    'day': 'Day',
+    'country': 'Country',
+    'sender_id': 'Sender ID',
+    'product_type': 'Product Type',
+    'group_name': 'Group Name'
+};
+
+var mockDrillData = {
+    day: [
+        { label: '2025-01-01', billable: 4521, nonBillable: 89, total: 4610, cost: '£144.06', status: 'Finalised' },
+        { label: '2025-01-02', billable: 4832, nonBillable: 102, total: 4934, cost: '£154.19', status: 'Finalised' },
+        { label: '2025-01-03', billable: 3987, nonBillable: 78, total: 4065, cost: '£127.03', status: 'Finalised' },
+        { label: '2025-01-04', billable: 2156, nonBillable: 45, total: 2201, cost: '£68.78', status: 'Finalised' },
+        { label: '2025-01-05', billable: 1876, nonBillable: 34, total: 1910, cost: '£59.69', status: 'Finalised' },
+        { label: '2025-01-06', billable: 5234, nonBillable: 112, total: 5346, cost: '£167.06', status: 'Finalised' },
+        { label: '2025-01-07', billable: 5567, nonBillable: 98, total: 5665, cost: '£177.03', status: 'Finalised' }
+    ],
+    country: [
+        { label: 'United Kingdom', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
+        { label: 'United States', billable: 23456, nonBillable: 456, total: 23912, cost: '£747.25', status: 'Finalised' },
+        { label: 'Germany', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' },
+        { label: 'France', billable: 8765, nonBillable: 167, total: 8932, cost: '£279.13', status: 'Finalised' },
+        { label: 'Ireland', billable: 5432, nonBillable: 98, total: 5530, cost: '£172.81', status: 'Finalised' }
+    ],
+    sender_id: [
+        { label: 'QuickSMS', billable: 34567, nonBillable: 678, total: 35245, cost: '£1,101.41', status: 'Finalised' },
+        { label: 'PROMO', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
+        { label: 'ALERTS', billable: 15678, nonBillable: 312, total: 15990, cost: '£499.69', status: 'Finalised' },
+        { label: 'INFO', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
+        { label: 'VERIFY', billable: 6789, nonBillable: 123, total: 6912, cost: '£216.00', status: 'Finalised' }
+    ],
+    product_type: [
+        { label: 'SMS Standard', billable: 56789, nonBillable: 1123, total: 57912, cost: '£1,809.75', status: 'Finalised' },
+        { label: 'SMS Premium', billable: 23456, nonBillable: 456, total: 23912, cost: '£747.25', status: 'Finalised' },
+        { label: 'RCS Basic', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' },
+        { label: 'RCS Rich', billable: 3890, nonBillable: 78, total: 3968, cost: '£123.98', status: 'Finalised' }
+    ],
+    group_name: [
+        { label: 'VIP Customers', billable: 34567, nonBillable: 678, total: 35245, cost: '£1,101.41', status: 'Finalised' },
+        { label: 'Newsletter', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
+        { label: 'Promotions', billable: 18765, nonBillable: 367, total: 19132, cost: '£597.88', status: 'Finalised' },
+        { label: 'Alerts', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
+        { label: 'General', billable: 4321, nonBillable: 87, total: 4408, cost: '£137.75', status: 'Finalised' }
+    ]
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    initDrillDownHandlers();
+});
+
+function initDrillDownHandlers() {
+    document.getElementById('billingTableBody').addEventListener('click', function(e) {
+        var row = e.target.closest('tr');
+        if (!row) return;
+        
+        if (drillState.level === 0) {
+            var monthCell = row.querySelector('td:first-child .fw-semibold');
+            if (monthCell) {
+                drillState.billingMonth = monthCell.textContent.trim();
+                drillState.level = 1;
+                showDimensionTabs();
+                updateBreadcrumbs();
+            }
+        }
+    });
+    
+    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var dimension = this.getAttribute('data-dimension');
+            selectDimension(dimension);
+        });
+    });
+}
+
+function showDimensionTabs() {
+    document.getElementById('drillDimensionTabs').style.display = 'block';
+    document.getElementById('drillBreadcrumbs').style.display = 'block';
+}
+
+function hideDimensionTabs() {
+    document.getElementById('drillDimensionTabs').style.display = 'none';
+    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+}
+
+function selectDimension(dimension) {
+    drillState.dimension = dimension;
+    drillState.level = 2;
+    
+    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-dimension') === dimension) {
+            btn.classList.add('active');
+        }
+    });
+    
+    updateBreadcrumbs();
+    renderDrillTable(dimension);
+}
+
+function updateBreadcrumbs() {
+    var breadcrumbList = document.getElementById('drillBreadcrumbList');
+    var html = '<li class="breadcrumb-item"><a href="#" onclick="resetDrillDown(); return false;">Finance Data</a></li>';
+    
+    if (drillState.level >= 1 && drillState.billingMonth) {
+        if (drillState.level === 1) {
+            html += '<li class="breadcrumb-item active" aria-current="page">' + drillState.billingMonth + '</li>';
+        } else {
+            html += '<li class="breadcrumb-item"><a href="#" onclick="stepBackToBillingMonth(); return false;">' + drillState.billingMonth + '</a></li>';
+        }
+    }
+    
+    if (drillState.level >= 2 && drillState.dimension) {
+        html += '<li class="breadcrumb-item active" aria-current="page">' + dimensionLabels[drillState.dimension] + '</li>';
+    }
+    
+    breadcrumbList.innerHTML = html;
+}
+
+function resetDrillDown() {
+    drillState = { level: 0, billingMonth: null, dimension: null };
+    document.getElementById('drillBreadcrumbs').style.display = 'none';
+    hideDimensionTabs();
+    renderMonthlyTable();
+}
+
+function stepBackToBillingMonth() {
+    drillState.dimension = null;
+    drillState.level = 1;
+    document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    updateBreadcrumbs();
+    renderMonthlyTable();
+}
+
+function renderDrillTable(dimension) {
+    var tableHead = document.querySelector('#financeDataTable thead tr');
+    var firstCol = tableHead.querySelector('th:first-child');
+    firstCol.innerHTML = dimensionLabels[dimension] + ' <i class="fas fa-sort ms-1 text-muted"></i>';
+    firstCol.setAttribute('data-sort', dimension);
+    
+    var tbody = document.getElementById('billingTableBody');
+    var data = mockDrillData[dimension] || [];
+    
+    var html = '';
+    data.forEach(function(row) {
+        var statusClass = 'table-success';
+        if (row.status === 'Adjusted') statusClass = 'table-warning';
+        if (row.status === 'Provisional') statusClass = 'table-info';
+        
+        var lockIcon = row.status === 'Finalised' ? '<i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>' : '';
+        
+        html += '<tr class="' + statusClass + '" data-status="' + row.status.toLowerCase() + '">';
+        html += '<td><span class="fw-semibold">' + row.label + '</span>' + lockIcon + '</td>';
+        html += '<td class="text-end">' + row.billable.toLocaleString() + '</td>';
+        html += '<td class="text-end">' + row.nonBillable.toLocaleString() + '</td>';
+        html += '<td class="text-end fw-semibold">' + row.total.toLocaleString() + '</td>';
+        html += '<td class="text-end fw-semibold">' + row.cost + '</td>';
+        html += '<td class="text-center">' + row.status + '</td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+    document.getElementById('rowCount').textContent = data.length;
+    document.getElementById('totalCount').textContent = data.length;
+}
+
+function renderMonthlyTable() {
+    var tableHead = document.querySelector('#financeDataTable thead tr');
+    var firstCol = tableHead.querySelector('th:first-child');
+    firstCol.innerHTML = 'Billing Month <i class="fas fa-sort ms-1 text-muted"></i>';
+    firstCol.setAttribute('data-sort', 'billing_month');
+    
+    var monthlyData = [
+        { label: 'December 2025', billable: 125432, nonBillable: 3218, total: 128650, cost: '£4,017.82', status: 'Finalised' },
+        { label: 'November 2025', billable: 118756, nonBillable: 2891, total: 121647, cost: '£3,812.45', status: 'Finalised' },
+        { label: 'October 2025', billable: 132890, nonBillable: 4102, total: 136992, cost: '£4,278.56', status: 'Finalised' },
+        { label: 'September 2025', billable: 98234, nonBillable: 1567, total: 99801, cost: '£3,118.92', status: 'Adjusted' },
+        { label: 'August 2025', billable: 145678, nonBillable: 5234, total: 150912, cost: '£4,715.89', status: 'Provisional' },
+        { label: 'July 2025', billable: 112345, nonBillable: 2456, total: 114801, cost: '£3,587.23', status: 'Provisional' },
+        { label: 'June 2025', billable: 108923, nonBillable: 3012, total: 111935, cost: '£3,498.12', status: 'Finalised' },
+        { label: 'May 2025', billable: 95678, nonBillable: 1890, total: 97568, cost: '£3,048.67', status: 'Finalised' },
+        { label: 'April 2025', billable: 87234, nonBillable: 2134, total: 89368, cost: '£2,792.34', status: 'Finalised' },
+        { label: 'March 2025', billable: 102456, nonBillable: 2789, total: 105245, cost: '£3,289.01', status: 'Finalised' },
+        { label: 'February 2025', billable: 78912, nonBillable: 1456, total: 80368, cost: '£2,511.45', status: 'Finalised' },
+        { label: 'January 2025', billable: 91345, nonBillable: 2234, total: 93579, cost: '£2,924.78', status: 'Finalised' }
+    ];
+    
+    var tbody = document.getElementById('billingTableBody');
+    var html = '';
+    
+    monthlyData.forEach(function(row) {
+        var statusClass = 'table-success';
+        if (row.status === 'Adjusted') statusClass = 'table-warning';
+        if (row.status === 'Provisional') statusClass = 'table-info';
+        
+        var lockIcon = row.status === 'Finalised' ? '<i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>' : '';
+        
+        html += '<tr class="' + statusClass + '" data-status="' + row.status.toLowerCase() + '">';
+        html += '<td><span class="fw-semibold">' + row.label + '</span>' + lockIcon + '</td>';
+        html += '<td class="text-end">' + row.billable.toLocaleString() + '</td>';
+        html += '<td class="text-end">' + row.nonBillable.toLocaleString() + '</td>';
+        html += '<td class="text-end fw-semibold">' + row.total.toLocaleString() + '</td>';
+        html += '<td class="text-end fw-semibold">' + row.cost + '</td>';
+        html += '<td class="text-center">' + row.status + '</td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+    document.getElementById('rowCount').textContent = monthlyData.length;
+    document.getElementById('totalCount').textContent = monthlyData.length;
+}
+
+function getDrillStateForExport() {
+    return {
+        level: drillState.level,
+        billingMonth: drillState.billingMonth,
+        dimension: drillState.dimension,
+        filters: {
+            billingMonths: getSelectedValues('billingMonths'),
+            subAccounts: getSelectedValues('subAccounts'),
+            users: getSelectedValues('users'),
+            groupNames: getSelectedValues('groupNames'),
+            productTypes: getSelectedValues('productTypes'),
+            senderIds: selectedSenderIds,
+            messageTypes: getSelectedValues('messageTypes')
+        }
+    };
+}
+
+document.getElementById('btnExportCsv')?.addEventListener('click', function() {
+    var exportState = getDrillStateForExport();
+    console.log('[Finance Data] Export CSV with drill state:', exportState);
+    new bootstrap.Modal(document.getElementById('exportModal')).show();
+});
+
+document.getElementById('btnExportPdf')?.addEventListener('click', function() {
+    var exportState = getDrillStateForExport();
+    console.log('[Finance Data] Export PDF with drill state:', exportState);
+    new bootstrap.Modal(document.getElementById('exportModal')).show();
+});
 </script>
 @endpush
