@@ -525,13 +525,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-lg-4 d-flex flex-wrap gap-1 align-items-end">
-                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="current">Current Month</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last">Last Month</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last3">Last 3 Months</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="last6">Last 6 Months</button>
-                                        <button type="button" class="btn btn-outline-primary btn-xs month-preset-btn" data-preset="ytd">Year to Date</button>
-                                    </div>
                                 </div>
                                 
                                 <div class="row mt-3">
@@ -734,48 +727,6 @@
                         </div>
                     </div>
 
-                    <div class="finance-data-footer border-top pt-3 mt-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <div class="d-flex align-items-center gap-3">
-                                <span class="text-muted small">Showing <strong id="rowCount">12</strong> of <strong id="totalCount">12</strong> billing periods</span>
-                                <span class="text-muted small">|</span>
-                                <span class="text-muted small">Max display: 10,000 rows</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSaveReport" data-requires-role="analyst">
-                                    <i class="fas fa-save me-1"></i> Save Report Configuration
-                                </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnScheduleReport" data-requires-role="admin">
-                                    <i class="fas fa-clock me-1"></i> Schedule Report Export
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="finance-data-export border-top pt-3 mt-3" data-requires-role="analyst">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <p class="small fw-bold mb-2"><i class="fas fa-download me-1 text-primary"></i>Export Data</p>
-                                <p class="small text-muted mb-0">Exports currently displayed data with active filters and drill level. Costs shown as ex VAT.</p>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex justify-content-md-end gap-2 mt-2 mt-md-0">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv">
-                                        <i class="fas fa-file-csv me-1"></i> Export CSV
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportExcel">
-                                        <i class="fas fa-file-excel me-1"></i> Export Excel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-2" id="exportLargeDatasetWarning" style="display: none;">
-                            <div class="alert alert-info small py-2 mb-0">
-                                <i class="fas fa-info-circle me-1"></i>
-                                <strong>Large dataset detected.</strong> This export will be processed in the background and delivered to your Download Centre.
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1492,8 +1443,10 @@ function renderBillingTable(data) {
     
     tbody.innerHTML = html;
     
-    document.getElementById('rowCount').textContent = data.length;
-    document.getElementById('totalCount').textContent = data.length;
+    var rowCountEl = document.getElementById('rowCount');
+    var totalCountEl = document.getElementById('totalCount');
+    if (rowCountEl) rowCountEl.textContent = data.length;
+    if (totalCountEl) totalCountEl.textContent = data.length;
 }
 
 function formatNumber(num) {
@@ -1939,8 +1892,10 @@ function renderHierarchicalTable() {
     
     if (drillState.drillDimensions.length === 0) {
         tbody.innerHTML = html;
-        document.getElementById('rowCount').textContent = rowCount;
-        document.getElementById('totalCount').textContent = rowCount;
+        var rowCountEl = document.getElementById('rowCount');
+        var totalCountEl = document.getElementById('totalCount');
+        if (rowCountEl) rowCountEl.textContent = rowCount;
+        if (totalCountEl) totalCountEl.textContent = rowCount;
         return;
     }
     
@@ -2023,8 +1978,10 @@ function renderHierarchicalTable() {
     }
     
     tbody.innerHTML = html;
-    document.getElementById('rowCount').textContent = rowCount;
-    document.getElementById('totalCount').textContent = rowCount;
+    var rowCountEl = document.getElementById('rowCount');
+    var totalCountEl = document.getElementById('totalCount');
+    if (rowCountEl) rowCountEl.textContent = rowCount;
+    if (totalCountEl) totalCountEl.textContent = rowCount;
 }
 
 function getMonthTotals(month) {
@@ -2154,8 +2111,10 @@ function renderMonthlyTable() {
     });
     
     tbody.innerHTML = html;
-    document.getElementById('rowCount').textContent = monthlyData.length;
-    document.getElementById('totalCount').textContent = monthlyData.length;
+    var rowCountEl = document.getElementById('rowCount');
+    var totalCountEl = document.getElementById('totalCount');
+    if (rowCountEl) rowCountEl.textContent = monthlyData.length;
+    if (totalCountEl) totalCountEl.textContent = monthlyData.length;
 }
 
 function getRowAttributes(status) {
@@ -2215,7 +2174,8 @@ document.getElementById('btnExportExcel')?.addEventListener('click', function() 
 
 function triggerExport(format) {
     var exportState = getFullExportState();
-    var rowCount = parseInt(document.getElementById('totalCount').textContent) || 0;
+    var totalCountEl = document.getElementById('totalCount');
+    var rowCount = totalCountEl ? parseInt(totalCountEl.textContent) || 0 : 0;
     
     console.log('[Finance Data] Export ' + format.toUpperCase() + ' with state:', exportState);
     
