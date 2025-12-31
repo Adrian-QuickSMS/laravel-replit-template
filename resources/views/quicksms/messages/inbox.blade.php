@@ -195,12 +195,12 @@ span.badge.channel-pill-rcs,
     background: rgba(136, 108, 192, 0.15) !important;
 }
 
-/* Waiting for reply - soft amber/yellow */
+/* Waiting for reply - Fillow warning-bg-subtle yellow */
 .qs-pill-waiting, .waiting-badge {
-    background-color: rgba(255, 193, 7, 0.2);
-    color: #92600c;
-    font-size: 9px;
-    padding: 2px 8px;
+    background-color: #fff2cc;
+    color: #664c00;
+    font-size: 11px;
+    padding: 4px 12px;
     border-radius: 9999px;
     font-weight: 600;
 }

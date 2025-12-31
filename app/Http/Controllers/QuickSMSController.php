@@ -932,20 +932,19 @@ class QuickSMSController extends Controller
         $unread_count = collect($conversations)->where('unread', true)->count();
 
         // Calculate awaiting_reply_48h for each conversation
+        // Logic: unread AND timestamp older than 48 hours
         $now = time();
         $fortyEightHours = 48 * 60 * 60; // 48 hours in seconds
         
         foreach ($conversations as &$conv) {
             $conv['awaiting_reply_48h'] = false;
             
-            if (!empty($conv['messages'])) {
-                $lastMessage = end($conv['messages']);
-                $isInbound = isset($lastMessage['direction']) && $lastMessage['direction'] === 'inbound';
-                
-                if ($isInbound && isset($conv['timestamp'])) {
-                    $timeDiff = $now - $conv['timestamp'];
-                    $conv['awaiting_reply_48h'] = $timeDiff >= $fortyEightHours;
-                }
+            // Only flag if conversation is unread AND over 48 hours old
+            $isUnread = isset($conv['unread']) && $conv['unread'] === true;
+            
+            if ($isUnread && isset($conv['timestamp'])) {
+                $timeDiff = $now - $conv['timestamp'];
+                $conv['awaiting_reply_48h'] = $timeDiff >= $fortyEightHours;
             }
         }
         unset($conv); // Break reference
