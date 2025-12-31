@@ -652,17 +652,17 @@
                                 <span class="text-muted small">Max display: 10,000 rows</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSaveReport">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSaveReport" data-requires-role="analyst">
                                     <i class="fas fa-save me-1"></i> Save Report Configuration
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnScheduleReport">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnScheduleReport" data-requires-role="admin">
                                     <i class="fas fa-clock me-1"></i> Schedule Report Export
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="finance-data-export border-top pt-3 mt-3">
+                    <div class="finance-data-export border-top pt-3 mt-3" data-requires-role="analyst">
                         <div class="row align-items-center">
                             <div class="col-md-6">
                                 <p class="small fw-bold mb-2"><i class="fas fa-download me-1 text-primary"></i>Export Data</p>
@@ -858,13 +858,57 @@
 
 @push('scripts')
 <script>
+// TODO: Replace with backend session/auth data
+// Role hierarchy: viewer < analyst < admin
+// Viewer: Can view table only
+// Analyst: Can export and save reports
+// Admin/Finance: Full access (export, save, schedule)
+var currentUserRole = 'admin'; // Options: 'viewer', 'analyst', 'admin'
+
+var ROLE_HIERARCHY = {
+    'viewer': 0,
+    'analyst': 1,
+    'admin': 2
+};
+
 document.addEventListener('DOMContentLoaded', function() {
+    applyRoleBasedVisibility();
     initMultiselectDropdowns();
     initMonthPresets();
     initFilterActions();
     initSenderIdPredictive();
     initSubAccountUserFiltering();
 });
+
+function applyRoleBasedVisibility() {
+    var userRoleLevel = ROLE_HIERARCHY[currentUserRole] || 0;
+    
+    document.querySelectorAll('[data-requires-role]').forEach(function(el) {
+        var requiredRole = el.getAttribute('data-requires-role');
+        var requiredLevel = ROLE_HIERARCHY[requiredRole] || 0;
+        
+        if (userRoleLevel < requiredLevel) {
+            el.style.display = 'none';
+        } else {
+            el.style.display = '';
+        }
+    });
+    
+    // Handle cost column visibility (only for admin/finance)
+    if (currentUserRole !== 'admin') {
+        document.querySelectorAll('[data-requires-cost-view]').forEach(function(el) {
+            el.style.display = 'none';
+        });
+    }
+    
+    console.log('[Finance Data] Role-based visibility applied for role:', currentUserRole);
+}
+
+function hasPermission(requiredRole) {
+    var userRoleLevel = ROLE_HIERARCHY[currentUserRole] || 0;
+    var requiredLevel = ROLE_HIERARCHY[requiredRole] || 0;
+    return userRoleLevel >= requiredLevel;
+}
 
 var allSenderIds = ['QuickSMS', 'PROMO', 'ALERTS', 'INFO', 'NOTIFY', 'VERIFY', 'UPDATES', 'NEWS'];
 var selectedSenderIds = [];
