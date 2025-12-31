@@ -133,13 +133,56 @@
 .message-sent small {
     color: rgba(255,255,255,0.8);
 }
-.badge.channel-pill-sms {
-    background-color: #34C759 !important;
-    color: white !important;
+/* ===== NEW SOFT PASTEL PILL DESIGN ===== */
+/* Base pill styling */
+.qs-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 9999px;
+    border: none;
+    background: none;
 }
-.badge.channel-pill-rcs {
-    background-color: #007AFF !important;
-    color: white !important;
+
+/* Unread count badge - soft red */
+.qs-pill-unread {
+    background-color: #fde8e8;
+    color: #c53030;
+}
+
+/* Tag badges - soft neutral/grey */
+.qs-pill-tag {
+    background-color: #f0f0f0;
+    color: #525252;
+}
+
+/* List badges - soft magenta/pink */
+.qs-pill-list {
+    background-color: #fce7f3;
+    color: #be185d;
+}
+
+/* SMS channel badge - soft green */
+.qs-pill-sms, .badge.channel-pill-sms {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+/* RCS channel badge - soft purple */
+.qs-pill-rcs, .badge.channel-pill-rcs {
+    background-color: #ede9fe !important;
+    color: #6d28d9 !important;
+}
+
+/* Waiting for reply - soft amber/yellow */
+.qs-pill-waiting, .waiting-badge {
+    background-color: #fef3c7;
+    color: #b45309;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-weight: 600;
 }
 .emoji-btn {
     font-size: 18px !important;
@@ -261,7 +304,7 @@
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center">
                                     <h4 class="mb-0 me-2">Inbox</h4>
-                                    <span class="badge bg-danger text-white" id="unreadBadge">{{ $unread_count }} unread</span>
+                                    <span class="qs-pill qs-pill-unread" id="unreadBadge">{{ $unread_count }} unread</span>
                                 </div>
                             </div>
                             <div class="p-3 border-bottom">
@@ -588,8 +631,8 @@
                                         <a href="javascript:void(0);" class="small text-primary" onclick="openManageTagsModal()"><i class="fas fa-plus"></i> Add</a>
                                     </div>
                                     <div id="contactTags">
-                                        <span class="badge bg-light text-dark border me-1 mb-1">Parents</span>
-                                        <span class="badge bg-light text-dark border me-1 mb-1">School-Redwood</span>
+                                        <span class="qs-pill qs-pill-tag me-1 mb-1">Parents</span>
+                                        <span class="qs-pill qs-pill-tag me-1 mb-1">School-Redwood</span>
                                     </div>
                                 </div>
                                 
@@ -599,8 +642,8 @@
                                         <a href="javascript:void(0);" class="small text-primary" onclick="openManageListsModal()"><i class="fas fa-plus"></i> Add</a>
                                     </div>
                                     <div id="contactLists">
-                                        <span class="badge bg-info text-white me-1 mb-1">Greenhill Parents</span>
-                                        <span class="badge bg-info text-white me-1 mb-1">Newsletter</span>
+                                        <span class="qs-pill qs-pill-list me-1 mb-1">Greenhill Parents</span>
+                                        <span class="qs-pill qs-pill-list me-1 mb-1">Newsletter</span>
                                     </div>
                                 </div>
                                 
@@ -1010,15 +1053,15 @@
                         <div class="mb-3">
                             <label class="form-label small text-muted mb-1">Tags</label>
                             <div id="viewContactTags">
-                                <span class="badge bg-light text-dark border me-1">Parents</span>
-                                <span class="badge bg-light text-dark border me-1">School-Redwood</span>
+                                <span class="qs-pill qs-pill-tag me-1">Parents</span>
+                                <span class="qs-pill qs-pill-tag me-1">School-Redwood</span>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted mb-1">Lists</label>
                             <div id="viewContactLists">
-                                <span class="badge bg-info text-white me-1">Greenhill Parents</span>
-                                <span class="badge bg-info text-white me-1">Newsletter</span>
+                                <span class="qs-pill qs-pill-list me-1">Greenhill Parents</span>
+                                <span class="qs-pill qs-pill-list me-1">Newsletter</span>
                             </div>
                         </div>
                         <div class="mb-3">
