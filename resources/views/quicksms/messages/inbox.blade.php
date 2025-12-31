@@ -439,6 +439,9 @@ span.badge.channel-pill-rcs,
                                             </a>
                                         </li>
                                     </ul>
+                                    <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="markReadUnreadBtn" onclick="toggleReadStatus()">
+                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadText">Mark as Read</span>
+                                    </button>
                                     <div class="dropdown ms-2">
                                         <div class="btn-link" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -648,9 +651,6 @@ span.badge.channel-pill-rcs,
                                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="openViewContactModal()">
                                         <i class="fas fa-user me-1"></i>View Contact
                                     </button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="markReadUnreadBtn" onclick="toggleReadStatus()">
-                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadText">Mark as Read</span>
-                                    </button>
                                 </div>
                                 
                                 <div class="mb-3">
@@ -703,9 +703,6 @@ span.badge.channel-pill-rcs,
                                     <p class="text-muted mb-3">This number is not in your contacts</p>
                                     <button type="button" class="btn btn-primary btn-sm mb-2 w-100" onclick="openAddContactModal()">
                                         <i class="fas fa-user-plus me-1"></i>Add to Contacts
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" id="markReadUnreadBtnAlt" onclick="toggleReadStatus()">
-                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadTextAlt">Mark as Read</span>
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2" onclick="openManageListsModal()">
                                         <i class="fas fa-list me-1"></i>Add to List
@@ -2261,13 +2258,8 @@ function toggleReadStatus() {
 function updateMarkReadButton() {
     var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
     var textSpan = document.getElementById('markReadUnreadText');
-    var textSpanAlt = document.getElementById('markReadUnreadTextAlt');
-    var newText = conv && conv.unread ? 'Mark as Read' : 'Mark as Unread';
     if (textSpan) {
-        textSpan.textContent = newText;
-    }
-    if (textSpanAlt) {
-        textSpanAlt.textContent = newText;
+        textSpan.textContent = conv && conv.unread ? 'Mark as Read' : 'Mark as Unread';
     }
 }
 
