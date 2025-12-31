@@ -2,6 +2,28 @@
 
 @section('title', 'Tags')
 
+@push('styles')
+<style>
+/* Fillow Pastel Color Scheme for Tags */
+.badge-pastel-primary {
+    background-color: rgba(111, 66, 193, 0.15) !important;
+    color: #6f42c1 !important;
+}
+.badge-pastel-pink {
+    background-color: rgba(232, 62, 140, 0.15) !important;
+    color: #e83e8c !important;
+}
+.badge-pastel-warning {
+    background-color: rgba(255, 191, 0, 0.15) !important;
+    color: #cc9900 !important;
+}
+.badge-pastel-secondary {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+    color: #6c757d !important;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid">
     <div class="row page-titles">
@@ -17,7 +39,7 @@
             <ul class="nav nav-tabs" id="tagsTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button" role="tab">
-                        <i class="fas fa-tags me-2"></i>Manage Tags <span class="badge bg-primary ms-1">{{ count($tags) }}</span>
+                        <i class="fas fa-tags me-2"></i>Manage Tags <span class="badge badge-pastel-primary ms-1">{{ count($tags) }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -93,18 +115,18 @@
                                     </td>
                                     <td>
                                         <a href="#!" onclick="viewTaggedContacts({{ $tag['id'] }}, '{{ $tag['name'] }}')" class="text-decoration-none">
-                                            <span class="badge bg-light text-dark">
+                                            <span class="badge badge-pastel-secondary">
                                                 <i class="fas fa-users me-1"></i>{{ number_format($tag['contact_count']) }}
                                             </span>
                                         </a>
                                     </td>
                                     <td>
                                         @if($tag['source'] === 'manual')
-                                            <span class="badge bg-secondary">Manual</span>
+                                            <span class="badge badge-pastel-warning">Manual</span>
                                         @elseif($tag['source'] === 'campaign')
-                                            <span class="badge bg-info">Campaign</span>
+                                            <span class="badge badge-pastel-pink">Campaign</span>
                                         @elseif($tag['source'] === 'api')
-                                            <span class="badge bg-warning text-dark">API</span>
+                                            <span class="badge badge-pastel-primary">API</span>
                                         @endif
                                     </td>
                                     <td style="color: #000;">{{ \Carbon\Carbon::parse($tag['created_at'])->format('d-m-Y') }}</td>
