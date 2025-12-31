@@ -41,6 +41,12 @@
     flex: 0 0 auto !important;
     background: white !important;
 }
+/* Hide any stray form-switch/toggle elements in chat header */
+#chatHeader .form-switch,
+#chatHeader .form-check,
+#chatHeader input[type="checkbox"] {
+    display: none !important;
+}
 #chatSearchBar {
     flex: 0 0 auto !important;
 }
@@ -697,6 +703,9 @@ span.badge.channel-pill-rcs,
                                     <p class="text-muted mb-3">This number is not in your contacts</p>
                                     <button type="button" class="btn btn-primary btn-sm mb-2 w-100" onclick="openAddContactModal()">
                                         <i class="fas fa-user-plus me-1"></i>Add to Contacts
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" id="markReadUnreadBtnAlt" onclick="toggleReadStatus()">
+                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadTextAlt">Mark as Read</span>
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2" onclick="openManageListsModal()">
                                         <i class="fas fa-list me-1"></i>Add to List
@@ -2252,8 +2261,13 @@ function toggleReadStatus() {
 function updateMarkReadButton() {
     var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
     var textSpan = document.getElementById('markReadUnreadText');
-    if (textSpan && conv) {
-        textSpan.textContent = conv.unread ? 'Mark as Read' : 'Mark as Unread';
+    var textSpanAlt = document.getElementById('markReadUnreadTextAlt');
+    var newText = conv && conv.unread ? 'Mark as Read' : 'Mark as Unread';
+    if (textSpan) {
+        textSpan.textContent = newText;
+    }
+    if (textSpanAlt) {
+        textSpanAlt.textContent = newText;
     }
 }
 
