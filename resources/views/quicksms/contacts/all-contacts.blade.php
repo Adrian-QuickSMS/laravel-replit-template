@@ -67,6 +67,10 @@
     background-color: rgba(108, 117, 125, 0.15) !important;
     color: #6c757d !important;
 }
+.badge-pastel-pink {
+    background-color: rgba(232, 62, 140, 0.15) !important;
+    color: #e83e8c !important;
+}
 </style>
 @endpush
 
@@ -325,7 +329,7 @@
                                     </td>
                                     <td class="py-2">
                                         @foreach($contact['lists'] as $list)
-                                        <span class="badge badge-pastel-info me-1">{{ $list }}</span>
+                                        <span class="badge badge-pastel-pink me-1">{{ $list }}</span>
                                         @endforeach
                                     </td>
                                     <td class="py-2">
