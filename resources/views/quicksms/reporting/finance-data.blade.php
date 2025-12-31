@@ -1556,24 +1556,28 @@ function resetFilters() {
 }
 
 var drillState = {
-    level: 0,
-    path: [],
-    selectedDimension: null
+    selectedMonth: null,
+    drillDimensions: [],
+    pendingDimension: null
 };
 
 var DRILL_DIMENSIONS = ['day', 'sub_account', 'country', 'sender_id', 'product_type', 'group_name'];
 
 function getAvailableDimensions() {
-    var usedDimensions = drillState.path.map(function(p) { return p.dimension; });
     return DRILL_DIMENSIONS.filter(function(d) {
-        return usedDimensions.indexOf(d) === -1;
+        return drillState.drillDimensions.indexOf(d) === -1;
     });
 }
 
 function getDrillPath() {
-    return drillState.path.map(function(p) {
-        return { dimension: p.dimension, value: p.value, label: p.label };
+    var path = [];
+    if (drillState.selectedMonth) {
+        path.push({ dimension: 'month', value: drillState.selectedMonth.value, label: drillState.selectedMonth.label });
+    }
+    drillState.drillDimensions.forEach(function(dim) {
+        path.push({ dimension: dim, value: null, label: dimensionLabels[dim] });
     });
+    return path;
 }
 
 var dimensionLabels = {
@@ -1641,11 +1645,12 @@ function initDrillDownHandlers() {
         var row = e.target.closest('tr');
         if (!row) return;
         
-        if (row.classList.contains('skeleton-row') || row.classList.contains('totals-row')) {
+        if (row.classList.contains('skeleton-row') || row.classList.contains('totals-row') || row.classList.contains('group-total-row')) {
             return;
         }
         
-        if (!drillState.selectedDimension && drillState.level === 0) {
+        if (!drillState.selectedMonth && !drillState.pendingDimension) {
+            showDrillTooltip(e, 'Select a drill dimension first');
             return;
         }
         
@@ -1654,29 +1659,41 @@ function initDrillDownHandlers() {
         
         var label = labelCell.textContent.trim();
         var value = row.getAttribute('data-value') || label;
+        var status = row.getAttribute('data-status') || 'Finalised';
         
-        if (drillState.selectedDimension) {
-            var dimension = drillState.selectedDimension;
-            
-            if (drillState.level === 0) {
-                dimension = 'month';
-            }
-            
-            drillState.path.push({
-                dimension: dimension,
+        if (!drillState.selectedMonth && drillState.pendingDimension) {
+            drillState.selectedMonth = {
+                label: label,
                 value: value,
-                label: label
-            });
-            drillState.level = drillState.path.length;
-            drillState.selectedDimension = null;
+                status: status
+            };
+            drillState.drillDimensions.push(drillState.pendingDimension);
+            drillState.pendingDimension = null;
             
             updateDimensionSelector();
             updateBreadcrumbs();
-            renderDrilledTable();
+            renderHierarchicalTable();
         }
     });
     
     initDimensionSelector();
+}
+
+function showDrillTooltip(e, message) {
+    var existing = document.querySelector('.drill-tooltip');
+    if (existing) existing.remove();
+    
+    var tooltip = document.createElement('div');
+    tooltip.className = 'drill-tooltip';
+    tooltip.textContent = message;
+    tooltip.style.cssText = 'position: fixed; background: #333; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 9999; pointer-events: none;';
+    tooltip.style.left = e.clientX + 'px';
+    tooltip.style.top = (e.clientY - 40) + 'px';
+    document.body.appendChild(tooltip);
+    
+    setTimeout(function() {
+        tooltip.remove();
+    }, 2000);
 }
 
 function initDimensionSelector() {
@@ -1693,8 +1710,6 @@ function initDimensionSelector() {
 }
 
 function selectDrillDimension(dimension) {
-    drillState.selectedDimension = dimension;
-    
     document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
         btn.classList.remove('active');
         if (btn.getAttribute('data-dimension') === dimension) {
@@ -1702,9 +1717,17 @@ function selectDrillDimension(dimension) {
         }
     });
     
-    document.getElementById('drillInstruction').textContent = 
-        'Click a row to drill down by ' + dimensionLabels[dimension];
-    document.getElementById('drillInstruction').style.display = 'block';
+    if (!drillState.selectedMonth) {
+        drillState.pendingDimension = dimension;
+        document.getElementById('drillInstruction').textContent = 
+            'Click a billing month to drill down by ' + dimensionLabels[dimension];
+        document.getElementById('drillInstruction').style.display = 'block';
+    } else {
+        drillState.drillDimensions.push(dimension);
+        updateDimensionSelector();
+        updateBreadcrumbs();
+        renderHierarchicalTable();
+    }
 }
 
 function updateDimensionSelector() {
@@ -1730,7 +1753,11 @@ function updateDimensionSelector() {
     document.querySelectorAll('.drill-dimension-btn').forEach(function(btn) {
         btn.classList.remove('active');
     });
-    drillState.selectedDimension = null;
+    drillState.pendingDimension = null;
+    
+    if (drillState.selectedMonth) {
+        document.getElementById('drillInstruction').textContent = 'Select a dimension to expand the breakdown';
+    }
     document.getElementById('drillInstruction').style.display = 'none';
 }
 
@@ -1750,7 +1777,7 @@ function updateBreadcrumbs() {
     var breadcrumbContainer = document.getElementById('drillBreadcrumbs');
     var breadcrumbList = document.getElementById('drillBreadcrumbList');
     
-    if (drillState.path.length === 0) {
+    if (!drillState.selectedMonth) {
         breadcrumbContainer.style.display = 'none';
         return;
     }
@@ -1759,18 +1786,16 @@ function updateBreadcrumbs() {
     
     var html = '<li class="breadcrumb-item"><a href="#" onclick="navigateToBreadcrumb(-1); return false;">Finance Data</a></li>';
     
-    drillState.path.forEach(function(pathItem, index) {
-        var isLast = index === drillState.path.length - 1;
-        var label = pathItem.label;
-        
-        if (pathItem.dimension !== 'month') {
-            label = dimensionLabels[pathItem.dimension] + ': ' + pathItem.label;
-        }
+    html += '<li class="breadcrumb-item"><a href="#" onclick="navigateToBreadcrumb(0); return false;">' + drillState.selectedMonth.label + '</a></li>';
+    
+    drillState.drillDimensions.forEach(function(dim, index) {
+        var isLast = index === drillState.drillDimensions.length - 1;
+        var label = dimensionLabels[dim];
         
         if (isLast) {
             html += '<li class="breadcrumb-item active" aria-current="page">' + label + '</li>';
         } else {
-            html += '<li class="breadcrumb-item"><a href="#" onclick="navigateToBreadcrumb(' + index + '); return false;">' + label + '</a></li>';
+            html += '<li class="breadcrumb-item"><a href="#" onclick="navigateToBreadcrumb(' + (index + 1) + '); return false;">' + label + '</a></li>';
         }
     });
     
@@ -1780,102 +1805,184 @@ function updateBreadcrumbs() {
 function navigateToBreadcrumb(index) {
     if (index < 0) {
         resetDrillDown();
+    } else if (index === 0) {
+        drillState.drillDimensions = [];
+        updateDimensionSelector();
+        updateBreadcrumbs();
+        renderHierarchicalTable();
     } else {
-        drillState.path = drillState.path.slice(0, index + 1);
-        drillState.level = drillState.path.length;
-        drillState.selectedDimension = null;
+        drillState.drillDimensions = drillState.drillDimensions.slice(0, index);
+        drillState.pendingDimension = null;
         
         updateDimensionSelector();
         updateBreadcrumbs();
-        renderDrilledTable();
+        renderHierarchicalTable();
     }
 }
 
 function resetDrillDown() {
-    drillState = { level: 0, path: [], selectedDimension: null };
+    drillState = { selectedMonth: null, drillDimensions: [], pendingDimension: null };
     document.getElementById('drillBreadcrumbs').style.display = 'none';
     document.getElementById('drillInstruction').style.display = 'none';
     updateDimensionSelector();
     loadInitialData();
 }
 
-function renderDrilledTable() {
+function renderHierarchicalTable() {
+    if (!drillState.selectedMonth) {
+        loadInitialData();
+        return;
+    }
+    
     var tableHead = document.querySelector('#financeDataTable thead tr');
     var firstCol = tableHead.querySelector('th:first-child');
     
-    var lastDimension = drillState.path.length > 0 ? 
-        drillState.path[drillState.path.length - 1].dimension : 'month';
-    
-    var nextAvailable = getAvailableDimensions();
-    var columnLabel = nextAvailable.length > 0 ? dimensionLabels[nextAvailable[0]] : 'Details';
-    
-    if (lastDimension === 'month') {
-        columnLabel = 'Day';
-    } else {
-        columnLabel = dimensionLabels[lastDimension];
+    var columnLabel = 'Breakdown';
+    if (drillState.drillDimensions.length > 0) {
+        columnLabel = dimensionLabels[drillState.drillDimensions[drillState.drillDimensions.length - 1]];
     }
-    
     firstCol.innerHTML = columnLabel + ' <i class="fas fa-sort ms-1 text-muted"></i>';
-    
-    var mockData = generateDrillMockData();
     
     var tbody = document.getElementById('billingTableBody');
     var html = '';
+    var rowCount = 0;
     
-    var totals = { billable: 0, nonBillable: 0, total: 0, cost: 0 };
-    mockData.forEach(function(row) {
-        totals.billable += row.billable;
-        totals.nonBillable += row.nonBillable;
-        totals.total += row.total;
-        totals.cost += row.costNum;
-    });
+    var monthData = getMonthTotals(drillState.selectedMonth);
+    var monthAttrs = getRowAttributes(monthData.status);
     
-    html += '<tr class="table-light totals-row fw-bold">';
-    html += '<td><span class="fw-semibold">Total</span></td>';
-    html += '<td class="text-end">' + formatNumber(totals.billable) + '</td>';
-    html += '<td class="text-end">' + formatNumber(totals.nonBillable) + '</td>';
-    html += '<td class="text-end">' + formatNumber(totals.total) + '</td>';
-    html += '<td class="text-end">' + formatCurrency(totals.cost) + '</td>';
-    html += '<td></td>';
+    html += '<tr class="table-primary totals-row fw-bold" style="background-color: #e8e0f3 !important;">';
+    html += '<td><i class="fas fa-calendar-alt me-2"></i><span class="fw-bold">' + drillState.selectedMonth.label + ' (Totals)</span></td>';
+    html += '<td class="text-end fw-bold">' + formatNumber(monthData.billable) + '</td>';
+    html += '<td class="text-end fw-bold">' + formatNumber(monthData.nonBillable) + '</td>';
+    html += '<td class="text-end fw-bold">' + formatNumber(monthData.total) + '</td>';
+    html += '<td class="text-end fw-bold">' + formatCurrency(monthData.cost) + '</td>';
+    html += '<td class="text-center">' + monthAttrs.statusIcon + monthData.status + '</td>';
     html += '</tr>';
+    rowCount++;
     
-    mockData.forEach(function(row) {
-        var rowAttrs = getRowAttributes(row.status);
-        
-        html += '<tr class="' + rowAttrs.classes + '" data-value="' + row.value + '" data-status="' + row.status.toLowerCase() + '"' + rowAttrs.attrs + '>';
-        html += '<td style="padding-left: ' + (row.indent * 20 + 12) + 'px;">';
-        html += '<span class="drill-label fw-semibold">' + row.label + '</span>' + rowAttrs.labelIcon;
-        html += '</td>';
-        html += '<td class="text-end">' + formatNumber(row.billable) + '</td>';
-        html += '<td class="text-end">' + formatNumber(row.nonBillable) + '</td>';
-        html += '<td class="text-end fw-semibold">' + formatNumber(row.total) + '</td>';
-        html += '<td class="text-end fw-semibold">' + formatCurrency(row.costNum) + '</td>';
-        html += '<td class="text-center">' + rowAttrs.statusIcon + row.status + '</td>';
-        html += '</tr>';
-    });
+    if (drillState.drillDimensions.length === 0) {
+        tbody.innerHTML = html;
+        document.getElementById('rowCount').textContent = rowCount;
+        document.getElementById('totalCount').textContent = rowCount;
+        return;
+    }
+    
+    var firstDimension = drillState.drillDimensions[0];
+    var firstLevelData = generateDimensionData(firstDimension, drillState.selectedMonth, 0);
+    
+    if (drillState.drillDimensions.length === 1) {
+        firstLevelData.forEach(function(item) {
+            var rowAttrs = getRowAttributes(item.status);
+            html += '<tr class="' + rowAttrs.classes + '" data-value="' + item.value + '" data-status="' + item.status.toLowerCase() + '"' + rowAttrs.attrs + '>';
+            html += '<td style="padding-left: 24px;"><span class="drill-label fw-semibold">' + item.label + '</span>' + rowAttrs.labelIcon + '</td>';
+            html += '<td class="text-end">' + formatNumber(item.billable) + '</td>';
+            html += '<td class="text-end">' + formatNumber(item.nonBillable) + '</td>';
+            html += '<td class="text-end fw-semibold">' + formatNumber(item.total) + '</td>';
+            html += '<td class="text-end fw-semibold">' + formatCurrency(item.cost) + '</td>';
+            html += '<td class="text-center">' + rowAttrs.statusIcon + item.status + '</td>';
+            html += '</tr>';
+            rowCount++;
+        });
+    } else {
+        firstLevelData.forEach(function(parentItem) {
+            var parentAttrs = getRowAttributes(parentItem.status);
+            html += '<tr class="table-light group-total-row fw-semibold" style="background-color: #f5f0fa !important;">';
+            html += '<td style="padding-left: 24px;"><i class="fas fa-caret-down me-2 text-muted"></i><span class="fw-semibold">' + parentItem.label + ' (Total)</span></td>';
+            html += '<td class="text-end fw-semibold">' + formatNumber(parentItem.billable) + '</td>';
+            html += '<td class="text-end fw-semibold">' + formatNumber(parentItem.nonBillable) + '</td>';
+            html += '<td class="text-end fw-semibold">' + formatNumber(parentItem.total) + '</td>';
+            html += '<td class="text-end fw-semibold">' + formatCurrency(parentItem.cost) + '</td>';
+            html += '<td class="text-center">' + parentAttrs.statusIcon + parentItem.status + '</td>';
+            html += '</tr>';
+            rowCount++;
+            
+            var secondDimension = drillState.drillDimensions[1];
+            var secondLevelData = generateDimensionData(secondDimension, parentItem, 1);
+            
+            if (drillState.drillDimensions.length === 2) {
+                secondLevelData.forEach(function(childItem) {
+                    var childAttrs = getRowAttributes(childItem.status);
+                    html += '<tr class="' + childAttrs.classes + '" data-value="' + childItem.value + '" data-status="' + childItem.status.toLowerCase() + '"' + childAttrs.attrs + '>';
+                    html += '<td style="padding-left: 48px;"><span class="drill-label">' + childItem.label + '</span>' + childAttrs.labelIcon + '</td>';
+                    html += '<td class="text-end">' + formatNumber(childItem.billable) + '</td>';
+                    html += '<td class="text-end">' + formatNumber(childItem.nonBillable) + '</td>';
+                    html += '<td class="text-end">' + formatNumber(childItem.total) + '</td>';
+                    html += '<td class="text-end">' + formatCurrency(childItem.cost) + '</td>';
+                    html += '<td class="text-center">' + childAttrs.statusIcon + childItem.status + '</td>';
+                    html += '</tr>';
+                    rowCount++;
+                });
+            } else {
+                secondLevelData.forEach(function(level2Item) {
+                    var level2Attrs = getRowAttributes(level2Item.status);
+                    html += '<tr class="table-light group-total-row" style="background-color: #faf8fc !important;">';
+                    html += '<td style="padding-left: 48px;"><i class="fas fa-caret-down me-2 text-muted small"></i><span class="fw-medium">' + level2Item.label + ' (Total)</span></td>';
+                    html += '<td class="text-end">' + formatNumber(level2Item.billable) + '</td>';
+                    html += '<td class="text-end">' + formatNumber(level2Item.nonBillable) + '</td>';
+                    html += '<td class="text-end">' + formatNumber(level2Item.total) + '</td>';
+                    html += '<td class="text-end">' + formatCurrency(level2Item.cost) + '</td>';
+                    html += '<td class="text-center">' + level2Attrs.statusIcon + level2Item.status + '</td>';
+                    html += '</tr>';
+                    rowCount++;
+                    
+                    var thirdDimension = drillState.drillDimensions[2];
+                    var thirdLevelData = generateDimensionData(thirdDimension, level2Item, 2);
+                    
+                    thirdLevelData.forEach(function(level3Item) {
+                        var level3Attrs = getRowAttributes(level3Item.status);
+                        html += '<tr class="' + level3Attrs.classes + '" data-value="' + level3Item.value + '" data-status="' + level3Item.status.toLowerCase() + '"' + level3Attrs.attrs + '>';
+                        html += '<td style="padding-left: 72px;"><span class="drill-label">' + level3Item.label + '</span>' + level3Attrs.labelIcon + '</td>';
+                        html += '<td class="text-end">' + formatNumber(level3Item.billable) + '</td>';
+                        html += '<td class="text-end">' + formatNumber(level3Item.nonBillable) + '</td>';
+                        html += '<td class="text-end">' + formatNumber(level3Item.total) + '</td>';
+                        html += '<td class="text-end">' + formatCurrency(level3Item.cost) + '</td>';
+                        html += '<td class="text-center">' + level3Attrs.statusIcon + level3Item.status + '</td>';
+                        html += '</tr>';
+                        rowCount++;
+                    });
+                });
+            }
+        });
+    }
     
     tbody.innerHTML = html;
-    document.getElementById('rowCount').textContent = mockData.length;
-    document.getElementById('totalCount').textContent = mockData.length;
+    document.getElementById('rowCount').textContent = rowCount;
+    document.getElementById('totalCount').textContent = rowCount;
 }
 
-function generateDrillMockData() {
-    var lastDimension = drillState.path.length > 0 ? 
-        drillState.path[drillState.path.length - 1].dimension : 'month';
-    
+function getMonthTotals(month) {
+    var monthlyData = {
+        'December 2025': { billable: 130730, nonBillable: 2321, total: 133051, cost: 4183.36, status: 'Finalised' },
+        'November 2025': { billable: 93157, nonBillable: 1559, total: 94716, cost: 2981.02, status: 'Finalised' },
+        'October 2025': { billable: 100439, nonBillable: 5829, total: 106268, cost: 3214.05, status: 'Finalised' },
+        'September 2025': { billable: 90711, nonBillable: 1405, total: 92116, cost: 2902.75, status: 'Adjusted' },
+        'August 2025': { billable: 135278, nonBillable: 5783, total: 141061, cost: 4328.90, status: 'Provisional' },
+        'July 2025': { billable: 121490, nonBillable: 2622, total: 124112, cost: 3887.68, status: 'Provisional' },
+        'June 2025': { billable: 116325, nonBillable: 3201, total: 119526, cost: 3722.40, status: 'Finalised' },
+        'May 2025': { billable: 98234, nonBillable: 2145, total: 100379, cost: 3143.49, status: 'Finalised' },
+        'April 2025': { billable: 87456, nonBillable: 1876, total: 89332, cost: 2798.59, status: 'Finalised' },
+        'March 2025': { billable: 102345, nonBillable: 2567, total: 104912, cost: 3275.04, status: 'Finalised' },
+        'February 2025': { billable: 78912, nonBillable: 1456, total: 80368, cost: 2525.18, status: 'Finalised' },
+        'January 2025': { billable: 91345, nonBillable: 2234, total: 93579, cost: 2923.04, status: 'Finalised' }
+    };
+    return monthlyData[month.label] || { billable: 100000, nonBillable: 2000, total: 102000, cost: 3200.00, status: month.status || 'Finalised' };
+}
+
+function generateDimensionData(dimension, parentContext, level) {
+    var seed = hashCode(JSON.stringify(drillState.selectedMonth) + dimension + JSON.stringify(parentContext) + level);
     var data = [];
-    var seed = JSON.stringify(drillState.path);
-    var seedNum = hashCode(seed);
     
-    if (lastDimension === 'month') {
-        for (var d = 1; d <= 30; d++) {
+    if (dimension === 'day') {
+        var monthMatch = drillState.selectedMonth.label.match(/(\w+)\s+(\d{4})/);
+        var monthName = monthMatch ? monthMatch[1] : 'January';
+        var year = monthMatch ? monthMatch[2] : '2025';
+        var monthNum = getMonthNumber(monthName);
+        var daysInMonth = new Date(parseInt(year), parseInt(monthNum), 0).getDate();
+        
+        for (var d = 1; d <= daysInMonth; d++) {
             var dayStr = d < 10 ? '0' + d : '' + d;
-            var monthMatch = drillState.path[0].label.match(/(\w+)\s+(\d{4})/);
-            var monthNum = getMonthNumber(monthMatch ? monthMatch[1] : 'January');
-            var year = monthMatch ? monthMatch[2] : '2025';
-            
-            var billable = Math.floor(seededRandom(seedNum + d) * 5000) + 2000;
-            var nonBillable = Math.floor(seededRandom(seedNum + d + 100) * 200) + 50;
+            var billable = Math.floor(seededRandom(seed + d) * 4000) + 2000;
+            var nonBillable = Math.floor(seededRandom(seed + d + 100) * 150) + 30;
             
             data.push({
                 label: dayStr + '/' + monthNum + '/' + year,
@@ -1883,16 +1990,15 @@ function generateDrillMockData() {
                 billable: billable,
                 nonBillable: nonBillable,
                 total: billable + nonBillable,
-                costNum: billable * 0.032,
-                status: 'Finalised',
-                indent: 0
+                cost: billable * 0.032,
+                status: drillState.selectedMonth.status || 'Finalised'
             });
         }
     } else {
-        var dimensionData = mockDrillData[lastDimension] || [];
-        dimensionData.forEach(function(item, idx) {
-            var billable = Math.floor(seededRandom(seedNum + idx) * item.billable) + Math.floor(item.billable * 0.5);
-            var nonBillable = Math.floor(seededRandom(seedNum + idx + 50) * item.nonBillable) + Math.floor(item.nonBillable * 0.3);
+        var dimensionItems = mockDrillData[dimension] || [];
+        dimensionItems.forEach(function(item, idx) {
+            var billable = Math.floor(seededRandom(seed + idx) * 3000) + 500;
+            var nonBillable = Math.floor(seededRandom(seed + idx + 50) * 100) + 10;
             
             data.push({
                 label: item.label,
@@ -1900,9 +2006,8 @@ function generateDrillMockData() {
                 billable: billable,
                 nonBillable: nonBillable,
                 total: billable + nonBillable,
-                costNum: billable * 0.032,
-                status: item.status,
-                indent: 0
+                cost: billable * 0.032,
+                status: drillState.selectedMonth.status || 'Finalised'
             });
         });
     }
@@ -2006,10 +2111,9 @@ function getRowAttributes(status) {
 
 function getDrillStateForExport() {
     return {
-        level: drillState.level,
-        path: drillState.path.map(function(p) {
-            return { dimension: p.dimension, value: p.value, label: p.label };
-        }),
+        selectedMonth: drillState.selectedMonth,
+        drillDimensions: drillState.drillDimensions.slice(),
+        path: getDrillPath(),
         filters: {
             billingMonths: getSelectedValues('billingMonths'),
             subAccounts: getSelectedValues('subAccounts'),
@@ -2064,7 +2168,8 @@ function getFullExportState() {
             messageTypes: getSelectedValues('messageTypes')
         },
         drillState: {
-            level: drillState.level,
+            selectedMonth: drillState.selectedMonth,
+            drillDimensions: drillState.drillDimensions.slice(),
             path: getDrillPath()
         },
         costFormat: 'ex_vat'
@@ -2176,10 +2281,13 @@ function updateSaveReportPreview() {
     document.getElementById('previewFilters').textContent = filters.length > 0 ? filters.join(', ') : 'None selected';
     
     var drillLevel = 'Billing Month';
-    if (drillState.path.length > 0) {
-        drillLevel = drillState.path.map(function(p) {
-            return p.dimension === 'month' ? p.label : dimensionLabels[p.dimension] + ': ' + p.label;
-        }).join(' → ');
+    if (drillState.selectedMonth) {
+        drillLevel = drillState.selectedMonth.label;
+        if (drillState.drillDimensions.length > 0) {
+            drillLevel += ' → ' + drillState.drillDimensions.map(function(d) {
+                return dimensionLabels[d];
+            }).join(' → ');
+        }
     }
     document.getElementById('previewDrillLevel').textContent = drillLevel;
     document.getElementById('previewSort').textContent = 'Default';
@@ -2207,7 +2315,8 @@ document.getElementById('btnConfirmSaveReport')?.addEventListener('click', funct
             messageTypes: getSelectedValues('messageTypes')
         },
         drillState: {
-            level: drillState.level,
+            selectedMonth: drillState.selectedMonth,
+            drillDimensions: drillState.drillDimensions.slice(),
             path: getDrillPath()
         },
         sortState: null
@@ -2290,7 +2399,8 @@ document.getElementById('btnConfirmSchedule')?.addEventListener('click', functio
             messageTypes: getSelectedValues('messageTypes')
         },
         drillState: {
-            level: drillState.level,
+            selectedMonth: drillState.selectedMonth,
+            drillDimensions: drillState.drillDimensions.slice(),
             path: getDrillPath()
         },
         status: 'active'

@@ -1,0 +1,156 @@
+Fix and standardise the drill-down behaviour on the Finance Data page.
+
+CURRENT PROBLEM:
+- As soon as I click a month, the table automatically drills by Day.
+- I cannot choose the first drill dimension.
+- When I drill further (e.g. Day → Sub Account), I do NOT see totals for the previous level in the same view.
+
+REQUIRED BEHAVIOUR:
+
+────────────────────────
+A) Do NOT auto-drill by Day when a month is clicked
+────────────────────────
+Change the current logic so:
+
+- Clicking a Billing Month row does NOT automatically assume "Day" as the next drill level.
+- The first drill dimension must be explicitly chosen by the user.
+
+Implementation model:
+1. Add a “Drill by” control (e.g. dropdown or pill selector) ABOVE the table that lets the user choose the next drill dimension:
+   - Available dimensions:
+     • Day
+     • Sub Account
+     • Country
+     • Sender ID
+     • Product Type
+     • Group Name
+
+2. Drill only occurs when BOTH are true:
+   - A month row is clicked
+   - A drill dimension is selected in the “Drill by” control
+
+If no drill dimension is selected:
+- Clicking a month should do nothing (or show a small tooltip: “Select a drill dimension first”).
+
+────────────────────────
+B) First drill example – Month → Day (all days on ONE page)
+────────────────────────
+When the user:
+- Selects “Day” in the “Drill by” control
+- Clicks “September 2025”
+
+The table layout must become:
+
+Row 1: Month total row
+- Label: “September 2025 (Totals)”
+- Columns:
+  • Billable Parts (sum for entire month)
+  • Non-Billable Parts
+  • Total Parts
+  • Total Cost (ex VAT)
+  • Billing Status (for that month)
+
+Rows below: one row per day for that month:
+- 01/09/2025
+- 02/09/2025
+- 03/09/2025
+- …
+- 30/09/2025
+
+Each Day row shows:
+- Billable Parts
+- Non-Billable Parts
+- Total Parts
+- Total Cost (ex VAT)
+- Billing Status (if applicable per day or inherited from month)
+
+IMPORTANT:
+- ALL days must be on ONE table view (with scrolling if needed).
+- Do NOT send me to a separate page per day.
+
+Breadcrumb example:
+Finance Data → September 2025 → Day
+
+────────────────────────
+C) Second drill example – Month → Day → Sub Account (with totals)
+────────────────────────
+If I am at Day-level for September 2025, and I then choose “Sub Account” as the next drill dimension, the table should show:
+
+Top:
+- September 2025 (Totals)
+
+Then, for EACH day:
+- A Day total row
+- Followed by Sub Account rows for that day
+
+Example layout:
+
+September 2025 (Totals)
+
+01/09/2025  (Day total)
+    Sub Account 1
+    Sub Account 2
+
+02/09/2025  (Day total)
+    Sub Account 1
+    Sub Account 3
+
+03/09/2025  (Day total)
+    Sub Account 2
+    Sub Account 4
+
+…and so on, until the end of the month.
+
+Rules:
+- The Month total row shows the sum for the whole month.
+- Each Day row shows totals for that day.
+- Each Sub Account row shows totals for that day + that sub account.
+- All rows use the SAME billing columns:
+  • Billable Parts
+  • Non-Billable Parts
+  • Total Parts
+  • Total Cost (ex VAT)
+  • Billing Status
+
+All of this MUST be on a single scrollable table page, not multiple separate pages.
+
+Breadcrumb example:
+Finance Data → September 2025 → Day → Sub Account
+
+────────────────────────
+D) General rule – every drill level must show the parent total row
+────────────────────────
+For ANY drill path and level:
+
+- The first row in the table should always be the TOTAL for the current “parent” level.
+  • At Month level → Month total row.
+  • After drilling by Day → first row is the Month total row, followed by Day rows.
+  • After drilling by Day + Sub Account → first row is Month total, then Day totals, then Sub Account rows per day.
+
+- When a new dimension is added to the drill:
+  • Keep the previous total rows visible.
+  • Add the new child rows underneath the correct parent row (with indentation or grouped styling).
+
+The pattern is:
+
+Level 0: Month total  
+Level 1: Parent-level totals (e.g. Days)  
+Level 2: Child-level breakdown (e.g. Sub Accounts under each Day)  
+Level 3: Child-level breakdown under each Sub Account (if more drill dimensions are used later)
+
+Export:
+- When exporting, export exactly what is currently visible in the table (including all levels and totals), with the same grouping and totals.
+
+────────────────────────
+E) Constraints
+────────────────────────
+- Do NOT hard-code a specific drill order. The user chooses the drill order via the “Drill by” control.
+- Do NOT disable drill for Finalised months.
+- Keep using the existing Finance Data table design (no charts, no new styling system).
+- Preserve existing filters and pagination/infinite scroll behaviour.
+
+Acceptance:
+- Clicking a month WITHOUT selecting a drill dimension does nothing (or prompts the user).
+- Selecting “Day” then clicking a month shows: Month total + all days for that month in ONE table.
+- Adding “Sub Account” as a second drill shows: Month total → each Day total → Sub Account rows under each day.
+- Each drill level shows totals for the previous level in the same view.
