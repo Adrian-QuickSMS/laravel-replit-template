@@ -1407,6 +1407,36 @@ document.addEventListener('DOMContentLoaded', function() {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
     
+    // Build filter query string from current filterState
+    function buildFilterQueryString() {
+        const params = new URLSearchParams();
+        
+        if (filterState.dateFrom) {
+            params.append('dateFrom', filterState.dateFrom);
+        }
+        if (filterState.dateTo) {
+            params.append('dateTo', filterState.dateTo);
+        }
+        if (filterState.senderIds && filterState.senderIds.length > 0) {
+            filterState.senderIds.forEach(v => params.append('senderIds[]', v));
+        }
+        if (filterState.subAccounts && filterState.subAccounts.length > 0) {
+            filterState.subAccounts.forEach(v => params.append('subAccounts[]', v));
+        }
+        if (filterState.users && filterState.users.length > 0) {
+            filterState.users.forEach(v => params.append('users[]', v));
+        }
+        if (filterState.origins && filterState.origins.length > 0) {
+            filterState.origins.forEach(v => params.append('origins[]', v));
+        }
+        if (filterState.groupNames && filterState.groupNames.length > 0) {
+            filterState.groupNames.forEach(v => params.append('groupNames[]', v));
+        }
+        
+        const queryString = params.toString();
+        return queryString ? `?${queryString}` : '';
+    }
+    
     // Load all dashboard data independently
     async function loadDashboardData() {
         console.log('[Dashboard] Loading data from API...');
@@ -1426,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1-4. KPIs
     async function loadKpis() {
         try {
-            const response = await fetch(`${API_BASE}/kpis`);
+            const response = await fetch(`${API_BASE}/kpis${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
@@ -1540,7 +1570,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let volumeChartData = null;
     async function loadVolumeChart() {
         try {
-            const response = await fetch(`${API_BASE}/volume`);
+            const response = await fetch(`${API_BASE}/volume${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             volumeChartData = data;
@@ -1592,7 +1622,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let deliveryStatusData = null;
     async function loadDeliveryStatus() {
         try {
-            const response = await fetch(`${API_BASE}/delivery-status`);
+            const response = await fetch(`${API_BASE}/delivery-status${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             deliveryStatusData = data;
@@ -1659,7 +1689,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let topCountriesData = null;
     async function loadTopCountries() {
         try {
-            const response = await fetch(`${API_BASE}/top-countries`);
+            const response = await fetch(`${API_BASE}/top-countries${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             topCountriesData = data;
@@ -1724,7 +1754,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let senderIdsData = [];
     async function loadTopSenderIds() {
         try {
-            const response = await fetch(`${API_BASE}/top-sender-ids`);
+            const response = await fetch(`${API_BASE}/top-sender-ids${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             senderIdsData = data.senderIds;
@@ -1785,7 +1815,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 10. Peak Sending Time
     async function loadPeakTime() {
         try {
-            const response = await fetch(`${API_BASE}/peak-time`);
+            const response = await fetch(`${API_BASE}/peak-time${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
@@ -1831,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 11. Failure Reasons Table
     async function loadFailureReasons() {
         try {
-            const response = await fetch(`${API_BASE}/failure-reasons`);
+            const response = await fetch(`${API_BASE}/failure-reasons${buildFilterQueryString()}`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
@@ -1893,21 +1923,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize dashboard data load
-    if (typeof ApexCharts !== 'undefined') {
-        // Apply role-based visibility first
-        applyRoleBasedVisibility();
-        
-        // Disable drag for non-admins
-        if (!hasPermission('canManageLayout') && typeof sortable !== 'undefined' && sortable) {
-            sortable.option('disabled', true);
+    // Initialize dashboard data load - deferred until filters are set up
+    function initializeDashboard() {
+        if (typeof ApexCharts !== 'undefined') {
+            // Apply role-based visibility first
+            applyRoleBasedVisibility();
+            
+            // Disable drag for non-admins
+            if (!hasPermission('canManageLayout') && typeof sortable !== 'undefined' && sortable) {
+                sortable.option('disabled', true);
+            }
+            
+            // Set initial date filter values in filterState
+            const range = getDateRange('7days');
+            filterState.dateFrom = formatDateLocal(range.from);
+            filterState.dateTo = formatDateLocal(range.to);
+            filterState.datePreset = '7days';
+            
+            loadDashboardData().then(() => {
+                setTimeout(initTooltips, 500); // Initialize tooltips after content renders
+            });
+        } else {
+            console.error('[Dashboard] ApexCharts not loaded');
         }
-        
-        loadDashboardData().then(() => {
-            setTimeout(initTooltips, 500); // Initialize tooltips after content renders
-        });
-    } else {
-        console.error('[Dashboard] ApexCharts not loaded');
     }
     
     // Re-initialize tooltips periodically for dynamically loaded content
@@ -2179,6 +2217,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Apply/Reset Handlers
     // ========================================
     function applyFilters() {
+        // Collect date values from inputs
+        const dateFromInput = document.getElementById('filterDateFrom');
+        const dateToInput = document.getElementById('filterDateTo');
+        pendingFilters.dateFrom = dateFromInput ? dateFromInput.value : null;
+        pendingFilters.dateTo = dateToInput ? dateToInput.value : null;
+        
         // Collect values from all multiselect dropdowns
         pendingFilters.subAccounts = getMultiselectValues('subAccounts');
         pendingFilters.users = getMultiselectValues('users');
@@ -2191,8 +2235,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderFilterChips();
         
         console.log('[Dashboard] Filters applied:', JSON.stringify(filterState, null, 2));
-        // TODO: Implement API call to refresh dashboard data with filterState
-        // loadDashboardData();
+        loadDashboardData();
     }
     
     function resetFilters() {
@@ -2249,6 +2292,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btnApplyFilters')?.addEventListener('click', applyFilters);
     document.getElementById('btnResetFilters')?.addEventListener('click', resetFilters);
     document.getElementById('btnClearAllFilters')?.addEventListener('click', resetFilters);
+    
+    // Start dashboard initialization after all filter handlers are set up
+    initializeDashboard();
 });
 </script>
 @endpush
