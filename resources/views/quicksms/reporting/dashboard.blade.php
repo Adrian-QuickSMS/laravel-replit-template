@@ -449,9 +449,10 @@ table .cursor-pointer:hover {
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Account</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales Team" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales Team</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Operations" id="subAcc3"><label class="form-check-label small" for="subAcc3">Operations</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support" id="subAcc5"><label class="form-check-label small" for="subAcc5">Support</label></div>
                             </div>
                         </div>
                     </div>
@@ -466,11 +467,10 @@ table .cursor-pointer:hover {
                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="John Smith" id="user1"><label class="form-check-label small" for="user1">John Smith</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sarah Johnson" id="user2"><label class="form-check-label small" for="user2">Sarah Johnson</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Mike Williams" id="user3"><label class="form-check-label small" for="user3">Mike Williams</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Emma Davis" id="user4"><label class="form-check-label small" for="user4">Emma Davis</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="James Wilson" id="user5"><label class="form-check-label small" for="user5">James Wilson</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="john.smith@company.com" id="user1"><label class="form-check-label small" for="user1">john.smith@company.com</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="jane.doe@company.com" id="user2"><label class="form-check-label small" for="user2">jane.doe@company.com</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="admin@company.com" id="user3"><label class="form-check-label small" for="user3">admin@company.com</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="marketing@company.com" id="user4"><label class="form-check-label small" for="user4">marketing@company.com</label></div>
                             </div>
                         </div>
                     </div>
@@ -489,10 +489,10 @@ table .cursor-pointer:hover {
                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="originPortal"><label class="form-check-label small" for="originPortal">Portal</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="originAPI"><label class="form-check-label small" for="originAPI">API</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Web UI" id="originWebUI"><label class="form-check-label small" for="originWebUI">Web UI</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Scheduled" id="originScheduled"><label class="form-check-label small" for="originScheduled">Scheduled</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="originEmail"><label class="form-check-label small" for="originEmail">Email-to-SMS</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="originIntegration"><label class="form-check-label small" for="originIntegration">Integration</label></div>
                             </div>
                         </div>
                     </div>
@@ -507,17 +507,11 @@ table .cursor-pointer:hover {
                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
-                                <div class="small text-muted mb-1 px-2">Campaigns</div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Summer Sale 2024" id="group1"><label class="form-check-label small" for="group1">Summer Sale 2024</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Welcome Series" id="group2"><label class="form-check-label small" for="group2">Welcome Series</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Black Friday" id="group3"><label class="form-check-label small" for="group3">Black Friday</label></div>
-                                <div class="small text-muted mb-1 mt-2 px-2">API Connections</div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main API" id="group4"><label class="form-check-label small" for="group4">Main API</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Mobile App" id="group5"><label class="form-check-label small" for="group5">Mobile App</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Website Integration" id="group6"><label class="form-check-label small" for="group6">Website Integration</label></div>
-                                <div class="small text-muted mb-1 mt-2 px-2">Integrations</div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Zapier Flow 1" id="group7"><label class="form-check-label small" for="group7">Zapier Flow 1</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="HubSpot Workflow" id="group8"><label class="form-check-label small" for="group8">HubSpot Workflow</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="VIP Customers" id="group1"><label class="form-check-label small" for="group1">VIP Customers</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Newsletter" id="group2"><label class="form-check-label small" for="group2">Newsletter</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Promotions" id="group3"><label class="form-check-label small" for="group3">Promotions</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Alerts" id="group4"><label class="form-check-label small" for="group4">Alerts</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="General" id="group5"><label class="form-check-label small" for="group5">General</label></div>
                             </div>
                         </div>
                     </div>
@@ -533,11 +527,13 @@ table .cursor-pointer:hover {
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="QuickSMS" id="sender1"><label class="form-check-label small" for="sender1">QuickSMS</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ALERTS" id="sender2"><label class="form-check-label small" for="sender2">ALERTS</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="PROMO" id="sender3"><label class="form-check-label small" for="sender3">PROMO</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="PROMO" id="sender2"><label class="form-check-label small" for="sender2">PROMO</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ALERTS" id="sender3"><label class="form-check-label small" for="sender3">ALERTS</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="INFO" id="sender4"><label class="form-check-label small" for="sender4">INFO</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="NOTIFY" id="sender5"><label class="form-check-label small" for="sender5">NOTIFY</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="VERIFY" id="sender6"><label class="form-check-label small" for="sender6">VERIFY</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="UPDATES" id="sender7"><label class="form-check-label small" for="sender7">UPDATES</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NEWS" id="sender8"><label class="form-check-label small" for="sender8">NEWS</label></div>
                             </div>
                         </div>
                     </div>
