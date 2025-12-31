@@ -213,6 +213,18 @@
     color: #495057;
     font-weight: 500;
 }
+.row-locked {
+    opacity: 0.85;
+}
+.row-locked td {
+    position: relative;
+}
+#billingTableBody tr.row-locked {
+    cursor: default;
+}
+#billingTableBody tr.row-locked:hover td {
+    filter: none;
+}
 .optgroup-label {
     font-weight: 600;
     font-size: 0.75rem;
@@ -492,38 +504,38 @@
                                     </tr>
                                 </thead>
                                 <tbody id="billingTableBody">
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">December 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">125,432</td>
                                         <td class="text-end">3,218</td>
                                         <td class="text-end fw-semibold">128,650</td>
                                         <td class="text-end fw-semibold">£4,017.82</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">November 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">118,756</td>
                                         <td class="text-end">2,891</td>
                                         <td class="text-end fw-semibold">121,647</td>
                                         <td class="text-end fw-semibold">£3,812.45</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">October 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">132,890</td>
                                         <td class="text-end">4,102</td>
                                         <td class="text-end fw-semibold">136,992</td>
                                         <td class="text-end fw-semibold">£4,278.56</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
                                     <tr class="table-warning" data-status="adjusted">
                                         <td>
@@ -535,7 +547,7 @@
                                         <td class="text-end fw-semibold">£3,118.92</td>
                                         <td class="text-center">Adjusted</td>
                                     </tr>
-                                    <tr class="table-info" data-status="provisional">
+                                    <tr class="table-info" data-status="provisional" title="Provisional: Subject to reconciliation before invoice issue.">
                                         <td>
                                             <span class="fw-semibold">August 2025</span>
                                         </td>
@@ -543,9 +555,9 @@
                                         <td class="text-end">5,234</td>
                                         <td class="text-end fw-semibold">150,912</td>
                                         <td class="text-end fw-semibold">£4,715.89</td>
-                                        <td class="text-center">Provisional</td>
+                                        <td class="text-center"><i class="fas fa-hourglass-half me-1 text-muted small"></i>Provisional</td>
                                     </tr>
-                                    <tr class="table-info" data-status="provisional">
+                                    <tr class="table-info" data-status="provisional" title="Provisional: Subject to reconciliation before invoice issue.">
                                         <td>
                                             <span class="fw-semibold">July 2025</span>
                                         </td>
@@ -553,73 +565,73 @@
                                         <td class="text-end">2,456</td>
                                         <td class="text-end fw-semibold">114,801</td>
                                         <td class="text-end fw-semibold">£3,587.23</td>
-                                        <td class="text-center">Provisional</td>
+                                        <td class="text-center"><i class="fas fa-hourglass-half me-1 text-muted small"></i>Provisional</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">June 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">108,923</td>
                                         <td class="text-end">3,012</td>
                                         <td class="text-end fw-semibold">111,935</td>
                                         <td class="text-end fw-semibold">£3,498.12</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">May 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">95,678</td>
                                         <td class="text-end">1,890</td>
                                         <td class="text-end fw-semibold">97,568</td>
                                         <td class="text-end fw-semibold">£3,048.67</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">April 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">87,234</td>
                                         <td class="text-end">2,134</td>
                                         <td class="text-end fw-semibold">89,368</td>
                                         <td class="text-end fw-semibold">£2,792.34</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">March 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">102,456</td>
                                         <td class="text-end">2,789</td>
                                         <td class="text-end fw-semibold">105,245</td>
                                         <td class="text-end fw-semibold">£3,289.01</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">February 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">78,912</td>
                                         <td class="text-end">1,456</td>
                                         <td class="text-end fw-semibold">80,368</td>
                                         <td class="text-end fw-semibold">£2,511.45</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
-                                    <tr class="table-success" data-status="finalised">
+                                    <tr class="table-success row-locked" data-status="finalised" data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values.">
                                         <td>
                                             <span class="fw-semibold">January 2025</span>
-                                            <i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>
+                                            <i class="fas fa-lock ms-2 text-muted small"></i>
                                         </td>
                                         <td class="text-end">91,345</td>
                                         <td class="text-end">2,234</td>
                                         <td class="text-end fw-semibold">93,579</td>
                                         <td class="text-end fw-semibold">£2,924.78</td>
-                                        <td class="text-center">Finalised</td>
+                                        <td class="text-center"><i class="fas fa-lock me-1 text-muted small"></i>Finalised</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1289,6 +1301,10 @@ function initDrillDownHandlers() {
         var row = e.target.closest('tr');
         if (!row) return;
         
+        if (row.classList.contains('row-locked') || row.getAttribute('data-immutable') === 'true') {
+            return;
+        }
+        
         if (drillState.level === 0) {
             var monthCell = row.querySelector('td:first-child .fw-semibold');
             if (monthCell) {
@@ -1382,19 +1398,15 @@ function renderDrillTable(dimension) {
     
     var html = '';
     data.forEach(function(row) {
-        var statusClass = 'table-success';
-        if (row.status === 'Adjusted') statusClass = 'table-warning';
-        if (row.status === 'Provisional') statusClass = 'table-info';
+        var rowAttrs = getRowAttributes(row.status);
         
-        var lockIcon = row.status === 'Finalised' ? '<i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>' : '';
-        
-        html += '<tr class="' + statusClass + '" data-status="' + row.status.toLowerCase() + '">';
-        html += '<td><span class="fw-semibold">' + row.label + '</span>' + lockIcon + '</td>';
+        html += '<tr class="' + rowAttrs.classes + '" data-status="' + row.status.toLowerCase() + '"' + rowAttrs.attrs + '>';
+        html += '<td><span class="fw-semibold">' + row.label + '</span>' + rowAttrs.labelIcon + '</td>';
         html += '<td class="text-end">' + row.billable.toLocaleString() + '</td>';
         html += '<td class="text-end">' + row.nonBillable.toLocaleString() + '</td>';
         html += '<td class="text-end fw-semibold">' + row.total.toLocaleString() + '</td>';
         html += '<td class="text-end fw-semibold">' + row.cost + '</td>';
-        html += '<td class="text-center">' + row.status + '</td>';
+        html += '<td class="text-center">' + rowAttrs.statusIcon + row.status + '</td>';
         html += '</tr>';
     });
     
@@ -1428,25 +1440,49 @@ function renderMonthlyTable() {
     var html = '';
     
     monthlyData.forEach(function(row) {
-        var statusClass = 'table-success';
-        if (row.status === 'Adjusted') statusClass = 'table-warning';
-        if (row.status === 'Provisional') statusClass = 'table-info';
+        var rowAttrs = getRowAttributes(row.status);
         
-        var lockIcon = row.status === 'Finalised' ? '<i class="fas fa-lock ms-2 text-muted small" title="Finalised - Locked"></i>' : '';
-        
-        html += '<tr class="' + statusClass + '" data-status="' + row.status.toLowerCase() + '">';
-        html += '<td><span class="fw-semibold">' + row.label + '</span>' + lockIcon + '</td>';
+        html += '<tr class="' + rowAttrs.classes + '" data-status="' + row.status.toLowerCase() + '"' + rowAttrs.attrs + '>';
+        html += '<td><span class="fw-semibold">' + row.label + '</span>' + rowAttrs.labelIcon + '</td>';
         html += '<td class="text-end">' + row.billable.toLocaleString() + '</td>';
         html += '<td class="text-end">' + row.nonBillable.toLocaleString() + '</td>';
         html += '<td class="text-end fw-semibold">' + row.total.toLocaleString() + '</td>';
         html += '<td class="text-end fw-semibold">' + row.cost + '</td>';
-        html += '<td class="text-center">' + row.status + '</td>';
+        html += '<td class="text-center">' + rowAttrs.statusIcon + row.status + '</td>';
         html += '</tr>';
     });
     
     tbody.innerHTML = html;
     document.getElementById('rowCount').textContent = monthlyData.length;
     document.getElementById('totalCount').textContent = monthlyData.length;
+}
+
+function getRowAttributes(status) {
+    var result = {
+        classes: 'table-success',
+        attrs: '',
+        labelIcon: '',
+        statusIcon: ''
+    };
+    
+    if (status === 'Finalised') {
+        result.classes = 'table-success row-locked';
+        result.attrs = ' data-immutable="true" title="Finalised: Billing data is immutable and matches invoice values."';
+        result.labelIcon = '<i class="fas fa-lock ms-2 text-muted small"></i>';
+        result.statusIcon = '<i class="fas fa-lock me-1 text-muted small"></i>';
+    } else if (status === 'Adjusted') {
+        result.classes = 'table-warning';
+        result.attrs = '';
+        result.labelIcon = '';
+        result.statusIcon = '';
+    } else if (status === 'Provisional') {
+        result.classes = 'table-info';
+        result.attrs = ' title="Provisional: Subject to reconciliation before invoice issue."';
+        result.labelIcon = '';
+        result.statusIcon = '<i class="fas fa-hourglass-half me-1 text-muted small"></i>';
+    }
+    
+    return result;
 }
 
 function getDrillStateForExport() {
