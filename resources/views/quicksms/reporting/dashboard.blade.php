@@ -727,8 +727,11 @@ table .cursor-pointer:hover {
         <!-- 5. Messages Sent Chart (Line Chart with 3 series: Total, SMS, RCS) -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge" data-api="volume">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0">Messages Sent</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#messagesSentModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="volumeLineChart" class="chart-placeholder">
@@ -743,8 +746,11 @@ table .cursor-pointer:hover {
         <!-- 7. Delivery Status Breakdown (Pie Chart) -->
         <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
             <div class="card h-100">
-                <div class="card-header border-0 pb-0">
-                    <h4 class="card-title">Delivery Status Breakdown</h4>
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="deliveryStatusPieChart" class="chart-placeholder">
@@ -910,6 +916,40 @@ table .cursor-pointer:hover {
             </div>
             <div class="modal-body">
                 <div id="topCountriesModalChart" style="min-height: 400px;">
+                    <div class="qs-skeleton qs-skeleton-chart w-100" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messages Sent Modal -->
+<div class="modal fade" id="messagesSentModal" tabindex="-1" aria-labelledby="messagesSentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="messagesSentModalLabel">Messages Sent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="messagesSentModalChart" style="min-height: 400px;">
+                    <div class="qs-skeleton qs-skeleton-chart w-100" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Status Modal -->
+<div class="modal fade" id="deliveryStatusModal" tabindex="-1" aria-labelledby="deliveryStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deliveryStatusModalLabel">Delivery Status Breakdown</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="deliveryStatusModalChart" style="min-height: 400px;">
                     <div class="qs-skeleton qs-skeleton-chart w-100" style="height: 400px;"></div>
                 </div>
             </div>
@@ -1497,40 +1537,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 5. Volume Over Time Chart
+    let volumeChartData = null;
     async function loadVolumeChart() {
         try {
             const response = await fetch(`${API_BASE}/volume`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
+            volumeChartData = data;
             
-            const chartEl = document.getElementById('volumeLineChart');
-            chartEl.innerHTML = '';
-            
-            const options = {
-                series: data.series,
-                chart: { 
-                    height: 280, 
-                    type: 'line', 
-                    toolbar: { show: false },
-                    events: {
-                        dataPointSelection: function(event, chartContext, config) {
-                            const dateLabel = data.categories[config.dataPointIndex];
-                            navigateWithFilters(ROUTES.campaignHistory, { date: dateLabel });
-                        }
-                    }
-                },
-                colors: ['#886CC0', '#09BD3C', '#3065D0'],
-                dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 2 },
-                legend: { position: 'top', horizontalAlign: 'right' },
-                xaxis: { categories: data.categories },
-                yaxis: { title: { text: 'Messages' } },
-                tooltip: { shared: true, intersect: false },
-                markers: { size: 5, hover: { size: 7 } }
-            };
-            
-            chartInstances.volume = new ApexCharts(chartEl, options);
-            chartInstances.volume.render();
+            renderVolumeChart('volumeLineChart', data, 280);
             console.log('[Dashboard] Volume chart loaded (click points to drill-through)');
         } catch (error) {
             console.error('[Dashboard] Volume chart error:', error);
@@ -1538,60 +1553,105 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function renderVolumeChart(containerId, data, height) {
+        const chartEl = document.getElementById(containerId);
+        if (!chartEl) return;
+        chartEl.innerHTML = '';
+        
+        const options = {
+            series: data.series,
+            chart: { 
+                height: height, 
+                type: 'line', 
+                toolbar: { show: false },
+                events: {
+                    dataPointSelection: function(event, chartContext, config) {
+                        const dateLabel = data.categories[config.dataPointIndex];
+                        navigateWithFilters(ROUTES.campaignHistory, { date: dateLabel });
+                    }
+                }
+            },
+            colors: ['#886CC0', '#09BD3C', '#3065D0'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 2 },
+            legend: { position: 'top', horizontalAlign: 'right' },
+            xaxis: { categories: data.categories },
+            yaxis: { title: { text: 'Messages' } },
+            tooltip: { shared: true, intersect: false },
+            markers: { size: 5, hover: { size: 7 } }
+        };
+        
+        const chart = new ApexCharts(chartEl, options);
+        chart.render();
+        if (containerId === 'volumeLineChart') {
+            chartInstances.volume = chart;
+        }
+    }
+    
     // 7. Delivery Status Chart (Pie Chart with 5 statuses - Fillow style)
+    let deliveryStatusData = null;
     async function loadDeliveryStatus() {
         try {
             const response = await fetch(`${API_BASE}/delivery-status`);
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
+            deliveryStatusData = data;
             
-            const chartEl = document.getElementById('deliveryStatusPieChart');
-            chartEl.innerHTML = '';
-            
-            const statusLabels = ['Delivered', 'Pending', 'Undelivered', 'Expired', 'Rejected'];
-            const statusValues = ['delivered', 'pending', 'undelivered', 'expired', 'rejected'];
-            const options = {
-                series: [
-                    data.delivered.count, 
-                    data.pending.count, 
-                    data.undelivered.count,
-                    data.expired.count,
-                    data.rejected.count
-                ],
-                chart: { 
-                    type: 'pie', 
-                    height: 280,
-                    events: {
-                        dataPointSelection: function(event, chartContext, config) {
-                            const status = statusValues[config.dataPointIndex];
-                            navigateWithFilters(ROUTES.messageLog, { status: status });
-                        }
-                    }
-                },
-                labels: statusLabels,
-                colors: ['#09BD3C', '#886CC0', '#FC2E53', '#D653C1', '#FFBF00'],
-                stroke: { show: false, width: 0 },
-                legend: { show: false },
-                dataLabels: { enabled: false },
-                tooltip: {
-                    enabled: true,
-                    y: {
-                        formatter: function(val, opts) {
-                            const total = opts.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                            const percent = ((val / total) * 100).toFixed(1);
-                            return formatNumber(val) + ' (' + percent + '%)';
-                        }
-                    }
-                },
-                states: { hover: { filter: { type: 'darken', value: 0.9 } } }
-            };
-            
-            chartInstances.deliveryStatus = new ApexCharts(chartEl, options);
-            chartInstances.deliveryStatus.render();
+            renderDeliveryStatusChart('deliveryStatusPieChart', data, 280);
             console.log('[Dashboard] Delivery status loaded');
         } catch (error) {
             console.error('[Dashboard] Delivery status error:', error);
             showError('deliveryStatusPieChart', 'Failed to load');
+        }
+    }
+    
+    function renderDeliveryStatusChart(containerId, data, height) {
+        const chartEl = document.getElementById(containerId);
+        if (!chartEl) return;
+        chartEl.innerHTML = '';
+        
+        const statusLabels = ['Delivered', 'Pending', 'Undelivered', 'Expired', 'Rejected'];
+        const statusValues = ['delivered', 'pending', 'undelivered', 'expired', 'rejected'];
+        const options = {
+            series: [
+                data.delivered.count, 
+                data.pending.count, 
+                data.undelivered.count,
+                data.expired.count,
+                data.rejected.count
+            ],
+            chart: { 
+                type: 'pie', 
+                height: height,
+                events: {
+                    dataPointSelection: function(event, chartContext, config) {
+                        const status = statusValues[config.dataPointIndex];
+                        navigateWithFilters(ROUTES.messageLog, { status: status });
+                    }
+                }
+            },
+            labels: statusLabels,
+            colors: ['#09BD3C', '#886CC0', '#FC2E53', '#D653C1', '#FFBF00'],
+            stroke: { show: false, width: 0 },
+            legend: { show: true, position: 'bottom' },
+            dataLabels: { enabled: false },
+            tooltip: {
+                enabled: true,
+                y: {
+                    formatter: function(val, opts) {
+                        const total = opts.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                        const percent = ((val / total) * 100).toFixed(1);
+                        return formatNumber(val) + ' (' + percent + '%)';
+                    }
+                }
+            },
+            states: { hover: { filter: { type: 'darken', value: 0.9 } } }
+        };
+        
+        const chart = new ApexCharts(chartEl, options);
+        chart.render();
+        if (containerId === 'deliveryStatusPieChart') {
+            chartInstances.deliveryStatus = chart;
         }
     }
     
@@ -1809,6 +1869,26 @@ document.addEventListener('DOMContentLoaded', function() {
         topCountriesModalEl.addEventListener('shown.bs.modal', function() {
             if (topCountriesData) {
                 renderTopCountriesChart('topCountriesModalChart', topCountriesData, 400);
+            }
+        });
+    }
+    
+    // Messages Sent Modal - render chart when modal opens
+    const messagesSentModalEl = document.getElementById('messagesSentModal');
+    if (messagesSentModalEl) {
+        messagesSentModalEl.addEventListener('shown.bs.modal', function() {
+            if (volumeChartData) {
+                renderVolumeChart('messagesSentModalChart', volumeChartData, 400);
+            }
+        });
+    }
+    
+    // Delivery Status Modal - render chart when modal opens
+    const deliveryStatusModalEl = document.getElementById('deliveryStatusModal');
+    if (deliveryStatusModalEl) {
+        deliveryStatusModalEl.addEventListener('shown.bs.modal', function() {
+            if (deliveryStatusData) {
+                renderDeliveryStatusChart('deliveryStatusModalChart', deliveryStatusData, 400);
             }
         });
     }
