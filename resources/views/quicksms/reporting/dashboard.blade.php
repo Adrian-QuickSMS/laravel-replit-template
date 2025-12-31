@@ -1456,33 +1456,34 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('API error');
             const data = await response.json();
             
-            // Helper function for trend badges - always show, even when 0%
-            // Colors: cyan (#17a2b8) for positive/good, magenta (#D653C1) for negative/bad
-            // InvertColors: for metrics where decrease is good (e.g., Undelivered Messages)
-            function getTrendBadge(trend, invertColors = false) {
+            // Helper function for trend badges - matches icon color with pastel bg and dark text
+            // Each widget has a fixed color matching its icon
+            const badgeColors = {
+                primary: { bg: 'rgba(111, 66, 193, 0.15)', text: '#6f42c1' },   // Purple - Total Spend
+                success: { bg: 'rgba(28, 187, 140, 0.15)', text: '#1cbb8c' },   // Green - Messages Sent, RCS Seen
+                warning: { bg: 'rgba(255, 191, 0, 0.15)', text: '#cc9900' },    // Amber - Inbound
+                info: { bg: 'rgba(23, 162, 184, 0.15)', text: '#17a2b8' },      // Cyan - Delivery Rate, RCS Penetration
+                danger: { bg: 'rgba(220, 53, 69, 0.15)', text: '#dc3545' }      // Red - Undelivered, Opt-out
+            };
+            
+            function getTrendBadge(trend, colorKey = 'info') {
                 const trendValue = trend ?? 0;
-                const isPositive = trendValue >= 0;
-                // Cyan for good, magenta for bad - inverted for metrics where decrease is good
-                const bgColor = invertColors 
-                    ? (isPositive ? '#D653C1' : '#17a2b8')  // Inverted: positive=bad(magenta), negative=good(cyan)
-                    : (isPositive ? '#17a2b8' : '#D653C1'); // Normal: positive=good(cyan), negative=bad(magenta)
                 const sign = trendValue > 0 ? '+' : '';
-                return `<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: ${bgColor}; color: white;">${sign}${trendValue}%</span>`;
+                const color = badgeColors[colorKey] || badgeColors.info;
+                return `<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: ${color.bg}; color: ${color.text};">${sign}${trendValue}%</span>`;
             }
             
-            // Delivery Rate with tooltip and trend pill
+            // Delivery Rate with tooltip and trend pill - info/cyan color
             const deliveryTooltip = `Formula: ${data.deliveryRate.formula}\nDelivered: ${formatNumber(data.deliveryRate.delivered)}\nUndelivered: ${formatNumber(data.deliveryRate.undelivered)}\nRejected: ${formatNumber(data.deliveryRate.rejected)}`;
-            const deliveryTrendBadge = getTrendBadge(data.deliveryRate.trend);
+            const deliveryTrendBadge = getTrendBadge(data.deliveryRate.trend, 'info');
             document.getElementById('kpiDeliveryRateContent').innerHTML = `
                 <p class="mb-1">DELIVERY RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${deliveryTooltip.replace(/\n/g, '&#10;')}"></i></p>
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.deliveryRate.value}%${deliveryTrendBadge}</h4>
             `;
             
-            // Spend with status pill (always show - Estimated or Finalised)
+            // Spend with status pill - always show "Estimated" with primary/purple color matching icon
             if (hasPermission('canSeeCost')) {
-                const statusBadge = data.spend.isEstimated 
-                    ? '<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: #FFBF00; color: #333;">Estimated</span>' 
-                    : '<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: #09BD3C; color: white;">Finalised</span>';
+                const statusBadge = `<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: ${badgeColors.primary.bg}; color: ${badgeColors.primary.text};">Estimated</span>`;
                 document.getElementById('kpiSpendContent').innerHTML = `
                     <p class="mb-1">TOTAL SPEND <i class="fas fa-info-circle text-muted ms-1" style="font-size: 10px;" title="Excludes VAT"></i></p>
                     <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">£${formatNumber(data.spend.amount.toFixed(2))}${statusBadge}</h4>
@@ -1494,25 +1495,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
             
-            // RCS Seen Rate (conditional) - only show if read receipts available
+            // RCS Seen Rate (conditional) - success/green color matching icon
             const rcsTile = document.querySelector('[data-conditional="rcs"]');
             if (data.rcsSeenRate.hasRcsData && data.rcsSeenRate.hasReadReceiptSupport) {
                 const rcsTooltip = data.rcsSeenRate.tooltip;
+                const rcsSeenBadge = `<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: ${badgeColors.success.bg}; color: ${badgeColors.success.text};">${formatNumber(data.rcsSeenRate.seenCount)} Seen</span>`;
                 document.getElementById('kpiRcsSeenContent').innerHTML = `
                     <p class="mb-1">RCS SEEN RATE <i class="fas fa-info-circle text-muted ms-1 qs-tooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="${rcsTooltip}"></i></p>
-                    <h4 class="mb-0 d-flex align-items-center">${data.rcsSeenRate.value}% <span class="badge badge-success ms-2" style="font-size: 11px; font-weight: 500;">${formatNumber(data.rcsSeenRate.seenCount)} Seen</span></h4>
+                    <h4 class="mb-0 d-flex align-items-center">${data.rcsSeenRate.value}%${rcsSeenBadge}</h4>
                 `;
             } else if (rcsTile) {
                 rcsTile.style.display = 'none';
             }
             
-            // Opt-out Rate (conditional) - clickable to opt-out list
+            // Opt-out Rate (conditional) - danger/red color matching icon
             const optoutTile = document.querySelector('[data-conditional="optout"]');
             if (data.optOutRate.hasOptOutData) {
+                const optOutBadge = `<span class="badge" style="font-size: 10px; font-weight: 500; background-color: ${badgeColors.danger.bg}; color: ${badgeColors.danger.text};">${formatNumber(data.optOutRate.optOutCount)} Opt-Outs</span>`;
                 document.getElementById('kpiOptoutContent').innerHTML = `
                     <p class="mb-1">OPT-OUT RATE</p>
                     <h4 class="mb-0">${data.optOutRate.value}%</h4>
-                    <span class="badge badge-danger" style="font-size: 10px; font-weight: 500;">${formatNumber(data.optOutRate.optOutCount)} Opt-Outs</span>
+                    ${optOutBadge}
                 `;
                 // Make the entire opt-out tile clickable
                 const optoutCard = document.getElementById('kpiOptout');
@@ -1525,31 +1528,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 optoutTile.style.display = 'none';
             }
             
-            // Messages Sent - green theme with trend pill
-            const msgTrendBadge = getTrendBadge(data.messagesSent.trend);
+            // Messages Sent - success/green color matching icon
+            const msgTrendBadge = getTrendBadge(data.messagesSent.trend, 'success');
             document.getElementById('kpiMessagesSentContent').innerHTML = `
                 <p class="mb-1">MESSAGES SENT</p>
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.messagesSent.count)}${msgTrendBadge}</h4>
             `;
             
-            // RCS Penetration - blue theme with trend pill
-            const rcsPenTrendBadge = getTrendBadge(data.rcsPenetration.trend);
+            // RCS Penetration - info/cyan color matching icon
+            const rcsPenTrendBadge = getTrendBadge(data.rcsPenetration.trend, 'info');
             document.getElementById('kpiRcsPenetrationContent').innerHTML = `
                 <p class="mb-1">RCS PENETRATION</p>
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${data.rcsPenetration.percentage}%${rcsPenTrendBadge}</h4>
             `;
             
-            // Inbound Received - orange/warning theme with unread count pill
+            // Inbound Received - warning/amber color matching icon
             const unreadBadge = data.inboundReceived.unreadCount > 0 
-                ? `<span class="badge badge-warning ms-2" style="font-size: 11px; font-weight: 500;">${data.inboundReceived.unreadCount} Unread</span>` 
+                ? `<span class="badge ms-2" style="font-size: 11px; font-weight: 500; background-color: ${badgeColors.warning.bg}; color: ${badgeColors.warning.text};">${data.inboundReceived.unreadCount} Unread</span>` 
                 : '';
             document.getElementById('kpiInboundContent').innerHTML = `
                 <p class="mb-1">INBOUND RECEIVED</p>
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.inboundReceived.count)}${unreadBadge}</h4>
             `;
             
-            // Undelivered Messages - red theme with trend pill (inverted colors - decrease is good)
-            const undelTrendBadge = getTrendBadge(data.undeliveredMessages.trend, true);
+            // Undelivered Messages - danger/red color matching icon
+            const undelTrendBadge = getTrendBadge(data.undeliveredMessages.trend, 'danger');
             document.getElementById('kpiUndeliveredContent').innerHTML = `
                 <p class="mb-1">UNDELIVERED MESSAGES</p>
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.undeliveredMessages.count)}${undelTrendBadge}</h4>
