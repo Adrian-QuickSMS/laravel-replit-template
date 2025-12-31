@@ -785,26 +785,7 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 9. Delivery Status Breakdown (Pie Chart) - 4 columns on next row -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
-            <div class="card h-100">
-                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
-                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
-                        <i class="fas fa-expand-alt"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div id="deliveryStatusPieChart" class="chart-placeholder">
-                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ========== ROW 4: Intelligence Tiles (small) ========== -->
-        
-        <!-- 10. Peak Sending Time Insight -->
+        <!-- 9. Peak Sending Time Insight - moved before Delivery Status -->
         <div class="qs-tile tile-medium" data-tile-id="tile-peak-time" data-size="medium" data-api="peak-time">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
@@ -832,6 +813,23 @@ table .cursor-pointer:hover {
                                 <strong id="peakInboundDay">Tuesdays</strong>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 10. Delivery Status Breakdown (Pie Chart) -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
+            <div class="card h-100">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="deliveryStatusPieChart" class="chart-placeholder">
+                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
                     </div>
                 </div>
             </div>
