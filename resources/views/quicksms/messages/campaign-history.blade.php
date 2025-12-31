@@ -363,20 +363,20 @@ $permissions = [
                                     </td>
                                     <td class="py-2">
                                         @if($campaign['channel'] === 'sms_only')
-                                            <span class="badge bg-secondary">SMS</span>
+                                            <span class="badge badge-pastel-success">SMS</span>
                                         @elseif($campaign['channel'] === 'basic_rcs')
-                                            <span class="badge bg-success">Basic RCS</span>
+                                            <span class="badge badge-pastel-primary">Basic RCS</span>
                                         @else
-                                            <span class="badge bg-primary">Rich RCS</span>
+                                            <span class="badge badge-pastel-primary">Rich RCS</span>
                                         @endif
                                     </td>
                                     <td class="py-2">
                                         @if($campaign['status'] === 'scheduled')
-                                            <span class="badge bg-info">Scheduled</span>
+                                            <span class="badge badge-pastel-pink">Scheduled</span>
                                         @elseif($campaign['status'] === 'sending')
-                                            <span class="badge bg-warning text-dark">Sending</span>
+                                            <span class="badge badge-pastel-warning">Sending</span>
                                         @else
-                                            <span class="badge bg-success">Complete</span>
+                                            <span class="badge badge-pastel-success">Complete</span>
                                         @endif
                                     </td>
                                     <td class="py-2">
@@ -1172,7 +1172,7 @@ function openCampaignDrawer(campaignId) {
     if (tags) {
         var tagArray = tags.split(',');
         var tagHtml = tagArray.map(function(t) {
-            return '<span class="badge bg-light text-dark me-1">' + t.trim() + '</span>';
+            return '<span class="badge badge-pastel-secondary me-1">' + t.trim() + '</span>';
         }).join('');
         document.getElementById('drawerTags').innerHTML = tagHtml;
     } else {
