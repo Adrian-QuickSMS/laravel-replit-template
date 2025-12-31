@@ -493,35 +493,35 @@
 
                         <div class="mb-3" id="summaryBar" style="display: none;">
                         <div class="row g-3">
-                            <div class="col-6 col-md-3">
-                                <div class="card">
-                                    <div class="card-body py-3 px-4">
+                            <div class="col-6 col-md-4 col-lg-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-body py-4 px-4">
                                         <div class="d-flex align-items-center">
                                             <div class="me-3">
-                                                <span class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                                                    <i class="fas fa-envelope text-primary"></i>
+                                                <span class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                                                    <i class="fas fa-envelope text-primary fs-5"></i>
                                                 </span>
                                             </div>
                                             <div>
-                                                <p class="mb-0 text-muted small">Total Messages</p>
-                                                <h4 class="mb-0 fw-bold" id="summaryTotal">0</h4>
+                                                <p class="mb-1 text-muted">Total Messages</p>
+                                                <h3 class="mb-0 fw-bold" id="summaryTotal">0</h3>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <div class="card">
-                                    <div class="card-body py-3 px-4">
+                            <div class="col-6 col-md-4 col-lg-3">
+                                <div class="card shadow-sm">
+                                    <div class="card-body py-4 px-4">
                                         <div class="d-flex align-items-center">
                                             <div class="me-3">
-                                                <span class="bg-info-light rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                                                    <i class="fas fa-puzzle-piece text-info"></i>
+                                                <span class="bg-info-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                                                    <i class="fas fa-puzzle-piece text-info fs-5"></i>
                                                 </span>
                                             </div>
                                             <div>
-                                                <p class="mb-0 text-muted small">Total Parts/Fragments</p>
-                                                <h4 class="mb-0 fw-bold" id="summaryParts">0</h4>
+                                                <p class="mb-1 text-muted">Total Parts/Fragments</p>
+                                                <h3 class="mb-0 fw-bold" id="summaryParts">0</h3>
                                             </div>
                                         </div>
                                     </div>
