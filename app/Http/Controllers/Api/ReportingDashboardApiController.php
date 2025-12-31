@@ -75,6 +75,13 @@ class ReportingDashboardApiController extends Controller
         return response()->json($this->dataService->getVolumeData($filters));
     }
 
+    public function inboundVolumeOverTime(Request $request): JsonResponse
+    {
+        usleep(rand(100000, 200000));
+        $filters = $this->parseFilters($request);
+        return response()->json($this->dataService->getInboundVolumeData($filters));
+    }
+
     public function channelSplit(Request $request): JsonResponse
     {
         usleep(rand(100000, 150000));

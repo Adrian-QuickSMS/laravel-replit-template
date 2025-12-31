@@ -350,6 +350,60 @@ class MockReportingDataService
         ];
     }
 
+    public function getInboundVolumeData(array $filters): array
+    {
+        $dateFrom = !empty($filters['dateFrom']) ? Carbon::parse($filters['dateFrom']) : Carbon::now()->subDays(6);
+        $dateTo = !empty($filters['dateTo']) ? Carbon::parse($filters['dateTo']) : Carbon::now();
+        
+        $dates = [];
+        $current = $dateFrom->copy()->startOfDay();
+        while ($current->lte($dateTo)) {
+            $dates[] = $current->toDateString();
+            $current->addDay();
+        }
+        
+        if (count($dates) > 30) {
+            $dates = array_slice($dates, -30);
+        }
+        
+        $dailyData = [];
+        foreach ($dates as $date) {
+            $smsCount = rand(5, 30);
+            $rcsCount = rand(2, 15);
+            $dailyData[$date] = [
+                'sms' => $smsCount, 
+                'rcs' => $rcsCount, 
+                'total' => $smsCount + $rcsCount
+            ];
+        }
+        
+        $categories = [];
+        $smsData = [];
+        $rcsData = [];
+        $totalData = [];
+        
+        foreach ($dates as $date) {
+            $categories[] = Carbon::parse($date)->format('d M');
+            $smsData[] = $dailyData[$date]['sms'];
+            $rcsData[] = $dailyData[$date]['rcs'];
+            $totalData[] = $dailyData[$date]['total'];
+        }
+        
+        return [
+            'categories' => $categories,
+            'series' => [
+                ['name' => 'Total', 'data' => $totalData],
+                ['name' => 'SMS', 'data' => $smsData],
+                ['name' => 'RCS', 'data' => $rcsData],
+            ],
+            'totals' => [
+                'sms' => array_sum($smsData),
+                'rcs' => array_sum($rcsData),
+                'total' => array_sum($totalData),
+            ],
+        ];
+    }
+
     public function getDeliveryStatusData(array $filters): array
     {
         $messages = $this->getFilteredMessages($filters);

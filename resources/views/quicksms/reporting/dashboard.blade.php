@@ -845,31 +845,18 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 11. Failure Reasons (small table) -->
-        <div class="qs-tile tile-large" data-tile-id="table-failure-reasons" data-size="large" data-api="failure-reasons">
+        <!-- 11. Messages Received Chart (Line Chart with 3 series: Total, SMS, RCS) -->
+        <div class="qs-tile tile-xlarge" data-tile-id="chart-inbound-volume" data-size="xlarge" data-api="inbound-volume">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Failure Reasons</h4>
-                    <span id="failureReasonsBadge" class="badge badge-danger light"><span class="qs-skeleton" style="display:inline-block;width:30px;height:12px"></span></span>
+                    <h4 class="card-title mb-0">Messages Received</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#messagesReceivedModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive table-scroll-container">
-                        <table class="table table-sm mb-0">
-                            <thead class="table-light sticky-top bg-white">
-                                <tr>
-                                    <th>Reason</th>
-                                    <th class="text-end">Count</th>
-                                    <th class="text-end">%</th>
-                                </tr>
-                            </thead>
-                            <tbody id="failureReasonsTableBody">
-                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                                <tr><td colspan="3"><div class="qs-skeleton qs-skeleton-bar"></div></td></tr>
-                            </tbody>
-                        </table>
+                <div class="card-body">
+                    <div id="inboundVolumeLineChart" class="chart-placeholder">
+                        <div class="qs-skeleton qs-skeleton-chart w-100"></div>
                     </div>
                 </div>
             </div>
@@ -1439,11 +1426,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return Promise.all([
             loadKpis(),
             loadVolumeChart(),
+            loadInboundVolumeChart(),
             loadDeliveryStatus(),
             loadTopCountries(),
             loadTopSenderIds(),
-            loadPeakTime(),
-            loadFailureReasons()
+            loadPeakTime()
         ]);
     }
     
@@ -1612,6 +1599,25 @@ document.addEventListener('DOMContentLoaded', function() {
         chart.render();
         if (containerId === 'volumeLineChart') {
             chartInstances.volume = chart;
+        } else if (containerId === 'inboundVolumeLineChart') {
+            chartInstances.inboundVolume = chart;
+        }
+    }
+    
+    // 6. Inbound Volume Over Time Chart (Messages Received)
+    let inboundVolumeChartData = null;
+    async function loadInboundVolumeChart() {
+        try {
+            const response = await fetch(`${API_BASE}/inbound-volume${buildFilterQueryString()}`);
+            if (!response.ok) throw new Error('API error');
+            const data = await response.json();
+            inboundVolumeChartData = data;
+            
+            renderVolumeChart('inboundVolumeLineChart', data, 280);
+            console.log('[Dashboard] Inbound volume chart loaded');
+        } catch (error) {
+            console.error('[Dashboard] Inbound volume chart error:', error);
+            showError('inboundVolumeLineChart', 'Failed to load chart');
         }
     }
     

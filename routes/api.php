@@ -25,6 +25,7 @@ Route::prefix('reporting/dashboard')->group(function () {
     Route::get('/', [ReportingDashboardApiController::class, 'index']);
     Route::get('/kpis', [ReportingDashboardApiController::class, 'kpis']);
     Route::get('/volume', [ReportingDashboardApiController::class, 'volumeOverTime']);
+    Route::get('/inbound-volume', [ReportingDashboardApiController::class, 'inboundVolumeOverTime']);
     Route::get('/channel-split', [ReportingDashboardApiController::class, 'channelSplit']);
     Route::get('/delivery-status', [ReportingDashboardApiController::class, 'deliveryStatus']);
     Route::get('/top-countries', [ReportingDashboardApiController::class, 'topCountries']);
