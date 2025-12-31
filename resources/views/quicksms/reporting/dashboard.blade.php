@@ -710,7 +710,7 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- ========== ROW 3: Charts (medium/large) ========== -->
+        <!-- ========== ROW 3: Messages Sent + Delivery Status (8+4=12) ========== -->
         
         <!-- 5. Messages Sent Chart (Line Chart with 3 series: Total, SMS, RCS) -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-volume" data-size="xlarge" data-api="volume">
@@ -729,7 +729,24 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- ========== ROW 3: Performance Charts & Tables ========== -->
+        <!-- 6. Delivery Status Breakdown (Pie Chart) - next to Messages Sent -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
+            <div class="card h-100">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="deliveryStatusPieChart" class="chart-placeholder">
+                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== ROW 4: Top SenderIDs + Top Countries (6+6=12) ========== -->
         
         <!-- 7. Top SenderIDs (About Me Style) - 6 columns -->
         <div class="qs-tile tile-large" data-tile-id="table-top-senderids" data-size="large" data-api="top-sender-ids">
@@ -768,7 +785,7 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 8. Top 10 Countries (Horizontal Bar Chart) - 6 columns (6+6=12 fills row) -->
+        <!-- 8. Top 10 Countries (Horizontal Bar Chart) - 6 columns -->
         <div class="qs-tile tile-large" data-tile-id="chart-top-countries" data-size="large" data-api="top-countries">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
@@ -785,7 +802,9 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 9. Peak Sending Time Insight - moved before Delivery Status -->
+        <!-- ========== ROW 5: Peak Sending Time + Messages Received (4+8=12) ========== -->
+        
+        <!-- 9. Peak Sending Time Insight -->
         <div class="qs-tile tile-medium" data-tile-id="tile-peak-time" data-size="medium" data-api="peak-time">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0">
@@ -818,24 +837,7 @@ table .cursor-pointer:hover {
             </div>
         </div>
         
-        <!-- 10. Delivery Status Breakdown (Pie Chart) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
-            <div class="card h-100">
-                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
-                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
-                        <i class="fas fa-expand-alt"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div id="deliveryStatusPieChart" class="chart-placeholder">
-                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 11. Messages Received Chart (Line Chart with 3 series: Total, SMS, RCS) -->
+        <!-- 10. Messages Received Chart (Line Chart with 3 series: Total, SMS, RCS) - next to Peak Sending Time -->
         <div class="qs-tile tile-xlarge" data-tile-id="chart-inbound-volume" data-size="xlarge" data-api="inbound-volume">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
