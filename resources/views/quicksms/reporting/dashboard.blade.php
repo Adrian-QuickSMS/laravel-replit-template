@@ -739,41 +739,7 @@ table .cursor-pointer:hover {
         
         <!-- ========== ROW 3: Performance Charts & Tables ========== -->
         
-        <!-- 7. Delivery Status Breakdown (Pie Chart) -->
-        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
-            <div class="card h-100">
-                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
-                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
-                        <i class="fas fa-expand-alt"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div id="deliveryStatusPieChart" class="chart-placeholder">
-                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 8. Top 10 Countries (Horizontal Bar Chart) -->
-        <div class="qs-tile tile-large" data-tile-id="chart-top-countries" data-size="large" data-api="top-countries">
-            <div class="card h-100">
-                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">Top 10 Countries</h4>
-                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#topCountriesModal" title="Expand">
-                        <i class="fas fa-expand-alt"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div id="topCountriesBarChart" class="chart-placeholder">
-                        <div class="qs-skeleton qs-skeleton-chart w-100"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 9. Top SenderIDs (About Me Style) -->
+        <!-- 7. Top SenderIDs (About Me Style) - 6 columns -->
         <div class="qs-tile tile-large" data-tile-id="table-top-senderids" data-size="large" data-api="top-sender-ids">
             <div class="card h-100">
                 <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
@@ -805,6 +771,40 @@ table .cursor-pointer:hover {
                                 <small class="text-muted">Delivery Rate</small>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 8. Top 10 Countries (Horizontal Bar Chart) - 6 columns (6+6=12 fills row) -->
+        <div class="qs-tile tile-large" data-tile-id="chart-top-countries" data-size="large" data-api="top-countries">
+            <div class="card h-100">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Top 10 Countries</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#topCountriesModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="topCountriesBarChart" class="chart-placeholder">
+                        <div class="qs-skeleton qs-skeleton-chart w-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 9. Delivery Status Breakdown (Pie Chart) - 4 columns on next row -->
+        <div class="qs-tile tile-medium" data-tile-id="chart-delivery-status" data-size="medium" data-api="delivery-status">
+            <div class="card h-100">
+                <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
+                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#deliveryStatusModal" title="Expand">
+                        <i class="fas fa-expand-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="deliveryStatusPieChart" class="chart-placeholder">
+                        <div class="qs-skeleton" style="height:180px;width:180px;border-radius:50%;margin:0 auto"></div>
                     </div>
                 </div>
             </div>
