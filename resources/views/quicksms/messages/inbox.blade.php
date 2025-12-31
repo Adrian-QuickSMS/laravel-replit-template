@@ -1151,12 +1151,11 @@ var conversationsData = @json($conversations).map(function(conv) {
         lastMessageDate: conv.timestamp, // Unix timestamp for sorting
         firstContact: conv.first_contact,
         messages: conv.messages || [],
+        // Use server-calculated 48-hour waiting flag
+        awaitingReply48h: conv.awaiting_reply_48h === true,
         // Keep original for selectConversation compatibility
         _original: conv
     };
-    
-    // Add 48-hour waiting flag
-    normalized.awaitingReply48h = isAwaitingReply48h(normalized);
     
     return normalized;
 });

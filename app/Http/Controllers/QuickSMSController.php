@@ -360,11 +360,11 @@ class QuickSMSController extends Controller
                 'unread' => true,
                 'unread_count' => 3,
                 'last_message' => 'Is my package still on the way?',
-                'last_message_time' => '11:45 AM',
-                'timestamp' => strtotime('today 11:45'),
+                'last_message_time' => '3 days ago',
+                'timestamp' => strtotime('-3 days 11:45'),
                 'first_contact' => '18 Dec 2024',
                 'messages' => [
-                    ['direction' => 'inbound', 'content' => 'Is my package still on the way?', 'time' => '11:45 AM', 'date' => 'Today'],
+                    ['direction' => 'inbound', 'content' => 'Is my package still on the way?', 'time' => '11:45 AM', 'date' => '3 days ago'],
                 ],
             ],
             [
@@ -400,11 +400,11 @@ class QuickSMSController extends Controller
                 'unread' => true,
                 'unread_count' => 1,
                 'last_message' => 'Can you call me back please?',
-                'last_message_time' => '08:22 AM',
-                'timestamp' => strtotime('today 08:22'),
+                'last_message_time' => '4 days ago',
+                'timestamp' => strtotime('-4 days 08:22'),
                 'first_contact' => '22 Dec 2024',
                 'messages' => [
-                    ['direction' => 'inbound', 'content' => 'Can you call me back please?', 'time' => '8:22 AM', 'date' => 'Today'],
+                    ['direction' => 'inbound', 'content' => 'Can you call me back please?', 'time' => '8:22 AM', 'date' => '4 days ago'],
                 ],
             ],
             [
@@ -460,8 +460,8 @@ class QuickSMSController extends Controller
                 'unread' => true,
                 'unread_count' => 2,
                 'last_message' => 'Where is my refund?',
-                'last_message_time' => '07:55 AM',
-                'timestamp' => strtotime('today 07:55'),
+                'last_message_time' => '5 days ago',
+                'timestamp' => strtotime('-5 days 07:55'),
                 'first_contact' => '15 Dec 2024',
                 'messages' => [
                     ['direction' => 'inbound', 'content' => 'Where is my refund?', 'time' => '7:55 AM', 'date' => 'Today'],
