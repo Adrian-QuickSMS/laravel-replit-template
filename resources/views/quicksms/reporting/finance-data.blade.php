@@ -50,17 +50,23 @@
     z-index: 1050;
 }
 .finance-data-table-wrapper {
-    flex: 1;
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    max-height: 100%;
 }
 #tableContainer {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 1 0;
+    overflow-y: auto !important;
     overflow-x: auto;
     min-height: 0;
+    max-height: 100%;
+}
+#tableContainer.table-responsive {
+    overflow-y: auto !important;
+    max-height: none;
 }
 .finance-data-footer {
     flex-shrink: 0;
