@@ -28,6 +28,15 @@
     flex-shrink: 0;
     overflow: visible;
 }
+#filtersPanel {
+    overflow: visible !important;
+}
+#filtersPanel .card-body {
+    overflow: visible !important;
+}
+#filtersPanel .dropdown-menu {
+    z-index: 1050;
+}
 #summaryBar .card {
     flex: none !important;
     overflow: visible !important;
@@ -519,7 +528,7 @@
                         <div class="row g-3">
                             <div class="col-6 col-md-4 col-lg-3">
                                 <div class="card shadow-sm">
-                                    <div class="card-body py-4 px-4">
+                                    <div class="card-body p-4">
                                         <div class="d-flex align-items-center">
                                             <div class="me-3">
                                                 <span class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
@@ -536,7 +545,7 @@
                             </div>
                             <div class="col-6 col-md-4 col-lg-3">
                                 <div class="card shadow-sm">
-                                    <div class="card-body py-4 px-4">
+                                    <div class="card-body p-4">
                                         <div class="d-flex align-items-center">
                                             <div class="me-3">
                                                 <span class="bg-success-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
