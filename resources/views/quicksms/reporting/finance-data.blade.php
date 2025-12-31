@@ -640,6 +640,13 @@
                                 <span class="text-muted small">Max display: 10,000 rows</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnSaveReport">
+                                    <i class="fas fa-save me-1"></i> Save Report Configuration
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnScheduleReport">
+                                    <i class="fas fa-clock me-1"></i> Schedule Report Export
+                                </button>
+                                <span class="text-muted">|</span>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="btnExportCsv">
                                     <i class="fas fa-file-csv me-1"></i> Export CSV
                                 </button>
@@ -683,6 +690,132 @@
                     <i class="fas fa-download me-1"></i> Export
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="saveReportModal" tabindex="-1" aria-labelledby="saveReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveReportModalLabel"><i class="fas fa-save me-2 text-primary"></i>Save Report Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="reportName" class="form-label small fw-bold">Report Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm" id="reportName" placeholder="e.g., Monthly Finance Summary">
+                </div>
+                <div class="mb-3">
+                    <label for="reportDescription" class="form-label small fw-bold">Description (optional)</label>
+                    <textarea class="form-control form-control-sm" id="reportDescription" rows="2" placeholder="Brief description of this saved report"></textarea>
+                </div>
+                <div class="border rounded p-3 bg-light mb-3">
+                    <p class="small fw-bold mb-2"><i class="fas fa-info-circle me-1 text-primary"></i>Configuration to be saved:</p>
+                    <ul class="small text-muted mb-0" id="savedConfigPreview">
+                        <li>Filters: <span id="previewFilters">None selected</span></li>
+                        <li>Drill Level: <span id="previewDrillLevel">Billing Month</span></li>
+                        <li>Sort: <span id="previewSort">Default</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnConfirmSaveReport">
+                    <i class="fas fa-save me-1"></i> Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scheduleReportModal" tabindex="-1" aria-labelledby="scheduleReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleReportModalLabel"><i class="fas fa-clock me-2 text-primary"></i>Schedule Report Export</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="scheduleName" class="form-label small fw-bold">Schedule Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm" id="scheduleName" placeholder="e.g., Weekly Finance Export">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Frequency <span class="text-danger">*</span></label>
+                    <div class="btn-group w-100" role="group" aria-label="Frequency selection">
+                        <input type="radio" class="btn-check" name="scheduleFrequency" id="freqMonthly" value="monthly" checked>
+                        <label class="btn btn-outline-primary btn-sm" for="freqMonthly">Monthly</label>
+                        <input type="radio" class="btn-check" name="scheduleFrequency" id="freqWeekly" value="weekly">
+                        <label class="btn btn-outline-primary btn-sm" for="freqWeekly">Weekly</label>
+                        <input type="radio" class="btn-check" name="scheduleFrequency" id="freqCustom" value="custom">
+                        <label class="btn btn-outline-primary btn-sm" for="freqCustom">Custom</label>
+                    </div>
+                </div>
+                <div class="mb-3" id="monthlyOptions">
+                    <label class="form-label small fw-bold">Day of Month</label>
+                    <select class="form-select form-select-sm" id="monthlyDay">
+                        <option value="1">1st</option>
+                        <option value="5">5th</option>
+                        <option value="10">10th</option>
+                        <option value="15">15th</option>
+                        <option value="last">Last day</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="weeklyOptions" style="display: none;">
+                    <label class="form-label small fw-bold">Day of Week</label>
+                    <select class="form-select form-select-sm" id="weeklyDay">
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="customOptions" style="display: none;">
+                    <label class="form-label small fw-bold">Cron Expression</label>
+                    <input type="text" class="form-control form-control-sm" id="customCron" placeholder="0 9 * * 1">
+                    <small class="text-muted">Format: minute hour day month weekday</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Export Format</label>
+                    <select class="form-select form-select-sm" id="scheduleFormat">
+                        <option value="csv">CSV</option>
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Email Recipients (optional)</label>
+                    <input type="text" class="form-control form-control-sm" id="scheduleRecipients" placeholder="email1@example.com, email2@example.com">
+                    <small class="text-muted">Separate multiple emails with commas</small>
+                </div>
+                <div class="border rounded p-3 bg-light">
+                    <p class="small fw-bold mb-2"><i class="fas fa-info-circle me-1 text-primary"></i>Report will include:</p>
+                    <ul class="small text-muted mb-0">
+                        <li>Current filter configuration</li>
+                        <li>Current drill-down level</li>
+                        <li>Available in Download Centre after generation</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnConfirmSchedule">
+                    <i class="fas fa-clock me-1"></i> Create Schedule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i><span id="toastMessage">Success!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -1321,5 +1454,187 @@ document.getElementById('btnExportPdf')?.addEventListener('click', function() {
     console.log('[Finance Data] Export PDF with drill state:', exportState);
     new bootstrap.Modal(document.getElementById('exportModal')).show();
 });
+
+var savedReports = JSON.parse(localStorage.getItem('financeDataSavedReports') || '[]');
+var scheduledReports = JSON.parse(localStorage.getItem('financeDataScheduledReports') || '[]');
+
+document.getElementById('btnSaveReport')?.addEventListener('click', function() {
+    updateSaveReportPreview();
+    new bootstrap.Modal(document.getElementById('saveReportModal')).show();
+});
+
+document.getElementById('btnScheduleReport')?.addEventListener('click', function() {
+    new bootstrap.Modal(document.getElementById('scheduleReportModal')).show();
+});
+
+function updateSaveReportPreview() {
+    var filters = [];
+    document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
+        var checked = Array.from(dropdown.querySelectorAll('.form-check-input:checked'));
+        if (checked.length > 0) {
+            var filterName = dropdown.getAttribute('data-filter');
+            filters.push(filterName + ': ' + checked.length + ' selected');
+        }
+    });
+    if (selectedSenderIds.length > 0) {
+        filters.push('Sender IDs: ' + selectedSenderIds.length + ' selected');
+    }
+    
+    document.getElementById('previewFilters').textContent = filters.length > 0 ? filters.join(', ') : 'None selected';
+    
+    var drillLevel = 'Billing Month';
+    if (drillState.level === 1) {
+        drillLevel = drillState.billingMonth;
+    } else if (drillState.level === 2) {
+        drillLevel = drillState.billingMonth + ' → ' + dimensionLabels[drillState.dimension];
+    }
+    document.getElementById('previewDrillLevel').textContent = drillLevel;
+    document.getElementById('previewSort').textContent = 'Default';
+}
+
+document.getElementById('btnConfirmSaveReport')?.addEventListener('click', function() {
+    var reportName = document.getElementById('reportName').value.trim();
+    if (!reportName) {
+        alert('Please enter a report name');
+        return;
+    }
+    
+    var reportConfig = {
+        id: 'report_' + Date.now(),
+        name: reportName,
+        description: document.getElementById('reportDescription').value.trim(),
+        createdAt: new Date().toISOString(),
+        filters: {
+            billingMonths: getSelectedValues('billingMonths'),
+            subAccounts: getSelectedValues('subAccounts'),
+            users: getSelectedValues('users'),
+            groupNames: getSelectedValues('groupNames'),
+            productTypes: getSelectedValues('productTypes'),
+            senderIds: selectedSenderIds,
+            messageTypes: getSelectedValues('messageTypes')
+        },
+        drillState: {
+            level: drillState.level,
+            billingMonth: drillState.billingMonth,
+            dimension: drillState.dimension
+        },
+        sortState: null
+    };
+    
+    savedReports.push(reportConfig);
+    localStorage.setItem('financeDataSavedReports', JSON.stringify(savedReports));
+    
+    console.log('[Finance Data] Saved report configuration:', reportConfig);
+    
+    bootstrap.Modal.getInstance(document.getElementById('saveReportModal')).hide();
+    document.getElementById('reportName').value = '';
+    document.getElementById('reportDescription').value = '';
+    
+    showToast('Report configuration saved successfully!');
+    
+    // TODO: connect to backend saved reports endpoint
+    // saveReportToBackend(reportConfig);
+});
+
+function saveReportToBackend(reportConfig) {
+    // TODO: connect to backend saved reports endpoint
+    // return fetch('/api/reporting/saved-reports', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(reportConfig)
+    // });
+    console.log('[Finance Data] TODO: POST to /api/reporting/saved-reports', reportConfig);
+}
+
+document.querySelectorAll('input[name="scheduleFrequency"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        document.getElementById('monthlyOptions').style.display = 'none';
+        document.getElementById('weeklyOptions').style.display = 'none';
+        document.getElementById('customOptions').style.display = 'none';
+        
+        if (this.value === 'monthly') {
+            document.getElementById('monthlyOptions').style.display = 'block';
+        } else if (this.value === 'weekly') {
+            document.getElementById('weeklyOptions').style.display = 'block';
+        } else if (this.value === 'custom') {
+            document.getElementById('customOptions').style.display = 'block';
+        }
+    });
+});
+
+document.getElementById('btnConfirmSchedule')?.addEventListener('click', function() {
+    var scheduleName = document.getElementById('scheduleName').value.trim();
+    if (!scheduleName) {
+        alert('Please enter a schedule name');
+        return;
+    }
+    
+    var frequency = document.querySelector('input[name="scheduleFrequency"]:checked').value;
+    var scheduleDetails = {};
+    
+    if (frequency === 'monthly') {
+        scheduleDetails.dayOfMonth = document.getElementById('monthlyDay').value;
+    } else if (frequency === 'weekly') {
+        scheduleDetails.dayOfWeek = document.getElementById('weeklyDay').value;
+    } else if (frequency === 'custom') {
+        scheduleDetails.cronExpression = document.getElementById('customCron').value;
+    }
+    
+    var scheduleConfig = {
+        id: 'schedule_' + Date.now(),
+        name: scheduleName,
+        createdAt: new Date().toISOString(),
+        frequency: frequency,
+        scheduleDetails: scheduleDetails,
+        format: document.getElementById('scheduleFormat').value,
+        recipients: document.getElementById('scheduleRecipients').value.split(',').map(function(e) { return e.trim(); }).filter(Boolean),
+        filters: {
+            billingMonths: getSelectedValues('billingMonths'),
+            subAccounts: getSelectedValues('subAccounts'),
+            users: getSelectedValues('users'),
+            groupNames: getSelectedValues('groupNames'),
+            productTypes: getSelectedValues('productTypes'),
+            senderIds: selectedSenderIds,
+            messageTypes: getSelectedValues('messageTypes')
+        },
+        drillState: {
+            level: drillState.level,
+            billingMonth: drillState.billingMonth,
+            dimension: drillState.dimension
+        },
+        status: 'active'
+    };
+    
+    scheduledReports.push(scheduleConfig);
+    localStorage.setItem('financeDataScheduledReports', JSON.stringify(scheduledReports));
+    
+    console.log('[Finance Data] Created schedule:', scheduleConfig);
+    
+    bootstrap.Modal.getInstance(document.getElementById('scheduleReportModal')).hide();
+    document.getElementById('scheduleName').value = '';
+    document.getElementById('scheduleRecipients').value = '';
+    
+    showToast('Report schedule created successfully! It will appear in Download Centre.');
+    
+    // TODO: wire to Download Centre / automated export via backend later
+    // createScheduleOnBackend(scheduleConfig);
+});
+
+function createScheduleOnBackend(scheduleConfig) {
+    // TODO: wire to Download Centre / automated export via backend later
+    // return fetch('/api/reporting/scheduled-exports', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(scheduleConfig)
+    // });
+    console.log('[Finance Data] TODO: POST to /api/reporting/scheduled-exports', scheduleConfig);
+}
+
+function showToast(message) {
+    var toastEl = document.getElementById('successToast');
+    document.getElementById('toastMessage').textContent = message;
+    var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
+}
 </script>
 @endpush
