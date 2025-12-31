@@ -322,9 +322,10 @@ span.badge.channel-pill-rcs,
                     <div style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center flex-wrap gap-2">
                                     <h4 class="mb-0 me-2">Inbox</h4>
                                     <span class="qs-pill qs-pill-unread" id="unreadBadge">{{ $unread_count }} unread</span>
+                                    <span class="qs-pill qs-pill-waiting" id="overdueCountBadge">0 over 48 hours</span>
                                 </div>
                             </div>
                             <div class="p-3 border-bottom">
@@ -393,7 +394,7 @@ span.badge.channel-pill-rcs,
                                             </div>
                                         </div>
                                         <p class="mb-0 text-muted text-truncate" style="font-size: 13px;">{{ $conversation['last_message'] }}</p>
-                                        @if(!$conversation['contact_id'])
+                                        @if(isset($conversation['awaiting_reply_48h']) && $conversation['awaiting_reply_48h'])
                                         <span class="waiting-badge mt-1 d-inline-block">Waiting for reply</span>
                                         @endif
                                     </div>
@@ -1109,10 +1110,29 @@ span.badge.channel-pill-rcs,
 // INBOX FILTER SYSTEM - Complete Implementation
 // ========================================
 
+// Calculate if a conversation is awaiting reply for 48+ hours
+function isAwaitingReply48h(conv) {
+    // Check if last message was inbound (received) and older than 48 hours
+    var messages = conv.messages || [];
+    if (messages.length === 0) return false;
+    
+    var lastMsg = messages[messages.length - 1];
+    var isInbound = lastMsg.direction === 'inbound' || lastMsg.type === 'received';
+    
+    if (!isInbound) return false;
+    
+    // Calculate time difference (48 hours = 172800000 ms)
+    var now = Date.now();
+    var msgTimestamp = conv.timestamp ? conv.timestamp * 1000 : now;
+    var hoursDiff = (now - msgTimestamp) / (1000 * 60 * 60);
+    
+    return hoursDiff >= 48;
+}
+
 // Conversation data from server (normalized structure)
 var conversationsData = @json($conversations).map(function(conv) {
     // Normalize data structure to match filter requirements
-    return {
+    var normalized = {
         id: conv.id,
         contactName: conv.name,
         phoneNumber: conv.phone,
@@ -1134,7 +1154,22 @@ var conversationsData = @json($conversations).map(function(conv) {
         // Keep original for selectConversation compatibility
         _original: conv
     };
+    
+    // Add 48-hour waiting flag
+    normalized.awaitingReply48h = isAwaitingReply48h(normalized);
+    
+    return normalized;
 });
+
+// Count overdue conversations and update badge
+function updateOverdueBadge() {
+    var overdueCount = conversationsData.filter(function(c) { return c.awaitingReply48h; }).length;
+    var badge = document.getElementById('overdueCountBadge');
+    if (badge) {
+        badge.textContent = overdueCount + ' over 48 hours';
+        badge.style.display = overdueCount > 0 ? 'inline-block' : 'none';
+    }
+}
 
 // Global filter state
 var inboxFilters = {
@@ -1271,6 +1306,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('[Inbox] All event listeners attached successfully');
+    
+    // Update overdue badge count
+    updateOverdueBadge();
     
     // Initial filter application
     applyFilters();
@@ -1965,7 +2003,7 @@ function renderConversationList() {
 function createConversationHTML(conv, isActive) {
     var activeClass = isActive ? 'active' : '';
     var unreadClass = conv.unread ? 'unread' : '';
-    var waitingBadge = !conv.contactId ? '<span class="waiting-badge mt-1 d-inline-block">Waiting for reply</span>' : '';
+    var waitingBadge = conv.awaitingReply48h ? '<span class="waiting-badge mt-1 d-inline-block">Waiting for reply</span>' : '';
     var unreadBadge = conv.unread ? '<span class="unread-dot" style="width: 8px; height: 8px; background-color: #886CC0; border-radius: 50%; display: inline-block;"></span>' : '';
     
     return '<div class="chat-bx d-flex border-bottom ' + unreadClass + ' ' + activeClass + '"' +

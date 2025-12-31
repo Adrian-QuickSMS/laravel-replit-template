@@ -931,6 +931,25 @@ class QuickSMSController extends Controller
 
         $unread_count = collect($conversations)->where('unread', true)->count();
 
+        // Calculate awaiting_reply_48h for each conversation
+        $now = time();
+        $fortyEightHours = 48 * 60 * 60; // 48 hours in seconds
+        
+        foreach ($conversations as &$conv) {
+            $conv['awaiting_reply_48h'] = false;
+            
+            if (!empty($conv['messages'])) {
+                $lastMessage = end($conv['messages']);
+                $isInbound = isset($lastMessage['direction']) && $lastMessage['direction'] === 'inbound';
+                
+                if ($isInbound && isset($conv['timestamp'])) {
+                    $timeDiff = $now - $conv['timestamp'];
+                    $conv['awaiting_reply_48h'] = $timeDiff >= $fortyEightHours;
+                }
+            }
+        }
+        unset($conv); // Break reference
+
         return view('quicksms.messages.inbox', [
             'page_title' => 'Inbox',
             'conversations' => $conversations,
