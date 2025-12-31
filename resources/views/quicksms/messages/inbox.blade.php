@@ -432,6 +432,9 @@ span.badge.channel-pill-rcs,
                                     </div>
                                 </div>
                                 <div class="activity d-flex align-items-center">
+                                    <button type="button" class="btn btn-outline-primary btn-sm me-2" id="markReadUnreadBtn" onclick="toggleReadStatus()">
+                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadText">Mark as Read</span>
+                                    </button>
                                     <ul class="d-flex mb-0">
                                         <li>
                                             <a href="javascript:void(0);" onclick="toggleChatSearch()" title="Search in conversation">
@@ -439,9 +442,6 @@ span.badge.channel-pill-rcs,
                                             </a>
                                         </li>
                                     </ul>
-                                    <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="markReadUnreadBtn" onclick="toggleReadStatus()">
-                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadText">Mark as Read</span>
-                                    </button>
                                     <div class="dropdown ms-2">
                                         <div class="btn-link" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
