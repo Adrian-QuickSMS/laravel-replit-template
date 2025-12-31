@@ -26,6 +26,15 @@
 }
 .message-log-fixed-header {
     flex-shrink: 0;
+    overflow: visible;
+}
+#summaryBar .card {
+    flex: none !important;
+    overflow: visible !important;
+}
+#summaryBar .card-body {
+    flex: none !important;
+    overflow: visible !important;
 }
 .message-log-table-wrapper {
     flex: 1;
