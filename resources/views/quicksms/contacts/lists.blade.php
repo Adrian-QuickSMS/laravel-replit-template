@@ -2,53 +2,6 @@
 
 @section('title', 'Lists')
 
-@push('styles')
-<style>
-/* Fillow Pastel Color Scheme for Lists */
-.list-icon-static {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
-}
-.list-icon-dynamic {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
-}
-
-/* Pastel badge styles */
-.badge-pastel-primary {
-    background-color: rgba(111, 66, 193, 0.15) !important;
-    color: #6f42c1 !important;
-}
-.badge-pastel-pink {
-    background-color: rgba(232, 62, 140, 0.15) !important;
-    color: #e83e8c !important;
-}
-.badge-pastel-secondary {
-    background-color: rgba(108, 117, 125, 0.15) !important;
-    color: #6c757d !important;
-}
-.badge-pastel-success {
-    background-color: rgba(28, 187, 140, 0.15) !important;
-    color: #1cbb8c !important;
-}
-.badge-pastel-info {
-    background-color: rgba(48, 101, 208, 0.15) !important;
-    color: #3065D0 !important;
-}
-</style>
-@endpush
 
 @section('content')
 <div class="container-fluid">

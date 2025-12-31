@@ -2,27 +2,6 @@
 
 @section('title', 'Tags')
 
-@push('styles')
-<style>
-/* Fillow Pastel Color Scheme for Tags */
-.badge-pastel-primary {
-    background-color: rgba(111, 66, 193, 0.15) !important;
-    color: #6f42c1 !important;
-}
-.badge-pastel-pink {
-    background-color: rgba(232, 62, 140, 0.15) !important;
-    color: #e83e8c !important;
-}
-.badge-pastel-warning {
-    background-color: rgba(255, 191, 0, 0.15) !important;
-    color: #d4a500 !important;
-}
-.badge-pastel-secondary {
-    background-color: rgba(108, 117, 125, 0.15) !important;
-    color: #6c757d !important;
-}
-</style>
-@endpush
 
 @section('content')
 <div class="container-fluid">

@@ -27,50 +27,6 @@
     font-size: 0.7rem;
     line-height: 1.4;
 }
-
-/* Fillow Pastel Color Scheme for Contacts */
-.contact-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
-}
-
-/* Pastel badge styles matching Fillow template */
-.badge-pastel-primary {
-    background-color: rgba(111, 66, 193, 0.15) !important;
-    color: #6f42c1 !important;
-}
-.badge-pastel-success {
-    background-color: rgba(28, 187, 140, 0.15) !important;
-    color: #1cbb8c !important;
-}
-.badge-pastel-danger {
-    background-color: rgba(220, 53, 69, 0.15) !important;
-    color: #dc3545 !important;
-}
-.badge-pastel-info {
-    background-color: rgba(48, 101, 208, 0.15) !important;
-    color: #3065D0 !important;
-}
-.badge-pastel-warning {
-    background-color: rgba(255, 191, 0, 0.15) !important;
-    color: #d4a500 !important;
-}
-.badge-pastel-secondary {
-    background-color: rgba(108, 117, 125, 0.15) !important;
-    color: #6c757d !important;
-}
-.badge-pastel-pink {
-    background-color: rgba(232, 62, 140, 0.15) !important;
-    color: #e83e8c !important;
-}
 </style>
 @endpush
 
