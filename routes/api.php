@@ -30,4 +30,5 @@ Route::prefix('reporting/dashboard')->group(function () {
     Route::get('/top-sender-ids', [ReportingDashboardApiController::class, 'topSenderIds']);
     Route::get('/peak-time', [ReportingDashboardApiController::class, 'peakSendingTime']);
     Route::get('/failure-reasons', [ReportingDashboardApiController::class, 'failureReasons']);
+    Route::get('/available-filters', [ReportingDashboardApiController::class, 'availableFilters']);
 });
