@@ -902,6 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initFilterActions();
     initSenderIdPredictive();
     initSubAccountUserFiltering();
+    loadInitialData();
 });
 
 function applyRoleBasedVisibility() {
@@ -984,6 +985,107 @@ function loadDataAsync(callback) {
         });
     }, 50);
 }
+
+// Billing API Service Layer
+var BillingService = {
+    baseUrl: '/api/billing',
+    
+    getData: function(filters) {
+        var params = new URLSearchParams();
+        
+        if (filters.billingMonths && filters.billingMonths.length) {
+            filters.billingMonths.forEach(function(m) { params.append('billingMonth[]', m); });
+        }
+        if (filters.subAccounts && filters.subAccounts.length) {
+            filters.subAccounts.forEach(function(s) { params.append('subAccount[]', s); });
+        }
+        if (filters.users && filters.users.length) {
+            filters.users.forEach(function(u) { params.append('user[]', u); });
+        }
+        if (filters.groupNames && filters.groupNames.length) {
+            filters.groupNames.forEach(function(g) { params.append('groupName[]', g); });
+        }
+        if (filters.productTypes && filters.productTypes.length) {
+            filters.productTypes.forEach(function(p) { params.append('productType[]', p); });
+        }
+        if (filters.senderIds && filters.senderIds.length) {
+            filters.senderIds.forEach(function(s) { params.append('senderID[]', s); });
+        }
+        if (filters.messageTypes && filters.messageTypes.length) {
+            filters.messageTypes.forEach(function(m) { params.append('messageType[]', m); });
+        }
+        
+        var url = this.baseUrl + '/data' + (params.toString() ? '?' + params.toString() : '');
+        
+        return fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function(response) {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        });
+    },
+    
+    export: function(format, filters, rowCount) {
+        var params = new URLSearchParams();
+        params.append('format', format);
+        params.append('rowCount', rowCount);
+        
+        Object.keys(filters).forEach(function(key) {
+            if (Array.isArray(filters[key])) {
+                filters[key].forEach(function(v) { params.append(key + '[]', v); });
+            } else if (filters[key]) {
+                params.append(key, filters[key]);
+            }
+        });
+        
+        return fetch(this.baseUrl + '/export?' + params.toString(), {
+            method: 'GET',
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function(response) {
+            return response.json();
+        });
+    },
+    
+    getSavedReports: function() {
+        return fetch(this.baseUrl + '/saved-reports', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function(response) {
+            return response.json();
+        });
+    },
+    
+    saveReport: function(name, filters) {
+        return fetch(this.baseUrl + '/saved-reports', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ name: name, filters: filters })
+        }).then(function(response) {
+            return response.json();
+        });
+    },
+    
+    schedule: function(config) {
+        return fetch(this.baseUrl + '/schedule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(config)
+        }).then(function(response) {
+            return response.json();
+        });
+    }
+};
 
 var allSenderIds = ['QuickSMS', 'PROMO', 'ALERTS', 'INFO', 'NOTIFY', 'VERIFY', 'UPDATES', 'NEWS'];
 var selectedSenderIds = [];
@@ -1288,57 +1390,42 @@ function applyFilters() {
 }
 
 function refreshTableData(filters) {
-    // TODO: Replace with actual API call
-    // For now, re-render mock data based on filters
+    BillingService.getData(filters)
+        .then(function(response) {
+            renderBillingTable(response.data);
+        })
+        .catch(function(error) {
+            console.error('[Finance Data] API error:', error);
+            showToast('Failed to load billing data. Please try again.', 'error');
+            hideSkeletonLoader();
+        });
+}
+
+function renderBillingTable(data) {
     var tbody = document.getElementById('billingTableBody');
     
-    // Simulate filtering - in production this would be an API call
-    var mockData = generateMockBillingData(filters);
-    
     var html = '';
-    mockData.forEach(function(row) {
-        var attrs = getRowAttributes(row.status);
-        html += '<tr class="' + attrs.rowClass + '" ' + attrs.dataAttrs + '>' +
+    data.forEach(function(row) {
+        var attrs = getRowAttributes(row.billingStatus);
+        var statusHtml = attrs.statusIcon + row.billingStatus;
+        
+        html += '<tr class="' + attrs.classes + '"' + attrs.attrs + ' data-month="' + row.billingMonth + '">' +
             '<td>' +
-                '<span class="fw-semibold text-primary">' + row.month + '</span>' +
-                (attrs.lockIcon ? ' <i class="fas fa-lock text-muted ms-1" style="font-size: 0.7rem;" title="Immutable billing data"></i>' : '') +
+                '<span class="fw-semibold text-primary">' + row.billingMonthLabel + '</span>' +
+                attrs.labelIcon +
             '</td>' +
             '<td class="text-end">' + formatNumber(row.billableParts) + '</td>' +
             '<td class="text-end text-muted">' + formatNumber(row.nonBillableParts) + '</td>' +
             '<td class="text-end text-primary">' + formatNumber(row.totalParts) + '</td>' +
             '<td class="text-end">' + formatCurrency(row.totalCost) + '</td>' +
-            '<td>' + attrs.statusHtml + '</td>' +
+            '<td>' + statusHtml + '</td>' +
             '</tr>';
     });
     
     tbody.innerHTML = html;
     
-    // Update row counts
-    document.getElementById('rowCount').textContent = mockData.length;
-    document.getElementById('totalCount').textContent = mockData.length;
-}
-
-function generateMockBillingData(filters) {
-    // Generate mock data - in production this comes from API
-    var months = ['December 2025', 'November 2025', 'October 2025', 'September 2025', 
-                  'August 2025', 'July 2025', 'June 2025', 'May 2025', 
-                  'April 2025', 'March 2025', 'February 2025', 'January 2025'];
-    var statuses = ['Finalised', 'Finalised', 'Finalised', 'Adjusted', 
-                    'Provisional', 'Provisional', 'Finalised', 'Finalised',
-                    'Finalised', 'Finalised', 'Finalised', 'Finalised'];
-    
-    return months.map(function(month, index) {
-        var billable = Math.floor(Math.random() * 50000) + 80000;
-        var nonBillable = Math.floor(Math.random() * 5000) + 1000;
-        return {
-            month: month,
-            billableParts: billable,
-            nonBillableParts: nonBillable,
-            totalParts: billable + nonBillable,
-            totalCost: (billable * 0.032).toFixed(2),
-            status: statuses[index]
-        };
-    });
+    document.getElementById('rowCount').textContent = data.length;
+    document.getElementById('totalCount').textContent = data.length;
 }
 
 function formatNumber(num) {
@@ -1347,6 +1434,37 @@ function formatNumber(num) {
 
 function formatCurrency(amount) {
     return '£' + parseFloat(amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function showToast(message, type) {
+    var toast = document.getElementById('successToast');
+    var toastMessage = document.getElementById('toastMessage');
+    
+    toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+    
+    switch(type) {
+        case 'error':
+            toast.classList.add('bg-danger');
+            break;
+        case 'warning':
+            toast.classList.add('bg-warning');
+            break;
+        case 'info':
+            toast.classList.add('bg-info');
+            break;
+        default:
+            toast.classList.add('bg-success');
+    }
+    
+    toastMessage.textContent = message;
+    var bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+}
+
+function loadInitialData() {
+    loadDataAsync(function() {
+        refreshTableData({});
+    });
 }
 
 function getSelectedValues(filterName) {

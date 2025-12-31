@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ReportingDashboardApiController;
+use App\Http\Controllers\Api\BillingApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,4 +32,13 @@ Route::prefix('reporting/dashboard')->group(function () {
     Route::get('/peak-time', [ReportingDashboardApiController::class, 'peakSendingTime']);
     Route::get('/failure-reasons', [ReportingDashboardApiController::class, 'failureReasons']);
     Route::get('/available-filters', [ReportingDashboardApiController::class, 'availableFilters']);
+});
+
+// Billing API (mock data for Finance Data page)
+Route::prefix('billing')->group(function () {
+    Route::get('/data', [BillingApiController::class, 'getData']);
+    Route::get('/export', [BillingApiController::class, 'export']);
+    Route::get('/saved-reports', [BillingApiController::class, 'getSavedReports']);
+    Route::post('/saved-reports', [BillingApiController::class, 'saveReport']);
+    Route::post('/schedule', [BillingApiController::class, 'schedule']);
 });
