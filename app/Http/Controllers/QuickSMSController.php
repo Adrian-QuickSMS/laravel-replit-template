@@ -1488,10 +1488,8 @@ class QuickSMSController extends Controller
 
     public function financeData()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Finance Data',
-            'purpose' => 'View financial reports and usage costs.',
-            'sub_modules' => []
+        return view('quicksms.reporting.finance-data', [
+            'page_title' => 'Finance Data'
         ]);
     }
 
