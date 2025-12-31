@@ -421,8 +421,8 @@
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Product Type</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="productTypes">
+                                        <label class="form-label small fw-bold">Product</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="products">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Products</span>
                                             </button>
@@ -431,10 +431,9 @@
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="product1"><label class="form-check-label small" for="product1">Portal</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="product2"><label class="form-check-label small" for="product2">API</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="product3"><label class="form-check-label small" for="product3">Email-to-SMS</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="product4"><label class="form-check-label small" for="product4">Integration</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="SMS" id="product1"><label class="form-check-label small" for="product1">SMS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="RCS Basic" id="product2"><label class="form-check-label small" for="product2">RCS Basic</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="RCS Rich" id="product3"><label class="form-check-label small" for="product3">RCS Rich</label></div>
                                             </div>
                                         </div>
                                     </div>
@@ -460,18 +459,44 @@
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Message Type</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="messageTypes">
+                                        <label class="form-label small fw-bold">Origin</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="origins">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                                <span class="dropdown-label">All Types</span>
+                                                <span class="dropdown-label">All Origins</span>
                                             </button>
                                             <div class="dropdown-menu w-100 p-2">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="SMS" id="msgType1"><label class="form-check-label small" for="msgType1">SMS</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="RCS" id="msgType2"><label class="form-check-label small" for="msgType2">RCS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="origin1"><label class="form-check-label small" for="origin1">Portal</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="origin2"><label class="form-check-label small" for="origin2">API</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="origin3"><label class="form-check-label small" for="origin3">Email-to-SMS</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="origin4"><label class="form-check-label small" for="origin4">Integration</label></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4 col-lg-2">
+                                        <label class="form-label small fw-bold">Country</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="countries">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Countries</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="United Kingdom" id="country1"><label class="form-check-label small" for="country1">United Kingdom</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="United States" id="country2"><label class="form-check-label small" for="country2">United States</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Germany" id="country3"><label class="form-check-label small" for="country3">Germany</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="France" id="country4"><label class="form-check-label small" for="country4">France</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Ireland" id="country5"><label class="form-check-label small" for="country5">Ireland</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Spain" id="country6"><label class="form-check-label small" for="country6">Spain</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Italy" id="country7"><label class="form-check-label small" for="country7">Italy</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Netherlands" id="country8"><label class="form-check-label small" for="country8">Netherlands</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Belgium" id="country9"><label class="form-check-label small" for="country9">Belgium</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Australia" id="country10"><label class="form-check-label small" for="country10">Australia</label></div>
                                             </div>
                                         </div>
                                     </div>
@@ -516,8 +541,8 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="day">
                                     <i class="fas fa-calendar-day me-1"></i>Day
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="message_type">
-                                    <i class="fas fa-comment-dots me-1"></i>Message Type
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="product">
+                                    <i class="fas fa-box me-1"></i>Product
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sub_account">
                                     <i class="fas fa-building me-1"></i>Sub Account
@@ -1014,14 +1039,17 @@ var BillingService = {
         if (filters.groupNames && filters.groupNames.length) {
             filters.groupNames.forEach(function(g) { params.append('groupName[]', g); });
         }
-        if (filters.productTypes && filters.productTypes.length) {
-            filters.productTypes.forEach(function(p) { params.append('productType[]', p); });
+        if (filters.products && filters.products.length) {
+            filters.products.forEach(function(p) { params.append('product[]', p); });
         }
         if (filters.senderIds && filters.senderIds.length) {
             filters.senderIds.forEach(function(s) { params.append('senderID[]', s); });
         }
-        if (filters.messageTypes && filters.messageTypes.length) {
-            filters.messageTypes.forEach(function(m) { params.append('messageType[]', m); });
+        if (filters.origins && filters.origins.length) {
+            filters.origins.forEach(function(o) { params.append('origin[]', o); });
+        }
+        if (filters.countries && filters.countries.length) {
+            filters.countries.forEach(function(c) { params.append('country[]', c); });
         }
         
         var url = this.baseUrl + '/data' + (params.toString() ? '?' + params.toString() : '');
@@ -1585,7 +1613,7 @@ function getDrillPath() {
 var dimensionLabels = {
     'month': 'Billing Month',
     'day': 'Day',
-    'message_type': 'Message Type',
+    'product': 'Product',
     'sub_account': 'Sub Account',
     'user': 'User',
     'sender_id': 'Sender ID',
@@ -1604,7 +1632,7 @@ var mockDrillData = {
         { label: '2025-01-06', billable: 5234, nonBillable: 112, total: 5346, cost: '£167.06', status: 'Finalised' },
         { label: '2025-01-07', billable: 5567, nonBillable: 98, total: 5665, cost: '£177.03', status: 'Finalised' }
     ],
-    message_type: [
+    product: [
         { label: 'SMS', billable: 56789, nonBillable: 1123, total: 57912, cost: '£1,809.75', status: 'Finalised' },
         { label: 'RCS Basic', billable: 23456, nonBillable: 456, total: 23912, cost: '£747.25', status: 'Finalised' },
         { label: 'RCS Rich', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' }
@@ -1779,7 +1807,7 @@ function updateDimensionSelector() {
 function getDimensionIcon(dimension) {
     var icons = {
         'day': 'fas fa-calendar-day',
-        'message_type': 'fas fa-comment-dots',
+        'product': 'fas fa-box',
         'sub_account': 'fas fa-building',
         'user': 'fas fa-user',
         'sender_id': 'fas fa-signature',
