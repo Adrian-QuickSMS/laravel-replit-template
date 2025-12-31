@@ -442,8 +442,6 @@ span.badge.channel-pill-rcs,
                                             </svg>
                                         </div>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="javascript:void(0);" onclick="markAsRead()"><i class="fas fa-check-double me-2"></i>Mark as Read</a></li>
-                                            <li><a class="dropdown-item" href="javascript:void(0);" onclick="markAsUnread()"><i class="fas fa-envelope me-2"></i>Mark as Unread</a></li>
                                             <li><a class="dropdown-item" href="javascript:void(0);" onclick="showComingSoon('Archive')"><i class="fas fa-archive me-2"></i>Archive</a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="showComingSoon('Delete')"><i class="fas fa-trash me-2"></i>Delete</a></li>
@@ -643,6 +641,9 @@ span.badge.channel-pill-rcs,
                                 <div class="d-grid gap-2 mb-3">
                                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="openViewContactModal()">
                                         <i class="fas fa-user me-1"></i>View Contact
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="markReadUnreadBtn" onclick="toggleReadStatus()">
+                                        <i class="fas fa-check-double me-1"></i><span id="markReadUnreadText">Mark as Read</span>
                                     </button>
                                 </div>
                                 
@@ -1482,6 +1483,9 @@ function selectConversation(id) {
     // Update contact panel
     updateContactPanel(convData);
     
+    // Update the mark as read/unread button
+    updateMarkReadButton();
+    
     console.log('[Select] Selected conversation:', id, convData.contactName);
 }
 
@@ -2205,6 +2209,7 @@ function markAsRead() {
         var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
         if (conv) conv.unread = false;
         updateUnreadCount();
+        updateMarkReadButton();
     }
     console.log('TODO: PATCH /api/conversations/' + currentConversationId + '/read');
 }
@@ -2228,8 +2233,28 @@ function markAsUnread() {
         var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
         if (conv) conv.unread = true;
         updateUnreadCount();
+        updateMarkReadButton();
     }
     console.log('TODO: PATCH /api/conversations/' + currentConversationId + '/unread');
+}
+
+// Toggle read/unread status from sidebar button
+function toggleReadStatus() {
+    var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
+    if (conv && conv.unread) {
+        markAsRead();
+    } else {
+        markAsUnread();
+    }
+}
+
+// Update the Mark as Read/Unread button text based on current conversation
+function updateMarkReadButton() {
+    var conv = conversationsData.find(function(c) { return c.id == currentConversationId; });
+    var textSpan = document.getElementById('markReadUnreadText');
+    if (textSpan && conv) {
+        textSpan.textContent = conv.unread ? 'Mark as Read' : 'Mark as Unread';
+    }
 }
 
 function updateUnreadCount() {
