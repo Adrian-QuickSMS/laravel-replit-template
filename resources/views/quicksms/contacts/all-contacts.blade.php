@@ -27,6 +27,46 @@
     font-size: 0.7rem;
     line-height: 1.4;
 }
+
+/* Fillow Pastel Color Scheme for Contacts */
+.contact-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(111, 66, 193, 0.15);
+    color: #6f42c1;
+}
+
+/* Pastel badge styles matching Fillow template */
+.badge-pastel-primary {
+    background-color: rgba(111, 66, 193, 0.15) !important;
+    color: #6f42c1 !important;
+}
+.badge-pastel-success {
+    background-color: rgba(28, 187, 140, 0.15) !important;
+    color: #1cbb8c !important;
+}
+.badge-pastel-danger {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+    color: #dc3545 !important;
+}
+.badge-pastel-info {
+    background-color: rgba(48, 101, 208, 0.15) !important;
+    color: #3065D0 !important;
+}
+.badge-pastel-warning {
+    background-color: rgba(255, 191, 0, 0.15) !important;
+    color: #cc9900 !important;
+}
+.badge-pastel-secondary {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+    color: #6c757d !important;
+}
 </style>
 @endpush
 
@@ -265,7 +305,7 @@
                                     </td>
                                     <td class="py-2">
                                         <div class="d-flex align-items-center">
-                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
+                                            <div class="contact-avatar me-2">
                                                 {{ $contact['initials'] }}
                                             </div>
                                             <div>
@@ -280,19 +320,19 @@
                                     </td>
                                     <td class="py-2">
                                         @foreach($contact['tags'] as $tag)
-                                        <span class="badge bg-light text-dark border me-1">{{ $tag }}</span>
+                                        <span class="badge badge-pastel-secondary me-1">{{ $tag }}</span>
                                         @endforeach
                                     </td>
                                     <td class="py-2">
                                         @foreach($contact['lists'] as $list)
-                                        <span class="badge bg-info text-white me-1">{{ $list }}</span>
+                                        <span class="badge badge-pastel-info me-1">{{ $list }}</span>
                                         @endforeach
                                     </td>
                                     <td class="py-2">
                                         @if($contact['status'] === 'active')
-                                        <span class="badge bg-success">Active</span>
+                                        <span class="badge badge-pastel-success">Active</span>
                                         @else
-                                        <span class="badge bg-danger">Opted Out</span>
+                                        <span class="badge badge-pastel-danger">Opted Out</span>
                                         @endif
                                     </td>
                                     <td class="py-2 text-end">
