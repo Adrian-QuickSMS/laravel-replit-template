@@ -51,13 +51,17 @@
   height: 750px;
   background: var(--rcs-color-surface);
   border-radius: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 
+    0 0 0 8px rgba(200, 200, 210, 0.25),
+    0 0 40px rgba(136, 108, 192, 0.08),
+    0 25px 50px -12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   font-family: var(--rcs-font-family);
   position: relative;
-  border: 8px solid #1f1f1f;
+  border: 1px solid rgba(200, 200, 210, 0.4);
+  backdrop-filter: blur(1px);
 }
 
 .rcs-status-bar {
