@@ -288,8 +288,8 @@
     z-index: 3;
 }
 .tier-footer .btn-purchase {
-    background: #5a32a3;
-    border-color: #5a32a3;
+    background: #7978a1;
+    border-color: #7978a1;
     color: #fff;
     width: 100%;
     padding: 0.75rem 1.5rem;
@@ -297,8 +297,8 @@
     font-size: 1rem;
 }
 .tier-footer .btn-purchase:hover {
-    background: #4a2889;
-    border-color: #4a2889;
+    background: #6a6991;
+    border-color: #6a6991;
 }
 .order-summary-card {
     position: sticky;
@@ -312,16 +312,16 @@
     color: #fff;
 }
 #proceedBtn {
-    background: #5a32a3;
-    border-color: #5a32a3;
+    background: #7978a1;
+    border-color: #7978a1;
 }
 #proceedBtn:hover:not(:disabled) {
-    background: #4a2889;
-    border-color: #4a2889;
+    background: #6a6991;
+    border-color: #6a6991;
 }
 #proceedBtn:disabled {
-    background: #9b8cb5;
-    border-color: #9b8cb5;
+    background: #a8a7c4;
+    border-color: #a8a7c4;
 }
 .summary-row {
     display: flex;
