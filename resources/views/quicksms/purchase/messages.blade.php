@@ -1105,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         orderSummary.classList.remove('d-none');
 
         document.getElementById('selectedTierName').textContent = tier.name;
-        document.getElementById('selectedQuantity').textContent = formatNumber(calc.volume) + ' messages';
+        document.getElementById('selectedQuantity').textContent = formatNumber(calc.volume) + ' SMS';
         document.getElementById('netTotal').textContent = formatCurrencyShort(calc.netCost);
         document.getElementById('vatAmount').textContent = formatCurrencyShort(calc.vatAmount);
         document.getElementById('vatRateDisplay').textContent = Math.round(calc.vatRate * 100);
