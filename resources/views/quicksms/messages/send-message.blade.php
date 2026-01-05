@@ -1011,7 +1011,7 @@
             </div>
             <div class="modal-body p-0">
                 <div class="row g-0" style="min-height: 500px;">
-                    <div class="col-lg-5 bg-light p-4 d-flex flex-column align-items-center justify-content-start border-end" style="overflow-y: auto; max-height: 80vh;">
+                    <div class="col-lg-5 p-4 d-flex flex-column align-items-center justify-content-start border-end" style="overflow-y: auto; max-height: 80vh; background: rgba(136, 108, 192, 0.1);">
                         <p class="text-muted small mb-3">Live Preview</p>
                         <div id="rcsWizardPreviewContainer"></div>
                     </div>
