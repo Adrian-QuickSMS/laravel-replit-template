@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,10 +17,121 @@ use Illuminate\Support\Facades\Cache;
  * - PCI compliance: This controller NEVER handles card data
  * - Payment status received via secure webhook only
  * - All webhook events are logged for audit trail
- * - TODO: Implement webhook signature verification for production
+ * - Stripe webhook signature verification enabled when STRIPE_WEBHOOK_SECRET is set
  */
 class WebhookController extends Controller
 {
+    private StripeService $stripeService;
+
+    public function __construct(StripeService $stripeService)
+    {
+        $this->stripeService = $stripeService;
+    }
+
+    public function stripeWebhook(Request $request): JsonResponse
+    {
+        $payload = $request->getContent();
+        $signature = $request->header('Stripe-Signature', '');
+
+        if (!$this->stripeService->verifyWebhookSignature($payload, $signature)) {
+            Log::warning('Stripe webhook signature verification failed', [
+                'ip' => $request->ip(),
+            ]);
+            return response()->json(['error' => 'Invalid signature'], 400);
+        }
+
+        $event = $this->stripeService->parseWebhookEvent($payload);
+
+        if (!$event) {
+            return response()->json(['error' => 'Invalid payload'], 400);
+        }
+
+        Log::info('Stripe webhook received', [
+            'event_type' => $event['type'] ?? 'unknown',
+            'event_id' => $event['id'] ?? null,
+        ]);
+
+        $eventType = $event['type'] ?? null;
+
+        switch ($eventType) {
+            case 'checkout.session.completed':
+                $this->handleCheckoutCompleted($event['data']['object'] ?? []);
+                break;
+
+            case 'payment_intent.succeeded':
+                $this->handlePaymentSucceeded($event['data']['object'] ?? []);
+                break;
+
+            case 'payment_intent.payment_failed':
+                $this->handlePaymentFailed($event['data']['object'] ?? []);
+                break;
+
+            default:
+                Log::info('Unhandled Stripe event type', ['type' => $eventType]);
+        }
+
+        return response()->json(['received' => true]);
+    }
+
+    private function handleCheckoutCompleted(array $session): void
+    {
+        $metadata = $session['metadata'] ?? [];
+        $type = $metadata['type'] ?? null;
+
+        Log::info('Checkout session completed', [
+            'session_id' => $session['id'] ?? null,
+            'type' => $type,
+            'metadata' => $metadata,
+            'payment_status' => $session['payment_status'] ?? null,
+        ]);
+
+        if ($session['payment_status'] !== 'paid') {
+            return;
+        }
+
+        if ($type === 'invoice_payment') {
+            $invoiceId = $metadata['invoice_id'] ?? null;
+            $invoiceNumber = $metadata['invoice_number'] ?? null;
+
+            Log::info('Invoice payment completed via Stripe', [
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $invoiceNumber,
+                'amount' => ($session['amount_total'] ?? 0) / 100,
+            ]);
+
+            Cache::put("invoice_paid_{$invoiceId}", true, now()->addHours(24));
+        } elseif ($type === 'balance_topup') {
+            $accountId = $metadata['account_id'] ?? 'demo_account';
+            $creditAmount = (float) ($metadata['credit_amount'] ?? 0);
+            $tier = $metadata['tier'] ?? 'starter';
+
+            Log::info('Balance top-up completed via Stripe', [
+                'account_id' => $accountId,
+                'credit_amount' => $creditAmount,
+                'tier' => $tier,
+            ]);
+
+            $this->updateAccountBalance($accountId, $creditAmount);
+            $this->notifyPaymentSuccess($accountId, null, $creditAmount);
+        }
+    }
+
+    private function handlePaymentSucceeded(array $paymentIntent): void
+    {
+        Log::info('Payment intent succeeded', [
+            'payment_intent_id' => $paymentIntent['id'] ?? null,
+            'amount' => ($paymentIntent['amount'] ?? 0) / 100,
+        ]);
+    }
+
+    private function handlePaymentFailed(array $paymentIntent): void
+    {
+        Log::warning('Payment intent failed', [
+            'payment_intent_id' => $paymentIntent['id'] ?? null,
+            'error' => $paymentIntent['last_payment_error']['message'] ?? 'Unknown error',
+        ]);
+    }
+
     public function hubspotPayment(Request $request): JsonResponse
     {
         $payload = $request->all();

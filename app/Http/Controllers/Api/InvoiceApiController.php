@@ -4,16 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\HubSpotInvoiceService;
+use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class InvoiceApiController extends Controller
 {
     private HubSpotInvoiceService $invoiceService;
+    private StripeService $stripeService;
 
-    public function __construct(HubSpotInvoiceService $invoiceService)
+    public function __construct(HubSpotInvoiceService $invoiceService, StripeService $stripeService)
     {
         $this->invoiceService = $invoiceService;
+        $this->stripeService = $stripeService;
     }
 
     public function index(Request $request): JsonResponse
@@ -99,51 +102,12 @@ class InvoiceApiController extends Controller
             ], 400);
         }
 
-        // TODO: Implement actual Stripe Checkout Session creation
-        // This requires STRIPE_SECRET_KEY to be configured
-        // 
-        // Example Stripe integration:
-        // \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-        // $session = \Stripe\Checkout\Session::create([
-        //     'payment_method_types' => ['card'],
-        //     'line_items' => [[
-        //         'price_data' => [
-        //             'currency' => strtolower($invoice['currency'] ?? 'gbp'),
-        //             'product_data' => [
-        //                 'name' => 'Invoice ' . $invoice['invoiceNumber'],
-        //                 'description' => 'Payment for invoice ' . $invoice['invoiceNumber'],
-        //             ],
-        //             'unit_amount' => (int) ($invoice['balanceDue'] * 100),
-        //         ],
-        //         'quantity' => 1,
-        //     ]],
-        //     'mode' => 'payment',
-        //     'success_url' => route('reporting.invoices') . '?payment=success&invoice=' . $invoiceId,
-        //     'cancel_url' => route('reporting.invoices') . '?payment=cancelled',
-        //     'metadata' => [
-        //         'invoice_id' => $invoiceId,
-        //         'invoice_number' => $invoice['invoiceNumber'],
-        //     ],
-        // ]);
-        // return response()->json([
-        //     'success' => true,
-        //     'checkoutUrl' => $session->url,
-        //     'sessionId' => $session->id,
-        // ]);
+        $result = $this->stripeService->createInvoicePaymentSession($invoice);
 
-        \Illuminate\Support\Facades\Log::info('Invoice payment initiated', [
-            'invoice_id' => $invoiceId,
-            'invoice_number' => $invoice['invoiceNumber'],
-            'amount' => $invoice['balanceDue'],
-            'currency' => $invoice['currency'] ?? 'GBP',
-        ]);
+        if (!$result['success']) {
+            return response()->json($result, 500);
+        }
 
-        $mockCheckoutUrl = route('reporting.invoices') . '?payment=success&invoice=' . $invoiceId;
-
-        return response()->json([
-            'success' => true,
-            'checkoutUrl' => $mockCheckoutUrl,
-            'message' => 'Mock checkout - Stripe integration pending',
-        ]);
+        return response()->json($result);
     }
 }

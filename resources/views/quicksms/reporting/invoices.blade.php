@@ -1377,33 +1377,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const paymentStatus = urlParams.get('payment');
         const invoiceId = urlParams.get('invoice');
+        const topupStatus = urlParams.get('topup');
+        const topupAmount = urlParams.get('amount');
+
+        window.history.replaceState({}, document.title, window.location.pathname);
 
         if (paymentStatus === 'success' && invoiceId) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            showPaymentSuccessMessage(invoiceId);
-            
+            showSuccessBanner('Invoice Payment Successful', 'Your invoice has been paid and your account has been updated.');
             loadInvoices();
             loadAccountSummary();
         } else if (paymentStatus === 'cancelled') {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            showPaymentCancelledMessage();
+            showWarningBanner('Payment Cancelled', 'Your invoice payment was cancelled. No charges were made.');
+        } else if (topupStatus === 'success' && topupAmount) {
+            const formattedAmount = '£' + parseFloat(topupAmount).toFixed(2);
+            showSuccessBanner('Top-Up Successful', `${formattedAmount} has been added to your account balance.`);
+            loadAccountSummary();
+        } else if (topupStatus === 'cancelled') {
+            showWarningBanner('Top-Up Cancelled', 'Your balance top-up was cancelled. No charges were made.');
         }
     }
 
-    function showPaymentSuccessMessage(invoiceId) {
+    function showSuccessBanner(title, message) {
         const alertHtml = `
-            <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div class="alert alert-success alert-dismissible fade show payment-banner" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                 <i class="fas fa-check-circle me-2"></i>
-                <strong>Payment Successful!</strong> Your invoice has been paid and your account balance has been updated.
+                <strong>${title}</strong> ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', alertHtml);
         
         setTimeout(() => {
-            const alert = document.querySelector('.alert-success');
+            const alert = document.querySelector('.payment-banner.alert-success');
             if (alert) {
                 alert.classList.remove('show');
                 setTimeout(() => alert.remove(), 150);
@@ -1411,23 +1416,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 8000);
     }
 
-    function showPaymentCancelledMessage() {
+    function showWarningBanner(title, message) {
         const alertHtml = `
-            <div class="alert alert-warning alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div class="alert alert-warning alert-dismissible fade show payment-banner" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                 <i class="fas fa-exclamation-circle me-2"></i>
-                <strong>Payment Cancelled.</strong> Your invoice has not been paid.
+                <strong>${title}</strong> ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', alertHtml);
         
         setTimeout(() => {
-            const alert = document.querySelector('.alert-warning');
+            const alert = document.querySelector('.payment-banner.alert-warning');
             if (alert) {
                 alert.classList.remove('show');
                 setTimeout(() => alert.remove(), 150);
             }
         }, 5000);
+    }
+
+    function showErrorBanner(title, message) {
+        const alertHtml = `
+            <div class="alert alert-danger alert-dismissible fade show payment-banner" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="fas fa-times-circle me-2"></i>
+                <strong>${title}</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        setTimeout(() => {
+            const alert = document.querySelector('.payment-banner.alert-danger');
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }
+        }, 8000);
     }
 
     handlePaymentReturn();
@@ -1607,15 +1631,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('proceedTopUpBtn').addEventListener('click', async function() {
-        const creditAmount = topUpState.selectedAmount;
-        const vatAmount = creditAmount * topUpState.vatRate;
-        const totalPayable = creditAmount + vatAmount;
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
 
-        // TODO: Implement Stripe Checkout session creation for top-up
-        // API endpoint: POST /api/topup/create-checkout-session
-        // Body: { tier, amount, currency }
-        
-        alert(`Top-up of ${formatCurrency(totalPayable)} (inc. VAT) will be processed via Stripe.\n\nThis functionality requires Stripe integration to be completed.`);
+        try {
+            const response = await fetch('/api/topup/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    tier: topUpState.selectedTier,
+                    amount: topUpState.selectedAmount,
+                    currency: topUpState.currency
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.checkoutUrl) {
+                window.location.href = data.checkoutUrl;
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-external-link-alt me-1"></i> Pay with Stripe';
+                alert(data.error || 'Failed to create payment session. Please try again.');
+            }
+        } catch (error) {
+            console.error('Top-up error:', error);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-external-link-alt me-1"></i> Pay with Stripe';
+            alert('An error occurred. Please try again.');
+        }
     });
 
     topUpModal.addEventListener('hidden.bs.modal', function() {

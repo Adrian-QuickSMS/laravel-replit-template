@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\BillingApiController;
 use App\Http\Controllers\Api\PurchaseApiController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\InvoiceApiController;
+use App\Http\Controllers\Api\TopUpApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,12 @@ Route::prefix('purchase')->group(function () {
 // Webhooks
 Route::prefix('webhooks')->group(function () {
     Route::post('/hubspot/payment', [WebhookController::class, 'hubspotPayment']);
+    Route::post('/stripe', [WebhookController::class, 'stripeWebhook']);
+});
+
+// Top-Up API
+Route::prefix('topup')->group(function () {
+    Route::post('/create-checkout-session', [TopUpApiController::class, 'createCheckoutSession']);
 });
 
 // Account API
