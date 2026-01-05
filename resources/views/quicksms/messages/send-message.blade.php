@@ -1011,11 +1011,11 @@
             </div>
             <div class="modal-body p-0" style="overflow-y: auto; max-height: 80vh;">
                 <div class="row g-0">
-                    <div class="col-lg-5 p-4 d-flex flex-column align-items-center justify-content-start border-end" style="background: rgba(136, 108, 192, 0.1);">
+                    <div class="col-lg-5 p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1);">
                         <p class="text-muted small mb-3">Live Preview</p>
                         <div id="rcsWizardPreviewContainer"></div>
                     </div>
-                    <div class="col-lg-7 p-4">
+                    <div class="col-lg-7 p-4" id="rcsConfigColumn">
                         <div class="rcs-config-panel">
                             <div id="rcsValidationErrors" class="d-none"></div>
                             
