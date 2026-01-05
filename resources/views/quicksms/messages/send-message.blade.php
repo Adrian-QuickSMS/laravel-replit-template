@@ -1099,7 +1099,7 @@
                                                 </button>
                                             </div>
                                             
-                                            <div class="mt-3 p-3 border rounded bg-light" id="rcsImageEditor">
+                                            <div class="mt-3 p-3 border rounded" id="rcsImageEditor" style="background: rgba(136, 108, 192, 0.1);">
                                                 <h6 class="small text-muted text-uppercase mb-3"><i class="fas fa-sliders-h me-1"></i>Image Editor</h6>
                                                 
                                                 <div class="mb-3">
