@@ -44,6 +44,7 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
 - **Fillow SaaS Admin Template:** UI framework.
 - **MetisMenu:** JavaScript library for navigation.
 - **SQLite:** Database for local development.
+- **Stripe PHP SDK (stripe/stripe-php):** Official Stripe SDK for Checkout Sessions, webhooks, and payment processing. Requires `STRIPE_SECRET_KEY` and optionally `STRIPE_WEBHOOK_SECRET` secrets.
 - **HubSpot Products API:** External service for live product pricing (no caching). Requires `HUBSPOT_ACCESS_TOKEN` secret.
 - **HubSpot Invoices API:** External service for invoice data. Fetches invoice details, line items, and PDF URLs directly from HubSpot CRM. No UI-side recalculation of totals.
-- **Stripe (via HubSpot):** Payment processing - portal redirects to Stripe, never handles card data (PCI DSS compliant).
+- **Stripe Checkout:** Payment processing - portal redirects to Stripe, never handles card data (PCI DSS compliant). StripeService creates Checkout Sessions for invoice payments and balance top-ups. Webhook handler processes checkout.session.completed events.
