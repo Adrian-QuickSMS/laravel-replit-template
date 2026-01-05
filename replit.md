@@ -46,6 +46,13 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
   - **Model:** `RcsAsset` tracks UUID, source type/URL, hosted URL, dimensions, file size, edit parameters, draft status
   - **Frontend Integration:** Debounced edit calls, processing indicators, asset UUID tracking per card
   - **Explicit Save Workflow for URL Images:** URL-based images with edits (zoom, crop, orientation) require explicit save action before navigation. Dirty state tracking compares current values against baseline captured when URL is loaded or card is opened. Save button appears only when unsaved changes exist. Unsaved changes modal intercepts: card switching, wizard close, Apply to All Cards, and message type changes. Options: Save (processes image server-side, stores to CDN), Don't Save (restores baseline values and original URL), Cancel (stays on current card). Baseline is re-initialized after save or discard to ensure accurate tracking.
+  - **Interactive Drag-to-Position Crop Editor:** Replaced button-based crop positioning with drag-and-drop interface within fixed crop frames. Features:
+    - **Dynamic Crop Frames:** Frame sizes adapt to card size selection - Short (280x98px), Medium (280x147px), Tall (280x180px)
+    - **Visual Overlay:** Greyed-out overlay (rgba(0,0,0,0.45)) shows cropped areas outside purple-bordered crop frame
+    - **Drag Functionality:** Full mouse and touch support with position constraints to keep image within frame bounds
+    - **Data Model:** Uses cropOffsetX/cropOffsetY for precise pixel positioning instead of named positions (center/top/bottom)
+    - **Helper Buttons:** Center (resets to 0,0 offset) and Fit (calculates zoom to fit image in frame) replace old crop position buttons
+    - **Zoom Integration:** Zoom slider updates rcsCropState and recalculates drag constraints in real-time
 - **MessageLog Model:** (`app/Models/MessageLog.php`) Defines message structure with security features like encrypted content and role-based access.
 - **Development Environment:** Utilizes SQLite for local development, separating UI from backend API integrations.
 - **CSS Architecture:** Module-specific CSS overrides Fillow styles; custom classes use unique prefixes to prevent conflicts.
