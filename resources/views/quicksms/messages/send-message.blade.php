@@ -395,16 +395,16 @@
                     <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
                     
                     <div class="text-center d-none" id="previewToggleContainer">
-                        <div class="btn-group btn-group-sm" role="group" style="transform: scale(0.85);">
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 active" id="previewRCSBtn" onclick="showPreview('rcs')" style="font-size: 11px;">RCS</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" id="previewSMSBtn" onclick="showPreview('sms')" style="font-size: 11px;">SMS Fallback</button>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-sm py-0 px-3 active" id="previewRCSBtn" onclick="showPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                            <button type="button" class="btn btn-sm py-0 px-3" id="previewSMSBtn" onclick="showPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
                         </div>
                     </div>
                     
                     <div class="text-center d-none" id="basicRcsPreviewToggle">
-                        <div class="btn-group btn-group-sm" role="group" style="transform: scale(0.85);">
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 active" id="basicPreviewRCSBtn" onclick="toggleBasicRcsPreview('rcs')" style="font-size: 11px;">RCS</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" id="basicPreviewSMSBtn" onclick="toggleBasicRcsPreview('sms')" style="font-size: 11px;">SMS Fallback</button>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-sm py-0 px-3 active" id="basicPreviewRCSBtn" onclick="toggleBasicRcsPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                            <button type="button" class="btn btn-sm py-0 px-3" id="basicPreviewSMSBtn" onclick="toggleBasicRcsPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
                         </div>
                     </div>
                     
@@ -1502,8 +1502,24 @@ function selectChannel(channel) {
 
 function toggleBasicRcsPreview(mode) {
     basicRcsPreviewMode = mode;
-    document.getElementById('basicPreviewRCSBtn').classList.toggle('active', mode === 'rcs');
-    document.getElementById('basicPreviewSMSBtn').classList.toggle('active', mode === 'sms');
+    
+    var rcsBtn = document.getElementById('basicPreviewRCSBtn');
+    var smsBtn = document.getElementById('basicPreviewSMSBtn');
+    
+    if (mode === 'rcs') {
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+    }
+    
+    rcsBtn.classList.toggle('active', mode === 'rcs');
+    smsBtn.classList.toggle('active', mode === 'sms');
     updatePreview();
 }
 
@@ -3714,16 +3730,58 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+var richRcsPreviewMode = 'rcs';
+
 function showPreview(type) {
+    richRcsPreviewMode = type;
     var channel = document.querySelector('input[name="channel"]:checked')?.value || 'sms';
-    document.getElementById('previewSMSBtn').classList.toggle('active', type === 'sms');
-    document.getElementById('previewRCSBtn').classList.toggle('active', type === 'rcs');
     
-    if (channel === 'rcs_rich' && type === 'rcs') {
-        updateRcsWizardPreviewInMain();
+    var rcsBtn = document.getElementById('previewRCSBtn');
+    var smsBtn = document.getElementById('previewSMSBtn');
+    
+    if (type === 'rcs') {
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+    }
+    
+    rcsBtn.classList.toggle('active', type === 'rcs');
+    smsBtn.classList.toggle('active', type === 'sms');
+    
+    if (channel === 'rcs_rich') {
+        if (type === 'rcs') {
+            updateRcsWizardPreviewInMain();
+        } else {
+            showRichRcsSmsPreview();
+        }
     } else {
         updatePreview();
     }
+}
+
+function showRichRcsSmsPreview() {
+    var container = document.getElementById('mainPreviewContainer');
+    if (!container) return;
+    
+    var senderId = document.getElementById('senderId');
+    var smsContent = document.getElementById('smsContent');
+    
+    var senderIdText = (senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, '');
+    var messageText = smsContent?.value || '';
+    
+    var previewConfig = {
+        channel: 'sms',
+        senderId: senderIdText,
+        message: { body: messageText }
+    };
+    
+    container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
 }
 
 function updateRcsWizardPreviewInMain() {
