@@ -803,7 +803,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button type="button" class="btn btn-purchase" id="selectBespokeBtn">
+                                        <button type="button" class="btn btn-purchase" onclick="window.selectTopUpTier('bespoke')">
                                             Select Plan
                                         </button>
                                     </div>
@@ -853,7 +853,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button type="button" class="btn btn-purchase" id="selectStarterBtn">
+                                        <button type="button" class="btn btn-purchase" onclick="window.selectTopUpTier('starter')">
                                             Select Starter
                                         </button>
                                     </div>
@@ -904,7 +904,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button type="button" class="btn btn-purchase" id="selectEnterpriseBtn">
+                                        <button type="button" class="btn btn-purchase" onclick="window.selectTopUpTier('enterprise')">
                                             Select Enterprise
                                         </button>
                                     </div>
@@ -999,6 +999,8 @@
     height: 100%;
     overflow: visible;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 .topup-tier-card:hover {
     box-shadow: 0 8px 24px rgba(111, 66, 193, 0.25);
@@ -1147,6 +1149,8 @@
     padding: 1rem 1.5rem 1.5rem;
     background: #fff;
     text-align: center;
+    margin-top: auto;
+    border-radius: 0 0 0.75rem 0.75rem;
 }
 .topup-tier-card .btn-purchase {
     width: 100%;
@@ -2042,21 +2046,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Use event delegation on modal for select buttons
-    topUpModal.addEventListener('click', function(e) {
-        const btn = e.target.closest('.btn-purchase');
-        if (btn) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (btn.id === 'selectStarterBtn') {
-                selectTopUpTier('starter');
-            } else if (btn.id === 'selectEnterpriseBtn') {
-                selectTopUpTier('enterprise');
-            } else if (btn.id === 'selectBespokeBtn') {
-                selectTopUpTier('bespoke');
-            }
-        }
-    });
 
     document.getElementById('topUpProceedBtn').addEventListener('click', async function() {
         const btn = this;
