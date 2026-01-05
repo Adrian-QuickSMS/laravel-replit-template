@@ -2336,113 +2336,71 @@ function renderRcsPhoneFrame(agent, messageContent) {
     return RcsPreviewRenderer.renderPhoneFrame(agent, '<div class="rcs-message">' + messageContent + '</div>');
 }
 
-function renderRcsCardPreview(cardNum) {
+function getWizardCardSchema(cardNum) {
     var card = rcsCardsData[cardNum] || initializeRcsCard(cardNum);
-    var mediaHtml = '';
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     var orientation = orientChecked ? orientChecked.value : 'vertical_short';
     var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'horizontal': 'tall' };
     var heightClass = heights[orientation] || 'medium';
-    var heightPx = { 'short': '112px', 'medium': '168px', 'tall': '264px' };
-    
-    if (card.media && card.media.url) {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(card.media.url) + '" class="rcs-media-image" loading="lazy"/></div>';
-    } else if (rcsMediaData.url) {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(rcsMediaData.url) + '" class="rcs-media-image" loading="lazy"/></div>';
-    } else {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;"><span style="color: #888; font-size: 12px;">No media</span></div>';
-    }
     
     var descEl = document.getElementById('rcsDescription');
     var bodyEl = document.getElementById('rcsTextBody');
     var description = descEl ? descEl.value : (card.description || '');
     var textBody = bodyEl ? bodyEl.value : (card.textBody || '');
     
-    var titleHtml = description ? '<h3 class="rcs-card-title">' + escapeHtml(description) + '</h3>' : '';
-    var descHtml = textBody ? '<p class="rcs-card-description">' + escapeHtml(textBody) + '</p>' : '';
-    
-    var buttonsHtml = '';
     var btns = rcsButtons.length > 0 ? rcsButtons : (card.buttons || []);
-    if (btns.length > 0) {
-        buttonsHtml = '<div class="rcs-buttons">';
-        btns.forEach(function(btn) {
-            var icon = getRcsButtonIcon(btn.type);
-            buttonsHtml += '<button type="button" class="rcs-button">' + (icon ? '<span class="rcs-button-icon-wrapper">' + icon + '</span>' : '') + '<span class="rcs-button-label">' + escapeHtml(btn.label || 'Button') + '</span></button>';
-        });
-        buttonsHtml += '</div>';
-    }
     
-    var mediaClass = (card.media && card.media.url) || rcsMediaData.url ? 'rcs-card--has-media' : 'rcs-card--no-media';
-    return '<div class="rcs-card ' + mediaClass + '">' + mediaHtml + '<div class="rcs-card-content">' + titleHtml + descHtml + '</div>' + buttonsHtml + '</div>';
+    var mediaUrl = (card.media && card.media.url) ? card.media.url : (rcsMediaData.url || null);
+    
+    return {
+        media: mediaUrl ? { url: mediaUrl, height: heightClass } : null,
+        title: description || null,
+        description: textBody || null,
+        buttons: btns.map(function(btn) {
+            return { label: btn.label || 'Button', action: { type: btn.type || 'url' } };
+        })
+    };
+}
+
+function getWizardCarouselCardSchema(cardNum) {
+    var card = rcsCardsData[cardNum] || {};
+    var mediaUrl = (card.media && card.media.url) ? card.media.url : null;
+    var btns = card.buttons || [];
+    
+    return {
+        media: mediaUrl ? { url: mediaUrl, height: 'medium' } : null,
+        title: card.description || null,
+        description: card.textBody ? (card.textBody.length > 80 ? card.textBody.substring(0, 80) + '...' : card.textBody) : null,
+        buttons: btns.map(function(btn) {
+            return { label: btn.label || 'Button', action: { type: btn.type || 'url' } };
+        })
+    };
+}
+
+function renderRcsCardPreview(cardNum) {
+    var cardSchema = getWizardCardSchema(cardNum);
+    var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
+    var orientation = orientChecked ? orientChecked.value : 'vertical_short';
+    var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'horizontal': 'tall' };
+    var heightClass = heights[orientation] || 'medium';
+    
+    return RcsPreviewRenderer.renderRichCard(cardSchema, { heightOverride: heightClass });
 }
 
 function renderRcsCarouselPreview() {
-    var cardsHtml = '';
+    var cards = [];
     for (var i = 1; i <= rcsCardCount; i++) {
-        cardsHtml += '<div class="rcs-carousel-item" style="min-width: 256px; max-width: 256px;">' + renderRcsCardPreviewForCarousel(i) + '</div>';
+        cards.push(getWizardCarouselCardSchema(i));
     }
-    var dots = '';
-    for (var j = 1; j <= rcsCardCount; j++) {
-        dots += '<button class="rcs-carousel-dot ' + (j === 1 ? 'active' : '') + '" data-index="' + (j - 1) + '"></button>';
-    }
-    return '<div class="rcs-carousel"><div class="rcs-carousel-track">' + cardsHtml + '</div><div class="rcs-carousel-indicators">' + dots + '</div></div>';
-}
-
-function renderRcsCardPreviewForCarousel(cardNum) {
-    var card = rcsCardsData[cardNum] || {};
-    var mediaHtml = '';
-    var heightClass = 'medium';
-    var heightPx = '168px';
-    
-    if (card.media && card.media.url) {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + ';"><img src="' + escapeHtml(card.media.url) + '" class="rcs-media-image" loading="lazy"/></div>';
-    } else {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;"><span style="color: #888; font-size: 11px;">Card ' + cardNum + '</span></div>';
-    }
-    
-    var titleHtml = card.description ? '<h3 class="rcs-card-title">' + escapeHtml(card.description) + '</h3>' : '';
-    var descHtml = card.textBody ? '<p class="rcs-card-description">' + escapeHtml(card.textBody.substring(0, 80)) + (card.textBody.length > 80 ? '...' : '') + '</p>' : '';
-    
-    var buttonsHtml = '';
-    var btns = card.buttons || [];
-    if (btns.length > 0) {
-        buttonsHtml = '<div class="rcs-buttons">';
-        btns.forEach(function(btn) {
-            var icon = getRcsButtonIcon(btn.type);
-            buttonsHtml += '<button type="button" class="rcs-button">' + (icon ? '<span class="rcs-button-icon-wrapper">' + icon + '</span>' : '') + '<span class="rcs-button-label">' + escapeHtml(btn.label || 'Button') + '</span></button>';
-        });
-        buttonsHtml += '</div>';
-    }
-    
-    return '<div class="rcs-card rcs-carousel-card">' + mediaHtml + '<div class="rcs-card-content">' + titleHtml + descHtml + '</div>' + buttonsHtml + '</div>';
+    return RcsPreviewRenderer.renderCarousel({ cardWidth: 'medium', cards: cards });
 }
 
 function getRcsButtonIcon(type) {
-    var icons = {
-        url: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>',
-        phone: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>',
-        calendar: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>',
-        reply: '<svg class="rcs-button-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>'
-    };
-    return icons[type] || icons.url;
+    return RcsPreviewRenderer.getButtonIcon(type);
 }
 
 function initRcsCarouselBehavior() {
-    var carousel = document.querySelector('#rcsWizardPreviewContainer .rcs-carousel-track');
-    if (!carousel) return;
-    var dots = document.querySelectorAll('#rcsWizardPreviewContainer .rcs-carousel-dot');
-    carousel.addEventListener('scroll', function() {
-        var scrollLeft = carousel.scrollLeft;
-        var itemWidth = carousel.firstElementChild?.clientWidth || 256;
-        var currentIndex = Math.round(scrollLeft / (itemWidth + 8));
-        dots.forEach(function(dot, i) { dot.classList.toggle('active', i === currentIndex); });
-    });
-    dots.forEach(function(dot, i) {
-        dot.addEventListener('click', function() {
-            var itemWidth = carousel.firstElementChild?.clientWidth || 256;
-            carousel.scrollTo({ left: i * (itemWidth + 8), behavior: 'smooth' });
-        });
-    });
+    RcsPreviewRenderer.initCarouselBehavior('#rcsWizardPreviewContainer');
 }
 
 function resetRcsWizard() {
