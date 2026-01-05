@@ -1973,6 +1973,8 @@ function openRcsWizard() {
     var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
     modal.show();
     
+    document.getElementById('rcsApplyContentBtn').disabled = false;
+    
     setTimeout(function() {
         updateRcsWizardPreview();
     }, 100);
