@@ -663,9 +663,47 @@
                                 <i class="fas fa-exclamation-triangle text-danger" style="font-size: 1.5rem;"></i>
                             </div>
                             <h5 class="mb-2">Unable to Create Invoice</h5>
-                            <p class="text-muted mb-3" id="invoiceErrorMessage">An error occurred while creating the invoice.</p>
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <p class="text-muted mb-3" id="invoiceErrorMessage">We were unable to create your invoice. Please try again or contact support.</p>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <button class="btn btn-primary" onclick="processPurchase()">
+                                    <i class="fas fa-redo me-2"></i>Try Again
+                                </button>
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="paymentFailureBanner" class="alert alert-warning alert-dismissible fade d-none" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1050; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Payment was not completed.</strong> Your order has not been processed.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div class="modal fade" id="paymentSuccessModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-5">
+                        <div class="icon-wrapper mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(28, 187, 140, 0.15); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-check-circle text-success" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h4 class="mb-2">Payment Successful!</h4>
+                        <p class="text-muted mb-3">Your balance has been updated.</p>
+                        <div class="bg-light rounded p-3 mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Amount Paid:</span>
+                                <span class="fw-bold" id="paidAmount">£0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">New Balance:</span>
+                                <span class="fw-bold text-success" id="newBalance">£0.00</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" data-bs-dismiss="modal">
+                            <i class="fas fa-check me-2"></i>Continue
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1146,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             setTimeout(() => {
                 window.open(stripeUrl, '_blank');
+                startPaymentPolling();
             }, 1500);
 
             console.log('[Purchase] Invoice created:', data.invoice_id);
@@ -1153,15 +1192,127 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('[Purchase] Invoice creation error:', error);
             
+            logErrorForAudit({
+                type: 'invoice_creation_failed',
+                tier: selectedTier,
+                volume: selectedVolume,
+                error: error.message,
+                timestamp: new Date().toISOString()
+            });
+            
             document.getElementById('invoiceLoading').classList.add('d-none');
             document.getElementById('invoiceError').classList.remove('d-none');
-            document.getElementById('invoiceErrorMessage').textContent = error.message;
+            document.getElementById('invoiceErrorMessage').textContent = 'We were unable to create your invoice. Please try again or contact support.';
+        }
+    };
+
+    function logErrorForAudit(errorData) {
+        fetch('/api/audit/log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify(errorData)
+        }).catch(e => console.warn('[Audit] Failed to log error:', e));
+        
+        console.log('[Audit] Error logged:', errorData);
+    }
+
+    function checkPaymentStatus() {
+        fetch('/api/account/payment-status?account_id=ACC-001')
+            .then(response => response.json())
+            .then(data => {
+                if (data.payment_completed) {
+                    showPaymentSuccess(data.amount, data.new_balance);
+                    refreshBalanceWidgets();
+                }
+            })
+            .catch(error => console.error('[Payment] Status check error:', error));
+    }
+
+    function showPaymentSuccess(amount, newBalance) {
+        document.getElementById('paidAmount').textContent = formatCurrencyShort(amount);
+        document.getElementById('newBalance').textContent = formatCurrencyShort(newBalance);
+        
+        const successModal = new bootstrap.Modal(document.getElementById('paymentSuccessModal'));
+        successModal.show();
+        
+        console.log('[Payment] Success modal shown', { amount, newBalance });
+    }
+
+    function showPaymentFailure() {
+        const banner = document.getElementById('paymentFailureBanner');
+        banner.classList.remove('d-none');
+        banner.classList.add('show');
+        
+        setTimeout(() => {
+            banner.classList.remove('show');
+            setTimeout(() => banner.classList.add('d-none'), 150);
+        }, 8000);
+        
+        console.log('[Payment] Failure banner shown');
+    }
+
+    function refreshBalanceWidgets() {
+        fetch('/api/account/balance?account_id=ACC-001')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelectorAll('.account-balance-widget').forEach(widget => {
+                        widget.textContent = formatCurrencyShort(data.balance);
+                    });
+                    console.log('[Balance] Widgets refreshed:', data.balance);
+                }
+            })
+            .catch(error => console.error('[Balance] Refresh error:', error));
+    }
+
+    function checkUrlParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.get('payment') === 'cancelled' || urlParams.get('payment') === 'failed') {
+            showPaymentFailure();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        if (urlParams.get('payment') === 'success') {
+            checkPaymentStatus();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    let paymentPollInterval = null;
+
+    window.startPaymentPolling = function() {
+        if (paymentPollInterval) clearInterval(paymentPollInterval);
+        
+        paymentPollInterval = setInterval(() => {
+            checkPaymentStatus();
+        }, 5000);
+
+        setTimeout(() => {
+            if (paymentPollInterval) {
+                clearInterval(paymentPollInterval);
+                paymentPollInterval = null;
+                console.log('[Payment] Polling stopped after timeout');
+            }
+        }, 300000);
+    };
+
+    window.stopPaymentPolling = function() {
+        if (paymentPollInterval) {
+            clearInterval(paymentPollInterval);
+            paymentPollInterval = null;
         }
     };
 
     initializeSliders();
     initializeNumericInputs();
     loadPricing();
+    checkUrlParameters();
+    
+    window.addEventListener('focus', checkPaymentStatus);
 });
 </script>
 @endpush

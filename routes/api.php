@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ReportingDashboardApiController;
 use App\Http\Controllers\Api\BillingApiController;
 use App\Http\Controllers\Api\PurchaseApiController;
+use App\Http\Controllers\Api\WebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,4 +51,15 @@ Route::prefix('purchase')->group(function () {
     Route::get('/products', [PurchaseApiController::class, 'getProducts']);
     Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder']);
     Route::post('/create-invoice', [PurchaseApiController::class, 'createInvoice']);
+});
+
+// Webhooks
+Route::prefix('webhooks')->group(function () {
+    Route::post('/hubspot/payment', [WebhookController::class, 'hubspotPayment']);
+});
+
+// Account API
+Route::prefix('account')->group(function () {
+    Route::get('/balance', [WebhookController::class, 'getAccountBalance']);
+    Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });

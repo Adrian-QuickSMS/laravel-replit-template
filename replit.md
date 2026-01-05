@@ -67,6 +67,9 @@ The application is built on PHP 8.1+ and Laravel 10, using the Fillow SaaS Admin
   - **Purchase API (`app/Http/Controllers/Api/PurchaseApiController.php`):** Endpoints at `/api/purchase/products` (GET) and `/api/purchase/calculate-order` (POST). Returns products with pricing breakdown including VAT calculations.
   - **UI:** Product cards with skeleton loading, quantity inputs, order summary sidebar showing Net Total / VAT / Total Payable. Error state with retry button. VAT info banner conditional on account flag.
   - **Required Secret:** `HUBSPOT_ACCESS_TOKEN` - HubSpot Private App token with e-commerce read scope.
+  - **Error Handling:** Invoice creation failure shows modal with retry button ("We were unable to create your invoice. Please try again or contact support."). Errors logged to `/api/audit/log` for audit trail. Payment failures (Stripe return with ?payment=cancelled/failed) show dismissible warning banner ("Payment was not completed.").
+  - **Payment Success Flow:** After Stripe payment, webhook at `/api/webhooks/hubspot/payment` receives notification, updates account balance, triggers success modal showing amount paid and new balance. Frontend polls `/api/account/payment-status` every 5 seconds (5-minute timeout) and checks on window focus.
+  - **WebhookController (`app/Http/Controllers/Api/WebhookController.php`):** Handles HubSpot payment webhooks, payment status checks, and balance queries. TODO: Implement webhook signature verification, replace Cache with database for persistence.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
