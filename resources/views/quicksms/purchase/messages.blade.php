@@ -165,6 +165,9 @@
     margin-bottom: 0.375rem;
     font-weight: 500;
 }
+.tier-card .numeric-input-group label {
+    color: #fff;
+}
 .numeric-input-group .input-group {
     position: relative;
 }
