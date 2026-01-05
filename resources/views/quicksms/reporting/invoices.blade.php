@@ -803,7 +803,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button type="button" class="btn btn-purchase" onclick="window.selectTopUpTier('bespoke')">
+                                        <button class="btn btn-purchase" onclick="selectTopUpTier('bespoke')">
                                             Select Plan
                                         </button>
                                     </div>
@@ -811,9 +811,9 @@
                             </div>
                         </div>
 
-                        <div id="topUpTiersContainer" class="row g-4 d-none">
-                            <div class="col-md-6">
-                                <div class="card topup-tier-card tier-starter tryal-gradient" data-tier="starter">
+                        <div id="topUpTiersContainer" class="row g-4 d-none align-items-stretch">
+                            <div class="col-md-6 d-flex">
+                                <div class="card topup-tier-card tier-starter tryal-gradient w-100" data-tier="starter">
                                     <div class="tier-header">
                                         <h3 class="tier-title">Starter</h3>
                                         <p class="tier-volume">Volume: <strong>0 – 50,000</strong> messages</p>
@@ -853,15 +853,15 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button type="button" class="btn btn-purchase" onclick="window.selectTopUpTier('starter')">
+                                        <button class="btn btn-purchase" onclick="selectTopUpTier('starter')">
                                             Select Starter
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="col-md-6">
-                                <div class="card topup-tier-card tier-enterprise tryal-gradient" data-tier="enterprise">
+                            <div class="col-md-6 d-flex">
+                                <div class="card topup-tier-card tier-enterprise tryal-gradient w-100" data-tier="enterprise">
                                     <div class="best-value-badge">
                                         <span class="badge bg-success px-3 py-2"><i class="fas fa-star me-1"></i>Best Value</span>
                                     </div>
@@ -904,7 +904,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button type="button" class="btn btn-purchase" onclick="window.selectTopUpTier('enterprise')">
+                                        <button class="btn btn-purchase" onclick="selectTopUpTier('enterprise')">
                                             Select Enterprise
                                         </button>
                                     </div>
