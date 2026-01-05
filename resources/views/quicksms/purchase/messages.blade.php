@@ -200,32 +200,30 @@
 .pricing-badges {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-top: 1rem;
 }
 .pricing-badge {
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.5rem;
+    background: #f8f9fa;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.875rem 0.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-.pricing-badge .badge-label {
-    font-size: 0.625rem;
-    color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    margin-bottom: 0.125rem;
-    white-space: nowrap;
 }
 .pricing-badge .badge-price {
-    font-size: 0.8125rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #2c2c2c;
+    white-space: nowrap;
+    margin-bottom: 0.25rem;
+}
+.pricing-badge .badge-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 400;
     white-space: nowrap;
 }
 .pricing-badges-skeleton {
@@ -1031,8 +1029,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const label = badgeLabels[key] || key.toUpperCase();
             html += `
                 <div class="pricing-badge">
-                    <span class="badge-label">${label}</span>
                     <span class="badge-price">${formatCurrencyBadge(price, key)}</span>
+                    <span class="badge-label">${label}</span>
                 </div>
             `;
         }
