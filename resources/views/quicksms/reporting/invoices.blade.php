@@ -450,9 +450,9 @@
             <div class="col-lg-3 mt-3 mt-lg-0">
                 <div class="d-flex flex-column gap-2">
                     @if($canMakePayments)
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#topUpModal">
+                    <a href="{{ route('purchase.messages') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus-circle me-1"></i> Top Up Balance
-                    </button>
+                    </a>
                     @endif
                     <button type="button" class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="collapse" data-bs-target="#creditHelperPanel">
                         <i class="fas fa-question-circle me-1"></i> How does credit work?
