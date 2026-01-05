@@ -1991,6 +1991,8 @@ function openRcsWizard() {
     document.getElementById('rcsApplyContentBtn').disabled = false;
     
     setTimeout(function() {
+        initRcsCropEditor();
+        updateCarouselOrientationWarning();
         updateRcsWizardPreview();
     }, 100);
 }
@@ -2036,9 +2038,10 @@ function initializeRcsCard(cardNum) {
                 fileName: null,
                 fileSize: 0,
                 dimensions: null,
-                orientation: 'vertShort',
+                orientation: 'vertical_short',
                 zoom: 100,
-                cropPosition: 'center',
+                cropOffsetX: 0,
+                cropOffsetY: 0,
                 assetUuid: null,
                 hostedUrl: null,
                 originalUrl: null
@@ -2065,10 +2068,10 @@ function saveCurrentCardData() {
     card.media.originalUrl = rcsMediaData.originalUrl;
     
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
-    card.media.orientation = orientChecked ? orientChecked.value : 'vertShort';
-    card.media.zoom = parseInt(document.getElementById('rcsZoomSlider').value) || 100;
-    var activeCrop = document.querySelector('.rcs-crop-btn.active');
-    card.media.cropPosition = activeCrop ? activeCrop.dataset.position : 'center';
+    card.media.orientation = orientChecked ? orientChecked.value : 'vertical_short';
+    card.media.zoom = rcsCropState.zoom;
+    card.media.cropOffsetX = rcsCropState.offsetX;
+    card.media.cropOffsetY = rcsCropState.offsetY;
     
     card.description = document.getElementById('rcsDescription').value;
     card.textBody = document.getElementById('rcsTextBody').value;
@@ -2088,29 +2091,34 @@ function loadCardData(cardNum) {
     rcsMediaData.originalUrl = card.media.originalUrl;
     
     if (card.media.url) {
+        var orientId = getOrientationRadioId(card.media.orientation);
+        var orientRadio = document.getElementById(orientId);
+        if (orientRadio) orientRadio.checked = true;
+        updateRcsCropFrame(card.media.orientation);
+        
         showRcsMediaPreview(card.media.hostedUrl || card.media.url);
         updateRcsImageInfo();
-        document.getElementById('rcsZoomSlider').value = card.media.zoom;
-        document.getElementById('rcsZoomValue').textContent = card.media.zoom + '%';
-        document.getElementById('rcsMediaPreviewImg').style.transform = 'scale(' + (card.media.zoom / 100) + ')';
         
-        document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
-            btn.classList.remove('active');
-            if (btn.dataset.position === card.media.cropPosition) btn.classList.add('active');
-        });
-        var img = document.getElementById('rcsMediaPreviewImg');
-        switch(card.media.cropPosition) {
-            case 'top': img.style.objectPosition = 'center top'; break;
-            case 'bottom': img.style.objectPosition = 'center bottom'; break;
-            default: img.style.objectPosition = 'center center';
-        }
-        
-        var orientRadio = document.getElementById('rcsOrient' + card.media.orientation.charAt(0).toUpperCase() + card.media.orientation.slice(1));
-        if (orientRadio) orientRadio.checked = true;
-        
-        initRcsImageBaseline();
+        setTimeout(function() {
+            rcsCropState.zoom = card.media.zoom || 100;
+            rcsCropState.offsetX = card.media.cropOffsetX || 0;
+            rcsCropState.offsetY = card.media.cropOffsetY || 0;
+            document.getElementById('rcsZoomSlider').value = rcsCropState.zoom;
+            document.getElementById('rcsZoomValue').textContent = rcsCropState.zoom + '%';
+            applyRcsCropTransform();
+            initRcsImageBaseline();
+        }, 150);
     } else {
         removeRcsMedia();
+    }
+    
+    function getOrientationRadioId(orientation) {
+        switch(orientation) {
+            case 'vertical_short': return 'rcsOrientVertShort';
+            case 'vertical_medium': return 'rcsOrientVertMed';
+            case 'horizontal': return 'rcsOrientHoriz';
+            default: return 'rcsOrientVertShort';
+        }
     }
     
     document.getElementById('rcsDescription').value = card.description;
@@ -2205,7 +2213,8 @@ function buildRcsPayload() {
                 dimensions: card.media.dimensions,
                 orientation: card.media.orientation,
                 zoom: card.media.zoom,
-                cropPosition: card.media.cropPosition
+                cropOffsetX: card.media.cropOffsetX,
+                cropOffsetY: card.media.cropOffsetY
             },
             description: card.description,
             textBody: card.textBody,
@@ -2510,7 +2519,8 @@ function loadRcsFromStorage() {
                     dimensions: cardData.media.dimensions,
                     orientation: cardData.media.orientation,
                     zoom: cardData.media.zoom,
-                    cropPosition: cardData.media.cropPosition
+                    cropOffsetX: cardData.media.cropOffsetX,
+                    cropOffsetY: cardData.media.cropOffsetY
                 },
                 description: cardData.description,
                 textBody: cardData.textBody,
@@ -2729,6 +2739,8 @@ var rcsImageDirtyState = {
     baselineZoom: 100,
     baselineCropPosition: 'center',
     baselineOrientation: 'vertical_short',
+    baselineOffsetX: 0,
+    baselineOffsetY: 0,
     pendingNavigation: null,
     hasBeenEdited: false
 };
@@ -2736,8 +2748,10 @@ var rcsImageDirtyState = {
 function initRcsImageBaseline() {
     var current = getCurrentEditParams();
     rcsImageDirtyState.baselineZoom = current.zoom;
-    rcsImageDirtyState.baselineCropPosition = current.crop_position;
+    rcsImageDirtyState.baselineCropPosition = 'center';
     rcsImageDirtyState.baselineOrientation = current.orientation;
+    rcsImageDirtyState.baselineOffsetX = rcsCropState.offsetX;
+    rcsImageDirtyState.baselineOffsetY = rcsCropState.offsetY;
     rcsImageDirtyState.isDirty = false;
     rcsImageDirtyState.hasBeenEdited = false;
     updateRcsSaveButtonVisibility();
@@ -2747,8 +2761,9 @@ function markRcsImageDirty() {
     if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && !rcsMediaData.hostedUrl) {
         var current = getCurrentEditParams();
         var hasChanges = current.zoom !== rcsImageDirtyState.baselineZoom ||
-                         current.crop_position !== rcsImageDirtyState.baselineCropPosition ||
-                         current.orientation !== rcsImageDirtyState.baselineOrientation;
+                         current.orientation !== rcsImageDirtyState.baselineOrientation ||
+                         Math.abs(rcsCropState.offsetX - rcsImageDirtyState.baselineOffsetX) > 1 ||
+                         Math.abs(rcsCropState.offsetY - rcsImageDirtyState.baselineOffsetY) > 1;
         
         rcsImageDirtyState.isDirty = hasChanges;
         if (hasChanges) rcsImageDirtyState.hasBeenEdited = true;
@@ -2761,6 +2776,8 @@ function clearRcsImageDirtyState() {
     rcsImageDirtyState.baselineZoom = 100;
     rcsImageDirtyState.baselineCropPosition = 'center';
     rcsImageDirtyState.baselineOrientation = 'vertical_short';
+    rcsImageDirtyState.baselineOffsetX = 0;
+    rcsImageDirtyState.baselineOffsetY = 0;
     rcsImageDirtyState.pendingNavigation = null;
     rcsImageDirtyState.hasBeenEdited = false;
     updateRcsSaveButtonVisibility();
@@ -2889,28 +2906,24 @@ function discardRcsImageEdits() {
     hideRcsUnsavedChangesModal();
     
     var baselineZoom = rcsImageDirtyState.baselineZoom || 100;
-    var baselineCrop = rcsImageDirtyState.baselineCropPosition || 'center';
     var baselineOrient = rcsImageDirtyState.baselineOrientation || 'vertical_short';
+    var baselineOffsetX = rcsImageDirtyState.baselineOffsetX || 0;
+    var baselineOffsetY = rcsImageDirtyState.baselineOffsetY || 0;
+    
+    rcsCropState.zoom = baselineZoom;
+    rcsCropState.offsetX = baselineOffsetX;
+    rcsCropState.offsetY = baselineOffsetY;
     
     document.getElementById('rcsZoomSlider').value = baselineZoom;
     document.getElementById('rcsZoomValue').textContent = baselineZoom + '%';
-    document.getElementById('rcsMediaPreviewImg').style.transform = 'scale(' + (baselineZoom / 100) + ')';
     
-    document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-        if (btn.dataset.position === baselineCrop) btn.classList.add('active');
-    });
-    var img = document.getElementById('rcsMediaPreviewImg');
-    switch(baselineCrop) {
-        case 'top': img.style.objectPosition = 'center top'; break;
-        case 'bottom': img.style.objectPosition = 'center bottom'; break;
-        default: img.style.objectPosition = 'center center';
-    }
-    
-    var orientId = 'rcsOrient' + baselineOrient.split('_').map(function(s) { return s.charAt(0).toUpperCase() + s.slice(1); }).join('');
+    var orientId = getOrientationRadioIdForDiscard(baselineOrient);
     var orientRadio = document.getElementById(orientId);
     if (orientRadio) orientRadio.checked = true;
     else document.getElementById('rcsOrientVertShort').checked = true;
+    
+    updateRcsCropFrame(baselineOrient);
+    applyRcsCropTransform();
     
     if (rcsMediaData.originalUrl) {
         rcsMediaData.url = rcsMediaData.originalUrl;
@@ -2924,6 +2937,15 @@ function discardRcsImageEdits() {
     updateRcsWizardPreview();
     
     executePendingNavigation();
+}
+
+function getOrientationRadioIdForDiscard(orientation) {
+    switch(orientation) {
+        case 'vertical_short': return 'rcsOrientVertShort';
+        case 'vertical_medium': return 'rcsOrientVertMed';
+        case 'horizontal': return 'rcsOrientHoriz';
+        default: return 'rcsOrientVertShort';
+    }
 }
 
 function cancelRcsUnsavedChanges() {
@@ -2974,24 +2996,19 @@ function generateDraftSession() {
 }
 
 function getCurrentEditParams() {
-    var zoomSlider = document.getElementById('rcsZoomSlider');
-    var zoom = zoomSlider ? parseInt(zoomSlider.value) : 100;
-    
-    var cropPosition = 'center';
-    document.querySelectorAll('.rcs-crop-btn.active').forEach(function(btn) {
-        cropPosition = btn.dataset.position || 'center';
-    });
+    var zoom = rcsCropState.zoom;
     
     var orientation = 'vertical_short';
-    if (document.getElementById('rcsOrientVertTall') && document.getElementById('rcsOrientVertTall').checked) {
-        orientation = 'vertical_tall';
+    if (document.getElementById('rcsOrientVertMed') && document.getElementById('rcsOrientVertMed').checked) {
+        orientation = 'vertical_medium';
     } else if (document.getElementById('rcsOrientHoriz') && document.getElementById('rcsOrientHoriz').checked) {
         orientation = 'horizontal';
     }
     
     return {
         zoom: zoom,
-        crop_position: cropPosition,
+        cropOffsetX: rcsCropState.offsetX,
+        cropOffsetY: rcsCropState.offsetY,
         orientation: orientation
     };
 }
@@ -3004,7 +3021,7 @@ function processAssetServerSide(isUpdate) {
     rcsEditDebounceTimer = setTimeout(function() {
         var editParams = getCurrentEditParams();
         
-        if (editParams.zoom === 100 && editParams.crop_position === 'center' && !rcsMediaData.assetUuid) {
+        if (editParams.zoom === 100 && editParams.cropOffsetX === 0 && editParams.cropOffsetY === 0 && !rcsMediaData.assetUuid) {
             return;
         }
         
@@ -3240,30 +3257,47 @@ function handleRcsFileUpload(file) {
 }
 
 function showRcsMediaPreview(src) {
-    document.getElementById('rcsMediaPreviewImg').src = src;
+    var img = document.getElementById('rcsMediaPreviewImg');
+    img.src = src;
     document.getElementById('rcsMediaPreview').classList.remove('d-none');
-    updateCarouselOrientationWarning();
-    updateRcsWizardPreview();
+    
+    img.onload = function() {
+        initRcsCropImage(img);
+        updateCarouselOrientationWarning();
+        updateRcsWizardPreview();
+    };
+    
+    if (img.complete && img.naturalWidth) {
+        initRcsCropImage(img);
+        updateCarouselOrientationWarning();
+        updateRcsWizardPreview();
+    }
 }
 
 function removeRcsMedia() {
     rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0, assetUuid: null, hostedUrl: null, originalUrl: null };
     document.getElementById('rcsMediaPreview').classList.add('d-none');
-    document.getElementById('rcsMediaPreviewImg').src = '';
-    document.getElementById('rcsMediaPreviewImg').style.transform = '';
-    document.getElementById('rcsMediaPreviewImg').style.objectPosition = '';
+    var img = document.getElementById('rcsMediaPreviewImg');
+    img.src = '';
+    img.style.width = '';
+    img.style.height = '';
+    img.style.left = '';
+    img.style.top = '';
     document.getElementById('rcsMediaUrlInput').value = '';
     document.getElementById('rcsMediaFileInput').value = '';
     document.getElementById('rcsZoomSlider').value = 100;
+    
+    rcsCropState.zoom = 100;
+    rcsCropState.offsetX = 0;
+    rcsCropState.offsetY = 0;
+    rcsCropState.imageWidth = 0;
+    rcsCropState.imageHeight = 0;
     document.getElementById('rcsZoomValue').textContent = '100%';
     updateRcsWizardPreview();
     document.getElementById('rcsImageDimensions').textContent = '--';
     document.getElementById('rcsImageFileSize').textContent = '--';
     document.getElementById('rcsOrientVertShort').checked = true;
-    document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
-        btn.classList.remove('active');
-        if (btn.dataset.position === 'center') btn.classList.add('active');
-    });
+    updateRcsCropFrame('vertical_short');
     hideRcsMediaError();
 }
 
@@ -3541,19 +3575,22 @@ function setRcsCropPosition(position) {
 
 function updateCarouselOrientationWarning() {
     var isCarousel = document.getElementById('rcsTypeCarousel').checked;
-    var horizWrapper = document.getElementById('rcsOrientHorizWrapper');
     var horizInput = document.getElementById('rcsOrientHoriz');
+    var horizLabel = document.getElementById('rcsOrientHorizLabel');
     var warning = document.getElementById('rcsCarouselOrientWarning');
     
     if (isCarousel) {
-        horizWrapper.classList.add('opacity-50');
+        if (horizInput) horizInput.style.display = 'none';
+        if (horizLabel) horizLabel.style.display = 'none';
         horizInput.disabled = true;
         warning.classList.remove('d-none');
         if (horizInput.checked) {
             document.getElementById('rcsOrientVertShort').checked = true;
+            updateRcsCropFrame('vertical_short');
         }
     } else {
-        horizWrapper.classList.remove('opacity-50');
+        if (horizInput) horizInput.style.display = '';
+        if (horizLabel) horizLabel.style.display = '';
         horizInput.disabled = false;
         warning.classList.add('d-none');
     }
