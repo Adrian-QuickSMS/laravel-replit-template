@@ -601,87 +601,102 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="invoice-drawer" id="invoiceDrawer">
     <div class="invoice-drawer-header">
-        <div>
-            <h5 class="mb-0" id="drawerInvoiceNumber">Invoice #INV-2025-0012</h5>
-            <small class="text-muted" id="drawerInvoiceDate">Issued: 02 Jan 2025</small>
+        <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h5 class="mb-0" id="drawerInvoiceNumber">Invoice #INV-2025-0012</h5>
+                <span class="status-badge status-paid" id="drawerStatusBadge">Paid</span>
+            </div>
+            <div class="small text-muted" id="drawerBillingPeriod">Billing Period: Jan 2025</div>
         </div>
         <button type="button" class="btn-close" id="closeDrawerBtn"></button>
     </div>
     <div class="invoice-drawer-body">
         <div class="alert alert-pastel-primary mb-3">
             <i class="fas fa-info-circle text-primary me-2"></i>
-            Invoice data is synchronized from HubSpot. For billing queries, contact finance@quicksms.com.
+            Invoice data is synchronized from HubSpot. All values are read-only.
         </div>
 
-        <div class="mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted small">Status</span>
-                <span class="status-badge status-paid" id="drawerStatus">Paid</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted small">Due Date</span>
-                <span id="drawerDueDate">16 Jan 2025</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted small">Payment Date</span>
-                <span id="drawerPaymentDate">05 Jan 2025</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted small">Payment Method</span>
-                <span id="drawerPaymentMethod">Visa ****4242</span>
-            </div>
-        </div>
-
-        <hr>
-
-        <h6 class="mb-3">Line Items</h6>
-        <div id="drawerLineItems">
-            <div class="invoice-line-item">
-                <div>
-                    <div class="fw-medium">SMS Credits - Enterprise Tier</div>
-                    <div class="small text-muted">100,000 SMS @ &pound;0.028/msg</div>
-                </div>
-                <div class="text-end">
-                    <div class="fw-medium">&pound;2,800.00</div>
+        <div class="card mb-3" style="background-color: #f8f9fa; border: none;">
+            <div class="card-body py-2">
+                <div class="row small">
+                    <div class="col-6">
+                        <div class="text-muted">Issue Date</div>
+                        <div class="fw-medium" id="drawerIssueDate">02 Jan 2025</div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <div class="text-muted">Due Date</div>
+                        <div class="fw-medium" id="drawerDueDate">16 Jan 2025</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <hr>
-
-        <div id="drawerTotals">
-            <div class="invoice-total-row">
-                <span>Subtotal</span>
+        <h6 class="mb-3"><i class="fas fa-receipt me-2 text-primary"></i>Invoice Summary</h6>
+        <div class="mb-4" id="drawerSummary">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">Subtotal (ex VAT)</span>
                 <span id="drawerSubtotal">&pound;2,800.00</span>
             </div>
-            <div class="invoice-total-row">
-                <span>VAT (20%)</span>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">VAT</span>
                 <span id="drawerVat">&pound;560.00</span>
             </div>
-            <div class="invoice-total-row grand-total">
-                <span>Total</span>
-                <span id="drawerTotal">&pound;3,360.00</span>
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <span class="fw-bold">Total (inc VAT)</span>
+                <span class="fw-bold" id="drawerTotal">&pound;3,360.00</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">Amount Paid</span>
+                <span class="text-success" id="drawerAmountPaid">&pound;3,360.00</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Balance Outstanding</span>
+                <span class="fw-bold" id="drawerBalanceOutstanding">&pound;0.00</span>
             </div>
         </div>
 
         <hr>
 
-        <h6 class="mb-3">Billing Details</h6>
-        <div class="small">
-            <div class="mb-1"><strong>Company:</strong> <span id="drawerCompany">Acme Corporation Ltd</span></div>
-            <div class="mb-1"><strong>Address:</strong> <span id="drawerAddress">123 Business Park, London, EC1A 1BB</span></div>
-            <div class="mb-1"><strong>VAT Number:</strong> <span id="drawerVatNumber">GB123456789</span></div>
-            <div><strong>PO Reference:</strong> <span id="drawerPoRef">PO-2025-0042</span></div>
+        <h6 class="mb-3"><i class="fas fa-list me-2 text-primary"></i>Line Items</h6>
+        <div id="drawerLineItems">
+            <div class="text-center text-muted py-3">
+                <i class="fas fa-spinner fa-spin"></i> Loading...
+            </div>
         </div>
     </div>
     <div class="invoice-drawer-footer">
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-primary flex-grow-1" id="downloadPdfBtn">
-                <i class="fas fa-file-pdf me-1"></i> Download PDF
+        <div class="d-flex flex-column gap-2">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary flex-grow-1" id="downloadPdfBtn">
+                    <i class="fas fa-file-pdf me-1"></i> Download PDF
+                </button>
+                <button type="button" class="btn btn-primary flex-grow-1" id="payNowBtn" style="display: none;">
+                    <i class="fas fa-credit-card me-1"></i> Pay Invoice
+                </button>
+            </div>
+            <button type="button" class="btn btn-outline-secondary w-100" id="viewBillingBreakdownBtn">
+                <i class="fas fa-chart-pie me-1"></i> View Billing Breakdown
             </button>
-            <button type="button" class="btn btn-primary flex-grow-1" id="payNowBtn" style="display: none;">
-                <i class="fas fa-credit-card me-1"></i> Pay Now
-            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="billingBreakdownModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-chart-pie me-2 text-primary"></i>Billing Breakdown</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="billingBreakdownContent">
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                    <p class="mt-2 text-muted">Loading breakdown...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1029,77 +1044,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    let currentDrawerInvoice = null;
+
     function renderDrawerContent(invoice) {
+        currentDrawerInvoice = invoice;
+        
         document.getElementById('drawerInvoiceNumber').textContent = 'Invoice #' + invoice.invoiceNumber;
-        document.getElementById('drawerInvoiceDate').textContent = 'Issued: ' + formatDate(invoice.issueDate);
-
-        const billingPeriod = formatBillingPeriod(invoice.billingPeriodStart, invoice.billingPeriodEnd);
-
-        const drawerBody = document.querySelector('.invoice-drawer-body');
-        drawerBody.innerHTML = `
-            <div class="alert alert-pastel-primary mb-3">
-                <i class="fas fa-info-circle text-primary me-2"></i>
-                Invoice data is synchronized from HubSpot. Values shown are read-only.
-            </div>
-
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small">Status</span>
-                    ${getStatusBadge(invoice.status)}
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small">Billing Period</span>
-                    <span>${billingPeriod}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small">Due Date</span>
-                    <span>${formatDate(invoice.dueDate)}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small">Payment Date</span>
-                    <span>${invoice.paymentDate ? formatDate(invoice.paymentDate) : '-'}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">Balance Outstanding</span>
-                    <span class="${invoice.balanceDue > 0 ? 'text-danger fw-bold' : ''}">${formatCurrency(invoice.balanceDue, invoice.currency)}</span>
-                </div>
-            </div>
-
-            <hr>
-
-            <h6 class="mb-3">Line Items</h6>
-            <div id="drawerLineItems">
-                ${(invoice.lineItems || []).map(item => `
-                    <div class="invoice-line-item">
-                        <div>
-                            <div class="fw-medium">${item.name}</div>
-                            <div class="small text-muted">${item.description || (item.quantity > 1 ? item.quantity + ' x ' + formatCurrency(item.unitPrice, invoice.currency) : '')}</div>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-medium">${formatCurrency(item.amount, invoice.currency)}</div>
-                        </div>
+        
+        const statusBadge = document.getElementById('drawerStatusBadge');
+        statusBadge.outerHTML = getStatusBadge(invoice.status).replace('status-badge', 'status-badge" id="drawerStatusBadge');
+        
+        const billingPeriod = formatBillingPeriodMonthYear(invoice.billingPeriodStart, invoice.billingPeriodEnd);
+        document.getElementById('drawerBillingPeriod').textContent = 'Billing Period: ' + billingPeriod;
+        
+        document.getElementById('drawerIssueDate').textContent = formatDate(invoice.issueDate);
+        document.getElementById('drawerDueDate').textContent = formatDate(invoice.dueDate);
+        
+        document.getElementById('drawerSubtotal').textContent = formatCurrency(invoice.subtotal, invoice.currency);
+        document.getElementById('drawerVat').textContent = formatCurrency(invoice.vat, invoice.currency);
+        document.getElementById('drawerTotal').textContent = formatCurrency(invoice.total, invoice.currency);
+        
+        const amountPaid = (invoice.total || 0) - (invoice.balanceDue || 0);
+        document.getElementById('drawerAmountPaid').textContent = formatCurrency(amountPaid, invoice.currency);
+        
+        const balanceEl = document.getElementById('drawerBalanceOutstanding');
+        balanceEl.textContent = formatCurrency(invoice.balanceDue, invoice.currency);
+        balanceEl.className = invoice.balanceDue > 0 ? 'fw-bold text-danger' : 'fw-bold text-success';
+        
+        const lineItemsContainer = document.getElementById('drawerLineItems');
+        if (invoice.lineItems && invoice.lineItems.length > 0) {
+            lineItemsContainer.innerHTML = invoice.lineItems.map(item => `
+                <div class="invoice-line-item">
+                    <div>
+                        <div class="fw-medium">${item.name || 'Item'}</div>
+                        <div class="small text-muted">${item.description || (item.quantity && item.quantity > 1 ? item.quantity + ' x ' + formatCurrency(item.unitPrice, invoice.currency) : '')}</div>
                     </div>
-                `).join('') || '<div class="text-muted small">No line items available</div>'}
-            </div>
-
-            <hr>
-
-            <div id="drawerTotals">
-                <div class="invoice-total-row">
-                    <span>Subtotal</span>
-                    <span>${formatCurrency(invoice.subtotal, invoice.currency)}</span>
+                    <div class="text-end">
+                        <div class="fw-medium">${formatCurrency(item.amount, invoice.currency)}</div>
+                    </div>
                 </div>
-                <div class="invoice-total-row">
-                    <span>VAT</span>
-                    <span>${formatCurrency(invoice.vat, invoice.currency)}</span>
-                </div>
-                <div class="invoice-total-row grand-total">
-                    <span>Total</span>
-                    <span>${formatCurrency(invoice.total, invoice.currency)}</span>
-                </div>
-            </div>
-        `;
-
+            `).join('');
+        } else {
+            lineItemsContainer.innerHTML = '<div class="text-muted small fst-italic">No line items available</div>';
+        }
+        
         const payNowBtn = document.getElementById('payNowBtn');
         const isPayableStatus = invoice.status === 'issued' || invoice.status === 'pending' || invoice.status === 'overdue';
         const showPayNow = isPayableStatus && canMakePayments && invoice.balanceDue > 0;
@@ -1119,6 +1107,101 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadPdfBtn.classList.add('disabled');
             downloadPdfBtn.onclick = () => alert('PDF not yet available for this invoice. Please try again later.');
         }
+        
+        document.getElementById('viewBillingBreakdownBtn').onclick = () => showBillingBreakdown(invoice);
+    }
+    
+    function showBillingBreakdown(invoice) {
+        const modal = new bootstrap.Modal(document.getElementById('billingBreakdownModal'));
+        const content = document.getElementById('billingBreakdownContent');
+        
+        const lineItems = invoice.lineItems || [];
+        const hasLineItems = lineItems.length > 0;
+        
+        content.innerHTML = `
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">Invoice Details</h6>
+                    <table class="table table-sm table-borderless">
+                        <tr><td class="text-muted">Invoice Number</td><td class="fw-medium">${invoice.invoiceNumber}</td></tr>
+                        <tr><td class="text-muted">Billing Period</td><td>${formatBillingPeriodMonthYear(invoice.billingPeriodStart, invoice.billingPeriodEnd)}</td></tr>
+                        <tr><td class="text-muted">Issue Date</td><td>${formatDate(invoice.issueDate)}</td></tr>
+                        <tr><td class="text-muted">Due Date</td><td>${formatDate(invoice.dueDate)}</td></tr>
+                        <tr><td class="text-muted">Status</td><td>${getStatusBadge(invoice.status)}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">Payment Summary</h6>
+                    <div class="card" style="background: linear-gradient(135deg, rgba(136,108,192,0.1) 0%, rgba(136,108,192,0.05) 100%); border: none;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span>${formatCurrency(invoice.subtotal, invoice.currency)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>VAT</span>
+                                <span>${formatCurrency(invoice.vat, invoice.currency)}</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Total</span>
+                                <span class="fw-bold">${formatCurrency(invoice.total, invoice.currency)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Amount Paid</span>
+                                <span class="text-success">${formatCurrency((invoice.total || 0) - (invoice.balanceDue || 0), invoice.currency)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Balance Due</span>
+                                <span class="${invoice.balanceDue > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'}">${formatCurrency(invoice.balanceDue, invoice.currency)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="text-muted mb-3">Line Item Breakdown</h6>
+            ${hasLineItems ? `
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Description</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lineItems.map(item => `
+                                <tr>
+                                    <td>
+                                        <div class="fw-medium">${item.name || 'Item'}</div>
+                                        ${item.description ? `<small class="text-muted">${item.description}</small>` : ''}
+                                    </td>
+                                    <td class="text-center">${item.quantity || 1}</td>
+                                    <td class="text-end">${formatCurrency(item.unitPrice || item.amount, invoice.currency)}</td>
+                                    <td class="text-end fw-medium">${formatCurrency(item.amount, invoice.currency)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Subtotal</td>
+                                <td class="text-end fw-bold">${formatCurrency(invoice.subtotal, invoice.currency)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            ` : `
+                <div class="alert alert-pastel-primary">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Detailed line item breakdown is not available for this invoice.
+                </div>
+            `}
+        `;
+        
+        modal.show();
     }
 
     function closeDrawer() {
