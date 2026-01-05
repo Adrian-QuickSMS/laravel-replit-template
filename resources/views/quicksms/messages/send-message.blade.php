@@ -1091,8 +1091,8 @@
                                         
                                         <div id="rcsMediaPreview" class="d-none mt-3">
                                             <div class="position-relative">
-                                                <div class="border rounded overflow-hidden bg-dark" style="max-height: 200px;">
-                                                    <img id="rcsMediaPreviewImg" src="" alt="Media preview" class="w-100" style="object-fit: contain; max-height: 200px;">
+                                                <div class="border rounded overflow-hidden d-flex align-items-center justify-content-center" style="height: 200px; background: repeating-conic-gradient(#e8e8e8 0% 25%, #f8f8f8 0% 50%) 50% / 12px 12px;">
+                                                    <img id="rcsMediaPreviewImg" src="" alt="Media preview" style="object-fit: contain; max-height: 100%; max-width: 100%; transform-origin: center center;">
                                                 </div>
                                                 <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="removeRcsMedia()">
                                                     <i class="fas fa-times"></i>
@@ -1125,7 +1125,12 @@
                                                 
                                                 <div class="mb-3">
                                                     <label class="form-label small mb-1">Zoom <span class="text-muted" id="rcsZoomValue">100%</span></label>
-                                                    <input type="range" class="form-range" id="rcsZoomSlider" min="100" max="200" value="100" oninput="updateRcsZoom(this.value)">
+                                                    <input type="range" class="form-range" id="rcsZoomSlider" min="25" max="200" value="100" oninput="updateRcsZoom(this.value)">
+                                                    <div class="d-flex justify-content-between small text-muted mt-1">
+                                                        <span>25% (fit)</span>
+                                                        <span>100%</span>
+                                                        <span>200%</span>
+                                                    </div>
                                                 </div>
                                                 
                                                 <div class="mb-2">

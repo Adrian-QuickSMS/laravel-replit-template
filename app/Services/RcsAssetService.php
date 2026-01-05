@@ -290,15 +290,49 @@ class RcsAssetService
         
         $originalWidth = $image->width();
         $originalHeight = $image->height();
+        $targetRatio = $this->getTargetRatio($orientation);
         
-        if ($zoom > 1) {
+        if ($zoom < 1 && $targetRatio) {
+            $canvasWidth = max(800, $originalWidth);
+            $canvasHeight = (int) ($canvasWidth / $targetRatio);
+            
+            $scaledWidth = (int) ($originalWidth * $zoom);
+            $scaledHeight = (int) ($originalHeight * $zoom);
+            
+            $image->resize($scaledWidth, $scaledHeight);
+            
+            $canvas = $this->imageManager->create($canvasWidth, $canvasHeight)->fill('f5f5f5');
+            
+            $x = $this->getPlacementX($canvasWidth, $scaledWidth, $cropPosition);
+            $y = $this->getPlacementY($canvasHeight, $scaledHeight, $cropPosition);
+            
+            $canvas->place($image, 'top-left', $x, $y);
+            $image = $canvas;
+        } elseif ($zoom > 1) {
             $newWidth = (int) ($originalWidth * $zoom);
             $newHeight = (int) ($originalHeight * $zoom);
             $image->resize($newWidth, $newHeight);
-        }
-        
-        $targetRatio = $this->getTargetRatio($orientation);
-        if ($targetRatio) {
+            
+            if ($targetRatio) {
+                $currentRatio = $image->width() / $image->height();
+                
+                if (abs($currentRatio - $targetRatio) > 0.01) {
+                    $cropWidth = $image->width();
+                    $cropHeight = $image->height();
+                    
+                    if ($currentRatio > $targetRatio) {
+                        $cropWidth = (int) ($image->height() * $targetRatio);
+                    } else {
+                        $cropHeight = (int) ($image->width() / $targetRatio);
+                    }
+                    
+                    $x = $this->getCropX($image->width(), $cropWidth, $cropPosition);
+                    $y = $this->getCropY($image->height(), $cropHeight, $cropPosition);
+                    
+                    $image->crop($cropWidth, $cropHeight, $x, $y);
+                }
+            }
+        } elseif ($targetRatio) {
             $currentRatio = $image->width() / $image->height();
             
             if (abs($currentRatio - $targetRatio) > 0.01) {
@@ -380,6 +414,24 @@ class RcsAssetService
             'top', 'top-left', 'top-right' => 0,
             'bottom', 'bottom-left', 'bottom-right' => $imageHeight - $cropHeight,
             default => (int) (($imageHeight - $cropHeight) / 2),
+        };
+    }
+
+    private function getPlacementX(int $canvasWidth, int $imageWidth, string $position): int
+    {
+        return match ($position) {
+            'left', 'top-left', 'bottom-left' => 0,
+            'right', 'top-right', 'bottom-right' => $canvasWidth - $imageWidth,
+            default => (int) (($canvasWidth - $imageWidth) / 2),
+        };
+    }
+
+    private function getPlacementY(int $canvasHeight, int $imageHeight, string $position): int
+    {
+        return match ($position) {
+            'top', 'top-left', 'top-right' => 0,
+            'bottom', 'bottom-left', 'bottom-right' => $canvasHeight - $imageHeight,
+            default => (int) (($canvasHeight - $imageHeight) / 2),
         };
     }
 
