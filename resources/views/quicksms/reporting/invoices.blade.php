@@ -681,26 +681,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="billingBreakdownModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-chart-pie me-2 text-primary"></i>Billing Breakdown</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="billingBreakdownContent">
-                <div class="text-center py-4">
-                    <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                    <p class="mt-2 text-muted">Loading breakdown...</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="modal fade" id="topUpModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1108,100 +1088,33 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadPdfBtn.onclick = () => alert('PDF not yet available for this invoice. Please try again later.');
         }
         
-        document.getElementById('viewBillingBreakdownBtn').onclick = () => showBillingBreakdown(invoice);
+        document.getElementById('viewBillingBreakdownBtn').onclick = () => navigateToBillingBreakdown(invoice);
     }
     
-    function showBillingBreakdown(invoice) {
-        const modal = new bootstrap.Modal(document.getElementById('billingBreakdownModal'));
-        const content = document.getElementById('billingBreakdownContent');
+    function navigateToBillingBreakdown(invoice) {
+        const billingDate = invoice.billingPeriodStart || invoice.issueDate;
+        let billingMonth = '';
         
-        const lineItems = invoice.lineItems || [];
-        const hasLineItems = lineItems.length > 0;
+        if (billingDate) {
+            const date = new Date(billingDate);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            billingMonth = `${year}-${month}`;
+        }
         
-        content.innerHTML = `
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h6 class="text-muted mb-3">Invoice Details</h6>
-                    <table class="table table-sm table-borderless">
-                        <tr><td class="text-muted">Invoice Number</td><td class="fw-medium">${invoice.invoiceNumber}</td></tr>
-                        <tr><td class="text-muted">Billing Period</td><td>${formatBillingPeriodMonthYear(invoice.billingPeriodStart, invoice.billingPeriodEnd)}</td></tr>
-                        <tr><td class="text-muted">Issue Date</td><td>${formatDate(invoice.issueDate)}</td></tr>
-                        <tr><td class="text-muted">Due Date</td><td>${formatDate(invoice.dueDate)}</td></tr>
-                        <tr><td class="text-muted">Status</td><td>${getStatusBadge(invoice.status)}</td></tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="text-muted mb-3">Payment Summary</h6>
-                    <div class="card" style="background: linear-gradient(135deg, rgba(136,108,192,0.1) 0%, rgba(136,108,192,0.05) 100%); border: none;">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Subtotal</span>
-                                <span>${formatCurrency(invoice.subtotal, invoice.currency)}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>VAT</span>
-                                <span>${formatCurrency(invoice.vat, invoice.currency)}</span>
-                            </div>
-                            <hr class="my-2">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="fw-bold">Total</span>
-                                <span class="fw-bold">${formatCurrency(invoice.total, invoice.currency)}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Amount Paid</span>
-                                <span class="text-success">${formatCurrency((invoice.total || 0) - (invoice.balanceDue || 0), invoice.currency)}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="fw-bold">Balance Due</span>
-                                <span class="${invoice.balanceDue > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'}">${formatCurrency(invoice.balanceDue, invoice.currency)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <h6 class="text-muted mb-3">Line Item Breakdown</h6>
-            ${hasLineItems ? `
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Description</th>
-                                <th class="text-center">Qty</th>
-                                <th class="text-end">Unit Price</th>
-                                <th class="text-end">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${lineItems.map(item => `
-                                <tr>
-                                    <td>
-                                        <div class="fw-medium">${item.name || 'Item'}</div>
-                                        ${item.description ? `<small class="text-muted">${item.description}</small>` : ''}
-                                    </td>
-                                    <td class="text-center">${item.quantity || 1}</td>
-                                    <td class="text-end">${formatCurrency(item.unitPrice || item.amount, invoice.currency)}</td>
-                                    <td class="text-end fw-medium">${formatCurrency(item.amount, invoice.currency)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr>
-                                <td colspan="3" class="text-end fw-bold">Subtotal</td>
-                                <td class="text-end fw-bold">${formatCurrency(invoice.subtotal, invoice.currency)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            ` : `
-                <div class="alert alert-pastel-primary">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Detailed line item breakdown is not available for this invoice.
-                </div>
-            `}
-        `;
+        const params = new URLSearchParams();
         
-        modal.show();
+        if (billingMonth) {
+            params.append('billingMonth', billingMonth);
+        }
+        
+        if (invoice.invoiceNumber) {
+            params.append('invoiceRef', invoice.invoiceNumber);
+            params.append('fromInvoice', invoice.invoiceNumber);
+        }
+        
+        const financeDataUrl = '/reporting/finance-data' + (params.toString() ? '?' + params.toString() : '');
+        window.location.href = financeDataUrl;
     }
 
     function closeDrawer() {

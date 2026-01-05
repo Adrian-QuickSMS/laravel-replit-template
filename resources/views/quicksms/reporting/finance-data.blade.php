@@ -484,6 +484,10 @@
                                 
                                 <div class="row g-3 align-items-end mt-2">
                                     <div class="col-6 col-md-4 col-lg-2">
+                                        <label class="form-label small fw-bold">Invoice Ref</label>
+                                        <input type="text" class="form-control form-control-sm" id="invoiceRefFilter" placeholder="e.g. INV-2025-0001">
+                                    </div>
+                                    <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Origin</label>
                                         <div class="dropdown multiselect-dropdown" data-filter="origins">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
@@ -918,6 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initMonthPresets();
     initFilterActions();
     initSenderIdPredictive();
+    handleUrlParameters();
     initSubAccountUserFiltering();
     loadInitialData();
 });
@@ -1227,6 +1232,53 @@ function initMonthPresets() {
             updateDropdownLabel(dropdown);
         });
     });
+}
+
+function handleUrlParameters() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var hasFilters = false;
+    
+    var billingMonth = urlParams.get('billingMonth');
+    if (billingMonth) {
+        var dropdown = document.querySelector('[data-filter="billingMonths"]');
+        if (dropdown) {
+            var checkbox = dropdown.querySelector('input[value="' + billingMonth + '"]');
+            if (checkbox) {
+                checkbox.checked = true;
+                updateMultiselectLabel(dropdown);
+                hasFilters = true;
+            }
+        }
+    }
+    
+    var invoiceRef = urlParams.get('invoiceRef');
+    if (invoiceRef) {
+        var invoiceRefInput = document.getElementById('invoiceRefFilter');
+        if (invoiceRefInput) {
+            invoiceRefInput.value = invoiceRef;
+            hasFilters = true;
+        }
+    }
+    
+    if (hasFilters) {
+        document.getElementById('filtersPanel').classList.add('show');
+        
+        var fromInvoice = urlParams.get('fromInvoice');
+        if (fromInvoice) {
+            var alertHtml = '<div class="alert alert-pastel-primary alert-dismissible fade show mb-3" role="alert">' +
+                '<i class="fas fa-link text-primary me-2"></i>' +
+                '<strong>Linked from Invoice ' + fromInvoice + '</strong> - ' +
+                'Showing billing data for reconciliation. Invoice totals are not recalculated here.' +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>';
+            var filterPanel = document.getElementById('filtersPanel');
+            filterPanel.insertAdjacentHTML('beforebegin', alertHtml);
+        }
+        
+        setTimeout(function() {
+            document.getElementById('btnApplyFilters').click();
+        }, 100);
+    }
 }
 
 function initSenderIdPredictive() {
