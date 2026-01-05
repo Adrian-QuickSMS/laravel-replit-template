@@ -292,6 +292,76 @@ class HubSpotInvoiceService
         ];
     }
 
+    public function fetchAccountSummary(): array
+    {
+        $mockSummary = [
+            'success' => true,
+            'isMockData' => true,
+            'billingMode' => 'prepaid',
+            'currentBalance' => 2450.00,
+            'creditLimit' => 5000.00,
+            'availableCredit' => 7450.00,
+            'accountStatus' => 'active',
+            'currency' => 'GBP',
+            'lastUpdated' => now()->toIso8601String(),
+        ];
+
+        if (!$this->isConfigured()) {
+            Log::info('Account summary fetched (mock data)');
+            return $mockSummary;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->accessToken,
+                'Content-Type' => 'application/json',
+            ])->get('https://api.hubapi.com/crm/v3/objects/companies', [
+                'properties' => 'hs_account_balance,hs_credit_limit,hs_billing_mode,hs_account_status',
+                'limit' => 1,
+            ]);
+
+            if ($response->failed()) {
+                Log::warning('Failed to fetch account summary from HubSpot, using mock data');
+                return $mockSummary;
+            }
+
+            $data = $response->json();
+            $company = $data['results'][0] ?? null;
+
+            if (!$company) {
+                return $mockSummary;
+            }
+
+            $props = $company['properties'] ?? [];
+            $currentBalance = (float) ($props['hs_account_balance'] ?? 2450.00);
+            $creditLimit = (float) ($props['hs_credit_limit'] ?? 5000.00);
+            $billingMode = strtolower($props['hs_billing_mode'] ?? 'prepaid');
+            $accountStatus = strtolower($props['hs_account_status'] ?? 'active');
+
+            $availableCredit = $currentBalance + $creditLimit;
+
+            if ($availableCredit < 0) {
+                $accountStatus = 'credit_hold';
+            }
+
+            return [
+                'success' => true,
+                'isMockData' => false,
+                'billingMode' => $billingMode,
+                'currentBalance' => $currentBalance,
+                'creditLimit' => $creditLimit,
+                'availableCredit' => $availableCredit,
+                'accountStatus' => $accountStatus,
+                'currency' => 'GBP',
+                'lastUpdated' => now()->toIso8601String(),
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching account summary', ['error' => $e->getMessage()]);
+            return $mockSummary;
+        }
+    }
+
     private function getMockInvoices(array $filters = []): array
     {
         $invoices = [

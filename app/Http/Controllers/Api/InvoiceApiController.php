@@ -63,4 +63,11 @@ class InvoiceApiController extends Controller
             'pdfUrl' => $pdfUrl,
         ]);
     }
+
+    public function accountSummary(): JsonResponse
+    {
+        $summary = $this->invoiceService->fetchAccountSummary();
+
+        return response()->json($summary);
+    }
 }

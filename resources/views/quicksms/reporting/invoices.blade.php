@@ -239,10 +239,100 @@
     color: #fff;
     border-color: var(--primary);
 }
+.account-financial-summary {
+    background: linear-gradient(135deg, #fff 0%, #faf8fc 100%);
+    border: 1px solid rgba(136, 108, 192, 0.2);
+    border-radius: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.financial-metric {
+    text-align: center;
+    padding: 0.75rem;
+    border-right: 1px solid rgba(136, 108, 192, 0.1);
+}
+.financial-metric:last-child {
+    border-right: none;
+}
+.financial-metric .metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+.financial-metric .metric-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c2c2c;
+}
+.financial-metric .metric-value.text-success { color: #1cbb8c !important; }
+.financial-metric .metric-value.text-warning { color: #cc9900 !important; }
+.financial-metric .metric-value.text-danger { color: #dc3545 !important; }
+.billing-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.billing-mode-badge.prepaid {
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
+}
+.billing-mode-badge.postpaid {
+    background: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+}
+.account-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.account-status-badge.active {
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
+}
+.account-status-badge.credit-hold {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+.account-status-badge i {
+    margin-right: 0.35rem;
+}
+.credit-helper-text {
+    font-size: 0.75rem;
+    color: #6c757d;
+    line-height: 1.4;
+}
+.credit-helper-text strong {
+    color: #495057;
+}
+.financial-refresh-indicator {
+    font-size: 0.65rem;
+    color: #adb5bd;
+}
+.financial-refresh-indicator.refreshing {
+    color: var(--primary);
+}
 @media (max-width: 768px) {
     .invoice-drawer {
         width: 100%;
         right: -100%;
+    }
+    .financial-metric {
+        border-right: none;
+        border-bottom: 1px solid rgba(136, 108, 192, 0.1);
+        padding: 0.5rem;
+    }
+    .financial-metric:last-child {
+        border-bottom: none;
     }
 }
 </style>
@@ -258,44 +348,110 @@
         </ol>
     </div>
 
-    <div id="accountSummary" class="row mb-3" style="flex-shrink: 0;">
+    <div id="accountFinancialSummary" class="account-financial-summary mb-3 p-3" style="flex-shrink: 0;">
+        <div class="row align-items-center">
+            <div class="col-lg-9">
+                <div class="row align-items-center">
+                    <div class="col-6 col-md-4 col-lg-2 financial-metric">
+                        <div class="metric-label">Billing Mode</div>
+                        <div id="billingMode">
+                            <span class="billing-mode-badge prepaid">
+                                <i class="fas fa-wallet me-1"></i> Prepaid
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2 financial-metric">
+                        <div class="metric-label">Current Balance</div>
+                        <div class="metric-value text-success" id="currentBalance">&pound;2,450.00</div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2 financial-metric">
+                        <div class="metric-label">Credit Limit</div>
+                        <div class="metric-value" id="creditLimit">&pound;5,000.00</div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2 financial-metric">
+                        <div class="metric-label">Available Credit</div>
+                        <div class="metric-value text-success" id="availableCredit">&pound;7,450.00</div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2 financial-metric">
+                        <div class="metric-label">Account Status</div>
+                        <div id="accountStatus">
+                            <span class="account-status-badge active">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2 financial-metric">
+                        <div class="metric-label">Last Updated</div>
+                        <div class="financial-refresh-indicator" id="lastRefreshed">
+                            <i class="fas fa-sync-alt me-1"></i> Just now
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 mt-3 mt-lg-0">
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#topUpModal">
+                        <i class="fas fa-plus-circle me-1"></i> Top Up Balance
+                    </button>
+                    <button type="button" class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="collapse" data-bs-target="#creditHelperPanel">
+                        <i class="fas fa-question-circle me-1"></i> How does credit work?
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="collapse mt-3" id="creditHelperPanel">
+            <div class="alert alert-pastel-primary mb-0">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="credit-helper-text">
+                            <strong><i class="fas fa-info-circle me-1"></i> Understanding Your Credit</strong>
+                            <ul class="mb-0 mt-2 ps-3">
+                                <li><strong>Current Balance:</strong> Your prepaid credit available for sending messages.</li>
+                                <li><strong>Credit Limit:</strong> Additional credit extended to your account (postpaid accounts only).</li>
+                                <li><strong>Available Credit:</strong> Total funds you can use (Balance + Credit Limit).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="credit-helper-text">
+                            <strong><i class="fas fa-exclamation-triangle me-1 text-warning"></i> Credit Limit Exceeded</strong>
+                            <ul class="mb-0 mt-2 ps-3">
+                                <li>If your balance falls below zero and exceeds your credit limit, your account enters <strong>Credit Hold</strong>.</li>
+                                <li>While on Credit Hold, you cannot send messages until the balance is topped up.</li>
+                                <li>Scheduled campaigns will be paused until credit is restored.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="invoiceSummary" class="row mb-3" style="flex-shrink: 0;">
         <div class="col-12">
-            <div class="card mb-0">
-                <div class="card-body py-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="row g-3">
-                                <div class="col-6 col-md-3">
-                                    <div class="summary-stat-card">
-                                        <div class="stat-value" id="totalInvoices">12</div>
-                                        <div class="stat-label">Total Invoices</div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="summary-stat-card">
-                                        <div class="stat-value text-success" id="paidAmount">&pound;8,450.00</div>
-                                        <div class="stat-label">Paid (YTD)</div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="summary-stat-card">
-                                        <div class="stat-value text-warning" id="pendingAmount">&pound;1,250.00</div>
-                                        <div class="stat-label">Pending</div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="summary-stat-card">
-                                        <div class="stat-value text-danger" id="overdueAmount">&pound;0.00</div>
-                                        <div class="stat-label">Overdue</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#topUpModal">
-                                <i class="fas fa-plus-circle me-1"></i> Top Up Balance
-                            </button>
-                        </div>
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="summary-stat-card">
+                        <div class="stat-value" id="totalInvoices">-</div>
+                        <div class="stat-label">Total Invoices</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="summary-stat-card">
+                        <div class="stat-value text-success" id="paidAmount">-</div>
+                        <div class="stat-label">Paid (YTD)</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="summary-stat-card">
+                        <div class="stat-value text-warning" id="pendingAmount">-</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="summary-stat-card">
+                        <div class="stat-value text-danger" id="overdueAmount">-</div>
+                        <div class="stat-label">Overdue</div>
                     </div>
                 </div>
             </div>
@@ -1072,7 +1228,128 @@ document.addEventListener('DOMContentLoaded', function() {
         URL.revokeObjectURL(url);
     });
 
+    let accountSummaryRefreshInterval = null;
+    const REFRESH_INTERVAL_MS = 30000;
+
+    async function loadAccountSummary() {
+        const refreshIndicator = document.getElementById('lastRefreshed');
+        refreshIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin me-1"></i> Updating...';
+        refreshIndicator.classList.add('refreshing');
+
+        try {
+            const response = await fetch('/api/invoices/account-summary');
+            const data = await response.json();
+
+            if (!data.success) {
+                console.error('Failed to load account summary:', data.error);
+                refreshIndicator.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Error';
+                refreshIndicator.classList.remove('refreshing');
+                return;
+            }
+
+            updateAccountFinancialSummary(data);
+
+        } catch (error) {
+            console.error('Error loading account summary:', error);
+            refreshIndicator.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Error';
+            refreshIndicator.classList.remove('refreshing');
+        }
+    }
+
+    function updateAccountFinancialSummary(data) {
+        const billingModeEl = document.getElementById('billingMode');
+        const isPrepaid = data.billingMode === 'prepaid';
+        billingModeEl.innerHTML = isPrepaid
+            ? '<span class="billing-mode-badge prepaid"><i class="fas fa-wallet me-1"></i> Prepaid</span>'
+            : '<span class="billing-mode-badge postpaid"><i class="fas fa-credit-card me-1"></i> Postpaid</span>';
+
+        const currentBalanceEl = document.getElementById('currentBalance');
+        currentBalanceEl.textContent = formatCurrency(data.currentBalance, data.currency);
+        currentBalanceEl.className = 'metric-value ' + (data.currentBalance >= 0 ? 'text-success' : 'text-danger');
+
+        const creditLimitEl = document.getElementById('creditLimit');
+        if (data.creditLimit > 0) {
+            creditLimitEl.textContent = formatCurrency(data.creditLimit, data.currency);
+            creditLimitEl.closest('.financial-metric').style.display = '';
+        } else {
+            creditLimitEl.textContent = '-';
+        }
+
+        const availableCreditEl = document.getElementById('availableCredit');
+        availableCreditEl.textContent = formatCurrency(data.availableCredit, data.currency);
+        availableCreditEl.className = 'metric-value ' + (data.availableCredit >= 0 ? 'text-success' : 'text-danger');
+
+        const accountStatusEl = document.getElementById('accountStatus');
+        const isCreditHold = data.accountStatus === 'credit_hold';
+        accountStatusEl.innerHTML = isCreditHold
+            ? '<span class="account-status-badge credit-hold"><i class="fas fa-pause-circle"></i> Credit Hold</span>'
+            : '<span class="account-status-badge active"><i class="fas fa-check-circle"></i> Active</span>';
+
+        const refreshIndicator = document.getElementById('lastRefreshed');
+        const lastUpdate = data.lastUpdated ? new Date(data.lastUpdated) : new Date();
+        const timeAgo = getTimeAgo(lastUpdate);
+        refreshIndicator.innerHTML = '<i class="fas fa-sync-alt me-1"></i> ' + timeAgo;
+        refreshIndicator.classList.remove('refreshing');
+
+        if (isCreditHold && !document.getElementById('creditHoldWarning')) {
+            const financialSummary = document.getElementById('accountFinancialSummary');
+            const warning = document.createElement('div');
+            warning.id = 'creditHoldWarning';
+            warning.className = 'alert alert-danger mt-3 mb-0';
+            warning.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                    <div>
+                        <strong>Account on Credit Hold</strong>
+                        <div class="small">Your available credit has been exceeded. Message sending is paused until you top up your balance.</div>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm ms-auto" data-bs-toggle="modal" data-bs-target="#topUpModal">
+                        <i class="fas fa-plus-circle me-1"></i> Top Up Now
+                    </button>
+                </div>
+            `;
+            financialSummary.appendChild(warning);
+        } else if (!isCreditHold) {
+            const existingWarning = document.getElementById('creditHoldWarning');
+            if (existingWarning) {
+                existingWarning.remove();
+            }
+        }
+    }
+
+    function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        if (seconds < 10) return 'Just now';
+        if (seconds < 60) return seconds + 's ago';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + 'm ago';
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + 'h ago';
+        return formatDate(date.toISOString());
+    }
+
+    function startAccountSummaryRefresh() {
+        loadAccountSummary();
+        accountSummaryRefreshInterval = setInterval(loadAccountSummary, REFRESH_INTERVAL_MS);
+    }
+
+    function stopAccountSummaryRefresh() {
+        if (accountSummaryRefreshInterval) {
+            clearInterval(accountSummaryRefreshInterval);
+            accountSummaryRefreshInterval = null;
+        }
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            stopAccountSummaryRefresh();
+        } else {
+            startAccountSummaryRefresh();
+        }
+    });
+
     loadInvoices();
+    startAccountSummaryRefresh();
     updateTopUpSummary(500);
 });
 </script>

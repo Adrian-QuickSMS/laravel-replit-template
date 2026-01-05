@@ -68,6 +68,7 @@ Route::prefix('account')->group(function () {
 // Invoice API (HubSpot Invoices integration)
 Route::prefix('invoices')->group(function () {
     Route::get('/', [InvoiceApiController::class, 'index']);
+    Route::get('/account-summary', [InvoiceApiController::class, 'accountSummary']);
     Route::get('/{invoiceId}', [InvoiceApiController::class, 'show']);
     Route::get('/{invoiceId}/pdf', [InvoiceApiController::class, 'downloadPdf']);
 });
