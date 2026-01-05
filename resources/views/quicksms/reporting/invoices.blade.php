@@ -135,6 +135,10 @@
     background-color: rgba(28, 187, 140, 0.15);
     color: #1cbb8c;
 }
+.status-issued {
+    background-color: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
 .status-pending {
     background-color: rgba(255, 191, 0, 0.15);
     color: #cc9900;
@@ -146,6 +150,11 @@
 .status-draft {
     background-color: rgba(108, 117, 125, 0.15);
     color: #6c757d;
+}
+.status-void {
+    background-color: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+    text-decoration: line-through;
 }
 .status-cancelled {
     background-color: rgba(108, 117, 125, 0.15);
@@ -427,36 +436,6 @@
         </div>
     </div>
 
-    <div id="invoiceSummary" class="row mb-3" style="flex-shrink: 0;">
-        <div class="col-12">
-            <div class="row g-3">
-                <div class="col-6 col-md-3">
-                    <div class="summary-stat-card">
-                        <div class="stat-value" id="totalInvoices">-</div>
-                        <div class="stat-label">Total Invoices</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="summary-stat-card">
-                        <div class="stat-value text-success" id="paidAmount">-</div>
-                        <div class="stat-label">Paid (YTD)</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="summary-stat-card">
-                        <div class="stat-value text-warning" id="pendingAmount">-</div>
-                        <div class="stat-label">Pending</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="summary-stat-card">
-                        <div class="stat-value text-danger" id="overdueAmount">-</div>
-                        <div class="stat-label">Overdue</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     
     <div class="row flex-grow-1" style="min-height: 0;">
         <div class="col-12 d-flex flex-column" style="min-height: 0;">
@@ -492,11 +471,11 @@
                                         <label class="form-label small fw-bold">Status</label>
                                         <select class="form-select form-select-sm" id="statusFilter">
                                             <option value="">All Statuses</option>
-                                            <option value="paid">Paid</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="overdue">Overdue</option>
                                             <option value="draft">Draft</option>
-                                            <option value="cancelled">Cancelled</option>
+                                            <option value="issued">Issued</option>
+                                            <option value="paid">Paid</option>
+                                            <option value="overdue">Overdue</option>
+                                            <option value="void">Void / Cancelled</option>
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
@@ -547,13 +526,15 @@
                                         <th style="width: 40px;">
                                             <input type="checkbox" class="form-check-input" id="selectAll">
                                         </th>
-                                        <th>Invoice #</th>
-                                        <th>Issue Date</th>
-                                        <th>Due Date</th>
+                                        <th>Invoice Number</th>
                                         <th>Billing Period</th>
-                                        <th class="text-end">Total</th>
-                                        <th class="text-end">Balance Due</th>
+                                        <th>Invoice Date</th>
+                                        <th>Due Date</th>
                                         <th>Status</th>
+                                        <th class="text-end">Amount (ex VAT)</th>
+                                        <th class="text-end">VAT Amount</th>
+                                        <th class="text-end">Total (inc VAT)</th>
+                                        <th class="text-end">Balance Outstanding</th>
                                         <th class="text-end">Actions</th>
                                     </tr>
                                 </thead>
@@ -809,13 +790,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getStatusBadge(status) {
         const statusMap = {
-            'paid': '<span class="status-badge status-paid">Paid</span>',
-            'pending': '<span class="status-badge status-pending">Pending</span>',
-            'overdue': '<span class="status-badge status-overdue">Overdue</span>',
             'draft': '<span class="status-badge status-draft">Draft</span>',
-            'cancelled': '<span class="status-badge status-cancelled">Cancelled</span>'
+            'issued': '<span class="status-badge status-issued">Issued</span>',
+            'pending': '<span class="status-badge status-issued">Issued</span>',
+            'paid': '<span class="status-badge status-paid">Paid</span>',
+            'overdue': '<span class="status-badge status-overdue">Overdue</span>',
+            'void': '<span class="status-badge status-void">Void</span>',
+            'voided': '<span class="status-badge status-void">Void</span>',
+            'cancelled': '<span class="status-badge status-void">Cancelled</span>'
         };
         return statusMap[status] || '<span class="status-badge">' + status + '</span>';
+    }
+
+    function formatBillingPeriodMonthYear(start, end) {
+        if (!start && !end) return '-';
+        const dateToUse = start || end;
+        const date = new Date(dateToUse);
+        return date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
     }
 
     function showLoading() {
@@ -823,7 +814,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tbody = document.getElementById('invoicesTableBody');
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center py-5">
+                <td colspan="11" class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -837,7 +828,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tbody = document.getElementById('invoicesTableBody');
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center py-5">
+                <td colspan="11" class="text-center py-5">
                     <div class="text-danger mb-2">
                         <i class="fas fa-exclamation-triangle fa-2x"></i>
                     </div>
@@ -849,10 +840,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             </tr>
         `;
-        document.getElementById('totalInvoices').textContent = '-';
-        document.getElementById('paidAmount').textContent = '-';
-        document.getElementById('pendingAmount').textContent = '-';
-        document.getElementById('overdueAmount').textContent = '-';
     }
 
     function showMockDataNotice() {
@@ -867,13 +854,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             container.insertBefore(notice, container.firstChild);
         }
-    }
-
-    function updateSummary(summary) {
-        document.getElementById('totalInvoices').textContent = summary.totalInvoices || 0;
-        document.getElementById('paidAmount').innerHTML = formatCurrency(summary.paidAmount || 0);
-        document.getElementById('pendingAmount').innerHTML = formatCurrency(summary.pendingAmount || 0);
-        document.getElementById('overdueAmount').innerHTML = formatCurrency(summary.overdueAmount || 0);
     }
 
     async function loadInvoices() {
@@ -904,7 +884,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMockDataNotice();
             }
 
-            updateSummary(data.summary || {});
             renderInvoices(invoicesData);
 
         } catch (error) {
@@ -921,7 +900,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (invoices.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center py-5 text-muted">
+                    <td colspan="11" class="text-center py-5 text-muted">
                         <i class="fas fa-file-invoice fa-2x mb-2"></i>
                         <div>No invoices found</div>
                     </td>
@@ -934,19 +913,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = document.createElement('tr');
             row.setAttribute('data-invoice-id', inv.id);
 
-            const billingPeriod = formatBillingPeriod(inv.billingPeriodStart, inv.billingPeriodEnd);
+            const billingPeriod = formatBillingPeriodMonthYear(inv.billingPeriodStart, inv.billingPeriodEnd);
+            const isPayable = inv.status === 'issued' || inv.status === 'pending' || inv.status === 'overdue';
 
             row.innerHTML = `
                 <td onclick="event.stopPropagation();">
                     <input type="checkbox" class="form-check-input invoice-checkbox" value="${inv.id}">
                 </td>
                 <td><strong>${inv.invoiceNumber}</strong></td>
+                <td>${billingPeriod}</td>
                 <td>${formatDate(inv.issueDate)}</td>
                 <td>${formatDate(inv.dueDate)}</td>
-                <td><span class="small text-muted">${billingPeriod}</span></td>
-                <td class="text-end fw-medium">${formatCurrency(inv.total, inv.currency)}</td>
-                <td class="text-end">${formatCurrency(inv.balanceDue, inv.currency)}</td>
                 <td>${getStatusBadge(inv.status)}</td>
+                <td class="text-end">${formatCurrency(inv.subtotal, inv.currency)}</td>
+                <td class="text-end">${formatCurrency(inv.vat, inv.currency)}</td>
+                <td class="text-end fw-medium">${formatCurrency(inv.total, inv.currency)}</td>
+                <td class="text-end ${inv.balanceDue > 0 ? 'text-danger fw-bold' : ''}">${formatCurrency(inv.balanceDue, inv.currency)}</td>
                 <td class="text-end" onclick="event.stopPropagation();">
                     <div class="dropdown">
                         <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown">
@@ -955,7 +937,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#" onclick="openDrawer('${inv.id}'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>
                             <li><a class="dropdown-item" href="#" onclick="downloadPdf('${inv.id}'); return false;"><i class="fas fa-file-pdf me-2"></i>Download PDF</a></li>
-                            ${inv.status === 'pending' || inv.status === 'overdue' ? 
+                            ${isPayable ? 
                                 `<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-primary" href="#" onclick="payInvoice('${inv.id}'); return false;"><i class="fas fa-credit-card me-2"></i>Pay Now</a></li>` : ''
                             }
                         </ul>
