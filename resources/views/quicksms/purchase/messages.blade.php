@@ -752,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Starter',
             volumeMin: 0,
             volumeMax: 50000,
-            increment: 10000,
+            increment: 1000,
             description: 'SMB'
         },
         enterprise: {
