@@ -2591,19 +2591,97 @@ function loadRcsMediaUrl() {
     var url = document.getElementById('rcsMediaUrlInput').value.trim();
     if (!url) return;
     
-    var img = new Image();
-    img.onload = function() {
-        rcsMediaData.source = 'url';
-        rcsMediaData.url = url;
-        rcsMediaData.dimensions = { width: img.width, height: img.height };
-        rcsMediaData.fileSize = 0;
-        showRcsMediaPreview(url);
-        updateRcsImageInfo();
-    };
-    img.onerror = function() {
-        showRcsMediaError('Unable to load image from URL. Please check the URL is publicly accessible.');
-    };
-    img.src = url;
+    hideRcsMediaError();
+    
+    var urlLower = url.toLowerCase();
+    var validExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+    var hasValidExtension = validExtensions.some(function(ext) {
+        return urlLower.includes(ext);
+    });
+    
+    if (!hasValidExtension) {
+        var allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    }
+    
+    var loadBtn = document.querySelector('#rcsMediaUrlSection button');
+    if (loadBtn) {
+        loadBtn.disabled = true;
+        loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+    
+    fetch(url, { method: 'HEAD', mode: 'cors' })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('URL not accessible');
+            }
+            
+            var contentType = response.headers.get('Content-Type') || '';
+            var contentLength = response.headers.get('Content-Length');
+            var fileSize = contentLength ? parseInt(contentLength, 10) : 0;
+            
+            var validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            var isValidType = validTypes.some(function(t) {
+                return contentType.toLowerCase().includes(t);
+            }) || hasValidExtension;
+            
+            if (!isValidType) {
+                throw new Error('Unsupported file type. Only JPEG, PNG, and GIF images are allowed.');
+            }
+            
+            if (fileSize > 0 && fileSize > rcsMaxFileSize) {
+                throw new Error('File size (' + (fileSize / 1024).toFixed(1) + ' KB) exceeds 250 KB limit.');
+            }
+            
+            return { fileSize: fileSize, contentType: contentType };
+        })
+        .catch(function(err) {
+            return { fileSize: 0, contentType: '', corsBlocked: err.message === 'Failed to fetch' };
+        })
+        .then(function(metadata) {
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                rcsMediaData.source = 'url';
+                rcsMediaData.url = url;
+                rcsMediaData.dimensions = { width: img.width, height: img.height };
+                rcsMediaData.fileSize = metadata.fileSize || 0;
+                showRcsMediaPreview(url);
+                updateRcsImageInfo();
+                
+                if (metadata.corsBlocked) {
+                    showRcsMediaWarning('File size could not be verified. Ensure image is under 250 KB.');
+                }
+                
+                if (loadBtn) {
+                    loadBtn.disabled = false;
+                    loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                }
+            };
+            img.onerror = function() {
+                showRcsMediaError('Unable to load image from URL. Please check the URL is publicly accessible.');
+                if (loadBtn) {
+                    loadBtn.disabled = false;
+                    loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                }
+            };
+            img.src = url;
+        })
+        .catch(function(err) {
+            showRcsMediaError(err.message || 'Unable to load image from URL.');
+            if (loadBtn) {
+                loadBtn.disabled = false;
+                loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+            }
+        });
+}
+
+function showRcsMediaWarning(message) {
+    var errorEl = document.getElementById('rcsMediaError');
+    var errorTextEl = document.getElementById('rcsMediaErrorText');
+    errorTextEl.textContent = message;
+    errorEl.classList.remove('d-none');
+    errorEl.classList.remove('alert-danger');
+    errorEl.classList.add('alert-warning');
 }
 
 function handleRcsFileUpload(file) {
@@ -2670,10 +2748,15 @@ function showRcsMediaError(message) {
     var errorEl = document.getElementById('rcsMediaError');
     document.getElementById('rcsMediaErrorText').textContent = message;
     errorEl.classList.remove('d-none');
+    errorEl.classList.remove('alert-warning');
+    errorEl.classList.add('alert-danger');
 }
 
 function hideRcsMediaError() {
-    document.getElementById('rcsMediaError').classList.add('d-none');
+    var errorEl = document.getElementById('rcsMediaError');
+    errorEl.classList.add('d-none');
+    errorEl.classList.remove('alert-warning');
+    errorEl.classList.add('alert-danger');
 }
 
 function updateRcsImageInfo() {
@@ -2682,10 +2765,15 @@ function updateRcsImageInfo() {
             rcsMediaData.dimensions.width + ' x ' + rcsMediaData.dimensions.height + ' px';
     }
     if (rcsMediaData.fileSize > 0) {
-        document.getElementById('rcsImageFileSize').textContent = 
-            (rcsMediaData.fileSize / 1024).toFixed(1) + ' KB';
+        var sizeText = (rcsMediaData.fileSize / 1024).toFixed(1) + ' KB';
+        if (rcsMediaData.source === 'url') {
+            sizeText += ' (from URL)';
+        }
+        document.getElementById('rcsImageFileSize').textContent = sizeText;
+    } else if (rcsMediaData.source === 'url') {
+        document.getElementById('rcsImageFileSize').textContent = 'External URL (size unknown)';
     } else {
-        document.getElementById('rcsImageFileSize').textContent = 'External URL';
+        document.getElementById('rcsImageFileSize').textContent = '--';
     }
 }
 
