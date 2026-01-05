@@ -3,6 +3,7 @@
 @section('title', 'Purchase Messages')
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
 <style>
 .purchase-messages-container {
     min-height: calc(100vh - 200px);
@@ -55,6 +56,12 @@
     background: rgba(28, 187, 140, 0.15);
     color: #1cbb8c;
 }
+.tier-card.tier-starter .noUi-connect {
+    background: #1cbb8c;
+}
+.tier-card.tier-starter .noUi-handle {
+    border-color: #1cbb8c;
+}
 .tier-card.tier-enterprise .tier-header {
     background: linear-gradient(135deg, rgba(111, 66, 193, 0.15) 0%, rgba(111, 66, 193, 0.05) 100%);
     border-bottom: 2px solid rgba(111, 66, 193, 0.2);
@@ -63,6 +70,12 @@
     background: rgba(111, 66, 193, 0.15);
     color: #6f42c1;
 }
+.tier-card.tier-enterprise .noUi-connect {
+    background: #6f42c1;
+}
+.tier-card.tier-enterprise .noUi-handle {
+    border-color: #6f42c1;
+}
 .tier-card.tier-bespoke .tier-header {
     background: linear-gradient(135deg, rgba(214, 83, 193, 0.15) 0%, rgba(214, 83, 193, 0.05) 100%);
     border-bottom: 2px solid rgba(214, 83, 193, 0.2);
@@ -70,6 +83,12 @@
 .tier-card.tier-bespoke .tier-badge {
     background: rgba(214, 83, 193, 0.15);
     color: #D653C1;
+}
+.tier-card.tier-bespoke .noUi-connect {
+    background: #D653C1;
+}
+.tier-card.tier-bespoke .noUi-handle {
+    border-color: #D653C1;
 }
 .tier-header {
     padding: 1.5rem;
@@ -93,6 +112,59 @@
 }
 .tier-volume strong {
     color: #2c2c2c;
+}
+.tier-slider-section {
+    padding: 1.25rem 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.slider-label span {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+.slider-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.volume-slider {
+    height: 8px;
+}
+.volume-slider .noUi-handle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    top: -6px;
+    right: -10px;
+    background: #fff;
+    border: 2px solid var(--primary);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+.volume-slider .noUi-handle:before,
+.volume-slider .noUi-handle:after {
+    display: none;
+}
+.volume-slider .noUi-connect {
+    background: var(--primary);
+}
+.volume-slider .noUi-target {
+    background: #dee2e6;
+    border: none;
+    border-radius: 4px;
+}
+.slider-range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #6c757d;
 }
 .tier-body {
     padding: 1.5rem;
@@ -200,15 +272,6 @@
     margin-bottom: 1rem;
     opacity: 0.5;
 }
-.quantity-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.quantity-selector input {
-    width: 80px;
-    text-align: center;
-}
 .selected-tier {
     border-color: var(--primary) !important;
     box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.2) !important;
@@ -272,6 +335,17 @@
                                     <h4>Bespoke</h4>
                                     <p class="tier-volume">Volume: <strong>50,000 – 5,000,000</strong> messages</p>
                                 </div>
+                                <div class="tier-slider-section">
+                                    <div class="slider-label">
+                                        <span>Select Volume</span>
+                                        <span class="slider-value" id="bespokeSliderValue">50,000</span>
+                                    </div>
+                                    <div id="bespokeSlider" class="volume-slider"></div>
+                                    <div class="slider-range-labels">
+                                        <span>50K</span>
+                                        <span>5M</span>
+                                    </div>
+                                </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Tailored pricing for high-volume enterprise customers with custom requirements and dedicated support.</p>
                                     <div id="bespokePrices">
@@ -295,6 +369,17 @@
                                     <h4>Starter</h4>
                                     <p class="tier-volume">Volume: <strong>0 – 50,000</strong> messages</p>
                                 </div>
+                                <div class="tier-slider-section">
+                                    <div class="slider-label">
+                                        <span>Select Volume</span>
+                                        <span class="slider-value" id="starterSliderValue">10,000</span>
+                                    </div>
+                                    <div id="starterSlider" class="volume-slider"></div>
+                                    <div class="slider-range-labels">
+                                        <span>0</span>
+                                        <span>50K</span>
+                                    </div>
+                                </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Perfect for small and medium businesses getting started with SMS and RCS messaging.</p>
                                     <div id="starterPrices">
@@ -317,6 +402,17 @@
                                     <span class="tier-badge"><i class="fas fa-building me-1"></i>Business</span>
                                     <h4>Enterprise</h4>
                                     <p class="tier-volume">Volume: <strong>50,000 – 1,000,000</strong> messages</p>
+                                </div>
+                                <div class="tier-slider-section">
+                                    <div class="slider-label">
+                                        <span>Select Volume</span>
+                                        <span class="slider-value" id="enterpriseSliderValue">100,000</span>
+                                    </div>
+                                    <div id="enterpriseSlider" class="volume-slider"></div>
+                                    <div class="slider-range-labels">
+                                        <span>50K</span>
+                                        <span>1M</span>
+                                    </div>
                                 </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Designed for larger organizations with higher messaging volumes and advanced needs.</p>
@@ -356,6 +452,10 @@
                                 <span id="selectedTierName">-</span>
                             </div>
                             <div class="summary-row">
+                                <span>Quantity</span>
+                                <span id="selectedQuantity">-</span>
+                            </div>
+                            <div class="summary-row">
                                 <span>Net Total</span>
                                 <span id="netTotal">-</span>
                             </div>
@@ -392,6 +492,8 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wnumb/1.2.0/wNumb.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Purchase Messages] Page initialized');
@@ -399,12 +501,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const state = {
         products: {},
         selectedTier: null,
+        sliderValues: {
+            starter: 10000,
+            enterprise: 100000,
+            bespoke: 50000
+        },
         currency: '{{ $accountCurrency }}',
         vatApplicable: {{ $vatApplicable ? 'true' : 'false' }},
         vatRate: 20,
         bespokePricing: {{ $bespokePricing ? 'true' : 'false' }},
         isLoading: true,
-        error: null
+        error: null,
+        sliders: {}
     };
 
     const tierConfig = {
@@ -412,18 +520,21 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Starter',
             volumeMin: 0,
             volumeMax: 50000,
+            increment: 10000,
             description: 'SMB'
         },
         enterprise: {
             name: 'Enterprise',
             volumeMin: 50000,
             volumeMax: 1000000,
+            increment: 50000,
             description: 'Business'
         },
         bespoke: {
             name: 'Bespoke',
             volumeMin: 50000,
             volumeMax: 5000000,
+            increment: 50000,
             description: 'Custom'
         }
     };
@@ -437,6 +548,10 @@ document.addEventListener('DOMContentLoaded', function() {
         'ai': { name: 'AI Credits', icon: 'fa-robot', unit: '/credit' }
     };
 
+    function formatNumber(num) {
+        return num.toLocaleString('en-GB');
+    }
+
     function formatCurrency(amount) {
         const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
         const symbol = symbols[state.currency] || state.currency + ' ';
@@ -447,6 +562,58 @@ document.addEventListener('DOMContentLoaded', function() {
         const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
         const symbol = symbols[state.currency] || state.currency + ' ';
         return symbol + amount.toFixed(2);
+    }
+
+    function initializeSliders() {
+        const slidersToInit = state.bespokePricing ? ['bespoke'] : ['starter', 'enterprise'];
+        
+        slidersToInit.forEach(tierId => {
+            const sliderEl = document.getElementById(tierId + 'Slider');
+            if (!sliderEl) return;
+
+            const config = tierConfig[tierId];
+            const snapValues = [];
+            
+            for (let i = config.volumeMin; i <= config.volumeMax; i += config.increment) {
+                snapValues.push(i);
+            }
+            if (snapValues[snapValues.length - 1] !== config.volumeMax) {
+                snapValues.push(config.volumeMax);
+            }
+
+            state.sliders[tierId] = noUiSlider.create(sliderEl, {
+                start: state.sliderValues[tierId],
+                connect: [true, false],
+                snap: true,
+                range: snapValues.reduce((acc, val, idx) => {
+                    if (idx === 0) {
+                        acc['min'] = val;
+                    } else if (idx === snapValues.length - 1) {
+                        acc['max'] = val;
+                    } else {
+                        const percent = ((val - config.volumeMin) / (config.volumeMax - config.volumeMin)) * 100;
+                        acc[percent.toFixed(2) + '%'] = val;
+                    }
+                    return acc;
+                }, {}),
+                format: wNumb({
+                    decimals: 0,
+                    thousand: ','
+                })
+            });
+
+            state.sliders[tierId].on('update', function(values) {
+                const value = parseInt(values[0].replace(/,/g, ''));
+                state.sliderValues[tierId] = value;
+                document.getElementById(tierId + 'SliderValue').textContent = formatNumber(value);
+                
+                if (state.selectedTier === tierId) {
+                    updateOrderSummary();
+                }
+            });
+
+            console.log(`[Slider] Initialized ${tierId} slider with ${snapValues.length} snap points`);
+        });
     }
 
     function renderPricesForTier(tierId) {
@@ -526,39 +693,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const tier = tierConfig[state.selectedTier];
-        document.getElementById('selectedTierName').textContent = tier.name;
-
-        orderItems.innerHTML = `
-            <div class="mb-3">
-                <label class="form-label">Message Quantity</label>
-                <input type="number" 
-                       class="form-control" 
-                       id="quantityInput"
-                       min="${tier.volumeMin}" 
-                       max="${tier.volumeMax}" 
-                       value="${Math.max(1000, tier.volumeMin)}"
-                       onchange="calculateTotal()">
-                <small class="text-muted">Range: ${tier.volumeMin.toLocaleString()} – ${tier.volumeMax.toLocaleString()}</small>
-            </div>
-        `;
-
-        orderSummary.classList.remove('d-none');
-        proceedBtn.disabled = false;
-        
-        calculateTotal();
-    }
-
-    window.calculateTotal = function() {
-        const quantityInput = document.getElementById('quantityInput');
-        if (!quantityInput || !state.selectedTier) return;
-
-        const quantity = parseInt(quantityInput.value) || 0;
+        const quantity = state.sliderValues[state.selectedTier];
         const smsPrice = state.products.sms?.price || 0;
         const netTotal = quantity * smsPrice;
-
         const vatAmount = state.vatApplicable ? netTotal * (state.vatRate / 100) : 0;
         const totalPayable = netTotal + vatAmount;
 
+        orderItems.innerHTML = '';
+        orderSummary.classList.remove('d-none');
+
+        document.getElementById('selectedTierName').textContent = tier.name;
+        document.getElementById('selectedQuantity').textContent = formatNumber(quantity) + ' messages';
         document.getElementById('netTotal').textContent = formatCurrencyShort(netTotal);
         document.getElementById('vatAmount').textContent = formatCurrencyShort(vatAmount);
         document.getElementById('vatRateDisplay').textContent = state.vatRate;
@@ -570,7 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             vatRow.classList.add('d-none');
         }
-    };
+
+        proceedBtn.disabled = false;
+    }
 
     window.loadPricing = async function() {
         state.isLoading = true;
@@ -609,12 +756,16 @@ document.addEventListener('DOMContentLoaded', function() {
             state.error = error.message;
             state.isLoading = false;
             
-            document.getElementById('tiersContainer').classList.add('d-none');
-            document.getElementById('errorState').classList.remove('d-none');
-            document.getElementById('errorMessage').textContent = error.message;
+            if (state.bespokePricing) {
+                renderPricesForTier('bespoke');
+            } else {
+                renderPricesForTier('starter');
+                renderPricesForTier('enterprise');
+            }
         }
     };
 
+    initializeSliders();
     loadPricing();
 });
 </script>
