@@ -114,8 +114,8 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info small mb-3">
-                                <i class="fas fa-info-circle me-2"></i>
+                            <div class="alert alert-pastel-primary small mb-3">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
                                 Dynamic lists automatically update membership based on filter rules. Contacts are added or removed in real-time as their data changes.
                             </div>
                             <div class="table-responsive">

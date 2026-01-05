@@ -41,7 +41,7 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <div class="alert bg-primary-light border-0 mb-4">
+                            <div class="alert alert-pastel-primary mb-4">
                                 <div class="d-flex align-items-start">
                                     <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
                                     <div>

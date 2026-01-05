@@ -46,6 +46,17 @@
     color: #3065D0 !important;
 }
 
+/* Alert boxes - Light purple pastel */
+.alert-pastel-primary {
+    background-color: rgba(111, 66, 193, 0.08) !important;
+    border: none !important;
+    color: #495057;
+}
+.alert-pastel-primary .text-primary,
+.alert-pastel-primary i.text-primary {
+    color: #6f42c1 !important;
+}
+
 /* Contact Avatar - Purple pastel */
 .contact-avatar {
     width: 36px;
