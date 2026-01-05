@@ -1467,6 +1467,7 @@ function selectChannel(channel) {
         previewChannel.textContent = 'Basic RCS';
         contentLabel.textContent = 'Message Content';
         previewToggle.classList.add('d-none');
+        autoSelectFirstAgent();
         updatePreview();
     } else if (channel === 'rcs_rich') {
         rcsAgentSection.classList.remove('d-none');
@@ -1477,6 +1478,7 @@ function selectChannel(channel) {
         previewToggle.classList.remove('d-none');
         document.getElementById('previewSMSBtn').classList.add('active');
         document.getElementById('previewRCSBtn').classList.remove('active');
+        autoSelectFirstAgent();
         updatePreview();
     }
     handleContentChange();
@@ -1486,6 +1488,13 @@ function toggleScheduling() {
     var options = document.getElementById('schedulingOptions');
     var isLater = document.getElementById('sendLater').checked;
     options.classList.toggle('d-none', !isLater);
+}
+
+function autoSelectFirstAgent() {
+    var agentSelect = document.getElementById('rcsAgent');
+    if (agentSelect && agentSelect.selectedIndex === 0 && agentSelect.options.length > 1) {
+        agentSelect.selectedIndex = 1;
+    }
 }
 
 function updatePreview() {
@@ -1510,11 +1519,12 @@ function updatePreview() {
         previewConfig.channel = 'sms';
     } else if (channel === 'rcs_basic') {
         previewConfig.channel = 'basic_rcs';
+        var selectedOption = rcsAgentSelect?.selectedOptions[0];
         previewConfig.agent = {
-            name: rcsAgentSelect?.selectedOptions[0]?.text || 'QuickSMS',
-            logo: 'https://ui-avatars.com/api/?name=QS&background=886CC0&color=fff&size=80',
+            name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
+            logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
             verified: true,
-            tagline: 'Business messaging'
+            tagline: selectedOption?.dataset?.tagline || 'Business messaging'
         };
     } else if (channel === 'rcs_rich') {
         return;
@@ -2311,9 +2321,7 @@ function updateRcsWizardPreview() {
     }
     
     if (!agentLogo) {
-        var initials = agentName.split(' ').map(function(w) { return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
-        var bgColor = agentBrandColor.replace('#', '');
-        agentLogo = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(initials) + '&background=' + bgColor + '&color=fff&size=80';
+        agentLogo = '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
     }
     
     var isCarousel = document.querySelector('input[name="rcsMessageType"]:checked')?.value === 'carousel';
@@ -3680,9 +3688,10 @@ function updateRcsWizardPreviewInMain() {
     if (!container) return;
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
-    var agentName = rcsAgentSelect?.selectedOptions[0]?.text || 'QuickSMS';
-    var agentLogo = 'https://ui-avatars.com/api/?name=QS&background=886CC0&color=fff&size=80';
-    var agentTagline = 'Business messaging';
+    var selectedOption = rcsAgentSelect?.selectedOptions[0];
+    var agentName = selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand';
+    var agentLogo = selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
+    var agentTagline = selectedOption?.dataset?.tagline || 'Business messaging';
     
     var isCarousel = document.querySelector('input[name="rcsMessageType"]:checked')?.value === 'carousel';
     var messageHtml = '';

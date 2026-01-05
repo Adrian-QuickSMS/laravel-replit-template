@@ -38,6 +38,7 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
   - **Rich RCS:** Full card/carousel rendering with RCS agent header (logo, verified badge), rich input bar (emoji, camera, microphone)
   - **Basic RCS:** Agent header with verified badge, RCS-style purple gradient text bubble, full RCS input affordances
   - **SMS:** SenderID-only header (no agent branding), gray SMS-style text bubble, simplified input bar (text field + send button only)
+  - **Mock RCS Agents:** Two mock agents with 222x222 SVG brand icons stored locally at `/public/images/rcs-agents/`. "QuickSMS Brand" (purple) and "Promotions Agent" (pink) auto-select when switching to RCS channels. Agent data shape matches future RCS Registration page (id, name, logo, tagline, brand_color).
 - **RCS Asset Management:** Server-side image processing pipeline for RCS media. When users provide public image URLs and apply edits (zoom, crop, orientation), the system fetches images server-side, applies transformations using Intervention Image, compresses to meet 250KB limit, and stores on QuickSMS-hosted storage. Features:
   - **API Endpoints:** `/api/rcs/assets/process-url` (URL-based), `/api/rcs/assets/process-upload` (file uploads), `PUT /api/rcs/assets/{uuid}` (update edits), `POST /api/rcs/assets/{uuid}/finalize` (mark complete)
   - **SSRF Protection:** Validates all DNS records (A and AAAA), blocks private/reserved IP ranges, pins validated IPs for requests, disables redirects

@@ -38,8 +38,8 @@ class QuickSMSController extends Controller
 
         // TODO: Replace with database query - GET /api/rcs-agents
         $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => null, 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => null, 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63'],
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63'],
         ];
 
         // TODO: Replace with database query - GET /api/templates
