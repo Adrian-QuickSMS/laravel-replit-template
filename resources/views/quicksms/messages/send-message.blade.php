@@ -67,7 +67,11 @@
                             <select class="form-select" id="rcsAgent" onchange="updatePreview()">
                                 <option value="">RCS Agent *</option>
                                 @foreach($rcs_agents as $agent)
-                                <option value="{{ $agent['id'] }}">{{ $agent['name'] }}</option>
+                                <option value="{{ $agent['id'] }}" 
+                                    data-name="{{ $agent['name'] }}"
+                                    data-logo="{{ $agent['logo'] ?? '' }}"
+                                    data-tagline="{{ $agent['tagline'] ?? '' }}"
+                                    data-brand-color="{{ $agent['brand_color'] ?? '#886CC0' }}">{{ $agent['name'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -2191,9 +2195,23 @@ function updateRcsWizardPreview() {
     if (!container) return;
     
     var agentSelect = document.getElementById('rcsAgent');
-    var agentName = 'Your Business';
+    var agentName = 'Select an Agent';
+    var agentTagline = '';
+    var agentLogo = '';
+    var agentBrandColor = '#886CC0';
+    
     if (agentSelect && agentSelect.selectedIndex > 0) {
-        agentName = agentSelect.options[agentSelect.selectedIndex].text;
+        var selectedOption = agentSelect.options[agentSelect.selectedIndex];
+        agentName = selectedOption.getAttribute('data-name') || selectedOption.text;
+        agentTagline = selectedOption.getAttribute('data-tagline') || '';
+        agentLogo = selectedOption.getAttribute('data-logo') || '';
+        agentBrandColor = selectedOption.getAttribute('data-brand-color') || '#886CC0';
+    }
+    
+    if (!agentLogo) {
+        var initials = agentName.split(' ').map(function(w) { return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
+        var bgColor = agentBrandColor.replace('#', '');
+        agentLogo = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(initials) + '&background=' + bgColor + '&color=fff&size=80';
     }
     
     var isCarousel = document.querySelector('input[name="rcsMessageType"]:checked')?.value === 'carousel';
@@ -2207,9 +2225,9 @@ function updateRcsWizardPreview() {
     
     container.innerHTML = renderRcsPhoneFrame({
         name: agentName,
-        logo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(agentName.substring(0, 2)) + '&background=7c3aed&color=fff&size=80',
+        logo: agentLogo,
         verified: true,
-        tagline: 'Verified Business'
+        tagline: agentTagline
     }, messageHtml);
     
     initRcsCarouselBehavior();
