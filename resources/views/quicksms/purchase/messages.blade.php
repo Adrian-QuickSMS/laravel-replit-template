@@ -81,17 +81,10 @@
     padding: 1.5rem;
     text-align: center;
 }
-.tier-header h4 {
+.tier-header .tier-title {
     margin-bottom: 0.5rem;
     font-weight: 700;
-}
-.tier-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
+    font-size: 1.75rem;
 }
 .tier-volume {
     font-size: 0.875rem;
@@ -205,8 +198,8 @@
     box-shadow: 0 0 0 0.2rem rgba(214, 83, 193, 0.15);
 }
 .pricing-badges {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
     margin-top: 1rem;
 }
@@ -214,11 +207,11 @@
     background: #fff;
     border: 1px solid #e9ecef;
     border-radius: 0.5rem;
-    padding: 0.375rem 0.625rem;
-    display: inline-flex;
+    padding: 0.5rem 0.5rem;
+    display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 70px;
+    justify-content: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 .pricing-badge .badge-label {
@@ -291,10 +284,14 @@
 .tier-footer {
     padding: 1rem 1.5rem 1.5rem;
     background: #fff;
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    position: relative;
+    z-index: 3;
 }
 .tier-footer .btn-purchase {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: #5a32a3;
+    border-color: #5a32a3;
     color: #fff;
     width: 100%;
     padding: 0.75rem 1.5rem;
@@ -302,16 +299,31 @@
     font-size: 1rem;
 }
 .tier-footer .btn-purchase:hover {
-    background: #5a32a3;
-    border-color: #5a32a3;
+    background: #4a2889;
+    border-color: #4a2889;
 }
 .order-summary-card {
     position: sticky;
     top: 100px;
 }
 .order-summary-card .card-header {
-    background: var(--primary);
+    background: linear-gradient(to right, #c165dd 0%, #5c27fe 100%);
     color: #fff;
+}
+.order-summary-card .card-header h5 {
+    color: #fff;
+}
+#proceedBtn {
+    background: #5a32a3;
+    border-color: #5a32a3;
+}
+#proceedBtn:hover:not(:disabled) {
+    background: #4a2889;
+    border-color: #4a2889;
+}
+#proceedBtn:disabled {
+    background: #9b8cb5;
+    border-color: #9b8cb5;
 }
 .summary-row {
     display: flex;
@@ -450,7 +462,7 @@
                                             <label>Message Volume</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control volume-input" id="bespokeVolumeInput" data-tier="bespoke" value="50,000">
-                                                <span class="input-group-text">msgs</span>
+                                                <span class="input-group-text">SMS</span>
                                             </div>
                                         </div>
                                         <div class="numeric-input-group">
@@ -473,7 +485,7 @@
                                 </div>
                                 <div class="tier-footer">
                                     <button class="btn btn-purchase" onclick="selectTier('bespoke')">
-                                        <i class="fas fa-shopping-cart me-2"></i>Purchase
+                                        Select
                                     </button>
                                 </div>
                             </div>
@@ -482,8 +494,7 @@
                         <div class="col-md-6">
                             <div class="card tier-card tier-starter tryal-gradient" data-tier="starter">
                                 <div class="tier-header">
-                                    <span class="tier-badge"><i class="fas fa-rocket me-1"></i>SMB</span>
-                                    <h4>Starter</h4>
+                                    <h3 class="tier-title">Starter</h3>
                                     <p class="tier-volume">Volume: <strong>0 – 50,000</strong> messages</p>
                                 </div>
                                 <div class="tier-slider-section">
@@ -501,7 +512,7 @@
                                             <label>Message Volume</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control volume-input" id="starterVolumeInput" data-tier="starter" value="10,000">
-                                                <span class="input-group-text">msgs</span>
+                                                <span class="input-group-text">SMS</span>
                                             </div>
                                         </div>
                                         <div class="numeric-input-group">
@@ -524,7 +535,7 @@
                                 </div>
                                 <div class="tier-footer">
                                     <button class="btn btn-purchase" onclick="selectTier('starter')">
-                                        <i class="fas fa-shopping-cart me-2"></i>Purchase
+                                        Select
                                     </button>
                                 </div>
                             </div>
@@ -533,8 +544,7 @@
                         <div class="col-md-6">
                             <div class="card tier-card tier-enterprise tryal-gradient" data-tier="enterprise">
                                 <div class="tier-header">
-                                    <span class="tier-badge"><i class="fas fa-building me-1"></i>Business</span>
-                                    <h4>Enterprise</h4>
+                                    <h3 class="tier-title">Enterprise</h3>
                                     <p class="tier-volume">Volume: <strong>50,000 – 1,000,000</strong> messages</p>
                                 </div>
                                 <div class="tier-slider-section">
@@ -552,7 +562,7 @@
                                             <label>Message Volume</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control volume-input" id="enterpriseVolumeInput" data-tier="enterprise" value="100,000">
-                                                <span class="input-group-text">msgs</span>
+                                                <span class="input-group-text">SMS</span>
                                             </div>
                                         </div>
                                         <div class="numeric-input-group">
@@ -575,7 +585,7 @@
                                 </div>
                                 <div class="tier-footer">
                                     <button class="btn btn-purchase" onclick="selectTier('enterprise')">
-                                        <i class="fas fa-shopping-cart me-2"></i>Purchase
+                                        Select
                                     </button>
                                 </div>
                             </div>
@@ -1022,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `
                 <div class="pricing-badge">
                     <span class="badge-label">${label}</span>
-                    <span class="badge-price">${formatCurrencyBadge(price)}</span>
+                    <span class="badge-price">${formatCurrencyBadge(price, key)}</span>
                 </div>
             `;
         }
@@ -1030,10 +1040,27 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = html;
     }
 
-    function formatCurrencyBadge(amount) {
+    function formatCurrencyBadge(amount, productKey) {
         const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
         const symbol = symbols[state.currency] || state.currency + ' ';
-        return symbol + amount.toFixed(4);
+        
+        if (productKey === 'ai') {
+            return symbol + amount.toFixed(2);
+        }
+        
+        if (productKey === 'vmn' || productKey === 'shortcode_keyword') {
+            if (amount % 1 === 0) {
+                return symbol + amount.toFixed(0);
+            }
+            return symbol + amount.toFixed(2);
+        }
+        
+        let formatted = amount.toFixed(4);
+        formatted = formatted.replace(/0+$/, '');
+        if (formatted.endsWith('.')) {
+            formatted = formatted.slice(0, -1);
+        }
+        return symbol + formatted;
     }
 
     window.selectTier = function(tierId) {
