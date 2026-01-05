@@ -374,8 +374,9 @@
 @section('content')
 @php
     // TODO: Replace with actual user role from auth system
-    // Allowed roles: 'admin' (full access), 'finance' (purchase & invoices), 'standard' (view only)
+    // Allowed roles: 'admin' (full access), 'finance' (purchase & invoices), 'viewer' (view/download only)
     $currentUserRole = 'admin';
+    $canMakePayments = in_array($currentUserRole, ['admin', 'finance']);
 @endphp
 <div class="container-fluid invoices-container">
     <div class="row page-titles mb-2" style="flex-shrink: 0;">
@@ -428,9 +429,11 @@
             </div>
             <div class="col-lg-3 mt-3 mt-lg-0">
                 <div class="d-flex flex-column gap-2">
+                    @if($canMakePayments)
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#topUpModal">
                         <i class="fas fa-plus-circle me-1"></i> Top Up Balance
                     </button>
+                    @endif
                     <button type="button" class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="collapse" data-bs-target="#creditHelperPanel">
                         <i class="fas fa-question-circle me-1"></i> How does credit work?
                     </button>
@@ -670,9 +673,11 @@
                 <button type="button" class="btn btn-outline-primary flex-grow-1" id="downloadPdfBtn">
                     <i class="fas fa-file-pdf me-1"></i> Download PDF
                 </button>
+                @if($canMakePayments)
                 <button type="button" class="btn btn-primary flex-grow-1" id="payNowBtn" style="display: none;">
                     <i class="fas fa-credit-card me-1"></i> Pay Invoice
                 </button>
+                @endif
             </div>
             <button type="button" class="btn btn-outline-secondary w-100" id="viewBillingBreakdownBtn">
                 <i class="fas fa-chart-pie me-1"></i> View Billing Breakdown
@@ -1235,14 +1240,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const payNowBtn = document.getElementById('payNowBtn');
-        const isPayableStatus = invoice.status === 'issued' || invoice.status === 'pending' || invoice.status === 'overdue';
-        const showPayNow = isPayableStatus && canMakePayments && invoice.balanceDue > 0;
-        
-        if (showPayNow) {
-            payNowBtn.style.display = 'block';
-            payNowBtn.onclick = () => payInvoice(invoice.id);
-        } else {
-            payNowBtn.style.display = 'none';
+        if (payNowBtn) {
+            const isPayableStatus = invoice.status === 'issued' || invoice.status === 'pending' || invoice.status === 'overdue';
+            const showPayNow = isPayableStatus && canMakePayments && invoice.balanceDue > 0;
+            
+            if (showPayNow) {
+                payNowBtn.style.display = 'block';
+                payNowBtn.onclick = () => payInvoice(invoice.id);
+            } else {
+                payNowBtn.style.display = 'none';
+            }
         }
 
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
