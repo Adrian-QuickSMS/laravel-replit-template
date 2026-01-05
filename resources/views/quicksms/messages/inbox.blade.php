@@ -39,7 +39,7 @@
 }
 #chatHeader {
     flex: 0 0 auto !important;
-    background: white !important;
+    background: var(--bs-card-bg, #fff) !important;
 }
 /* Hide any stray form-switch/toggle elements in chat header */
 #chatHeader .form-switch,
@@ -49,11 +49,12 @@
 }
 #chatSearchBar {
     flex: 0 0 auto !important;
+    background: var(--bs-card-bg, #fff) !important;
 }
 #chatArea {
     flex: 1 1 0 !important;
     overflow-y: auto !important;
-    background: white !important;
+    background: var(--bs-card-bg, #fff) !important;
     padding-bottom: 270px !important;
 }
 #replyComposerCard {
@@ -69,8 +70,32 @@
     border-left: 0 !important;
     border-right: 0 !important;
     border-bottom: 0 !important;
-    background: white !important;
+    background: var(--bs-card-bg, #fff) !important;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08) !important;
+}
+/* Dark mode overrides */
+[data-theme-version="dark"] #chatHeader,
+[data-theme-version="dark"] #chatSearchBar,
+[data-theme-version="dark"] #chatArea,
+[data-theme-version="dark"] #replyComposerCard {
+    background: #1e1e28 !important;
+}
+[data-theme-version="dark"] .chat-left-body {
+    background: #1e1e28 !important;
+    border-right-color: #333 !important;
+}
+[data-theme-version="dark"] .contact-sidebar {
+    background: #1e1e28 !important;
+}
+[data-theme-version="dark"] #replyComposerCard {
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3) !important;
+    border-top-color: #333 !important;
+}
+[data-theme-version="dark"] .chat-bx:hover {
+    background-color: rgba(111, 66, 193, 0.15) !important;
+}
+[data-theme-version="dark"] .chat-bx.active {
+    background-color: rgba(111, 66, 193, 0.2) !important;
 }
 .chat-bx {
     cursor: pointer;
@@ -415,7 +440,7 @@ span.badge.channel-pill-rcs,
                     </div>
                     
                     <div class="chat-pane-wrapper" id="chatPaneWrapper" style="flex: 1; min-width: 0; height: 100%; position: relative; display: flex; flex-direction: column; overflow: hidden;">
-                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="flex: 0 0 auto; background: white;">
+                            <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="flex: 0 0 auto;">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
                                         {{ $conversations[0]['initials'] ?? '--' }}
@@ -469,7 +494,7 @@ span.badge.channel-pill-rcs,
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 490px 15px; background-color: #ffffff;">
+                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 490px 15px;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -527,7 +552,7 @@ span.badge.channel-pill-rcs,
                                 @endif
                             </div>
                             
-                            <div class="card border-top" id="replyComposerCard" style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; border-radius: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100; max-height: 480px; overflow: visible;">
+                            <div class="card border-top" id="replyComposerCard" style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; border-radius: 0; z-index: 100; max-height: 480px; overflow: visible;">
                                 <div class="card-body p-2">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
