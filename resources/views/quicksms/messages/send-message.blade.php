@@ -230,14 +230,14 @@
                     
                     <div class="d-none mt-3" id="rcsContentSection">
                         <div class="border rounded p-3 bg-light text-center">
-                            <i class="fas fa-image fa-2x text-success mb-2"></i>
+                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
                             <h6 class="mb-2">Rich RCS Card</h6>
                             <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
-                            <button type="button" class="btn btn-success" onclick="openRcsWizard()">
+                            <button type="button" class="btn btn-primary" onclick="openRcsWizard()">
                                 <i class="fas fa-magic me-1"></i>Create RCS Message
                             </button>
                             <div class="d-none mt-3" id="rcsConfiguredSummary">
-                                <div class="alert alert-success py-2 mb-0">
+                                <div class="alert alert-primary py-2 mb-0">
                                     <i class="fas fa-check-circle me-1"></i>
                                     <span id="rcsConfiguredText">RCS content configured</span>
                                     <a href="#" class="ms-2" onclick="openRcsWizard(); return false;">Edit</a>
@@ -1001,7 +1001,7 @@
 <div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
         <div class="modal-content">
-            <div class="modal-header py-3 bg-success text-white">
+            <div class="modal-header py-3" style="background: var(--primary); color: #fff;">
                 <h5 class="modal-title"><i class="fas fa-magic me-2"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -1019,11 +1019,11 @@
                                 <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-layer-group me-2"></i>Message Type</h6>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="rcsMessageType" id="rcsTypeSingle" value="single" checked>
-                                    <label class="btn btn-outline-success" for="rcsTypeSingle">
+                                    <label class="btn btn-outline-primary" for="rcsTypeSingle">
                                         <i class="fas fa-square me-1"></i>Single Rich Card
                                     </label>
                                     <input type="radio" class="btn-check" name="rcsMessageType" id="rcsTypeCarousel" value="carousel">
-                                    <label class="btn btn-outline-success" for="rcsTypeCarousel">
+                                    <label class="btn btn-outline-primary" for="rcsTypeCarousel">
                                         <i class="fas fa-images me-1"></i>Carousel
                                     </label>
                                 </div>
@@ -1035,7 +1035,7 @@
                                     <span class="badge bg-secondary" id="rcsCardCount">1 / 10</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 align-items-center" id="rcsCardTabs">
-                                    <button type="button" class="btn btn-success btn-sm rcs-card-tab active" data-card="1" onclick="selectRcsCard(1)">Card 1</button>
+                                    <button type="button" class="btn btn-primary btn-sm rcs-card-tab active" data-card="1" onclick="selectRcsCard(1)">Card 1</button>
                                     <button type="button" class="btn btn-outline-secondary btn-sm" id="rcsAddCardBtn" onclick="addRcsCard()">
                                         <i class="fas fa-plus"></i>
                                     </button>
@@ -1045,7 +1045,7 @@
                             
                             <div id="rcsCardConfig">
                                 <div class="d-none mb-2" id="rcsCurrentCardLabel">
-                                    <span class="badge bg-success"><i class="fas fa-square me-1"></i>Editing: <span id="rcsCurrentCardName">Card 1</span></span>
+                                    <span class="badge bg-primary"><i class="fas fa-square me-1"></i>Editing: <span id="rcsCurrentCardName">Card 1</span></span>
                                 </div>
                                 
                                 <div class="mb-4">
@@ -1066,7 +1066,7 @@
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text"><i class="fas fa-globe"></i></span>
                                                 <input type="url" class="form-control" id="rcsMediaUrlInput" placeholder="https://example.com/image.jpg">
-                                                <button type="button" class="btn btn-outline-success" onclick="loadRcsMediaUrl()">
+                                                <button type="button" class="btn btn-outline-primary" onclick="loadRcsMediaUrl()">
                                                     <i class="fas fa-check"></i>
                                                 </button>
                                             </div>
@@ -1217,7 +1217,7 @@
                                         <div id="rcsButtonsList"></div>
                                         
                                         <div id="rcsAddButtonSection">
-                                            <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="addRcsButton()" id="rcsAddButtonBtn">
+                                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="addRcsButton()" id="rcsAddButtonBtn">
                                                 <i class="fas fa-plus me-1"></i>Add Button
                                             </button>
                                         </div>
@@ -1299,7 +1299,7 @@
                                                     </div>
                                                     <div class="modal-footer py-2">
                                                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                                                        <button type="button" class="btn btn-success btn-sm" onclick="saveRcsButton()">
+                                                        <button type="button" class="btn btn-primary btn-sm" onclick="saveRcsButton()">
                                                             <i class="fas fa-check me-1"></i>Save Button
                                                         </button>
                                                     </div>
@@ -1315,7 +1315,7 @@
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="applyRcsContent()" disabled>
+                <button type="button" class="btn btn-primary" onclick="applyRcsContent()" disabled>
                     <i class="fas fa-check me-1"></i>Apply RCS Content
                 </button>
             </div>
@@ -2443,8 +2443,8 @@ function resetRcsCardTabs() {
     var firstTab = tabsContainer.querySelector('.rcs-card-tab');
     if (firstTab) {
         firstTab.classList.add('active');
-        firstTab.classList.remove('btn-outline-success');
-        firstTab.classList.add('btn-success');
+        firstTab.classList.remove('btn-outline-primary');
+        firstTab.classList.add('btn-primary');
     }
     addBtn.disabled = false;
 }
@@ -2462,7 +2462,7 @@ function addRcsCard() {
     
     var newTab = document.createElement('button');
     newTab.type = 'button';
-    newTab.className = 'btn btn-outline-success btn-sm rcs-card-tab';
+    newTab.className = 'btn btn-outline-primary btn-sm rcs-card-tab';
     newTab.setAttribute('data-card', rcsCardCount);
     newTab.textContent = 'Card ' + rcsCardCount;
     newTab.onclick = function() { selectRcsCard(rcsCardCount); };
@@ -2513,7 +2513,7 @@ function rebuildCardTabs() {
     for (var i = 1; i <= rcsCardCount; i++) {
         var tab = document.createElement('button');
         tab.type = 'button';
-        tab.className = 'btn btn-sm rcs-card-tab ' + (i === rcsCurrentCard ? 'btn-success active' : 'btn-outline-success');
+        tab.className = 'btn btn-sm rcs-card-tab ' + (i === rcsCurrentCard ? 'btn-primary active' : 'btn-outline-primary');
         tab.setAttribute('data-card', i);
         tab.textContent = 'Card ' + i;
         (function(cardNum) {
@@ -2535,11 +2535,11 @@ function selectRcsCard(cardNum) {
     document.querySelectorAll('.rcs-card-tab').forEach(function(tab) {
         var tabCard = parseInt(tab.getAttribute('data-card'));
         if (tabCard === cardNum) {
-            tab.classList.remove('btn-outline-success');
-            tab.classList.add('btn-success', 'active');
+            tab.classList.remove('btn-outline-primary');
+            tab.classList.add('btn-primary', 'active');
         } else {
-            tab.classList.remove('btn-success', 'active');
-            tab.classList.add('btn-outline-success');
+            tab.classList.remove('btn-primary', 'active');
+            tab.classList.add('btn-outline-primary');
         }
     });
     
@@ -3026,15 +3026,15 @@ document.addEventListener('DOMContentLoaded', function() {
     var dropzone = document.getElementById('rcsMediaDropzone');
     dropzone.addEventListener('dragover', function(e) {
         e.preventDefault();
-        dropzone.classList.add('border-success');
+        dropzone.classList.add('border-primary');
     });
     dropzone.addEventListener('dragleave', function(e) {
         e.preventDefault();
-        dropzone.classList.remove('border-success');
+        dropzone.classList.remove('border-primary');
     });
     dropzone.addEventListener('drop', function(e) {
         e.preventDefault();
-        dropzone.classList.remove('border-success');
+        dropzone.classList.remove('border-primary');
         if (e.dataTransfer.files.length > 0) {
             handleRcsFileUpload(e.dataTransfer.files[0]);
         }
