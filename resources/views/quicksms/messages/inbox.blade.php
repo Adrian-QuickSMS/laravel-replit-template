@@ -97,16 +97,21 @@
     border-color: #4a4a5a !important;
     color: #ffffff !important;
 }
-/* Dark mode: Channel button text should be WHITE */
+/* Dark mode: Channel button text should be WHITE - targeting label elements */
+[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary,
+[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary i,
 [data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary,
 [data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary i {
     color: #ffffff !important;
     border-color: rgba(136, 108, 192, 0.5) !important;
 }
+[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary:hover,
 [data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary:hover {
     background-color: rgba(136, 108, 192, 0.3) !important;
     color: #ffffff !important;
 }
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + label.btn-outline-primary,
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + label.btn-outline-primary i,
 [data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + .btn-outline-primary,
 [data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + .btn-outline-primary i {
     background-color: var(--primary) !important;
@@ -384,7 +389,7 @@ span.badge.channel-pill-rcs,
         <div class="col-xl-12">
             <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
                 <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%; min-height: 0;">
-                    <div style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; border-right: 1px solid #e9ecef; overflow: hidden;">
+                    <div class="chat-left-body" style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center flex-wrap gap-2">
