@@ -289,8 +289,8 @@
     z-index: 3;
 }
 .tier-footer .btn-purchase {
-    background: #7978a1;
-    border-color: #7978a1;
+    background: var(--primary);
+    border-color: var(--primary);
     color: #fff;
     width: 100%;
     padding: 0.75rem 1.5rem;
@@ -298,8 +298,8 @@
     font-size: 1rem;
 }
 .tier-footer .btn-purchase:hover {
-    background: #6a6991;
-    border-color: #6a6991;
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
 }
 .order-summary-card {
     position: sticky;
@@ -313,16 +313,16 @@
     color: #fff;
 }
 #proceedBtn {
-    background: #7978a1;
-    border-color: #7978a1;
+    background: var(--primary);
+    border-color: var(--primary);
 }
 #proceedBtn:hover:not(:disabled) {
-    background: #6a6991;
-    border-color: #6a6991;
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
 }
 #proceedBtn:disabled {
-    background: #a8a7c4;
-    border-color: #a8a7c4;
+    background: var(--primary-light);
+    border-color: var(--primary-light);
 }
 .summary-row {
     display: flex;
