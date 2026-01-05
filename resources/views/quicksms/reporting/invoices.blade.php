@@ -38,30 +38,25 @@
 #filtersPanel .dropdown-menu {
     z-index: 1050;
 }
-#filtersPanel select[multiple] {
+#filtersPanel .multiselect-dropdown .dropdown-toggle {
     height: 38px;
-    min-height: 38px;
-    padding: 0.25rem 0.5rem;
-}
-#filtersPanel .bootstrap-select {
-    width: 100% !important;
-}
-#filtersPanel .bootstrap-select .dropdown-toggle {
-    height: 38px;
-    padding: 0.375rem 0.75rem;
     font-size: 0.875rem;
-    border-radius: 0.25rem;
-    background-color: #fff;
-    border-color: #ced4da;
 }
-#filtersPanel .bootstrap-select .dropdown-toggle .filter-option-inner-inner {
+#filtersPanel .multiselect-dropdown .dropdown-label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
 }
-#filtersPanel .bootstrap-select .dropdown-menu {
-    max-height: 250px;
-    overflow-y: auto;
+#filtersPanel .multiselect-dropdown .dropdown-menu {
+    z-index: 1050;
+}
+#filtersPanel .multiselect-dropdown .form-check {
+    padding-left: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+#filtersPanel .multiselect-dropdown .form-check-label {
+    cursor: pointer;
 }
 .invoices-table-wrapper {
     flex: 1 1 0;
@@ -512,49 +507,81 @@
                     <div class="invoices-fixed-header">
                         <div class="collapse mb-3" id="filtersPanel">
                             <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                                <div class="row g-3 align-items-center">
+                                <div class="row g-3 align-items-end">
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold mb-1">Billing Year</label>
-                                        <select class="form-select form-select-sm" id="billingYearFilter" multiple data-placeholder="All Years">
-                                        </select>
+                                        <label class="form-label small fw-bold">Billing Year</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="billingYear">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Years</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="filter-options" id="billingYearOptions"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold mb-1">Billing Month</label>
-                                        <select class="form-select form-select-sm" id="billingMonthFilter" multiple data-placeholder="All Months">
-                                            <option value="01">January</option>
-                                            <option value="02">February</option>
-                                            <option value="03">March</option>
-                                            <option value="04">April</option>
-                                            <option value="05">May</option>
-                                            <option value="06">June</option>
-                                            <option value="07">July</option>
-                                            <option value="08">August</option>
-                                            <option value="09">September</option>
-                                            <option value="10">October</option>
-                                            <option value="11">November</option>
-                                            <option value="12">December</option>
-                                        </select>
+                                        <label class="form-label small fw-bold">Billing Month</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="billingMonth">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Months</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="filter-options">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="01" id="month01"><label class="form-check-label small" for="month01">January</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="02" id="month02"><label class="form-check-label small" for="month02">February</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="03" id="month03"><label class="form-check-label small" for="month03">March</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="04" id="month04"><label class="form-check-label small" for="month04">April</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="05" id="month05"><label class="form-check-label small" for="month05">May</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="06" id="month06"><label class="form-check-label small" for="month06">June</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="07" id="month07"><label class="form-check-label small" for="month07">July</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="08" id="month08"><label class="form-check-label small" for="month08">August</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="09" id="month09"><label class="form-check-label small" for="month09">September</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="10" id="month10"><label class="form-check-label small" for="month10">October</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="11" id="month11"><label class="form-check-label small" for="month11">November</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="12" id="month12"><label class="form-check-label small" for="month12">December</label></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold mb-1">Invoice Status</label>
-                                        <select class="form-select form-select-sm" id="statusFilter" multiple data-placeholder="All Statuses">
-                                            <option value="draft">Draft</option>
-                                            <option value="issued">Issued</option>
-                                            <option value="paid">Paid</option>
-                                            <option value="overdue">Overdue</option>
-                                            <option value="void">Void / Cancelled</option>
-                                        </select>
+                                        <label class="form-label small fw-bold">Invoice Status</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="status">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Statuses</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="filter-options">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="issued" id="statusIssued"><label class="form-check-label small" for="statusIssued">Issued</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="paid" id="statusPaid"><label class="form-check-label small" for="statusPaid">Paid</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="overdue" id="statusOverdue"><label class="form-check-label small" for="statusOverdue">Overdue</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="void" id="statusVoid"><label class="form-check-label small" for="statusVoid">Void / Cancelled</label></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-3">
-                                        <label class="form-label small fw-bold mb-1">Invoice Number</label>
-                                        <input type="text" class="form-control form-control-sm" id="invoiceNumberFilter" placeholder="Search invoice number...">
+                                        <label class="form-label small fw-bold">Invoice Number</label>
+                                        <input type="text" class="form-control form-control-sm" id="invoiceNumberFilter" placeholder="Enter ID..." style="background-color: #fff;">
                                     </div>
-                                    <div class="col-12 col-md-4 col-lg-3 d-flex gap-2 align-items-center">
+                                    <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
                                         <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="applyFiltersBtn">
                                             <i class="fas fa-check me-1"></i> Apply Filters
                                         </button>
                                         <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" id="resetFiltersBtn">
-                                            <i class="fas fa-undo me-1"></i> Reset
+                                            <i class="fas fa-undo me-1"></i> Reset Filters
                                         </button>
                                     </div>
                                 </div>
@@ -1728,36 +1755,82 @@ document.addEventListener('DOMContentLoaded', function() {
         '09': 'September', '10': 'October', '11': 'November', '12': 'December'
     };
 
+    const defaultLabels = {
+        billingYear: 'All Years',
+        billingMonth: 'All Months',
+        status: 'All Statuses'
+    };
+
     function populateBillingYearOptions() {
-        const yearSelect = document.getElementById('billingYearFilter');
+        const container = document.getElementById('billingYearOptions');
         const currentYear = new Date().getFullYear();
+        container.innerHTML = '';
         for (let year = currentYear; year >= 2015; year--) {
-            const option = document.createElement('option');
-            option.value = year;
-            option.textContent = year;
-            yearSelect.appendChild(option);
+            const div = document.createElement('div');
+            div.className = 'form-check';
+            div.innerHTML = `<input class="form-check-input" type="checkbox" value="${year}" id="year${year}"><label class="form-check-label small" for="year${year}">${year}</label>`;
+            container.appendChild(div);
         }
-        $(yearSelect).selectpicker('refresh');
     }
 
-    function getMultiSelectValues(selectId) {
-        const select = document.getElementById(selectId);
-        return Array.from(select.selectedOptions).map(opt => opt.value);
+    function getDropdownSelectedValues(filterName) {
+        const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterName}"]`);
+        if (!dropdown) return [];
+        const checkboxes = dropdown.querySelectorAll('.filter-options input[type="checkbox"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
     }
 
     function getCurrentFilterValues() {
         return {
-            billingYear: getMultiSelectValues('billingYearFilter'),
-            billingMonth: getMultiSelectValues('billingMonthFilter'),
-            status: getMultiSelectValues('statusFilter'),
+            billingYear: getDropdownSelectedValues('billingYear'),
+            billingMonth: getDropdownSelectedValues('billingMonth'),
+            status: getDropdownSelectedValues('status'),
             invoiceNumber: document.getElementById('invoiceNumberFilter').value.trim()
         };
     }
 
+    function clearDropdownSelections(filterName) {
+        const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterName}"]`);
+        if (!dropdown) return;
+        dropdown.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+        updateDropdownLabel(dropdown);
+    }
+
+    function setDropdownSelections(filterName, values) {
+        const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterName}"]`);
+        if (!dropdown) return;
+        dropdown.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => {
+            cb.checked = values.includes(cb.value);
+        });
+        updateDropdownLabel(dropdown);
+    }
+
+    function updateDropdownLabel(dropdown) {
+        const filterName = dropdown.dataset.filter;
+        const checkboxes = dropdown.querySelectorAll('.filter-options input[type="checkbox"]:checked');
+        const label = dropdown.querySelector('.dropdown-label');
+        const count = checkboxes.length;
+        
+        if (count === 0) {
+            label.textContent = defaultLabels[filterName] || 'All';
+        } else if (count === 1) {
+            const val = checkboxes[0].value;
+            if (filterName === 'billingMonth') {
+                label.textContent = monthNames[val] || val;
+            } else if (filterName === 'status') {
+                label.textContent = val.charAt(0).toUpperCase() + val.slice(1);
+            } else {
+                label.textContent = val;
+            }
+        } else {
+            label.textContent = count + ' selected';
+        }
+    }
+
     function setFilterInputs(filters) {
-        $('#billingYearFilter').selectpicker('val', filters.billingYear);
-        $('#billingMonthFilter').selectpicker('val', filters.billingMonth);
-        $('#statusFilter').selectpicker('val', filters.status);
+        setDropdownSelections('billingYear', filters.billingYear);
+        setDropdownSelections('billingMonth', filters.billingMonth);
+        setDropdownSelections('status', filters.status);
         document.getElementById('invoiceNumberFilter').value = filters.invoiceNumber;
     }
 
@@ -1767,7 +1840,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function arraysMatch(a, b) {
         if (a.length !== b.length) return false;
-        return a.every((val, i) => val === b[i]);
+        const sortedA = [...a].sort();
+        const sortedB = [...b].sort();
+        return sortedA.every((val, i) => val === sortedB[i]);
     }
 
     function filtersMatch(a, b) {
@@ -1835,12 +1910,12 @@ document.addEventListener('DOMContentLoaded', function() {
             appliedFilters.invoiceNumber = '';
             pendingFilters.invoiceNumber = '';
         } else {
-            const selectId = filterKey === 'billingYear' ? 'billingYearFilter' :
-                            filterKey === 'billingMonth' ? 'billingMonthFilter' : 'statusFilter';
-            const select = document.getElementById(selectId);
-            const option = select.querySelector(`option[value="${filterValue}"]`);
-            if (option) option.selected = false;
-            $(select).selectpicker('refresh');
+            const dropdown = document.querySelector(`.multiselect-dropdown[data-filter="${filterKey}"]`);
+            if (dropdown) {
+                const checkbox = dropdown.querySelector(`input[type="checkbox"][value="${filterValue}"]`);
+                if (checkbox) checkbox.checked = false;
+                updateDropdownLabel(dropdown);
+            }
             
             appliedFilters[filterKey] = appliedFilters[filterKey].filter(v => v !== filterValue);
             pendingFilters[filterKey] = pendingFilters[filterKey].filter(v => v !== filterValue);
@@ -1900,45 +1975,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resetFilters() {
-        setFilterInputs({ billingYear: [], billingMonth: [], status: [], invoiceNumber: '' });
+        clearDropdownSelections('billingYear');
+        clearDropdownSelections('billingMonth');
+        clearDropdownSelections('status');
+        document.getElementById('invoiceNumberFilter').value = '';
         appliedFilters = { billingYear: [], billingMonth: [], status: [], invoiceNumber: '' };
         pendingFilters = { billingYear: [], billingMonth: [], status: [], invoiceNumber: '' };
         updateActiveFilterChips();
         filterAndRenderInvoices();
     }
 
-    $('#billingYearFilter').selectpicker({
-        noneSelectedText: 'All Years',
-        selectedTextFormat: 'count > 2',
-        countSelectedText: '{0} years',
-        actionsBox: true,
-        liveSearch: true,
-        liveSearchPlaceholder: 'Search years...',
-        style: '',
-        styleBase: 'form-control form-control-sm'
-    });
-    $('#billingMonthFilter').selectpicker({
-        noneSelectedText: 'All Months',
-        selectedTextFormat: 'count > 2',
-        countSelectedText: '{0} months',
-        actionsBox: true,
-        style: '',
-        styleBase: 'form-control form-control-sm'
-    });
-    $('#statusFilter').selectpicker({
-        noneSelectedText: 'All Statuses',
-        selectedTextFormat: 'count > 2',
-        countSelectedText: '{0} statuses',
-        actionsBox: true,
-        style: '',
-        styleBase: 'form-control form-control-sm'
-    });
-
     populateBillingYearOptions();
 
-    ['billingYearFilter', 'billingMonthFilter', 'statusFilter'].forEach(id => {
-        $('#' + id).on('changed.bs.select', updateActiveFilterChips);
+    document.querySelectorAll('.multiselect-dropdown').forEach(dropdown => {
+        dropdown.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                updateDropdownLabel(dropdown);
+                updateActiveFilterChips();
+            });
+        });
+        
+        const selectAllBtn = dropdown.querySelector('.select-all-btn');
+        const clearAllBtn = dropdown.querySelector('.clear-all-btn');
+        
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => cb.checked = true);
+                updateDropdownLabel(dropdown);
+                updateActiveFilterChips();
+            });
+        }
+        
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.querySelectorAll('.filter-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+                updateDropdownLabel(dropdown);
+                updateActiveFilterChips();
+            });
+        }
     });
+
     document.getElementById('invoiceNumberFilter').addEventListener('input', updateActiveFilterChips);
 
     document.getElementById('applyFiltersBtn').addEventListener('click', function() {
