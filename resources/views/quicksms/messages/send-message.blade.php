@@ -1570,7 +1570,11 @@ function updatePreview() {
             };
         }
     } else if (channel === 'rcs_rich') {
-        return;
+        if (richRcsPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+        } else {
+            return;
+        }
     }
     
     container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
@@ -2296,6 +2300,14 @@ function applyRcsContent() {
     document.getElementById('rcsConfiguredSummary').classList.remove('d-none');
     
     bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+    
+    setTimeout(function() {
+        if (richRcsPreviewMode === 'rcs') {
+            updateRcsWizardPreviewInMain();
+        } else {
+            showRichRcsSmsPreview();
+        }
+    }, 100);
 }
 
 function showRcsValidationErrors(errors, warnings) {
