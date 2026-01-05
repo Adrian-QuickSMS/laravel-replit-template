@@ -61,8 +61,16 @@ The application is built on PHP 8.1+ and Laravel 10, using the Fillow SaaS Admin
   - `getPeakTime()` → GET /reporting/peak-time (peak sending insight)
   All functions include TODO comments for warehouse integration.
 
+- **Purchase Messages (`/purchase/messages`):** HubSpot Products API integration for live pricing. Admin/Finance access only. Features:
+  - **HubSpotProductService (`app/Services/HubSpotProductService.php`):** Fetches products from HubSpot CRM API using SKU mapping (QSMS-SMS, QSMS-RCS-BASIC, QSMS-RCS-SINGLE, QSMS-VMN, QSMS-SHORTCODE, QSMS-AI). Supports multi-currency (GBP, EUR, USD) via `hs_price_*` fields. No caching beyond current session.
+  - **VatService (`app/Services/VatService.php`):** Calculates VAT at 20% based on `vat_applicable` account flag. Returns net, VAT amount, and total. VAT never embedded in unit prices.
+  - **Purchase API (`app/Http/Controllers/Api/PurchaseApiController.php`):** Endpoints at `/api/purchase/products` (GET) and `/api/purchase/calculate-order` (POST). Returns products with pricing breakdown including VAT calculations.
+  - **UI:** Product cards with skeleton loading, quantity inputs, order summary sidebar showing Net Total / VAT / Total Payable. Error state with retry button. VAT info banner conditional on account flag.
+  - **Required Secret:** `HUBSPOT_ACCESS_TOKEN` - HubSpot Private App token with e-commerce read scope.
+
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
 - **Fillow SaaS Admin Template:** UI framework based on Bootstrap 5.
 - **MetisMenu:** JavaScript library for collapsible sidebar navigation.
 - **SQLite:** Database for local development.
+- **HubSpot Products API:** External pricing data source for Purchase module.

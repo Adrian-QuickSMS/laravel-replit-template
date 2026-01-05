@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ReportingDashboardApiController;
 use App\Http\Controllers\Api\BillingApiController;
+use App\Http\Controllers\Api\PurchaseApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,4 +43,10 @@ Route::prefix('billing')->group(function () {
     Route::get('/saved-reports', [BillingApiController::class, 'getSavedReports']);
     Route::post('/saved-reports', [BillingApiController::class, 'saveReport']);
     Route::post('/schedule', [BillingApiController::class, 'schedule']);
+});
+
+// Purchase API (HubSpot Products integration)
+Route::prefix('purchase')->group(function () {
+    Route::get('/products', [PurchaseApiController::class, 'getProducts']);
+    Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder']);
 });
