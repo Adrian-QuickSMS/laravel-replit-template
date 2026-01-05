@@ -287,6 +287,7 @@
     border-bottom-right-radius: 0.75rem;
     position: relative;
     z-index: 3;
+    margin-bottom: -1px;
 }
 .tier-footer .btn-purchase {
     background: var(--primary);
