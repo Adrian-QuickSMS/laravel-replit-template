@@ -49,4 +49,5 @@ Route::prefix('billing')->group(function () {
 Route::prefix('purchase')->group(function () {
     Route::get('/products', [PurchaseApiController::class, 'getProducts']);
     Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder']);
+    Route::post('/create-invoice', [PurchaseApiController::class, 'createInvoice']);
 });

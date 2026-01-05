@@ -113,6 +113,60 @@ class HubSpotProductService
         };
     }
 
+    public function createInvoice(array $data): array
+    {
+        if (empty($this->accessToken)) {
+            Log::warning('HubSpot access token not configured');
+            return [
+                'success' => false,
+                'error' => 'HubSpot API not configured. Please add HUBSPOT_ACCESS_TOKEN.',
+            ];
+        }
+
+        try {
+            // TODO: Implement actual HubSpot invoice creation
+            // This would typically:
+            // 1. Create or find the contact/company in HubSpot
+            // 2. Create a deal with line items
+            // 3. Generate an invoice via HubSpot Payments or Stripe integration
+            // 4. Return the Stripe payment URL
+            
+            $invoicePayload = [
+                'properties' => [
+                    'hs_title' => 'QuickSMS Message Purchase - ' . ucfirst($data['tier']),
+                    'hs_currency' => $data['currency'],
+                    'amount' => $data['net_cost'],
+                    'hs_external_account_id' => $data['account_id'],
+                ],
+                'associations' => [],
+            ];
+
+            Log::info('Creating HubSpot invoice', [
+                'account_id' => $data['account_id'],
+                'tier' => $data['tier'],
+                'volume' => $data['volume'],
+                'net_cost' => $data['net_cost'],
+            ]);
+
+            // TODO: Replace with actual HubSpot API call
+            // For now, simulate the response
+            // In production, this would call HubSpot's invoices API
+            // and return the Stripe payment link
+            
+            return [
+                'success' => false,
+                'error' => 'Invoice creation requires HubSpot Payments integration. Please configure your HubSpot account.',
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('HubSpot invoice creation exception', ['message' => $e->getMessage()]);
+            return [
+                'success' => false,
+                'error' => 'Error creating invoice: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     private function getErrorResponse(string $message): array
     {
         return [

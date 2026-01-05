@@ -91,6 +91,32 @@ class PurchaseApiController extends Controller
         ]);
     }
 
+    public function createInvoice(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|string',
+            'tier' => 'required|string|in:starter,enterprise,bespoke',
+            'volume' => 'required|integer|min:1',
+            'sms_unit_price' => 'required|numeric|min:0',
+            'net_cost' => 'required|numeric|min:0',
+            'vat_applicable' => 'required|boolean',
+            'currency' => 'required|string|in:GBP,EUR,USD',
+        ]);
+
+        $invoiceData = $this->hubSpotService->createInvoice($validated);
+
+        if (!$invoiceData['success']) {
+            return response()->json($invoiceData, 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'invoice_id' => $invoiceData['invoice_id'],
+            'payment_url' => $invoiceData['payment_url'],
+            'message' => 'Invoice created successfully',
+        ]);
+    }
+
     private function isVatApplicable(): bool
     {
         // TODO: Replace with actual account context from session/database
@@ -103,5 +129,12 @@ class PurchaseApiController extends Controller
         // TODO: Replace with actual account currency from session/database
         // Example: return auth()->user()->account->currency ?? 'GBP';
         return 'GBP';
+    }
+
+    private function getAccountId(): string
+    {
+        // TODO: Replace with actual account ID from session/database
+        // Example: return auth()->user()->account->id;
+        return 'ACC-001';
     }
 }

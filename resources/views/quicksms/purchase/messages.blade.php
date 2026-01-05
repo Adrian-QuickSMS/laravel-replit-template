@@ -629,9 +629,43 @@
                             </span>
                         </div>
                         
-                        <button id="proceedBtn" class="btn btn-primary w-100 mt-4" disabled>
+                        <button id="proceedBtn" class="btn btn-primary w-100 mt-4" disabled onclick="processPurchase()">
                             <i class="fas fa-credit-card me-2"></i>Proceed to Payment
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="invoiceModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-5">
+                        <div id="invoiceLoading">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 class="mb-2">Creating invoice, please wait...</h5>
+                            <p class="text-muted mb-0">Processing your order with HubSpot</p>
+                        </div>
+                        <div id="invoiceSuccess" class="d-none">
+                            <div class="icon-wrapper mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(28, 187, 140, 0.15); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-check text-success" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <h5 class="mb-2">Invoice Created!</h5>
+                            <p class="text-muted mb-3">Opening Stripe payment page...</p>
+                            <button class="btn btn-primary" id="openStripeBtn">
+                                <i class="fas fa-external-link-alt me-2"></i>Open Payment Page
+                            </button>
+                        </div>
+                        <div id="invoiceError" class="d-none">
+                            <div class="icon-wrapper mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(220, 53, 69, 0.15); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-exclamation-triangle text-danger" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <h5 class="mb-2">Unable to Create Invoice</h5>
+                            <p class="text-muted mb-3" id="invoiceErrorMessage">An error occurred while creating the invoice.</p>
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1048,6 +1082,80 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderPricingBadges('starter');
                 renderPricingBadges('enterprise');
             }
+        }
+    };
+
+    window.processPurchase = async function() {
+        if (!state.selectedTier) {
+            alert('Please select a pricing tier first.');
+            return;
+        }
+
+        const calc = calculatePurchase(state.sliderValues[state.selectedTier]);
+        
+        if (calc.smsUnitPrice <= 0) {
+            alert('Unable to process purchase. Pricing data not available.');
+            return;
+        }
+
+        const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+        
+        document.getElementById('invoiceLoading').classList.remove('d-none');
+        document.getElementById('invoiceSuccess').classList.add('d-none');
+        document.getElementById('invoiceError').classList.add('d-none');
+        
+        invoiceModal.show();
+
+        const payload = {
+            account_id: 'ACC-001',
+            tier: state.selectedTier,
+            volume: calc.volume,
+            sms_unit_price: calc.smsUnitPrice,
+            net_cost: calc.netCost,
+            vat_applicable: calc.vatApplicable,
+            currency: state.currency
+        };
+
+        console.log('[Purchase] Creating invoice with payload:', payload);
+
+        try {
+            const response = await fetch('/api/purchase/create-invoice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to create invoice');
+            }
+
+            document.getElementById('invoiceLoading').classList.add('d-none');
+            document.getElementById('invoiceSuccess').classList.remove('d-none');
+
+            const stripeUrl = data.payment_url;
+            
+            document.getElementById('openStripeBtn').onclick = function() {
+                window.open(stripeUrl, '_blank');
+                invoiceModal.hide();
+            };
+
+            setTimeout(() => {
+                window.open(stripeUrl, '_blank');
+            }, 1500);
+
+            console.log('[Purchase] Invoice created:', data.invoice_id);
+
+        } catch (error) {
+            console.error('[Purchase] Invoice creation error:', error);
+            
+            document.getElementById('invoiceLoading').classList.add('d-none');
+            document.getElementById('invoiceError').classList.remove('d-none');
+            document.getElementById('invoiceErrorMessage').textContent = error.message;
         }
     };
 
