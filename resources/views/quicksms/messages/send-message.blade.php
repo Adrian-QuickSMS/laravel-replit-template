@@ -399,7 +399,7 @@
                         </div>
                     </div>
                     
-                    <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.72); transform-origin: top center; margin-bottom: -140px;"></div>
+                    <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
                     
                     <div class="text-center d-none" id="basicRcsPreviewToggle">
                         <small class="text-muted me-2">View:</small>
