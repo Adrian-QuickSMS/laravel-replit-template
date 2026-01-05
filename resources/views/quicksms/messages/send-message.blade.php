@@ -233,7 +233,7 @@
                     </div>
                     
                     <div class="d-none mt-3" id="rcsContentSection">
-                        <div class="border rounded p-3 bg-light text-center">
+                        <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
                             <i class="fas fa-image fa-2x text-primary mb-2"></i>
                             <h6 class="mb-2">Rich RCS Card</h6>
                             <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
