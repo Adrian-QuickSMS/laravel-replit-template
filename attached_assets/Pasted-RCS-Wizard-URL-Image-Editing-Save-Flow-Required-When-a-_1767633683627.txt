@@ -1,0 +1,67 @@
+RCS Wizard — URL Image Editing Save Flow (Required)
+
+When a user uses a publicly accessible image URL (not an uploaded file) and then edits the image (zoom/crop/pan/orientation), add an explicit SAVE step and an unsaved-changes warning.
+
+1) Detect unsaved edits (“dirty state”)
+Mark the image as UNSAVED if the user changes ANY of:
+- zoom level
+- crop box
+- pan/position
+- orientation (short/medium)
+- any editor setting that affects how the image is presented
+
+2) Show a “Save” button (URL images only)
+If the image source is a URL and dirty state = true:
+- Show a clear “Save” button in the editor UI (near zoom/crop controls).
+- Disable or hide the Save button when there are no changes.
+- Keep styling consistent with existing template buttons (do not invent new styles).
+
+3) Save confirmation pop-up on navigation/continue/close
+If dirty state = true and the user attempts to:
+- continue to the next wizard step,
+- switch cards in a carousel,
+- close the wizard/editor,
+- change message type,
+- navigate away,
+show a modal with the following content:
+
+Title: Save image changes?
+Body (exact meaning, wording can be polished but must include both points):
+- “You have made changes to how the image has been presented. Do you want to save?”
+- “If you save, QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.”
+- “If you don’t save, the image will render using the default (original URL and default presentation).”
+
+Buttons:
+- Primary: Save changes
+- Secondary: Don’t save
+- Tertiary: Cancel (stay on editor)
+
+4) Save behaviour (creates QuickSMS-hosted URL)
+When the user clicks “Save changes”:
+- Fetch the original image server-side.
+- Apply the edits (crop/zoom/position/orientation).
+- Store the resulting edited image to a publicly accessible QuickSMS-hosted URL on a quicksms.com domain.
+- Replace the original URL in the draft RCS payload with the new QuickSMS URL.
+- Update the phone preview to render from the QuickSMS URL.
+- Clear dirty state.
+
+Validation:
+- Apply existing RCS media validation rules (type, size limit, dimensions) to the saved image.
+- If validation fails, show inline error and do not save.
+
+5) Don’t save behaviour (reverts to default rendering)
+When the user clicks “Don’t save”:
+- Discard the edits.
+- Revert preview and payload to the original URL and default presentation (no custom crop/zoom).
+- Clear dirty state.
+- Continue with navigation.
+
+Constraints:
+- Do not allow the user to proceed while dirty unless they choose Save changes or Don’t save.
+- If edits were saved, the final payload must NOT reference the third-party URL; it must reference the QuickSMS URL.
+- Keep all UI consistent with existing template modals and buttons.
+
+Acceptance criteria:
+- URL-based image edits trigger Save button and unsaved-changes modal.
+- Saving generates a unique quicksms.com URL and replaces the provided URL.
+- Not saving results in default rendering from the original URL (no edits).

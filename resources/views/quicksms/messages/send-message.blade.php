@@ -1144,6 +1144,13 @@
                                                 </div>
                                                 <small class="text-muted">Aspect ratio maintained. No distortion applied.</small>
                                                 
+                                                <div id="rcsImageSaveBtn" class="mt-3 d-none">
+                                                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveRcsImageEdits()">
+                                                        <i class="fas fa-save me-1"></i>Save Image Changes
+                                                    </button>
+                                                    <small class="text-muted d-block mt-1">Changes will be saved to QuickSMS hosted URL</small>
+                                                </div>
+                                                
                                                 <div class="mt-3 pt-3 border-top">
                                                     <div class="d-flex justify-content-between align-items-center small">
                                                         <span class="text-muted">Dimensions:</span>
@@ -1318,9 +1325,37 @@
                 </div>
             </div>
             <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="applyRcsContent()" disabled>
+                <button type="button" class="btn btn-secondary" onclick="handleRcsWizardClose()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn" onclick="handleRcsApplyContent()" disabled>
                     <i class="fas fa-check me-1"></i>Apply RCS Content
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rcsUnsavedChangesModal" tabindex="-1" data-bs-backdrop="static" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Save image changes?</h5>
+            </div>
+            <div class="modal-body">
+                <p>You have made changes to how the image is presented. Do you want to save?</p>
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>If you save:</strong> QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.
+                </div>
+                <div class="alert alert-secondary small mb-0">
+                    <i class="fas fa-undo me-1"></i>
+                    <strong>If you don't save:</strong> The image will render using the default (original URL and default presentation).
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="cancelRcsUnsavedChanges()">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="discardRcsImageEdits()">Don't Save</button>
+                <button type="button" class="btn btn-primary" onclick="saveRcsImageEditsAndContinue()">
+                    <i class="fas fa-save me-1"></i>Save Changes
                 </button>
             </div>
         </div>
@@ -1957,11 +1992,23 @@ function loadCardData(cardNum) {
         updateRcsImageInfo();
         document.getElementById('rcsZoomSlider').value = card.media.zoom;
         document.getElementById('rcsZoomValue').textContent = card.media.zoom + '%';
-        updateRcsZoom(card.media.zoom);
-        setRcsCropPosition(card.media.cropPosition);
+        document.getElementById('rcsMediaPreviewImg').style.transform = 'scale(' + (card.media.zoom / 100) + ')';
+        
+        document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (btn.dataset.position === card.media.cropPosition) btn.classList.add('active');
+        });
+        var img = document.getElementById('rcsMediaPreviewImg');
+        switch(card.media.cropPosition) {
+            case 'top': img.style.objectPosition = 'center top'; break;
+            case 'bottom': img.style.objectPosition = 'center bottom'; break;
+            default: img.style.objectPosition = 'center center';
+        }
         
         var orientRadio = document.getElementById('rcsOrient' + card.media.orientation.charAt(0).toUpperCase() + card.media.orientation.slice(1));
         if (orientRadio) orientRadio.checked = true;
+        
+        initRcsImageBaseline();
     } else {
         removeRcsMedia();
     }
@@ -2553,8 +2600,18 @@ function rebuildCardTabs() {
 }
 
 function selectRcsCard(cardNum) {
+    if (rcsCurrentCard !== cardNum && isRcsImageDirty()) {
+        showRcsUnsavedChangesModal({ type: 'selectCard', cardNum: cardNum });
+        return;
+    }
+    
+    selectRcsCardDirect(cardNum);
+}
+
+function selectRcsCardDirect(cardNum) {
     if (rcsCurrentCard !== cardNum) {
         saveCurrentCardData();
+        clearRcsImageDirtyState();
     }
     
     rcsCurrentCard = cardNum;
@@ -2593,6 +2650,251 @@ var rcsAllowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
 var rcsMaxFileSize = 250 * 1024;
 var rcsDraftSession = generateDraftSession();
 var rcsEditDebounceTimer = null;
+
+var rcsImageDirtyState = {
+    isDirty: false,
+    baselineZoom: 100,
+    baselineCropPosition: 'center',
+    baselineOrientation: 'vertical_short',
+    pendingNavigation: null,
+    hasBeenEdited: false
+};
+
+function initRcsImageBaseline() {
+    var current = getCurrentEditParams();
+    rcsImageDirtyState.baselineZoom = current.zoom;
+    rcsImageDirtyState.baselineCropPosition = current.crop_position;
+    rcsImageDirtyState.baselineOrientation = current.orientation;
+    rcsImageDirtyState.isDirty = false;
+    rcsImageDirtyState.hasBeenEdited = false;
+    updateRcsSaveButtonVisibility();
+}
+
+function markRcsImageDirty() {
+    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && !rcsMediaData.hostedUrl) {
+        var current = getCurrentEditParams();
+        var hasChanges = current.zoom !== rcsImageDirtyState.baselineZoom ||
+                         current.crop_position !== rcsImageDirtyState.baselineCropPosition ||
+                         current.orientation !== rcsImageDirtyState.baselineOrientation;
+        
+        rcsImageDirtyState.isDirty = hasChanges;
+        if (hasChanges) rcsImageDirtyState.hasBeenEdited = true;
+        updateRcsSaveButtonVisibility();
+    }
+}
+
+function clearRcsImageDirtyState() {
+    rcsImageDirtyState.isDirty = false;
+    rcsImageDirtyState.baselineZoom = 100;
+    rcsImageDirtyState.baselineCropPosition = 'center';
+    rcsImageDirtyState.baselineOrientation = 'vertical_short';
+    rcsImageDirtyState.pendingNavigation = null;
+    rcsImageDirtyState.hasBeenEdited = false;
+    updateRcsSaveButtonVisibility();
+}
+
+function updateRcsSaveButtonVisibility() {
+    var saveBtn = document.getElementById('rcsImageSaveBtn');
+    if (saveBtn) {
+        var shouldShow = rcsMediaData.source === 'url' && 
+                         rcsMediaData.originalUrl && 
+                         !rcsMediaData.hostedUrl &&
+                         rcsImageDirtyState.isDirty;
+        saveBtn.classList.toggle('d-none', !shouldShow);
+    }
+}
+
+function isRcsImageDirty() {
+    return rcsMediaData.source === 'url' && 
+           rcsMediaData.originalUrl && 
+           !rcsMediaData.hostedUrl &&
+           rcsImageDirtyState.isDirty;
+}
+
+function showRcsUnsavedChangesModal(pendingAction) {
+    rcsImageDirtyState.pendingNavigation = pendingAction;
+    var modal = new bootstrap.Modal(document.getElementById('rcsUnsavedChangesModal'));
+    modal.show();
+}
+
+function hideRcsUnsavedChangesModal() {
+    var modalEl = document.getElementById('rcsUnsavedChangesModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+}
+
+function saveRcsImageEdits() {
+    if (!rcsMediaData.originalUrl || rcsMediaData.source !== 'url') return;
+    
+    showRcsProcessingIndicator();
+    var editParams = getCurrentEditParams();
+    
+    fetch('/api/rcs/assets/process-url', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({
+            url: rcsMediaData.originalUrl,
+            edit_params: editParams,
+            draft_session: rcsDraftSession
+        })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        hideRcsProcessingIndicator();
+        if (data.success && data.asset) {
+            rcsMediaData.assetUuid = data.asset.uuid;
+            rcsMediaData.hostedUrl = data.asset.public_url;
+            rcsMediaData.url = data.asset.public_url;
+            rcsMediaData.dimensions = { width: data.asset.width, height: data.asset.height };
+            rcsMediaData.fileSize = data.asset.file_size;
+            showRcsMediaPreview(data.asset.public_url);
+            updateRcsImageInfo();
+            clearRcsImageDirtyState();
+            initRcsImageBaseline();
+            updateRcsWizardPreview();
+        } else if (data.error) {
+            showRcsMediaError(data.error);
+        }
+    })
+    .catch(function(err) {
+        hideRcsProcessingIndicator();
+        showRcsMediaError('Failed to process image. Please try again.');
+    });
+}
+
+function saveRcsImageEditsAndContinue() {
+    hideRcsUnsavedChangesModal();
+    
+    if (!rcsMediaData.originalUrl || rcsMediaData.source !== 'url') {
+        executePendingNavigation();
+        return;
+    }
+    
+    showRcsProcessingIndicator();
+    var editParams = getCurrentEditParams();
+    
+    fetch('/api/rcs/assets/process-url', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify({
+            url: rcsMediaData.originalUrl,
+            edit_params: editParams,
+            draft_session: rcsDraftSession
+        })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        hideRcsProcessingIndicator();
+        if (data.success && data.asset) {
+            rcsMediaData.assetUuid = data.asset.uuid;
+            rcsMediaData.hostedUrl = data.asset.public_url;
+            rcsMediaData.url = data.asset.public_url;
+            rcsMediaData.dimensions = { width: data.asset.width, height: data.asset.height };
+            rcsMediaData.fileSize = data.asset.file_size;
+            showRcsMediaPreview(data.asset.public_url);
+            updateRcsImageInfo();
+            clearRcsImageDirtyState();
+            updateRcsWizardPreview();
+            executePendingNavigation();
+        } else if (data.error) {
+            showRcsMediaError(data.error);
+        }
+    })
+    .catch(function(err) {
+        hideRcsProcessingIndicator();
+        showRcsMediaError('Failed to process image. Please try again.');
+    });
+}
+
+function discardRcsImageEdits() {
+    hideRcsUnsavedChangesModal();
+    
+    var baselineZoom = rcsImageDirtyState.baselineZoom || 100;
+    var baselineCrop = rcsImageDirtyState.baselineCropPosition || 'center';
+    var baselineOrient = rcsImageDirtyState.baselineOrientation || 'vertical_short';
+    
+    document.getElementById('rcsZoomSlider').value = baselineZoom;
+    document.getElementById('rcsZoomValue').textContent = baselineZoom + '%';
+    document.getElementById('rcsMediaPreviewImg').style.transform = 'scale(' + (baselineZoom / 100) + ')';
+    
+    document.querySelectorAll('.rcs-crop-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (btn.dataset.position === baselineCrop) btn.classList.add('active');
+    });
+    var img = document.getElementById('rcsMediaPreviewImg');
+    switch(baselineCrop) {
+        case 'top': img.style.objectPosition = 'center top'; break;
+        case 'bottom': img.style.objectPosition = 'center bottom'; break;
+        default: img.style.objectPosition = 'center center';
+    }
+    
+    var orientId = 'rcsOrient' + baselineOrient.split('_').map(function(s) { return s.charAt(0).toUpperCase() + s.slice(1); }).join('');
+    var orientRadio = document.getElementById(orientId);
+    if (orientRadio) orientRadio.checked = true;
+    else document.getElementById('rcsOrientVertShort').checked = true;
+    
+    if (rcsMediaData.originalUrl) {
+        rcsMediaData.url = rcsMediaData.originalUrl;
+        rcsMediaData.hostedUrl = null;
+        rcsMediaData.assetUuid = null;
+        showRcsMediaPreview(rcsMediaData.originalUrl);
+    }
+    
+    clearRcsImageDirtyState();
+    initRcsImageBaseline();
+    updateRcsWizardPreview();
+    
+    executePendingNavigation();
+}
+
+function cancelRcsUnsavedChanges() {
+    hideRcsUnsavedChangesModal();
+    rcsImageDirtyState.pendingNavigation = null;
+}
+
+function executePendingNavigation() {
+    var pendingAction = rcsImageDirtyState.pendingNavigation;
+    rcsImageDirtyState.pendingNavigation = null;
+    
+    if (!pendingAction) return;
+    
+    if (pendingAction.type === 'selectCard') {
+        selectRcsCardDirect(pendingAction.cardNum);
+    } else if (pendingAction.type === 'closeWizard') {
+        bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+    } else if (pendingAction.type === 'applyContent') {
+        applyRcsContent();
+    } else if (pendingAction.type === 'changeType') {
+        if (pendingAction.targetValue) {
+            document.getElementById(pendingAction.targetValue === 'single' ? 'rcsTypeSingle' : 'rcsTypeCarousel').checked = true;
+        }
+        toggleRcsMessageType();
+        updateCarouselOrientationWarning();
+        updateRcsWizardPreview();
+    }
+}
+
+function handleRcsWizardClose() {
+    if (isRcsImageDirty()) {
+        showRcsUnsavedChangesModal({ type: 'closeWizard' });
+    } else {
+        bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+    }
+}
+
+function handleRcsApplyContent() {
+    if (isRcsImageDirty()) {
+        showRcsUnsavedChangesModal({ type: 'applyContent' });
+    } else {
+        applyRcsContent();
+    }
+}
 
 function generateDraftSession() {
     return 'draft_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -2781,6 +3083,7 @@ function loadRcsMediaUrl() {
                 rcsMediaData.hostedUrl = null;
                 showRcsMediaPreview(url);
                 updateRcsImageInfo();
+                initRcsImageBaseline();
                 
                 if (metadata.corsBlocked) {
                     showRcsMediaWarning('File size could not be verified. Ensure image is under 250 KB.');
@@ -2918,7 +3221,9 @@ function updateRcsZoom(value) {
     var img = document.getElementById('rcsMediaPreviewImg');
     img.style.transform = 'scale(' + (value / 100) + ')';
     
-    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl) {
+    markRcsImageDirty();
+    
+    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && rcsMediaData.hostedUrl) {
         processAssetServerSide(!!rcsMediaData.assetUuid);
     }
 }
@@ -2935,7 +3240,9 @@ function setRcsCropPosition(position) {
         default: img.style.objectPosition = 'center center';
     }
     
-    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl) {
+    markRcsImageDirty();
+    
+    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && rcsMediaData.hostedUrl) {
         processAssetServerSide(!!rcsMediaData.assetUuid);
     }
 }
@@ -3249,9 +3556,34 @@ function updateRcsButtonsPreview() {
     });
 }
 
+var rcsMessageTypeBeforeChange = null;
+
+function captureRcsMessageTypeState() {
+    rcsMessageTypeBeforeChange = document.querySelector('input[name="rcsMessageType"]:checked')?.value;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('label[for^="rcsType"]').forEach(function(label) {
+        label.addEventListener('mousedown', captureRcsMessageTypeState);
+        label.addEventListener('touchstart', captureRcsMessageTypeState);
+    });
+    
     document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
+        radio.addEventListener('focus', captureRcsMessageTypeState);
+    });
+    
+    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
+        radio.addEventListener('change', function(e) {
+            var newValue = e.target.value;
+            if (isRcsImageDirty()) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (rcsMessageTypeBeforeChange && rcsMessageTypeBeforeChange !== newValue) {
+                    document.getElementById(rcsMessageTypeBeforeChange === 'single' ? 'rcsTypeSingle' : 'rcsTypeCarousel').checked = true;
+                }
+                showRcsUnsavedChangesModal({ type: 'changeType', targetValue: newValue });
+                return;
+            }
             toggleRcsMessageType();
             updateCarouselOrientationWarning();
             updateRcsWizardPreview();
@@ -3263,7 +3595,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
-        radio.addEventListener('change', updateRcsWizardPreview);
+        radio.addEventListener('change', function() {
+            markRcsImageDirty();
+            updateRcsWizardPreview();
+        });
     });
     
     var fileInput = document.getElementById('rcsMediaFileInput');
