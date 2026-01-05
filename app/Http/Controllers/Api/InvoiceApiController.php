@@ -7,6 +7,7 @@ use App\Services\HubSpotInvoiceService;
 use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceApiController extends Controller
 {
@@ -41,6 +42,13 @@ class InvoiceApiController extends Controller
             return response()->json($result, 404);
         }
 
+        $this->logAudit('invoice_view', [
+            'invoice_id' => $invoiceId,
+            'invoice_number' => $result['invoice']['invoiceNumber'] ?? null,
+            'amount' => $result['invoice']['total'] ?? null,
+            'currency' => $result['invoice']['currency'] ?? 'GBP',
+        ]);
+
         return response()->json($result);
     }
 
@@ -61,6 +69,12 @@ class InvoiceApiController extends Controller
             ], 404);
         }
 
+        $this->logAudit('pdf_download', [
+            'invoice_id' => $invoiceId,
+            'invoice_number' => $result['invoice']['invoiceNumber'] ?? null,
+            'pdf_url' => $pdfUrl,
+        ]);
+
         return response()->json([
             'success' => true,
             'pdfUrl' => $pdfUrl,
@@ -79,6 +93,11 @@ class InvoiceApiController extends Controller
         $invoiceResult = $this->invoiceService->fetchInvoice($invoiceId);
 
         if (!$invoiceResult['success']) {
+            $this->logAudit('payment_attempt_failed', [
+                'invoice_id' => $invoiceId,
+                'reason' => 'Invoice not found',
+            ]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Invoice not found',
@@ -89,6 +108,12 @@ class InvoiceApiController extends Controller
 
         $allowedStatuses = ['issued', 'overdue'];
         if (!in_array(strtolower($invoice['status']), $allowedStatuses)) {
+            $this->logAudit('payment_attempt_failed', [
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $invoice['invoiceNumber'] ?? null,
+                'reason' => 'Invalid status: ' . $invoice['status'],
+            ]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'This invoice cannot be paid. Status: ' . $invoice['status'],
@@ -96,18 +121,66 @@ class InvoiceApiController extends Controller
         }
 
         if (($invoice['balanceDue'] ?? 0) <= 0) {
+            $this->logAudit('payment_attempt_failed', [
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $invoice['invoiceNumber'] ?? null,
+                'reason' => 'No outstanding balance',
+            ]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'This invoice has no outstanding balance.',
             ], 400);
         }
 
+        $this->logAudit('payment_attempt', [
+            'invoice_id' => $invoiceId,
+            'invoice_number' => $invoice['invoiceNumber'] ?? null,
+            'amount' => $invoice['balanceDue'] ?? 0,
+            'currency' => $invoice['currency'] ?? 'GBP',
+            'status' => $invoice['status'],
+        ]);
+
         $result = $this->stripeService->createInvoicePaymentSession($invoice);
 
         if (!$result['success']) {
+            $this->logAudit('payment_attempt_failed', [
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $invoice['invoiceNumber'] ?? null,
+                'reason' => 'Stripe session creation failed',
+                'error' => $result['error'] ?? 'Unknown error',
+            ]);
+
             return response()->json($result, 500);
         }
 
+        $this->logAudit('payment_session_created', [
+            'invoice_id' => $invoiceId,
+            'invoice_number' => $invoice['invoiceNumber'] ?? null,
+            'amount' => $invoice['balanceDue'] ?? 0,
+            'currency' => $invoice['currency'] ?? 'GBP',
+            'session_id' => $result['sessionId'] ?? null,
+            'is_mock' => $result['isMock'] ?? false,
+        ]);
+
         return response()->json($result);
+    }
+
+    private function logAudit(string $action, array $data): void
+    {
+        $userId = $this->getCurrentUserId();
+        
+        Log::channel('single')->info('[AUDIT] ' . strtoupper($action), array_merge([
+            'action' => $action,
+            'user_id' => $userId,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'timestamp' => now()->toIso8601String(),
+        ], $data));
+    }
+
+    private function getCurrentUserId(): string
+    {
+        return 'user_demo_001';
     }
 }

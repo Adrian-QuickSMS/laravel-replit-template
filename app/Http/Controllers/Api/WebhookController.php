@@ -92,11 +92,18 @@ class WebhookController extends Controller
         if ($type === 'invoice_payment') {
             $invoiceId = $metadata['invoice_id'] ?? null;
             $invoiceNumber = $metadata['invoice_number'] ?? null;
+            $amount = ($session['amount_total'] ?? 0) / 100;
+            $currency = strtoupper($session['currency'] ?? 'gbp');
 
-            Log::info('Invoice payment completed via Stripe', [
+            $this->logAudit('payment_successful', [
+                'payment_type' => 'invoice',
                 'invoice_id' => $invoiceId,
                 'invoice_number' => $invoiceNumber,
-                'amount' => ($session['amount_total'] ?? 0) / 100,
+                'amount' => $amount,
+                'currency' => $currency,
+                'session_id' => $session['id'] ?? null,
+                'payment_intent' => $session['payment_intent'] ?? null,
+                'customer_email' => $session['customer_details']['email'] ?? null,
             ]);
 
             Cache::put("invoice_paid_{$invoiceId}", true, now()->addHours(24));
@@ -104,11 +111,19 @@ class WebhookController extends Controller
             $accountId = $metadata['account_id'] ?? 'demo_account';
             $creditAmount = (float) ($metadata['credit_amount'] ?? 0);
             $tier = $metadata['tier'] ?? 'starter';
+            $totalPaid = ($session['amount_total'] ?? 0) / 100;
+            $currency = strtoupper($session['currency'] ?? 'gbp');
 
-            Log::info('Balance top-up completed via Stripe', [
+            $this->logAudit('topup_successful', [
+                'payment_type' => 'balance_topup',
                 'account_id' => $accountId,
                 'credit_amount' => $creditAmount,
                 'tier' => $tier,
+                'total_paid' => $totalPaid,
+                'currency' => $currency,
+                'session_id' => $session['id'] ?? null,
+                'payment_intent' => $session['payment_intent'] ?? null,
+                'customer_email' => $session['customer_details']['email'] ?? null,
             ]);
 
             $this->updateAccountBalance($accountId, $creditAmount);
@@ -126,10 +141,22 @@ class WebhookController extends Controller
 
     private function handlePaymentFailed(array $paymentIntent): void
     {
-        Log::warning('Payment intent failed', [
+        $this->logAudit('payment_failed', [
             'payment_intent_id' => $paymentIntent['id'] ?? null,
+            'amount' => ($paymentIntent['amount'] ?? 0) / 100,
+            'currency' => strtoupper($paymentIntent['currency'] ?? 'gbp'),
             'error' => $paymentIntent['last_payment_error']['message'] ?? 'Unknown error',
+            'error_code' => $paymentIntent['last_payment_error']['code'] ?? null,
         ]);
+    }
+
+    private function logAudit(string $action, array $data): void
+    {
+        Log::channel('single')->info('[AUDIT] ' . strtoupper($action), array_merge([
+            'action' => $action,
+            'source' => 'stripe_webhook',
+            'timestamp' => now()->toIso8601String(),
+        ], $data));
     }
 
     public function hubspotPayment(Request $request): JsonResponse
