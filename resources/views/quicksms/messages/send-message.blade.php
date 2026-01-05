@@ -1064,75 +1064,70 @@
                                         </div>
                                         
                                         <div id="rcsMediaPreview" class="d-none mt-3">
-                                            <div class="position-relative">
-                                                <div class="border rounded overflow-hidden d-flex align-items-center justify-content-center" style="height: 200px; background: repeating-conic-gradient(#e8e8e8 0% 25%, #f8f8f8 0% 50%) 50% / 12px 12px;">
-                                                    <img id="rcsMediaPreviewImg" src="" alt="Media preview" style="object-fit: contain; max-height: 100%; max-width: 100%; transform-origin: center center;">
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="removeRcsMedia()">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-                                            
                                             <div class="mt-3 p-3 border rounded" id="rcsImageEditor" style="background: rgba(136, 108, 192, 0.1);">
-                                                <h6 class="small text-muted text-uppercase mb-3"><i class="fas fa-sliders-h me-1"></i>Image Editor</h6>
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <h6 class="small text-muted text-uppercase mb-0"><i class="fas fa-crop-alt me-1"></i>Image Crop & Position</h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRcsMedia()">
+                                                        <i class="fas fa-trash-alt me-1"></i>Remove
+                                                    </button>
+                                                </div>
                                                 
                                                 <div class="mb-3">
-                                                    <label class="form-label small mb-1">Orientation</label>
-                                                    <div class="d-flex gap-2">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="rcsOrientation" id="rcsOrientVertShort" value="vertical_short" checked>
-                                                            <label class="form-check-label small" for="rcsOrientVertShort">Vertical Short</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="rcsOrientation" id="rcsOrientVertMed" value="vertical_medium">
-                                                            <label class="form-check-label small" for="rcsOrientVertMed">Vertical Medium</label>
-                                                        </div>
-                                                        <div class="form-check" id="rcsOrientHorizWrapper">
-                                                            <input class="form-check-input" type="radio" name="rcsOrientation" id="rcsOrientHoriz" value="horizontal">
-                                                            <label class="form-check-label small" for="rcsOrientHoriz">Horizontal</label>
-                                                        </div>
+                                                    <label class="form-label small mb-2">Card Size</label>
+                                                    <div class="btn-group w-100" role="group">
+                                                        <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientVertShort" value="vertical_short" checked>
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertShort">Short</label>
+                                                        <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientVertMed" value="vertical_medium">
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertMed">Medium</label>
+                                                        <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientHoriz" value="horizontal" style="display: none;" disabled>
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientHoriz" id="rcsOrientHorizLabel" style="display: none;">Tall</label>
                                                     </div>
                                                     <div id="rcsCarouselOrientWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
-                                                        <i class="fas fa-info-circle me-1"></i>Horizontal orientation is not available for Carousel cards.
+                                                        <i class="fas fa-info-circle me-1"></i>Tall size is not available for Carousel cards.
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="rcs-crop-container mb-3" id="rcsCropContainer">
+                                                    <div class="rcs-crop-workspace" id="rcsCropWorkspace">
+                                                        <img id="rcsMediaPreviewImg" src="" alt="Media preview" draggable="false">
+                                                        <div class="rcs-crop-overlay" id="rcsCropOverlay">
+                                                            <div class="rcs-crop-frame" id="rcsCropFrame"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rcs-crop-hint text-center mt-2">
+                                                        <small class="text-muted"><i class="fas fa-hand-pointer me-1"></i>Drag image to position within frame</small>
                                                     </div>
                                                 </div>
                                                 
                                                 <div class="mb-3">
                                                     <label class="form-label small mb-1">Zoom <span class="text-muted" id="rcsZoomValue">100%</span></label>
-                                                    <input type="range" class="form-range" id="rcsZoomSlider" min="25" max="200" value="100" oninput="updateRcsZoom(this.value)">
+                                                    <input type="range" class="form-range" id="rcsZoomSlider" min="25" max="200" value="100" oninput="updateRcsCropZoom(this.value)">
                                                     <div class="d-flex justify-content-between small text-muted mt-1">
-                                                        <span>25% (fit)</span>
+                                                        <span>25%</span>
                                                         <span>100%</span>
                                                         <span>200%</span>
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="mb-2">
-                                                    <label class="form-label small mb-1">Crop Position</label>
-                                                    <div class="d-flex gap-2">
-                                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill rcs-crop-btn active" data-position="center" onclick="setRcsCropPosition('center')">
-                                                            <i class="fas fa-compress-arrows-alt"></i> Center
-                                                        </button>
-                                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill rcs-crop-btn" data-position="top" onclick="setRcsCropPosition('top')">
-                                                            <i class="fas fa-arrow-up"></i> Top
-                                                        </button>
-                                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill rcs-crop-btn" data-position="bottom" onclick="setRcsCropPosition('bottom')">
-                                                            <i class="fas fa-arrow-down"></i> Bottom
-                                                        </button>
-                                                    </div>
+                                                <div class="d-flex gap-2 mb-3">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="resetRcsCropPosition()">
+                                                        <i class="fas fa-crosshairs me-1"></i>Center
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="resetRcsCropToFit()">
+                                                        <i class="fas fa-expand me-1"></i>Fit
+                                                    </button>
                                                 </div>
-                                                <small class="text-muted">Aspect ratio maintained. No distortion applied.</small>
                                                 
-                                                <div id="rcsImageSaveBtn" class="mt-3 d-none">
+                                                <div id="rcsImageSaveBtn" class="mb-3 d-none">
                                                     <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveRcsImageEdits()">
                                                         <i class="fas fa-save me-1"></i>Save Image Changes
                                                     </button>
                                                     <small class="text-muted d-block mt-1">Changes will be saved to QuickSMS hosted URL</small>
                                                 </div>
                                                 
-                                                <div class="mt-3 pt-3 border-top">
+                                                <div class="pt-3 border-top">
                                                     <div class="d-flex justify-content-between align-items-center small">
-                                                        <span class="text-muted">Dimensions:</span>
+                                                        <span class="text-muted">Original:</span>
                                                         <span id="rcsImageDimensions" class="badge bg-secondary">--</span>
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-center small mt-1">
