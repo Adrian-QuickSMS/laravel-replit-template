@@ -682,71 +682,204 @@
 </div>
 
 <div class="modal fade" id="topUpModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-plus-circle me-2 text-primary"></i>Top Up Balance</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="topUpStep1">
                 <div class="alert alert-pastel-primary mb-4">
                     <i class="fas fa-info-circle text-primary me-2"></i>
-                    Add credits to your account. You'll be redirected to our secure payment partner to complete the transaction.
+                    Add credits to your account. Choose a tier based on your messaging needs.
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Select Amount</label>
-                    <div class="row g-2 mb-3">
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-primary w-100 amount-preset" data-amount="100">&pound;100</button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-primary w-100 amount-preset" data-amount="250">&pound;250</button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-primary w-100 amount-preset" data-amount="500">&pound;500</button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-primary w-100 amount-preset" data-amount="1000">&pound;1,000</button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-primary w-100 amount-preset" data-amount="2500">&pound;2,500</button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-primary w-100 amount-preset active" data-amount="custom">Custom</button>
-                        </div>
+                <div id="topUpTiersContainer">
+                    <div id="topUpTiersLoading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Loading pricing...</div>
                     </div>
-                    <div id="customAmountWrapper">
-                        <label class="form-label small">Enter Amount (&pound;)</label>
-                        <input type="number" class="form-control" id="customAmount" min="50" max="50000" placeholder="Enter amount (min &pound;50)">
-                    </div>
-                </div>
 
-                <div class="bg-light rounded p-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Credit Amount</span>
-                        <span id="topUpAmount">&pound;500.00</span>
+                    <div id="topUpBespokeTier" class="d-none">
+                        <div class="card border-0 rounded-3" style="background: linear-gradient(135deg, var(--primary), #a78bfa);">
+                            <div class="card-body text-white text-center py-4">
+                                <div class="mb-2">
+                                    <span class="badge bg-white text-primary px-3 py-2">
+                                        <i class="fas fa-gem me-1"></i> Custom Contract
+                                    </span>
+                                </div>
+                                <h4 class="mb-2">Bespoke Pricing</h4>
+                                <p class="mb-3 opacity-75">Your account has a custom contract rate</p>
+                                <div class="bg-white bg-opacity-25 rounded p-3 d-inline-block">
+                                    <div class="h3 mb-0" id="bespokeRateDisplay">&pound;0.0285<small class="fs-6">/msg</small></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="form-label fw-bold">Top-Up Amount</label>
+                            <div class="row g-2">
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn" data-amount="250">&pound;250</button></div>
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn" data-amount="500">&pound;500</button></div>
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn active" data-amount="1000">&pound;1,000</button></div>
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn" data-amount="2500">&pound;2,500</button></div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label small">Or enter custom amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">&pound;</span>
+                                    <input type="number" class="form-control" id="bespokeCustomAmount" min="100" max="50000" placeholder="Enter amount (min £100)">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>VAT (20%)</span>
-                        <span id="topUpVat">&pound;100.00</span>
+
+                    <div id="topUpStandardTiers" class="d-none">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card topup-tier-card h-100" data-tier="starter" style="cursor: pointer;">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title mb-0">Starter</h5>
+                                            <span class="badge bg-secondary" id="starterCurrentBadge" style="display: none;">Current</span>
+                                        </div>
+                                        <p class="text-muted small mb-3">For smaller messaging needs</p>
+                                        <div class="tier-rate-display mb-3">
+                                            <span class="h4 text-primary" id="starterRateDisplay">&pound;0.0350</span>
+                                            <span class="text-muted">/msg</span>
+                                        </div>
+                                        <div class="tier-volumes text-muted small">
+                                            <div>Up to 50,000 messages</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card topup-tier-card h-100 border-primary" data-tier="enterprise" style="cursor: pointer;">
+                                    <div class="position-absolute top-0 start-50 translate-middle">
+                                        <span class="badge bg-success px-3 py-2"><i class="fas fa-star me-1"></i>Best Value</span>
+                                    </div>
+                                    <div class="card-body pt-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title mb-0">Enterprise</h5>
+                                            <span class="badge bg-secondary" id="enterpriseCurrentBadge" style="display: none;">Current</span>
+                                        </div>
+                                        <p class="text-muted small mb-3">For high-volume messaging</p>
+                                        <div class="tier-rate-display mb-3">
+                                            <span class="h4 text-primary" id="enterpriseRateDisplay">&pound;0.0285</span>
+                                            <span class="text-muted">/msg</span>
+                                        </div>
+                                        <div class="tier-volumes text-muted small">
+                                            <div>50,000 - 1,000,000 messages</div>
+                                            <div class="text-success"><i class="fas fa-check me-1"></i>18% savings vs Starter</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4" id="standardAmountSelector" style="display: none;">
+                            <label class="form-label fw-bold">Top-Up Amount for <span id="selectedTierLabel">Starter</span></label>
+                            <div class="row g-2">
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn" data-amount="250">&pound;250</button></div>
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn" data-amount="500">&pound;500</button></div>
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn active" data-amount="1000">&pound;1,000</button></div>
+                                <div class="col-3"><button type="button" class="btn btn-outline-primary w-100 topup-amount-btn" data-amount="2500">&pound;2,500</button></div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label small">Or enter custom amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">&pound;</span>
+                                    <input type="number" class="form-control" id="standardCustomAmount" min="100" max="50000" placeholder="Enter amount (min £100)">
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between fw-bold">
-                        <span>Total to Pay</span>
-                        <span id="topUpTotal">&pound;600.00</span>
+
+                    <div id="topUpError" class="d-none">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="topUpErrorMessage">Failed to load pricing. Please try again.</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
+
+            <div class="modal-body d-none" id="topUpStep2">
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <span class="badge bg-primary fs-6 px-3 py-2" id="confirmTierBadge">Enterprise</span>
+                    </div>
+                    <div class="display-5 fw-bold text-primary mb-1" id="confirmTopUpAmount">&pound;1,000.00</div>
+                    <small class="text-muted">Credit Amount</small>
+                </div>
+
+                <div class="card mb-3" style="background-color: #f8f9fa; border: none;">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4 border-end">
+                                <div class="text-muted small">Effective Rate</div>
+                                <div class="fw-bold text-primary" id="confirmEffectiveRate">&pound;0.0285/msg</div>
+                            </div>
+                            <div class="col-4 border-end">
+                                <div class="text-muted small">Est. Messages</div>
+                                <div class="fw-bold" id="confirmEstMessages">~35,088</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted small">VAT (20%)</div>
+                                <div class="fw-bold" id="confirmVatAmount">&pound;200.00</div>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between fs-5">
+                            <span class="fw-bold">Total to Pay</span>
+                            <span class="fw-bold text-primary" id="confirmTotalPayable">&pound;1,200.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-pastel-primary mb-0">
+                    <i class="fas fa-lock text-primary me-2"></i>
+                    <strong>Secure Payment</strong><br>
+                    <small>You'll be redirected to Stripe to complete your payment. We never store your card details (PCI DSS compliant).</small>
+                </div>
+            </div>
+
+            <div class="modal-footer" id="topUpFooter1">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="continueToConfirmBtn" disabled>
+                    Continue <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+            </div>
+            <div class="modal-footer d-none" id="topUpFooter2">
+                <button type="button" class="btn btn-outline-secondary" id="backToTiersBtn">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </button>
                 <button type="button" class="btn btn-primary" id="proceedTopUpBtn">
-                    <i class="fas fa-lock me-1"></i> Proceed to Payment
+                    <i class="fas fa-external-link-alt me-1"></i> Pay with Stripe
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.topup-tier-card {
+    transition: all 0.2s ease;
+    border: 2px solid #e9ecef;
+}
+.topup-tier-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.15);
+}
+.topup-tier-card.selected {
+    border-color: var(--primary);
+    background-color: rgba(111, 66, 193, 0.05);
+}
+.topup-amount-btn.active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+</style>
 
 <div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -1299,41 +1432,201 @@ document.addEventListener('DOMContentLoaded', function() {
 
     handlePaymentReturn();
 
-    const amountPresets = document.querySelectorAll('.amount-preset');
-    const customAmountWrapper = document.getElementById('customAmountWrapper');
-    const customAmountInput = document.getElementById('customAmount');
+    const topUpState = {
+        products: {},
+        selectedTier: null,
+        selectedAmount: 1000,
+        effectiveRate: 0.035,
+        isBespoke: false,
+        isLoading: true,
+        currency: 'GBP',
+        vatRate: 0.20
+    };
 
-    function updateTopUpSummary(amount) {
-        const vat = amount * 0.20;
-        const total = amount + vat;
-        document.getElementById('topUpAmount').textContent = formatCurrency(amount);
-        document.getElementById('topUpVat').textContent = formatCurrency(vat);
-        document.getElementById('topUpTotal').textContent = formatCurrency(total);
+    const topUpModal = document.getElementById('topUpModal');
+    topUpModal.addEventListener('show.bs.modal', loadTopUpPricing);
+
+    async function loadTopUpPricing() {
+        topUpState.isLoading = true;
+        document.getElementById('topUpTiersLoading').classList.remove('d-none');
+        document.getElementById('topUpBespokeTier').classList.add('d-none');
+        document.getElementById('topUpStandardTiers').classList.add('d-none');
+        document.getElementById('topUpError').classList.add('d-none');
+
+        try {
+            const response = await fetch('/api/purchase/products');
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load pricing');
+            }
+
+            topUpState.products = data.products || {};
+            topUpState.isBespoke = data.isBespoke || false;
+            
+            document.getElementById('topUpTiersLoading').classList.add('d-none');
+
+            if (topUpState.isBespoke) {
+                showBespokeTier();
+            } else {
+                showStandardTiers();
+            }
+
+            topUpState.isLoading = false;
+        } catch (error) {
+            console.error('Failed to load pricing:', error);
+            document.getElementById('topUpTiersLoading').classList.add('d-none');
+            document.getElementById('topUpError').classList.remove('d-none');
+            document.getElementById('topUpErrorMessage').textContent = error.message;
+        }
     }
 
-    amountPresets.forEach(btn => {
-        btn.addEventListener('click', function() {
-            amountPresets.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+    function showBespokeTier() {
+        document.getElementById('topUpBespokeTier').classList.remove('d-none');
+        
+        const smsProduct = topUpState.products['sms'];
+        if (smsProduct) {
+            const rate = smsProduct.price_enterprise || smsProduct.price;
+            topUpState.effectiveRate = rate;
+            document.getElementById('bespokeRateDisplay').innerHTML = 
+                formatCurrency(rate, 4) + '<small class="fs-6">/msg</small>';
+        }
+        
+        topUpState.selectedTier = 'bespoke';
+        topUpState.selectedAmount = 1000;
+        updateContinueButton();
+    }
 
-            const amount = this.dataset.amount;
-            if (amount === 'custom') {
-                customAmountWrapper.style.display = 'block';
-                customAmountInput.focus();
-            } else {
-                customAmountWrapper.style.display = 'none';
-                updateTopUpSummary(parseFloat(amount));
+    function showStandardTiers() {
+        document.getElementById('topUpStandardTiers').classList.remove('d-none');
+        
+        const smsProduct = topUpState.products['sms'];
+        if (smsProduct) {
+            const starterRate = smsProduct.price;
+            const enterpriseRate = smsProduct.price_enterprise || smsProduct.price;
+            
+            document.getElementById('starterRateDisplay').textContent = formatCurrency(starterRate, 4);
+            document.getElementById('enterpriseRateDisplay').textContent = formatCurrency(enterpriseRate, 4);
+        }
+
+        topUpState.selectedTier = null;
+        topUpState.selectedAmount = 1000;
+        updateContinueButton();
+    }
+
+    function formatCurrency(amount, decimals = 2) {
+        const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
+        const symbol = symbols[topUpState.currency] || '£';
+        return symbol + parseFloat(amount || 0).toFixed(decimals);
+    }
+
+    document.querySelectorAll('.topup-tier-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.topup-tier-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            topUpState.selectedTier = this.dataset.tier;
+            document.getElementById('selectedTierLabel').textContent = 
+                topUpState.selectedTier === 'starter' ? 'Starter' : 'Enterprise';
+            document.getElementById('standardAmountSelector').style.display = 'block';
+            
+            const smsProduct = topUpState.products['sms'];
+            if (smsProduct) {
+                topUpState.effectiveRate = topUpState.selectedTier === 'enterprise' 
+                    ? (smsProduct.price_enterprise || smsProduct.price)
+                    : smsProduct.price;
             }
+            
+            updateContinueButton();
         });
     });
 
-    customAmountInput.addEventListener('input', function() {
-        const amount = parseFloat(this.value) || 0;
-        updateTopUpSummary(amount);
+    document.querySelectorAll('.topup-amount-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const parent = this.closest('#topUpBespokeTier, #standardAmountSelector');
+            if (parent) {
+                parent.querySelectorAll('.topup-amount-btn').forEach(b => b.classList.remove('active'));
+            }
+            this.classList.add('active');
+            
+            topUpState.selectedAmount = parseFloat(this.dataset.amount);
+            updateContinueButton();
+        });
     });
 
-    document.getElementById('proceedTopUpBtn').addEventListener('click', function() {
-        alert('Top-up processing via Stripe will be implemented with HubSpot invoice creation.');
+    document.getElementById('bespokeCustomAmount')?.addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        if (amount >= 100) {
+            topUpState.selectedAmount = amount;
+            document.querySelectorAll('#topUpBespokeTier .topup-amount-btn').forEach(b => b.classList.remove('active'));
+        }
+        updateContinueButton();
+    });
+
+    document.getElementById('standardCustomAmount')?.addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        if (amount >= 100) {
+            topUpState.selectedAmount = amount;
+            document.querySelectorAll('#standardAmountSelector .topup-amount-btn').forEach(b => b.classList.remove('active'));
+        }
+        updateContinueButton();
+    });
+
+    function updateContinueButton() {
+        const canContinue = topUpState.selectedTier && topUpState.selectedAmount >= 100;
+        document.getElementById('continueToConfirmBtn').disabled = !canContinue;
+    }
+
+    document.getElementById('continueToConfirmBtn').addEventListener('click', function() {
+        const tierName = topUpState.selectedTier === 'bespoke' ? 'Custom Contract' :
+                         topUpState.selectedTier === 'enterprise' ? 'Enterprise' : 'Starter';
+        
+        const creditAmount = topUpState.selectedAmount;
+        const vatAmount = creditAmount * topUpState.vatRate;
+        const totalPayable = creditAmount + vatAmount;
+        const estMessages = Math.floor(creditAmount / topUpState.effectiveRate);
+
+        document.getElementById('confirmTierBadge').textContent = tierName;
+        document.getElementById('confirmTopUpAmount').textContent = formatCurrency(creditAmount);
+        document.getElementById('confirmEffectiveRate').textContent = formatCurrency(topUpState.effectiveRate, 4) + '/msg';
+        document.getElementById('confirmEstMessages').textContent = '~' + estMessages.toLocaleString();
+        document.getElementById('confirmVatAmount').textContent = formatCurrency(vatAmount);
+        document.getElementById('confirmTotalPayable').textContent = formatCurrency(totalPayable);
+
+        document.getElementById('topUpStep1').classList.add('d-none');
+        document.getElementById('topUpStep2').classList.remove('d-none');
+        document.getElementById('topUpFooter1').classList.add('d-none');
+        document.getElementById('topUpFooter2').classList.remove('d-none');
+    });
+
+    document.getElementById('backToTiersBtn').addEventListener('click', function() {
+        document.getElementById('topUpStep2').classList.add('d-none');
+        document.getElementById('topUpStep1').classList.remove('d-none');
+        document.getElementById('topUpFooter2').classList.add('d-none');
+        document.getElementById('topUpFooter1').classList.remove('d-none');
+    });
+
+    document.getElementById('proceedTopUpBtn').addEventListener('click', async function() {
+        const creditAmount = topUpState.selectedAmount;
+        const vatAmount = creditAmount * topUpState.vatRate;
+        const totalPayable = creditAmount + vatAmount;
+
+        // TODO: Implement Stripe Checkout session creation for top-up
+        // API endpoint: POST /api/topup/create-checkout-session
+        // Body: { tier, amount, currency }
+        
+        alert(`Top-up of ${formatCurrency(totalPayable)} (inc. VAT) will be processed via Stripe.\n\nThis functionality requires Stripe integration to be completed.`);
+    });
+
+    topUpModal.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('topUpStep2').classList.add('d-none');
+        document.getElementById('topUpStep1').classList.remove('d-none');
+        document.getElementById('topUpFooter2').classList.add('d-none');
+        document.getElementById('topUpFooter1').classList.remove('d-none');
+        document.getElementById('standardAmountSelector').style.display = 'none';
+        document.querySelectorAll('.topup-tier-card').forEach(c => c.classList.remove('selected'));
+        topUpState.selectedTier = null;
+        topUpState.selectedAmount = 1000;
     });
 
     document.getElementById('selectAll').addEventListener('change', function() {
