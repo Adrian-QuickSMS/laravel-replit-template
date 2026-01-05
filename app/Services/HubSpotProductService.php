@@ -5,10 +5,23 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * HubSpot Product Service
+ * 
+ * IMPORTANT SECURITY & ARCHITECTURE NOTES:
+ * - All pricing is fetched LIVE from HubSpot API (no server-side caching)
+ * - Multi-currency support via hs_price_gbp, hs_price_eur, hs_price_usd fields
+ * - PCI compliance: Portal NEVER handles or stores card data
+ * - Payment processing handled entirely by Stripe via HubSpot redirect
+ * - All actions are logged for audit trail
+ */
 class HubSpotProductService
 {
     private string $baseUrl = 'https://api.hubapi.com/crm/v3/objects/products';
     private ?string $accessToken;
+
+    // Supported currencies for multi-currency pricing
+    private const SUPPORTED_CURRENCIES = ['GBP', 'EUR', 'USD'];
 
     private array $productSkuMapping = [
         'sms' => 'QSMS-SMS',
@@ -24,8 +37,21 @@ class HubSpotProductService
         $this->accessToken = env('HUBSPOT_ACCESS_TOKEN');
     }
 
+    /**
+     * Fetch products with live pricing from HubSpot
+     * 
+     * NOTE: Intentionally NO CACHING - prices are always fetched live
+     * to ensure accuracy for billing purposes.
+     */
     public function fetchProducts(string $currency = 'GBP'): array
     {
+        // Validate currency
+        $currency = strtoupper($currency);
+        if (!in_array($currency, self::SUPPORTED_CURRENCIES)) {
+            Log::warning('Unsupported currency requested', ['currency' => $currency]);
+            $currency = 'GBP';
+        }
+
         if (empty($this->accessToken)) {
             Log::warning('HubSpot access token not configured');
             return $this->getErrorResponse('HubSpot API not configured');
@@ -60,6 +86,12 @@ class HubSpotProductService
             }
 
             $data = $response->json();
+            Log::info('HubSpot products fetched successfully', [
+                'currency' => $currency,
+                'product_count' => count($data['results'] ?? []),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
             return $this->mapProducts($data['results'] ?? [], $currency);
 
         } catch (\Exception $e) {
@@ -113,10 +145,33 @@ class HubSpotProductService
         };
     }
 
+    /**
+     * Create invoice via HubSpot and return Stripe payment URL
+     * 
+     * SECURITY NOTES:
+     * - PCI DSS compliance: All card processing handled by Stripe
+     * - Portal NEVER sees, handles, or stores card data
+     * - User is redirected to Stripe hosted payment page
+     * - Payment confirmation via webhook only
+     */
     public function createInvoice(array $data): array
     {
+        // Audit log: Invoice creation attempt
+        Log::info('Invoice creation initiated', [
+            'account_id' => $data['account_id'] ?? 'unknown',
+            'tier' => $data['tier'] ?? 'unknown',
+            'volume' => $data['volume'] ?? 0,
+            'currency' => $data['currency'] ?? 'GBP',
+            'net_cost' => $data['net_cost'] ?? 0,
+            'timestamp' => now()->toIso8601String(),
+            'action' => 'invoice_create_attempt',
+        ]);
+
         if (empty($this->accessToken)) {
-            Log::warning('HubSpot access token not configured');
+            Log::warning('HubSpot access token not configured', [
+                'action' => 'invoice_create_failed',
+                'reason' => 'missing_api_token',
+            ]);
             return [
                 'success' => false,
                 'error' => 'HubSpot API not configured. Please add HUBSPOT_ACCESS_TOKEN.',

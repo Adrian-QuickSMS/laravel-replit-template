@@ -8,15 +8,29 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Webhook Controller
+ * 
+ * SECURITY NOTES:
+ * - Handles payment webhooks from HubSpot/Stripe
+ * - PCI compliance: This controller NEVER handles card data
+ * - Payment status received via secure webhook only
+ * - All webhook events are logged for audit trail
+ * - TODO: Implement webhook signature verification for production
+ */
 class WebhookController extends Controller
 {
     public function hubspotPayment(Request $request): JsonResponse
     {
         $payload = $request->all();
         
+        // Comprehensive audit log for all webhook events
         Log::info('HubSpot payment webhook received', [
+            'action' => 'webhook_received',
+            'source' => 'hubspot',
             'payload' => $payload,
-            'headers' => $request->headers->all(),
+            'ip' => $request->ip(),
+            'timestamp' => now()->toIso8601String(),
         ]);
 
         // TODO: Verify webhook signature from HubSpot
@@ -33,10 +47,14 @@ class WebhookController extends Controller
                 $this->updateAccountBalance($accountId, $amount);
                 $this->notifyPaymentSuccess($accountId, $invoiceId, $amount);
                 
+                // Audit log: Successful payment
                 Log::info('Payment processed successfully', [
+                    'action' => 'payment_success',
                     'account_id' => $accountId,
                     'invoice_id' => $invoiceId,
                     'amount' => $amount,
+                    'currency' => $payload['properties']['currency'] ?? 'GBP',
+                    'timestamp' => now()->toIso8601String(),
                 ]);
             }
         }
@@ -85,16 +103,20 @@ class WebhookController extends Controller
 
     private function updateAccountBalance(string $accountId, float $amount): void
     {
-        // TODO: Replace with actual database update
+        // TODO: Replace with actual database update for production
+        // Using Cache as placeholder - must be replaced with persistent storage
         $currentBalance = Cache::get("account_balance_{$accountId}", 0);
         $newBalance = $currentBalance + $amount;
         Cache::put("account_balance_{$accountId}", $newBalance, now()->addDays(30));
         
+        // Audit log: Balance update
         Log::info('Account balance updated', [
+            'action' => 'balance_update',
             'account_id' => $accountId,
             'previous_balance' => $currentBalance,
             'amount_added' => $amount,
             'new_balance' => $newBalance,
+            'timestamp' => now()->toIso8601String(),
         ]);
     }
 

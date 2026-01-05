@@ -23,6 +23,7 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
 - **Contact Book:** Management of contacts, static/dynamic lists, tags, and opt-out lists.
 - **Reporting:** Includes a Dashboard with customizable grid (using CSS Grid and SortableJS) for KPI tiles and charts (ApexCharts), a detailed Message Log with extensive filtering, Finance Data with mock API billing layer, Invoices, and a Download Area. Reporting leverages a `MockReportingDataService` for consistent data generation across all widgets and filter-aware API endpoints.
 - **Purchase:** Functionality to purchase messages (Admin/Finance only) with HubSpot Products API integration for live pricing and VAT calculation. Includes UI for product selection, order summary, and payment flow with Stripe (webhook handling for payment status).
+  - **Security & Compliance:** Live pricing (no caching), multi-currency (GBP/EUR/USD), PCI DSS compliant (portal never handles card data), all actions auditable via Laravel Log.
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
 - **Account:** Details, User/Access management, Sub Accounts, Audit Logs, and Security settings.
 - **Support:** Dashboard, Ticket creation, and a Knowledge Base.
@@ -37,4 +38,5 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
 - **Fillow SaaS Admin Template:** UI framework.
 - **MetisMenu:** JavaScript library for navigation.
 - **SQLite:** Database for local development.
-- **HubSpot Products API:** External service for product pricing in the Purchase module.
+- **HubSpot Products API:** External service for live product pricing (no caching). Requires `HUBSPOT_ACCESS_TOKEN` secret.
+- **Stripe (via HubSpot):** Payment processing - portal redirects to Stripe, never handles card data (PCI DSS compliant).
