@@ -97,23 +97,23 @@
     border-color: #4a4a5a !important;
     color: #ffffff !important;
 }
-/* Dark mode: Channel button text should be WHITE - targeting label elements */
-[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary,
-[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary i,
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary,
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary i {
+/* Dark mode: Channel button text should be WHITE - using highest specificity */
+body[data-theme-version="dark"] #replyComposerCard .btn-group label.btn,
+body[data-theme-version="dark"] #replyComposerCard .btn-group label.btn i,
+body[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary,
+body[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary i {
     color: #ffffff !important;
     border-color: rgba(136, 108, 192, 0.5) !important;
 }
-[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary:hover,
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary:hover {
+body[data-theme-version="dark"] #replyComposerCard .btn-group label.btn:hover,
+body[data-theme-version="dark"] #replyComposerCard .btn-group label.btn-outline-primary:hover {
     background-color: rgba(136, 108, 192, 0.3) !important;
     color: #ffffff !important;
 }
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + label.btn-outline-primary,
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + label.btn-outline-primary i,
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + .btn-outline-primary,
-[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + .btn-outline-primary i {
+body[data-theme-version="dark"] #replyComposerCard .btn-group input.btn-check:checked + label.btn,
+body[data-theme-version="dark"] #replyComposerCard .btn-group input.btn-check:checked + label.btn i,
+body[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + label.btn-outline-primary,
+body[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + label.btn-outline-primary i {
     background-color: var(--primary) !important;
     color: #ffffff !important;
 }
