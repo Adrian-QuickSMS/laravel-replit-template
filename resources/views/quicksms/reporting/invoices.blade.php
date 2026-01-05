@@ -348,6 +348,11 @@
 @endpush
 
 @section('content')
+@php
+    // TODO: Replace with actual user role from auth system
+    // Allowed roles: 'admin' (full access), 'finance' (purchase & invoices), 'standard' (view only)
+    $currentUserRole = 'admin';
+@endphp
 <div class="container-fluid invoices-container">
     <div class="row page-titles mb-2" style="flex-shrink: 0;">
         <ol class="breadcrumb">
@@ -761,6 +766,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let isLoading = false;
     let isMockData = false;
 
+    const currentUserRole = @json($currentUserRole);
+    const canMakePayments = ['admin', 'finance'].includes(currentUserRole);
+
     const billingDetails = {
         company: 'Acme Corporation Ltd',
         address: '123 Business Park, London, EC1A 1BB',
@@ -914,7 +922,9 @@ document.addEventListener('DOMContentLoaded', function() {
             row.setAttribute('data-invoice-id', inv.id);
 
             const billingPeriod = formatBillingPeriodMonthYear(inv.billingPeriodStart, inv.billingPeriodEnd);
-            const isPayable = inv.status === 'issued' || inv.status === 'pending' || inv.status === 'overdue';
+            const isPayableStatus = inv.status === 'issued' || inv.status === 'pending' || inv.status === 'overdue';
+            const showPayNow = isPayableStatus && canMakePayments && inv.balanceDue > 0;
+            const hasPdfUrl = inv.pdfUrl && inv.pdfUrl.length > 0;
 
             row.innerHTML = `
                 <td onclick="event.stopPropagation();">
@@ -935,9 +945,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="openDrawer('${inv.id}'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="downloadPdf('${inv.id}'); return false;"><i class="fas fa-file-pdf me-2"></i>Download PDF</a></li>
-                            ${isPayable ? 
+                            <li><a class="dropdown-item" href="#" onclick="openDrawer('${inv.id}'); return false;"><i class="fas fa-eye me-2"></i>View Invoice</a></li>
+                            <li><a class="dropdown-item ${hasPdfUrl ? '' : 'disabled text-muted'}" href="#" onclick="downloadPdf('${inv.id}', '${inv.pdfUrl || ''}'); return false;"><i class="fas fa-file-pdf me-2"></i>Download PDF${hasPdfUrl ? '' : ' <small class="text-muted">(unavailable)</small>'}</a></li>
+                            ${showPayNow ? 
                                 `<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-primary" href="#" onclick="payInvoice('${inv.id}'); return false;"><i class="fas fa-credit-card me-2"></i>Pay Now</a></li>` : ''
                             }
                         </ul>
@@ -1067,14 +1077,24 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         const payNowBtn = document.getElementById('payNowBtn');
-        if (invoice.status === 'pending' || invoice.status === 'overdue') {
+        const isPayableStatus = invoice.status === 'issued' || invoice.status === 'pending' || invoice.status === 'overdue';
+        const showPayNow = isPayableStatus && canMakePayments && invoice.balanceDue > 0;
+        
+        if (showPayNow) {
             payNowBtn.style.display = 'block';
             payNowBtn.onclick = () => payInvoice(invoice.id);
         } else {
             payNowBtn.style.display = 'none';
         }
 
-        document.getElementById('downloadPdfBtn').onclick = () => downloadPdf(invoice.id, invoice.pdfUrl);
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        if (invoice.pdfUrl) {
+            downloadPdfBtn.classList.remove('disabled');
+            downloadPdfBtn.onclick = () => downloadPdf(invoice.id, invoice.pdfUrl);
+        } else {
+            downloadPdfBtn.classList.add('disabled');
+            downloadPdfBtn.onclick = () => alert('PDF not yet available for this invoice. Please try again later.');
+        }
     }
 
     function closeDrawer() {
