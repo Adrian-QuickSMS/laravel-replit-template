@@ -2672,7 +2672,8 @@ var rcsMediaData = {
 };
 
 var rcsAllowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-var rcsMaxFileSize = 250 * 1024;
+var rcsMaxFileSize = 100 * 1024 * 1024;
+var rcsWarnFileSize = 2 * 1024 * 1024;
 var rcsDraftSession = generateDraftSession();
 var rcsEditDebounceTimer = null;
 
@@ -3087,10 +3088,12 @@ function loadRcsMediaUrl() {
             }
             
             if (fileSize > 0 && fileSize > rcsMaxFileSize) {
-                throw new Error('File size (' + (fileSize / 1024).toFixed(1) + ' KB) exceeds 250 KB limit.');
+                var sizeMB = (fileSize / (1024 * 1024)).toFixed(1);
+                throw new Error('File size (' + sizeMB + ' MB) exceeds 100 MB limit. Please use a smaller image.');
             }
             
-            return { fileSize: fileSize, contentType: contentType };
+            var warnLargeFile = fileSize > 0 && fileSize > rcsWarnFileSize;
+            return { fileSize: fileSize, contentType: contentType, warnLargeFile: warnLargeFile };
         })
         .catch(function(err) {
             return { fileSize: 0, contentType: '', corsBlocked: err.message === 'Failed to fetch' };
@@ -3110,8 +3113,11 @@ function loadRcsMediaUrl() {
                 updateRcsImageInfo();
                 initRcsImageBaseline();
                 
-                if (metadata.corsBlocked) {
-                    showRcsMediaWarning('File size could not be verified. Ensure image is under 250 KB.');
+                if (metadata.warnLargeFile) {
+                    var sizeMB = (metadata.fileSize / (1024 * 1024)).toFixed(1);
+                    showRcsMediaWarning('This file is ' + sizeMB + ' MB. Large media may load slowly and may not render optimally on handsets.');
+                } else if (metadata.corsBlocked) {
+                    showRcsMediaWarning('File size could not be verified. Very large images may not render optimally on handsets.');
                 }
                 
                 if (loadBtn) {
@@ -3157,9 +3163,12 @@ function handleRcsFileUpload(file) {
     }
     
     if (file.size > rcsMaxFileSize) {
-        showRcsMediaError('File size exceeds 250 KB limit. Please choose a smaller file.');
+        var sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        showRcsMediaError('File size (' + sizeMB + ' MB) exceeds 100 MB limit. Please choose a smaller file.');
         return;
     }
+    
+    var warnLargeFile = file.size > rcsWarnFileSize;
     
     var reader = new FileReader();
     reader.onload = function(e) {
@@ -3172,6 +3181,11 @@ function handleRcsFileUpload(file) {
             rcsMediaData.fileSize = file.size;
             showRcsMediaPreview(e.target.result);
             updateRcsImageInfo();
+            
+            if (warnLargeFile) {
+                var sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                showRcsMediaWarning('This file is ' + sizeMB + ' MB. Large media may load slowly and may not render optimally on handsets.');
+            }
         };
         img.src = e.target.result;
     };

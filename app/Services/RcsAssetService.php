@@ -12,6 +12,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 class RcsAssetService
 {
     private const MAX_FILE_SIZE = 250 * 1024;
+    private const MAX_SOURCE_SIZE = 100 * 1024 * 1024;
     private const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
     private const DISK = 'rcs-assets';
     
@@ -270,8 +271,8 @@ class RcsAssetService
 
         $content = $response->body();
         
-        if (strlen($content) > self::MAX_FILE_SIZE * 4) {
-            throw new \InvalidArgumentException('Source file is too large to process.');
+        if (strlen($content) > self::MAX_SOURCE_SIZE) {
+            throw new \InvalidArgumentException('Source file exceeds 100MB limit and cannot be processed.');
         }
 
         return [
