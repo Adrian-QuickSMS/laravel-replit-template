@@ -662,6 +662,28 @@ document.addEventListener('DOMContentLoaded', function() {
         return symbol + amount.toFixed(2);
     }
 
+    function getSmsUnitPrice() {
+        return state.products.sms?.price || 0;
+    }
+
+    function calculatePurchase(volume) {
+        const smsUnitPrice = getSmsUnitPrice();
+        const netCost = volume * smsUnitPrice;
+        const vatRate = state.vatApplicable ? 0.20 : 0;
+        const vatAmount = netCost * vatRate;
+        const totalPayable = netCost + vatAmount;
+        
+        return {
+            volume: volume,
+            smsUnitPrice: smsUnitPrice,
+            netCost: netCost,
+            vatApplicable: state.vatApplicable,
+            vatRate: vatRate,
+            vatAmount: vatAmount,
+            totalPayable: totalPayable
+        };
+    }
+
     function initializeSliders() {
         const slidersToInit = state.bespokePricing ? ['bespoke'] : ['starter', 'enterprise'];
         
@@ -725,9 +747,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (costInput && !costInput.matches(':focus')) {
-            const smsPrice = state.products.sms?.price || 0;
-            const cost = volume * smsPrice;
-            costInput.value = cost.toFixed(2);
+            const calc = calculatePurchase(volume);
+            costInput.value = calc.netCost.toFixed(2);
         }
     }
 
@@ -788,12 +809,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 let rawValue = this.value.replace(/[^0-9.]/g, '');
                 if (!rawValue) return;
                 
-                const cost = parseFloat(rawValue);
-                const smsPrice = state.products.sms?.price || 0;
+                const netCost = parseFloat(rawValue);
+                const smsUnitPrice = getSmsUnitPrice();
                 
-                if (smsPrice <= 0) return;
+                if (smsUnitPrice <= 0) return;
                 
-                let volume = Math.round(cost / smsPrice);
+                let volume = Math.round(netCost / smsUnitPrice);
                 volume = clampToTierRange(tierId, volume);
                 
                 if (state.sliders[tierId]) {
@@ -805,24 +826,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tierId = this.dataset.tier;
                 let rawValue = this.value.replace(/[^0-9.]/g, '');
                 
-                const smsPrice = state.products.sms?.price || 0;
+                const smsUnitPrice = getSmsUnitPrice();
                 
-                if (!rawValue || smsPrice <= 0) {
-                    const currentVolume = state.sliderValues[tierId];
-                    this.value = (currentVolume * smsPrice).toFixed(2);
+                if (!rawValue || smsUnitPrice <= 0) {
+                    const calc = calculatePurchase(state.sliderValues[tierId]);
+                    this.value = calc.netCost.toFixed(2);
                     return;
                 }
                 
-                const cost = parseFloat(rawValue);
-                let volume = Math.round(cost / smsPrice);
+                const netCost = parseFloat(rawValue);
+                let volume = Math.round(netCost / smsUnitPrice);
                 volume = snapToIncrement(tierId, volume);
                 
                 if (state.sliders[tierId]) {
                     state.sliders[tierId].set(volume);
                 }
                 
-                const actualCost = volume * smsPrice;
-                this.value = actualCost.toFixed(2);
+                const calc = calculatePurchase(volume);
+                this.value = calc.netCost.toFixed(2);
             });
         });
     }
@@ -905,23 +926,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const tier = tierConfig[state.selectedTier];
         const quantity = state.sliderValues[state.selectedTier];
-        const smsPrice = state.products.sms?.price || 0;
-        const netTotal = quantity * smsPrice;
-        const vatAmount = state.vatApplicable ? netTotal * (state.vatRate / 100) : 0;
-        const totalPayable = netTotal + vatAmount;
+        const calc = calculatePurchase(quantity);
 
         orderItems.innerHTML = '';
         orderSummary.classList.remove('d-none');
 
         document.getElementById('selectedTierName').textContent = tier.name;
-        document.getElementById('selectedQuantity').textContent = formatNumber(quantity) + ' messages';
-        document.getElementById('netTotal').textContent = formatCurrencyShort(netTotal);
-        document.getElementById('vatAmount').textContent = formatCurrencyShort(vatAmount);
-        document.getElementById('vatRateDisplay').textContent = state.vatRate;
-        document.getElementById('totalPayable').textContent = formatCurrencyShort(totalPayable);
+        document.getElementById('selectedQuantity').textContent = formatNumber(calc.volume) + ' messages';
+        document.getElementById('netTotal').textContent = formatCurrencyShort(calc.netCost);
+        document.getElementById('vatAmount').textContent = formatCurrencyShort(calc.vatAmount);
+        document.getElementById('vatRateDisplay').textContent = Math.round(calc.vatRate * 100);
+        document.getElementById('totalPayable').textContent = formatCurrencyShort(calc.totalPayable);
 
         const vatRow = document.getElementById('vatRow');
-        if (state.vatApplicable) {
+        if (calc.vatApplicable) {
             vatRow.classList.remove('d-none');
         } else {
             vatRow.classList.add('d-none');
