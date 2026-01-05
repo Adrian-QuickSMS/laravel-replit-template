@@ -401,6 +401,14 @@
                     
                     <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.72); transform-origin: top center; margin-bottom: -140px;"></div>
                     
+                    <div class="text-center d-none" id="basicRcsPreviewToggle">
+                        <small class="text-muted me-2">View:</small>
+                        <div class="btn-group btn-group-sm" role="group" style="transform: scale(0.85);">
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 active" id="basicPreviewRCSBtn" onclick="toggleBasicRcsPreview('rcs')" style="font-size: 11px;">RCS</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" id="basicPreviewSMSBtn" onclick="toggleBasicRcsPreview('sms')" style="font-size: 11px;">SMS Fallback</button>
+                        </div>
+                    </div>
+                    
                     <div class="mt-3 border-top pt-2">
                         <div class="row text-center">
                             <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
@@ -1442,6 +1450,8 @@ function showDuplicateNotification(originalName) {
     }
 }
 
+var basicRcsPreviewMode = 'rcs';
+
 function selectChannel(channel) {
     var rcsAgentSection = document.getElementById('rcsAgentSection');
     var rcsContentSection = document.getElementById('rcsContentSection');
@@ -1450,6 +1460,7 @@ function selectChannel(channel) {
     var rcsTextHelper = document.getElementById('rcsTextHelper');
     var rcsHelperText = document.getElementById('rcsHelperText');
     var previewToggle = document.getElementById('previewToggleContainer');
+    var basicRcsToggle = document.getElementById('basicRcsPreviewToggle');
     
     if (channel === 'sms') {
         rcsAgentSection.classList.add('d-none');
@@ -1458,6 +1469,7 @@ function selectChannel(channel) {
         previewChannel.textContent = 'SMS';
         contentLabel.textContent = 'SMS Content';
         previewToggle.classList.add('d-none');
+        basicRcsToggle.classList.add('d-none');
         updatePreview();
     } else if (channel === 'rcs_basic') {
         rcsAgentSection.classList.remove('d-none');
@@ -1467,6 +1479,10 @@ function selectChannel(channel) {
         previewChannel.textContent = 'Basic RCS';
         contentLabel.textContent = 'Message Content';
         previewToggle.classList.add('d-none');
+        basicRcsToggle.classList.remove('d-none');
+        basicRcsPreviewMode = 'rcs';
+        document.getElementById('basicPreviewRCSBtn').classList.add('active');
+        document.getElementById('basicPreviewSMSBtn').classList.remove('active');
         autoSelectFirstAgent();
         updatePreview();
     } else if (channel === 'rcs_rich') {
@@ -1476,12 +1492,20 @@ function selectChannel(channel) {
         previewChannel.textContent = 'Rich RCS';
         contentLabel.textContent = 'SMS Fallback Content';
         previewToggle.classList.remove('d-none');
+        basicRcsToggle.classList.add('d-none');
         document.getElementById('previewSMSBtn').classList.add('active');
         document.getElementById('previewRCSBtn').classList.remove('active');
         autoSelectFirstAgent();
         updatePreview();
     }
     handleContentChange();
+}
+
+function toggleBasicRcsPreview(mode) {
+    basicRcsPreviewMode = mode;
+    document.getElementById('basicPreviewRCSBtn').classList.toggle('active', mode === 'rcs');
+    document.getElementById('basicPreviewSMSBtn').classList.toggle('active', mode === 'sms');
+    updatePreview();
 }
 
 function toggleScheduling() {
@@ -1518,14 +1542,18 @@ function updatePreview() {
     if (channel === 'sms') {
         previewConfig.channel = 'sms';
     } else if (channel === 'rcs_basic') {
-        previewConfig.channel = 'basic_rcs';
-        var selectedOption = rcsAgentSelect?.selectedOptions[0];
-        previewConfig.agent = {
-            name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
-            logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
-            verified: true,
-            tagline: selectedOption?.dataset?.tagline || 'Business messaging'
-        };
+        if (basicRcsPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+        } else {
+            previewConfig.channel = 'basic_rcs';
+            var selectedOption = rcsAgentSelect?.selectedOptions[0];
+            previewConfig.agent = {
+                name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
+                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                verified: true,
+                tagline: selectedOption?.dataset?.tagline || 'Business messaging'
+            };
+        }
     } else if (channel === 'rcs_rich') {
         return;
     }
