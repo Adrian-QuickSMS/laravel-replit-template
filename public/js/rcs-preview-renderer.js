@@ -63,44 +63,34 @@ var RcsPreviewRenderer = (function() {
         var height = heightOverride || media.height || 'medium';
         if (height === 'none') return '';
         var heightPx = getMediaHeight(height);
+        var heightNum = parseFloat(heightPx);
         
         if (media.url) {
             var imgStyle = '';
             var containerStyle = 'height: ' + heightPx + ';';
             
-            if (media.crop && media.crop.zoom !== undefined) {
+            if (media.crop && media.crop.zoom !== undefined && media.crop.imageWidth && media.crop.imageHeight) {
                 var crop = media.crop;
                 var zoom = crop.zoom / 100;
                 var displayScale = crop.displayScale || 1;
                 var effectiveScale = displayScale * zoom;
                 
-                if (crop.imageWidth && crop.imageHeight) {
-                    var displayW = crop.imageWidth * effectiveScale;
-                    var displayH = crop.imageHeight * effectiveScale;
-                    
-                    var frameW = crop.frameWidth || 280;
-                    var frameH = crop.frameHeight || 147;
-                    var offsetX = crop.offsetX || 0;
-                    var offsetY = crop.offsetY || 0;
-                    
-                    var scaleX = parseFloat(heightPx) * (280 / frameH) / 280;
-                    var previewFrameW = 280 * scaleX;
-                    var previewFrameH = parseFloat(heightPx);
-                    
-                    var imgScaleX = previewFrameW / frameW;
-                    var imgScaleY = previewFrameH / frameH;
-                    var imgScale = Math.min(imgScaleX, imgScaleY);
-                    
-                    var imgW = displayW * imgScale;
-                    var imgH = displayH * imgScale;
-                    var imgOffsetX = offsetX * imgScale;
-                    var imgOffsetY = offsetY * imgScale;
-                    
-                    imgStyle = 'width: ' + imgW + 'px; height: ' + imgH + 'px; object-fit: none; ' +
-                        'position: absolute; left: 50%; top: 50%; ' +
-                        'transform: translate(calc(-50% + ' + imgOffsetX + 'px), calc(-50% + ' + imgOffsetY + 'px));';
-                    containerStyle = 'height: ' + heightPx + '; position: relative; overflow: hidden;';
-                }
+                var editorFrameW = crop.frameWidth || 280;
+                var editorFrameH = crop.frameHeight || 147;
+                var offsetX = crop.offsetX || 0;
+                var offsetY = crop.offsetY || 0;
+                
+                var previewScale = heightNum / editorFrameH;
+                
+                var imgW = crop.imageWidth * effectiveScale * previewScale;
+                var imgH = crop.imageHeight * effectiveScale * previewScale;
+                var imgOffsetX = offsetX * previewScale;
+                var imgOffsetY = offsetY * previewScale;
+                
+                imgStyle = 'width: ' + imgW.toFixed(1) + 'px; height: ' + imgH.toFixed(1) + 'px; ' +
+                    'max-width: none; object-fit: none; position: absolute; left: 50%; top: 50%; ' +
+                    'transform: translate(calc(-50% + ' + imgOffsetX.toFixed(1) + 'px), calc(-50% + ' + imgOffsetY.toFixed(1) + 'px));';
+                containerStyle = 'height: ' + heightPx + '; position: relative; overflow: hidden;';
             }
             
             return '<div class="rcs-media rcs-media--' + height + '" style="' + containerStyle + '">' +
