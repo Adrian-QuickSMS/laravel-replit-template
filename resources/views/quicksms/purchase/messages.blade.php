@@ -85,6 +85,7 @@
     margin-bottom: 0.5rem;
     font-weight: 700;
     font-size: 1.75rem;
+    color: #fff;
 }
 .tier-volume {
     font-size: 0.875rem;
