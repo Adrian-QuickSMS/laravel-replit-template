@@ -1709,7 +1709,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateBillingYearOptions() {
         const yearSelect = document.getElementById('billingYearFilter');
         const currentYear = new Date().getFullYear();
-        for (let year = currentYear; year >= currentYear - 5; year--) {
+        for (let year = currentYear; year >= 2015; year--) {
             const option = document.createElement('option');
             option.value = year;
             option.textContent = year;
