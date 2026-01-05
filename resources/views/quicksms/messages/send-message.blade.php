@@ -391,21 +391,21 @@
                 <div class="card-header bg-primary text-white py-3">
                     <h6 class="card-title mb-0">Preview</h6>
                 </div>
-                <div class="card-body p-4">
-                    <div class="text-center mb-3 d-none" id="previewToggleContainer">
-                        <div class="btn-group" role="group">
+                <div class="card-body p-2">
+                    <div class="text-center mb-2 d-none" id="previewToggleContainer">
+                        <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-primary active" id="previewSMSBtn" onclick="showPreview('sms')">SMS</button>
                             <button type="button" class="btn btn-outline-primary" id="previewRCSBtn" onclick="showPreview('rcs')">RCS</button>
                         </div>
                     </div>
                     
-                    <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.58); transform-origin: top center; margin-bottom: -180px;"></div>
+                    <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.72); transform-origin: top center; margin-bottom: -140px;"></div>
                     
-                    <div class="mt-4 border-top pt-3">
+                    <div class="mt-3 border-top pt-2">
                         <div class="row text-center">
-                            <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel">SMS</strong></div>
-                            <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients">0</strong></div>
-                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost">0 cr</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients" class="small">0</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">0 cr</strong></div>
                         </div>
                     </div>
                 </div>
