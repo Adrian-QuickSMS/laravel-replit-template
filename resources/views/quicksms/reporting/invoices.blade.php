@@ -803,7 +803,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button class="btn btn-purchase" onclick="selectTopUpTier('bespoke')">
+                                        <button type="button" class="btn btn-purchase" id="selectBespokeBtn">
                                             Select Plan
                                         </button>
                                     </div>
@@ -853,7 +853,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button class="btn btn-purchase" onclick="selectTopUpTier('starter')">
+                                        <button type="button" class="btn btn-purchase" id="selectStarterBtn">
                                             Select Starter
                                         </button>
                                     </div>
@@ -904,7 +904,7 @@
                                         </div>
                                     </div>
                                     <div class="tier-footer">
-                                        <button class="btn btn-purchase" onclick="selectTopUpTier('enterprise')">
+                                        <button type="button" class="btn btn-purchase" id="selectEnterpriseBtn">
                                             Select Enterprise
                                         </button>
                                     </div>
@@ -982,14 +982,15 @@
 }
 .best-value-badge {
     position: absolute;
-    top: -1px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
 }
 .best-value-badge .badge {
-    border-radius: 0 0 0.5rem 0.5rem;
+    border-radius: 0.5rem;
     font-size: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .topup-tier-card {
     border: none;
@@ -1909,20 +1910,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const productLabels = {
-        'sms': { name: 'SMS', icon: 'fa-sms', unit: '/msg' },
-        'rcs_basic': { name: 'RCS Basic', icon: 'fa-comment-dots', unit: '/msg' },
-        'rcs_single': { name: 'RCS Single', icon: 'fa-comments', unit: '/msg' },
-        'vmn': { name: 'VMN', icon: 'fa-phone', unit: '/mo' },
-        'shortcode_keyword': { name: 'Shortcode', icon: 'fa-hashtag', unit: '/mo' },
-        'ai': { name: 'AI Credits', icon: 'fa-robot', unit: '/credit' }
+        'sms': { name: 'SMS', unit: '/msg', decimals: 'trim' },
+        'rcs_basic': { name: 'RCS Basic', unit: '/msg', decimals: 'trim' },
+        'rcs_single': { name: 'RCS Single', unit: '/msg', decimals: 'trim' },
+        'vmn': { name: 'VMN', unit: '/mo', decimals: 0 },
+        'shortcode_keyword': { name: 'Shortcode', unit: '/mo', decimals: 0 },
+        'ai': { name: 'AI Credits', unit: '/credit', decimals: 2 }
     };
+
+    function formatProductPrice(price, decimals) {
+        const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
+        const symbol = symbols[topUpState.currency] || '£';
+        
+        if (decimals === 'trim') {
+            let formatted = parseFloat(price).toFixed(4);
+            formatted = formatted.replace(/0+$/, '').replace(/\.$/, '');
+            return symbol + formatted;
+        } else {
+            return symbol + parseFloat(price).toFixed(decimals);
+        }
+    }
 
     function generatePricingBadges(tier) {
         const products = topUpState.products;
         let badgesHtml = '';
         
         for (const [key, product] of Object.entries(products)) {
-            const label = productLabels[key] || { name: key, icon: 'fa-tag', unit: '' };
+            const label = productLabels[key] || { name: key, unit: '', decimals: 2 };
             let price;
             
             if (tier === 'starter') {
@@ -1932,14 +1946,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (price) {
-                badgesHtml += `<span class="pricing-badge"><i class="fas ${label.icon} me-1"></i>${label.name}: <strong>${formatTopUpCurrency(price, 4)}</strong>${label.unit}</span>`;
+                const formattedPrice = formatProductPrice(price, label.decimals);
+                badgesHtml += `<span class="pricing-badge">${label.name}:<strong>${formattedPrice}</strong>${label.unit}</span>`;
             }
-        }
-        
-        if (tier === 'enterprise') {
-            badgesHtml += '<span class="pricing-badge text-success"><i class="fas fa-check me-1"></i>Best rates</span>';
-        } else if (tier === 'bespoke') {
-            badgesHtml += '<span class="pricing-badge text-success"><i class="fas fa-gem me-1"></i>Custom rates</span>';
         }
         
         return badgesHtml;
@@ -2032,6 +2041,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 topUpState.sliders[tier].set(value);
             }
         });
+    });
+
+    document.getElementById('selectStarterBtn')?.addEventListener('click', function() {
+        selectTopUpTier('starter');
+    });
+    
+    document.getElementById('selectEnterpriseBtn')?.addEventListener('click', function() {
+        selectTopUpTier('enterprise');
+    });
+    
+    document.getElementById('selectBespokeBtn')?.addEventListener('click', function() {
+        selectTopUpTier('bespoke');
     });
 
     document.getElementById('topUpProceedBtn').addEventListener('click', async function() {
