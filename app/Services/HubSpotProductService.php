@@ -53,8 +53,8 @@ class HubSpotProductService
         }
 
         if (empty($this->accessToken)) {
-            Log::warning('HubSpot access token not configured');
-            return $this->getErrorResponse('HubSpot API not configured');
+            Log::warning('HubSpot access token not configured - using mock data');
+            return $this->getMockProducts($currency);
         }
 
         try {
@@ -228,6 +228,91 @@ class HubSpotProductService
             'success' => false,
             'error' => $message,
             'products' => [],
+        ];
+    }
+
+    /**
+     * Mock product data for development/demo when HubSpot is not configured
+     * Pricing based on tier: Starter vs Enterprise
+     */
+    private function getMockProducts(string $currency): array
+    {
+        $currencySymbol = match ($currency) {
+            'EUR' => '€',
+            'USD' => '$',
+            default => '£',
+        };
+
+        // Mock pricing data - Starter tier prices (default display)
+        $products = [
+            'sms' => [
+                'id' => 'mock-sms-001',
+                'name' => 'SMS Message',
+                'sku' => 'QSMS-SMS',
+                'price' => 0.0395,
+                'price_enterprise' => 0.034,
+                'description' => 'Standard SMS message credit',
+                'billing_period' => null,
+                'currency' => $currency,
+            ],
+            'rcs_basic' => [
+                'id' => 'mock-rcs-basic-001',
+                'name' => 'RCS Basic',
+                'sku' => 'QSMS-RCS-BASIC',
+                'price' => 0.037,
+                'price_enterprise' => 0.031,
+                'description' => 'RCS Basic message with branding',
+                'billing_period' => null,
+                'currency' => $currency,
+            ],
+            'rcs_single' => [
+                'id' => 'mock-rcs-single-001',
+                'name' => 'RCS Single',
+                'sku' => 'QSMS-RCS-SINGLE',
+                'price' => 0.05,
+                'price_enterprise' => 0.045,
+                'description' => 'RCS Single rich message',
+                'billing_period' => null,
+                'currency' => $currency,
+            ],
+            'vmn' => [
+                'id' => 'mock-vmn-001',
+                'name' => 'Virtual Mobile Number',
+                'sku' => 'QSMS-VMN',
+                'price' => 2.00,
+                'price_enterprise' => 1.00,
+                'description' => 'Dedicated virtual mobile number',
+                'billing_period' => 'monthly',
+                'currency' => $currency,
+            ],
+            'shortcode_keyword' => [
+                'id' => 'mock-shortcode-001',
+                'name' => 'Short Code (Keyword)',
+                'sku' => 'QSMS-SHORTCODE',
+                'price' => 2.00,
+                'price_enterprise' => 1.00,
+                'description' => 'Short code keyword rental',
+                'billing_period' => 'monthly',
+                'currency' => $currency,
+            ],
+            'ai' => [
+                'id' => 'mock-ai-001',
+                'name' => 'AI Credits',
+                'sku' => 'QSMS-AI',
+                'price' => 0.25,
+                'price_enterprise' => 0.20,
+                'description' => 'AI-powered message assistance',
+                'billing_period' => null,
+                'currency' => $currency,
+            ],
+        ];
+
+        return [
+            'success' => true,
+            'products' => $products,
+            'currency' => $currency,
+            'fetched_at' => now()->toIso8601String(),
+            'is_mock' => true,
         ];
     }
 }

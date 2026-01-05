@@ -787,12 +787,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return symbol + amount.toFixed(2);
     }
 
-    function getSmsUnitPrice() {
-        return state.products.sms?.price || 0;
+    function getSmsUnitPrice(tierId = null) {
+        const tier = tierId || state.selectedTier;
+        const smsProduct = state.products.sms;
+        if (!smsProduct) return 0;
+        
+        // Enterprise and Bespoke tiers get discounted pricing
+        if ((tier === 'enterprise' || tier === 'bespoke') && smsProduct.price_enterprise) {
+            return smsProduct.price_enterprise;
+        }
+        return smsProduct.price || 0;
     }
 
-    function calculatePurchase(volume) {
-        const smsUnitPrice = getSmsUnitPrice();
+    function calculatePurchase(volume, tierId = null) {
+        const tier = tierId || state.selectedTier;
+        const smsUnitPrice = getSmsUnitPrice(tier);
         const netCost = volume * smsUnitPrice;
         const vatRate = state.vatApplicable ? 0.20 : 0;
         const vatAmount = netCost * vatRate;
@@ -872,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (costInput && !costInput.matches(':focus')) {
-            const calc = calculatePurchase(volume);
+            const calc = calculatePurchase(volume, tierId);
             costInput.value = calc.netCost.toFixed(2);
         }
     }
@@ -935,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!rawValue) return;
                 
                 const netCost = parseFloat(rawValue);
-                const smsUnitPrice = getSmsUnitPrice();
+                const smsUnitPrice = getSmsUnitPrice(tierId);
                 
                 if (smsUnitPrice <= 0) return;
                 
@@ -951,10 +960,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tierId = this.dataset.tier;
                 let rawValue = this.value.replace(/[^0-9.]/g, '');
                 
-                const smsUnitPrice = getSmsUnitPrice();
+                const smsUnitPrice = getSmsUnitPrice(tierId);
                 
                 if (!rawValue || smsUnitPrice <= 0) {
-                    const calc = calculatePurchase(state.sliderValues[tierId]);
+                    const calc = calculatePurchase(state.sliderValues[tierId], tierId);
                     this.value = calc.netCost.toFixed(2);
                     return;
                 }
@@ -967,7 +976,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     state.sliders[tierId].set(volume);
                 }
                 
-                const calc = calculatePurchase(volume);
+                const calc = calculatePurchase(volume, tierId);
                 this.value = calc.netCost.toFixed(2);
             });
         });
@@ -1004,11 +1013,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const product = state.products[key];
             if (!product) continue;
             
+            // Use tier-specific pricing: Enterprise gets lower prices
+            const price = (tierId === 'enterprise' || tierId === 'bespoke') && product.price_enterprise 
+                ? product.price_enterprise 
+                : product.price;
+            
             const label = badgeLabels[key] || key.toUpperCase();
             html += `
                 <div class="pricing-badge">
                     <span class="badge-label">${label}</span>
-                    <span class="badge-price">${formatCurrencyBadge(product.price)}</span>
+                    <span class="badge-price">${formatCurrencyBadge(price)}</span>
                 </div>
             `;
         }
@@ -1055,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const tier = tierConfig[state.selectedTier];
         const quantity = state.sliderValues[state.selectedTier];
-        const calc = calculatePurchase(quantity);
+        const calc = calculatePurchase(quantity, state.selectedTier);
 
         orderItems.innerHTML = '';
         orderSummary.classList.remove('d-none');
@@ -1131,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const calc = calculatePurchase(state.sliderValues[state.selectedTier]);
+        const calc = calculatePurchase(state.sliderValues[state.selectedTier], state.selectedTier);
         
         if (calc.smsUnitPrice <= 0) {
             alert('Unable to process purchase. Pricing data not available.');
