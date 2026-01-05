@@ -166,6 +166,56 @@
     font-size: 0.75rem;
     color: #6c757d;
 }
+.numeric-inputs {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+.numeric-input-group {
+    flex: 1;
+}
+.numeric-input-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.375rem;
+    font-weight: 500;
+}
+.numeric-input-group .input-group {
+    position: relative;
+}
+.numeric-input-group .input-group-text {
+    background: #fff;
+    border-color: #dee2e6;
+    color: #6c757d;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+.numeric-input-group input {
+    border-color: #dee2e6;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    text-align: right;
+}
+.numeric-input-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15);
+}
+.tier-starter .numeric-input-group input:focus {
+    border-color: #1cbb8c;
+    box-shadow: 0 0 0 0.2rem rgba(28, 187, 140, 0.15);
+}
+.tier-enterprise .numeric-input-group input:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15);
+}
+.tier-bespoke .numeric-input-group input:focus {
+    border-color: #D653C1;
+    box-shadow: 0 0 0 0.2rem rgba(214, 83, 193, 0.15);
+}
 .tier-body {
     padding: 1.5rem;
 }
@@ -345,6 +395,22 @@
                                         <span>50K</span>
                                         <span>5M</span>
                                     </div>
+                                    <div class="numeric-inputs">
+                                        <div class="numeric-input-group">
+                                            <label>Message Volume</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control volume-input" id="bespokeVolumeInput" data-tier="bespoke" value="50,000">
+                                                <span class="input-group-text">msgs</span>
+                                            </div>
+                                        </div>
+                                        <div class="numeric-input-group">
+                                            <label>Total Cost</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text currency-symbol">£</span>
+                                                <input type="text" class="form-control cost-input" id="bespokeCostInput" data-tier="bespoke" value="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Tailored pricing for high-volume enterprise customers with custom requirements and dedicated support.</p>
@@ -379,6 +445,22 @@
                                         <span>0</span>
                                         <span>50K</span>
                                     </div>
+                                    <div class="numeric-inputs">
+                                        <div class="numeric-input-group">
+                                            <label>Message Volume</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control volume-input" id="starterVolumeInput" data-tier="starter" value="10,000">
+                                                <span class="input-group-text">msgs</span>
+                                            </div>
+                                        </div>
+                                        <div class="numeric-input-group">
+                                            <label>Total Cost</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text currency-symbol">£</span>
+                                                <input type="text" class="form-control cost-input" id="starterCostInput" data-tier="starter" value="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Perfect for small and medium businesses getting started with SMS and RCS messaging.</p>
@@ -412,6 +494,22 @@
                                     <div class="slider-range-labels">
                                         <span>50K</span>
                                         <span>1M</span>
+                                    </div>
+                                    <div class="numeric-inputs">
+                                        <div class="numeric-input-group">
+                                            <label>Message Volume</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control volume-input" id="enterpriseVolumeInput" data-tier="enterprise" value="100,000">
+                                                <span class="input-group-text">msgs</span>
+                                            </div>
+                                        </div>
+                                        <div class="numeric-input-group">
+                                            <label>Total Cost</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text currency-symbol">£</span>
+                                                <input type="text" class="form-control cost-input" id="enterpriseCostInput" data-tier="enterprise" value="0.00">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="tier-body">
@@ -602,10 +700,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
-            state.sliders[tierId].on('update', function(values) {
+            state.sliders[tierId].on('update', function(values, handle, unencoded, tap, positions, noUiSlider) {
                 const value = parseInt(values[0].replace(/,/g, ''));
                 state.sliderValues[tierId] = value;
                 document.getElementById(tierId + 'SliderValue').textContent = formatNumber(value);
+                
+                updateNumericInputs(tierId, value);
                 
                 if (state.selectedTier === tierId) {
                     updateOrderSummary();
@@ -613,6 +713,117 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             console.log(`[Slider] Initialized ${tierId} slider with ${snapValues.length} snap points`);
+        });
+    }
+
+    function updateNumericInputs(tierId, volume) {
+        const volumeInput = document.getElementById(tierId + 'VolumeInput');
+        const costInput = document.getElementById(tierId + 'CostInput');
+        
+        if (volumeInput && !volumeInput.matches(':focus')) {
+            volumeInput.value = formatNumber(volume);
+        }
+        
+        if (costInput && !costInput.matches(':focus')) {
+            const smsPrice = state.products.sms?.price || 0;
+            const cost = volume * smsPrice;
+            costInput.value = cost.toFixed(2);
+        }
+    }
+
+    function updateAllCostInputs() {
+        const tiers = state.bespokePricing ? ['bespoke'] : ['starter', 'enterprise'];
+        tiers.forEach(tierId => {
+            updateNumericInputs(tierId, state.sliderValues[tierId]);
+        });
+    }
+
+    function clampToTierRange(tierId, value) {
+        const config = tierConfig[tierId];
+        return Math.max(config.volumeMin, Math.min(config.volumeMax, value));
+    }
+
+    function snapToIncrement(tierId, value) {
+        const config = tierConfig[tierId];
+        const clamped = clampToTierRange(tierId, value);
+        return Math.round(clamped / config.increment) * config.increment;
+    }
+
+    function initializeNumericInputs() {
+        document.querySelectorAll('.volume-input').forEach(input => {
+            input.addEventListener('input', function(e) {
+                const tierId = this.dataset.tier;
+                let rawValue = this.value.replace(/[^0-9]/g, '');
+                if (!rawValue) return;
+                
+                let volume = parseInt(rawValue);
+                volume = clampToTierRange(tierId, volume);
+                
+                if (state.sliders[tierId]) {
+                    state.sliders[tierId].set(volume);
+                }
+            });
+            
+            input.addEventListener('blur', function(e) {
+                const tierId = this.dataset.tier;
+                let rawValue = this.value.replace(/[^0-9]/g, '');
+                if (!rawValue) {
+                    this.value = formatNumber(state.sliderValues[tierId]);
+                    return;
+                }
+                
+                let volume = parseInt(rawValue);
+                volume = snapToIncrement(tierId, volume);
+                
+                if (state.sliders[tierId]) {
+                    state.sliders[tierId].set(volume);
+                }
+                this.value = formatNumber(volume);
+            });
+        });
+
+        document.querySelectorAll('.cost-input').forEach(input => {
+            input.addEventListener('input', function(e) {
+                const tierId = this.dataset.tier;
+                let rawValue = this.value.replace(/[^0-9.]/g, '');
+                if (!rawValue) return;
+                
+                const cost = parseFloat(rawValue);
+                const smsPrice = state.products.sms?.price || 0;
+                
+                if (smsPrice <= 0) return;
+                
+                let volume = Math.round(cost / smsPrice);
+                volume = clampToTierRange(tierId, volume);
+                
+                if (state.sliders[tierId]) {
+                    state.sliders[tierId].set(volume);
+                }
+            });
+            
+            input.addEventListener('blur', function(e) {
+                const tierId = this.dataset.tier;
+                let rawValue = this.value.replace(/[^0-9.]/g, '');
+                
+                const smsPrice = state.products.sms?.price || 0;
+                
+                if (!rawValue || smsPrice <= 0) {
+                    const currentVolume = state.sliderValues[tierId];
+                    this.value = (currentVolume * smsPrice).toFixed(2);
+                    return;
+                }
+                
+                const cost = parseFloat(rawValue);
+                let volume = Math.round(cost / smsPrice);
+                volume = snapToIncrement(tierId, volume);
+                
+                if (state.sliders[tierId]) {
+                    state.sliders[tierId].set(volume);
+                }
+                
+                const actualCost = volume * smsPrice;
+                this.value = actualCost.toFixed(2);
+            });
         });
     }
 
@@ -750,6 +961,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             console.log('[Purchase] Loaded', Object.keys(state.products).length, 'products from HubSpot');
+            
+            updateAllCostInputs();
 
         } catch (error) {
             console.error('[Purchase] Error loading pricing:', error);
@@ -766,6 +979,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     initializeSliders();
+    initializeNumericInputs();
     loadPricing();
 });
 </script>
