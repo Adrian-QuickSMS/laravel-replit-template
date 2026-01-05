@@ -583,3 +583,116 @@
   width: 20px;
   height: 20px;
 }
+
+.rcs-crop-container {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.rcs-crop-workspace {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: repeating-conic-gradient(#e0e0e0 0% 25%, #f0f0f0 0% 50%) 50% / 12px 12px;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+}
+
+.rcs-crop-workspace:active {
+  cursor: grabbing;
+}
+
+.rcs-crop-workspace img {
+  position: absolute;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.rcs-crop-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.rcs-crop-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.rcs-crop-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.45);
+  border: 2px solid #886CC0;
+  border-radius: 4px;
+  z-index: 2;
+  background: transparent;
+}
+
+.rcs-crop-frame::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border: 1px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.rcs-crop-frame::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.rcs-crop-frame--short {
+  width: 280px;
+  height: 98px;
+}
+
+.rcs-crop-frame--medium {
+  width: 280px;
+  height: 147px;
+}
+
+.rcs-crop-frame--tall {
+  width: 280px;
+  height: 180px;
+}
+
+.rcs-crop-hint {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.rcs-crop-workspace:active + .rcs-crop-hint,
+.rcs-crop-workspace.dragging + .rcs-crop-hint {
+  opacity: 0.4;
+}
