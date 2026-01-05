@@ -797,9 +797,9 @@
                                     </div>
                                     <div class="tier-body">
                                         <p class="tier-description">Tailored pricing for high-volume enterprise customers with custom requirements and dedicated support.</p>
-                                        <div class="pricing-badges">
-                                            <span class="pricing-badge"><i class="fas fa-sms me-1"></i>SMS: <strong id="topUpBespokeRate">£0.0285</strong>/msg</span>
-                                            <span class="pricing-badge text-success"><i class="fas fa-gem me-1"></i>Custom Rate</span>
+                                        <div id="topUpBespokePricingBadges" class="pricing-badges">
+                                            <div class="skeleton-badge"></div>
+                                            <div class="skeleton-badge"></div>
                                         </div>
                                     </div>
                                     <div class="tier-footer">
@@ -847,8 +847,9 @@
                                     </div>
                                     <div class="tier-body">
                                         <p class="tier-description">Perfect for small and medium businesses getting started with SMS messaging.</p>
-                                        <div class="pricing-badges">
-                                            <span class="pricing-badge"><i class="fas fa-sms me-1"></i>SMS: <strong id="topUpStarterRate">£0.0350</strong>/msg</span>
+                                        <div id="topUpStarterPricingBadges" class="pricing-badges">
+                                            <div class="skeleton-badge"></div>
+                                            <div class="skeleton-badge"></div>
                                         </div>
                                     </div>
                                     <div class="tier-footer">
@@ -861,7 +862,7 @@
                             
                             <div class="col-md-6">
                                 <div class="card topup-tier-card tier-enterprise tryal-gradient" data-tier="enterprise">
-                                    <div class="position-absolute top-0 start-50 translate-middle" style="z-index: 10;">
+                                    <div class="best-value-badge">
                                         <span class="badge bg-success px-3 py-2"><i class="fas fa-star me-1"></i>Best Value</span>
                                     </div>
                                     <div class="tier-header">
@@ -897,9 +898,9 @@
                                     </div>
                                     <div class="tier-body">
                                         <p class="tier-description">Designed for larger organizations with higher messaging volumes.</p>
-                                        <div class="pricing-badges">
-                                            <span class="pricing-badge"><i class="fas fa-sms me-1"></i>SMS: <strong id="topUpEnterpriseRate">£0.0285</strong>/msg</span>
-                                            <span class="pricing-badge text-success"><i class="fas fa-check me-1"></i>18% savings</span>
+                                        <div id="topUpEnterprisePricingBadges" class="pricing-badges">
+                                            <div class="skeleton-badge"></div>
+                                            <div class="skeleton-badge"></div>
                                         </div>
                                     </div>
                                     <div class="tier-footer">
@@ -979,12 +980,24 @@
 .tryal-gradient {
     background: linear-gradient(135deg, var(--primary, #886CC0) 0%, #a78bfa 50%, #c4b5fd 100%);
 }
+.best-value-badge {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+.best-value-badge .badge {
+    border-radius: 0 0 0.5rem 0.5rem;
+    font-size: 0.75rem;
+}
 .topup-tier-card {
     border: none;
     border-radius: 0.75rem;
     transition: all 0.2s ease;
     height: 100%;
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
 }
 .topup-tier-card:hover {
     box-shadow: 0 8px 24px rgba(111, 66, 193, 0.25);
@@ -1104,6 +1117,11 @@
     flex-wrap: wrap;
     gap: 0.5rem;
 }
+.topup-tier-card .pricing-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
 .topup-tier-card .pricing-badge {
     display: inline-flex;
     align-items: center;
@@ -1112,6 +1130,18 @@
     border-radius: 2rem;
     font-size: 0.75rem;
     color: #495057;
+}
+.topup-tier-card .skeleton-badge {
+    width: 100px;
+    height: 24px;
+    background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 2rem;
+}
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 .topup-tier-card .tier-footer {
     padding: 1rem 1.5rem 1.5rem;
@@ -1852,10 +1882,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 topUpState.sliderValues[tier] = volume;
                 updateTopUpTierDisplay(tier, volume);
             });
-
-            sliderEl.noUiSlider.on('start', function() {
-                selectTopUpTier(tier);
-            });
         });
     }
 
@@ -1882,21 +1908,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateTopUpPricingDisplay() {
-        const smsProduct = topUpState.products['sms'];
-        if (!smsProduct) return;
+    const productLabels = {
+        'sms': { name: 'SMS', icon: 'fa-sms', unit: '/msg' },
+        'rcs_basic': { name: 'RCS Basic', icon: 'fa-comment-dots', unit: '/msg' },
+        'rcs_single': { name: 'RCS Single', icon: 'fa-comments', unit: '/msg' },
+        'vmn': { name: 'VMN', icon: 'fa-phone', unit: '/mo' },
+        'shortcode_keyword': { name: 'Shortcode', icon: 'fa-hashtag', unit: '/mo' },
+        'ai': { name: 'AI Credits', icon: 'fa-robot', unit: '/credit' }
+    };
 
+    function generatePricingBadges(tier) {
+        const products = topUpState.products;
+        let badgesHtml = '';
+        
+        for (const [key, product] of Object.entries(products)) {
+            const label = productLabels[key] || { name: key, icon: 'fa-tag', unit: '' };
+            let price;
+            
+            if (tier === 'starter') {
+                price = product.price;
+            } else {
+                price = product.price_enterprise || product.price;
+            }
+            
+            if (price) {
+                badgesHtml += `<span class="pricing-badge"><i class="fas ${label.icon} me-1"></i>${label.name}: <strong>${formatTopUpCurrency(price, 4)}</strong>${label.unit}</span>`;
+            }
+        }
+        
+        if (tier === 'enterprise') {
+            badgesHtml += '<span class="pricing-badge text-success"><i class="fas fa-check me-1"></i>Best rates</span>';
+        } else if (tier === 'bespoke') {
+            badgesHtml += '<span class="pricing-badge text-success"><i class="fas fa-gem me-1"></i>Custom rates</span>';
+        }
+        
+        return badgesHtml;
+    }
+
+    function updateTopUpPricingDisplay() {
         if (topUpState.isBespoke) {
-            const bespokeRate = smsProduct.price_enterprise || smsProduct.price;
-            const rateEl = document.getElementById('topUpBespokeRate');
-            if (rateEl) rateEl.textContent = formatTopUpCurrency(bespokeRate, 4);
+            const badgesEl = document.getElementById('topUpBespokePricingBadges');
+            if (badgesEl) badgesEl.innerHTML = generatePricingBadges('bespoke');
             updateTopUpTierDisplay('bespoke', topUpState.sliderValues.bespoke);
         } else {
-            const starterRate = smsProduct.price;
-            const enterpriseRate = smsProduct.price_enterprise || smsProduct.price;
-
-            document.getElementById('topUpStarterRate').textContent = formatTopUpCurrency(starterRate, 4);
-            document.getElementById('topUpEnterpriseRate').textContent = formatTopUpCurrency(enterpriseRate, 4);
+            const starterBadgesEl = document.getElementById('topUpStarterPricingBadges');
+            const enterpriseBadgesEl = document.getElementById('topUpEnterprisePricingBadges');
+            
+            if (starterBadgesEl) starterBadgesEl.innerHTML = generatePricingBadges('starter');
+            if (enterpriseBadgesEl) enterpriseBadgesEl.innerHTML = generatePricingBadges('enterprise');
 
             ['starter', 'enterprise'].forEach(tier => {
                 updateTopUpTierDisplay(tier, topUpState.sliderValues[tier]);
@@ -1961,10 +2020,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.querySelectorAll('#topUpModal .volume-input').forEach(input => {
-        input.addEventListener('focus', function() {
-            const tier = this.dataset.tier;
-            if (tier) selectTopUpTier(tier);
-        });
         input.addEventListener('change', function() {
             const tier = this.dataset.tier;
             const config = topUpTierConfig[tier];
@@ -1976,15 +2031,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (topUpState.sliders[tier]) {
                 topUpState.sliders[tier].set(value);
             }
-            selectTopUpTier(tier);
-        });
-    });
-
-    document.querySelectorAll('.topup-tier-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-purchase')) return;
-            const tier = this.dataset.tier;
-            if (tier) selectTopUpTier(tier);
         });
     });
 
