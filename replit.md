@@ -35,6 +35,12 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
 - **Account:** Details, User/Access management, Sub Accounts, Audit Logs, and Security settings.
 - **Support:** Dashboard, Ticket creation, and a Knowledge Base.
 - **RCS Preview System:** A schema-driven renderer at `/rcs/preview-demo` providing an Android-style phone UI for previewing RCS messages, built with Alpine.js.
+- **RCS Asset Management:** Server-side image processing pipeline for RCS media. When users provide public image URLs and apply edits (zoom, crop, orientation), the system fetches images server-side, applies transformations using Intervention Image, compresses to meet 250KB limit, and stores on QuickSMS-hosted storage. Features:
+  - **API Endpoints:** `/api/rcs/assets/process-url` (URL-based), `/api/rcs/assets/process-upload` (file uploads), `PUT /api/rcs/assets/{uuid}` (update edits), `POST /api/rcs/assets/{uuid}/finalize` (mark complete)
+  - **SSRF Protection:** Validates all DNS records (A and AAAA), blocks private/reserved IP ranges, pins validated IPs for requests, disables redirects
+  - **Storage:** Public filesystem disk `rcs-assets` at `storage/app/public/rcs-assets/` with date-based organization
+  - **Model:** `RcsAsset` tracks UUID, source type/URL, hosted URL, dimensions, file size, edit parameters, draft status
+  - **Frontend Integration:** Debounced edit calls, processing indicators, asset UUID tracking per card
 - **MessageLog Model:** (`app/Models/MessageLog.php`) Defines message structure with security features like encrypted content and role-based access.
 - **Development Environment:** Utilizes SQLite for local development, separating UI from backend API integrations.
 - **CSS Architecture:** Module-specific CSS overrides Fillow styles; custom classes use unique prefixes to prevent conflicts.
@@ -49,3 +55,4 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
 - **HubSpot Products API:** External service for live product pricing (no caching). Requires `HUBSPOT_ACCESS_TOKEN` secret.
 - **HubSpot Invoices API:** External service for invoice data. Fetches invoice details, line items, and PDF URLs directly from HubSpot CRM. No UI-side recalculation of totals.
 - **Stripe Checkout:** Payment processing - portal redirects to Stripe, never handles card data (PCI DSS compliant). StripeService creates Checkout Sessions for invoice payments and balance top-ups. Webhook handler processes checkout.session.completed events.
+- **Intervention Image (v3):** PHP image manipulation library for RCS asset processing. Uses GD driver for crop, zoom, resize, and JPEG compression.
