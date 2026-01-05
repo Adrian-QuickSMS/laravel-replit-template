@@ -1506,7 +1506,7 @@ function updatePreview() {
     var smsContent = document.getElementById('smsContent');
     var rcsAgentSelect = document.getElementById('rcsAgent');
     
-    var senderIdText = senderId?.selectedOptions[0]?.text || 'Sender';
+    var senderIdText = (senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, '');
     var messageText = smsContent?.value || '';
     
     var previewConfig = {
