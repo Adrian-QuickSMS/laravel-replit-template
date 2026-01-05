@@ -1107,6 +1107,9 @@
     background: #fff;
     position: relative;
     z-index: 1;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
 }
 .topup-tier-card .tier-description {
     color: #6c757d;
@@ -1117,11 +1120,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-}
-.topup-tier-card .pricing-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex: 1;
 }
 .topup-tier-card .pricing-badge {
     display: inline-flex;
@@ -2043,16 +2042,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.getElementById('selectStarterBtn')?.addEventListener('click', function() {
-        selectTopUpTier('starter');
-    });
-    
-    document.getElementById('selectEnterpriseBtn')?.addEventListener('click', function() {
-        selectTopUpTier('enterprise');
-    });
-    
-    document.getElementById('selectBespokeBtn')?.addEventListener('click', function() {
-        selectTopUpTier('bespoke');
+    // Use event delegation on modal for select buttons
+    topUpModal.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-purchase');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (btn.id === 'selectStarterBtn') {
+                selectTopUpTier('starter');
+            } else if (btn.id === 'selectEnterpriseBtn') {
+                selectTopUpTier('enterprise');
+            } else if (btn.id === 'selectBespokeBtn') {
+                selectTopUpTier('bespoke');
+            }
+        }
     });
 
     document.getElementById('topUpProceedBtn').addEventListener('click', async function() {
