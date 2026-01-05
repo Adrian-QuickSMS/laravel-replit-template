@@ -3405,9 +3405,10 @@ function openRcsButtonFieldEmoji(fieldId) {
 function validateRcsPhoneNoEmoji() {
     var input = document.getElementById('rcsButtonPhone');
     var errorEl = document.getElementById('rcsButtonPhoneEmojiError');
-    var emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu;
+    var emojiRegex = /[\uD83C-\uDBFF\uDC00-\uDFFF]+|[\u2600-\u27BF]|[\uFE00-\uFE0F]|[\u2000-\u206F]/g;
     
     if (emojiRegex.test(input.value)) {
+        emojiRegex.lastIndex = 0;
         input.value = input.value.replace(emojiRegex, '');
         errorEl.classList.remove('d-none');
         setTimeout(function() {
