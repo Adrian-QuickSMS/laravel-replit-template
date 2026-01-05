@@ -1852,6 +1852,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 topUpState.sliderValues[tier] = volume;
                 updateTopUpTierDisplay(tier, volume);
             });
+
+            sliderEl.noUiSlider.on('start', function() {
+                selectTopUpTier(tier);
+            });
         });
     }
 
@@ -1957,6 +1961,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.querySelectorAll('#topUpModal .volume-input').forEach(input => {
+        input.addEventListener('focus', function() {
+            const tier = this.dataset.tier;
+            if (tier) selectTopUpTier(tier);
+        });
         input.addEventListener('change', function() {
             const tier = this.dataset.tier;
             const config = topUpTierConfig[tier];
@@ -1968,6 +1976,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (topUpState.sliders[tier]) {
                 topUpState.sliders[tier].set(value);
             }
+            selectTopUpTier(tier);
+        });
+    });
+
+    document.querySelectorAll('.topup-tier-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-purchase')) return;
+            const tier = this.dataset.tier;
+            if (tier) selectTopUpTier(tier);
         });
     });
 
