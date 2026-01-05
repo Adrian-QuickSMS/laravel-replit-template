@@ -755,16 +755,34 @@
                 <h5 class="modal-title"><i class="fas fa-credit-card me-2 text-primary"></i>Pay Invoice</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="paymentModalBody">
                 <div class="text-center mb-4">
-                    <h6 id="paymentInvoiceNumber">Invoice #INV-2025-0008</h6>
-                    <div class="display-6 fw-bold text-primary" id="paymentAmount">&pound;1,250.00</div>
-                    <small class="text-muted">Amount due</small>
+                    <div class="mb-3">
+                        <span class="badge bg-primary fs-6 px-3 py-2" id="paymentInvoiceNumber">INV-2025-0008</span>
+                    </div>
+                    <div class="display-5 fw-bold text-primary mb-1" id="paymentAmount">&pound;1,250.00</div>
+                    <small class="text-muted">Balance Outstanding</small>
                 </div>
 
-                <div class="alert alert-pastel-primary">
+                <div class="card mb-3" style="background-color: #f8f9fa; border: none;">
+                    <div class="card-body py-2">
+                        <div class="row small">
+                            <div class="col-6">
+                                <div class="text-muted">Status</div>
+                                <div class="fw-medium" id="paymentInvoiceStatus">Issued</div>
+                            </div>
+                            <div class="col-6 text-end">
+                                <div class="text-muted">Due Date</div>
+                                <div class="fw-medium" id="paymentDueDate">16 Jan 2025</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-pastel-primary mb-0">
                     <i class="fas fa-lock text-primary me-2"></i>
-                    You'll be securely redirected to Stripe to complete your payment. We never store your card details.
+                    <strong>Secure Payment</strong><br>
+                    <small>You'll be redirected to Stripe to complete your payment. We never store your card details (PCI DSS compliant).</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -772,6 +790,18 @@
                 <button type="button" class="btn btn-primary" id="confirmPaymentBtn">
                     <i class="fas fa-external-link-alt me-1"></i> Pay with Stripe
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paymentProcessingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                <h6 class="mb-1">Preparing Payment</h6>
+                <small class="text-muted">Redirecting to Stripe...</small>
             </div>
         </div>
     </div>
@@ -888,13 +918,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const params = new URLSearchParams();
-            const status = document.getElementById('statusFilter').value;
-            const dateRange = document.getElementById('dateRangeFilter').value;
-            const search = document.getElementById('searchFilter').value;
+            const statusEl = document.getElementById('statusFilter');
+            const invoiceNumberEl = document.getElementById('invoiceNumberFilter');
+            
+            const status = statusEl ? statusEl.value : '';
+            const search = invoiceNumberEl ? invoiceNumberEl.value : '';
 
-            if (status) params.append('status', status);
-            if (dateRange) params.append('dateRange', dateRange);
-            if (search) params.append('search', search);
+            if (appliedFilters.status) params.append('status', appliedFilters.status);
+            if (appliedFilters.invoiceNumber) params.append('search', appliedFilters.invoiceNumber);
+            if (appliedFilters.billingYear) params.append('billingYear', appliedFilters.billingYear);
+            if (appliedFilters.billingMonth) params.append('billingMonth', appliedFilters.billingMonth);
 
             const response = await fetch('/api/invoices?' + params.toString());
             const data = await response.json();
@@ -1149,21 +1182,122 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    let currentPaymentInvoice = null;
+
     window.payInvoice = function(invoiceId) {
         const invoice = invoicesData.find(i => i.id === invoiceId);
         if (!invoice) return;
 
-        document.getElementById('paymentInvoiceNumber').textContent = 'Invoice #' + invoice.invoiceNumber;
+        currentPaymentInvoice = invoice;
+
+        document.getElementById('paymentInvoiceNumber').textContent = invoice.invoiceNumber;
         document.getElementById('paymentAmount').textContent = formatCurrency(invoice.balanceDue, invoice.currency);
+        document.getElementById('paymentInvoiceStatus').textContent = invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1);
+        document.getElementById('paymentDueDate').textContent = formatDate(invoice.dueDate);
 
         const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
         modal.show();
         closeDrawer();
     };
 
-    document.getElementById('confirmPaymentBtn').addEventListener('click', function() {
-        alert('Payment processing via Stripe will be implemented with HubSpot payment links integration.');
+    document.getElementById('confirmPaymentBtn').addEventListener('click', async function() {
+        if (!currentPaymentInvoice) return;
+
+        const paymentModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+        paymentModal.hide();
+
+        const processingModal = new bootstrap.Modal(document.getElementById('paymentProcessingModal'));
+        processingModal.show();
+
+        try {
+            const response = await fetch('/api/invoices/' + currentPaymentInvoice.id + '/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    invoiceId: currentPaymentInvoice.id,
+                    invoiceNumber: currentPaymentInvoice.invoiceNumber,
+                    amount: currentPaymentInvoice.balanceDue,
+                    currency: currentPaymentInvoice.currency || 'GBP'
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.checkoutUrl) {
+                window.location.href = data.checkoutUrl;
+            } else {
+                processingModal.hide();
+                alert(data.error || 'Failed to create payment session. Please try again.');
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            processingModal.hide();
+            alert('An error occurred while preparing your payment. Please try again.');
+        }
     });
+
+    function handlePaymentReturn() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentStatus = urlParams.get('payment');
+        const invoiceId = urlParams.get('invoice');
+
+        if (paymentStatus === 'success' && invoiceId) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            showPaymentSuccessMessage(invoiceId);
+            
+            loadInvoices();
+            loadAccountSummary();
+        } else if (paymentStatus === 'cancelled') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            showPaymentCancelledMessage();
+        }
+    }
+
+    function showPaymentSuccessMessage(invoiceId) {
+        const alertHtml = `
+            <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Payment Successful!</strong> Your invoice has been paid and your account balance has been updated.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-success');
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }
+        }, 8000);
+    }
+
+    function showPaymentCancelledMessage() {
+        const alertHtml = `
+            <div class="alert alert-warning alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1060; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Payment Cancelled.</strong> Your invoice has not been paid.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        setTimeout(() => {
+            const alert = document.querySelector('.alert-warning');
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }
+        }, 5000);
+    }
+
+    handlePaymentReturn();
 
     const amountPresets = document.querySelectorAll('.amount-preset');
     const customAmountWrapper = document.getElementById('customAmountWrapper');

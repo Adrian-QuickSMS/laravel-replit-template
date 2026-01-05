@@ -71,4 +71,5 @@ Route::prefix('invoices')->group(function () {
     Route::get('/account-summary', [InvoiceApiController::class, 'accountSummary']);
     Route::get('/{invoiceId}', [InvoiceApiController::class, 'show']);
     Route::get('/{invoiceId}/pdf', [InvoiceApiController::class, 'downloadPdf']);
+    Route::post('/{invoiceId}/create-checkout-session', [InvoiceApiController::class, 'createCheckoutSession']);
 });
