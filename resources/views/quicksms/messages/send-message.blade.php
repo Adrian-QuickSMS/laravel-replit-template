@@ -392,17 +392,16 @@
                     <h6 class="card-title mb-0">Preview</h6>
                 </div>
                 <div class="card-body p-2">
-                    <div class="text-center mb-2 d-none" id="previewToggleContainer">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary active" id="previewSMSBtn" onclick="showPreview('sms')">SMS</button>
-                            <button type="button" class="btn btn-outline-primary" id="previewRCSBtn" onclick="showPreview('rcs')">RCS</button>
+                    <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
+                    
+                    <div class="text-center d-none" id="previewToggleContainer">
+                        <div class="btn-group btn-group-sm" role="group" style="transform: scale(0.85);">
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 active" id="previewRCSBtn" onclick="showPreview('rcs')" style="font-size: 11px;">RCS</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" id="previewSMSBtn" onclick="showPreview('sms')" style="font-size: 11px;">SMS Fallback</button>
                         </div>
                     </div>
                     
-                    <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
-                    
                     <div class="text-center d-none" id="basicRcsPreviewToggle">
-                        <small class="text-muted me-2">View:</small>
                         <div class="btn-group btn-group-sm" role="group" style="transform: scale(0.85);">
                             <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 active" id="basicPreviewRCSBtn" onclick="toggleBasicRcsPreview('rcs')" style="font-size: 11px;">RCS</button>
                             <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" id="basicPreviewSMSBtn" onclick="toggleBasicRcsPreview('sms')" style="font-size: 11px;">SMS Fallback</button>
@@ -1493,8 +1492,8 @@ function selectChannel(channel) {
         contentLabel.textContent = 'SMS Fallback Content';
         previewToggle.classList.remove('d-none');
         basicRcsToggle.classList.add('d-none');
-        document.getElementById('previewSMSBtn').classList.add('active');
-        document.getElementById('previewRCSBtn').classList.remove('active');
+        document.getElementById('previewRCSBtn').classList.add('active');
+        document.getElementById('previewSMSBtn').classList.remove('active');
         autoSelectFirstAgent();
         updatePreview();
     }
