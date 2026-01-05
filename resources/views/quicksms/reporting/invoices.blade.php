@@ -392,11 +392,11 @@
                                             <input type="checkbox" class="form-check-input" id="selectAll">
                                         </th>
                                         <th>Invoice #</th>
-                                        <th>Date</th>
+                                        <th>Issue Date</th>
                                         <th>Due Date</th>
-                                        <th>Type</th>
-                                        <th>Description</th>
-                                        <th class="text-end">Amount</th>
+                                        <th>Billing Period</th>
+                                        <th class="text-end">Total</th>
+                                        <th class="text-end">Balance Due</th>
                                         <th>Status</th>
                                         <th class="text-end">Actions</th>
                                     </tr>
@@ -620,215 +620,35 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const mockInvoices = [
-        {
-            id: 'INV-2025-0012',
-            date: '2025-01-02',
-            dueDate: '2025-01-16',
-            type: 'purchase',
-            description: 'SMS Credits - Enterprise Tier (100,000 SMS)',
-            amount: 3360.00,
-            netAmount: 2800.00,
-            vat: 560.00,
-            status: 'paid',
-            paymentDate: '2025-01-05',
-            paymentMethod: 'Visa ****4242',
-            lineItems: [
-                { name: 'SMS Credits - Enterprise Tier', detail: '100,000 SMS @ £0.028/msg', amount: 2800.00 }
-            ]
-        },
-        {
-            id: 'INV-2025-0011',
-            date: '2024-12-15',
-            dueDate: '2024-12-29',
-            type: 'subscription',
-            description: 'Monthly Platform Subscription - Pro',
-            amount: 119.99,
-            netAmount: 99.99,
-            vat: 20.00,
-            status: 'paid',
-            paymentDate: '2024-12-15',
-            paymentMethod: 'Direct Debit',
-            lineItems: [
-                { name: 'Pro Platform Subscription', detail: 'December 2024', amount: 99.99 }
-            ]
-        },
-        {
-            id: 'INV-2025-0010',
-            date: '2024-12-01',
-            dueDate: '2024-12-15',
-            type: 'purchase',
-            description: 'SMS Credits - Starter Tier (25,000 SMS)',
-            amount: 900.00,
-            netAmount: 750.00,
-            vat: 150.00,
-            status: 'paid',
-            paymentDate: '2024-12-03',
-            paymentMethod: 'Visa ****4242',
-            lineItems: [
-                { name: 'SMS Credits - Starter Tier', detail: '25,000 SMS @ £0.030/msg', amount: 750.00 }
-            ]
-        },
-        {
-            id: 'INV-2025-0009',
-            date: '2024-11-20',
-            dueDate: '2024-12-04',
-            type: 'addon',
-            description: 'VMN Rental - 12 Month Term',
-            amount: 144.00,
-            netAmount: 120.00,
-            vat: 24.00,
-            status: 'paid',
-            paymentDate: '2024-11-22',
-            paymentMethod: 'Mastercard ****8523',
-            lineItems: [
-                { name: 'Virtual Mobile Number', detail: '+44 7700 900123 (12 months)', amount: 120.00 }
-            ]
-        },
-        {
-            id: 'INV-2025-0008',
-            date: '2024-11-15',
-            dueDate: '2025-01-15',
-            type: 'purchase',
-            description: 'SMS Credits - Enterprise Tier (50,000 SMS)',
-            amount: 1500.00,
-            netAmount: 1250.00,
-            vat: 250.00,
-            status: 'pending',
-            paymentDate: null,
-            paymentMethod: null,
-            lineItems: [
-                { name: 'SMS Credits - Enterprise Tier', detail: '50,000 SMS @ £0.025/msg', amount: 1250.00 }
-            ]
-        },
-        {
-            id: 'INV-2025-0007',
-            date: '2024-11-01',
-            dueDate: '2024-11-15',
-            type: 'subscription',
-            description: 'Monthly Platform Subscription - Pro',
-            amount: 119.99,
-            netAmount: 99.99,
-            vat: 20.00,
-            status: 'paid',
-            paymentDate: '2024-11-01',
-            paymentMethod: 'Direct Debit',
-            lineItems: [
-                { name: 'Pro Platform Subscription', detail: 'November 2024', amount: 99.99 }
-            ]
-        },
-        {
-            id: 'INV-2025-0006',
-            date: '2024-10-15',
-            dueDate: '2024-10-29',
-            type: 'purchase',
-            description: 'SMS Credits - Starter Tier (10,000 SMS)',
-            amount: 360.00,
-            netAmount: 300.00,
-            vat: 60.00,
-            status: 'paid',
-            paymentDate: '2024-10-18',
-            paymentMethod: 'Visa ****4242',
-            lineItems: [
-                { name: 'SMS Credits - Starter Tier', detail: '10,000 SMS @ £0.030/msg', amount: 300.00 }
-            ]
-        },
-        {
-            id: 'INV-2025-0005',
-            date: '2024-10-01',
-            dueDate: '2024-10-15',
-            type: 'subscription',
-            description: 'Monthly Platform Subscription - Pro',
-            amount: 119.99,
-            netAmount: 99.99,
-            vat: 20.00,
-            status: 'paid',
-            paymentDate: '2024-10-01',
-            paymentMethod: 'Direct Debit',
-            lineItems: [
-                { name: 'Pro Platform Subscription', detail: 'October 2024', amount: 99.99 }
-            ]
-        },
-        {
-            id: 'INV-2025-0004',
-            date: '2024-09-20',
-            dueDate: '2024-10-04',
-            type: 'overage',
-            description: 'Overage Charges - September 2024',
-            amount: 45.00,
-            netAmount: 37.50,
-            vat: 7.50,
-            status: 'paid',
-            paymentDate: '2024-09-25',
-            paymentMethod: 'Visa ****4242',
-            lineItems: [
-                { name: 'SMS Overage', detail: '1,250 SMS @ £0.030/msg', amount: 37.50 }
-            ]
-        },
-        {
-            id: 'INV-2025-0003',
-            date: '2024-09-01',
-            dueDate: '2024-09-15',
-            type: 'subscription',
-            description: 'Monthly Platform Subscription - Pro',
-            amount: 119.99,
-            netAmount: 99.99,
-            vat: 20.00,
-            status: 'paid',
-            paymentDate: '2024-09-01',
-            paymentMethod: 'Direct Debit',
-            lineItems: [
-                { name: 'Pro Platform Subscription', detail: 'September 2024', amount: 99.99 }
-            ]
-        },
-        {
-            id: 'INV-2025-0002',
-            date: '2024-08-15',
-            dueDate: '2024-08-29',
-            type: 'purchase',
-            description: 'SMS Credits - Enterprise Tier (200,000 SMS)',
-            amount: 5400.00,
-            netAmount: 4500.00,
-            vat: 900.00,
-            status: 'paid',
-            paymentDate: '2024-08-18',
-            paymentMethod: 'Bank Transfer',
-            lineItems: [
-                { name: 'SMS Credits - Enterprise Tier', detail: '200,000 SMS @ £0.0225/msg', amount: 4500.00 }
-            ]
-        },
-        {
-            id: 'INV-2025-0001',
-            date: '2024-08-01',
-            dueDate: '2024-08-15',
-            type: 'subscription',
-            description: 'Monthly Platform Subscription - Pro',
-            amount: 119.99,
-            netAmount: 99.99,
-            vat: 20.00,
-            status: 'paid',
-            paymentDate: '2024-08-01',
-            paymentMethod: 'Direct Debit',
-            lineItems: [
-                { name: 'Pro Platform Subscription', detail: 'August 2024', amount: 99.99 }
-            ]
-        }
-    ];
+    let invoicesData = [];
+    let isLoading = false;
+    let isMockData = false;
 
     const billingDetails = {
         company: 'Acme Corporation Ltd',
         address: '123 Business Park, London, EC1A 1BB',
         vatNumber: 'GB123456789',
-        poRef: 'PO-2025-0042'
+        poRef: '-'
     };
 
     function formatDate(dateStr) {
+        if (!dateStr) return '-';
         const date = new Date(dateStr);
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
-    function formatCurrency(amount) {
-        return '£' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    function formatBillingPeriod(start, end) {
+        if (!start && !end) return '-';
+        if (start && end) {
+            return formatDate(start) + ' - ' + formatDate(end);
+        }
+        return start ? formatDate(start) : formatDate(end);
+    }
+
+    function formatCurrency(amount, currency = 'GBP') {
+        const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
+        const symbol = symbols[currency] || '£';
+        return symbol + parseFloat(amount || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
     function getStatusBadge(status) {
@@ -839,36 +659,137 @@ document.addEventListener('DOMContentLoaded', function() {
             'draft': '<span class="status-badge status-draft">Draft</span>',
             'cancelled': '<span class="status-badge status-cancelled">Cancelled</span>'
         };
-        return statusMap[status] || status;
+        return statusMap[status] || '<span class="status-badge">' + status + '</span>';
     }
 
-    function getTypeBadge(type) {
-        const typeMap = {
-            'purchase': '<span class="badge badge-pastel-primary">Credit Purchase</span>',
-            'subscription': '<span class="badge badge-pastel-info">Subscription</span>',
-            'addon': '<span class="badge badge-pastel-pink">Add-on</span>',
-            'overage': '<span class="badge badge-pastel-warning">Overage</span>'
-        };
-        return typeMap[type] || type;
+    function showLoading() {
+        isLoading = true;
+        const tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2 text-muted">Loading invoices from HubSpot...</div>
+                </td>
+            </tr>
+        `;
+    }
+
+    function showError(message) {
+        const tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-5">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <div class="fw-medium">Unable to load invoices</div>
+                    <div class="text-muted small mt-1">${message}</div>
+                    <button class="btn btn-outline-primary btn-sm mt-3" onclick="loadInvoices()">
+                        <i class="fas fa-sync-alt me-1"></i> Try Again
+                    </button>
+                </td>
+            </tr>
+        `;
+        document.getElementById('totalInvoices').textContent = '-';
+        document.getElementById('paidAmount').textContent = '-';
+        document.getElementById('pendingAmount').textContent = '-';
+        document.getElementById('overdueAmount').textContent = '-';
+    }
+
+    function showMockDataNotice() {
+        if (!document.getElementById('mockDataNotice')) {
+            const container = document.querySelector('.invoices-fixed-header');
+            const notice = document.createElement('div');
+            notice.id = 'mockDataNotice';
+            notice.className = 'alert alert-pastel-primary small mb-3';
+            notice.innerHTML = `
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong>Demo Mode:</strong> Displaying sample invoice data. Connect your HubSpot account to view real invoices.
+            `;
+            container.insertBefore(notice, container.firstChild);
+        }
+    }
+
+    function updateSummary(summary) {
+        document.getElementById('totalInvoices').textContent = summary.totalInvoices || 0;
+        document.getElementById('paidAmount').innerHTML = formatCurrency(summary.paidAmount || 0);
+        document.getElementById('pendingAmount').innerHTML = formatCurrency(summary.pendingAmount || 0);
+        document.getElementById('overdueAmount').innerHTML = formatCurrency(summary.overdueAmount || 0);
+    }
+
+    async function loadInvoices() {
+        showLoading();
+
+        try {
+            const params = new URLSearchParams();
+            const status = document.getElementById('statusFilter').value;
+            const dateRange = document.getElementById('dateRangeFilter').value;
+            const search = document.getElementById('searchFilter').value;
+
+            if (status) params.append('status', status);
+            if (dateRange) params.append('dateRange', dateRange);
+            if (search) params.append('search', search);
+
+            const response = await fetch('/api/invoices?' + params.toString());
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.error || 'Failed to load invoices');
+                return;
+            }
+
+            invoicesData = data.invoices || [];
+            isMockData = data.isMockData || false;
+
+            if (isMockData) {
+                showMockDataNotice();
+            }
+
+            updateSummary(data.summary || {});
+            renderInvoices(invoicesData);
+
+        } catch (error) {
+            console.error('Error loading invoices:', error);
+            showError('Network error. Please check your connection and try again.');
+        }
     }
 
     function renderInvoices(invoices) {
+        isLoading = false;
         const tbody = document.getElementById('invoicesTableBody');
         tbody.innerHTML = '';
+
+        if (invoices.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <i class="fas fa-file-invoice fa-2x mb-2"></i>
+                        <div>No invoices found</div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
         invoices.forEach(inv => {
             const row = document.createElement('tr');
             row.setAttribute('data-invoice-id', inv.id);
+
+            const billingPeriod = formatBillingPeriod(inv.billingPeriodStart, inv.billingPeriodEnd);
+
             row.innerHTML = `
                 <td onclick="event.stopPropagation();">
                     <input type="checkbox" class="form-check-input invoice-checkbox" value="${inv.id}">
                 </td>
-                <td><strong>${inv.id}</strong></td>
-                <td>${formatDate(inv.date)}</td>
+                <td><strong>${inv.invoiceNumber}</strong></td>
+                <td>${formatDate(inv.issueDate)}</td>
                 <td>${formatDate(inv.dueDate)}</td>
-                <td>${getTypeBadge(inv.type)}</td>
-                <td class="text-truncate" style="max-width: 250px;" title="${inv.description}">${inv.description}</td>
-                <td class="text-end fw-medium">${formatCurrency(inv.amount)}</td>
+                <td><span class="small text-muted">${billingPeriod}</span></td>
+                <td class="text-end fw-medium">${formatCurrency(inv.total, inv.currency)}</td>
+                <td class="text-end">${formatCurrency(inv.balanceDue, inv.currency)}</td>
                 <td>${getStatusBadge(inv.status)}</td>
                 <td class="text-end" onclick="event.stopPropagation();">
                     <div class="dropdown">
@@ -876,10 +797,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="openDrawer('${inv.id}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="downloadPdf('${inv.id}')"><i class="fas fa-file-pdf me-2"></i>Download PDF</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openDrawer('${inv.id}'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="downloadPdf('${inv.id}'); return false;"><i class="fas fa-file-pdf me-2"></i>Download PDF</a></li>
                             ${inv.status === 'pending' || inv.status === 'overdue' ? 
-                                `<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-primary" href="#" onclick="payInvoice('${inv.id}')"><i class="fas fa-credit-card me-2"></i>Pay Now</a></li>` : ''
+                                `<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-primary" href="#" onclick="payInvoice('${inv.id}'); return false;"><i class="fas fa-credit-card me-2"></i>Pay Now</a></li>` : ''
                             }
                         </ul>
                     </div>
@@ -890,45 +811,122 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.getElementById('totalCount').textContent = invoices.length;
+        document.getElementById('showingStart').textContent = invoices.length > 0 ? '1' : '0';
         document.getElementById('showingEnd').textContent = Math.min(10, invoices.length);
     }
 
-    function openDrawer(invoiceId) {
-        const invoice = mockInvoices.find(i => i.id === invoiceId);
-        if (!invoice) return;
+    async function openDrawer(invoiceId) {
+        const drawerBody = document.querySelector('.invoice-drawer-body');
+        const originalContent = drawerBody.innerHTML;
 
-        document.getElementById('drawerInvoiceNumber').textContent = 'Invoice #' + invoice.id;
-        document.getElementById('drawerInvoiceDate').textContent = 'Issued: ' + formatDate(invoice.date);
-        
-        const statusEl = document.getElementById('drawerStatus');
-        statusEl.className = 'status-badge status-' + invoice.status;
-        statusEl.textContent = invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1);
-        
-        document.getElementById('drawerDueDate').textContent = formatDate(invoice.dueDate);
-        document.getElementById('drawerPaymentDate').textContent = invoice.paymentDate ? formatDate(invoice.paymentDate) : '-';
-        document.getElementById('drawerPaymentMethod').textContent = invoice.paymentMethod || '-';
+        document.getElementById('invoiceDrawer').classList.add('open');
+        document.getElementById('drawerOverlay').classList.add('show');
 
-        const lineItemsHtml = invoice.lineItems.map(item => `
-            <div class="invoice-line-item">
-                <div>
-                    <div class="fw-medium">${item.name}</div>
-                    <div class="small text-muted">${item.detail}</div>
+        drawerBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted">Loading invoice details...</div>
+            </div>
+        `;
+
+        try {
+            const response = await fetch('/api/invoices/' + invoiceId);
+            const data = await response.json();
+
+            if (!data.success) {
+                drawerBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${data.error || 'Failed to load invoice details'}
+                    </div>
+                `;
+                return;
+            }
+
+            const invoice = data.invoice;
+            renderDrawerContent(invoice);
+
+        } catch (error) {
+            console.error('Error loading invoice:', error);
+            drawerBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Network error loading invoice details
                 </div>
-                <div class="text-end">
-                    <div class="fw-medium">${formatCurrency(item.amount)}</div>
+            `;
+        }
+    }
+
+    function renderDrawerContent(invoice) {
+        document.getElementById('drawerInvoiceNumber').textContent = 'Invoice #' + invoice.invoiceNumber;
+        document.getElementById('drawerInvoiceDate').textContent = 'Issued: ' + formatDate(invoice.issueDate);
+
+        const billingPeriod = formatBillingPeriod(invoice.billingPeriodStart, invoice.billingPeriodEnd);
+
+        const drawerBody = document.querySelector('.invoice-drawer-body');
+        drawerBody.innerHTML = `
+            <div class="alert alert-pastel-primary mb-3">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Invoice data is synchronized from HubSpot. Values shown are read-only.
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Status</span>
+                    ${getStatusBadge(invoice.status)}
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Billing Period</span>
+                    <span>${billingPeriod}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Due Date</span>
+                    <span>${formatDate(invoice.dueDate)}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Payment Date</span>
+                    <span>${invoice.paymentDate ? formatDate(invoice.paymentDate) : '-'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Balance Outstanding</span>
+                    <span class="${invoice.balanceDue > 0 ? 'text-danger fw-bold' : ''}">${formatCurrency(invoice.balanceDue, invoice.currency)}</span>
                 </div>
             </div>
-        `).join('');
-        document.getElementById('drawerLineItems').innerHTML = lineItemsHtml;
 
-        document.getElementById('drawerSubtotal').textContent = formatCurrency(invoice.netAmount);
-        document.getElementById('drawerVat').textContent = formatCurrency(invoice.vat);
-        document.getElementById('drawerTotal').textContent = formatCurrency(invoice.amount);
+            <hr>
 
-        document.getElementById('drawerCompany').textContent = billingDetails.company;
-        document.getElementById('drawerAddress').textContent = billingDetails.address;
-        document.getElementById('drawerVatNumber').textContent = billingDetails.vatNumber;
-        document.getElementById('drawerPoRef').textContent = billingDetails.poRef;
+            <h6 class="mb-3">Line Items</h6>
+            <div id="drawerLineItems">
+                ${(invoice.lineItems || []).map(item => `
+                    <div class="invoice-line-item">
+                        <div>
+                            <div class="fw-medium">${item.name}</div>
+                            <div class="small text-muted">${item.description || (item.quantity > 1 ? item.quantity + ' x ' + formatCurrency(item.unitPrice, invoice.currency) : '')}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-medium">${formatCurrency(item.amount, invoice.currency)}</div>
+                        </div>
+                    </div>
+                `).join('') || '<div class="text-muted small">No line items available</div>'}
+            </div>
+
+            <hr>
+
+            <div id="drawerTotals">
+                <div class="invoice-total-row">
+                    <span>Subtotal</span>
+                    <span>${formatCurrency(invoice.subtotal, invoice.currency)}</span>
+                </div>
+                <div class="invoice-total-row">
+                    <span>VAT</span>
+                    <span>${formatCurrency(invoice.vat, invoice.currency)}</span>
+                </div>
+                <div class="invoice-total-row grand-total">
+                    <span>Total</span>
+                    <span>${formatCurrency(invoice.total, invoice.currency)}</span>
+                </div>
+            </div>
+        `;
 
         const payNowBtn = document.getElementById('payNowBtn');
         if (invoice.status === 'pending' || invoice.status === 'overdue') {
@@ -938,10 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
             payNowBtn.style.display = 'none';
         }
 
-        document.getElementById('downloadPdfBtn').onclick = () => downloadPdf(invoice.id);
-
-        document.getElementById('invoiceDrawer').classList.add('open');
-        document.getElementById('drawerOverlay').classList.add('show');
+        document.getElementById('downloadPdfBtn').onclick = () => downloadPdf(invoice.id, invoice.pdfUrl);
     }
 
     function closeDrawer() {
@@ -951,28 +946,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.openDrawer = openDrawer;
     window.closeDrawer = closeDrawer;
+    window.loadInvoices = loadInvoices;
 
     document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
     document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
 
-    window.downloadPdf = function(invoiceId) {
-        alert('TODO: Download PDF for invoice ' + invoiceId + '\n\nThis will fetch the PDF from HubSpot invoice API.');
+    window.downloadPdf = async function(invoiceId, pdfUrl) {
+        if (pdfUrl) {
+            window.open(pdfUrl, '_blank');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/invoices/' + invoiceId + '/pdf');
+            const data = await response.json();
+
+            if (data.success && data.pdfUrl) {
+                window.open(data.pdfUrl, '_blank');
+            } else {
+                alert(data.error || 'PDF not available for this invoice');
+            }
+        } catch (error) {
+            alert('Error downloading PDF. Please try again.');
+        }
     };
 
     window.payInvoice = function(invoiceId) {
-        const invoice = mockInvoices.find(i => i.id === invoiceId);
+        const invoice = invoicesData.find(i => i.id === invoiceId);
         if (!invoice) return;
 
-        document.getElementById('paymentInvoiceNumber').textContent = 'Invoice #' + invoice.id;
-        document.getElementById('paymentAmount').textContent = formatCurrency(invoice.amount);
-        
+        document.getElementById('paymentInvoiceNumber').textContent = 'Invoice #' + invoice.invoiceNumber;
+        document.getElementById('paymentAmount').textContent = formatCurrency(invoice.balanceDue, invoice.currency);
+
         const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
         modal.show();
         closeDrawer();
     };
 
     document.getElementById('confirmPaymentBtn').addEventListener('click', function() {
-        alert('TODO: Redirect to Stripe checkout\n\nThis will create a HubSpot invoice payment link and redirect user to Stripe.');
+        alert('Payment processing via Stripe will be implemented with HubSpot payment links integration.');
     });
 
     const amountPresets = document.querySelectorAll('.amount-preset');
@@ -991,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             amountPresets.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            
+
             const amount = this.dataset.amount;
             if (amount === 'custom') {
                 customAmountWrapper.style.display = 'block';
@@ -1009,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('proceedTopUpBtn').addEventListener('click', function() {
-        alert('TODO: Create HubSpot invoice and redirect to Stripe\n\nThis will use HubSpot Products API to create an invoice and get a Stripe payment link.');
+        alert('Top-up processing via Stripe will be implemented with HubSpot invoice creation.');
     });
 
     document.getElementById('selectAll').addEventListener('change', function() {
@@ -1019,8 +1031,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('applyFiltersBtn').addEventListener('click', function() {
-        console.log('TODO: Apply filters and fetch from HubSpot API');
-        renderInvoices(mockInvoices);
+        loadInvoices();
     });
 
     document.getElementById('clearFiltersBtn').addEventListener('click', function() {
@@ -1029,14 +1040,39 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('typeFilter').value = '';
         document.getElementById('amountFilter').value = '';
         document.getElementById('searchFilter').value = '';
-        renderInvoices(mockInvoices);
+        loadInvoices();
     });
 
     document.getElementById('exportBtn').addEventListener('click', function() {
-        alert('TODO: Export invoices to CSV\n\nThis will generate a CSV file of filtered invoices.');
+        if (invoicesData.length === 0) {
+            alert('No invoices to export');
+            return;
+        }
+
+        const headers = ['Invoice #', 'Issue Date', 'Due Date', 'Billing Period', 'Subtotal', 'VAT', 'Total', 'Balance Due', 'Status'];
+        const rows = invoicesData.map(inv => [
+            inv.invoiceNumber,
+            inv.issueDate || '',
+            inv.dueDate || '',
+            formatBillingPeriod(inv.billingPeriodStart, inv.billingPeriodEnd),
+            inv.subtotal,
+            inv.vat,
+            inv.total,
+            inv.balanceDue,
+            inv.status
+        ]);
+
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'invoices_export_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
     });
 
-    renderInvoices(mockInvoices);
+    loadInvoices();
     updateTopUpSummary(500);
 });
 </script>

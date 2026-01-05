@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ReportingDashboardApiController;
 use App\Http\Controllers\Api\BillingApiController;
 use App\Http\Controllers\Api\PurchaseApiController;
 use App\Http\Controllers\Api\WebhookController;
+use App\Http\Controllers\Api\InvoiceApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,4 +63,11 @@ Route::prefix('webhooks')->group(function () {
 Route::prefix('account')->group(function () {
     Route::get('/balance', [WebhookController::class, 'getAccountBalance']);
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
+});
+
+// Invoice API (HubSpot Invoices integration)
+Route::prefix('invoices')->group(function () {
+    Route::get('/', [InvoiceApiController::class, 'index']);
+    Route::get('/{invoiceId}', [InvoiceApiController::class, 'show']);
+    Route::get('/{invoiceId}/pdf', [InvoiceApiController::class, 'downloadPdf']);
 });
