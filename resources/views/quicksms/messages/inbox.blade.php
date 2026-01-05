@@ -97,6 +97,26 @@
 [data-theme-version="dark"] .chat-bx.active {
     background-color: rgba(111, 66, 193, 0.2) !important;
 }
+/* Dark mode: Inbound message bubble - keep text black/dark for readability */
+[data-theme-version="dark"] .message-received,
+[data-theme-version="dark"] .message-received p {
+    background-color: #3a3a4a !important;
+    border-color: #4a4a5a !important;
+    color: #1a1a1a !important;
+}
+/* Dark mode: Channel button text should be white when not selected */
+[data-theme-version="dark"] .btn-group .btn-outline-primary {
+    color: #fff !important;
+    border-color: rgba(136, 108, 192, 0.5) !important;
+}
+[data-theme-version="dark"] .btn-group .btn-outline-primary:hover {
+    background-color: rgba(136, 108, 192, 0.3) !important;
+    color: #fff !important;
+}
+[data-theme-version="dark"] .btn-group .btn-check:checked + .btn-outline-primary {
+    background-color: var(--primary) !important;
+    color: #fff !important;
+}
 .chat-bx {
     cursor: pointer;
     padding: 0.75rem 1rem;
