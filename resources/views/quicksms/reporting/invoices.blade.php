@@ -38,6 +38,31 @@
 #filtersPanel .dropdown-menu {
     z-index: 1050;
 }
+#filtersPanel select[multiple] {
+    height: 38px;
+    min-height: 38px;
+    padding: 0.25rem 0.5rem;
+}
+#filtersPanel .bootstrap-select {
+    width: 100% !important;
+}
+#filtersPanel .bootstrap-select .dropdown-toggle {
+    height: 38px;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    border-color: #ced4da;
+}
+#filtersPanel .bootstrap-select .dropdown-toggle .filter-option-inner-inner {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#filtersPanel .bootstrap-select .dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+}
 .invoices-table-wrapper {
     flex: 1 1 0;
     display: flex;
@@ -487,17 +512,15 @@
                     <div class="invoices-fixed-header">
                         <div class="collapse mb-3" id="filtersPanel">
                             <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                                <div class="row g-3 align-items-end">
+                                <div class="row g-3 align-items-center">
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Billing Year</label>
-                                        <select class="form-select form-select-sm" id="billingYearFilter">
-                                            <option value="">All Years</option>
+                                        <label class="form-label small fw-bold mb-1">Billing Year</label>
+                                        <select class="form-select form-select-sm" id="billingYearFilter" multiple data-placeholder="All Years">
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Billing Month</label>
-                                        <select class="form-select form-select-sm" id="billingMonthFilter">
-                                            <option value="">All Months</option>
+                                        <label class="form-label small fw-bold mb-1">Billing Month</label>
+                                        <select class="form-select form-select-sm" id="billingMonthFilter" multiple data-placeholder="All Months">
                                             <option value="01">January</option>
                                             <option value="02">February</option>
                                             <option value="03">March</option>
@@ -513,9 +536,8 @@
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Invoice Status</label>
-                                        <select class="form-select form-select-sm" id="statusFilter">
-                                            <option value="">All Statuses</option>
+                                        <label class="form-label small fw-bold mb-1">Invoice Status</label>
+                                        <select class="form-select form-select-sm" id="statusFilter" multiple data-placeholder="All Statuses">
                                             <option value="draft">Draft</option>
                                             <option value="issued">Issued</option>
                                             <option value="paid">Paid</option>
@@ -524,10 +546,10 @@
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-3">
-                                        <label class="form-label small fw-bold">Invoice Number</label>
+                                        <label class="form-label small fw-bold mb-1">Invoice Number</label>
                                         <input type="text" class="form-control form-control-sm" id="invoiceNumberFilter" placeholder="Search invoice number...">
                                     </div>
-                                    <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
+                                    <div class="col-12 col-md-4 col-lg-3 d-flex gap-2 align-items-center">
                                         <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="applyFiltersBtn">
                                             <i class="fas fa-check me-1"></i> Apply Filters
                                         </button>
@@ -1692,9 +1714,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     let appliedFilters = {
-        billingYear: '',
-        billingMonth: '',
-        status: '',
+        billingYear: [],
+        billingMonth: [],
+        status: [],
         invoiceNumber: ''
     };
     let pendingFilters = { ...appliedFilters };
@@ -1715,32 +1737,43 @@ document.addEventListener('DOMContentLoaded', function() {
             option.textContent = year;
             yearSelect.appendChild(option);
         }
+        $(yearSelect).selectpicker('refresh');
+    }
+
+    function getMultiSelectValues(selectId) {
+        const select = document.getElementById(selectId);
+        return Array.from(select.selectedOptions).map(opt => opt.value);
     }
 
     function getCurrentFilterValues() {
         return {
-            billingYear: document.getElementById('billingYearFilter').value,
-            billingMonth: document.getElementById('billingMonthFilter').value,
-            status: document.getElementById('statusFilter').value,
+            billingYear: getMultiSelectValues('billingYearFilter'),
+            billingMonth: getMultiSelectValues('billingMonthFilter'),
+            status: getMultiSelectValues('statusFilter'),
             invoiceNumber: document.getElementById('invoiceNumberFilter').value.trim()
         };
     }
 
     function setFilterInputs(filters) {
-        document.getElementById('billingYearFilter').value = filters.billingYear;
-        document.getElementById('billingMonthFilter').value = filters.billingMonth;
-        document.getElementById('statusFilter').value = filters.status;
+        $('#billingYearFilter').selectpicker('val', filters.billingYear);
+        $('#billingMonthFilter').selectpicker('val', filters.billingMonth);
+        $('#statusFilter').selectpicker('val', filters.status);
         document.getElementById('invoiceNumberFilter').value = filters.invoiceNumber;
     }
 
     function hasAnyFilters(filters) {
-        return filters.billingYear || filters.billingMonth || filters.status || filters.invoiceNumber;
+        return filters.billingYear.length > 0 || filters.billingMonth.length > 0 || filters.status.length > 0 || filters.invoiceNumber;
+    }
+
+    function arraysMatch(a, b) {
+        if (a.length !== b.length) return false;
+        return a.every((val, i) => val === b[i]);
     }
 
     function filtersMatch(a, b) {
-        return a.billingYear === b.billingYear &&
-               a.billingMonth === b.billingMonth &&
-               a.status === b.status &&
+        return arraysMatch(a.billingYear, b.billingYear) &&
+               arraysMatch(a.billingMonth, b.billingMonth) &&
+               arraysMatch(a.status, b.status) &&
                a.invoiceNumber === b.invoiceNumber;
     }
 
@@ -1765,49 +1798,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.style.display = 'block';
 
-        if (appliedFilters.billingYear) {
-            chipsContainer.appendChild(createFilterChip('Year: ' + appliedFilters.billingYear, 'billingYear', false));
-        }
-        if (appliedFilters.billingMonth) {
-            chipsContainer.appendChild(createFilterChip('Month: ' + monthNames[appliedFilters.billingMonth], 'billingMonth', false));
-        }
-        if (appliedFilters.status) {
-            const statusLabel = appliedFilters.status.charAt(0).toUpperCase() + appliedFilters.status.slice(1);
-            chipsContainer.appendChild(createFilterChip('Status: ' + statusLabel, 'status', false));
-        }
+        appliedFilters.billingYear.forEach(year => {
+            chipsContainer.appendChild(createFilterChip('Year: ' + year, 'billingYear', year));
+        });
+        appliedFilters.billingMonth.forEach(month => {
+            chipsContainer.appendChild(createFilterChip('Month: ' + monthNames[month], 'billingMonth', month));
+        });
+        appliedFilters.status.forEach(status => {
+            const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            chipsContainer.appendChild(createFilterChip('Status: ' + statusLabel, 'status', status));
+        });
         if (appliedFilters.invoiceNumber) {
-            chipsContainer.appendChild(createFilterChip('Invoice: ' + appliedFilters.invoiceNumber, 'invoiceNumber', false));
+            chipsContainer.appendChild(createFilterChip('Invoice: ' + appliedFilters.invoiceNumber, 'invoiceNumber', null));
         }
 
         pendingNotice.style.display = filtersArePending ? 'inline' : 'none';
     }
 
-    function createFilterChip(label, filterKey, isPending) {
+    function createFilterChip(label, filterKey, filterValue) {
         const chip = document.createElement('span');
-        chip.className = 'filter-chip' + (isPending ? ' pending' : '');
+        chip.className = 'filter-chip';
         chip.innerHTML = `
             ${label}
-            <i class="fas fa-times chip-remove" data-filter="${filterKey}"></i>
+            <i class="fas fa-times chip-remove" data-filter="${filterKey}" data-value="${filterValue || ''}"></i>
         `;
         chip.querySelector('.chip-remove').addEventListener('click', function(e) {
             e.stopPropagation();
-            removeFilter(filterKey);
+            removeFilter(filterKey, filterValue);
         });
         return chip;
     }
 
-    function removeFilter(filterKey) {
-        document.getElementById(filterKey === 'billingYear' ? 'billingYearFilter' :
-                               filterKey === 'billingMonth' ? 'billingMonthFilter' :
-                               filterKey === 'status' ? 'statusFilter' : 'invoiceNumberFilter').value = '';
-        
-        appliedFilters[filterKey] = '';
-        pendingFilters[filterKey] = '';
+    function removeFilter(filterKey, filterValue) {
+        if (filterKey === 'invoiceNumber') {
+            document.getElementById('invoiceNumberFilter').value = '';
+            appliedFilters.invoiceNumber = '';
+            pendingFilters.invoiceNumber = '';
+        } else {
+            const selectId = filterKey === 'billingYear' ? 'billingYearFilter' :
+                            filterKey === 'billingMonth' ? 'billingMonthFilter' : 'statusFilter';
+            const select = document.getElementById(selectId);
+            const option = select.querySelector(`option[value="${filterValue}"]`);
+            if (option) option.selected = false;
+            $(select).selectpicker('refresh');
+            
+            appliedFilters[filterKey] = appliedFilters[filterKey].filter(v => v !== filterValue);
+            pendingFilters[filterKey] = pendingFilters[filterKey].filter(v => v !== filterValue);
+        }
         
         updateActiveFilterChips();
-        
-        filtersArePending = true;
-        document.getElementById('filterPendingNotice').style.display = 'inline';
+        filterAndRenderInvoices();
     }
 
     function applyFilters() {
@@ -1822,29 +1862,30 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterAndRenderInvoices() {
         let filtered = [...invoicesData];
 
-        if (appliedFilters.billingYear) {
+        if (appliedFilters.billingYear.length > 0) {
             filtered = filtered.filter(inv => {
                 const date = new Date(inv.billingPeriodStart || inv.issueDate);
-                return date.getFullYear().toString() === appliedFilters.billingYear;
+                return appliedFilters.billingYear.includes(date.getFullYear().toString());
             });
         }
 
-        if (appliedFilters.billingMonth) {
+        if (appliedFilters.billingMonth.length > 0) {
             filtered = filtered.filter(inv => {
                 const date = new Date(inv.billingPeriodStart || inv.issueDate);
                 const month = String(date.getMonth() + 1).padStart(2, '0');
-                return month === appliedFilters.billingMonth;
+                return appliedFilters.billingMonth.includes(month);
             });
         }
 
-        if (appliedFilters.status) {
-            const statusVal = appliedFilters.status.toLowerCase();
+        if (appliedFilters.status.length > 0) {
             filtered = filtered.filter(inv => {
                 const invStatus = inv.status.toLowerCase();
-                if (statusVal === 'void') {
-                    return invStatus === 'void' || invStatus === 'voided' || invStatus === 'cancelled';
-                }
-                return invStatus === statusVal || (statusVal === 'issued' && invStatus === 'pending');
+                return appliedFilters.status.some(statusVal => {
+                    if (statusVal === 'void') {
+                        return invStatus === 'void' || invStatus === 'voided' || invStatus === 'cancelled';
+                    }
+                    return invStatus === statusVal || (statusVal === 'issued' && invStatus === 'pending');
+                });
             });
         }
 
@@ -1859,18 +1900,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resetFilters() {
-        setFilterInputs({ billingYear: '', billingMonth: '', status: '', invoiceNumber: '' });
+        setFilterInputs({ billingYear: [], billingMonth: [], status: [], invoiceNumber: '' });
+        appliedFilters = { billingYear: [], billingMonth: [], status: [], invoiceNumber: '' };
+        pendingFilters = { billingYear: [], billingMonth: [], status: [], invoiceNumber: '' };
         updateActiveFilterChips();
+        filterAndRenderInvoices();
     }
+
+    $('#billingYearFilter').selectpicker({
+        noneSelectedText: 'All Years',
+        selectedTextFormat: 'count > 2',
+        countSelectedText: '{0} years',
+        actionsBox: true,
+        liveSearch: true,
+        liveSearchPlaceholder: 'Search years...',
+        style: '',
+        styleBase: 'form-control form-control-sm'
+    });
+    $('#billingMonthFilter').selectpicker({
+        noneSelectedText: 'All Months',
+        selectedTextFormat: 'count > 2',
+        countSelectedText: '{0} months',
+        actionsBox: true,
+        style: '',
+        styleBase: 'form-control form-control-sm'
+    });
+    $('#statusFilter').selectpicker({
+        noneSelectedText: 'All Statuses',
+        selectedTextFormat: 'count > 2',
+        countSelectedText: '{0} statuses',
+        actionsBox: true,
+        style: '',
+        styleBase: 'form-control form-control-sm'
+    });
 
     populateBillingYearOptions();
 
-    ['billingYearFilter', 'billingMonthFilter', 'statusFilter', 'invoiceNumberFilter'].forEach(id => {
-        document.getElementById(id).addEventListener('change', updateActiveFilterChips);
-        if (id === 'invoiceNumberFilter') {
-            document.getElementById(id).addEventListener('input', updateActiveFilterChips);
-        }
+    ['billingYearFilter', 'billingMonthFilter', 'statusFilter'].forEach(id => {
+        $('#' + id).on('changed.bs.select', updateActiveFilterChips);
     });
+    document.getElementById('invoiceNumberFilter').addEventListener('input', updateActiveFilterChips);
 
     document.getElementById('applyFiltersBtn').addEventListener('click', function() {
         applyFilters();
