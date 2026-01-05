@@ -1091,7 +1091,11 @@
                                                     <div class="rcs-crop-workspace" id="rcsCropWorkspace">
                                                         <img id="rcsMediaPreviewImg" src="" alt="Media preview" draggable="false">
                                                         <div class="rcs-crop-overlay" id="rcsCropOverlay">
-                                                            <div class="rcs-crop-frame" id="rcsCropFrame"></div>
+                                                            <div class="rcs-crop-frame" id="rcsCropFrame">
+                                                                <div class="rcs-crop-crosshair rcs-crop-crosshair-h" id="rcsCrosshairH"></div>
+                                                                <div class="rcs-crop-crosshair rcs-crop-crosshair-v" id="rcsCrosshairV"></div>
+                                                                <div class="rcs-crop-crosshair rcs-crop-crosshair-center" id="rcsCrosshairCenter"></div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="rcs-crop-hint text-center mt-2">
@@ -3477,6 +3481,8 @@ function startRcsCropDrag(e) {
     
     var workspace = document.getElementById('rcsCropWorkspace');
     if (workspace) workspace.classList.add('dragging');
+    
+    showRcsCropCrosshair();
 }
 
 function doRcsCropDrag(e) {
@@ -3500,8 +3506,11 @@ function endRcsCropDrag() {
         var workspace = document.getElementById('rcsCropWorkspace');
         if (workspace) workspace.classList.remove('dragging');
         markRcsImageDirty();
+        hideRcsCropCrosshair();
     }
 }
+
+var rcsCrosshairHideTimer = null;
 
 function updateRcsCropZoom(value) {
     rcsCropState.zoom = parseInt(value);
@@ -3511,9 +3520,34 @@ function updateRcsCropZoom(value) {
     applyRcsCropTransform();
     markRcsImageDirty();
     
+    showRcsCropCrosshair();
+    hideRcsCropCrosshairDelayed();
+    
     if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && rcsMediaData.hostedUrl) {
         processAssetServerSide(!!rcsMediaData.assetUuid);
     }
+}
+
+function showRcsCropCrosshair() {
+    if (rcsCrosshairHideTimer) {
+        clearTimeout(rcsCrosshairHideTimer);
+        rcsCrosshairHideTimer = null;
+    }
+    var els = document.querySelectorAll('.rcs-crop-crosshair');
+    els.forEach(function(el) { el.classList.add('active'); });
+}
+
+function hideRcsCropCrosshair() {
+    hideRcsCropCrosshairDelayed();
+}
+
+function hideRcsCropCrosshairDelayed() {
+    if (rcsCrosshairHideTimer) clearTimeout(rcsCrosshairHideTimer);
+    rcsCrosshairHideTimer = setTimeout(function() {
+        var els = document.querySelectorAll('.rcs-crop-crosshair');
+        els.forEach(function(el) { el.classList.remove('active'); });
+        rcsCrosshairHideTimer = null;
+    }, 400);
 }
 
 function resetRcsCropPosition() {
