@@ -161,6 +161,30 @@
     color: #6c757d;
     text-decoration: line-through;
 }
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: var(--primary);
+    color: #fff;
+}
+.filter-chip .chip-remove {
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.filter-chip .chip-remove:hover {
+    opacity: 1;
+}
+.filter-chip.pending {
+    background-color: rgba(136, 108, 192, 0.3);
+    color: #6c757d;
+    border: 1px dashed var(--primary);
+}
 .invoice-drawer {
     position: fixed;
     top: 0;
@@ -462,18 +486,31 @@
                             <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
                                 <div class="row g-3 align-items-end">
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Date Range</label>
-                                        <select class="form-select form-select-sm" id="dateRangeFilter">
-                                            <option value="">All Time</option>
-                                            <option value="30">Last 30 Days</option>
-                                            <option value="90">Last 90 Days</option>
-                                            <option value="180">Last 6 Months</option>
-                                            <option value="365" selected>Last 12 Months</option>
-                                            <option value="custom">Custom Range</option>
+                                        <label class="form-label small fw-bold">Billing Year</label>
+                                        <select class="form-select form-select-sm" id="billingYearFilter">
+                                            <option value="">All Years</option>
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Status</label>
+                                        <label class="form-label small fw-bold">Billing Month</label>
+                                        <select class="form-select form-select-sm" id="billingMonthFilter">
+                                            <option value="">All Months</option>
+                                            <option value="01">January</option>
+                                            <option value="02">February</option>
+                                            <option value="03">March</option>
+                                            <option value="04">April</option>
+                                            <option value="05">May</option>
+                                            <option value="06">June</option>
+                                            <option value="07">July</option>
+                                            <option value="08">August</option>
+                                            <option value="09">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 col-md-4 col-lg-2">
+                                        <label class="form-label small fw-bold">Invoice Status</label>
                                         <select class="form-select form-select-sm" id="statusFilter">
                                             <option value="">All Statuses</option>
                                             <option value="draft">Draft</option>
@@ -483,43 +520,30 @@
                                             <option value="void">Void / Cancelled</option>
                                         </select>
                                     </div>
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Invoice Type</label>
-                                        <select class="form-select form-select-sm" id="typeFilter">
-                                            <option value="">All Types</option>
-                                            <option value="purchase">Credit Purchase</option>
-                                            <option value="subscription">Subscription</option>
-                                            <option value="addon">Add-on Service</option>
-                                            <option value="overage">Overage</option>
-                                        </select>
+                                    <div class="col-6 col-md-4 col-lg-3">
+                                        <label class="form-label small fw-bold">Invoice Number</label>
+                                        <input type="text" class="form-control form-control-sm" id="invoiceNumberFilter" placeholder="Search invoice number...">
                                     </div>
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Amount Range</label>
-                                        <select class="form-select form-select-sm" id="amountFilter">
-                                            <option value="">Any Amount</option>
-                                            <option value="0-100">Under &pound;100</option>
-                                            <option value="100-500">&pound;100 - &pound;500</option>
-                                            <option value="500-1000">&pound;500 - &pound;1,000</option>
-                                            <option value="1000+">&pound;1,000+</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Search</label>
-                                        <input type="text" class="form-control form-control-sm" id="searchFilter" placeholder="Invoice # or reference...">
-                                    </div>
-                                    <div class="col-6 col-md-4 col-lg-2 d-flex gap-2">
+                                    <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
                                         <button type="button" class="btn btn-primary btn-sm flex-grow-1" id="applyFiltersBtn">
-                                            <i class="fas fa-check me-1"></i> Apply
+                                            <i class="fas fa-check me-1"></i> Apply Filters
                                         </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFiltersBtn">
-                                            <i class="fas fa-times"></i>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" id="resetFiltersBtn">
+                                            <i class="fas fa-undo me-1"></i> Reset
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="activeFilters" class="mb-2" style="display: none;">
+                        <div id="activeFiltersContainer" class="mb-2" style="display: none;">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="small text-muted fw-bold">Active Filters:</span>
+                                <div id="activeFilterChips" class="d-flex flex-wrap gap-1"></div>
+                                <span class="small text-muted fst-italic ms-2" id="filterPendingNotice" style="display: none;">
+                                    <i class="fas fa-info-circle me-1"></i>Click "Apply Filters" to update results
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -1188,17 +1212,193 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.getElementById('applyFiltersBtn').addEventListener('click', function() {
-        loadInvoices();
+    let appliedFilters = {
+        billingYear: '',
+        billingMonth: '',
+        status: '',
+        invoiceNumber: ''
+    };
+    let pendingFilters = { ...appliedFilters };
+    let filtersArePending = false;
+
+    const monthNames = {
+        '01': 'January', '02': 'February', '03': 'March', '04': 'April',
+        '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+        '09': 'September', '10': 'October', '11': 'November', '12': 'December'
+    };
+
+    function populateBillingYearOptions() {
+        const yearSelect = document.getElementById('billingYearFilter');
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year >= currentYear - 5; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+    }
+
+    function getCurrentFilterValues() {
+        return {
+            billingYear: document.getElementById('billingYearFilter').value,
+            billingMonth: document.getElementById('billingMonthFilter').value,
+            status: document.getElementById('statusFilter').value,
+            invoiceNumber: document.getElementById('invoiceNumberFilter').value.trim()
+        };
+    }
+
+    function setFilterInputs(filters) {
+        document.getElementById('billingYearFilter').value = filters.billingYear;
+        document.getElementById('billingMonthFilter').value = filters.billingMonth;
+        document.getElementById('statusFilter').value = filters.status;
+        document.getElementById('invoiceNumberFilter').value = filters.invoiceNumber;
+    }
+
+    function hasAnyFilters(filters) {
+        return filters.billingYear || filters.billingMonth || filters.status || filters.invoiceNumber;
+    }
+
+    function filtersMatch(a, b) {
+        return a.billingYear === b.billingYear &&
+               a.billingMonth === b.billingMonth &&
+               a.status === b.status &&
+               a.invoiceNumber === b.invoiceNumber;
+    }
+
+    function updateActiveFilterChips() {
+        const container = document.getElementById('activeFiltersContainer');
+        const chipsContainer = document.getElementById('activeFilterChips');
+        const pendingNotice = document.getElementById('filterPendingNotice');
+        
+        const currentFilters = getCurrentFilterValues();
+        pendingFilters = { ...currentFilters };
+        filtersArePending = !filtersMatch(currentFilters, appliedFilters);
+
+        chipsContainer.innerHTML = '';
+
+        const hasApplied = hasAnyFilters(appliedFilters);
+        const hasCurrent = hasAnyFilters(currentFilters);
+
+        if (!hasApplied && !hasCurrent) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+
+        if (appliedFilters.billingYear) {
+            chipsContainer.appendChild(createFilterChip('Year: ' + appliedFilters.billingYear, 'billingYear', false));
+        }
+        if (appliedFilters.billingMonth) {
+            chipsContainer.appendChild(createFilterChip('Month: ' + monthNames[appliedFilters.billingMonth], 'billingMonth', false));
+        }
+        if (appliedFilters.status) {
+            const statusLabel = appliedFilters.status.charAt(0).toUpperCase() + appliedFilters.status.slice(1);
+            chipsContainer.appendChild(createFilterChip('Status: ' + statusLabel, 'status', false));
+        }
+        if (appliedFilters.invoiceNumber) {
+            chipsContainer.appendChild(createFilterChip('Invoice: ' + appliedFilters.invoiceNumber, 'invoiceNumber', false));
+        }
+
+        pendingNotice.style.display = filtersArePending ? 'inline' : 'none';
+    }
+
+    function createFilterChip(label, filterKey, isPending) {
+        const chip = document.createElement('span');
+        chip.className = 'filter-chip' + (isPending ? ' pending' : '');
+        chip.innerHTML = `
+            ${label}
+            <i class="fas fa-times chip-remove" data-filter="${filterKey}"></i>
+        `;
+        chip.querySelector('.chip-remove').addEventListener('click', function(e) {
+            e.stopPropagation();
+            removeFilter(filterKey);
+        });
+        return chip;
+    }
+
+    function removeFilter(filterKey) {
+        document.getElementById(filterKey === 'billingYear' ? 'billingYearFilter' :
+                               filterKey === 'billingMonth' ? 'billingMonthFilter' :
+                               filterKey === 'status' ? 'statusFilter' : 'invoiceNumberFilter').value = '';
+        
+        appliedFilters[filterKey] = '';
+        pendingFilters[filterKey] = '';
+        
+        updateActiveFilterChips();
+        
+        filtersArePending = true;
+        document.getElementById('filterPendingNotice').style.display = 'inline';
+    }
+
+    function applyFilters() {
+        appliedFilters = getCurrentFilterValues();
+        pendingFilters = { ...appliedFilters };
+        filtersArePending = false;
+        
+        updateActiveFilterChips();
+        filterAndRenderInvoices();
+    }
+
+    function filterAndRenderInvoices() {
+        let filtered = [...invoicesData];
+
+        if (appliedFilters.billingYear) {
+            filtered = filtered.filter(inv => {
+                const date = new Date(inv.billingPeriodStart || inv.issueDate);
+                return date.getFullYear().toString() === appliedFilters.billingYear;
+            });
+        }
+
+        if (appliedFilters.billingMonth) {
+            filtered = filtered.filter(inv => {
+                const date = new Date(inv.billingPeriodStart || inv.issueDate);
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                return month === appliedFilters.billingMonth;
+            });
+        }
+
+        if (appliedFilters.status) {
+            const statusVal = appliedFilters.status.toLowerCase();
+            filtered = filtered.filter(inv => {
+                const invStatus = inv.status.toLowerCase();
+                if (statusVal === 'void') {
+                    return invStatus === 'void' || invStatus === 'voided' || invStatus === 'cancelled';
+                }
+                return invStatus === statusVal || (statusVal === 'issued' && invStatus === 'pending');
+            });
+        }
+
+        if (appliedFilters.invoiceNumber) {
+            const searchTerm = appliedFilters.invoiceNumber.toLowerCase();
+            filtered = filtered.filter(inv => 
+                inv.invoiceNumber.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        renderInvoices(filtered);
+    }
+
+    function resetFilters() {
+        setFilterInputs({ billingYear: '', billingMonth: '', status: '', invoiceNumber: '' });
+        updateActiveFilterChips();
+    }
+
+    populateBillingYearOptions();
+
+    ['billingYearFilter', 'billingMonthFilter', 'statusFilter', 'invoiceNumberFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateActiveFilterChips);
+        if (id === 'invoiceNumberFilter') {
+            document.getElementById(id).addEventListener('input', updateActiveFilterChips);
+        }
     });
 
-    document.getElementById('clearFiltersBtn').addEventListener('click', function() {
-        document.getElementById('dateRangeFilter').value = '365';
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('typeFilter').value = '';
-        document.getElementById('amountFilter').value = '';
-        document.getElementById('searchFilter').value = '';
-        loadInvoices();
+    document.getElementById('applyFiltersBtn').addEventListener('click', function() {
+        applyFilters();
+    });
+
+    document.getElementById('resetFiltersBtn').addEventListener('click', function() {
+        resetFilters();
     });
 
     document.getElementById('exportBtn').addEventListener('click', function() {
