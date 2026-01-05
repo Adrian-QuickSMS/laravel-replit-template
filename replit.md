@@ -41,6 +41,7 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
   - **Storage:** Public filesystem disk `rcs-assets` at `storage/app/public/rcs-assets/` with date-based organization
   - **Model:** `RcsAsset` tracks UUID, source type/URL, hosted URL, dimensions, file size, edit parameters, draft status
   - **Frontend Integration:** Debounced edit calls, processing indicators, asset UUID tracking per card
+  - **Explicit Save Workflow for URL Images:** URL-based images with edits (zoom, crop, orientation) require explicit save action before navigation. Dirty state tracking compares current values against baseline captured when URL is loaded or card is opened. Save button appears only when unsaved changes exist. Unsaved changes modal intercepts: card switching, wizard close, Apply to All Cards, and message type changes. Options: Save (processes image server-side, stores to CDN), Don't Save (restores baseline values and original URL), Cancel (stays on current card). Baseline is re-initialized after save or discard to ensure accurate tracking.
 - **MessageLog Model:** (`app/Models/MessageLog.php`) Defines message structure with security features like encrypted content and role-based access.
 - **Development Environment:** Utilizes SQLite for local development, separating UI from backend API integrations.
 - **CSS Architecture:** Module-specific CSS overrides Fillow styles; custom classes use unique prefixes to prevent conflicts.
