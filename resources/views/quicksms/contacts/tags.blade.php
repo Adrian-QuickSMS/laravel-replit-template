@@ -41,12 +41,12 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-light border mb-4">
+                            <div class="alert bg-primary-light border-0 mb-4">
                                 <div class="d-flex align-items-start">
-                                    <i class="fas fa-info-circle text-info me-3 mt-1"></i>
+                                    <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
                                     <div>
                                         <strong>Tags are labels, not audience definitions.</strong>
-                                        <p class="mb-0 mt-1 small text-muted">
+                                        <p class="mb-0 mt-1 small">
                                             Tags provide flexible classification for filtering, campaign targeting, and API-driven state markers. 
                                             Unlike lists, tags do not store ordering or membership history. Use Lists for managing audiences.
                                         </p>
