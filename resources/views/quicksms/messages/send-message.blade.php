@@ -1167,54 +1167,50 @@
                                 </div>
                                 <div class="mb-4">
                                     <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Description</h6>
-                                    <div class="border rounded p-3">
-                                        <div class="mb-2">
-                                            <input type="text" class="form-control form-control-sm fw-bold" id="rcsDescription" 
-                                                placeholder="Enter card description (bold text)" maxlength="150"
-                                                oninput="updateRcsDescriptionCount()">
+                                    <div class="position-relative border rounded">
+                                        <input type="text" class="form-control form-control-sm fw-bold border-0" id="rcsDescription" 
+                                            placeholder="Enter card description (bold text)" maxlength="150"
+                                            oninput="updateRcsDescriptionCount()" style="padding-right: 70px;">
+                                        <div class="position-absolute d-flex gap-1" style="top: 50%; right: 8px; transform: translateY(-50%); z-index: 10;">
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openRcsPlaceholderPicker('description')" title="Insert personalisation">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openRcsEmojiPicker('description')" title="Insert emoji">
+                                                <i class="fas fa-smile"></i>
+                                            </button>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsPlaceholderPicker('description')" title="Add placeholder">
-                                                    <i class="fas fa-user-tag"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsEmojiPicker('description')" title="Add emoji">
-                                                    <i class="far fa-smile"></i>
-                                                </button>
-                                            </div>
-                                            <small class="text-muted">
-                                                <span id="rcsDescriptionCount">0</span> / <span class="text-warning">120</span> chars
-                                            </small>
-                                        </div>
-                                        <div id="rcsDescriptionWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>Description exceeds recommended 120 characters.
-                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end mt-1">
+                                        <small class="text-muted">
+                                            <span id="rcsDescriptionCount">0</span> / <span class="text-warning">120</span> chars
+                                        </small>
+                                    </div>
+                                    <div id="rcsDescriptionWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Description exceeds recommended 120 characters.
                                     </div>
                                 </div>
                                 <div class="mb-4">
                                     <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-align-left me-2"></i>Text Body</h6>
-                                    <div class="border rounded p-3">
-                                        <div class="mb-2">
-                                            <textarea class="form-control form-control-sm" id="rcsTextBody" rows="4" 
-                                                placeholder="Enter message body content..." maxlength="2100"
-                                                oninput="updateRcsTextBodyCount()"></textarea>
+                                    <div class="position-relative border rounded">
+                                        <textarea class="form-control form-control-sm border-0" id="rcsTextBody" rows="4" 
+                                            placeholder="Enter message body content..." maxlength="2100"
+                                            oninput="updateRcsTextBodyCount()" style="padding-bottom: 40px;"></textarea>
+                                        <div class="position-absolute d-flex gap-1" style="bottom: 8px; right: 8px; z-index: 10;">
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openRcsPlaceholderPicker('textBody')" title="Insert personalisation">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openRcsEmojiPicker('textBody')" title="Insert emoji">
+                                                <i class="fas fa-smile"></i>
+                                            </button>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsPlaceholderPicker('textBody')" title="Add placeholder">
-                                                    <i class="fas fa-user-tag"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary" onclick="openRcsEmojiPicker('textBody')" title="Add emoji">
-                                                    <i class="far fa-smile"></i>
-                                                </button>
-                                            </div>
-                                            <small class="text-muted">
-                                                <span id="rcsTextBodyCount">0</span> / <span class="text-warning">2000</span> chars
-                                            </small>
-                                        </div>
-                                        <div id="rcsTextBodyWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>Text body exceeds recommended 2000 characters.
-                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end mt-1">
+                                        <small class="text-muted">
+                                            <span id="rcsTextBodyCount">0</span> / <span class="text-warning">2000</span> chars
+                                        </small>
+                                    </div>
+                                    <div id="rcsTextBodyWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Text body exceeds recommended 2000 characters.
                                     </div>
                                 </div>
                                 <div class="mb-4">
