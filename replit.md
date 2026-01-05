@@ -21,7 +21,7 @@ The application is built on PHP 8.1+ and Laravel 10, using the Fillow SaaS Admin
 - **Messages:** Send, Inbox, Campaign History.
 - **Contact Book:** Management of contacts, static/dynamic lists, tags, and opt-out lists.
 - **Reporting:** Dashboard, Message Log, Finance Data, Invoices, Download Area.
-- **Purchase:** Credits and packages.
+- **Purchase:** Messages (Admin/Finance only) with role-based access control.
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, Numbers.
 - **Account:** Details, User/Access management, Sub Accounts, Audit Logs, Security.
 - **Support:** Dashboard, Ticket creation, Knowledge Base.

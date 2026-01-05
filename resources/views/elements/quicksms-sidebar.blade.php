@@ -47,11 +47,14 @@
                 </ul>
             </li>
             
-            <li class="{{ request()->routeIs('purchase') ? 'mm-active' : '' }}">
-                <a href="{{ route('purchase') }}" aria-expanded="false">
+            <li class="{{ request()->routeIs('purchase') || request()->routeIs('purchase.*') ? 'mm-active' : '' }}">
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="nav-text">Purchase</span>
                 </a>
+                <ul aria-expanded="false">
+                    <li><a href="{{ route('purchase.messages') }}" class="{{ request()->routeIs('purchase.messages') ? 'mm-active' : '' }}">Messages</a></li>
+                </ul>
             </li>
             
             <li class="{{ request()->routeIs('management') || request()->routeIs('management.*') ? 'mm-active' : '' }}">

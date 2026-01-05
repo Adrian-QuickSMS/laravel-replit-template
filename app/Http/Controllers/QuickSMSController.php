@@ -1520,6 +1520,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function purchaseMessages()
+    {
+        return view('quicksms.purchase.messages', [
+            'page_title' => 'Purchase Messages'
+        ]);
+    }
+
     public function management()
     {
         return view('quicksms.placeholder', [

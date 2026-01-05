@@ -26,6 +26,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/reporting/download-area', 'downloadArea')->name('reporting.download-area');
     
     Route::get('/purchase', 'purchase')->name('purchase');
+    Route::get('/purchase/messages', 'purchaseMessages')->name('purchase.messages');
     
     Route::get('/management', 'management')->name('management');
     Route::get('/management/rcs-agent', 'rcsAgentRegistrations')->name('management.rcs-agent');
