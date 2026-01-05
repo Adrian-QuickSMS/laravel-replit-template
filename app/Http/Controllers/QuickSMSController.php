@@ -1495,10 +1495,8 @@ class QuickSMSController extends Controller
 
     public function invoices()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Invoices',
-            'purpose' => 'Access and download billing invoices.',
-            'sub_modules' => []
+        return view('quicksms.reporting.invoices', [
+            'page_title' => 'Invoices'
         ]);
     }
 
