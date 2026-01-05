@@ -310,7 +310,7 @@
     top: 100px;
 }
 .order-summary-card .card-header {
-    background: linear-gradient(212.43deg, #886CC0 19.43%, #AA6CC0 87.63%);
+    background: var(--primary);
     color: #fff;
 }
 .order-summary-card .card-header h5 {
