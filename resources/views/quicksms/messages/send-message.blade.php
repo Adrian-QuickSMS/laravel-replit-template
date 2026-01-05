@@ -2426,33 +2426,18 @@ function getWizardCardSchema(cardNum) {
     
     var btns = rcsButtons.length > 0 ? rcsButtons : (card.buttons || []);
     
-    var mediaUrl = (card.media && card.media.url) ? card.media.url : (rcsMediaData.url || null);
     var isCurrentCard = (cardNum === rcsCurrentCard);
+    var mediaUrl = null;
     
-    var cropData = null;
-    if (isCurrentCard && rcsMediaData.url && !rcsMediaData.hostedUrl) {
-        cropData = {
-            zoom: rcsCropState.zoom,
-            offsetX: rcsCropState.offsetX,
-            offsetY: rcsCropState.offsetY,
-            frameWidth: rcsCropState.frameWidth,
-            frameHeight: rcsCropState.frameHeight,
-            displayScale: rcsCropState.displayScale,
-            imageWidth: rcsCropState.imageWidth,
-            imageHeight: rcsCropState.imageHeight
-        };
-    } else if (card.media && card.media.cropOffsetX !== undefined) {
-        cropData = {
-            zoom: card.media.zoom || 100,
-            offsetX: card.media.cropOffsetX || 0,
-            offsetY: card.media.cropOffsetY || 0,
-            frameWidth: rcsCropFrameSizes[orientation]?.width || 280,
-            frameHeight: rcsCropFrameSizes[orientation]?.height || 98
-        };
+    if (isCurrentCard) {
+        mediaUrl = rcsMediaData.hostedUrl || rcsMediaData.url || null;
+    } else {
+        mediaUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : 
+                   (card.media && card.media.url) ? card.media.url : null;
     }
     
     return {
-        media: mediaUrl ? { url: mediaUrl, height: heightClass, crop: cropData } : null,
+        media: mediaUrl ? { url: mediaUrl, height: heightClass } : null,
         title: description || null,
         description: textBody || null,
         buttons: btns.map(function(btn) {
@@ -2463,22 +2448,12 @@ function getWizardCardSchema(cardNum) {
 
 function getWizardCarouselCardSchema(cardNum) {
     var card = rcsCardsData[cardNum] || {};
-    var mediaUrl = (card.media && card.media.url) ? card.media.url : null;
+    var mediaUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl :
+                   (card.media && card.media.url) ? card.media.url : null;
     var btns = card.buttons || [];
     
-    var cropData = null;
-    if (card.media && card.media.cropOffsetX !== undefined) {
-        cropData = {
-            zoom: card.media.zoom || 100,
-            offsetX: card.media.cropOffsetX || 0,
-            offsetY: card.media.cropOffsetY || 0,
-            frameWidth: 280,
-            frameHeight: 147
-        };
-    }
-    
     return {
-        media: mediaUrl ? { url: mediaUrl, height: 'medium', crop: cropData } : null,
+        media: mediaUrl ? { url: mediaUrl, height: 'medium' } : null,
         title: card.description || null,
         description: card.textBody ? (card.textBody.length > 80 ? card.textBody.substring(0, 80) + '...' : card.textBody) : null,
         buttons: btns.map(function(btn) {
@@ -3561,10 +3536,6 @@ function updateRcsCropZoom(value) {
     
     showRcsCropCrosshair();
     hideRcsCropCrosshairDelayed();
-    
-    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && rcsMediaData.hostedUrl) {
-        processAssetServerSide(!!rcsMediaData.assetUuid);
-    }
 }
 
 function showRcsCropCrosshair() {
@@ -3646,10 +3617,6 @@ function setRcsCropPosition(position) {
     constrainRcsCropPosition();
     applyRcsCropTransform();
     markRcsImageDirty();
-    
-    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && rcsMediaData.hostedUrl) {
-        processAssetServerSide(!!rcsMediaData.assetUuid);
-    }
 }
 
 function updateCarouselOrientationWarning() {

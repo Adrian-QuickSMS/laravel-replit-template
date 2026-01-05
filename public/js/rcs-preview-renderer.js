@@ -63,38 +63,10 @@ var RcsPreviewRenderer = (function() {
         var height = heightOverride || media.height || 'medium';
         if (height === 'none') return '';
         var heightPx = getMediaHeight(height);
-        var heightNum = parseFloat(heightPx);
         
         if (media.url) {
-            var imgStyle = '';
-            var containerStyle = 'height: ' + heightPx + ';';
-            
-            if (media.crop && media.crop.zoom !== undefined && media.crop.imageWidth && media.crop.imageHeight) {
-                var crop = media.crop;
-                var zoom = crop.zoom / 100;
-                var displayScale = crop.displayScale || 1;
-                var effectiveScale = displayScale * zoom;
-                
-                var editorFrameW = crop.frameWidth || 280;
-                var editorFrameH = crop.frameHeight || 147;
-                var offsetX = crop.offsetX || 0;
-                var offsetY = crop.offsetY || 0;
-                
-                var previewScale = heightNum / editorFrameH;
-                
-                var imgW = crop.imageWidth * effectiveScale * previewScale;
-                var imgH = crop.imageHeight * effectiveScale * previewScale;
-                var imgOffsetX = offsetX * previewScale;
-                var imgOffsetY = offsetY * previewScale;
-                
-                imgStyle = 'width: ' + imgW.toFixed(1) + 'px; height: ' + imgH.toFixed(1) + 'px; ' +
-                    'max-width: none; object-fit: none; position: absolute; left: 50%; top: 50%; ' +
-                    'transform: translate(calc(-50% + ' + imgOffsetX.toFixed(1) + 'px), calc(-50% + ' + imgOffsetY.toFixed(1) + 'px));';
-                containerStyle = 'height: ' + heightPx + '; position: relative; overflow: hidden;';
-            }
-            
-            return '<div class="rcs-media rcs-media--' + height + '" style="' + containerStyle + '">' +
-                '<img src="' + escapeHtml(media.url) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy" style="' + imgStyle + '"/>' +
+            return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + ';">' +
+                '<img src="' + escapeHtml(media.url) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +
                 '</div>';
         } else {
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">' +
