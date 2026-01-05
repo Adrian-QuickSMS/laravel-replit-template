@@ -38,57 +38,44 @@
     margin-bottom: 0;
 }
 .tier-card {
-    border: 2px solid #e9ecef;
+    border: none;
     border-radius: 0.75rem;
     transition: all 0.2s ease;
     height: 100%;
     overflow: hidden;
 }
 .tier-card:hover {
+    box-shadow: 0 8px 24px rgba(111, 66, 193, 0.25);
+    transform: translateY(-2px);
+}
+.tier-card .tier-header {
+    position: relative;
+    z-index: 1;
+}
+.tier-card .tier-header h4,
+.tier-card .tier-header .tier-volume,
+.tier-card .tier-header .tier-volume strong {
+    color: #fff;
+}
+.tier-card .tier-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+.tier-card .noUi-connect {
+    background: #fff;
+}
+.tier-card .noUi-handle {
     border-color: var(--primary);
-    box-shadow: 0 8px 24px rgba(111, 66, 193, 0.15);
 }
-.tier-card.tier-starter .tier-header {
-    background: linear-gradient(135deg, rgba(28, 187, 140, 0.15) 0%, rgba(28, 187, 140, 0.05) 100%);
-    border-bottom: 2px solid rgba(28, 187, 140, 0.2);
+.tier-card .noUi-target {
+    background: rgba(255, 255, 255, 0.3);
 }
-.tier-card.tier-starter .tier-badge {
-    background: rgba(28, 187, 140, 0.15);
-    color: #1cbb8c;
+.tier-card .slider-label span,
+.tier-card .slider-range-labels span {
+    color: rgba(255, 255, 255, 0.8);
 }
-.tier-card.tier-starter .noUi-connect {
-    background: #1cbb8c;
-}
-.tier-card.tier-starter .noUi-handle {
-    border-color: #1cbb8c;
-}
-.tier-card.tier-enterprise .tier-header {
-    background: linear-gradient(135deg, rgba(111, 66, 193, 0.15) 0%, rgba(111, 66, 193, 0.05) 100%);
-    border-bottom: 2px solid rgba(111, 66, 193, 0.2);
-}
-.tier-card.tier-enterprise .tier-badge {
-    background: rgba(111, 66, 193, 0.15);
-    color: #6f42c1;
-}
-.tier-card.tier-enterprise .noUi-connect {
-    background: #6f42c1;
-}
-.tier-card.tier-enterprise .noUi-handle {
-    border-color: #6f42c1;
-}
-.tier-card.tier-bespoke .tier-header {
-    background: linear-gradient(135deg, rgba(214, 83, 193, 0.15) 0%, rgba(214, 83, 193, 0.05) 100%);
-    border-bottom: 2px solid rgba(214, 83, 193, 0.2);
-}
-.tier-card.tier-bespoke .tier-badge {
-    background: rgba(214, 83, 193, 0.15);
-    color: #D653C1;
-}
-.tier-card.tier-bespoke .noUi-connect {
-    background: #D653C1;
-}
-.tier-card.tier-bespoke .noUi-handle {
-    border-color: #D653C1;
+.tier-card .slider-value {
+    color: #fff;
 }
 .tier-header {
     padding: 1.5rem;
@@ -115,8 +102,9 @@
 }
 .tier-slider-section {
     padding: 1.25rem 1.5rem;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    background: transparent;
+    position: relative;
+    z-index: 1;
 }
 .slider-label {
     display: flex;
@@ -262,11 +250,14 @@
 }
 .tier-body {
     padding: 1.5rem;
+    background: #fff;
+    position: relative;
+    z-index: 2;
 }
 .tier-description {
     color: #6c757d;
     font-size: 0.875rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     min-height: 40px;
 }
 .price-row {
@@ -299,7 +290,20 @@
 }
 .tier-footer {
     padding: 1rem 1.5rem 1.5rem;
-    background: #f8f9fa;
+    background: #fff;
+}
+.tier-footer .btn-purchase {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+}
+.tier-footer .btn-purchase:hover {
+    background: #5a32a3;
+    border-color: #5a32a3;
 }
 .order-summary-card {
     position: sticky;
@@ -423,7 +427,7 @@
                 <div id="tiersContainer" class="row g-4">
                     @if($bespokePricing)
                         <div class="col-12">
-                            <div class="card tier-card tier-bespoke" data-tier="bespoke">
+                            <div class="card tier-card tier-bespoke tryal-gradient" data-tier="bespoke">
                                 <div class="tier-header">
                                     <span class="tier-badge"><i class="fas fa-gem me-1"></i>Custom Plan</span>
                                     <h4>Bespoke</h4>
@@ -466,15 +470,15 @@
                                     </div>
                                 </div>
                                 <div class="tier-footer">
-                                    <button class="btn btn-primary w-100" onclick="selectTier('bespoke')">
-                                        <i class="fas fa-check me-2"></i>Select Bespoke Plan
+                                    <button class="btn btn-purchase" onclick="selectTier('bespoke')">
+                                        <i class="fas fa-shopping-cart me-2"></i>Purchase
                                     </button>
                                 </div>
                             </div>
                         </div>
                     @else
                         <div class="col-md-6">
-                            <div class="card tier-card tier-starter" data-tier="starter">
+                            <div class="card tier-card tier-starter tryal-gradient" data-tier="starter">
                                 <div class="tier-header">
                                     <span class="tier-badge"><i class="fas fa-rocket me-1"></i>SMB</span>
                                     <h4>Starter</h4>
@@ -517,15 +521,15 @@
                                     </div>
                                 </div>
                                 <div class="tier-footer">
-                                    <button class="btn btn-outline-primary w-100" onclick="selectTier('starter')">
-                                        <i class="fas fa-check me-2"></i>Select Starter
+                                    <button class="btn btn-purchase" onclick="selectTier('starter')">
+                                        <i class="fas fa-shopping-cart me-2"></i>Purchase
                                     </button>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="col-md-6">
-                            <div class="card tier-card tier-enterprise" data-tier="enterprise">
+                            <div class="card tier-card tier-enterprise tryal-gradient" data-tier="enterprise">
                                 <div class="tier-header">
                                     <span class="tier-badge"><i class="fas fa-building me-1"></i>Business</span>
                                     <h4>Enterprise</h4>
@@ -568,8 +572,8 @@
                                     </div>
                                 </div>
                                 <div class="tier-footer">
-                                    <button class="btn btn-outline-primary w-100" onclick="selectTier('enterprise')">
-                                        <i class="fas fa-check me-2"></i>Select Enterprise
+                                    <button class="btn btn-purchase" onclick="selectTier('enterprise')">
+                                        <i class="fas fa-shopping-cart me-2"></i>Purchase
                                     </button>
                                 </div>
                             </div>
@@ -947,23 +951,11 @@ document.addEventListener('DOMContentLoaded', function() {
     window.selectTier = function(tierId) {
         document.querySelectorAll('.tier-card').forEach(card => {
             card.classList.remove('selected-tier');
-            const btn = card.querySelector('.tier-footer button');
-            if (btn) {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-primary');
-                btn.innerHTML = `<i class="fas fa-check me-2"></i>Select ${tierConfig[card.dataset.tier]?.name || 'Plan'}`;
-            }
         });
 
         const selectedCard = document.querySelector(`[data-tier="${tierId}"]`);
         if (selectedCard) {
             selectedCard.classList.add('selected-tier');
-            const btn = selectedCard.querySelector('.tier-footer button');
-            if (btn) {
-                btn.classList.remove('btn-outline-primary');
-                btn.classList.add('btn-primary');
-                btn.innerHTML = `<i class="fas fa-check-circle me-2"></i>Selected`;
-            }
         }
 
         state.selectedTier = tierId;
