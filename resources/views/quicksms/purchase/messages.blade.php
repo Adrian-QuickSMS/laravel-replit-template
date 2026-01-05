@@ -216,6 +216,50 @@
     border-color: #D653C1;
     box-shadow: 0 0 0 0.2rem rgba(214, 83, 193, 0.15);
 }
+.pricing-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.pricing-badge {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.625rem;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.pricing-badge .badge-label {
+    font-size: 0.625rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.125rem;
+    white-space: nowrap;
+}
+.pricing-badge .badge-price {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #2c2c2c;
+    white-space: nowrap;
+}
+.pricing-badges-skeleton {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.pricing-badges-skeleton .skeleton-badge {
+    width: 70px;
+    height: 44px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+}
 .tier-body {
     padding: 1.5rem;
 }
@@ -414,10 +458,11 @@
                                 </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Tailored pricing for high-volume enterprise customers with custom requirements and dedicated support.</p>
-                                    <div id="bespokePrices">
-                                        <div class="loading-skeleton skeleton-row"></div>
-                                        <div class="loading-skeleton skeleton-row"></div>
-                                        <div class="loading-skeleton skeleton-row"></div>
+                                    <div id="bespokePricingBadges" class="pricing-badges-skeleton">
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
                                     </div>
                                 </div>
                                 <div class="tier-footer">
@@ -464,10 +509,11 @@
                                 </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Perfect for small and medium businesses getting started with SMS and RCS messaging.</p>
-                                    <div id="starterPrices">
-                                        <div class="loading-skeleton skeleton-row"></div>
-                                        <div class="loading-skeleton skeleton-row"></div>
-                                        <div class="loading-skeleton skeleton-row"></div>
+                                    <div id="starterPricingBadges" class="pricing-badges-skeleton">
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
                                     </div>
                                 </div>
                                 <div class="tier-footer">
@@ -514,10 +560,11 @@
                                 </div>
                                 <div class="tier-body">
                                     <p class="tier-description">Designed for larger organizations with higher messaging volumes and advanced needs.</p>
-                                    <div id="enterprisePrices">
-                                        <div class="loading-skeleton skeleton-row"></div>
-                                        <div class="loading-skeleton skeleton-row"></div>
-                                        <div class="loading-skeleton skeleton-row"></div>
+                                    <div id="enterprisePricingBadges" class="pricing-badges-skeleton">
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
+                                        <div class="skeleton-badge"></div>
                                     </div>
                                 </div>
                                 <div class="tier-footer">
@@ -848,37 +895,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderPricesForTier(tierId) {
-        const container = document.getElementById(tierId + 'Prices');
+    function renderPricingBadges(tierId) {
+        const container = document.getElementById(tierId + 'PricingBadges');
         if (!container) return;
 
+        container.className = 'pricing-badges';
+
         if (state.error) {
-            container.innerHTML = `<p class="text-danger small"><i class="fas fa-exclamation-circle me-1"></i>Failed to load prices</p>`;
+            container.innerHTML = `<p class="text-danger small mb-0"><i class="fas fa-exclamation-circle me-1"></i>Failed to load prices</p>`;
             return;
         }
 
         if (Object.keys(state.products).length === 0) {
-            container.innerHTML = `<p class="text-muted small">No products available</p>`;
+            container.innerHTML = `<p class="text-muted small mb-0">No products available</p>`;
             return;
         }
 
+        const badgeOrder = ['sms', 'rcs_basic', 'rcs_single', 'vmn', 'shortcode_keyword', 'ai'];
+        const badgeLabels = {
+            'sms': 'SMS',
+            'rcs_basic': 'RCS Basic',
+            'rcs_single': 'RCS Single',
+            'vmn': 'VMN',
+            'shortcode_keyword': 'Shortcode',
+            'ai': 'AI'
+        };
+
         let html = '';
-        for (const [key, product] of Object.entries(state.products)) {
-            const label = productLabels[key] || { name: product.name, icon: 'fa-tag', unit: '' };
+        for (const key of badgeOrder) {
+            const product = state.products[key];
+            if (!product) continue;
+            
+            const label = badgeLabels[key] || key.toUpperCase();
             html += `
-                <div class="price-row">
-                    <span class="product-name">
-                        <i class="fas ${label.icon}"></i>${label.name}
-                    </span>
-                    <span class="product-price">
-                        ${formatCurrency(product.price)}
-                        <span class="product-unit">${label.unit}</span>
-                    </span>
+                <div class="pricing-badge">
+                    <span class="badge-label">${label}</span>
+                    <span class="badge-price">${formatCurrencyBadge(product.price)}</span>
                 </div>
             `;
         }
         
         container.innerHTML = html;
+    }
+
+    function formatCurrencyBadge(amount) {
+        const symbols = { 'GBP': '£', 'EUR': '€', 'USD': '$' };
+        const symbol = symbols[state.currency] || state.currency + ' ';
+        return symbol + amount.toFixed(4);
     }
 
     window.selectTier = function(tierId) {
@@ -972,10 +1035,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('noVatInfo').classList.toggle('d-none', state.vatApplicable);
 
             if (state.bespokePricing) {
-                renderPricesForTier('bespoke');
+                renderPricingBadges('bespoke');
             } else {
-                renderPricesForTier('starter');
-                renderPricesForTier('enterprise');
+                renderPricingBadges('starter');
+                renderPricingBadges('enterprise');
             }
 
             console.log('[Purchase] Loaded', Object.keys(state.products).length, 'products from HubSpot');
@@ -988,10 +1051,10 @@ document.addEventListener('DOMContentLoaded', function() {
             state.isLoading = false;
             
             if (state.bespokePricing) {
-                renderPricesForTier('bespoke');
+                renderPricingBadges('bespoke');
             } else {
-                renderPricesForTier('starter');
-                renderPricesForTier('enterprise');
+                renderPricingBadges('starter');
+                renderPricingBadges('enterprise');
             }
         }
     };
