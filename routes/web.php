@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuickSMSController;
+use App\Http\Controllers\Api\RcsAssetController;
 
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/', 'dashboard')->name('dashboard');
@@ -49,4 +50,11 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/support/knowledge-base', 'knowledgeBase')->name('support.knowledge-base');
     
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
+});
+
+Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
+    Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
+    Route::post('/process-upload', 'processUpload')->name('api.rcs.assets.process-upload');
+    Route::put('/{uuid}', 'updateAsset')->name('api.rcs.assets.update');
+    Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
 });

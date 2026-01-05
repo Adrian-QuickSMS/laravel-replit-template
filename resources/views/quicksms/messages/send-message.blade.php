@@ -1903,7 +1903,10 @@ function initializeRcsCard(cardNum) {
                 dimensions: null,
                 orientation: 'vertShort',
                 zoom: 100,
-                cropPosition: 'center'
+                cropPosition: 'center',
+                assetUuid: null,
+                hostedUrl: null,
+                originalUrl: null
             },
             description: '',
             textBody: '',
@@ -1922,6 +1925,9 @@ function saveCurrentCardData() {
     card.media.fileName = rcsMediaData.file ? rcsMediaData.file.name : null;
     card.media.fileSize = rcsMediaData.fileSize;
     card.media.dimensions = rcsMediaData.dimensions;
+    card.media.assetUuid = rcsMediaData.assetUuid;
+    card.media.hostedUrl = rcsMediaData.hostedUrl;
+    card.media.originalUrl = rcsMediaData.originalUrl;
     
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     card.media.orientation = orientChecked ? orientChecked.value : 'vertShort';
@@ -1942,9 +1948,12 @@ function loadCardData(cardNum) {
     rcsMediaData.file = card.media.file;
     rcsMediaData.fileSize = card.media.fileSize;
     rcsMediaData.dimensions = card.media.dimensions;
+    rcsMediaData.assetUuid = card.media.assetUuid;
+    rcsMediaData.hostedUrl = card.media.hostedUrl;
+    rcsMediaData.originalUrl = card.media.originalUrl;
     
     if (card.media.url) {
-        showRcsMediaPreview(card.media.url);
+        showRcsMediaPreview(card.media.hostedUrl || card.media.url);
         updateRcsImageInfo();
         document.getElementById('rcsZoomSlider').value = card.media.zoom;
         document.getElementById('rcsZoomValue').textContent = card.media.zoom + '%';
@@ -2574,11 +2583,133 @@ var rcsMediaData = {
     url: null,
     file: null,
     dimensions: null,
-    fileSize: 0
+    fileSize: 0,
+    assetUuid: null,
+    hostedUrl: null,
+    originalUrl: null
 };
 
 var rcsAllowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
 var rcsMaxFileSize = 250 * 1024;
+var rcsDraftSession = generateDraftSession();
+var rcsEditDebounceTimer = null;
+
+function generateDraftSession() {
+    return 'draft_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function getCurrentEditParams() {
+    var zoomSlider = document.getElementById('rcsZoomSlider');
+    var zoom = zoomSlider ? parseInt(zoomSlider.value) : 100;
+    
+    var cropPosition = 'center';
+    document.querySelectorAll('.rcs-crop-btn.active').forEach(function(btn) {
+        cropPosition = btn.dataset.position || 'center';
+    });
+    
+    var orientation = 'vertical_short';
+    if (document.getElementById('rcsOrientVertTall') && document.getElementById('rcsOrientVertTall').checked) {
+        orientation = 'vertical_tall';
+    } else if (document.getElementById('rcsOrientHoriz') && document.getElementById('rcsOrientHoriz').checked) {
+        orientation = 'horizontal';
+    }
+    
+    return {
+        zoom: zoom,
+        crop_position: cropPosition,
+        orientation: orientation
+    };
+}
+
+function processAssetServerSide(isUpdate) {
+    if (rcsEditDebounceTimer) {
+        clearTimeout(rcsEditDebounceTimer);
+    }
+    
+    rcsEditDebounceTimer = setTimeout(function() {
+        var editParams = getCurrentEditParams();
+        
+        if (editParams.zoom === 100 && editParams.crop_position === 'center' && !rcsMediaData.assetUuid) {
+            return;
+        }
+        
+        if (rcsMediaData.assetUuid && isUpdate) {
+            fetch('/api/rcs/assets/' + rcsMediaData.assetUuid, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ edit_params: editParams })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.success && data.asset) {
+                    rcsMediaData.hostedUrl = data.asset.public_url;
+                    rcsMediaData.dimensions = { width: data.asset.width, height: data.asset.height };
+                    rcsMediaData.fileSize = data.asset.file_size;
+                    updateRcsImageInfo();
+                }
+            })
+            .catch(function(err) {
+                console.error('Failed to update asset:', err);
+            });
+        } else if (rcsMediaData.originalUrl && rcsMediaData.source === 'url') {
+            showRcsProcessingIndicator();
+            
+            fetch('/api/rcs/assets/process-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({
+                    url: rcsMediaData.originalUrl,
+                    edit_params: editParams,
+                    draft_session: rcsDraftSession
+                })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                hideRcsProcessingIndicator();
+                if (data.success && data.asset) {
+                    rcsMediaData.assetUuid = data.asset.uuid;
+                    rcsMediaData.hostedUrl = data.asset.public_url;
+                    rcsMediaData.url = data.asset.public_url;
+                    rcsMediaData.dimensions = { width: data.asset.width, height: data.asset.height };
+                    rcsMediaData.fileSize = data.asset.file_size;
+                    showRcsMediaPreview(data.asset.public_url);
+                    updateRcsImageInfo();
+                } else if (data.error) {
+                    showRcsMediaError(data.error);
+                }
+            })
+            .catch(function(err) {
+                hideRcsProcessingIndicator();
+                showRcsMediaError('Failed to process image. Please try again.');
+            });
+        }
+    }, 500);
+}
+
+function showRcsProcessingIndicator() {
+    var preview = document.getElementById('rcsMediaPreview');
+    if (preview && !preview.querySelector('.rcs-processing-overlay')) {
+        var overlay = document.createElement('div');
+        overlay.className = 'rcs-processing-overlay';
+        overlay.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Processing...</span></div>';
+        overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;z-index:10;';
+        preview.style.position = 'relative';
+        preview.appendChild(overlay);
+    }
+}
+
+function hideRcsProcessingIndicator() {
+    var overlay = document.querySelector('.rcs-processing-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
 
 function toggleRcsMediaSource() {
     var isUpload = document.getElementById('rcsMediaUpload').checked;
@@ -2643,8 +2774,11 @@ function loadRcsMediaUrl() {
             img.onload = function() {
                 rcsMediaData.source = 'url';
                 rcsMediaData.url = url;
+                rcsMediaData.originalUrl = url;
                 rcsMediaData.dimensions = { width: img.width, height: img.height };
                 rcsMediaData.fileSize = metadata.fileSize || 0;
+                rcsMediaData.assetUuid = null;
+                rcsMediaData.hostedUrl = null;
                 showRcsMediaPreview(url);
                 updateRcsImageInfo();
                 
@@ -2724,7 +2858,7 @@ function showRcsMediaPreview(src) {
 }
 
 function removeRcsMedia() {
-    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0 };
+    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0, assetUuid: null, hostedUrl: null, originalUrl: null };
     document.getElementById('rcsMediaPreview').classList.add('d-none');
     document.getElementById('rcsMediaPreviewImg').src = '';
     document.getElementById('rcsMediaPreviewImg').style.transform = '';
@@ -2766,7 +2900,9 @@ function updateRcsImageInfo() {
     }
     if (rcsMediaData.fileSize > 0) {
         var sizeText = (rcsMediaData.fileSize / 1024).toFixed(1) + ' KB';
-        if (rcsMediaData.source === 'url') {
+        if (rcsMediaData.hostedUrl) {
+            sizeText += ' (QuickSMS hosted)';
+        } else if (rcsMediaData.source === 'url') {
             sizeText += ' (from URL)';
         }
         document.getElementById('rcsImageFileSize').textContent = sizeText;
@@ -2781,6 +2917,10 @@ function updateRcsZoom(value) {
     document.getElementById('rcsZoomValue').textContent = value + '%';
     var img = document.getElementById('rcsMediaPreviewImg');
     img.style.transform = 'scale(' + (value / 100) + ')';
+    
+    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl) {
+        processAssetServerSide(!!rcsMediaData.assetUuid);
+    }
 }
 
 function setRcsCropPosition(position) {
@@ -2793,6 +2933,10 @@ function setRcsCropPosition(position) {
         case 'top': img.style.objectPosition = 'center top'; break;
         case 'bottom': img.style.objectPosition = 'center bottom'; break;
         default: img.style.objectPosition = 'center center';
+    }
+    
+    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl) {
+        processAssetServerSide(!!rcsMediaData.assetUuid);
     }
 }
 
