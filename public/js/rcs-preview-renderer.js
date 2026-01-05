@@ -65,8 +65,46 @@ var RcsPreviewRenderer = (function() {
         var heightPx = getMediaHeight(height);
         
         if (media.url) {
-            return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + ';">' +
-                '<img src="' + escapeHtml(media.url) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +
+            var imgStyle = '';
+            var containerStyle = 'height: ' + heightPx + ';';
+            
+            if (media.crop && media.crop.zoom !== undefined) {
+                var crop = media.crop;
+                var zoom = crop.zoom / 100;
+                var displayScale = crop.displayScale || 1;
+                var effectiveScale = displayScale * zoom;
+                
+                if (crop.imageWidth && crop.imageHeight) {
+                    var displayW = crop.imageWidth * effectiveScale;
+                    var displayH = crop.imageHeight * effectiveScale;
+                    
+                    var frameW = crop.frameWidth || 280;
+                    var frameH = crop.frameHeight || 147;
+                    var offsetX = crop.offsetX || 0;
+                    var offsetY = crop.offsetY || 0;
+                    
+                    var scaleX = parseFloat(heightPx) * (280 / frameH) / 280;
+                    var previewFrameW = 280 * scaleX;
+                    var previewFrameH = parseFloat(heightPx);
+                    
+                    var imgScaleX = previewFrameW / frameW;
+                    var imgScaleY = previewFrameH / frameH;
+                    var imgScale = Math.min(imgScaleX, imgScaleY);
+                    
+                    var imgW = displayW * imgScale;
+                    var imgH = displayH * imgScale;
+                    var imgOffsetX = offsetX * imgScale;
+                    var imgOffsetY = offsetY * imgScale;
+                    
+                    imgStyle = 'width: ' + imgW + 'px; height: ' + imgH + 'px; object-fit: none; ' +
+                        'position: absolute; left: 50%; top: 50%; ' +
+                        'transform: translate(calc(-50% + ' + imgOffsetX + 'px), calc(-50% + ' + imgOffsetY + 'px));';
+                    containerStyle = 'height: ' + heightPx + '; position: relative; overflow: hidden;';
+                }
+            }
+            
+            return '<div class="rcs-media rcs-media--' + height + '" style="' + containerStyle + '">' +
+                '<img src="' + escapeHtml(media.url) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy" style="' + imgStyle + '"/>' +
                 '</div>';
         } else {
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">' +

@@ -286,71 +286,54 @@ class RcsAssetService
         $image = $this->imageManager->read($imageContent);
         
         $zoom = floatval($editParams['zoom'] ?? 100) / 100;
-        $cropPosition = $editParams['crop_position'] ?? 'center';
         $orientation = $editParams['orientation'] ?? 'vertical_short';
+        $cropOffsetX = floatval($editParams['cropOffsetX'] ?? 0);
+        $cropOffsetY = floatval($editParams['cropOffsetY'] ?? 0);
+        $frameWidth = floatval($editParams['frameWidth'] ?? 280);
+        $frameHeight = floatval($editParams['frameHeight'] ?? 98);
+        $displayScale = floatval($editParams['displayScale'] ?? 1);
         
         $originalWidth = $image->width();
         $originalHeight = $image->height();
-        $targetRatio = $this->getTargetRatio($orientation);
         
-        if ($zoom < 1 && $targetRatio) {
-            $canvasWidth = max(800, $originalWidth);
-            $canvasHeight = (int) ($canvasWidth / $targetRatio);
-            
-            $scaledWidth = (int) ($originalWidth * $zoom);
-            $scaledHeight = (int) ($originalHeight * $zoom);
-            
-            $image->resize($scaledWidth, $scaledHeight);
-            
-            $canvas = $this->imageManager->create($canvasWidth, $canvasHeight)->fill('f5f5f5');
-            
-            $x = $this->getPlacementX($canvasWidth, $scaledWidth, $cropPosition);
-            $y = $this->getPlacementY($canvasHeight, $scaledHeight, $cropPosition);
-            
-            $canvas->place($image, 'top-left', $x, $y);
-            $image = $canvas;
-        } elseif ($zoom > 1) {
-            $newWidth = (int) ($originalWidth * $zoom);
-            $newHeight = (int) ($originalHeight * $zoom);
-            $image->resize($newWidth, $newHeight);
-            
-            if ($targetRatio) {
-                $currentRatio = $image->width() / $image->height();
-                
-                if (abs($currentRatio - $targetRatio) > 0.01) {
-                    $cropWidth = $image->width();
-                    $cropHeight = $image->height();
-                    
-                    if ($currentRatio > $targetRatio) {
-                        $cropWidth = (int) ($image->height() * $targetRatio);
-                    } else {
-                        $cropHeight = (int) ($image->width() / $targetRatio);
-                    }
-                    
-                    $x = $this->getCropX($image->width(), $cropWidth, $cropPosition);
-                    $y = $this->getCropY($image->height(), $cropHeight, $cropPosition);
-                    
-                    $image->crop($cropWidth, $cropHeight, $x, $y);
-                }
-            }
-        } elseif ($targetRatio) {
-            $currentRatio = $image->width() / $image->height();
-            
-            if (abs($currentRatio - $targetRatio) > 0.01) {
-                $cropWidth = $image->width();
-                $cropHeight = $image->height();
-                
-                if ($currentRatio > $targetRatio) {
-                    $cropWidth = (int) ($image->height() * $targetRatio);
-                } else {
-                    $cropHeight = (int) ($image->width() / $targetRatio);
-                }
-                
-                $x = $this->getCropX($image->width(), $cropWidth, $cropPosition);
-                $y = $this->getCropY($image->height(), $cropHeight, $cropPosition);
-                
-                $image->crop($cropWidth, $cropHeight, $x, $y);
-            }
+        $effectiveScale = $displayScale * $zoom;
+        $displayWidth = $originalWidth * $effectiveScale;
+        $displayHeight = $originalHeight * $effectiveScale;
+        
+        $workspaceWidth = 320;
+        $workspaceHeight = 200;
+        
+        $imageCenterX = $workspaceWidth / 2 + $cropOffsetX;
+        $imageCenterY = $workspaceHeight / 2 + $cropOffsetY;
+        
+        $frameLeft = ($workspaceWidth - $frameWidth) / 2;
+        $frameTop = ($workspaceHeight - $frameHeight) / 2;
+        
+        $imageLeft = $imageCenterX - $displayWidth / 2;
+        $imageTop = $imageCenterY - $displayHeight / 2;
+        
+        $cropLeftInDisplay = $frameLeft - $imageLeft;
+        $cropTopInDisplay = $frameTop - $imageTop;
+        
+        $cropLeftInOriginal = (int) ($cropLeftInDisplay / $effectiveScale);
+        $cropTopInOriginal = (int) ($cropTopInDisplay / $effectiveScale);
+        $cropWidthInOriginal = (int) ($frameWidth / $effectiveScale);
+        $cropHeightInOriginal = (int) ($frameHeight / $effectiveScale);
+        
+        $cropLeftInOriginal = max(0, min($cropLeftInOriginal, $originalWidth - 1));
+        $cropTopInOriginal = max(0, min($cropTopInOriginal, $originalHeight - 1));
+        $cropWidthInOriginal = min($cropWidthInOriginal, $originalWidth - $cropLeftInOriginal);
+        $cropHeightInOriginal = min($cropHeightInOriginal, $originalHeight - $cropTopInOriginal);
+        
+        if ($cropWidthInOriginal > 0 && $cropHeightInOriginal > 0) {
+            $image->crop($cropWidthInOriginal, $cropHeightInOriginal, $cropLeftInOriginal, $cropTopInOriginal);
+        }
+        
+        $targetRatio = $this->getTargetRatio($orientation);
+        if ($targetRatio) {
+            $targetWidth = 800;
+            $targetHeight = (int) ($targetWidth / $targetRatio);
+            $image->resize($targetWidth, $targetHeight);
         }
         
         $mimeType = 'image/jpeg';

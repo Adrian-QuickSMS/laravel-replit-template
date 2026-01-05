@@ -2416,7 +2416,7 @@ function getWizardCardSchema(cardNum) {
     var card = rcsCardsData[cardNum] || initializeRcsCard(cardNum);
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     var orientation = orientChecked ? orientChecked.value : 'vertical_short';
-    var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'horizontal': 'tall' };
+    var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall', 'horizontal': 'medium' };
     var heightClass = heights[orientation] || 'medium';
     
     var descEl = document.getElementById('rcsDescription');
@@ -2427,9 +2427,32 @@ function getWizardCardSchema(cardNum) {
     var btns = rcsButtons.length > 0 ? rcsButtons : (card.buttons || []);
     
     var mediaUrl = (card.media && card.media.url) ? card.media.url : (rcsMediaData.url || null);
+    var isCurrentCard = (cardNum === rcsCurrentCard);
+    
+    var cropData = null;
+    if (isCurrentCard && rcsMediaData.url && !rcsMediaData.hostedUrl) {
+        cropData = {
+            zoom: rcsCropState.zoom,
+            offsetX: rcsCropState.offsetX,
+            offsetY: rcsCropState.offsetY,
+            frameWidth: rcsCropState.frameWidth,
+            frameHeight: rcsCropState.frameHeight,
+            displayScale: rcsCropState.displayScale,
+            imageWidth: rcsCropState.imageWidth,
+            imageHeight: rcsCropState.imageHeight
+        };
+    } else if (card.media && card.media.cropOffsetX !== undefined) {
+        cropData = {
+            zoom: card.media.zoom || 100,
+            offsetX: card.media.cropOffsetX || 0,
+            offsetY: card.media.cropOffsetY || 0,
+            frameWidth: rcsCropFrameSizes[orientation]?.width || 280,
+            frameHeight: rcsCropFrameSizes[orientation]?.height || 98
+        };
+    }
     
     return {
-        media: mediaUrl ? { url: mediaUrl, height: heightClass } : null,
+        media: mediaUrl ? { url: mediaUrl, height: heightClass, crop: cropData } : null,
         title: description || null,
         description: textBody || null,
         buttons: btns.map(function(btn) {
@@ -2443,8 +2466,19 @@ function getWizardCarouselCardSchema(cardNum) {
     var mediaUrl = (card.media && card.media.url) ? card.media.url : null;
     var btns = card.buttons || [];
     
+    var cropData = null;
+    if (card.media && card.media.cropOffsetX !== undefined) {
+        cropData = {
+            zoom: card.media.zoom || 100,
+            offsetX: card.media.cropOffsetX || 0,
+            offsetY: card.media.cropOffsetY || 0,
+            frameWidth: 280,
+            frameHeight: 147
+        };
+    }
+    
     return {
-        media: mediaUrl ? { url: mediaUrl, height: 'medium' } : null,
+        media: mediaUrl ? { url: mediaUrl, height: 'medium', crop: cropData } : null,
         title: card.description || null,
         description: card.textBody ? (card.textBody.length > 80 ? card.textBody.substring(0, 80) + '...' : card.textBody) : null,
         buttons: btns.map(function(btn) {
@@ -3017,6 +3051,11 @@ function getCurrentEditParams() {
         zoom: zoom,
         cropOffsetX: rcsCropState.offsetX,
         cropOffsetY: rcsCropState.offsetY,
+        frameWidth: rcsCropState.frameWidth,
+        frameHeight: rcsCropState.frameHeight,
+        displayScale: rcsCropState.displayScale,
+        imageWidth: rcsCropState.imageWidth,
+        imageHeight: rcsCropState.imageHeight,
         orientation: orientation
     };
 }
