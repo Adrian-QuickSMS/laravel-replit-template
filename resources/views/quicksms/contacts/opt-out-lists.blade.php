@@ -45,8 +45,8 @@
                             </button>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info mb-4">
-                                <i class="fas fa-info-circle me-2"></i>
+                            <div class="alert bg-primary-light border-0 mb-4">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
                                 <strong>Master Opt-Out List</strong> contains all suppressed numbers globally. <strong>Secondary lists</strong> allow brand/campaign-specific suppression management.
                             </div>
                             
