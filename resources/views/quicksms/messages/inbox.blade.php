@@ -80,16 +80,9 @@
 [data-theme-version="dark"] #replyComposerCard {
     background: #1e1e28 !important;
 }
-[data-theme-version="dark"] .chat-left-body {
-    background: #1e1e28 !important;
-    border-right-color: #333 !important;
-}
-[data-theme-version="dark"] .contact-sidebar {
-    background: #1e1e28 !important;
-}
 [data-theme-version="dark"] #replyComposerCard {
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3) !important;
-    border-top-color: #333 !important;
+    border-top-color: #3f3f4a !important;
 }
 [data-theme-version="dark"] .chat-bx:hover {
     background-color: rgba(111, 66, 193, 0.15) !important;
@@ -97,25 +90,46 @@
 [data-theme-version="dark"] .chat-bx.active {
     background-color: rgba(111, 66, 193, 0.2) !important;
 }
-/* Dark mode: Inbound message bubble - keep text black/dark for readability */
+/* Dark mode: Inbound message bubble - WHITE text on dark background */
 [data-theme-version="dark"] .message-received,
 [data-theme-version="dark"] .message-received p {
     background-color: #3a3a4a !important;
     border-color: #4a4a5a !important;
-    color: #1a1a1a !important;
+    color: #ffffff !important;
 }
-/* Dark mode: Channel button text should be white when not selected */
-[data-theme-version="dark"] .btn-group .btn-outline-primary {
-    color: #fff !important;
+/* Dark mode: Channel button text should be WHITE */
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary,
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary i {
+    color: #ffffff !important;
     border-color: rgba(136, 108, 192, 0.5) !important;
 }
-[data-theme-version="dark"] .btn-group .btn-outline-primary:hover {
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-outline-primary:hover {
     background-color: rgba(136, 108, 192, 0.3) !important;
-    color: #fff !important;
+    color: #ffffff !important;
 }
-[data-theme-version="dark"] .btn-group .btn-check:checked + .btn-outline-primary {
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + .btn-outline-primary,
+[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked + .btn-outline-primary i {
     background-color: var(--primary) !important;
-    color: #fff !important;
+    color: #ffffff !important;
+}
+/* Dark mode: Separator lines/borders should be GREY not white */
+[data-theme-version="dark"] .border-bottom {
+    border-bottom-color: #3f3f4a !important;
+}
+[data-theme-version="dark"] .date-separator::before {
+    background: #3f3f4a !important;
+}
+[data-theme-version="dark"] .date-separator span {
+    background: #1e1e28 !important;
+    color: #888 !important;
+}
+[data-theme-version="dark"] .contact-sidebar {
+    background: #1e1e28 !important;
+    border-left-color: #3f3f4a !important;
+}
+[data-theme-version="dark"] .chat-left-body {
+    background: #1e1e28 !important;
+    border-right-color: #3f3f4a !important;
 }
 .chat-bx {
     cursor: pointer;
