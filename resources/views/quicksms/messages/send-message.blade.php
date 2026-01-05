@@ -1239,7 +1239,17 @@
                                                     <div class="modal-body">
                                                         <div class="mb-3">
                                                             <label class="form-label small">Button Label <span class="text-danger">*</span></label>
-                                                            <input type="text" class="form-control form-control-sm" id="rcsButtonLabel" maxlength="25" placeholder="e.g., Learn More" oninput="updateRcsButtonLabelCount()">
+                                                            <div class="position-relative border rounded">
+                                                                <input type="text" class="form-control form-control-sm border-0" id="rcsButtonLabel" maxlength="25" placeholder="e.g., Learn More" oninput="updateRcsButtonLabelCount()" style="padding-right: 70px;">
+                                                                <div class="position-absolute d-flex gap-1" style="top: 50%; right: 8px; transform: translateY(-50%); z-index: 10;">
+                                                                    <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldPlaceholder('rcsButtonLabel')" title="Insert personalisation">
+                                                                        <i class="fas fa-user-tag"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldEmoji('rcsButtonLabel')" title="Insert emoji">
+                                                                        <i class="fas fa-smile"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                             <div class="d-flex justify-content-between mt-1">
                                                                 <small id="rcsButtonLabelError" class="text-danger d-none">Label is required</small>
                                                                 <small class="text-muted ms-auto"><span id="rcsButtonLabelCount">0</span>/25</small>
@@ -1275,15 +1285,36 @@
                                                         <div id="rcsButtonPhoneConfig" class="d-none">
                                                             <div class="mb-3">
                                                                 <label class="form-label small">Phone Number <span class="text-danger">*</span></label>
-                                                                <input type="tel" class="form-control form-control-sm" id="rcsButtonPhone" placeholder="+44 1234 567890">
+                                                                <div class="position-relative border rounded">
+                                                                    <input type="tel" class="form-control form-control-sm border-0" id="rcsButtonPhone" placeholder="+44 1234 567890" oninput="validateRcsPhoneNoEmoji()" style="padding-right: 40px;">
+                                                                    <div class="position-absolute d-flex gap-1" style="top: 50%; right: 8px; transform: translateY(-50%); z-index: 10;">
+                                                                        <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldPlaceholder('rcsButtonPhone')" title="Insert personalisation">
+                                                                            <i class="fas fa-user-tag"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-sm btn-light border disabled" title="Emoji not allowed in phone numbers" style="opacity: 0.5; cursor: not-allowed;">
+                                                                            <i class="fas fa-smile"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                                 <small id="rcsButtonPhoneError" class="text-danger d-none">Valid phone number required (e.g., +44...)</small>
+                                                                <small id="rcsButtonPhoneEmojiError" class="text-danger d-none"><i class="fas fa-ban me-1"></i>Emoji not allowed in phone numbers</small>
                                                             </div>
                                                         </div>
                                                         
                                                         <div id="rcsButtonCalendarConfig" class="d-none">
                                                             <div class="mb-3">
                                                                 <label class="form-label small">Event Title <span class="text-danger">*</span></label>
-                                                                <input type="text" class="form-control form-control-sm" id="rcsButtonEventTitle" maxlength="100" placeholder="Meeting with QuickSMS">
+                                                                <div class="position-relative border rounded">
+                                                                    <input type="text" class="form-control form-control-sm border-0" id="rcsButtonEventTitle" maxlength="100" placeholder="Meeting with QuickSMS" style="padding-right: 70px;">
+                                                                    <div class="position-absolute d-flex gap-1" style="top: 50%; right: 8px; transform: translateY(-50%); z-index: 10;">
+                                                                        <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldPlaceholder('rcsButtonEventTitle')" title="Insert personalisation">
+                                                                            <i class="fas fa-user-tag"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldEmoji('rcsButtonEventTitle')" title="Insert emoji">
+                                                                            <i class="fas fa-smile"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                                 <small id="rcsButtonEventTitleError" class="text-danger d-none">Event title is required</small>
                                                             </div>
                                                             <div class="row g-2 mb-3">
@@ -1300,7 +1331,17 @@
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label small">Event Description</label>
-                                                                <textarea class="form-control form-control-sm" id="rcsButtonEventDesc" rows="2" maxlength="500" placeholder="Optional description..."></textarea>
+                                                                <div class="position-relative border rounded">
+                                                                    <textarea class="form-control form-control-sm border-0" id="rcsButtonEventDesc" rows="2" maxlength="500" placeholder="Optional description..." style="padding-bottom: 35px;"></textarea>
+                                                                    <div class="position-absolute d-flex gap-1" style="bottom: 6px; right: 8px; z-index: 10;">
+                                                                        <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldPlaceholder('rcsButtonEventDesc')" title="Insert personalisation">
+                                                                            <i class="fas fa-user-tag"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-sm btn-light border" onclick="openRcsButtonFieldEmoji('rcsButtonEventDesc')" title="Insert emoji">
+                                                                            <i class="fas fa-smile"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3298,6 +3339,10 @@ function openRcsEmojiPicker(field) {
 function getRcsTextElement(field) {
     if (field === 'description') return document.getElementById('rcsDescription');
     if (field === 'textBody') return document.getElementById('rcsTextBody');
+    if (field === 'rcsButtonLabel') return document.getElementById('rcsButtonLabel');
+    if (field === 'rcsButtonPhone') return document.getElementById('rcsButtonPhone');
+    if (field === 'rcsButtonEventTitle') return document.getElementById('rcsButtonEventTitle');
+    if (field === 'rcsButtonEventDesc') return document.getElementById('rcsButtonEventDesc');
     return null;
 }
 
@@ -3315,6 +3360,7 @@ function insertRcsPlaceholder(field) {
     
     if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
+    if (rcsActiveTextField === 'rcsButtonLabel') updateRcsButtonLabelCount();
     
     bootstrap.Modal.getInstance(document.getElementById('personalisationModal')).hide();
     rcsActiveTextField = null;
@@ -3333,9 +3379,36 @@ function insertRcsEmoji(emoji) {
     
     if (rcsActiveTextField === 'description') updateRcsDescriptionCount();
     if (rcsActiveTextField === 'textBody') updateRcsTextBodyCount();
+    if (rcsActiveTextField === 'rcsButtonLabel') updateRcsButtonLabelCount();
     
     bootstrap.Modal.getInstance(document.getElementById('emojiPickerModal')).hide();
     rcsActiveTextField = null;
+}
+
+function openRcsButtonFieldPlaceholder(fieldId) {
+    rcsActiveTextField = fieldId;
+    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    modal.show();
+}
+
+function openRcsButtonFieldEmoji(fieldId) {
+    rcsActiveTextField = fieldId;
+    var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));
+    modal.show();
+}
+
+function validateRcsPhoneNoEmoji() {
+    var input = document.getElementById('rcsButtonPhone');
+    var errorEl = document.getElementById('rcsButtonPhoneEmojiError');
+    var emojiRegex = /[\u{1F600}-\\u{1F64F}]|[\\u{1F300}-\\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu;
+    
+    if (emojiRegex.test(input.value)) {
+        input.value = input.value.replace(emojiRegex, '');
+        errorEl.classList.remove('d-none');
+        setTimeout(function() {
+            errorEl.classList.add('d-none');
+        }, 3000);
+    }
 }
 
 var rcsButtons = [];
