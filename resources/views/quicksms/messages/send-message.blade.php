@@ -2731,7 +2731,8 @@ var rcsCropState = {
 var rcsCropFrameSizes = {
     'vertical_short': { width: 280, height: 98 },
     'vertical_medium': { width: 280, height: 147 },
-    'horizontal': { width: 280, height: 180 }
+    'vertical_tall': { width: 280, height: 180 },
+    'horizontal': { width: 280, height: 147 }
 };
 
 var rcsImageDirtyState = {
@@ -2943,6 +2944,7 @@ function getOrientationRadioIdForDiscard(orientation) {
     switch(orientation) {
         case 'vertical_short': return 'rcsOrientVertShort';
         case 'vertical_medium': return 'rcsOrientVertMed';
+        case 'vertical_tall': return 'rcsOrientVertTall';
         case 'horizontal': return 'rcsOrientHoriz';
         default: return 'rcsOrientVertShort';
     }
@@ -3001,6 +3003,8 @@ function getCurrentEditParams() {
     var orientation = 'vertical_short';
     if (document.getElementById('rcsOrientVertMed') && document.getElementById('rcsOrientVertMed').checked) {
         orientation = 'vertical_medium';
+    } else if (document.getElementById('rcsOrientVertTall') && document.getElementById('rcsOrientVertTall').checked) {
+        orientation = 'vertical_tall';
     } else if (document.getElementById('rcsOrientHoriz') && document.getElementById('rcsOrientHoriz').checked) {
         orientation = 'horizontal';
     }
@@ -3370,8 +3374,10 @@ function updateRcsCropFrame(orientation) {
         frame.classList.add('rcs-crop-frame--short');
     } else if (orientation === 'vertical_medium') {
         frame.classList.add('rcs-crop-frame--medium');
-    } else if (orientation === 'horizontal') {
+    } else if (orientation === 'vertical_tall') {
         frame.classList.add('rcs-crop-frame--tall');
+    } else if (orientation === 'horizontal') {
+        frame.classList.add('rcs-crop-frame--medium');
     }
     
     constrainRcsCropPosition();
