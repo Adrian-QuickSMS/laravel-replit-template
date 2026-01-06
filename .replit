@@ -11,6 +11,7 @@ packages = ["unzip"]
 [userenv.shared]
 DB_CONNECTION = "sqlite"
 APP_URL = "http://0.0.0.0:5000"
+DB_DATABASE = "database/database.sqlite"
 
 [workflows]
 runButton = "Project"
