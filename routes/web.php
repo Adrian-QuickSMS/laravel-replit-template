@@ -28,6 +28,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     
     Route::get('/purchase', 'purchase')->name('purchase');
     Route::get('/purchase/messages', 'purchaseMessages')->name('purchase.messages');
+    Route::get('/purchase/numbers', 'purchaseNumbers')->name('purchase.numbers');
     
     Route::get('/management', 'management')->name('management');
     Route::get('/management/rcs-agent', 'rcsAgentRegistrations')->name('management.rcs-agent');

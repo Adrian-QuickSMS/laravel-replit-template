@@ -1523,6 +1523,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function purchaseNumbers()
+    {
+        return view('quicksms.purchase.numbers', [
+            'page_title' => 'Purchase Numbers'
+        ]);
+    }
+
     public function management()
     {
         return view('quicksms.placeholder', [

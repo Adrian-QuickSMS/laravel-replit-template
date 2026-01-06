@@ -54,6 +54,7 @@
                 </a>
                 <ul aria-expanded="false">
                     <li><a href="{{ route('purchase.messages') }}" class="{{ request()->routeIs('purchase.messages') ? 'mm-active' : '' }}">Messages</a></li>
+                    <li><a href="{{ route('purchase.numbers') }}" class="{{ request()->routeIs('purchase.numbers') ? 'mm-active' : '' }}">Numbers</a></li>
                 </ul>
             </li>
             
