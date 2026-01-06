@@ -575,6 +575,61 @@
     margin-bottom: 1rem;
     opacity: 0.5;
 }
+.custom-keyword-section {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.custom-keyword-section h6 {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.75rem;
+}
+.custom-keyword-input-group {
+    max-width: 400px;
+}
+.custom-keyword-input-group .form-control {
+    text-transform: uppercase;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+.custom-keyword-input-group .form-control.is-valid {
+    border-color: #28a745;
+}
+.custom-keyword-input-group .form-control.is-invalid {
+    border-color: #dc3545;
+}
+.keyword-validation-feedback {
+    font-size: 0.8125rem;
+    margin-top: 0.5rem;
+    min-height: 1.5rem;
+}
+.keyword-validation-feedback.valid {
+    color: #28a745;
+}
+.keyword-validation-feedback.invalid {
+    color: #dc3545;
+}
+.keyword-validation-feedback i {
+    margin-right: 0.375rem;
+}
+.keyword-rules {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+.keyword-rules ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+.keyword-rules li {
+    margin-bottom: 0.25rem;
+}
 </style>
 @endpush
 
@@ -906,6 +961,29 @@
                 </div>
             </div>
 
+            <div class="custom-keyword-section">
+                <h6><i class="fas fa-plus-circle me-2 text-success"></i>Request a Custom Keyword</h6>
+                <div class="d-flex align-items-start gap-2">
+                    <div class="custom-keyword-input-group flex-grow-1">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="customKeywordInput" placeholder="Enter keyword..." maxlength="20" oninput="validateCustomKeyword()">
+                            <button class="btn btn-success" type="button" id="addCustomKeywordBtn" onclick="addCustomKeyword()" disabled>
+                                <i class="fas fa-plus me-1"></i>Add
+                            </button>
+                        </div>
+                        <div class="keyword-validation-feedback" id="keywordValidationFeedback"></div>
+                    </div>
+                </div>
+                <div class="keyword-rules">
+                    <strong>Keyword Rules:</strong>
+                    <ul>
+                        <li>3-20 characters (alphanumeric only)</li>
+                        <li>No spaces or special characters</li>
+                        <li>Must be unique (case-insensitive)</li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="card keyword-table-card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5><i class="fas fa-key me-2 text-success"></i>Available Keywords</h5>
@@ -1140,6 +1218,12 @@ var keywordSelectedIds = [];
 var keywordSortColumn = 'keyword';
 var keywordSortDirection = 'asc';
 var keywordSearchTerm = '';
+
+var keywordValidationConfig = {
+    minLength: 3,
+    maxLength: 20,
+    pattern: /^[A-Za-z0-9]+$/
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
@@ -1580,6 +1664,111 @@ function reserveSelectedKeywords() {
     
     var keywordList = selectedKeywords.map(function(k) { return k.keyword; }).join(', ');
     alert('Keyword reservation coming soon.\n\nSelected keywords: ' + keywordList + '\n\n(This is a demo - no actual reservation was made)');
+}
+
+function validateCustomKeyword() {
+    var input = document.getElementById('customKeywordInput');
+    var feedback = document.getElementById('keywordValidationFeedback');
+    var addBtn = document.getElementById('addCustomKeywordBtn');
+    var value = input.value.trim().toUpperCase();
+    
+    input.classList.remove('is-valid', 'is-invalid');
+    feedback.classList.remove('valid', 'invalid');
+    addBtn.disabled = true;
+    
+    if (value === '') {
+        feedback.innerHTML = '';
+        return { valid: false, message: '' };
+    }
+    
+    if (value.length < keywordValidationConfig.minLength) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle"></i>Keyword must be at least ' + keywordValidationConfig.minLength + ' characters';
+        return { valid: false, message: 'Too short' };
+    }
+    
+    if (value.length > keywordValidationConfig.maxLength) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle"></i>Keyword cannot exceed ' + keywordValidationConfig.maxLength + ' characters';
+        return { valid: false, message: 'Too long' };
+    }
+    
+    if (!keywordValidationConfig.pattern.test(value)) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle"></i>Alphanumeric characters only (no spaces or special characters)';
+        return { valid: false, message: 'Invalid characters' };
+    }
+    
+    var existingKeyword = keywordMockData.find(function(k) {
+        return k.keyword.toUpperCase() === value;
+    });
+    
+    if (existingKeyword) {
+        if (existingKeyword.status === 'Taken') {
+            input.classList.add('is-invalid');
+            feedback.classList.add('invalid');
+            feedback.innerHTML = '<i class="fas fa-times-circle"></i>This keyword is already taken';
+            return { valid: false, message: 'Keyword taken' };
+        } else {
+            input.classList.add('is-valid');
+            feedback.classList.add('valid');
+            feedback.innerHTML = '<i class="fas fa-check-circle"></i>Keyword available! Click Add to select it.';
+            addBtn.disabled = false;
+            return { valid: true, message: 'Available', existing: true, id: existingKeyword.id };
+        }
+    }
+    
+    console.log('TODO: API call - GET /api/keywords/check-availability?keyword=' + value);
+    
+    input.classList.add('is-valid');
+    feedback.classList.add('valid');
+    feedback.innerHTML = '<i class="fas fa-check-circle"></i>Keyword available for reservation!';
+    addBtn.disabled = false;
+    return { valid: true, message: 'Available', existing: false };
+}
+
+function addCustomKeyword() {
+    var input = document.getElementById('customKeywordInput');
+    var value = input.value.trim().toUpperCase();
+    
+    var validation = validateCustomKeyword();
+    if (!validation.valid) return;
+    
+    if (validation.existing) {
+        if (!keywordSelectedIds.includes(validation.id)) {
+            keywordSelectedIds.push(validation.id);
+            renderKeywordTable();
+            updateKeywordSelection();
+        }
+        input.value = '';
+        document.getElementById('keywordValidationFeedback').innerHTML = '<i class="fas fa-check-circle text-success"></i>Keyword "' + value + '" added to selection!';
+        document.getElementById('keywordValidationFeedback').classList.remove('invalid');
+        document.getElementById('keywordValidationFeedback').classList.add('valid');
+        document.getElementById('addCustomKeywordBtn').disabled = true;
+        input.classList.remove('is-valid', 'is-invalid');
+    } else {
+        var newId = Math.max.apply(null, keywordMockData.map(function(k) { return k.id; })) + 1;
+        keywordMockData.push({
+            id: newId,
+            keyword: value,
+            status: 'Available'
+        });
+        keywordSelectedIds.push(newId);
+        renderKeywordTable();
+        updateKeywordSelection();
+        
+        input.value = '';
+        document.getElementById('keywordValidationFeedback').innerHTML = '<i class="fas fa-check-circle text-success"></i>New keyword "' + value + '" created and added to selection!';
+        document.getElementById('keywordValidationFeedback').classList.remove('invalid');
+        document.getElementById('keywordValidationFeedback').classList.add('valid');
+        document.getElementById('addCustomKeywordBtn').disabled = true;
+        input.classList.remove('is-valid', 'is-invalid');
+        
+        console.log('TODO: API call - POST /api/keywords/reserve with keyword:', value);
+    }
 }
 </script>
 @endpush
