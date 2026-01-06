@@ -1055,6 +1055,7 @@ function saveRcsImageEdits() {
             updateRcsImageInfo();
             clearRcsImageDirtyState();
             initRcsImageBaseline();
+            saveCurrentCardData();
             updateRcsWizardPreview();
         } else if (data.error) {
             showRcsMediaError(data.error);
@@ -1062,14 +1063,14 @@ function saveRcsImageEdits() {
     })
     .catch(function(err) {
         hideRcsProcessingIndicator();
-        showRcsMediaError('Failed to process image. Please try again.');
+        console.error('[RCS Save Error]', err);
+        showRcsMediaError('Failed to process image: ' + (err.message || 'Please try again.'));
     });
 }
 
 function saveRcsImageEditsAndContinue() {
-    hideRcsUnsavedChangesModal();
-    
     if (!rcsMediaData.originalUrl || rcsMediaData.source !== 'url') {
+        hideRcsUnsavedChangesModal();
         executePendingNavigation();
         return;
     }
@@ -1101,7 +1102,10 @@ function saveRcsImageEditsAndContinue() {
             showRcsMediaPreview(data.asset.public_url);
             updateRcsImageInfo();
             clearRcsImageDirtyState();
+            initRcsImageBaseline();
+            saveCurrentCardData();
             updateRcsWizardPreview();
+            hideRcsUnsavedChangesModal();
             executePendingNavigation();
         } else if (data.error) {
             showRcsMediaError(data.error);
@@ -1109,7 +1113,8 @@ function saveRcsImageEditsAndContinue() {
     })
     .catch(function(err) {
         hideRcsProcessingIndicator();
-        showRcsMediaError('Failed to process image. Please try again.');
+        console.error('[RCS Save Error]', err);
+        showRcsMediaError('Failed to process image: ' + (err.message || 'Please try again.'));
     });
 }
 

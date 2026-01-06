@@ -23,7 +23,7 @@ class RcsAssetController extends Controller
             'edit_params' => 'nullable|array',
             'edit_params.zoom' => 'nullable|numeric|min:100|max:300',
             'edit_params.crop_position' => 'nullable|string|in:center,top,bottom,left,right,top-left,top-right,bottom-left,bottom-right',
-            'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_tall,horizontal',
+            'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_medium,vertical_tall,horizontal',
             'draft_session' => 'nullable|string|max:64',
         ]);
 
@@ -68,7 +68,7 @@ class RcsAssetController extends Controller
             'edit_params' => 'nullable|array',
             'edit_params.zoom' => 'nullable|numeric|min:100|max:300',
             'edit_params.crop_position' => 'nullable|string|in:center,top,bottom,left,right,top-left,top-right,bottom-left,bottom-right',
-            'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_tall,horizontal',
+            'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_medium,vertical_tall,horizontal',
             'draft_session' => 'nullable|string|max:64',
         ]);
 
@@ -110,7 +110,7 @@ class RcsAssetController extends Controller
             'edit_params' => 'required|array',
             'edit_params.zoom' => 'nullable|numeric|min:100|max:300',
             'edit_params.crop_position' => 'nullable|string|in:center,top,bottom,left,right,top-left,top-right,bottom-left,bottom-right',
-            'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_tall,horizontal',
+            'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_medium,vertical_tall,horizontal',
         ]);
 
         try {
