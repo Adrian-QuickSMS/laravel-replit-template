@@ -127,6 +127,50 @@
     margin-bottom: 1rem;
     opacity: 0.5;
 }
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+.loading-state .spinner-border {
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: 1rem;
+}
+.table-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+.large-file-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.large-file-indicator .file-size-warning {
+    color: #856404;
+    font-size: 0.75rem;
+}
+.pagination-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+.year-separator {
+    background-color: #f3f0f9;
+    font-weight: 600;
+    color: #495057;
+}
+.year-separator td {
+    padding: 0.5rem 1rem;
+    border-bottom: 2px solid #886cc0;
+}
 .date-preset-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
@@ -1322,7 +1366,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+var isLoading = false;
+var renderDebounceTimer = null;
+var LARGE_FILE_THRESHOLD_MB = 100;
+var MAX_RECORDS_CLIENT_SIDE = 1000;
+
+function showLoadingState() {
+    var tbody = document.getElementById('downloadsTableBody');
+    tbody.innerHTML = '<tr><td colspan="10"><div class="loading-state"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="text-muted mb-0">Loading reports...</p></div></td></tr>';
+}
+
 function renderDownloads() {
+    if (renderDebounceTimer) {
+        clearTimeout(renderDebounceTimer);
+    }
+    
+    renderDebounceTimer = setTimeout(function() {
+        renderDownloadsInternal();
+    }, 50);
+}
+
+function renderDownloadsInternal() {
     var tbody = document.getElementById('downloadsTableBody');
     var filtered = applyClientFilters(mockDownloads);
     var sorted = sortData(filtered);
@@ -1341,7 +1405,7 @@ function renderDownloads() {
         var isSelected = selectedIds.includes(item.id);
         var statusClass = getStatusClass(item.status);
         var rowClass = getRowClass(item.status);
-        var fileSizeDisplay = item.fileSize > 0 ? formatFileSize(item.fileSize) : '—';
+        var fileSizeDisplay = formatFileSize(item.fileSize, true);
         var statusDisplay = formatStatusDisplay(item.status, item.expiresAt);
         
         html += '<tr data-id="' + item.id + '" class="' + rowClass + '">';
@@ -1472,14 +1536,33 @@ function goToPage(page) {
     renderDownloads();
 }
 
-function formatFileSize(sizeMB) {
+function formatFileSize(sizeMB, showWarning) {
+    var sizeText = '';
+    if (sizeMB >= 1000) {
+        sizeText = (sizeMB / 1000).toFixed(1) + ' GB';
+    } else if (sizeMB >= 1) {
+        sizeText = sizeMB.toFixed(1) + ' MB';
+    } else if (sizeMB > 0) {
+        sizeText = (sizeMB * 1024).toFixed(0) + ' KB';
+    } else {
+        return '—';
+    }
+    
+    if (showWarning && sizeMB >= LARGE_FILE_THRESHOLD_MB) {
+        return '<span class="large-file-indicator">' + sizeText + ' <i class="fas fa-exclamation-triangle file-size-warning" title="Large file - download may take longer"></i></span>';
+    }
+    return sizeText;
+}
+
+function formatFileSizeText(sizeMB) {
     if (sizeMB >= 1000) {
         return (sizeMB / 1000).toFixed(1) + ' GB';
     } else if (sizeMB >= 1) {
         return sizeMB.toFixed(1) + ' MB';
-    } else {
+    } else if (sizeMB > 0) {
         return (sizeMB * 1024).toFixed(0) + ' KB';
     }
+    return '—';
 }
 
 function getStatusClass(status) {
@@ -2289,5 +2372,55 @@ function formatModuleName(module) {
 function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
 </script>
+
+{{--
+================================================================================
+PERFORMANCE & SCALABILITY TODOs (Non-Functional Requirements)
+================================================================================
+
+TODO: Server-Side Pagination
+- Current implementation uses client-side filtering/sorting for demo purposes
+- For production with years of data (10,000+ records), implement server-side:
+  - API endpoint: GET /api/downloads?page=1&per_page=25&sort=dateGenerated&order=desc
+  - Pass filters as query params: year, month, module, subAccounts[], user
+  - Return: { data: [...], meta: { total, per_page, current_page, last_page } }
+
+TODO: Large File Handling
+- Files > 100MB show warning indicator (LARGE_FILE_THRESHOLD_MB = 100)
+- For very large files (>1GB), consider:
+  - Chunked downloads with progress indicator
+  - Background download with notification when complete
+  - Streaming response for better memory usage
+
+TODO: Data Volume Optimization
+- Year filter defaults to current year to reduce initial dataset
+- Consider implementing:
+  - Lazy loading for older years (load on scroll or filter change)
+  - Archiving old data to cold storage after 2+ years
+  - Summarized views for historical data (monthly aggregates)
+
+TODO: Caching Strategy
+- Cache filter dropdowns (sub-accounts, users) - rarely changes
+- Cache download list with short TTL (30 seconds)
+- Invalidate cache on new export creation or deletion
+
+TODO: Search Performance
+- For text search across report names:
+  - Use database full-text search (PostgreSQL tsvector)
+  - Index on report_name, module, sub_account, generated_by
+
+TODO: Bulk Operations
+- Limit bulk selection to 100 items to prevent timeout
+- For bulk downloads > 10 files, create ZIP archive server-side
+- Process bulk deletes in background queue
+
+TODO: API Rate Limiting
+- Limit filter applications to prevent spam
+- Debounce implemented client-side (50ms)
+- Add server-side rate limiting: 60 requests/minute per user
+
+================================================================================
+--}}
 @endpush
