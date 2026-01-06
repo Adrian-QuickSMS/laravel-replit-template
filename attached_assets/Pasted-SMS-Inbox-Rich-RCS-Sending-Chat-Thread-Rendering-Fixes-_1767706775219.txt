@@ -1,0 +1,63 @@
+SMS Inbox — Rich RCS Sending + Chat Thread Rendering Fixes
+
+We need to correct two issues:
+1) Rich card message body/content is not visible in the chat thread renderer.
+2) Message is being sent when clicking “Apply RCS Content” — it must only send when clicking “Send message” in the Inbox composer.
+
+────────────────────────
+A) Fix: Rich RCS message content must render in chat thread
+────────────────────────
+Current issue:
+- In the chat thread, the Rich RCS bubble shows the card container/media/buttons but the actual message content (text body) is missing.
+
+Requirement:
+- Update the Rich RCS chat renderer so it displays ALL rich card fields:
+  - Media (if present)
+  - Description/title (if used in your model)
+  - Message text body (the main content field) — MUST be visible
+  - Buttons (up to supported limit)
+- For Carousel:
+  - Render first card + indicator, but ensure each card’s text body is visible when that card is shown.
+
+Constraints:
+- Do not invent a new layout.
+- Reuse the same Rich RCS preview renderer used in the wizard where possible, but ensure it includes the text/body region.
+- Maintain existing bubble styling and padding rules.
+
+Acceptance Criteria:
+- Rich RCS messages in the chat thread clearly show the message text body as part of the card.
+- The rendered content matches the wizard preview fields (no missing sections).
+
+────────────────────────
+B) Fix: “Apply RCS Content” must NOT send — Send only via Inbox “Send message”
+────────────────────────
+Current issue:
+- Clicking “Apply RCS Content” is triggering the send action.
+
+Required behaviour:
+1) Apply-only behaviour
+- “Apply RCS Content” must only:
+  - Save/commit the RCS payload into the Inbox composer state (draft state)
+  - Update the phone preview in the composer (if applicable)
+  - Close the wizard and return user to the Inbox
+- It must NOT call any send API.
+
+2) Send behaviour
+- The message must be sent ONLY when the user clicks:
+  - “Send message” in the Inbox content creator/composer box.
+- On “Send message”:
+  - If channel = Rich RCS:
+    - send using the last applied Rich RCS payload from composer state
+    - then append the outbound rich message to the chat thread (with full content visible)
+  - If channel = SMS/Basic RCS:
+    - send as normal
+
+Constraints:
+- Do not allow any API send calls from “Apply RCS Content”.
+- Keep button naming/UX the same unless absolutely necessary.
+- Ensure composer state is cleared only after successful “Send message”, not after Apply.
+
+Acceptance Criteria:
+- Clicking “Apply RCS Content” never sends a message.
+- Clicking “Send message” sends the applied Rich RCS message and appends it to the chat thread.
+- If the user applies content then edits again, it updates the draft payload without sending.

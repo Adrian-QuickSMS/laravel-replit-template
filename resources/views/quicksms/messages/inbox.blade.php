@@ -2238,18 +2238,34 @@ function clearSearchHighlights() {
 }
 
 function sendReply() {
+    var channel = document.querySelector('input[name="replyChannel"]:checked').value;
+    
+    // Handle Rich RCS channel - send using draft payload
+    if (channel === 'rcs_rich' || channel === 'rcs') {
+        if (hasInboxRcsDraft()) {
+            sendRichRcsMessage();
+            return;
+        }
+        // If no draft, check for text message
+    }
+    
+    // Handle SMS/Basic RCS text message
     var message = document.getElementById('replyMessage').value.trim();
     if (!message) return;
-    
-    var channel = document.querySelector('input[name="replyChannel"]:checked').value;
     
     var chatArea = document.getElementById('chatArea');
     var now = new Date();
     var time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
+    // Apply channel-specific styling
+    var bubbleClass = channel === 'rcs' ? 'rcs-bubble' : 'sms-bubble';
+    var channelBadge = channel === 'rcs' 
+        ? '<span class="badge rounded-pill channel-pill-rcs" style="font-size: 9px; margin-left: 4px;">RCS</span>'
+        : '<span class="badge rounded-pill channel-pill-sms" style="font-size: 9px; margin-left: 4px;">SMS</span>';
+    
     var html = '<div class="media my-3 justify-content-end align-items-end">' +
-        '<div class="text-end"><div class="message-sent"><p class="mb-1">' + escapeHtml(message) + '</p></div>' +
-        '<small class="text-muted">' + time + ' <i class="fas fa-check text-muted ms-1" style="font-size: 10px;"></i></small></div></div>';
+        '<div class="text-end"><div class="message-sent ' + bubbleClass + '"><p class="mb-1">' + escapeHtml(message) + '</p></div>' +
+        '<small class="text-muted">' + time + ' <i class="fas fa-check text-muted ms-1" style="font-size: 10px;"></i>' + channelBadge + '</small></div></div>';
     
     chatArea.innerHTML += html;
     chatArea.scrollTop = chatArea.scrollHeight;
@@ -2383,19 +2399,23 @@ function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Rich RCS Inbox Integration - Send from wizard and render in chat thread
-var inboxRcsMode = false;
+// Rich RCS Inbox Integration - Draft state and send via composer
+var inboxRcsDraftPayload = null; // Stores the applied RCS payload until sent
 
-function enableInboxRcsMode() {
-    inboxRcsMode = true;
+function getInboxRcsDraft() {
+    return inboxRcsDraftPayload;
 }
 
-function disableInboxRcsMode() {
-    inboxRcsMode = false;
+function clearInboxRcsDraft() {
+    inboxRcsDraftPayload = null;
 }
 
-// Override applyRcsContent for Inbox - triggers send instead of just storing
-function sendRichRcsFromWizard() {
+function hasInboxRcsDraft() {
+    return inboxRcsDraftPayload !== null;
+}
+
+// Apply RCS Content - saves draft only, does NOT send
+function applyRcsContentToInbox() {
     if (typeof saveCurrentCardData === 'function') {
         saveCurrentCardData();
     }
@@ -2419,12 +2439,41 @@ function sendRichRcsFromWizard() {
         return;
     }
     
-    // Show sending indicator
-    var applyBtn = document.getElementById('rcsApplyContentBtn');
-    var originalBtnText = applyBtn ? applyBtn.innerHTML : '';
-    if (applyBtn) {
-        applyBtn.disabled = true;
-        applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+    // Save to draft state (NOT sending)
+    inboxRcsDraftPayload = payload;
+    
+    // Update composer UI to show configured state
+    updateRcsComposerConfigured(payload);
+    
+    // Close wizard
+    var wizardModal = bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal'));
+    if (wizardModal) wizardModal.hide();
+    
+    console.log('[Inbox] Rich RCS content applied to draft', payload);
+}
+
+// Update composer UI to show RCS content is configured
+function updateRcsComposerConfigured(payload) {
+    var configuredSummaryInbox = document.getElementById('rcsConfiguredSummaryInbox');
+    var clearBtnInbox = document.getElementById('rcsClearBtnInbox');
+    var wizardBtnTextInbox = document.getElementById('rcsWizardBtnTextInbox');
+    
+    if (configuredSummaryInbox) {
+        var cardCount = payload.cards ? payload.cards.length : 1;
+        var cardText = cardCount > 1 ? cardCount + ' cards' : '1 card';
+        configuredSummaryInbox.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i>Rich Card configured (' + cardText + ')';
+        configuredSummaryInbox.classList.remove('d-none');
+    }
+    if (clearBtnInbox) clearBtnInbox.classList.remove('d-none');
+    if (wizardBtnTextInbox) wizardBtnTextInbox.textContent = 'Edit Rich Card';
+}
+
+// Send Rich RCS - called from sendReply when channel is Rich RCS
+function sendRichRcsMessage() {
+    var payload = inboxRcsDraftPayload;
+    if (!payload) {
+        console.error('[Inbox] No Rich RCS draft payload to send');
+        return false;
     }
     
     // Get conversation context
@@ -2434,22 +2483,6 @@ function sendRichRcsFromWizard() {
     var smsFallbackSender = document.querySelector('#senderSelect')?.value || null;
     
     // TODO: Replace with actual API call to Send RCS endpoint
-    // Example API call structure:
-    // fetch('/api/rcs/send', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-    //     body: JSON.stringify({
-    //         conversation_id: currentConversationId,
-    //         recipient: recipientPhone,
-    //         rcs_agent_id: rcsAgent,
-    //         sms_fallback_sender_id: smsFallbackSender,
-    //         payload: payload
-    //     })
-    // }).then(response => response.json())
-    //   .then(data => { if (data.success) handleSendSuccess(payload); else handleSendError(data.error); })
-    //   .catch(err => handleSendError(err.message));
-    
-    // For now, simulate successful send (UI demonstration)
     console.log('[Inbox RCS] TODO: POST /api/rcs/send', {
         conversation_id: currentConversationId,
         recipient: recipientPhone,
@@ -2458,42 +2491,18 @@ function sendRichRcsFromWizard() {
         payload: payload
     });
     
-    setTimeout(function() {
-        // Success scenario - simulated for UI demonstration
-        var success = true;
-        
-        if (success) {
-            // Append rich message to chat thread
-            renderRichRcsInThread(payload);
-            
-            // Update conversation list snippet
-            updateConversationSnippet(payload);
-            
-            // Close wizard
-            var wizardModal = bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal'));
-            if (wizardModal) wizardModal.hide();
-            
-            // Reset composer
-            resetRcsComposer();
-            
-            // Clear persisted payload
-            if (typeof rcsPersistentPayload !== 'undefined') {
-                rcsPersistentPayload = null;
-            }
-            sessionStorage.removeItem('quicksms_rcs_draft');
-            
-            console.log('[Inbox] Rich RCS message sent successfully', payload);
-        } else {
-            // Show error in wizard - keep wizard open
-            showRcsWizardSendError('Failed to send message. Please try again.');
-        }
-        
-        // Restore button
-        if (applyBtn) {
-            applyBtn.disabled = false;
-            applyBtn.innerHTML = originalBtnText;
-        }
-    }, 800);
+    // Append rich message to chat thread
+    renderRichRcsInThread(payload);
+    
+    // Update conversation list snippet
+    updateConversationSnippet(payload);
+    
+    // Clear draft and reset composer
+    inboxRcsDraftPayload = null;
+    resetRcsComposer();
+    
+    console.log('[Inbox] Rich RCS message sent successfully', payload);
+    return true;
 }
 
 function renderRichRcsInThread(payload) {
@@ -2559,9 +2568,13 @@ function mapPayloadCardToRendererFormat(card) {
         'tall': 'tall'
     };
     
+    // Capture description from all possible field names
+    var descText = card.description || card.textBody || card.body || card.text || card.content || '';
+    
     return {
         title: card.title || '',
-        description: card.description || card.textBody || '',
+        description: descText,
+        textBody: descText,
         media: card.media ? {
             url: card.media.hostedUrl || card.media.url || '',
             hostedUrl: card.media.hostedUrl || '',
@@ -2597,10 +2610,15 @@ function renderRichCardHtmlInbox(card) {
         mediaHtml = '<img src="' + escapeHtml(imgUrl) + '" alt="" style="width: 100%; height: ' + heightPx + '; object-fit: cover;" onerror="this.style.display=\'none\'">';
     }
     
-    var titleHtml = card.title ? '<div class="rcs-card-title">' + escapeHtml(card.title) + '</div>' : '';
-    var descText = card.description || card.textBody || '';
+    // Title - check multiple field names
+    var titleText = card.title || '';
+    var titleHtml = titleText ? '<div class="rcs-card-title">' + escapeHtml(titleText) + '</div>' : '';
+    
+    // Description/body text - check all possible field names
+    var descText = card.description || card.textBody || card.body || card.text || card.content || '';
     var descHtml = descText ? '<div class="rcs-card-desc">' + escapeHtml(descText) + '</div>' : '';
     
+    // Buttons
     var buttonsHtml = '';
     if (card.buttons && card.buttons.length > 0) {
         card.buttons.forEach(function(btn) {
@@ -2672,20 +2690,18 @@ function showRcsWizardSendError(message) {
     }
 }
 
-// Hook into the apply button for Inbox mode
+// Hook into the apply button for Inbox mode - saves draft only, does NOT send
 document.addEventListener('DOMContentLoaded', function() {
     var applyBtn = document.getElementById('rcsApplyContentBtn');
     if (applyBtn) {
-        // Store original onclick
-        var originalOnclick = applyBtn.onclick;
-        
         applyBtn.onclick = function(e) {
             // Check if we're in inbox RCS mode (i.e., channel is RCS and wizard was opened from inbox)
             var channel = document.querySelector('input[name="replyChannel"]:checked');
             if (channel && (channel.value === 'rcs' || channel.value === 'rcs_rich')) {
                 e.preventDefault();
                 e.stopPropagation();
-                sendRichRcsFromWizard();
+                // Apply to draft only - send happens via Send Message button
+                applyRcsContentToInbox();
                 return false;
             }
             // Otherwise use original behavior
