@@ -151,11 +151,20 @@ function initializeMessageTypeUI() {
     var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
     var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
     var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
+    var carouselHeightNotice = document.getElementById('rcsCarouselHeightNotice');
+    var carouselWidthNotice = document.getElementById('rcsCarouselWidthNotice');
+    var cardWidthHeightWarning = document.getElementById('rcsCardWidthHeightWarning');
     
     if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
     if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
     if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
     if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
+    
+    if (!isCarousel) {
+        if (carouselHeightNotice) carouselHeightNotice.classList.add('d-none');
+        if (carouselWidthNotice) carouselWidthNotice.classList.add('d-none');
+        if (cardWidthHeightWarning) cardWidthHeightWarning.classList.add('d-none');
+    }
     
     updateCardWidthAndHeightRestrictions();
     
@@ -716,6 +725,9 @@ function toggleRcsMessageType() {
     var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
     var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
     var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
+    var carouselHeightNotice = document.getElementById('rcsCarouselHeightNotice');
+    var carouselWidthNotice = document.getElementById('rcsCarouselWidthNotice');
+    var cardWidthHeightWarning = document.getElementById('rcsCardWidthHeightWarning');
     
     if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
     if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
@@ -723,6 +735,12 @@ function toggleRcsMessageType() {
     if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
     if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
     if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
+    
+    if (!isCarousel) {
+        if (carouselHeightNotice) carouselHeightNotice.classList.add('d-none');
+        if (carouselWidthNotice) carouselWidthNotice.classList.add('d-none');
+        if (cardWidthHeightWarning) cardWidthHeightWarning.classList.add('d-none');
+    }
     
     updateCardWidthAndHeightRestrictions();
     
