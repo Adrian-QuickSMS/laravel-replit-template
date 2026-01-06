@@ -594,7 +594,8 @@
 .rcs-crop-workspace {
   position: relative;
   width: 100%;
-  height: 220px;
+  min-height: 220px;
+  height: 300px;
   overflow: hidden;
   background: repeating-conic-gradient(#e0e0e0 0% 25%, #f0f0f0 0% 50%) 50% / 12px 12px;
   border-radius: 6px;
@@ -714,19 +715,9 @@
   background: transparent;
 }
 
-.rcs-crop-frame--short {
-  width: 280px;
-  height: 98px;
-}
-
-.rcs-crop-frame--medium {
-  width: 280px;
-  height: 147px;
-}
-
+.rcs-crop-frame--short,
+.rcs-crop-frame--medium,
 .rcs-crop-frame--tall {
-  width: 280px;
-  height: 180px;
 }
 
 .rcs-crop-hint {
