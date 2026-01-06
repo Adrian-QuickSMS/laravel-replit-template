@@ -129,6 +129,16 @@
                                                     <small class="text-muted d-block mt-1" id="rcsCarouselHeightHint">
                                                         <i class="fas fa-layer-group me-1"></i>In carousels, all cards share the same media height.
                                                     </small>
+                                                    <div id="rcsSingleCardResolutionHint" class="mt-2 p-2 rounded" style="background-color: rgba(136, 108, 192, 0.08); border: 1px solid rgba(136, 108, 192, 0.2);">
+                                                        <small class="d-block mb-1" style="color: #886cc0;">
+                                                            <i class="fas fa-image me-1"></i><strong>Recommended resolutions (2:1 aspect ratio):</strong>
+                                                        </small>
+                                                        <ul class="mb-0 ps-3 small text-muted" style="font-size: 0.75rem; line-height: 1.4;">
+                                                            <li><strong>Short:</strong> 1440 × 720 px <span class="text-success">(optimal)</span></li>
+                                                            <li><strong>Medium:</strong> ~1080 × 720 px <span class="text-muted">(acceptable)</span></li>
+                                                            <li><strong>Tall:</strong> DP-based scaling <span class="text-muted">(no fixed size)</span></li>
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                                 
                                                 <div class="rcs-crop-container mb-3" id="rcsCropContainer">

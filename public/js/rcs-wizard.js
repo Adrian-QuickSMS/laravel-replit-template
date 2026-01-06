@@ -149,9 +149,13 @@ function initializeMessageTypeUI() {
     var isCarousel = isRcsCarouselMode();
     var cardWidthSection = document.getElementById('rcsCardWidthSection');
     var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
+    var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
+    var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
     
     if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
     if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
+    if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
+    if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
     
     updateCardWidthAndHeightRestrictions();
     
@@ -710,11 +714,15 @@ function toggleRcsMessageType() {
     var cardLabel = document.getElementById('rcsCurrentCardLabel');
     var cardWidthSection = document.getElementById('rcsCardWidthSection');
     var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
+    var carouselHeightHint = document.getElementById('rcsCarouselHeightHint');
+    var singleCardResolutionHint = document.getElementById('rcsSingleCardResolutionHint');
     
     if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
     if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
     if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
     if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
+    if (carouselHeightHint) carouselHeightHint.classList.toggle('d-none', !isCarousel);
+    if (singleCardResolutionHint) singleCardResolutionHint.classList.toggle('d-none', isCarousel);
     
     updateCardWidthAndHeightRestrictions();
     
