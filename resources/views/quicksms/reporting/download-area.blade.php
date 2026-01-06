@@ -145,6 +145,20 @@
     color: #fff;
     border-color: #886cc0;
 }
+.multiselect-dropdown {
+    position: relative;
+}
+.multiselect-dropdown .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1050;
+    display: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.multiselect-dropdown .dropdown-menu.show {
+    display: block;
+}
 </style>
 @endpush
 
@@ -180,67 +194,75 @@
                         <div class="card bg-light border-0">
                             <div class="card-body py-3">
                                 <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label small text-muted mb-1">Report Type</label>
-                                        <select class="form-select form-select-sm" id="filterReportType">
-                                            <option value="">All Types</option>
-                                            <option value="message_log">Message Log</option>
+                                    <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">Year</label>
+                                        <select class="form-select form-select-sm" id="filterYear">
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">Month</label>
+                                        <select class="form-select form-select-sm" id="filterMonth">
+                                            <option value="">All Months</option>
+                                            <option value="1">January</option>
+                                            <option value="2">February</option>
+                                            <option value="3">March</option>
+                                            <option value="4">April</option>
+                                            <option value="5">May</option>
+                                            <option value="6">June</option>
+                                            <option value="7">July</option>
+                                            <option value="8">August</option>
+                                            <option value="9">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small text-muted mb-1">Module</label>
+                                        <select class="form-select form-select-sm" id="filterModule">
+                                            <option value="">All Modules</option>
+                                            <option value="message_logs">Message Logs</option>
                                             <option value="finance_data">Finance Data</option>
-                                            <option value="contact_export">Contact Export</option>
-                                            <option value="campaign_report">Campaign Report</option>
-                                            <option value="audit_log">Audit Log</option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label small text-muted mb-1">File Format</label>
-                                        <select class="form-select form-select-sm" id="filterFileFormat">
-                                            <option value="">All Formats</option>
-                                            <option value="csv">CSV</option>
-                                            <option value="xlsx">Excel (XLSX)</option>
-                                            <option value="pdf">PDF</option>
-                                            <option value="zip">ZIP Archive</option>
-                                        </select>
+                                        <label class="form-label small text-muted mb-1">Sub-account</label>
+                                        <div class="multiselect-dropdown">
+                                            <div class="form-control form-control-sm d-flex align-items-center justify-content-between" 
+                                                 id="subAccountDropdownTrigger" 
+                                                 onclick="toggleSubAccountDropdown()" 
+                                                 style="cursor: pointer; min-height: 31px;">
+                                                <span id="subAccountDisplayText">All Sub-accounts</span>
+                                                <i class="fas fa-chevron-down small"></i>
+                                            </div>
+                                            <div class="dropdown-menu p-2" id="subAccountDropdown" style="min-width: 250px; max-height: 250px; overflow-y: auto;">
+                                                <div class="mb-2">
+                                                    <input type="text" class="form-control form-control-sm" id="subAccountSearch" placeholder="Search sub-accounts..." oninput="filterSubAccountOptions()">
+                                                </div>
+                                                <div class="form-check mb-1">
+                                                    <input type="checkbox" class="form-check-input" id="subAccountSelectAll" onchange="toggleAllSubAccounts()">
+                                                    <label class="form-check-label small" for="subAccountSelectAll">Select All</label>
+                                                </div>
+                                                <hr class="my-2">
+                                                <div id="subAccountOptions">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label small text-muted mb-1">Status</label>
-                                        <select class="form-select form-select-sm" id="filterStatus">
-                                            <option value="">All Statuses</option>
-                                            <option value="ready">Ready</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="expired">Expired</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small text-muted mb-1">Generated By</label>
-                                        <select class="form-select form-select-sm" id="filterGeneratedBy">
+                                        <label class="form-label small text-muted mb-1">User</label>
+                                        <select class="form-select form-select-sm" id="filterUser">
                                             <option value="">All Users</option>
-                                            <option value="current">Me Only</option>
                                         </select>
-                                    </div>
-                                </div>
-                                <div class="row g-3 mt-1">
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted mb-1">Date Range</label>
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <input type="date" class="form-control form-control-sm" id="filterDateFrom" placeholder="From">
-                                            <span class="text-muted">to</span>
-                                            <input type="date" class="form-control form-control-sm" id="filterDateTo" placeholder="To">
-                                        </div>
-                                        <div class="mt-2 d-flex flex-wrap gap-1">
-                                            <button type="button" class="date-preset-btn" data-preset="today">Today</button>
-                                            <button type="button" class="date-preset-btn" data-preset="7days">Last 7 days</button>
-                                            <button type="button" class="date-preset-btn" data-preset="30days">Last 30 days</button>
-                                            <button type="button" class="date-preset-btn" data-preset="90days">Last 90 days</button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small text-muted mb-1">Search</label>
-                                        <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="Search by filename or description...">
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end mt-3 gap-2">
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="clearFilters()">Clear All</button>
-                                    <button class="btn btn-sm btn-primary" onclick="applyFilters()">Apply Filters</button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
+                                        <i class="fas fa-undo me-1"></i>Reset Filters
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="applyFilters()">
+                                        <i class="fas fa-check me-1"></i>Apply Filters
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -263,7 +285,7 @@
                                             <input type="checkbox" class="form-check-input" id="selectAll" onclick="toggleSelectAll()">
                                         </th>
                                         <th>Filename</th>
-                                        <th>Report Type</th>
+                                        <th>Module</th>
                                         <th>Format</th>
                                         <th>Size</th>
                                         <th>Generated</th>
@@ -337,21 +359,61 @@
 @push('scripts')
 <script>
 var mockDownloads = [
-    { id: 1, filename: 'message_log_2024-01-15.csv', reportType: 'Message Log', format: 'csv', size: '2.4 MB', generated: '2024-01-15 14:30', expires: '2024-01-22 14:30', status: 'ready', generatedBy: 'John Smith' },
-    { id: 2, filename: 'finance_data_Q4_2023.xlsx', reportType: 'Finance Data', format: 'xlsx', size: '1.8 MB', generated: '2024-01-14 09:15', expires: '2024-01-21 09:15', status: 'ready', generatedBy: 'Jane Doe' },
-    { id: 3, filename: 'contacts_export_all.csv', reportType: 'Contact Export', format: 'csv', size: '856 KB', generated: '2024-01-13 16:45', expires: '2024-01-20 16:45', status: 'ready', generatedBy: 'John Smith' },
-    { id: 4, filename: 'campaign_report_winter_promo.pdf', reportType: 'Campaign Report', format: 'pdf', size: '3.2 MB', generated: '2024-01-12 11:20', expires: '2024-01-19 11:20', status: 'ready', generatedBy: 'Mike Johnson' },
-    { id: 5, filename: 'audit_log_december.zip', reportType: 'Audit Log', format: 'zip', size: '15.6 MB', generated: '2024-01-10 08:00', expires: '2024-01-03 08:00', status: 'expired', generatedBy: 'System' },
-    { id: 6, filename: 'message_log_large_export.csv', reportType: 'Message Log', format: 'csv', size: '—', generated: '2024-01-15 15:00', expires: '—', status: 'processing', generatedBy: 'John Smith' }
+    { id: 1, filename: 'message_log_2026-01-15.csv', module: 'message_logs', format: 'csv', size: '2.4 MB', generated: '2026-01-15 14:30', expires: '2026-01-22 14:30', status: 'ready', generatedBy: 'John Smith', subAccount: 'Main Account', year: 2026, month: 1 },
+    { id: 2, filename: 'finance_data_Q4_2025.xlsx', module: 'finance_data', format: 'xlsx', size: '1.8 MB', generated: '2025-12-14 09:15', expires: '2025-12-21 09:15', status: 'ready', generatedBy: 'Jane Doe', subAccount: 'Sub Account A', year: 2025, month: 12 },
+    { id: 3, filename: 'message_log_november.csv', module: 'message_logs', format: 'csv', size: '856 KB', generated: '2025-11-13 16:45', expires: '2025-11-20 16:45', status: 'ready', generatedBy: 'John Smith', subAccount: 'Sub Account B', year: 2025, month: 11 },
+    { id: 4, filename: 'finance_data_october.pdf', module: 'finance_data', format: 'pdf', size: '3.2 MB', generated: '2025-10-12 11:20', expires: '2025-10-19 11:20', status: 'ready', generatedBy: 'Mike Johnson', subAccount: 'Main Account', year: 2025, month: 10 },
+    { id: 5, filename: 'message_log_archive.zip', module: 'message_logs', format: 'zip', size: '15.6 MB', generated: '2024-06-10 08:00', expires: '2024-06-17 08:00', status: 'expired', generatedBy: 'System', subAccount: 'Sub Account C', year: 2024, month: 6 },
+    { id: 6, filename: 'message_log_large_export.csv', module: 'message_logs', format: 'csv', size: '—', generated: '2026-01-06 15:00', expires: '—', status: 'processing', generatedBy: 'John Smith', subAccount: 'Main Account', year: 2026, month: 1 }
+];
+
+var mockSubAccounts = [
+    { id: 'main', name: 'Main Account' },
+    { id: 'sub_a', name: 'Sub Account A' },
+    { id: 'sub_b', name: 'Sub Account B' },
+    { id: 'sub_c', name: 'Sub Account C' },
+    { id: 'sub_d', name: 'Sub Account D' }
+];
+
+var mockUsers = [
+    { id: 'john', name: 'John Smith' },
+    { id: 'jane', name: 'Jane Doe' },
+    { id: 'mike', name: 'Mike Johnson' },
+    { id: 'system', name: 'System' }
 ];
 
 var selectedIds = [];
 var currentPage = 1;
 var pageSize = 25;
+var selectedSubAccounts = [];
+
+var appliedFilters = {
+    year: new Date().getFullYear().toString(),
+    month: '',
+    module: '',
+    subAccounts: [],
+    user: ''
+};
+
+var pendingFilters = {
+    year: new Date().getFullYear().toString(),
+    month: '',
+    module: '',
+    subAccounts: [],
+    user: ''
+};
 
 document.addEventListener('DOMContentLoaded', function() {
+    initializeFilters();
     renderDownloads();
-    setupDatePresets();
+    
+    document.addEventListener('click', function(e) {
+        var dropdown = document.getElementById('subAccountDropdown');
+        var trigger = document.getElementById('subAccountDropdownTrigger');
+        if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
 });
 
 function renderDownloads() {
@@ -375,7 +437,7 @@ function renderDownloads() {
         html += '<tr data-id="' + item.id + '">';
         html += '<td><input type="checkbox" class="form-check-input row-select" ' + (isSelected ? 'checked' : '') + ' onchange="toggleRowSelect(' + item.id + ')"></td>';
         html += '<td><i class="fas fa-file-alt text-muted me-2"></i>' + item.filename + '</td>';
-        html += '<td>' + item.reportType + '</td>';
+        html += '<td>' + formatModuleName(item.module) + '</td>';
         html += '<td><span class="file-type-badge ' + formatClass + '">' + item.format.toUpperCase() + '</span></td>';
         html += '<td>' + item.size + '</td>';
         html += '<td>' + item.generated + '</td>';
@@ -400,17 +462,103 @@ function renderDownloads() {
     updateBulkActions();
 }
 
-function applyClientFilters(data) {
-    var reportType = document.getElementById('filterReportType').value;
-    var fileFormat = document.getElementById('filterFileFormat').value;
-    var status = document.getElementById('filterStatus').value;
-    var search = document.getElementById('filterSearch').value.toLowerCase();
+function initializeFilters() {
+    var yearSelect = document.getElementById('filterYear');
+    var currentYear = new Date().getFullYear();
+    var yearHtml = '';
+    for (var y = currentYear; y >= currentYear - 5; y--) {
+        yearHtml += '<option value="' + y + '"' + (y === currentYear ? ' selected' : '') + '>' + y + '</option>';
+    }
+    yearSelect.innerHTML = yearHtml;
     
+    var userSelect = document.getElementById('filterUser');
+    var userHtml = '<option value="">All Users</option>';
+    mockUsers.forEach(function(user) {
+        userHtml += '<option value="' + user.id + '">' + user.name + '</option>';
+    });
+    userSelect.innerHTML = userHtml;
+    
+    renderSubAccountOptions();
+    
+    pendingFilters.year = currentYear.toString();
+    appliedFilters.year = currentYear.toString();
+}
+
+function renderSubAccountOptions() {
+    var container = document.getElementById('subAccountOptions');
+    var html = '';
+    mockSubAccounts.forEach(function(acc) {
+        var isChecked = selectedSubAccounts.includes(acc.id);
+        html += '<div class="form-check mb-1 sub-account-option" data-name="' + acc.name.toLowerCase() + '">';
+        html += '<input type="checkbox" class="form-check-input sub-account-cb" id="subAcc_' + acc.id + '" value="' + acc.id + '" ' + (isChecked ? 'checked' : '') + ' onchange="updateSubAccountSelection()">';
+        html += '<label class="form-check-label small" for="subAcc_' + acc.id + '">' + acc.name + '</label>';
+        html += '</div>';
+    });
+    container.innerHTML = html;
+    updateSubAccountDisplayText();
+}
+
+function toggleSubAccountDropdown() {
+    var dropdown = document.getElementById('subAccountDropdown');
+    dropdown.classList.toggle('show');
+}
+
+function filterSubAccountOptions() {
+    var search = document.getElementById('subAccountSearch').value.toLowerCase();
+    document.querySelectorAll('.sub-account-option').forEach(function(opt) {
+        var name = opt.dataset.name;
+        opt.style.display = name.includes(search) ? 'block' : 'none';
+    });
+}
+
+function toggleAllSubAccounts() {
+    var selectAll = document.getElementById('subAccountSelectAll').checked;
+    selectedSubAccounts = selectAll ? mockSubAccounts.map(function(a) { return a.id; }) : [];
+    document.querySelectorAll('.sub-account-cb').forEach(function(cb) {
+        cb.checked = selectAll;
+    });
+    updateSubAccountDisplayText();
+}
+
+function updateSubAccountSelection() {
+    selectedSubAccounts = [];
+    document.querySelectorAll('.sub-account-cb:checked').forEach(function(cb) {
+        selectedSubAccounts.push(cb.value);
+    });
+    document.getElementById('subAccountSelectAll').checked = selectedSubAccounts.length === mockSubAccounts.length;
+    updateSubAccountDisplayText();
+}
+
+function updateSubAccountDisplayText() {
+    var display = document.getElementById('subAccountDisplayText');
+    if (selectedSubAccounts.length === 0) {
+        display.textContent = 'All Sub-accounts';
+    } else if (selectedSubAccounts.length === mockSubAccounts.length) {
+        display.textContent = 'All Sub-accounts';
+    } else if (selectedSubAccounts.length === 1) {
+        var acc = mockSubAccounts.find(function(a) { return a.id === selectedSubAccounts[0]; });
+        display.textContent = acc ? acc.name : '1 selected';
+    } else {
+        display.textContent = selectedSubAccounts.length + ' selected';
+    }
+}
+
+function applyClientFilters(data) {
     return data.filter(function(item) {
-        if (reportType && item.reportType.toLowerCase().replace(/\s/g, '_') !== reportType) return false;
-        if (fileFormat && item.format !== fileFormat) return false;
-        if (status && item.status !== status) return false;
-        if (search && !item.filename.toLowerCase().includes(search) && !item.reportType.toLowerCase().includes(search)) return false;
+        if (appliedFilters.year && item.year !== parseInt(appliedFilters.year)) return false;
+        if (appliedFilters.month && item.month !== parseInt(appliedFilters.month)) return false;
+        if (appliedFilters.module && item.module !== appliedFilters.module) return false;
+        if (appliedFilters.subAccounts.length > 0) {
+            var matchesSubAccount = appliedFilters.subAccounts.some(function(subId) {
+                var acc = mockSubAccounts.find(function(a) { return a.id === subId; });
+                return acc && item.subAccount === acc.name;
+            });
+            if (!matchesSubAccount) return false;
+        }
+        if (appliedFilters.user) {
+            var user = mockUsers.find(function(u) { return u.id === appliedFilters.user; });
+            if (user && item.generatedBy !== user.name) return false;
+        }
         return true;
     });
 }
@@ -421,34 +569,69 @@ function toggleFilters() {
 }
 
 function applyFilters() {
+    pendingFilters.year = document.getElementById('filterYear').value;
+    pendingFilters.month = document.getElementById('filterMonth').value;
+    pendingFilters.module = document.getElementById('filterModule').value;
+    pendingFilters.subAccounts = selectedSubAccounts.slice();
+    pendingFilters.user = document.getElementById('filterUser').value;
+    
+    appliedFilters = JSON.parse(JSON.stringify(pendingFilters));
+    
+    console.log('TODO: API call - GET /api/downloads with filters:', appliedFilters);
+    
     renderDownloads();
     updateFilterChips();
 }
 
-function clearFilters() {
-    document.getElementById('filterReportType').value = '';
-    document.getElementById('filterFileFormat').value = '';
-    document.getElementById('filterStatus').value = '';
-    document.getElementById('filterGeneratedBy').value = '';
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
-    document.getElementById('filterSearch').value = '';
-    document.querySelectorAll('.date-preset-btn').forEach(function(btn) { btn.classList.remove('active'); });
+function resetFilters() {
+    var currentYear = new Date().getFullYear();
+    
+    document.getElementById('filterYear').value = currentYear.toString();
+    document.getElementById('filterMonth').value = '';
+    document.getElementById('filterModule').value = '';
+    document.getElementById('filterUser').value = '';
+    
+    selectedSubAccounts = [];
+    document.querySelectorAll('.sub-account-cb').forEach(function(cb) { cb.checked = false; });
+    document.getElementById('subAccountSelectAll').checked = false;
+    updateSubAccountDisplayText();
+    
+    pendingFilters = {
+        year: currentYear.toString(),
+        month: '',
+        module: '',
+        subAccounts: [],
+        user: ''
+    };
+    appliedFilters = JSON.parse(JSON.stringify(pendingFilters));
+    
     renderDownloads();
     document.getElementById('activeFilters').style.display = 'none';
 }
 
 function updateFilterChips() {
     var chips = [];
-    var reportType = document.getElementById('filterReportType');
-    var fileFormat = document.getElementById('filterFileFormat');
-    var status = document.getElementById('filterStatus');
-    var search = document.getElementById('filterSearch').value;
+    var yearSelect = document.getElementById('filterYear');
+    var monthSelect = document.getElementById('filterMonth');
+    var moduleSelect = document.getElementById('filterModule');
+    var userSelect = document.getElementById('filterUser');
     
-    if (reportType.value) chips.push({ label: reportType.options[reportType.selectedIndex].text, field: 'filterReportType' });
-    if (fileFormat.value) chips.push({ label: fileFormat.options[fileFormat.selectedIndex].text, field: 'filterFileFormat' });
-    if (status.value) chips.push({ label: status.options[status.selectedIndex].text, field: 'filterStatus' });
-    if (search) chips.push({ label: 'Search: ' + search, field: 'filterSearch' });
+    var currentYear = new Date().getFullYear().toString();
+    if (appliedFilters.year && appliedFilters.year !== currentYear) {
+        chips.push({ label: 'Year: ' + appliedFilters.year, field: 'filterYear', value: currentYear });
+    }
+    if (appliedFilters.month) {
+        chips.push({ label: monthSelect.options[monthSelect.selectedIndex].text, field: 'filterMonth', value: '' });
+    }
+    if (appliedFilters.module) {
+        chips.push({ label: moduleSelect.options[moduleSelect.selectedIndex].text, field: 'filterModule', value: '' });
+    }
+    if (appliedFilters.subAccounts.length > 0 && appliedFilters.subAccounts.length < mockSubAccounts.length) {
+        chips.push({ label: appliedFilters.subAccounts.length + ' Sub-account(s)', field: 'subAccounts', value: '' });
+    }
+    if (appliedFilters.user) {
+        chips.push({ label: userSelect.options[userSelect.selectedIndex].text, field: 'filterUser', value: '' });
+    }
     
     if (chips.length === 0) {
         document.getElementById('activeFilters').style.display = 'none';
@@ -457,43 +640,26 @@ function updateFilterChips() {
     
     var html = '';
     chips.forEach(function(chip) {
-        html += '<span class="filter-chip">' + chip.label + ' <span class="remove-chip" onclick="removeFilter(\'' + chip.field + '\')">&times;</span></span>';
+        html += '<span class="filter-chip">' + chip.label + ' <span class="remove-chip" onclick="removeFilterChip(\'' + chip.field + '\', \'' + chip.value + '\')">&times;</span></span>';
     });
     document.getElementById('filterChips').innerHTML = html;
     document.getElementById('activeFilters').style.display = 'block';
 }
 
-function removeFilter(field) {
-    var el = document.getElementById(field);
-    if (el.tagName === 'SELECT') el.value = '';
-    else el.value = '';
-    applyFilters();
-}
-
-function setupDatePresets() {
-    document.querySelectorAll('.date-preset-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.date-preset-btn').forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            
-            var preset = this.dataset.preset;
-            var today = new Date();
-            var fromDate = new Date();
-            
-            if (preset === 'today') {
-                fromDate = today;
-            } else if (preset === '7days') {
-                fromDate.setDate(today.getDate() - 7);
-            } else if (preset === '30days') {
-                fromDate.setDate(today.getDate() - 30);
-            } else if (preset === '90days') {
-                fromDate.setDate(today.getDate() - 90);
-            }
-            
-            document.getElementById('filterDateFrom').value = fromDate.toISOString().split('T')[0];
-            document.getElementById('filterDateTo').value = today.toISOString().split('T')[0];
-        });
-    });
+function removeFilterChip(field, defaultValue) {
+    if (field === 'subAccounts') {
+        selectedSubAccounts = [];
+        document.querySelectorAll('.sub-account-cb').forEach(function(cb) { cb.checked = false; });
+        document.getElementById('subAccountSelectAll').checked = false;
+        updateSubAccountDisplayText();
+        appliedFilters.subAccounts = [];
+    } else {
+        var el = document.getElementById(field);
+        el.value = defaultValue;
+        appliedFilters[field.replace('filter', '').toLowerCase()] = defaultValue;
+    }
+    renderDownloads();
+    updateFilterChips();
 }
 
 function toggleSelectAll() {
@@ -556,6 +722,14 @@ function changePageSize() {
     pageSize = parseInt(document.getElementById('pageSize').value);
     currentPage = 1;
     renderDownloads();
+}
+
+function formatModuleName(module) {
+    var moduleNames = {
+        'message_logs': 'Message Logs',
+        'finance_data': 'Finance Data'
+    };
+    return moduleNames[module] || module;
 }
 
 function capitalizeFirst(str) {
