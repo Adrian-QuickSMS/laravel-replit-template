@@ -2485,8 +2485,11 @@ function getWizardCarouselCardSchema(cardNum) {
                    (card.media && card.media.url) ? card.media.url : null;
     var btns = card.buttons || [];
     
+    var orientationToHeight = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
+    var mediaHeight = orientationToHeight[rcsCarouselHeight] || 'medium';
+    
     return {
-        media: mediaUrl ? { url: mediaUrl, height: 'medium' } : null,
+        media: mediaUrl ? { url: mediaUrl, height: mediaHeight } : null,
         title: card.description || null,
         description: card.textBody ? (card.textBody.length > 80 ? card.textBody.substring(0, 80) + '...' : card.textBody) : null,
         buttons: btns.map(function(btn) {
@@ -2499,7 +2502,7 @@ function renderRcsCardPreview(cardNum) {
     var cardSchema = getWizardCardSchema(cardNum);
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     var orientation = orientChecked ? orientChecked.value : 'vertical_short';
-    var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'horizontal': 'tall' };
+    var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
     var heightClass = heights[orientation] || 'medium';
     
     return RcsPreviewRenderer.renderRichCard(cardSchema, { heightOverride: heightClass });
@@ -2510,7 +2513,15 @@ function renderRcsCarouselPreview() {
     for (var i = 1; i <= rcsCardCount; i++) {
         cards.push(getWizardCarouselCardSchema(i));
     }
-    return RcsPreviewRenderer.renderCarousel({ cardWidth: 'medium', cards: cards });
+    
+    var orientationToHeight = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
+    var mediaHeight = orientationToHeight[rcsCarouselHeight] || 'medium';
+    
+    return RcsPreviewRenderer.renderCarousel({ 
+        cardWidth: rcsCarouselWidth, 
+        mediaHeight: mediaHeight,
+        cards: cards 
+    });
 }
 
 function getRcsButtonIcon(type) {

@@ -102,13 +102,14 @@ var RcsPreviewRenderer = (function() {
     }
 
     function renderCarousel(carousel) {
-        var cardWidth = carousel.cardWidth === 'small' ? '200px' : '256px';
+        var cardWidth = carousel.cardWidth === 'small' ? '180px' : '296px';
+        var mediaHeight = carousel.mediaHeight || 'medium';
         var cards = carousel.cards || [];
         
         var cardsHtml = '';
         cards.forEach(function(card) {
             cardsHtml += '<div class="rcs-carousel-item" style="min-width: ' + cardWidth + '; max-width: ' + cardWidth + ';">' + 
-                renderRichCard(card, { isCarousel: true }) + 
+                renderRichCard(card, { isCarousel: true, heightOverride: mediaHeight }) + 
                 '</div>';
         });
         
