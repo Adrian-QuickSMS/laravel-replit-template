@@ -2382,5 +2382,318 @@ function escapeHtml(text) {
 function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+// Rich RCS Inbox Integration - Send from wizard and render in chat thread
+var inboxRcsMode = false;
+
+function enableInboxRcsMode() {
+    inboxRcsMode = true;
+}
+
+function disableInboxRcsMode() {
+    inboxRcsMode = false;
+}
+
+// Override applyRcsContent for Inbox - triggers send instead of just storing
+function sendRichRcsFromWizard() {
+    if (typeof saveCurrentCardData === 'function') {
+        saveCurrentCardData();
+    }
+    
+    var validation = typeof validateRcsContent === 'function' ? validateRcsContent() : { valid: true, errors: [], warnings: [] };
+    
+    if (typeof hideRcsValidationErrors === 'function') {
+        hideRcsValidationErrors();
+    }
+    
+    if (!validation.valid) {
+        if (typeof showRcsValidationErrors === 'function') {
+            showRcsValidationErrors(validation.errors, validation.warnings);
+        }
+        return;
+    }
+    
+    var payload = typeof buildRcsPayload === 'function' ? buildRcsPayload() : null;
+    if (!payload) {
+        console.error('Failed to build RCS payload');
+        return;
+    }
+    
+    // Show sending indicator
+    var applyBtn = document.getElementById('rcsApplyContentBtn');
+    var originalBtnText = applyBtn ? applyBtn.innerHTML : '';
+    if (applyBtn) {
+        applyBtn.disabled = true;
+        applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+    }
+    
+    // Get conversation context
+    var conv = conversationsData.find(function(c) { return c.id === currentConversationId; });
+    var recipientPhone = conv ? conv.phone : null;
+    var rcsAgent = document.querySelector('#rcsAgentSelect')?.value || null;
+    var smsFallbackSender = document.querySelector('#senderSelect')?.value || null;
+    
+    // TODO: Replace with actual API call to Send RCS endpoint
+    // Example API call structure:
+    // fetch('/api/rcs/send', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+    //     body: JSON.stringify({
+    //         conversation_id: currentConversationId,
+    //         recipient: recipientPhone,
+    //         rcs_agent_id: rcsAgent,
+    //         sms_fallback_sender_id: smsFallbackSender,
+    //         payload: payload
+    //     })
+    // }).then(response => response.json())
+    //   .then(data => { if (data.success) handleSendSuccess(payload); else handleSendError(data.error); })
+    //   .catch(err => handleSendError(err.message));
+    
+    // For now, simulate successful send (UI demonstration)
+    console.log('[Inbox RCS] TODO: POST /api/rcs/send', {
+        conversation_id: currentConversationId,
+        recipient: recipientPhone,
+        rcs_agent_id: rcsAgent,
+        sms_fallback_sender_id: smsFallbackSender,
+        payload: payload
+    });
+    
+    setTimeout(function() {
+        // Success scenario - simulated for UI demonstration
+        var success = true;
+        
+        if (success) {
+            // Append rich message to chat thread
+            renderRichRcsInThread(payload);
+            
+            // Update conversation list snippet
+            updateConversationSnippet(payload);
+            
+            // Close wizard
+            var wizardModal = bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal'));
+            if (wizardModal) wizardModal.hide();
+            
+            // Reset composer
+            resetRcsComposer();
+            
+            // Clear persisted payload
+            if (typeof rcsPersistentPayload !== 'undefined') {
+                rcsPersistentPayload = null;
+            }
+            sessionStorage.removeItem('quicksms_rcs_draft');
+            
+            console.log('[Inbox] Rich RCS message sent successfully', payload);
+        } else {
+            // Show error in wizard - keep wizard open
+            showRcsWizardSendError('Failed to send message. Please try again.');
+        }
+        
+        // Restore button
+        if (applyBtn) {
+            applyBtn.disabled = false;
+            applyBtn.innerHTML = originalBtnText;
+        }
+    }, 800);
+}
+
+function renderRichRcsInThread(payload) {
+    var chatArea = document.getElementById('chatArea');
+    if (!chatArea) return;
+    
+    var now = new Date();
+    var time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    var html = '';
+    
+    if (payload.type === 'carousel' && payload.cards.length > 1) {
+        // Render carousel using shared renderer if available
+        var carouselHtml = '';
+        if (typeof RcsPreviewRenderer !== 'undefined' && RcsPreviewRenderer.renderCarousel) {
+            carouselHtml = RcsPreviewRenderer.renderCarousel({
+                cardWidth: payload.cardWidth || 'medium',
+                mediaHeight: payload.mediaHeight || 'medium',
+                cards: payload.cards.map(mapPayloadCardToRendererFormat)
+            });
+        } else {
+            // Fallback: render each card inline
+            carouselHtml = '<div class="rcs-inbox-carousel" style="display: flex; gap: 8px; overflow-x: auto; padding: 4px; max-width: 320px;">';
+            payload.cards.forEach(function(card) {
+                carouselHtml += '<div style="flex: 0 0 auto;">' + renderRichCardHtmlInbox(card) + '</div>';
+            });
+            carouselHtml += '</div>';
+        }
+        
+        html = '<div class="media my-3 justify-content-end align-items-end">' +
+            '<div class="text-end" style="max-width: 320px;">' +
+            carouselHtml +
+            '<small class="text-muted d-block mt-1">' + time + ' <i class="fas fa-check text-muted ms-1" style="font-size: 10px;"></i> <span class="badge rounded-pill channel-pill-rcs" style="font-size: 9px;">RCS</span></small>' +
+            '</div></div>';
+    } else {
+        // Render single card using shared renderer if available
+        var card = payload.cards[0];
+        var cardHtml = '';
+        if (typeof RcsPreviewRenderer !== 'undefined' && RcsPreviewRenderer.renderRichCard) {
+            cardHtml = RcsPreviewRenderer.renderRichCard(mapPayloadCardToRendererFormat(card), { isCarousel: false });
+        } else {
+            cardHtml = renderRichCardHtmlInbox(card);
+        }
+        
+        html = '<div class="media my-3 justify-content-end align-items-end">' +
+            '<div class="text-end" style="max-width: 280px;">' +
+            '<div class="rcs-rich-card-inbox-wrapper">' + cardHtml + '</div>' +
+            '<small class="text-muted d-block mt-1">' + time + ' <i class="fas fa-check text-muted ms-1" style="font-size: 10px;"></i> <span class="badge rounded-pill channel-pill-rcs" style="font-size: 9px;">RCS</span></small>' +
+            '</div></div>';
+    }
+    
+    chatArea.innerHTML += html;
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// Map payload card format to RcsPreviewRenderer expected format
+function mapPayloadCardToRendererFormat(card) {
+    var heightMap = {
+        'vertical_short': 'short',
+        'vertical_medium': 'medium', 
+        'vertical_tall': 'tall',
+        'short': 'short',
+        'medium': 'medium',
+        'tall': 'tall'
+    };
+    
+    return {
+        title: card.title || '',
+        description: card.description || card.textBody || '',
+        media: card.media ? {
+            url: card.media.hostedUrl || card.media.url || '',
+            hostedUrl: card.media.hostedUrl || '',
+            height: heightMap[card.media.height] || 'medium',
+            altText: card.media.altText || ''
+        } : null,
+        buttons: (card.buttons || []).map(function(btn) {
+            return {
+                label: btn.label || '',
+                type: btn.type || 'url',
+                action: btn.action || { type: btn.type || 'url' }
+            };
+        })
+    };
+}
+
+// Fallback inbox card renderer (used when RcsPreviewRenderer not available)
+function renderRichCardHtmlInbox(card) {
+    var heightMap = {
+        'vertical_short': '98px',
+        'vertical_medium': '147px', 
+        'vertical_tall': '180px',
+        'short': '98px',
+        'medium': '147px',
+        'tall': '180px'
+    };
+    
+    var mediaHtml = '';
+    if (card.media && (card.media.hostedUrl || card.media.url)) {
+        var imgUrl = card.media.hostedUrl || card.media.url;
+        var height = card.media.height || 'vertical_medium';
+        var heightPx = heightMap[height] || '147px';
+        mediaHtml = '<img src="' + escapeHtml(imgUrl) + '" alt="" style="width: 100%; height: ' + heightPx + '; object-fit: cover;" onerror="this.style.display=\'none\'">';
+    }
+    
+    var titleHtml = card.title ? '<div class="rcs-card-title">' + escapeHtml(card.title) + '</div>' : '';
+    var descText = card.description || card.textBody || '';
+    var descHtml = descText ? '<div class="rcs-card-desc">' + escapeHtml(descText) + '</div>' : '';
+    
+    var buttonsHtml = '';
+    if (card.buttons && card.buttons.length > 0) {
+        card.buttons.forEach(function(btn) {
+            var icon = btn.type === 'url' ? 'fa-external-link-alt' : 
+                       btn.type === 'phone' ? 'fa-phone' : 
+                       btn.type === 'calendar' ? 'fa-calendar' : 'fa-reply';
+            buttonsHtml += '<a href="javascript:void(0);" class="rcs-card-btn"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(btn.label) + '</a>';
+        });
+    }
+    
+    return '<div class="rcs-rich-card-inbox">' +
+        mediaHtml +
+        '<div class="rcs-card-body">' + titleHtml + descHtml + '</div>' +
+        buttonsHtml +
+        '</div>';
+}
+
+function updateConversationSnippet(payload) {
+    var convItem = document.querySelector('.chat-bx[data-id="' + currentConversationId + '"]');
+    if (!convItem) return;
+    
+    // Update snippet text
+    var snippetEl = convItem.querySelector('.snippet-text, .text-muted.text-truncate');
+    if (snippetEl) {
+        var snippetText = payload.type === 'carousel' 
+            ? '[RCS Carousel: ' + payload.cards.length + ' cards]'
+            : '[RCS Rich Card: ' + (payload.cards[0].title || 'Media message') + ']';
+        snippetEl.textContent = snippetText;
+    }
+    
+    // Update time
+    var timeEl = convItem.querySelector('.time-text, small.text-muted');
+    if (timeEl) {
+        var now = new Date();
+        timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Move to top of list
+    var chatList = document.querySelector('.chat-list-area, #conversationList');
+    if (chatList && convItem.parentElement === chatList) {
+        chatList.insertBefore(convItem, chatList.firstChild);
+    }
+}
+
+function resetRcsComposer() {
+    // Hide configured summary
+    var configuredSummaryInbox = document.getElementById('rcsConfiguredSummaryInbox');
+    var clearBtnInbox = document.getElementById('rcsClearBtnInbox');
+    var wizardBtnTextInbox = document.getElementById('rcsWizardBtnTextInbox');
+    
+    if (configuredSummaryInbox) configuredSummaryInbox.classList.add('d-none');
+    if (clearBtnInbox) clearBtnInbox.classList.add('d-none');
+    if (wizardBtnTextInbox) wizardBtnTextInbox.textContent = 'Create Rich Card';
+    
+    // Reset wizard cards data
+    if (typeof rcsCards !== 'undefined') {
+        rcsCards = [{ title: '', description: '', media: null, buttons: [] }];
+    }
+    if (typeof currentRcsCard !== 'undefined') {
+        currentRcsCard = 1;
+    }
+}
+
+function showRcsWizardSendError(message) {
+    var errContainer = document.getElementById('rcsValidationErrors');
+    if (errContainer) {
+        errContainer.innerHTML = '<div class="alert alert-danger mb-3"><i class="fas fa-exclamation-circle me-2"></i>' + escapeHtml(message) + '</div>';
+        errContainer.classList.remove('d-none');
+    }
+}
+
+// Hook into the apply button for Inbox mode
+document.addEventListener('DOMContentLoaded', function() {
+    var applyBtn = document.getElementById('rcsApplyContentBtn');
+    if (applyBtn) {
+        // Store original onclick
+        var originalOnclick = applyBtn.onclick;
+        
+        applyBtn.onclick = function(e) {
+            // Check if we're in inbox RCS mode (i.e., channel is RCS and wizard was opened from inbox)
+            var channel = document.querySelector('input[name="replyChannel"]:checked');
+            if (channel && (channel.value === 'rcs' || channel.value === 'rcs_rich')) {
+                e.preventDefault();
+                e.stopPropagation();
+                sendRichRcsFromWizard();
+                return false;
+            }
+            // Otherwise use original behavior
+            if (typeof handleRcsApplyContent === 'function') {
+                handleRcsApplyContent();
+            }
+        };
+    }
+});
 </script>
 @endpush
