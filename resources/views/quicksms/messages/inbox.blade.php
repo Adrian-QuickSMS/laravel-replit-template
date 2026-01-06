@@ -678,13 +678,24 @@ span.badge.channel-pill-rcs,
                                     </div>
                                     
                                     <div class="d-none" id="rcsRichContentSection">
-                                        <div class="border rounded p-3 bg-light text-center mb-2">
-                                            <i class="fas fa-image fa-2x text-success mb-2"></i>
+                                        <div class="border rounded p-3 text-center mb-2" style="background: rgba(136, 108, 192, 0.1);">
+                                            <i class="fas fa-image fa-2x mb-2" style="color: #886CC0;"></i>
                                             <h6 class="mb-2">Rich RCS Card</h6>
                                             <p class="text-muted small mb-2">Create rich media cards with images, descriptions, and interactive buttons.</p>
-                                            <button type="button" class="btn btn-success btn-sm" onclick="showComingSoon('Create RCS Message')">
-                                                <i class="fas fa-magic me-1"></i>Create RCS Message
-                                            </button>
+                                            <div id="rcsConfiguredSummaryInbox" class="d-none mb-2">
+                                                <div class="alert alert-success py-2 px-3 small mb-2">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    <span id="rcsConfiguredTextInbox">RCS content configured</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <button type="button" class="btn btn-sm" style="background: #886CC0; color: white;" onclick="openRcsWizard()">
+                                                    <i class="fas fa-magic me-1"></i><span id="rcsWizardBtnTextInbox">Create RCS Message</span>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm d-none" id="rcsClearBtnInbox" onclick="clearRcsContent()">
+                                                    <i class="fas fa-times me-1"></i>Clear
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -1172,10 +1183,14 @@ span.badge.channel-pill-rcs,
         </div>
     </div>
 </div>
+
+@include('quicksms.partials.rcs-wizard-modal')
 @endsection
 
 @push('scripts')
 <link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
+<script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}"></script>
 <script>
 // ========================================
 // INBOX FILTER SYSTEM - Complete Implementation
