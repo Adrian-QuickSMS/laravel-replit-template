@@ -438,6 +438,96 @@
     max-height: 180px;
     overflow-y: auto;
 }
+
+.audit-trail-container {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.audit-trail-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.8125rem;
+}
+.audit-entry {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+    position: relative;
+}
+.audit-entry:last-child {
+    border-bottom: none;
+}
+.audit-entry-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.875rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+.audit-entry-icon.generated {
+    background: #d4edda;
+    color: #155724;
+}
+.audit-entry-icon.downloaded {
+    background: #cce5ff;
+    color: #004085;
+}
+.audit-entry-icon.scheduled {
+    background: #fff3cd;
+    color: #856404;
+}
+.audit-entry-icon.schedule-changed {
+    background: #e2e3e5;
+    color: #383d41;
+}
+.audit-entry-icon.schedule-paused {
+    background: #ffeeba;
+    color: #856404;
+}
+.audit-entry-icon.schedule-resumed {
+    background: #c3e6cb;
+    color: #155724;
+}
+.audit-entry-content {
+    padding-left: 2.5rem;
+}
+.audit-entry-action {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 0.125rem;
+}
+.audit-entry-user {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.audit-entry-timestamp {
+    font-size: 0.6875rem;
+    color: #adb5bd;
+    margin-top: 0.25rem;
+}
+.audit-read-only-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f0f0f0;
+    color: #6c757d;
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+.audit-read-only-badge i {
+    font-size: 0.625rem;
+}
 .filters-preview-box .filter-item {
     display: flex;
     justify-content: space-between;
@@ -800,6 +890,13 @@
                 <div class="detail-value" id="detailRecurrenceRecipients">—</div>
             </div>
         </div>
+
+        <div class="detail-section">
+            <h6 class="detail-section-title"><i class="fas fa-history me-1"></i>Audit Trail</h6>
+            <div class="audit-trail-container" id="detailAuditTrail">
+                <div class="text-muted small">Loading audit data...</div>
+            </div>
+        </div>
     </div>
     <div class="details-drawer-footer">
         <div class="d-flex gap-2">
@@ -969,7 +1066,14 @@ var mockDownloads = [
         filters: { channel: 'All Channels', status: 'Delivered', direction: 'Outbound' },
         recurrence: { frequency: 'weekly', dayOfWeek: 1, time: '09:00', nextRun: '2026-01-22 09:00:00', recipients: ['john@example.com', 'reports@company.com'] },
         expiresAt: '2026-04-15 14:30:22',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'John Smith', timestamp: '2026-01-15 14:30:22', details: 'Report generated successfully' },
+            { type: 'scheduled', user: 'John Smith', timestamp: '2026-01-15 14:35:10', details: 'Weekly schedule created (Mondays at 09:00 GMT)' },
+            { type: 'downloaded', user: 'John Smith', timestamp: '2026-01-15 14:45:33', details: null },
+            { type: 'downloaded', user: 'Jane Doe', timestamp: '2026-01-16 09:12:05', details: null },
+            { type: 'schedule-changed', user: 'John Smith', timestamp: '2026-01-17 11:20:00', details: 'Added recipient: reports@company.com' }
+        ]
     },
     { 
         id: 2, 
@@ -988,7 +1092,12 @@ var mockDownloads = [
         filters: { transactionType: 'All', costCenter: 'Marketing' },
         recurrence: null,
         expiresAt: '2026-03-14 09:15:45',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'Jane Doe', timestamp: '2025-12-14 09:15:45', details: 'Report generated successfully' },
+            { type: 'downloaded', user: 'Jane Doe', timestamp: '2025-12-14 09:18:22', details: null },
+            { type: 'downloaded', user: 'Mike Johnson', timestamp: '2025-12-15 14:05:11', details: null }
+        ]
     },
     { 
         id: 3, 
@@ -1007,7 +1116,11 @@ var mockDownloads = [
         filters: { channel: 'SMS', status: 'All Statuses' },
         recurrence: null,
         expiresAt: '2025-02-11 16:45:12',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'John Smith', timestamp: '2025-11-13 16:45:12', details: 'Report generated successfully' },
+            { type: 'downloaded', user: 'John Smith', timestamp: '2025-11-13 17:02:44', details: null }
+        ]
     },
     { 
         id: 4, 
@@ -1026,7 +1139,15 @@ var mockDownloads = [
         filters: { transactionType: 'Purchase', includeRefunds: 'Yes' },
         recurrence: { frequency: 'monthly', time: '06:00', nextRun: '2025-11-12 06:00:00', recipients: ['finance@company.com'] },
         expiresAt: '2026-01-10 11:20:33',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'Mike Johnson', timestamp: '2025-10-12 11:20:33', details: 'Report generated successfully' },
+            { type: 'scheduled', user: 'Mike Johnson', timestamp: '2025-10-12 11:25:00', details: 'Monthly schedule created (12th of each month at 06:00 UTC)' },
+            { type: 'downloaded', user: 'Mike Johnson', timestamp: '2025-10-12 11:30:15', details: null },
+            { type: 'downloaded', user: 'Jane Doe', timestamp: '2025-10-14 08:45:22', details: null },
+            { type: 'schedule-paused', user: 'Mike Johnson', timestamp: '2025-11-01 09:00:00', details: 'Schedule paused for review' },
+            { type: 'schedule-resumed', user: 'Mike Johnson', timestamp: '2025-11-05 14:30:00', details: 'Schedule resumed' }
+        ]
     },
     { 
         id: 5, 
@@ -1045,7 +1166,10 @@ var mockDownloads = [
         filters: { channel: 'RCS', status: 'Failed' },
         recurrence: null,
         expiresAt: null,
-        errorReason: 'Database connection timeout after 30 seconds. The query exceeded maximum execution time due to large dataset size.'
+        errorReason: 'Database connection timeout after 30 seconds. The query exceeded maximum execution time due to large dataset size.',
+        auditTrail: [
+            { type: 'generated', user: 'System', timestamp: '2024-06-10 08:00:11', details: 'Report generation failed - Database connection timeout' }
+        ]
     },
     { 
         id: 6, 
@@ -1064,7 +1188,10 @@ var mockDownloads = [
         filters: {},
         recurrence: null,
         expiresAt: '2026-04-06 15:00:02',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'John Smith', timestamp: '2026-01-06 15:00:02', details: 'Report generated successfully' }
+        ]
     },
     { 
         id: 7, 
@@ -1083,7 +1210,13 @@ var mockDownloads = [
         filters: { transactionType: 'All', currency: 'GBP' },
         recurrence: null,
         expiresAt: '2026-03-20 10:15:30',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'Jane Doe', timestamp: '2025-12-20 10:15:30', details: 'Report generated successfully' },
+            { type: 'downloaded', user: 'Jane Doe', timestamp: '2025-12-20 10:20:45', details: null },
+            { type: 'downloaded', user: 'John Smith', timestamp: '2025-12-22 14:30:00', details: null },
+            { type: 'downloaded', user: 'Mike Johnson', timestamp: '2025-12-28 09:15:22', details: null }
+        ]
     },
     { 
         id: 8, 
@@ -1102,7 +1235,10 @@ var mockDownloads = [
         filters: { channel: 'All Channels', status: 'All Statuses', direction: 'All' },
         recurrence: null,
         expiresAt: null,
-        errorReason: 'Memory limit exceeded. The export contained over 500,000 records which exceeded the maximum allowed memory allocation.'
+        errorReason: 'Memory limit exceeded. The export contained over 500,000 records which exceeded the maximum allowed memory allocation.',
+        auditTrail: [
+            { type: 'generated', user: 'Mike Johnson', timestamp: '2024-12-31 23:59:59', details: 'Report generation failed - Memory limit exceeded' }
+        ]
     },
     { 
         id: 9, 
@@ -1121,7 +1257,12 @@ var mockDownloads = [
         filters: { transactionType: 'All' },
         recurrence: null,
         expiresAt: '2025-10-13 08:30:12',
-        errorReason: null
+        errorReason: null,
+        auditTrail: [
+            { type: 'generated', user: 'System', timestamp: '2025-07-15 08:30:12', details: 'Report generated successfully (scheduled run)' },
+            { type: 'downloaded', user: 'Jane Doe', timestamp: '2025-07-15 09:00:15', details: null },
+            { type: 'downloaded', user: 'Mike Johnson', timestamp: '2025-08-01 10:30:00', details: null }
+        ]
     }
 ];
 
@@ -1584,10 +1725,69 @@ function viewReportDetails(id) {
         downloadBtn.innerHTML = '<i class="fas fa-times me-1"></i>Not Available';
     }
     
+    renderAuditTrail(report.auditTrail);
+    
     document.getElementById('detailsDrawerBackdrop').classList.add('show');
     document.getElementById('detailsDrawer').classList.add('show');
     
     console.log('TODO: API call - GET /api/downloads/' + id + '/details');
+    console.log('TODO: API call - GET /api/downloads/' + id + '/audit-trail');
+}
+
+function renderAuditTrail(auditTrail) {
+    var container = document.getElementById('detailAuditTrail');
+    
+    if (!auditTrail || auditTrail.length === 0) {
+        container.innerHTML = '<div class="audit-trail-empty"><i class="fas fa-history me-1"></i>No audit history available</div>';
+        return;
+    }
+    
+    var html = '<div class="audit-read-only-badge"><i class="fas fa-lock"></i>Read-only audit log</div>';
+    
+    var sortedAudit = auditTrail.slice().sort(function(a, b) {
+        return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+    
+    sortedAudit.forEach(function(entry) {
+        html += '<div class="audit-entry">';
+        html += '<div class="audit-entry-icon ' + entry.type + '">' + getAuditIcon(entry.type) + '</div>';
+        html += '<div class="audit-entry-content">';
+        html += '<div class="audit-entry-action">' + getAuditActionText(entry.type, entry.details) + '</div>';
+        html += '<div class="audit-entry-user"><i class="fas fa-user me-1"></i>' + entry.user + '</div>';
+        html += '<div class="audit-entry-timestamp"><i class="fas fa-clock me-1"></i>' + formatDateTime(entry.timestamp) + '</div>';
+        html += '</div>';
+        html += '</div>';
+    });
+    
+    container.innerHTML = html;
+}
+
+function getAuditIcon(type) {
+    var icons = {
+        'generated': '<i class="fas fa-file-alt"></i>',
+        'downloaded': '<i class="fas fa-download"></i>',
+        'scheduled': '<i class="fas fa-calendar-plus"></i>',
+        'schedule-changed': '<i class="fas fa-edit"></i>',
+        'schedule-paused': '<i class="fas fa-pause"></i>',
+        'schedule-resumed': '<i class="fas fa-play"></i>'
+    };
+    return icons[type] || '<i class="fas fa-circle"></i>';
+}
+
+function getAuditActionText(type, details) {
+    var actions = {
+        'generated': 'Report generated',
+        'downloaded': 'Report downloaded',
+        'scheduled': 'Schedule created',
+        'schedule-changed': 'Schedule modified',
+        'schedule-paused': 'Schedule paused',
+        'schedule-resumed': 'Schedule resumed'
+    };
+    var text = actions[type] || 'Action performed';
+    if (details) {
+        text += ' — ' + details;
+    }
+    return text;
 }
 
 function closeDetailsDrawer() {
