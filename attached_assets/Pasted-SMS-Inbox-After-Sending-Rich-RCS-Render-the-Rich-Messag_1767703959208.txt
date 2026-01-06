@@ -1,0 +1,43 @@
+SMS Inbox — After Sending Rich RCS, Render the Rich Message in the Chat Thread
+
+Requirement:
+- In the SMS Inbox, when a user creates a Rich RCS message in the wizard and presses “Send Message”, the sent Rich RCS content must immediately appear in the central chat thread as an outbound message.
+
+Behaviour:
+1) Send action
+- On “Send Message”:
+  - Call the existing Send RCS API using the wizard’s final saved Rich RCS payload (cards/carousel/buttons/media URLs).
+  - Use the selected RCS agent and required SMS fallback SenderID (if applicable).
+
+2) Chat thread rendering (IMPORTANT)
+- After successful send, append a new outbound message item to the current conversation thread UI.
+- The message bubble should render the Rich RCS preview, not plain text.
+  - If Rich Card: show the card with image + title/description/body + up to buttons.
+  - If Carousel: show the carousel UI (first card + navigation indicator or thumbnails).
+- Outbound bubble styling must follow existing rules:
+  - RCS outbound uses the RCS bubble styling (blue / RCS pill if used elsewhere).
+- Include:
+  - timestamp
+  - channel indicator (RCS)
+  - delivery status placeholder (Sent → Delivered/Read when updates arrive, if supported)
+
+3) State updates
+- Close the wizard modal on success and return focus to the chat thread.
+- Clear the composer state for the next message (do not retain previous rich payload).
+- Ensure the left conversation list updates its snippet/time to reflect the newly sent message.
+
+4) Failure handling
+- If send fails:
+  - Do NOT add the message to the thread.
+  - Show an inline error (and keep wizard open) explaining the failure.
+
+Constraints:
+- Do not invent a new rich message renderer.
+- Reuse the same rich rendering component used in the wizard/Send Message preview, but adapted for the chat bubble container.
+- Do not require a full page refresh; update UI state locally on success.
+
+Acceptance Criteria:
+- Sending a Rich RCS message results in the rich card/carousel appearing in the chat thread immediately as an outbound message.
+- The bubble rendering matches the wizard preview content (image/buttons/text).
+- Composer resets after successful send.
+- If send fails, user sees an error and nothing is appended to the thread.
