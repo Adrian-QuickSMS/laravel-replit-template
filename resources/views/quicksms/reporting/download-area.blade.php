@@ -234,8 +234,90 @@
 }
 .status-text-completed {
     color: #198754;
+    font-weight: 500;
 }
 .status-text-failed {
+    color: #dc3545;
+    font-weight: 500;
+}
+.status-text-expired {
+    color: #6c757d;
+    font-weight: 500;
+}
+.row-expired {
+    opacity: 0.6;
+    background-color: #f8f9fa;
+}
+.row-expired td {
+    color: #6c757d;
+}
+.row-failed {
+    background-color: #fff5f5;
+}
+.expired-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    background: #e9ecef;
+    color: #6c757d;
+}
+.failed-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    background: #f8d7da;
+    color: #721c24;
+}
+.error-reason-box {
+    background: #fff5f5;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+.error-reason-box .error-title {
+    font-weight: 600;
+    color: #721c24;
+    font-size: 0.8125rem;
+    margin-bottom: 0.5rem;
+}
+.error-reason-box .error-message {
+    font-size: 0.8125rem;
+    color: #856404;
+}
+.retry-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f0f4ff;
+    border: 1px solid #b8c9ff;
+    border-radius: 6px;
+    color: #4a6fd1;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+}
+.retry-link:hover {
+    background: #e0e8ff;
+    color: #3a5fc1;
+}
+.expiry-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+.expiry-info.expiring-soon {
+    color: #856404;
+}
+.expiry-info.expired {
     color: #dc3545;
 }
 .details-drawer {
@@ -666,6 +748,41 @@
                 <div class="detail-label">Status</div>
                 <div class="detail-value" id="detailStatus">—</div>
             </div>
+            <div class="detail-row">
+                <div class="detail-label">Retention</div>
+                <div class="detail-value">
+                    <span id="detailRetention">90 days</span>
+                    <div class="expiry-info" id="detailExpiryInfo" style="display: none;">
+                        <i class="fas fa-clock"></i>
+                        <span id="detailExpiryText">Expires on 15/04/2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section" id="detailErrorSection" style="display: none;">
+            <h6 class="detail-section-title">Error Information</h6>
+            <div class="error-reason-box">
+                <div class="error-title"><i class="fas fa-exclamation-triangle me-1"></i>Export Failed</div>
+                <div class="error-message" id="detailErrorReason">—</div>
+            </div>
+            <a href="#" class="retry-link" id="detailRetryLink" onclick="retryFromModule(event)">
+                <i class="fas fa-redo"></i>
+                <span>Retry from source module</span>
+            </a>
+        </div>
+
+        <div class="detail-section" id="detailExpiredSection" style="display: none;">
+            <h6 class="detail-section-title">File Status</h6>
+            <div class="alert alert-secondary small mb-0">
+                <i class="fas fa-archive me-1"></i>
+                <strong>File Expired</strong>
+                <p class="mb-0 mt-1">This file has exceeded the retention period and is no longer available for download. The report metadata has been preserved for audit purposes.</p>
+            </div>
+            <a href="#" class="retry-link" id="detailRegenerateLink" onclick="regenerateFromModule(event)">
+                <i class="fas fa-sync-alt"></i>
+                <span>Generate new export from source module</span>
+            </a>
         </div>
 
         <div class="detail-section" id="detailRecurrenceSection" style="display: none;">
@@ -832,6 +949,8 @@
 
 @push('scripts')
 <script>
+var retentionDays = 90;
+
 var mockDownloads = [
     { 
         id: 1, 
@@ -848,7 +967,9 @@ var mockDownloads = [
         timeframe: { start: '2026-01-01', end: '2026-01-15' },
         recordCount: 1247,
         filters: { channel: 'All Channels', status: 'Delivered', direction: 'Outbound' },
-        recurrence: { frequency: 'weekly', dayOfWeek: 1, time: '09:00', nextRun: '2026-01-22 09:00:00', recipients: ['john@example.com', 'reports@company.com'] }
+        recurrence: { frequency: 'weekly', dayOfWeek: 1, time: '09:00', nextRun: '2026-01-22 09:00:00', recipients: ['john@example.com', 'reports@company.com'] },
+        expiresAt: '2026-04-15 14:30:22',
+        errorReason: null
     },
     { 
         id: 2, 
@@ -865,7 +986,9 @@ var mockDownloads = [
         timeframe: { start: '2025-10-01', end: '2025-12-31' },
         recordCount: 892,
         filters: { transactionType: 'All', costCenter: 'Marketing' },
-        recurrence: null
+        recurrence: null,
+        expiresAt: '2026-03-14 09:15:45',
+        errorReason: null
     },
     { 
         id: 3, 
@@ -876,13 +999,15 @@ var mockDownloads = [
         dateGenerated: '2025-11-13 16:45:12', 
         fileType: 'CSV', 
         fileSize: 0.856, 
-        status: 'Completed', 
+        status: 'Expired', 
         year: 2025, 
         month: 11,
         timeframe: { start: '2025-11-01', end: '2025-11-30' },
         recordCount: 456,
         filters: { channel: 'SMS', status: 'All Statuses' },
-        recurrence: null
+        recurrence: null,
+        expiresAt: '2025-02-11 16:45:12',
+        errorReason: null
     },
     { 
         id: 4, 
@@ -899,7 +1024,9 @@ var mockDownloads = [
         timeframe: { start: '2025-10-01', end: '2025-10-31' },
         recordCount: 2103,
         filters: { transactionType: 'Purchase', includeRefunds: 'Yes' },
-        recurrence: { frequency: 'monthly', time: '06:00', nextRun: '2025-11-12 06:00:00', recipients: ['finance@company.com'] }
+        recurrence: { frequency: 'monthly', time: '06:00', nextRun: '2025-11-12 06:00:00', recipients: ['finance@company.com'] },
+        expiresAt: '2026-01-10 11:20:33',
+        errorReason: null
     },
     { 
         id: 5, 
@@ -909,14 +1036,16 @@ var mockDownloads = [
         generatedBy: 'System', 
         dateGenerated: '2024-06-10 08:00:11', 
         fileType: 'CSV', 
-        fileSize: 15.6, 
+        fileSize: 0, 
         status: 'Failed', 
         year: 2024, 
         month: 6,
         timeframe: { start: '2024-06-01', end: '2024-06-30' },
         recordCount: 0,
         filters: { channel: 'RCS', status: 'Failed' },
-        recurrence: null
+        recurrence: null,
+        expiresAt: null,
+        errorReason: 'Database connection timeout after 30 seconds. The query exceeded maximum execution time due to large dataset size.'
     },
     { 
         id: 6, 
@@ -933,7 +1062,9 @@ var mockDownloads = [
         timeframe: { start: '2026-01-01', end: '2026-01-06' },
         recordCount: 0,
         filters: {},
-        recurrence: null
+        recurrence: null,
+        expiresAt: '2026-04-06 15:00:02',
+        errorReason: null
     },
     { 
         id: 7, 
@@ -950,7 +1081,9 @@ var mockDownloads = [
         timeframe: { start: '2025-12-01', end: '2025-12-31' },
         recordCount: 1856,
         filters: { transactionType: 'All', currency: 'GBP' },
-        recurrence: null
+        recurrence: null,
+        expiresAt: '2026-03-20 10:15:30',
+        errorReason: null
     },
     { 
         id: 8, 
@@ -960,14 +1093,35 @@ var mockDownloads = [
         generatedBy: 'Mike Johnson', 
         dateGenerated: '2024-12-31 23:59:59', 
         fileType: 'CSV', 
-        fileSize: 128.5, 
+        fileSize: 0, 
         status: 'Failed', 
         year: 2024, 
         month: 12,
         timeframe: { start: '2024-01-01', end: '2024-12-31' },
         recordCount: 0,
         filters: { channel: 'All Channels', status: 'All Statuses', direction: 'All' },
-        recurrence: null
+        recurrence: null,
+        expiresAt: null,
+        errorReason: 'Memory limit exceeded. The export contained over 500,000 records which exceeded the maximum allowed memory allocation.'
+    },
+    { 
+        id: 9, 
+        reportName: 'Finance Data – Jul 2025 – 083012', 
+        module: 'finance_data', 
+        subAccount: 'Main Account', 
+        generatedBy: 'System', 
+        dateGenerated: '2025-07-15 08:30:12', 
+        fileType: 'XLSX', 
+        fileSize: 2.1, 
+        status: 'Expired', 
+        year: 2025, 
+        month: 7,
+        timeframe: { start: '2025-07-01', end: '2025-07-31' },
+        recordCount: 1203,
+        filters: { transactionType: 'All' },
+        recurrence: null,
+        expiresAt: '2025-10-13 08:30:12',
+        errorReason: null
     }
 ];
 
@@ -1044,10 +1198,12 @@ function renderDownloads() {
     var html = '';
     paginated.forEach(function(item) {
         var isSelected = selectedIds.includes(item.id);
-        var statusClass = item.status === 'Completed' ? 'status-text-completed' : 'status-text-failed';
+        var statusClass = getStatusClass(item.status);
+        var rowClass = getRowClass(item.status);
         var fileSizeDisplay = item.fileSize > 0 ? formatFileSize(item.fileSize) : '—';
+        var statusDisplay = formatStatusDisplay(item.status, item.expiresAt);
         
-        html += '<tr data-id="' + item.id + '">';
+        html += '<tr data-id="' + item.id + '" class="' + rowClass + '">';
         html += '<td><input type="checkbox" class="form-check-input row-select" ' + (isSelected ? 'checked' : '') + ' onchange="toggleRowSelect(' + item.id + ')"></td>';
         html += '<td>' + item.reportName + '</td>';
         html += '<td>' + formatModuleName(item.module) + '</td>';
@@ -1185,6 +1341,83 @@ function formatFileSize(sizeMB) {
     }
 }
 
+function getStatusClass(status) {
+    switch(status) {
+        case 'Completed': return 'status-text-completed';
+        case 'Failed': return 'status-text-failed';
+        case 'Expired': return 'status-text-expired';
+        default: return '';
+    }
+}
+
+function getRowClass(status) {
+    switch(status) {
+        case 'Failed': return 'row-failed';
+        case 'Expired': return 'row-expired';
+        default: return '';
+    }
+}
+
+function formatStatusDisplay(status, expiresAt) {
+    if (status === 'Expired') {
+        return '<span class="expired-badge"><i class="fas fa-archive me-1"></i>Expired</span>';
+    } else if (status === 'Failed') {
+        return '<span class="failed-badge"><i class="fas fa-times-circle me-1"></i>Failed</span>';
+    }
+    return status;
+}
+
+function isExpiringSoon(expiresAt) {
+    if (!expiresAt) return false;
+    var expiry = new Date(expiresAt);
+    var now = new Date();
+    var daysUntil = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+    return daysUntil <= 14 && daysUntil > 0;
+}
+
+function getDaysUntilExpiry(expiresAt) {
+    if (!expiresAt) return null;
+    var expiry = new Date(expiresAt);
+    var now = new Date();
+    return Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+}
+
+function getModuleUrl(module) {
+    var urls = {
+        'message_logs': '/reporting/message-log',
+        'finance_data': '/reporting/finance-data'
+    };
+    return urls[module] || '/reporting/dashboard';
+}
+
+function retryFromModule(event) {
+    event.preventDefault();
+    if (currentDetailReportId) {
+        var report = mockDownloads.find(function(d) { return d.id === currentDetailReportId; });
+        if (report) {
+            var url = getModuleUrl(report.module);
+            console.log('TODO: Navigate to module for retry:', url);
+            console.log('TODO: Pre-populate filters from failed export');
+            alert('Navigating to ' + formatModuleName(report.module) + ' to create a new export...');
+            closeDetailsDrawer();
+        }
+    }
+}
+
+function regenerateFromModule(event) {
+    event.preventDefault();
+    if (currentDetailReportId) {
+        var report = mockDownloads.find(function(d) { return d.id === currentDetailReportId; });
+        if (report) {
+            var url = getModuleUrl(report.module);
+            console.log('TODO: Navigate to module for regeneration:', url);
+            console.log('TODO: Pre-populate filters from expired export');
+            alert('Navigating to ' + formatModuleName(report.module) + ' to generate a new export with the same filters...');
+            closeDetailsDrawer();
+        }
+    }
+}
+
 function formatDateTime(dateStr) {
     var date = new Date(dateStr);
     var day = String(date.getDate()).padStart(2, '0');
@@ -1287,7 +1520,41 @@ function viewReportDetails(id) {
     document.getElementById('detailFileType').textContent = report.fileType;
     document.getElementById('detailFileSize').textContent = report.fileSize > 0 ? formatFileSize(report.fileSize) : '—';
     document.getElementById('detailStatus').textContent = report.status;
-    document.getElementById('detailStatus').className = 'detail-value ' + (report.status === 'Completed' ? 'status-text-completed' : 'status-text-failed');
+    document.getElementById('detailStatus').className = 'detail-value ' + getStatusClass(report.status);
+    
+    document.getElementById('detailRetention').textContent = retentionDays + ' days';
+    var expiryInfo = document.getElementById('detailExpiryInfo');
+    if (report.expiresAt && report.status === 'Completed') {
+        var daysLeft = getDaysUntilExpiry(report.expiresAt);
+        expiryInfo.style.display = 'flex';
+        if (daysLeft <= 0) {
+            expiryInfo.className = 'expiry-info expired';
+            document.getElementById('detailExpiryText').textContent = 'Expired on ' + formatDateTime(report.expiresAt).split(' ')[0];
+        } else if (daysLeft <= 14) {
+            expiryInfo.className = 'expiry-info expiring-soon';
+            document.getElementById('detailExpiryText').textContent = 'Expires in ' + daysLeft + ' days';
+        } else {
+            expiryInfo.className = 'expiry-info';
+            document.getElementById('detailExpiryText').textContent = 'Expires on ' + formatDateTime(report.expiresAt).split(' ')[0];
+        }
+    } else {
+        expiryInfo.style.display = 'none';
+    }
+    
+    var errorSection = document.getElementById('detailErrorSection');
+    if (report.status === 'Failed' && report.errorReason) {
+        errorSection.style.display = 'block';
+        document.getElementById('detailErrorReason').textContent = report.errorReason;
+    } else {
+        errorSection.style.display = 'none';
+    }
+    
+    var expiredSection = document.getElementById('detailExpiredSection');
+    if (report.status === 'Expired') {
+        expiredSection.style.display = 'block';
+    } else {
+        expiredSection.style.display = 'none';
+    }
     
     var recurrenceSection = document.getElementById('detailRecurrenceSection');
     if (report.recurrence) {
@@ -1304,10 +1571,17 @@ function viewReportDetails(id) {
         downloadBtn.disabled = false;
         downloadBtn.classList.remove('btn-secondary');
         downloadBtn.classList.add('btn-primary');
+        downloadBtn.innerHTML = '<i class="fas fa-download me-1"></i>Download Report';
+    } else if (report.status === 'Expired') {
+        downloadBtn.disabled = true;
+        downloadBtn.classList.remove('btn-primary');
+        downloadBtn.classList.add('btn-secondary');
+        downloadBtn.innerHTML = '<i class="fas fa-archive me-1"></i>File Expired';
     } else {
         downloadBtn.disabled = true;
         downloadBtn.classList.remove('btn-primary');
         downloadBtn.classList.add('btn-secondary');
+        downloadBtn.innerHTML = '<i class="fas fa-times me-1"></i>Not Available';
     }
     
     document.getElementById('detailsDrawerBackdrop').classList.add('show');
