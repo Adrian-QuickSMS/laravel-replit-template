@@ -388,7 +388,8 @@
         
         <div class="col-lg-4">
             <div class="card sticky-top" style="top: 20px;">
-                <div class="card-body p-2">
+                <div class="card-body p-4">
+                    <h6 class="mb-3">Message Preview</h6>
                     <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
                     
                     <div class="text-center d-none" id="previewToggleContainer">
