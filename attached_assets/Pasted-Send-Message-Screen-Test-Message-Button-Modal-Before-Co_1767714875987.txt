@@ -1,0 +1,49 @@
+Send Message Screen — “Test Message” Button + Modal (Before Continue)
+
+Requirement:
+- Add a “Test message” button next to the existing “Continue” button on the Send Message screen.
+- Purpose: allow the user to send a test message to their own handset before proceeding to the next step.
+
+Behaviour:
+1) Button placement
+- Place “Test message” beside “Continue” (same row).
+- Style it as a secondary action (Continue remains primary).
+
+2) On click: open modal
+- Clicking “Test message” opens a modal popup with:
+  - Title: “Send a test message”
+  - Field: Mobile number
+    - Placeholder: “e.g. 447700900123”
+    - Validation: UK mobile format supported; normalise if user enters 07… or +44…
+  - Optional helper text:
+    “We’ll send this message to your phone so you can preview it before continuing.”
+  - Buttons:
+    - Primary: “Send test”
+    - Secondary: “Cancel”
+
+3) What is sent
+- The test must send the SAME message content currently configured on Screen 1:
+  - If SMS selected: send SMS with current SenderID + content (including placeholders resolved using sample/defaults OR left as placeholders — choose whichever is already used in previews)
+  - If Basic RCS selected: send Basic RCS (and SMS fallback if configured, following existing rules)
+  - If Rich RCS selected: send the Rich RCS payload (cards/carousel/buttons/media) exactly as configured in the wizard
+- Test message sends immediately (no scheduling).
+
+4) Success / error feedback
+- On success:
+  - Show confirmation in the modal: “Test message sent.”
+  - Keep user on Screen 1 (do not navigate).
+- On failure:
+  - Show a clear inline error message explaining failure.
+  - Do not close modal automatically.
+
+Constraints:
+- Do NOT change the existing Continue flow.
+- Do NOT require the user to press Continue to send a test.
+- Reuse existing send APIs/endpoints where possible (a dedicated “test” flag is fine if needed).
+- Maintain template modal styling and validation patterns (no new modal design).
+
+Acceptance Criteria:
+- “Test message” button appears next to Continue.
+- Modal collects a phone number and sends a test using the current message configuration.
+- User can verify on handset, then press Continue when ready.
+- Test send does not progress the campaign or create a full campaign send.

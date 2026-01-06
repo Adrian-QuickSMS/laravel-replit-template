@@ -406,7 +406,10 @@
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()"><i class="fas fa-save me-1"></i>Save Draft</button>
-                        <button type="button" class="btn btn-primary" onclick="continueToConfirmation()">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" onclick="openTestMessageModal()"><i class="fas fa-mobile-alt me-1"></i>Test Message</button>
+                            <button type="button" class="btn btn-primary" onclick="continueToConfirmation()">Continue <i class="fas fa-arrow-right ms-1"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -995,6 +998,53 @@
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="testMessageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-mobile-alt me-2"></i>Send a test message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">We'll send this message to your phone so you can preview it before continuing.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Mobile number <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control" id="testMobileNumber" placeholder="e.g. 447700900123" maxlength="15">
+                    <small class="text-muted">Enter your UK mobile number (07... or +44... or 447...)</small>
+                </div>
+                
+                <div class="mb-3 d-none" id="testMessageChannelInfo">
+                    <div class="alert alert-light py-2 mb-0">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="testChannelDescription">SMS message will be sent</span>
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="d-none" id="testMessageSuccess">
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Test message sent. Check your phone.
+                    </div>
+                </div>
+                
+                <div class="d-none" id="testMessageError">
+                    <div class="alert alert-danger mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i><span id="testErrorText">Failed to send test message.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="sendTestBtn" onclick="sendTestMessage()">
+                    <i class="fas fa-paper-plane me-1"></i>Send test
+                </button>
             </div>
         </div>
     </div>
@@ -2607,6 +2657,155 @@ function updatePreviewCost() {
     var parts = parseInt(document.getElementById('smsPartCount').textContent) || 1;
     var cost = recipients * parts * costPerMsg;
     document.getElementById('previewCost').textContent = cost.toFixed(2) + ' cr';
+}
+
+var testMessageModal = null;
+
+function openTestMessageModal() {
+    if (!testMessageModal) {
+        testMessageModal = new bootstrap.Modal(document.getElementById('testMessageModal'));
+    }
+    
+    document.getElementById('testMobileNumber').value = '';
+    document.getElementById('testMessageSuccess').classList.add('d-none');
+    document.getElementById('testMessageError').classList.add('d-none');
+    document.getElementById('sendTestBtn').disabled = false;
+    document.getElementById('sendTestBtn').innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send test';
+    
+    var channel = document.querySelector('input[name="channel"]:checked').value;
+    var channelInfo = document.getElementById('testMessageChannelInfo');
+    var channelDesc = document.getElementById('testChannelDescription');
+    
+    channelInfo.classList.remove('d-none');
+    if (channel === 'sms') {
+        channelDesc.textContent = 'SMS message will be sent to your phone';
+    } else if (channel === 'rcs_basic') {
+        channelDesc.textContent = 'Basic RCS message will be sent (SMS fallback if needed)';
+    } else if (channel === 'rcs_rich') {
+        channelDesc.textContent = 'Rich RCS message with configured cards/media will be sent';
+    }
+    
+    testMessageModal.show();
+}
+
+function normalizeTestNumber(input) {
+    var cleaned = input.replace(/[\s\-\(\)\.]/g, '');
+    
+    if (cleaned.startsWith('+44')) {
+        cleaned = '44' + cleaned.substring(3);
+    }
+    if (cleaned.startsWith('0044')) {
+        cleaned = '44' + cleaned.substring(4);
+    }
+    if (cleaned.startsWith('07')) {
+        cleaned = '44' + cleaned.substring(1);
+    }
+    
+    return cleaned;
+}
+
+function validateTestNumber(number) {
+    var normalized = normalizeTestNumber(number);
+    
+    if (!/^44[0-9]{10}$/.test(normalized)) {
+        return { valid: false, error: 'Please enter a valid UK mobile number' };
+    }
+    if (!/^447[0-9]{9}$/.test(normalized)) {
+        return { valid: false, error: 'Please enter a UK mobile number (starting with 07 or +447)' };
+    }
+    
+    return { valid: true, normalized: normalized };
+}
+
+function sendTestMessage() {
+    var numberInput = document.getElementById('testMobileNumber').value.trim();
+    var successEl = document.getElementById('testMessageSuccess');
+    var errorEl = document.getElementById('testMessageError');
+    var errorText = document.getElementById('testErrorText');
+    var sendBtn = document.getElementById('sendTestBtn');
+    
+    successEl.classList.add('d-none');
+    errorEl.classList.add('d-none');
+    
+    if (!numberInput) {
+        errorText.textContent = 'Please enter a mobile number';
+        errorEl.classList.remove('d-none');
+        return;
+    }
+    
+    var validation = validateTestNumber(numberInput);
+    if (!validation.valid) {
+        errorText.textContent = validation.error;
+        errorEl.classList.remove('d-none');
+        return;
+    }
+    
+    var channel = document.querySelector('input[name="channel"]:checked').value;
+    var senderId = document.getElementById('senderId').value;
+    var rcsAgent = document.getElementById('rcsAgent').value;
+    var messageContent = document.getElementById('messageContent').value;
+    
+    if (channel === 'sms' && !senderId) {
+        errorText.textContent = 'Please select a Sender ID before sending a test';
+        errorEl.classList.remove('d-none');
+        return;
+    }
+    
+    if ((channel === 'rcs_basic' || channel === 'rcs_rich') && !rcsAgent) {
+        errorText.textContent = 'Please select an RCS Agent before sending a test';
+        errorEl.classList.remove('d-none');
+        return;
+    }
+    
+    if (channel === 'sms' || channel === 'rcs_basic') {
+        if (!messageContent.trim()) {
+            errorText.textContent = 'Please enter message content before sending a test';
+            errorEl.classList.remove('d-none');
+            return;
+        }
+    }
+    
+    if (channel === 'rcs_rich') {
+        if (!rcsPersistentPayload && typeof rcsPersistentPayload !== 'undefined') {
+            errorText.textContent = 'Please configure Rich RCS content before sending a test';
+            errorEl.classList.remove('d-none');
+            return;
+        }
+    }
+    
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+    
+    var testPayload = {
+        test: true,
+        recipient: validation.normalized,
+        channel: channel,
+        sender_id: senderId,
+        rcs_agent_id: rcsAgent,
+        content: messageContent,
+        rcs_payload: (channel === 'rcs_rich' && typeof rcsPersistentPayload !== 'undefined') ? rcsPersistentPayload : null
+    };
+    
+    console.log('[Test Message] TODO: POST /api/messages/test', testPayload);
+    
+    setTimeout(function() {
+        var success = true;
+        
+        if (success) {
+            successEl.classList.remove('d-none');
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-check me-1"></i>Sent';
+            
+            setTimeout(function() {
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send another';
+            }, 2000);
+        } else {
+            errorText.textContent = 'Failed to send test message. Please try again.';
+            errorEl.classList.remove('d-none');
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send test';
+        }
+    }, 1000);
 }
 </script>
 @endsection

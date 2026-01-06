@@ -20,6 +20,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 **Technical Implementations & Feature Specifications:**
 - **Dashboard:** Operational overview, RCS promotion, support, and notifications.
 - **Messages:** Features for sending, an Inbox with a three-panel conversation workspace (conversation list, chat pane, contact info sidebar), and Campaign History. Inbox supports Rich RCS message rendering directly in the chat thread.
+  - **Test Message Feature:** "Test Message" button on Send Message page (next to Continue) opens a modal to send the currently configured message to a phone number for preview before proceeding. Supports all channels (SMS, Basic RCS, Rich RCS), validates UK mobile format (07.../+44.../447...), includes inline success/error feedback, and uses the same message content/payload configured on Screen 1. API call structure documented as TODO.
 - **Contact Book:** Management of contacts, lists (static/dynamic), tags, and opt-out lists.
 - **Reporting:** Dashboard with customizable KPI tiles and charts (ApexCharts), detailed Message Log, Finance Data, Invoices (HubSpot API), and Download Area. Invoices page displays read-only HubSpot data, including a persistent financial summary and a detail drawer.
 - **Purchase:** Functionality for purchasing messages (Admin/Finance only) with HubSpot Products API for live pricing and Stripe for payment processing. Includes "Pay Invoice" and "Top Up Balance" flows with Stripe Checkout for PCI DSS compliance and comprehensive audit logging.
