@@ -13,19 +13,30 @@
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }
-.preview-fixed-wrapper {
-    position: fixed;
-    top: 100px;
-    right: 30px;
-    width: calc(33.333% - 45px);
-    max-width: 400px;
-    z-index: 100;
+.send-message-layout {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.send-message-left {
+    flex: 1 1 66.666%;
+    min-width: 0;
+}
+.send-message-right {
+    flex: 0 0 33.333%;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
 }
 @media (max-width: 991.98px) {
-    .preview-fixed-wrapper {
+    .send-message-layout {
+        flex-direction: column;
+    }
+    .send-message-left,
+    .send-message-right {
+        flex: 0 0 100%;
+        max-width: 100%;
         position: static;
-        width: 100%;
-        max-width: none;
     }
 }
 </style>
@@ -41,8 +52,8 @@
         </ol>
     </div>
     
-    <div class="row align-items-start">
-        <div class="col-lg-8">
+    <div class="send-message-layout">
+        <div class="send-message-left">
             <div class="card mb-3">
                 <div class="card-body p-4">
                     <h6 class="mb-3">Campaign Details</h6>
@@ -397,8 +408,8 @@
             </div>
         </div>
         
-        <div class="col-lg-4">
-            <div class="card preview-fixed-wrapper">
+        <div class="send-message-right">
+            <div class="card mb-3">
                 <div class="card-body p-4">
                     <h6 class="mb-3">Message Preview</h6>
                     <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
