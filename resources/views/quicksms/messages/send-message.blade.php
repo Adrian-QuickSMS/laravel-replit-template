@@ -13,6 +13,13 @@
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }
+.preview-fixed-column {
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
 </style>
 @endpush
 
@@ -382,8 +389,8 @@
             </div>
         </div>
         
-        <div class="col-lg-4">
-            <div class="card" style="position: sticky; top: 100px;">
+        <div class="col-lg-4 preview-fixed-column">
+            <div class="card">
                 <div class="card-body p-4">
                     <h6 class="mb-3">Message Preview</h6>
                     <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
