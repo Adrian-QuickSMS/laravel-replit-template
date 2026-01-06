@@ -648,7 +648,7 @@
     - Custom Fields: Fetch user-defined custom fields from GET /api/custom-fields
     - CSV Columns: Populated dynamically from file upload column mapping (already implemented client-side)
 --}}
-<div class="modal fade" id="personalisationModal" tabindex="-1">
+<div class="modal fade" id="personalisationModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-3">
@@ -688,7 +688,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="emojiPickerModal" tabindex="-1">
+<div class="modal fade" id="emojiPickerModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header py-3">
