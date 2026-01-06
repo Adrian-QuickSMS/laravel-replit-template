@@ -1,0 +1,82 @@
+Download Area — Restore Template Design Principles (Match Message Logs)
+
+Goal:
+Bring the Reporting → Download Area UI back in line with existing platform design standards, specifically matching Message Logs (filters + actions + table styling). Do not introduce new UI patterns.
+
+────────────────────────
+A) Filters: Positioning, colour, and layout must match Message Logs
+────────────────────────
+Requirement:
+- Restore filter button positioning and colours to be identical to Message Logs.
+  - “ Filters” must be in the same location and use the same button styles as Message Logs.
+- Filter container background must use the same pastel purple styling used elsewhere in Reporting filters.
+- Do not change spacing/padding conventions compared to Message Logs.
+
+Constraints:
+- Reuse existing filter component + styles used in Message Logs (do not create new CSS variants).
+
+Acceptance:
+- Filter panel visually matches Message Logs (button placement, colour, spacing, background).
+
+────────────────────────
+B) Dropdown controls: Multi-select where specified
+────────────────────────
+Requirement:
+- Update dropdowns to support multi-select where required by the PRD:
+  - Sub-Account: multi-select
+  - User: multi-select
+  - Module: single-select is OK unless otherwise stated, but keep consistent with PRD
+- Ensure selected values render as the same style used across the platform (consistent chips/tokens).
+
+Constraints:
+- Use the same multi-select dropdown component already used elsewhere (e.g. Message Logs / Finance Data).
+- Do not invent a new dropdown behaviour.
+
+Acceptance:
+- Sub-Account and User filters support multi-select with consistent UX.
+
+────────────────────────
+C) Status column: Add coloured pastel pills (Completed / Failed)
+────────────────────────
+Requirement:
+- Replace plain status text with pastel-coloured pills (tags) for clarity:
+  - Completed → pastel green pill
+  - Failed → pastel red pill
+  (Optional future: Running/Queued etc, but not required now)
+- Pill styling must match the existing tag/list pill formatting used elsewhere in the platform (rounded edges, padding, font weight).
+
+Constraints:
+- Use existing pill component styles (do not introduce new pill variants).
+- Keep table readable and consistent with template typography.
+
+Acceptance:
+- Status shows as rounded pastel pills.
+- Pill styling matches existing tag/list pills across the platform.
+
+────────────────────────
+D) Bulk actions: Buttons next to filters when rows are selected
+────────────────────────
+Requirement:
+- Add multi-select checkboxes per row (and select-all in header if supported).
+- When 1+ rows are selected, show bulk action buttons next to the filter controls (same row/area as Message Logs actions):
+  - Download selected
+  - Delete selected (if role permitted)
+- Buttons must appear/disappear dynamically based on selection state.
+
+Constraints:
+- Do not place bulk action buttons inside the table header if Message Logs pattern uses filter-area actions.
+- Respect RBAC:
+  - Delete/Archive visible only for Admin (or configured role).
+
+Acceptance:
+- Selecting rows reveals bulk action buttons beside the filters.
+- Actions work on all selected rows.
+- Button style/placement matches Message Logs.
+
+────────────────────────
+Regression checklist
+────────────────────────
+- Filter styling, background, and button placement matches Message Logs exactly.
+- Sub-Account and User filters are multi-select.
+- Status uses pastel pills (not plain text).
+- Bulk action buttons appear next to filters when rows selected.

@@ -117,6 +117,30 @@
 .status-ready { background-color: #d4edda; color: #155724; }
 .status-expired { background-color: #e2e3e5; color: #6c757d; }
 .status-processing { background-color: #fff3cd; color: #856404; }
+.status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.status-pill-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+.status-pill-failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.status-pill-expired {
+    background-color: #e2e3e5;
+    color: #6c757d;
+}
+.status-pill-processing {
+    background-color: #fff3cd;
+    color: #856404;
+}
 .empty-state {
     text-align: center;
     padding: 3rem;
@@ -618,22 +642,30 @@
     <div class="row flex-grow-1" style="min-height: 0;">
         <div class="col-12 d-flex flex-column" style="min-height: 0;">
             <div class="card">
-                <div class="card-header border-0 pb-0 download-area-fixed-header">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                        <h4 class="card-title mb-0">Download Area</h4>
-                        <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleFilters()" id="filterToggleBtn">
-                                <i class="fas fa-filter me-1"></i>Filters
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap download-area-fixed-header">
+                    <h5 class="card-title mb-2 mb-md-0">Download Area</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group" id="bulkActionsHeader" style="display: none;">
+                            <button class="btn btn-outline-primary btn-sm" onclick="downloadSelected()">
+                                <i class="fas fa-download me-1"></i>Download Selected
                             </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="refreshDownloads()">
-                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteSelected()">
+                                <i class="fas fa-trash me-1"></i>Delete
                             </button>
                         </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                            <i class="fas fa-filter me-1"></i> Filters
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshDownloads()">
+                            <i class="fas fa-sync-alt me-1"></i> Refresh
+                        </button>
                     </div>
 
-                    <div id="filtersPanel" class="mb-3" style="display: none;">
-                        <div class="card bg-light border-0">
-                            <div class="card-body py-3">
+                </div>
+                <div class="card-body">
+                    <div class="download-area-fixed-header">
+                        <div class="collapse mb-3" id="filtersPanel">
+                        <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
                                 <div class="row g-3">
                                     <div class="col-md-2">
                                         <label class="form-label small text-muted mb-1">Year</label>
@@ -691,32 +723,42 @@
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label small text-muted mb-1">User</label>
-                                        <select class="form-select form-select-sm" id="filterUser">
-                                            <option value="">All Users</option>
-                                        </select>
+                                        <label class="form-label small fw-bold">User</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="users">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label" id="userDropdownLabel">All Users</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2" id="userDropdownMenu">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none" onclick="selectAllUsers(event)">Select All</a>
+                                                    <a href="#" class="small text-decoration-none" onclick="clearAllUsers(event)">Clear</a>
+                                                </div>
+                                                <div id="userOptions"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-end mt-3 gap-2">
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
-                                        <i class="fas fa-undo me-1"></i>Reset Filters
-                                    </button>
-                                    <button class="btn btn-sm btn-primary" onclick="applyFilters()">
-                                        <i class="fas fa-check me-1"></i>Apply Filters
-                                    </button>
+                                <div class="row mt-3">
+                                    <div class="col-12 d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                            <i class="fas fa-check me-1"></i> Apply Filters
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
+                                            <i class="fas fa-undo me-1"></i> Reset Filters
+                                        </button>
+                                    </div>
                                 </div>
+                        </div>
+                        </div>
+
+                        <div class="mb-3" id="activeFiltersContainer" style="display: none;">
+                            <div class="d-flex flex-wrap align-items-center">
+                                <span class="small text-muted me-2">Active filters:</span>
+                                <div id="filterChips"></div>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" onclick="clearFilters()">Clear all</button>
                             </div>
                         </div>
                     </div>
-
-                    <div id="activeFilters" class="mb-2" style="display: none;">
-                        <span class="text-muted small me-2">Active filters:</span>
-                        <span id="filterChips"></span>
-                        <a href="#" class="small text-decoration-none" onclick="clearFilters(); return false;">Clear all</a>
-                    </div>
-                </div>
-
-                <div class="card-body">
                     <div class="download-area-table-wrapper">
                         <div id="tableContainer" class="table-responsive">
                             <table class="table table-hover mb-0" id="downloadAreaTable">
@@ -1338,7 +1380,7 @@ var appliedFilters = {
     month: '',
     module: '',
     subAccounts: [],
-    user: ''
+    users: []
 };
 
 var pendingFilters = {
@@ -1346,7 +1388,7 @@ var pendingFilters = {
     month: '',
     module: '',
     subAccounts: [],
-    user: ''
+    users: []
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1417,7 +1459,7 @@ function renderDownloadsInternal() {
         html += '<td>' + formatDateTime(item.dateGenerated) + '</td>';
         html += '<td>' + item.fileType + '</td>';
         html += '<td>' + fileSizeDisplay + '</td>';
-        html += '<td class="' + statusClass + '">' + item.status + '</td>';
+        html += '<td>' + getStatusPill(item.status) + '</td>';
         html += '<td>';
         html += '<div class="action-menu">';
         html += '<button class="action-menu-btn" onclick="toggleActionMenu(' + item.id + ', event)" title="Actions"><i class="fas fa-ellipsis-v"></i></button>';
@@ -1572,6 +1614,18 @@ function getStatusClass(status) {
         case 'Expired': return 'status-text-expired';
         default: return '';
     }
+}
+
+function getStatusPill(status) {
+    var pillClass = 'status-pill ';
+    switch(status) {
+        case 'Completed': pillClass += 'status-pill-completed'; break;
+        case 'Failed': pillClass += 'status-pill-failed'; break;
+        case 'Expired': pillClass += 'status-pill-expired'; break;
+        case 'Processing': pillClass += 'status-pill-processing'; break;
+        default: pillClass += 'status-pill-completed';
+    }
+    return '<span class="' + pillClass + '">' + status + '</span>';
 }
 
 function getRowClass(status) {
@@ -2100,6 +2154,8 @@ function deleteReport(id) {
     modal.show();
 }
 
+var selectedUsers = [];
+
 function initializeFilters() {
     var yearSelect = document.getElementById('filterYear');
     var currentYear = new Date().getFullYear();
@@ -2109,17 +2165,56 @@ function initializeFilters() {
     }
     yearSelect.innerHTML = yearHtml;
     
-    var userSelect = document.getElementById('filterUser');
-    var userHtml = '<option value="">All Users</option>';
-    mockUsers.forEach(function(user) {
-        userHtml += '<option value="' + user.id + '">' + user.name + '</option>';
-    });
-    userSelect.innerHTML = userHtml;
-    
+    renderUserOptions();
     renderSubAccountOptions();
     
     pendingFilters.year = currentYear.toString();
     appliedFilters.year = currentYear.toString();
+}
+
+function renderUserOptions() {
+    var container = document.getElementById('userOptions');
+    var html = '';
+    mockUsers.forEach(function(user) {
+        var isChecked = selectedUsers.includes(user.id);
+        html += '<div class="form-check"><input class="form-check-input user-cb" type="checkbox" value="' + user.id + '" id="user_' + user.id + '" ' + (isChecked ? 'checked' : '') + ' onchange="updateUserSelection()"><label class="form-check-label small" for="user_' + user.id + '">' + user.name + '</label></div>';
+    });
+    container.innerHTML = html;
+    updateUserDisplayText();
+}
+
+function selectAllUsers(e) {
+    e.preventDefault();
+    selectedUsers = mockUsers.map(function(u) { return u.id; });
+    document.querySelectorAll('.user-cb').forEach(function(cb) { cb.checked = true; });
+    updateUserDisplayText();
+}
+
+function clearAllUsers(e) {
+    e.preventDefault();
+    selectedUsers = [];
+    document.querySelectorAll('.user-cb').forEach(function(cb) { cb.checked = false; });
+    updateUserDisplayText();
+}
+
+function updateUserSelection() {
+    selectedUsers = [];
+    document.querySelectorAll('.user-cb:checked').forEach(function(cb) {
+        selectedUsers.push(cb.value);
+    });
+    updateUserDisplayText();
+}
+
+function updateUserDisplayText() {
+    var label = document.getElementById('userDropdownLabel');
+    if (selectedUsers.length === 0 || selectedUsers.length === mockUsers.length) {
+        label.textContent = 'All Users';
+    } else if (selectedUsers.length === 1) {
+        var user = mockUsers.find(function(u) { return u.id === selectedUsers[0]; });
+        label.textContent = user ? user.name : '1 selected';
+    } else {
+        label.textContent = selectedUsers.length + ' selected';
+    }
 }
 
 function renderSubAccountOptions() {
@@ -2193,9 +2288,12 @@ function applyClientFilters(data) {
             });
             if (!matchesSubAccount) return false;
         }
-        if (appliedFilters.user) {
-            var user = mockUsers.find(function(u) { return u.id === appliedFilters.user; });
-            if (user && item.generatedBy !== user.name) return false;
+        if (appliedFilters.users && appliedFilters.users.length > 0) {
+            var matchesUser = appliedFilters.users.some(function(userId) {
+                var user = mockUsers.find(function(u) { return u.id === userId; });
+                return user && item.generatedBy === user.name;
+            });
+            if (!matchesUser) return false;
         }
         return true;
     });
@@ -2211,7 +2309,7 @@ function applyFilters() {
     pendingFilters.month = document.getElementById('filterMonth').value;
     pendingFilters.module = document.getElementById('filterModule').value;
     pendingFilters.subAccounts = selectedSubAccounts.slice();
-    pendingFilters.user = document.getElementById('filterUser').value;
+    pendingFilters.users = selectedUsers.slice();
     
     appliedFilters = JSON.parse(JSON.stringify(pendingFilters));
     
@@ -2227,24 +2325,27 @@ function resetFilters() {
     document.getElementById('filterYear').value = currentYear.toString();
     document.getElementById('filterMonth').value = '';
     document.getElementById('filterModule').value = '';
-    document.getElementById('filterUser').value = '';
     
     selectedSubAccounts = [];
     document.querySelectorAll('.sub-account-cb').forEach(function(cb) { cb.checked = false; });
     document.getElementById('subAccountSelectAll').checked = false;
     updateSubAccountDisplayText();
     
+    selectedUsers = [];
+    document.querySelectorAll('.user-cb').forEach(function(cb) { cb.checked = false; });
+    updateUserDisplayText();
+    
     pendingFilters = {
         year: currentYear.toString(),
         month: '',
         module: '',
         subAccounts: [],
-        user: ''
+        users: []
     };
     appliedFilters = JSON.parse(JSON.stringify(pendingFilters));
     
     renderDownloads();
-    document.getElementById('activeFilters').style.display = 'none';
+    document.getElementById('activeFiltersContainer').style.display = 'none';
 }
 
 function updateFilterChips() {
@@ -2252,7 +2353,6 @@ function updateFilterChips() {
     var yearSelect = document.getElementById('filterYear');
     var monthSelect = document.getElementById('filterMonth');
     var moduleSelect = document.getElementById('filterModule');
-    var userSelect = document.getElementById('filterUser');
     
     var currentYear = new Date().getFullYear().toString();
     if (appliedFilters.year && appliedFilters.year !== currentYear) {
@@ -2267,12 +2367,12 @@ function updateFilterChips() {
     if (appliedFilters.subAccounts.length > 0 && appliedFilters.subAccounts.length < mockSubAccounts.length) {
         chips.push({ label: appliedFilters.subAccounts.length + ' Sub-account(s)', field: 'subAccounts', value: '' });
     }
-    if (appliedFilters.user) {
-        chips.push({ label: userSelect.options[userSelect.selectedIndex].text, field: 'filterUser', value: '' });
+    if (appliedFilters.users && appliedFilters.users.length > 0 && appliedFilters.users.length < mockUsers.length) {
+        chips.push({ label: appliedFilters.users.length + ' User(s)', field: 'users', value: '' });
     }
     
     if (chips.length === 0) {
-        document.getElementById('activeFilters').style.display = 'none';
+        document.getElementById('activeFiltersContainer').style.display = 'none';
         return;
     }
     
@@ -2281,7 +2381,7 @@ function updateFilterChips() {
         html += '<span class="filter-chip">' + chip.label + ' <span class="remove-chip" onclick="removeFilterChip(\'' + chip.field + '\', \'' + chip.value + '\')">&times;</span></span>';
     });
     document.getElementById('filterChips').innerHTML = html;
-    document.getElementById('activeFilters').style.display = 'block';
+    document.getElementById('activeFiltersContainer').style.display = 'flex';
 }
 
 function removeFilterChip(field, defaultValue) {
@@ -2291,6 +2391,11 @@ function removeFilterChip(field, defaultValue) {
         document.getElementById('subAccountSelectAll').checked = false;
         updateSubAccountDisplayText();
         appliedFilters.subAccounts = [];
+    } else if (field === 'users') {
+        selectedUsers = [];
+        document.querySelectorAll('.user-cb').forEach(function(cb) { cb.checked = false; });
+        updateUserDisplayText();
+        appliedFilters.users = [];
     } else {
         var el = document.getElementById(field);
         el.value = defaultValue;
@@ -2315,7 +2420,9 @@ function toggleRowSelect(id) {
 }
 
 function updateBulkActions() {
-    document.getElementById('bulkActions').style.display = selectedIds.length > 0 ? 'flex' : 'none';
+    var showBulk = selectedIds.length > 0;
+    document.getElementById('bulkActions').style.display = showBulk ? 'flex' : 'none';
+    document.getElementById('bulkActionsHeader').style.display = showBulk ? 'flex' : 'none';
 }
 
 function downloadSelected() {
