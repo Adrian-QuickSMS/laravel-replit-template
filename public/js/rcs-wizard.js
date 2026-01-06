@@ -1690,28 +1690,24 @@ function constrainRcsCropPosition() {
     var workspace = document.getElementById('rcsCropWorkspace');
     if (!workspace) return;
     
-    var workspaceWidth = workspace.clientWidth;
-    var workspaceHeight = workspace.clientHeight;
-    
     var scale = rcsCropState.displayScale * (rcsCropState.zoom / 100);
     var displayWidth = rcsCropState.imageWidth * scale;
     var displayHeight = rcsCropState.imageHeight * scale;
     
-    var frameHalfW = rcsCropState.frameWidth / 2;
-    var frameHalfH = rcsCropState.frameHeight / 2;
+    var frameWidth = rcsCropState.frameWidth;
+    var frameHeight = rcsCropState.frameHeight;
     
-    var minOffsetX = frameHalfW - (workspaceWidth / 2 + displayWidth / 2);
-    var maxOffsetX = (workspaceWidth / 2 + displayWidth / 2) - workspaceWidth + frameHalfW;
-    var minOffsetY = frameHalfH - (workspaceHeight / 2 + displayHeight / 2);
-    var maxOffsetY = (workspaceHeight / 2 + displayHeight / 2) - workspaceHeight + frameHalfH;
-    
-    if (displayWidth >= rcsCropState.frameWidth) {
+    if (displayWidth > frameWidth) {
+        var maxOffsetX = (displayWidth - frameWidth) / 2;
+        var minOffsetX = -maxOffsetX;
         rcsCropState.offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, rcsCropState.offsetX));
     } else {
         rcsCropState.offsetX = 0;
     }
     
-    if (displayHeight >= rcsCropState.frameHeight) {
+    if (displayHeight > frameHeight) {
+        var maxOffsetY = (displayHeight - frameHeight) / 2;
+        var minOffsetY = -maxOffsetY;
         rcsCropState.offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, rcsCropState.offsetY));
     } else {
         rcsCropState.offsetY = 0;
