@@ -349,6 +349,91 @@
     margin-bottom: 1rem;
     opacity: 0.5;
 }
+.subaccount-selector-card {
+    background: linear-gradient(135deg, #f8f6fc 0%, #f0ebf8 100%);
+    border: 1px solid #e0d6f2;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.subaccount-selector-card .card-body {
+    padding: 1.25rem;
+}
+.subaccount-selector-card label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.subaccount-selector-card label .required-badge {
+    background: #dc3545;
+    color: #fff;
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.subaccount-selector-card .form-select {
+    max-width: 400px;
+}
+.subaccount-selector-card .help-text {
+    font-size: 0.8125rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+.purchase-confirmation-modal .modal-header {
+    background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
+    color: #fff;
+    border-bottom: none;
+}
+.purchase-confirmation-modal .modal-header .btn-close {
+    filter: invert(1);
+}
+.purchase-confirmation-modal .confirmation-summary {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.purchase-confirmation-modal .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.purchase-confirmation-modal .summary-row:last-child {
+    border-bottom: none;
+}
+.purchase-confirmation-modal .summary-row.total {
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid #6f42c1;
+    margin-top: 0.5rem;
+}
+.purchase-confirmation-modal .billing-info {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+.purchase-confirmation-modal .billing-info i {
+    color: #856404;
+}
+.purchase-confirmation-modal .numbers-list {
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.875rem;
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
 </style>
 @endpush
 
@@ -488,6 +573,23 @@
                 </div>
             </div>
 
+            <div class="card subaccount-selector-card">
+                <div class="card-body">
+                    <label for="vmnSubAccountSelect">
+                        <i class="fas fa-building text-primary"></i>
+                        Assign to Sub-Account
+                        <span class="required-badge">Required</span>
+                    </label>
+                    <select class="form-select" id="vmnSubAccountSelect" onchange="onSubAccountChange()">
+                        <option value="">-- Select Sub-Account --</option>
+                    </select>
+                    <p class="help-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        All selected numbers will be assigned to this sub-account. One sub-account per purchase.
+                    </p>
+                </div>
+            </div>
+
             <div class="card vmn-table-card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5><i class="fas fa-list me-2 text-primary"></i>Available Numbers</h5>
@@ -543,8 +645,8 @@
                             <strong>£<span id="vmnMonthlyTotal">0</span></strong>/month
                         </span>
                     </div>
-                    <button class="btn btn-primary btn-sm" id="vmnProceedBtn" onclick="proceedWithSelectedNumbers()" disabled>
-                        <i class="fas fa-shopping-cart me-2"></i>Proceed to Checkout
+                    <button class="btn btn-primary btn-sm" id="vmnProceedBtn" onclick="showPurchaseConfirmation()" disabled>
+                        <i class="fas fa-credit-card me-2"></i>Purchase Selected Numbers
                     </button>
                 </div>
             </div>
@@ -674,12 +776,85 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade purchase-confirmation-modal" id="purchaseConfirmationModal" tabindex="-1" aria-labelledby="purchaseConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="purchaseConfirmationModalLabel">
+                    <i class="fas fa-credit-card me-2"></i>Confirm Purchase
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">You are about to purchase the following virtual mobile numbers:</p>
+                
+                <div class="numbers-list" id="confirmNumbersList"></div>
+                
+                <div class="confirmation-summary">
+                    <div class="summary-row">
+                        <span>Numbers Selected</span>
+                        <strong id="confirmNumberCount">0</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Assigned To</span>
+                        <strong id="confirmSubAccount">-</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Setup Fee (charged now)</span>
+                        <strong>£<span id="confirmSetupFee">0.00</span></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Monthly Fee</span>
+                        <strong>£<span id="confirmMonthlyFee">0.00</span>/month</strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Due Now</span>
+                        <strong class="text-primary">£<span id="confirmDueNow">0.00</span></strong>
+                    </div>
+                </div>
+                
+                <div class="billing-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Billing Information:</strong>
+                    <ul class="mb-0 mt-2 ps-4">
+                        <li>Setup fee will be charged immediately upon confirmation.</li>
+                        <li>Monthly fees are charged on the 1st of each month.</li>
+                        <li>First monthly charge will be pro-rated based on remaining days.</li>
+                    </ul>
+                </div>
+                
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-lock me-1"></i>
+                    By clicking "Confirm Purchase", you agree to purchase all selected numbers. This action cannot be partially completed.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmPurchaseBtn" onclick="executePurchase()">
+                    <i class="fas fa-check me-2"></i>Confirm Purchase
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
 var currentUserRole = 'admin';
 var allowedRoles = ['admin', 'finance', 'messaging_manager'];
+
+var subAccountsMockData = [
+    { id: 'sa_001', name: 'Main Account', canPurchase: true, allowedRoles: ['admin', 'finance', 'messaging_manager'] },
+    { id: 'sa_002', name: 'Marketing Team', canPurchase: true, allowedRoles: ['admin', 'finance', 'messaging_manager'] },
+    { id: 'sa_003', name: 'Sales Department', canPurchase: true, allowedRoles: ['admin', 'finance', 'messaging_manager'] },
+    { id: 'sa_004', name: 'Customer Support', canPurchase: true, allowedRoles: ['admin', 'messaging_manager'] },
+    { id: 'sa_005', name: 'Operations', canPurchase: true, allowedRoles: ['admin'] },
+    { id: 'sa_006', name: 'HR Department', canPurchase: false, allowedRoles: ['admin'] }
+];
+
+var selectedSubAccountId = '';
 
 var vmnMockData = [
     { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_001' },
@@ -707,6 +882,7 @@ var vmnCountryFilter = '';
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
+    populateSubAccountDropdown();
     initializeVmnTable();
 });
 
@@ -714,6 +890,26 @@ function checkAccess() {
     var hasAccess = allowedRoles.includes(currentUserRole);
     document.getElementById('accessDeniedView').style.display = hasAccess ? 'none' : 'block';
     document.getElementById('purchaseContent').style.display = hasAccess ? 'block' : 'none';
+}
+
+function populateSubAccountDropdown() {
+    var select = document.getElementById('vmnSubAccountSelect');
+    var availableAccounts = subAccountsMockData.filter(function(sa) {
+        return sa.canPurchase && sa.allowedRoles.includes(currentUserRole);
+    });
+    
+    availableAccounts.forEach(function(sa) {
+        var option = document.createElement('option');
+        option.value = sa.id;
+        option.textContent = sa.name;
+        select.appendChild(option);
+    });
+}
+
+function onSubAccountChange() {
+    var select = document.getElementById('vmnSubAccountSelect');
+    selectedSubAccountId = select.value;
+    updateVmnSelection();
 }
 
 function initializeVmnTable() {
@@ -853,7 +1049,9 @@ function toggleVmnSelect(id) {
 function updateVmnSelection() {
     var count = vmnSelectedIds.length;
     document.getElementById('vmnSelectedCount').textContent = count;
-    document.getElementById('vmnProceedBtn').disabled = count === 0;
+    
+    var canPurchase = count > 0 && selectedSubAccountId !== '';
+    document.getElementById('vmnProceedBtn').disabled = !canPurchase;
     
     var totalCostEl = document.getElementById('vmnTotalCost');
     if (count > 0) {
@@ -882,19 +1080,76 @@ function updateVmnSelection() {
     document.getElementById('vmnSelectAll').checked = allSelected;
 }
 
-function proceedWithSelectedNumbers() {
-    if (vmnSelectedIds.length === 0) return;
+function showPurchaseConfirmation() {
+    if (vmnSelectedIds.length === 0 || !selectedSubAccountId) return;
     
     var selectedNumbers = vmnSelectedIds.map(function(id) {
         return vmnMockData.find(function(n) { return n.id === id; });
     });
     
-    console.log('TODO: API call - POST /api/purchase/numbers/checkout');
-    console.log('TODO: Fetch live pricing from HubSpot Products API using hubspotProductId');
-    console.log('Selected numbers:', selectedNumbers);
+    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedSubAccountId; });
     
-    var numberList = selectedNumbers.map(function(n) { return n.number; }).join(', ');
-    alert('Checkout coming soon.\n\nSelected numbers: ' + numberList);
+    var setupTotal = 0;
+    var monthlyTotal = 0;
+    var numbersList = [];
+    
+    selectedNumbers.forEach(function(item) {
+        setupTotal += item.setupFee;
+        monthlyTotal += item.monthlyFee;
+        numbersList.push(item.number + ' (' + item.countryName + ')');
+    });
+    
+    document.getElementById('confirmNumbersList').innerHTML = numbersList.join('<br>');
+    document.getElementById('confirmNumberCount').textContent = selectedNumbers.length;
+    document.getElementById('confirmSubAccount').textContent = subAccount ? subAccount.name : '-';
+    document.getElementById('confirmSetupFee').textContent = setupTotal.toFixed(2);
+    document.getElementById('confirmMonthlyFee').textContent = monthlyTotal.toFixed(2);
+    document.getElementById('confirmDueNow').textContent = setupTotal.toFixed(2);
+    
+    var modal = new bootstrap.Modal(document.getElementById('purchaseConfirmationModal'));
+    modal.show();
+}
+
+function executePurchase() {
+    if (vmnSelectedIds.length === 0 || !selectedSubAccountId) return;
+    
+    var selectedNumbers = vmnSelectedIds.map(function(id) {
+        return vmnMockData.find(function(n) { return n.id === id; });
+    });
+    
+    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedSubAccountId; });
+    
+    var setupTotal = 0;
+    var monthlyTotal = 0;
+    selectedNumbers.forEach(function(item) {
+        setupTotal += item.setupFee;
+        monthlyTotal += item.monthlyFee;
+    });
+    
+    console.log('TODO: API call - POST /api/purchase/numbers/execute');
+    console.log('TODO: Atomic transaction required - all or nothing');
+    console.log('TODO: 1. Deduct setup fee from account balance');
+    console.log('TODO: 2. Schedule monthly fee for 1st of each month');
+    console.log('TODO: 3. Mark numbers as owned/reserved');
+    console.log('TODO: 4. Assign numbers to sub-account');
+    console.log('Purchase details:', {
+        subAccountId: selectedSubAccountId,
+        subAccountName: subAccount ? subAccount.name : null,
+        numbers: selectedNumbers.map(function(n) { return { id: n.id, number: n.number, hubspotProductId: n.hubspotProductId }; }),
+        setupFeeTotal: setupTotal,
+        monthlyFeeTotal: monthlyTotal
+    });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('purchaseConfirmationModal'));
+    modal.hide();
+    
+    alert('Purchase confirmed!\n\n' + selectedNumbers.length + ' number(s) purchased and assigned to ' + (subAccount ? subAccount.name : 'Unknown') + '.\n\nSetup fee charged: £' + setupTotal.toFixed(2) + '\nMonthly fee: £' + monthlyTotal.toFixed(2) + '/month\n\n(This is a demo - no actual purchase was made)');
+    
+    vmnSelectedIds = [];
+    selectedSubAccountId = '';
+    document.getElementById('vmnSubAccountSelect').value = '';
+    renderVmnTable();
+    updateVmnSelection();
 }
 
 function selectNumberType(type) {
