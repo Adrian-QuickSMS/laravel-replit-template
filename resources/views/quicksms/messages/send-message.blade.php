@@ -1078,6 +1078,12 @@
                                                         <input type="radio" class="btn-check" name="rcsCardWidth" id="rcsCardWidthMedium" value="medium" checked>
                                                         <label class="btn btn-outline-secondary btn-sm" for="rcsCardWidthMedium">Medium (296 DP)</label>
                                                     </div>
+                                                    <div id="rcsCarouselWidthNotice" class="alert alert-success py-1 px-2 mt-2 d-none small">
+                                                        <i class="fas fa-check-circle me-1"></i>Card width applied to all cards in this carousel.
+                                                    </div>
+                                                    <small class="text-muted d-block mt-1" id="rcsCarouselWidthHint">
+                                                        <i class="fas fa-layer-group me-1"></i>In carousels, all cards share the same width.
+                                                    </small>
                                                 </div>
                                                 
                                                 <div class="mb-3">
@@ -1093,6 +1099,12 @@
                                                     <div id="rcsCardWidthHeightWarning" class="alert alert-info py-1 px-2 mt-2 d-none small">
                                                         <i class="fas fa-info-circle me-1"></i><span id="rcsCardWidthHeightWarningText">Tall media height is not available with Small card width.</span>
                                                     </div>
+                                                    <div id="rcsCarouselHeightNotice" class="alert alert-success py-1 px-2 mt-2 d-none small">
+                                                        <i class="fas fa-check-circle me-1"></i>Media height applied to all cards in this carousel.
+                                                    </div>
+                                                    <small class="text-muted d-block mt-1" id="rcsCarouselHeightHint">
+                                                        <i class="fas fa-layer-group me-1"></i>In carousels, all cards share the same media height.
+                                                    </small>
                                                 </div>
                                                 
                                                 <div class="rcs-crop-container mb-3" id="rcsCropContainer">
@@ -2084,6 +2096,10 @@ function saveCurrentCardData() {
     card.media.orientation = orientChecked ? orientChecked.value : 'vertical_short';
     var widthChecked = document.querySelector('input[name="rcsCardWidth"]:checked');
     card.media.cardWidth = widthChecked ? widthChecked.value : 'medium';
+    
+    rcsCarouselHeight = card.media.orientation;
+    rcsCarouselWidth = card.media.cardWidth;
+    
     card.media.zoom = rcsCropState.zoom;
     card.media.cropOffsetX = rcsCropState.offsetX;
     card.media.cropOffsetY = rcsCropState.offsetY;
@@ -2620,6 +2636,9 @@ function addRcsCard() {
     rcsCardCount++;
     initializeRcsCard(rcsCardCount);
     
+    rcsCardsData[rcsCardCount].media.orientation = rcsCarouselHeight;
+    rcsCardsData[rcsCardCount].media.cardWidth = rcsCarouselWidth;
+    
     var tabsContainer = document.getElementById('rcsCardTabs');
     var addBtn = document.getElementById('rcsAddCardBtn');
     
@@ -2771,6 +2790,8 @@ var rcsCropFrameSizes = {
 };
 
 var rcsCurrentCardWidth = 'medium';
+var rcsCarouselHeight = 'vertical_short';
+var rcsCarouselWidth = 'medium';
 
 var rcsImageDirtyState = {
     isDirty: false,
@@ -3402,17 +3423,75 @@ function initRcsCropEditor() {
     
     document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
-            updateRcsCropFrame(this.value);
+            applyCarouselHeightToAllCards(this.value);
         });
     });
     
     document.querySelectorAll('input[name="rcsCardWidth"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
-            updateRcsCardWidth(this.value);
+            applyCarouselWidthToAllCards(this.value);
         });
     });
     
     updateRcsCropFrame('vertical_short');
+}
+
+function applyCarouselHeightToAllCards(height) {
+    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
+    
+    rcsCarouselHeight = height;
+    updateRcsCropFrame(height);
+    
+    if (isCarousel && rcsCardCount > 1) {
+        saveCurrentCardData();
+        
+        for (var i = 1; i <= rcsCardCount; i++) {
+            if (rcsCardsData[i]) {
+                rcsCardsData[i].media.orientation = height;
+            }
+        }
+        
+        showCarouselHeightNotice();
+    }
+}
+
+function applyCarouselWidthToAllCards(width) {
+    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
+    
+    rcsCarouselWidth = width;
+    updateRcsCardWidth(width);
+    
+    if (isCarousel && rcsCardCount > 1) {
+        saveCurrentCardData();
+        
+        for (var i = 1; i <= rcsCardCount; i++) {
+            if (rcsCardsData[i]) {
+                rcsCardsData[i].media.cardWidth = width;
+            }
+        }
+        
+        showCarouselWidthNotice();
+    }
+}
+
+function showCarouselHeightNotice() {
+    var notice = document.getElementById('rcsCarouselHeightNotice');
+    if (notice) {
+        notice.classList.remove('d-none');
+        setTimeout(function() {
+            notice.classList.add('d-none');
+        }, 4000);
+    }
+}
+
+function showCarouselWidthNotice() {
+    var notice = document.getElementById('rcsCarouselWidthNotice');
+    if (notice) {
+        notice.classList.remove('d-none');
+        setTimeout(function() {
+            notice.classList.add('d-none');
+        }, 4000);
+    }
 }
 
 function updateRcsCropFrame(orientation) {
