@@ -348,6 +348,42 @@
     flex: 1;
     word-break: break-word;
 }
+.filters-preview-box {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.75rem;
+    max-height: 180px;
+    overflow-y: auto;
+}
+.filters-preview-box .filter-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.375rem 0;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.8125rem;
+}
+.filters-preview-box .filter-item:last-child {
+    border-bottom: none;
+}
+.filters-preview-box .filter-name {
+    color: #6c757d;
+}
+.filters-preview-box .filter-value {
+    color: #212529;
+    font-weight: 500;
+}
+.naming-preview-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+}
+.schedule-filters-preview,
+.schedule-naming-preview {
+    margin-bottom: 1rem;
+}
 </style>
 @endpush
 
@@ -662,54 +698,125 @@
 
 
 <div class="modal fade" id="scheduleRecurringModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Schedule Recurring Report</h5>
+                <h5 class="modal-title"><i class="fas fa-clock me-2"></i>Schedule Recurring Report</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted small mb-3">Set up automatic generation of this report on a schedule.</p>
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Scheduled reports will use the <strong>exact same filters</strong> from the original export. Each run creates a new entry in the Download Area.
+                </div>
                 
                 <input type="hidden" id="scheduleReportId">
                 
-                <div class="mb-3">
-                    <label class="form-label">Report Name</label>
-                    <input type="text" class="form-control" id="scheduleReportName" readonly>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Frequency</label>
-                    <select class="form-select" id="scheduleFrequency" onchange="onFrequencyChange()">
-                        <option value="daily">Daily</option>
-                        <option value="weekly" selected>Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="quarterly">Quarterly</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3" id="weeklyOptions">
-                    <label class="form-label">Day of Week</label>
-                    <select class="form-select" id="scheduleDayOfWeek">
-                        <option value="1">Monday</option>
-                        <option value="2">Tuesday</option>
-                        <option value="3">Wednesday</option>
-                        <option value="4">Thursday</option>
-                        <option value="5">Friday</option>
-                        <option value="6">Saturday</option>
-                        <option value="0">Sunday</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Time</label>
-                    <input type="time" class="form-control" id="scheduleTime" value="09:00">
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Email Recipients</label>
-                    <input type="text" class="form-control" id="scheduleRecipients" placeholder="email@example.com, another@example.com">
-                    <div class="form-text">Comma-separated email addresses to receive the report.</div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Base Report</label>
+                            <input type="text" class="form-control" id="scheduleReportName" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Frequency <span class="text-danger">*</span></label>
+                            <select class="form-select" id="scheduleFrequency" onchange="onFrequencyChange()">
+                                <option value="daily">Daily</option>
+                                <option value="weekly" selected>Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="weeklyOptions">
+                            <label class="form-label">Day of Week</label>
+                            <select class="form-select" id="scheduleDayOfWeek">
+                                <option value="1">Monday</option>
+                                <option value="2">Tuesday</option>
+                                <option value="3">Wednesday</option>
+                                <option value="4">Thursday</option>
+                                <option value="5">Friday</option>
+                                <option value="6">Saturday</option>
+                                <option value="0">Sunday</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="monthlyOptions" style="display: none;">
+                            <label class="form-label">Day of Month</label>
+                            <select class="form-select" id="scheduleDayOfMonth">
+                                <option value="1">1st</option>
+                                <option value="5">5th</option>
+                                <option value="10">10th</option>
+                                <option value="15">15th</option>
+                                <option value="20">20th</option>
+                                <option value="25">25th</option>
+                                <option value="last">Last day of month</option>
+                            </select>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Run Time <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="scheduleTime" value="09:00">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Time Zone</label>
+                                <select class="form-select" id="scheduleTimezone">
+                                    <option value="Europe/London" selected>London (GMT/BST)</option>
+                                    <option value="Europe/Paris">Paris (CET)</option>
+                                    <option value="America/New_York">New York (EST)</option>
+                                    <option value="America/Los_Angeles">Los Angeles (PST)</option>
+                                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                    <option value="UTC">UTC</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Method</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="deliveryDownloadArea" checked disabled>
+                                <label class="form-check-label" for="deliveryDownloadArea">
+                                    Store in Download Area
+                                </label>
+                                <div class="form-text">Reports are always saved to Download Area</div>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="deliveryEmail" onchange="toggleEmailRecipients()">
+                                <label class="form-check-label" for="deliveryEmail">
+                                    Email notification
+                                    <span class="badge bg-secondary ms-1">Coming Soon</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3" id="emailRecipientsGroup" style="display: none;">
+                            <label class="form-label">Email Recipients</label>
+                            <input type="text" class="form-control" id="scheduleRecipients" placeholder="email@example.com, another@example.com">
+                            <div class="form-text">Comma-separated email addresses to receive the report.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="schedule-filters-preview">
+                            <label class="form-label">Filters to be Applied (Read-only)</label>
+                            <div class="filters-preview-box" id="scheduleFiltersPreview">
+                                <div class="text-muted small">Loading filters...</div>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-lock me-1"></i>These filters cannot be modified. To use different filters, create a new export first.
+                            </div>
+                        </div>
+                        
+                        <div class="schedule-naming-preview mt-3">
+                            <label class="form-label">Report Naming</label>
+                            <div class="naming-preview-box" id="scheduleNamingPreview">
+                                <span class="text-muted">Example: </span>
+                                <span id="namingExample">Message Logs – Jan 22 2026 – 090000</span>
+                            </div>
+                            <div class="form-text">Each scheduled run includes the run date in the report name.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1243,17 +1350,29 @@ function downloadReport(id) {
     alert('Download started for: ' + report.reportName);
 }
 
+var currentScheduleReport = null;
+
 function scheduleRecurring(id) {
     closeAllActionMenus();
     var report = mockDownloads.find(function(d) { return d.id === id; });
     if (!report) return;
     
+    currentScheduleReport = report;
+    
     document.getElementById('scheduleReportId').value = id;
     document.getElementById('scheduleReportName').value = report.reportName;
     document.getElementById('scheduleFrequency').value = 'weekly';
     document.getElementById('scheduleDayOfWeek').value = '1';
+    document.getElementById('scheduleDayOfMonth').value = '1';
     document.getElementById('scheduleTime').value = '09:00';
+    document.getElementById('scheduleTimezone').value = 'Europe/London';
     document.getElementById('scheduleRecipients').value = '';
+    document.getElementById('deliveryEmail').checked = false;
+    document.getElementById('emailRecipientsGroup').style.display = 'none';
+    
+    onFrequencyChange();
+    updateFiltersPreview(report);
+    updateNamingPreview(report);
     
     var modal = new bootstrap.Modal(document.getElementById('scheduleRecurringModal'));
     modal.show();
@@ -1261,37 +1380,159 @@ function scheduleRecurring(id) {
     console.log('TODO: Load existing schedule if any for report ID:', id);
 }
 
+function updateFiltersPreview(report) {
+    var filtersContainer = document.getElementById('scheduleFiltersPreview');
+    var filterKeys = report.filters ? Object.keys(report.filters) : [];
+    
+    if (filterKeys.length > 0) {
+        var html = '';
+        filterKeys.forEach(function(key) {
+            html += '<div class="filter-item">';
+            html += '<span class="filter-name">' + formatFilterName(key) + '</span>';
+            html += '<span class="filter-value">' + report.filters[key] + '</span>';
+            html += '</div>';
+        });
+        filtersContainer.innerHTML = html;
+    } else {
+        filtersContainer.innerHTML = '<div class="text-muted small">No filters applied - all data will be included</div>';
+    }
+}
+
+function updateNamingPreview(report) {
+    var modulePrefix = report.module === 'message_logs' ? 'Message Logs' : 'Finance Data';
+    var nextDate = getNextRunDate();
+    var timestamp = document.getElementById('scheduleTime').value.replace(':', '') + '00';
+    var example = modulePrefix + ' – ' + nextDate + ' – ' + timestamp;
+    document.getElementById('namingExample').textContent = example;
+}
+
+function getNextRunDate() {
+    var frequency = document.getElementById('scheduleFrequency').value;
+    var now = new Date();
+    var nextRun = new Date(now);
+    
+    if (frequency === 'daily') {
+        nextRun.setDate(nextRun.getDate() + 1);
+    } else if (frequency === 'weekly') {
+        var targetDay = parseInt(document.getElementById('scheduleDayOfWeek').value);
+        var currentDay = nextRun.getDay();
+        var daysUntil = (targetDay - currentDay + 7) % 7;
+        if (daysUntil === 0) daysUntil = 7;
+        nextRun.setDate(nextRun.getDate() + daysUntil);
+    } else if (frequency === 'monthly') {
+        var targetDayOfMonth = document.getElementById('scheduleDayOfMonth').value;
+        nextRun.setMonth(nextRun.getMonth() + 1);
+        if (targetDayOfMonth === 'last') {
+            nextRun = new Date(nextRun.getFullYear(), nextRun.getMonth() + 1, 0);
+        } else {
+            nextRun.setDate(parseInt(targetDayOfMonth));
+        }
+    }
+    
+    var options = { day: '2-digit', month: 'short', year: 'numeric' };
+    return nextRun.toLocaleDateString('en-GB', options).replace(/ /g, ' ');
+}
+
 function onFrequencyChange() {
     var frequency = document.getElementById('scheduleFrequency').value;
-    var weeklyOptions = document.getElementById('weeklyOptions');
-    weeklyOptions.style.display = frequency === 'weekly' ? 'block' : 'none';
+    document.getElementById('weeklyOptions').style.display = frequency === 'weekly' ? 'block' : 'none';
+    document.getElementById('monthlyOptions').style.display = frequency === 'monthly' ? 'block' : 'none';
+    
+    if (currentScheduleReport) {
+        updateNamingPreview(currentScheduleReport);
+    }
+}
+
+function toggleEmailRecipients() {
+    var emailChecked = document.getElementById('deliveryEmail').checked;
+    document.getElementById('emailRecipientsGroup').style.display = emailChecked ? 'block' : 'none';
 }
 
 function saveSchedule() {
     var reportId = document.getElementById('scheduleReportId').value;
     var frequency = document.getElementById('scheduleFrequency').value;
     var dayOfWeek = document.getElementById('scheduleDayOfWeek').value;
+    var dayOfMonth = document.getElementById('scheduleDayOfMonth').value;
     var time = document.getElementById('scheduleTime').value;
+    var timezone = document.getElementById('scheduleTimezone').value;
+    var emailEnabled = document.getElementById('deliveryEmail').checked;
     var recipients = document.getElementById('scheduleRecipients').value;
-    
-    if (!recipients.trim()) {
-        alert('Please enter at least one email recipient.');
-        return;
-    }
     
     var scheduleData = {
         reportId: reportId,
         frequency: frequency,
-        dayOfWeek: frequency === 'weekly' ? dayOfWeek : null,
+        dayOfWeek: frequency === 'weekly' ? parseInt(dayOfWeek) : null,
+        dayOfMonth: frequency === 'monthly' ? dayOfMonth : null,
         time: time,
-        recipients: recipients.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; })
+        timezone: timezone,
+        deliveryMethods: ['download_area'],
+        recipients: emailEnabled ? recipients.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; }) : []
     };
     
     console.log('TODO: Save schedule:', scheduleData);
     console.log('TODO: API call - POST /api/downloads/' + reportId + '/schedule');
     
+    var originalReport = currentScheduleReport;
+    if (originalReport) {
+        var reportIdx = mockDownloads.findIndex(function(d) { return d.id === parseInt(reportId); });
+        if (reportIdx > -1) {
+            var nextRunDateStr = getNextRunDate();
+            mockDownloads[reportIdx].recurrence = {
+                frequency: frequency,
+                dayOfWeek: frequency === 'weekly' ? parseInt(dayOfWeek) : null,
+                dayOfMonth: frequency === 'monthly' ? dayOfMonth : null,
+                time: time,
+                timezone: timezone,
+                nextRun: nextRunDateStr + ' ' + time + ':00',
+                recipients: scheduleData.recipients
+            };
+        }
+    }
+    
     bootstrap.Modal.getInstance(document.getElementById('scheduleRecurringModal')).hide();
-    alert('Schedule saved successfully!');
+    alert('Schedule saved successfully! The next report will be generated on ' + getNextRunDate() + ' at ' + time + '.');
+    currentScheduleReport = null;
+}
+
+function simulateScheduledRun(reportId) {
+    var originalReport = mockDownloads.find(function(d) { return d.id === reportId; });
+    if (!originalReport || !originalReport.recurrence) {
+        console.log('Report has no schedule');
+        return;
+    }
+    
+    var now = new Date();
+    var modulePrefix = originalReport.module === 'message_logs' ? 'Message Logs' : 'Finance Data';
+    var dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    var timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+    var newReportName = modulePrefix + ' – ' + dateStr + ' – ' + timeStr;
+    
+    var newId = Math.max.apply(null, mockDownloads.map(function(d) { return d.id; })) + 1;
+    
+    var newReport = {
+        id: newId,
+        reportName: newReportName,
+        module: originalReport.module,
+        subAccount: originalReport.subAccount,
+        generatedBy: 'System (Scheduled)',
+        dateGenerated: now.toISOString().replace('T', ' ').substring(0, 19),
+        fileType: originalReport.fileType,
+        fileSize: Math.random() * 5 + 0.5,
+        status: 'Completed',
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+        timeframe: originalReport.timeframe,
+        recordCount: Math.floor(Math.random() * 2000) + 100,
+        filters: JSON.parse(JSON.stringify(originalReport.filters)),
+        recurrence: null,
+        scheduledFromId: reportId
+    };
+    
+    mockDownloads.unshift(newReport);
+    renderDownloads();
+    
+    console.log('Simulated scheduled run created new report:', newReport);
+    alert('Simulated scheduled run complete! New report "' + newReportName + '" has been added to the Download Area.');
 }
 
 function deleteReport(id) {
