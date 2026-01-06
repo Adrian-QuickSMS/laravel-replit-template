@@ -1070,18 +1070,28 @@
                                                     </button>
                                                 </div>
                                                 
+                                                <div class="mb-3" id="rcsCardWidthSection">
+                                                    <label class="form-label small mb-2">Card Width</label>
+                                                    <div class="btn-group w-100" role="group">
+                                                        <input type="radio" class="btn-check" name="rcsCardWidth" id="rcsCardWidthSmall" value="small">
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsCardWidthSmall">Small (180 DP)</label>
+                                                        <input type="radio" class="btn-check" name="rcsCardWidth" id="rcsCardWidthMedium" value="medium" checked>
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsCardWidthMedium">Medium (296 DP)</label>
+                                                    </div>
+                                                </div>
+                                                
                                                 <div class="mb-3">
-                                                    <label class="form-label small mb-2">Card Size</label>
+                                                    <label class="form-label small mb-2">Media Height</label>
                                                     <div class="btn-group w-100" role="group">
                                                         <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientVertShort" value="vertical_short" checked>
-                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertShort">Short</label>
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertShort">Short (112 DP)</label>
                                                         <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientVertMed" value="vertical_medium">
-                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertMed">Medium</label>
-                                                        <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientHoriz" value="horizontal" style="display: none;" disabled>
-                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientHoriz" id="rcsOrientHorizLabel" style="display: none;">Tall</label>
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertMed">Medium (168 DP)</label>
+                                                        <input type="radio" class="btn-check" name="rcsOrientation" id="rcsOrientVertTall" value="vertical_tall">
+                                                        <label class="btn btn-outline-secondary btn-sm" for="rcsOrientVertTall" id="rcsOrientVertTallLabel">Tall (264 DP)</label>
                                                     </div>
-                                                    <div id="rcsCarouselOrientWarning" class="alert alert-warning py-1 px-2 mt-2 d-none small">
-                                                        <i class="fas fa-info-circle me-1"></i>Tall size is not available for Carousel cards.
+                                                    <div id="rcsCardWidthHeightWarning" class="alert alert-info py-1 px-2 mt-2 d-none small">
+                                                        <i class="fas fa-info-circle me-1"></i><span id="rcsCardWidthHeightWarningText">Tall media height is not available with Small card width.</span>
                                                     </div>
                                                 </div>
                                                 
@@ -2041,6 +2051,7 @@ function initializeRcsCard(cardNum) {
                 fileSize: 0,
                 dimensions: null,
                 orientation: 'vertical_short',
+                cardWidth: 'medium',
                 zoom: 100,
                 cropOffsetX: 0,
                 cropOffsetY: 0,
@@ -2071,6 +2082,8 @@ function saveCurrentCardData() {
     
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     card.media.orientation = orientChecked ? orientChecked.value : 'vertical_short';
+    var widthChecked = document.querySelector('input[name="rcsCardWidth"]:checked');
+    card.media.cardWidth = widthChecked ? widthChecked.value : 'medium';
     card.media.zoom = rcsCropState.zoom;
     card.media.cropOffsetX = rcsCropState.offsetX;
     card.media.cropOffsetY = rcsCropState.offsetY;
@@ -2093,9 +2106,14 @@ function loadCardData(cardNum) {
     rcsMediaData.originalUrl = card.media.originalUrl;
     
     if (card.media.url) {
+        var cardWidth = card.media.cardWidth || 'medium';
+        var widthRadio = document.getElementById('rcsCardWidth' + cardWidth.charAt(0).toUpperCase() + cardWidth.slice(1));
+        if (widthRadio) widthRadio.checked = true;
+        updateRcsCardWidth(cardWidth);
+        
         var orientId = getOrientationRadioId(card.media.orientation);
         var orientRadio = document.getElementById(orientId);
-        if (orientRadio) orientRadio.checked = true;
+        if (orientRadio && !orientRadio.disabled) orientRadio.checked = true;
         updateRcsCropFrame(card.media.orientation);
         
         showRcsMediaPreview(card.media.hostedUrl || card.media.url);
@@ -2118,7 +2136,7 @@ function loadCardData(cardNum) {
         switch(orientation) {
             case 'vertical_short': return 'rcsOrientVertShort';
             case 'vertical_medium': return 'rcsOrientVertMed';
-            case 'horizontal': return 'rcsOrientHoriz';
+            case 'vertical_tall': return 'rcsOrientVertTall';
             default: return 'rcsOrientVertShort';
         }
     }
@@ -2741,11 +2759,18 @@ var rcsCropState = {
 };
 
 var rcsCropFrameSizes = {
-    'vertical_short': { width: 280, height: 112 },
-    'vertical_medium': { width: 280, height: 168 },
-    'vertical_tall': { width: 280, height: 264 },
-    'horizontal': { width: 280, height: 168 }
+    'small': {
+        'vertical_short': { width: 180, height: 112 },
+        'vertical_medium': { width: 180, height: 168 }
+    },
+    'medium': {
+        'vertical_short': { width: 296, height: 112 },
+        'vertical_medium': { width: 296, height: 168 },
+        'vertical_tall': { width: 296, height: 264 }
+    }
 };
+
+var rcsCurrentCardWidth = 'medium';
 
 var rcsImageDirtyState = {
     isDirty: false,
@@ -3381,6 +3406,12 @@ function initRcsCropEditor() {
         });
     });
     
+    document.querySelectorAll('input[name="rcsCardWidth"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            updateRcsCardWidth(this.value);
+        });
+    });
+    
     updateRcsCropFrame('vertical_short');
 }
 
@@ -3389,7 +3420,8 @@ function updateRcsCropFrame(orientation) {
     var frame = document.getElementById('rcsCropFrame');
     if (!frame) return;
     
-    var sizes = rcsCropFrameSizes[orientation] || rcsCropFrameSizes['vertical_short'];
+    var widthSizes = rcsCropFrameSizes[rcsCurrentCardWidth] || rcsCropFrameSizes['medium'];
+    var sizes = widthSizes[orientation] || widthSizes['vertical_short'];
     rcsCropState.frameWidth = sizes.width;
     rcsCropState.frameHeight = sizes.height;
     
@@ -3400,13 +3432,48 @@ function updateRcsCropFrame(orientation) {
         frame.classList.add('rcs-crop-frame--medium');
     } else if (orientation === 'vertical_tall') {
         frame.classList.add('rcs-crop-frame--tall');
-    } else if (orientation === 'horizontal') {
-        frame.classList.add('rcs-crop-frame--medium');
     }
+    
+    frame.style.width = sizes.width + 'px';
+    frame.style.height = sizes.height + 'px';
     
     constrainRcsCropPosition();
     applyRcsCropTransform();
     markRcsImageDirty();
+}
+
+function updateRcsCardWidth(cardWidth) {
+    rcsCurrentCardWidth = cardWidth;
+    
+    var tallInput = document.getElementById('rcsOrientVertTall');
+    var tallLabel = document.getElementById('rcsOrientVertTallLabel');
+    var warningEl = document.getElementById('rcsCardWidthHeightWarning');
+    
+    if (cardWidth === 'small') {
+        tallInput.disabled = true;
+        tallLabel.classList.add('disabled');
+        tallLabel.style.opacity = '0.5';
+        tallLabel.style.pointerEvents = 'none';
+        
+        if (tallInput.checked) {
+            document.getElementById('rcsOrientVertMed').checked = true;
+            warningEl.classList.remove('d-none');
+            document.getElementById('rcsCardWidthHeightWarningText').textContent = 
+                'Tall media height is not available with Small card width. Height has been reset to Medium.';
+            updateRcsCropFrame('vertical_medium');
+        }
+    } else {
+        tallInput.disabled = false;
+        tallLabel.classList.remove('disabled');
+        tallLabel.style.opacity = '1';
+        tallLabel.style.pointerEvents = 'auto';
+        warningEl.classList.add('d-none');
+    }
+    
+    var currentOrientation = document.querySelector('input[name="rcsOrientation"]:checked');
+    if (currentOrientation) {
+        updateRcsCropFrame(currentOrientation.value);
+    }
 }
 
 function initRcsCropImage(imgElement) {
