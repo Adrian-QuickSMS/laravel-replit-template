@@ -2736,15 +2736,15 @@ var rcsCropState = {
     startOffsetX: 0,
     startOffsetY: 0,
     frameWidth: 280,
-    frameHeight: 98,
+    frameHeight: 112,
     orientation: 'vertical_short'
 };
 
 var rcsCropFrameSizes = {
-    'vertical_short': { width: 280, height: 98 },
-    'vertical_medium': { width: 280, height: 147 },
-    'vertical_tall': { width: 280, height: 180 },
-    'horizontal': { width: 280, height: 147 }
+    'vertical_short': { width: 280, height: 112 },
+    'vertical_medium': { width: 280, height: 168 },
+    'vertical_tall': { width: 280, height: 264 },
+    'horizontal': { width: 280, height: 168 }
 };
 
 var rcsImageDirtyState = {
