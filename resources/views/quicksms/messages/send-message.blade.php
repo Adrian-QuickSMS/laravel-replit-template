@@ -3057,33 +3057,6 @@ function showCarouselWidthNotice() {
     }
 }
 
-function updateRcsCropFrame(orientation) {
-    rcsCropState.orientation = orientation;
-    var frame = document.getElementById('rcsCropFrame');
-    if (!frame) return;
-    
-    var widthSizes = rcsCropFrameSizes[rcsCurrentCardWidth] || rcsCropFrameSizes['medium'];
-    var sizes = widthSizes[orientation] || widthSizes['vertical_short'];
-    rcsCropState.frameWidth = sizes.width;
-    rcsCropState.frameHeight = sizes.height;
-    
-    frame.className = 'rcs-crop-frame';
-    if (orientation === 'vertical_short') {
-        frame.classList.add('rcs-crop-frame--short');
-    } else if (orientation === 'vertical_medium') {
-        frame.classList.add('rcs-crop-frame--medium');
-    } else if (orientation === 'vertical_tall') {
-        frame.classList.add('rcs-crop-frame--tall');
-    }
-    
-    frame.style.width = sizes.width + 'px';
-    frame.style.height = sizes.height + 'px';
-    
-    constrainRcsCropPosition();
-    applyRcsCropTransform();
-    markRcsImageDirty();
-}
-
 function updateRcsCardWidth(cardWidth) {
     rcsCurrentCardWidth = cardWidth;
     
