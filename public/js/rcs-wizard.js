@@ -46,9 +46,9 @@ var rcsCropState = {
 };
 
 var rcsSingleCardFrameSizes = {
-    'vertical_short': { width: 300, height: 112 },
-    'vertical_medium': { width: 300, height: 168 },
-    'vertical_tall': { width: 300, height: 264 }
+    'vertical_short': { width: 200, height: 100, aspectRatio: 2 },
+    'vertical_medium': { width: 240, height: 120, aspectRatio: 2 },
+    'vertical_tall': { width: 280, height: 140, aspectRatio: 2 }
 };
 
 var rcsCarouselFrameSizes = {
