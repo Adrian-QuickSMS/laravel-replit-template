@@ -1909,22 +1909,175 @@ function initializeRcsCard(cardNum) {
     return rcsCardsData[cardNum];
 }
 
-function saveCurrentCardData() {
+/**
+ * Generate a cropped/zoomed image using HTML Canvas
+ * @param {string} imageUrl - Original image URL
+ * @param {string} orientation - Card orientation (vertical_short, vertical_medium, horizontal)
+ * @param {number} zoom - Zoom percentage (100 = no zoom)
+ * @param {string} cropPosition - Crop position (center, top, bottom)
+ * @returns {Promise<{url: string, blob: Blob, width: number, height: number}>}
+ */
+function generateCroppedImage(imageUrl, orientation, zoom, cropPosition) {
+    return new Promise((resolve, reject) => {
+        // RCS card dimensions (width is typically 764px for RCS)
+        const RCS_WIDTH = 764;
+        const orientationHeights = {
+            'vertical_short': 268,    // 112px displayed * 2.39 scale
+            'vertical_medium': 402,   // 168px displayed * 2.39 scale
+            'horizontal': 631         // 264px displayed * 2.39 scale
+        };
+
+        const canvasWidth = RCS_WIDTH;
+        const canvasHeight = orientationHeights[orientation] || orientationHeights['vertical_short'];
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+
+        img.onload = function() {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                const ctx = canvas.getContext('2d');
+
+                // Calculate zoom scale
+                const zoomScale = zoom / 100;
+
+                // Calculate source dimensions with zoom
+                const scaledWidth = img.width * zoomScale;
+                const scaledHeight = img.height * zoomScale;
+
+                // Calculate aspect ratios
+                const canvasAspect = canvasWidth / canvasHeight;
+                const imageAspect = scaledWidth / scaledHeight;
+
+                let sourceWidth, sourceHeight, sourceX, sourceY;
+                let destX = 0, destY = 0, destWidth = canvasWidth, destHeight = canvasHeight;
+
+                // Cover the canvas (like object-fit: cover)
+                if (imageAspect > canvasAspect) {
+                    // Image is wider - fit height, crop width
+                    sourceHeight = scaledHeight;
+                    sourceWidth = canvasHeight * imageAspect;
+                    sourceY = 0;
+
+                    // Apply crop position (horizontal offset)
+                    sourceX = (sourceWidth - canvasWidth) / 2; // center by default
+                } else {
+                    // Image is taller - fit width, crop height
+                    sourceWidth = scaledWidth;
+                    sourceHeight = canvasWidth / imageAspect;
+                    sourceX = 0;
+
+                    // Apply crop position (vertical offset)
+                    switch(cropPosition) {
+                        case 'top':
+                            sourceY = 0;
+                            break;
+                        case 'bottom':
+                            sourceY = sourceHeight - canvasHeight;
+                            break;
+                        default: // center
+                            sourceY = (sourceHeight - canvasHeight) / 2;
+                    }
+                }
+
+                // Draw image on canvas
+                // We need to draw from the original image, applying transformations
+                ctx.drawImage(
+                    img,
+                    sourceX / zoomScale, sourceY / zoomScale,
+                    canvasWidth / zoomScale, canvasHeight / zoomScale,
+                    destX, destY, destWidth, destHeight
+                );
+
+                // Convert canvas to blob
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        reject(new Error('Failed to create blob from canvas'));
+                        return;
+                    }
+
+                    // Create object URL with timestamp for cache busting
+                    const objectUrl = URL.createObjectURL(blob);
+                    const timestamp = Date.now();
+                    const cacheBustedUrl = objectUrl + '?v=' + timestamp;
+
+                    resolve({
+                        url: cacheBustedUrl,
+                        blob: blob,
+                        width: canvasWidth,
+                        height: canvasHeight
+                    });
+                }, 'image/jpeg', 0.92);
+
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        img.onerror = function() {
+            reject(new Error('Failed to load image: ' + imageUrl));
+        };
+
+        img.src = imageUrl;
+    });
+}
+
+async function saveCurrentCardData() {
     var card = initializeRcsCard(rcsCurrentCard);
-    
+
     card.media.source = rcsMediaData.source;
     card.media.url = rcsMediaData.url;
     card.media.file = rcsMediaData.file;
     card.media.fileName = rcsMediaData.file ? rcsMediaData.file.name : null;
     card.media.fileSize = rcsMediaData.fileSize;
     card.media.dimensions = rcsMediaData.dimensions;
-    
+
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     card.media.orientation = orientChecked ? orientChecked.value : 'vertShort';
     card.media.zoom = parseInt(document.getElementById('rcsZoomSlider').value) || 100;
     var activeCrop = document.querySelector('.rcs-crop-btn.active');
     card.media.cropPosition = activeCrop ? activeCrop.dataset.position : 'center';
-    
+
+    // Generate cropped image if zoom or crop has been applied
+    if (card.media.url && (card.media.zoom !== 100 || card.media.cropPosition !== 'center')) {
+        console.log('Generating cropped image:', {
+            zoom: card.media.zoom,
+            cropPosition: card.media.cropPosition,
+            orientation: card.media.orientation
+        });
+
+        try {
+            var croppedData = await generateCroppedImage(
+                card.media.url,
+                card.media.orientation,
+                card.media.zoom,
+                card.media.cropPosition
+            );
+
+            if (croppedData) {
+                // Store original URL for reference
+                if (!card.media.originalUrl) {
+                    card.media.originalUrl = card.media.url;
+                }
+
+                // Update to use cropped image
+                card.media.url = croppedData.url;
+                card.media.croppedBlob = croppedData.blob;
+                card.media.dimensions = { width: croppedData.width, height: croppedData.height };
+                card.media.fileSize = croppedData.blob.size;
+
+                console.log('Cropped image generated:', {
+                    size: (croppedData.blob.size / 1024).toFixed(1) + ' KB',
+                    dimensions: card.media.dimensions
+                });
+            }
+        } catch (error) {
+            console.error('Failed to generate cropped image:', error);
+        }
+    }
+
     card.description = document.getElementById('rcsDescription').value;
     card.textBody = document.getElementById('rcsTextBody').value;
     card.buttons = JSON.parse(JSON.stringify(rcsButtons));
@@ -2103,37 +2256,38 @@ function persistRcsPayload(payload) {
     //    - Handle delivery receipts and status callbacks
 }
 
-function applyRcsContent() {
-    saveCurrentCardData();
-    
+async function applyRcsContent() {
+    // Save current card data and generate cropped images
+    await saveCurrentCardData();
+
     var validation = validateRcsContent();
-    
+
     hideRcsValidationErrors();
-    
+
     if (!validation.valid) {
         showRcsValidationErrors(validation.errors, validation.warnings);
         return;
     }
-    
+
     if (validation.warnings.length > 0) {
         showRcsValidationWarnings(validation.warnings);
     }
-    
+
     var payload = buildRcsPayload();
     persistRcsPayload(payload);
-    
-    var summaryText = payload.type === 'carousel' 
+
+    var summaryText = payload.type === 'carousel'
         ? 'RCS Carousel (' + payload.cardCount + ' cards) configured'
         : 'RCS Rich Card configured';
-    
+
     var totalButtons = payload.cards.reduce(function(sum, c) { return sum + c.buttons.length; }, 0);
     if (totalButtons > 0) {
         summaryText += ' with ' + totalButtons + ' action button' + (totalButtons > 1 ? 's' : '');
     }
-    
+
     document.getElementById('rcsConfiguredText').textContent = summaryText;
     document.getElementById('rcsConfiguredSummary').classList.remove('d-none');
-    
+
     bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
 }
 
@@ -2242,11 +2396,22 @@ function renderRcsCardPreview(cardNum) {
     var heights = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'horizontal': 'tall' };
     var heightClass = heights[orientation] || 'medium';
     var heightPx = { 'short': '112px', 'medium': '168px', 'tall': '264px' };
-    
+
+    // Add cache busting to ensure fresh images
+    function addCacheBuster(url) {
+        if (!url) return url;
+        var separator = url.includes('?') ? '&' : '?';
+        // If URL already has ?v= timestamp, use it as-is (already cache-busted)
+        if (url.includes('?v=')) return url;
+        return url + separator + 'v=' + Date.now();
+    }
+
     if (card.media && card.media.url) {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(card.media.url) + '" class="rcs-media-image" loading="lazy"/></div>';
+        var imageUrl = addCacheBuster(card.media.url);
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(imageUrl) + '" class="rcs-media-image" loading="lazy"/></div>';
     } else if (rcsMediaData.url) {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(rcsMediaData.url) + '" class="rcs-media-image" loading="lazy"/></div>';
+        var imageUrl = addCacheBuster(rcsMediaData.url);
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + ';"><img src="' + escapeHtml(imageUrl) + '" class="rcs-media-image" loading="lazy"/></div>';
     } else {
         mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx[heightClass] + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;"><span style="color: #888; font-size: 12px;">No media</span></div>';
     }
@@ -2291,9 +2456,19 @@ function renderRcsCardPreviewForCarousel(cardNum) {
     var mediaHtml = '';
     var heightClass = 'medium';
     var heightPx = '168px';
-    
+
+    // Add cache busting to ensure fresh images
+    function addCacheBuster(url) {
+        if (!url) return url;
+        var separator = url.includes('?') ? '&' : '?';
+        // If URL already has ?v= timestamp, use it as-is (already cache-busted)
+        if (url.includes('?v=')) return url;
+        return url + separator + 'v=' + Date.now();
+    }
+
     if (card.media && card.media.url) {
-        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + ';"><img src="' + escapeHtml(card.media.url) + '" class="rcs-media-image" loading="lazy"/></div>';
+        var imageUrl = addCacheBuster(card.media.url);
+        mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + ';"><img src="' + escapeHtml(imageUrl) + '" class="rcs-media-image" loading="lazy"/></div>';
     } else {
         mediaHtml = '<div class="rcs-media rcs-media--' + heightClass + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;"><span style="color: #888; font-size: 11px;">Card ' + cardNum + '</span></div>';
     }
