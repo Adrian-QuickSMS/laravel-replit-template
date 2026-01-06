@@ -1189,8 +1189,8 @@ span.badge.channel-pill-rcs,
 
 @push('scripts')
 <link rel="stylesheet" href="{{ asset('css/quicksms-inbox.css') }}">
-<script src="{{ asset('js/rcs-preview-renderer.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106a"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260106a"></script>
 <script>
 // ========================================
 // INBOX FILTER SYSTEM - Complete Implementation
