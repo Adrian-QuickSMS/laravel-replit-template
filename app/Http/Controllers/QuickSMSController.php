@@ -1502,10 +1502,8 @@ class QuickSMSController extends Controller
 
     public function downloadArea()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Download Area',
-            'purpose' => 'Download reports, exports, and generated files.',
-            'sub_modules' => []
+        return view('quicksms.reporting.download-area', [
+            'page_title' => 'Download Area'
         ]);
     }
 
