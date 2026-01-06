@@ -78,7 +78,7 @@
                                                 <input type="file" id="rcsMediaFileInput" class="d-none" accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif">
                                                 <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                                 <p class="mb-1 small">Drag & drop or <a href="#" onclick="document.getElementById('rcsMediaFileInput').click(); return false;">browse</a></p>
-                                                <small class="text-muted">JPEG, PNG, GIF only. Max 250 KB</small>
+                                                <small class="text-muted">JPEG, PNG, GIF only. Max 100 MB</small>
                                             </div>
                                             <div id="rcsMediaError" class="alert alert-danger py-2 px-3 mt-2 d-none small">
                                                 <i class="fas fa-exclamation-circle me-1"></i><span id="rcsMediaErrorText"></span>

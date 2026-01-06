@@ -11,7 +11,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class RcsAssetService
 {
-    private const MAX_FILE_SIZE = 250 * 1024;
+    private const MAX_FILE_SIZE = 100 * 1024 * 1024;
     private const MAX_SOURCE_SIZE = 100 * 1024 * 1024;
     private const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
     private const DISK = 'rcs-assets';

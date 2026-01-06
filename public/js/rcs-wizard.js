@@ -292,8 +292,8 @@ function validateRcsContent() {
         }
         
         if (card.media.source === 'upload' && card.media.file) {
-            if (card.media.fileSize > 250 * 1024) {
-                errors.push('Card ' + i + ': Media file exceeds 250KB limit (' + (card.media.fileSize / 1024).toFixed(1) + 'KB)');
+            if (card.media.fileSize > 100 * 1024 * 1024) {
+                errors.push('Card ' + i + ': Media file exceeds 100MB limit (' + (card.media.fileSize / (1024 * 1024)).toFixed(1) + 'MB)');
             }
             var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (card.media.file.type && !allowedTypes.includes(card.media.file.type)) {
