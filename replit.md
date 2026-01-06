@@ -32,6 +32,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Purchase Numbers:** Page for acquiring dedicated numbers with two sections:
     - Virtual Mobile Numbers (VMNs): UK Long Code, International VMN, Toll-Free Number options
     - Shortcode Keywords: Shared Shortcode, Dedicated Shortcode, Premium Rate Shortcode options
+    - Shared Shortcode Keywords section: Displays read-only shared shortcode (82228), keyword table with columns (Keyword, Status, Select), search functionality, A-Z/Z-A sorting, multi-select for available keywords only, taken keywords visible but disabled
     - VMN Available Numbers table with columns: Mobile Number, Country (flag + name + ISO), Setup Fee, Monthly Fee, Availability status, Select checkbox
     - Table features: Search by number, country filter dropdown, sortable columns (asc/desc), multi-select with "Select All" for available numbers only, selection summary with total costs
     - Reserved numbers are greyed out and cannot be selected

@@ -434,6 +434,147 @@
     border-radius: 0.375rem;
     margin-bottom: 1rem;
 }
+.shared-shortcode-display {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 2px solid #28a745;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.shared-shortcode-display .shortcode-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #155724;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.shared-shortcode-display .shortcode-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    color: #155724;
+    letter-spacing: 2px;
+}
+.shared-shortcode-display .shortcode-note {
+    font-size: 0.8125rem;
+    color: #155724;
+    margin-top: 0.5rem;
+}
+.keyword-table-card {
+    margin-top: 1rem;
+}
+.keyword-table-card .card-header {
+    background: #fff;
+    border-bottom: 1px solid #d4edda;
+    padding: 1rem 1.25rem;
+}
+.keyword-table-card .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c2c2c;
+}
+.keyword-search-box {
+    max-width: 300px;
+}
+.keyword-table {
+    margin-bottom: 0;
+}
+.keyword-table th {
+    background: #f8f9fa;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.keyword-table th:hover {
+    background: #d4edda;
+}
+.keyword-table th.sortable i {
+    margin-left: 0.5rem;
+    opacity: 0.5;
+}
+.keyword-table th.sorted-asc i.fa-sort-up,
+.keyword-table th.sorted-desc i.fa-sort-down {
+    opacity: 1;
+    color: #28a745;
+}
+.keyword-table td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+.keyword-table tbody tr:hover {
+    background: rgba(40, 167, 69, 0.04);
+}
+.keyword-table tbody tr.selected {
+    background: rgba(40, 167, 69, 0.08);
+}
+.keyword-table tbody tr.row-taken {
+    opacity: 0.6;
+}
+.keyword-text {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-weight: 600;
+    color: #2c2c2c;
+    text-transform: uppercase;
+}
+.status-available-kw {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.status-taken {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    background: #f8d7da;
+    color: #721c24;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.keyword-select-checkbox {
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+}
+.keyword-select-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.keyword-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+.keyword-empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+.keyword-empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
 </style>
 @endpush
 
@@ -754,6 +895,55 @@
                     </div>
                 </div>
             </div>
+
+            <div class="shared-shortcode-display">
+                <div class="shortcode-label">
+                    <i class="fas fa-hashtag me-1"></i>Shared Shortcode
+                </div>
+                <div class="shortcode-number">82228</div>
+                <div class="shortcode-note">
+                    <i class="fas fa-info-circle me-1"></i>Text your keyword to this shortcode
+                </div>
+            </div>
+
+            <div class="card keyword-table-card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5><i class="fas fa-key me-2 text-success"></i>Available Keywords</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm keyword-search-box">
+                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="keywordSearchInput" placeholder="Search keywords...">
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table keyword-table" id="keywordTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">
+                                    <input type="checkbox" class="form-check-input keyword-select-checkbox" id="keywordSelectAll" onclick="toggleKeywordSelectAll()">
+                                </th>
+                                <th class="sortable" data-sort="keyword" onclick="sortKeywordTable('keyword')">
+                                    Keyword <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="status" onclick="sortKeywordTable('status')">
+                                    Status <i class="fas fa-sort"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="keywordTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="keyword-table-footer">
+                    <div class="selection-summary">
+                        <span id="keywordSelectedCount">0</span> keyword(s) selected
+                    </div>
+                    <button class="btn btn-success btn-sm" id="keywordReserveBtn" onclick="reserveSelectedKeywords()" disabled>
+                        <i class="fas fa-check me-2"></i>Reserve Selected Keywords
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="card mt-4">
@@ -923,10 +1113,39 @@ var vmnSortDirection = 'asc';
 var vmnSearchTerm = '';
 var vmnCountryFilter = '';
 
+var keywordMockData = [
+    { id: 1, keyword: 'WIN', status: 'Available' },
+    { id: 2, keyword: 'PRIZE', status: 'Available' },
+    { id: 3, keyword: 'SALE', status: 'Taken' },
+    { id: 4, keyword: 'DEAL', status: 'Available' },
+    { id: 5, keyword: 'FREE', status: 'Taken' },
+    { id: 6, keyword: 'OFFER', status: 'Available' },
+    { id: 7, keyword: 'SAVE', status: 'Available' },
+    { id: 8, keyword: 'JOIN', status: 'Available' },
+    { id: 9, keyword: 'VOTE', status: 'Taken' },
+    { id: 10, keyword: 'HELP', status: 'Available' },
+    { id: 11, keyword: 'INFO', status: 'Available' },
+    { id: 12, keyword: 'STOP', status: 'Taken' },
+    { id: 13, keyword: 'START', status: 'Available' },
+    { id: 14, keyword: 'NEWS', status: 'Available' },
+    { id: 15, keyword: 'ALERT', status: 'Taken' },
+    { id: 16, keyword: 'UPDATE', status: 'Available' },
+    { id: 17, keyword: 'PROMO', status: 'Available' },
+    { id: 18, keyword: 'CLUB', status: 'Available' },
+    { id: 19, keyword: 'VIP', status: 'Taken' },
+    { id: 20, keyword: 'REWARDS', status: 'Available' }
+];
+
+var keywordSelectedIds = [];
+var keywordSortColumn = 'keyword';
+var keywordSortDirection = 'asc';
+var keywordSearchTerm = '';
+
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
     populateSubAccountDropdown();
     initializeVmnTable();
+    initializeKeywordTable();
 });
 
 function checkAccess() {
@@ -1213,6 +1432,154 @@ function selectNumberType(type) {
 function selectKeywordType(type) {
     console.log('TODO: API call - POST /api/purchase/numbers/shortcode with type:', type);
     alert('Keyword reservation coming soon. Please contact sales for enquiries.');
+}
+
+function initializeKeywordTable() {
+    document.getElementById('keywordSearchInput').addEventListener('input', function(e) {
+        keywordSearchTerm = e.target.value.toLowerCase();
+        renderKeywordTable();
+    });
+    
+    renderKeywordTable();
+}
+
+function getFilteredKeywordData() {
+    return keywordMockData.filter(function(item) {
+        if (keywordSearchTerm && !item.keyword.toLowerCase().includes(keywordSearchTerm)) {
+            return false;
+        }
+        return true;
+    });
+}
+
+function getSortedKeywordData(data) {
+    return data.slice().sort(function(a, b) {
+        var valA = a[keywordSortColumn];
+        var valB = b[keywordSortColumn];
+        
+        valA = String(valA).toLowerCase();
+        valB = String(valB).toLowerCase();
+        
+        if (valA < valB) return keywordSortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return keywordSortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function renderKeywordTable() {
+    var tbody = document.getElementById('keywordTableBody');
+    var filtered = getFilteredKeywordData();
+    var sorted = getSortedKeywordData(filtered);
+    
+    if (sorted.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3"><div class="keyword-empty-state"><i class="fas fa-search"></i><h5>No keywords found</h5><p>Try adjusting your search criteria.</p></div></td></tr>';
+        updateKeywordSortIndicators();
+        updateKeywordSelection();
+        return;
+    }
+    
+    var html = '';
+    sorted.forEach(function(item) {
+        var isSelected = keywordSelectedIds.includes(item.id);
+        var isAvailable = item.status === 'Available';
+        var rowClass = isSelected ? 'selected' : '';
+        if (!isAvailable) rowClass += ' row-taken';
+        
+        html += '<tr class="' + rowClass + '" data-id="' + item.id + '">';
+        html += '<td><input type="checkbox" class="form-check-input keyword-select-checkbox" ' + 
+                (isSelected ? 'checked' : '') + ' ' + 
+                (!isAvailable ? 'disabled' : '') + 
+                ' onchange="toggleKeywordSelect(' + item.id + ')"></td>';
+        html += '<td><span class="keyword-text">' + item.keyword + '</span></td>';
+        html += '<td><span class="' + (isAvailable ? 'status-available-kw' : 'status-taken') + '">' + item.status + '</span></td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+    updateKeywordSortIndicators();
+    updateKeywordSelection();
+}
+
+function sortKeywordTable(column) {
+    if (keywordSortColumn === column) {
+        keywordSortDirection = keywordSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        keywordSortColumn = column;
+        keywordSortDirection = 'asc';
+    }
+    renderKeywordTable();
+}
+
+function updateKeywordSortIndicators() {
+    document.querySelectorAll('#keywordTable th.sortable').forEach(function(th) {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        var icon = th.querySelector('i');
+        icon.className = 'fas fa-sort';
+    });
+    
+    var activeHeader = document.querySelector('#keywordTable th[data-sort="' + keywordSortColumn + '"]');
+    if (activeHeader) {
+        activeHeader.classList.add(keywordSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        var icon = activeHeader.querySelector('i');
+        icon.className = keywordSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+    }
+}
+
+function toggleKeywordSelectAll() {
+    var selectAllCheckbox = document.getElementById('keywordSelectAll');
+    var filtered = getFilteredKeywordData().filter(function(item) {
+        return item.status === 'Available';
+    });
+    
+    if (selectAllCheckbox.checked) {
+        keywordSelectedIds = filtered.map(function(item) { return item.id; });
+    } else {
+        keywordSelectedIds = [];
+    }
+    
+    renderKeywordTable();
+}
+
+function toggleKeywordSelect(id) {
+    var idx = keywordSelectedIds.indexOf(id);
+    if (idx > -1) {
+        keywordSelectedIds.splice(idx, 1);
+    } else {
+        var item = keywordMockData.find(function(k) { return k.id === id; });
+        if (item && item.status === 'Available') {
+            keywordSelectedIds.push(id);
+        }
+    }
+    updateKeywordSelection();
+}
+
+function updateKeywordSelection() {
+    var count = keywordSelectedIds.length;
+    document.getElementById('keywordSelectedCount').textContent = count;
+    document.getElementById('keywordReserveBtn').disabled = count === 0;
+    
+    var availableFiltered = getFilteredKeywordData().filter(function(item) {
+        return item.status === 'Available';
+    });
+    var allSelected = availableFiltered.length > 0 && availableFiltered.every(function(item) {
+        return keywordSelectedIds.includes(item.id);
+    });
+    document.getElementById('keywordSelectAll').checked = allSelected;
+}
+
+function reserveSelectedKeywords() {
+    if (keywordSelectedIds.length === 0) return;
+    
+    var selectedKeywords = keywordSelectedIds.map(function(id) {
+        return keywordMockData.find(function(k) { return k.id === id; });
+    });
+    
+    console.log('TODO: API call - POST /api/purchase/keywords/reserve');
+    console.log('TODO: No keyword routing logic here - UI only');
+    console.log('Selected keywords:', selectedKeywords);
+    
+    var keywordList = selectedKeywords.map(function(k) { return k.keyword; }).join(', ');
+    alert('Keyword reservation coming soon.\n\nSelected keywords: ' + keywordList + '\n\n(This is a demo - no actual reservation was made)');
 }
 </script>
 @endpush
