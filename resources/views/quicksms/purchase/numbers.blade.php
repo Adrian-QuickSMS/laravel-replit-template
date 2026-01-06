@@ -961,6 +961,23 @@
                 </div>
             </div>
 
+            <div class="card subaccount-selector-card" style="border-color: #c3e6cb; background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);">
+                <div class="card-body">
+                    <label for="keywordSubAccountSelect">
+                        <i class="fas fa-building text-success"></i>
+                        Assign Keywords to Sub-Account
+                        <span class="required-badge">Required</span>
+                    </label>
+                    <select class="form-select" id="keywordSubAccountSelect" onchange="onKeywordSubAccountChange()">
+                        <option value="">-- Select Sub-Account --</option>
+                    </select>
+                    <p class="help-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        All selected keywords will be assigned to this sub-account. One sub-account per purchase.
+                    </p>
+                </div>
+            </div>
+
             <div class="custom-keyword-section">
                 <h6><i class="fas fa-plus-circle me-2 text-success"></i>Request a Custom Keyword</h6>
                 <div class="d-flex align-items-start gap-2">
@@ -1016,9 +1033,13 @@
                 <div class="keyword-table-footer">
                     <div class="selection-summary">
                         <span id="keywordSelectedCount">0</span> keyword(s) selected
+                        <span id="keywordTotalCost" class="ms-3" style="display: none;">
+                            Total: <strong>£<span id="keywordSetupTotal">0</span></strong> setup + 
+                            <strong>£<span id="keywordMonthlyTotal">0</span></strong>/month
+                        </span>
                     </div>
-                    <button class="btn btn-success btn-sm" id="keywordReserveBtn" onclick="reserveSelectedKeywords()" disabled>
-                        <i class="fas fa-check me-2"></i>Reserve Selected Keywords
+                    <button class="btn btn-success btn-sm" id="keywordPurchaseBtn" onclick="showKeywordPurchaseConfirmation()" disabled>
+                        <i class="fas fa-credit-card me-2"></i>Purchase Keywords
                     </button>
                 </div>
             </div>
@@ -1147,6 +1168,68 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade purchase-confirmation-modal" id="keywordPurchaseConfirmationModal" tabindex="-1" aria-labelledby="keywordPurchaseConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                <h5 class="modal-title text-white" id="keywordPurchaseConfirmationModalLabel">
+                    <i class="fas fa-key me-2"></i>Confirm Keyword Purchase
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">You are about to purchase the following keywords on shortcode <strong>82228</strong>:</p>
+                
+                <div class="numbers-list" id="confirmKeywordsList"></div>
+                
+                <div class="confirmation-summary">
+                    <div class="summary-row">
+                        <span>Keywords Selected</span>
+                        <strong id="confirmKeywordCount">0</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Assigned To</span>
+                        <strong id="confirmKeywordSubAccount">-</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Setup Fee (charged now)</span>
+                        <strong>£<span id="confirmKeywordSetupFee">0.00</span></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Monthly Fee</span>
+                        <strong>£<span id="confirmKeywordMonthlyFee">0.00</span>/month</strong>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Due Now</span>
+                        <strong class="text-success">£<span id="confirmKeywordDueNow">0.00</span></strong>
+                    </div>
+                </div>
+                
+                <div class="billing-info" style="background: #d4edda; border-color: #28a745;">
+                    <i class="fas fa-info-circle me-2" style="color: #155724;"></i>
+                    <strong style="color: #155724;">Billing Information:</strong>
+                    <ul class="mb-0 mt-2 ps-4" style="color: #155724;">
+                        <li>Setup fee will be charged immediately upon confirmation.</li>
+                        <li>Monthly fees are charged on the 1st of each month.</li>
+                        <li>Each keyword is billed individually.</li>
+                    </ul>
+                </div>
+                
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-lock me-1"></i>
+                    By clicking "Confirm Purchase", you agree to purchase all selected keywords. This action cannot be partially completed.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmKeywordPurchaseBtn" onclick="executeKeywordPurchase()">
+                    <i class="fas fa-check me-2"></i>Confirm Purchase
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1192,32 +1275,33 @@ var vmnSearchTerm = '';
 var vmnCountryFilter = '';
 
 var keywordMockData = [
-    { id: 1, keyword: 'WIN', status: 'Available' },
-    { id: 2, keyword: 'PRIZE', status: 'Available' },
-    { id: 3, keyword: 'SALE', status: 'Taken' },
-    { id: 4, keyword: 'DEAL', status: 'Available' },
-    { id: 5, keyword: 'FREE', status: 'Taken' },
-    { id: 6, keyword: 'OFFER', status: 'Available' },
-    { id: 7, keyword: 'SAVE', status: 'Available' },
-    { id: 8, keyword: 'JOIN', status: 'Available' },
-    { id: 9, keyword: 'VOTE', status: 'Taken' },
-    { id: 10, keyword: 'HELP', status: 'Available' },
-    { id: 11, keyword: 'INFO', status: 'Available' },
-    { id: 12, keyword: 'STOP', status: 'Taken' },
-    { id: 13, keyword: 'START', status: 'Available' },
-    { id: 14, keyword: 'NEWS', status: 'Available' },
-    { id: 15, keyword: 'ALERT', status: 'Taken' },
-    { id: 16, keyword: 'UPDATE', status: 'Available' },
-    { id: 17, keyword: 'PROMO', status: 'Available' },
-    { id: 18, keyword: 'CLUB', status: 'Available' },
-    { id: 19, keyword: 'VIP', status: 'Taken' },
-    { id: 20, keyword: 'REWARDS', status: 'Available' }
+    { id: 1, keyword: 'WIN', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 2, keyword: 'PRIZE', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 3, keyword: 'SALE', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 4, keyword: 'DEAL', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 5, keyword: 'FREE', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 6, keyword: 'OFFER', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 7, keyword: 'SAVE', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 8, keyword: 'JOIN', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 9, keyword: 'VOTE', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 10, keyword: 'HELP', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 11, keyword: 'INFO', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 12, keyword: 'STOP', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 13, keyword: 'START', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 14, keyword: 'NEWS', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 15, keyword: 'ALERT', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 16, keyword: 'UPDATE', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 17, keyword: 'PROMO', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 18, keyword: 'CLUB', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 19, keyword: 'VIP', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
+    { id: 20, keyword: 'REWARDS', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 }
 ];
 
 var keywordSelectedIds = [];
 var keywordSortColumn = 'keyword';
 var keywordSortDirection = 'asc';
 var keywordSearchTerm = '';
+var selectedKeywordSubAccountId = '';
 
 var keywordValidationConfig = {
     minLength: 3,
@@ -1228,6 +1312,7 @@ var keywordValidationConfig = {
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
     populateSubAccountDropdown();
+    populateKeywordSubAccountDropdown();
     initializeVmnTable();
     initializeKeywordTable();
 });
@@ -1256,6 +1341,26 @@ function onSubAccountChange() {
     var select = document.getElementById('vmnSubAccountSelect');
     selectedSubAccountId = select.value;
     updateVmnSelection();
+}
+
+function populateKeywordSubAccountDropdown() {
+    var select = document.getElementById('keywordSubAccountSelect');
+    var availableAccounts = subAccountsMockData.filter(function(sa) {
+        return sa.canPurchase && sa.allowedRoles.includes(currentUserRole);
+    });
+    
+    availableAccounts.forEach(function(sa) {
+        var option = document.createElement('option');
+        option.value = sa.id;
+        option.textContent = sa.name;
+        select.appendChild(option);
+    });
+}
+
+function onKeywordSubAccountChange() {
+    var select = document.getElementById('keywordSubAccountSelect');
+    selectedKeywordSubAccountId = select.value;
+    updateKeywordSelection();
 }
 
 function initializeVmnTable() {
@@ -1640,7 +1745,20 @@ function toggleKeywordSelect(id) {
 function updateKeywordSelection() {
     var count = keywordSelectedIds.length;
     document.getElementById('keywordSelectedCount').textContent = count;
-    document.getElementById('keywordReserveBtn').disabled = count === 0;
+    
+    var selectedKeywords = keywordSelectedIds.map(function(id) {
+        return keywordMockData.find(function(k) { return k.id === id; });
+    }).filter(function(k) { return k; });
+    
+    var totalSetup = selectedKeywords.reduce(function(sum, k) { return sum + (k.setupFee || 25.00); }, 0);
+    var totalMonthly = selectedKeywords.reduce(function(sum, k) { return sum + (k.monthlyFee || 50.00); }, 0);
+    
+    document.getElementById('keywordSetupTotal').textContent = totalSetup.toFixed(2);
+    document.getElementById('keywordMonthlyTotal').textContent = totalMonthly.toFixed(2);
+    document.getElementById('keywordTotalCost').style.display = count > 0 ? 'inline' : 'none';
+    
+    var canPurchase = count > 0 && selectedKeywordSubAccountId !== '';
+    document.getElementById('keywordPurchaseBtn').disabled = !canPurchase;
     
     var availableFiltered = getFilteredKeywordData().filter(function(item) {
         return item.status === 'Available';
@@ -1651,19 +1769,79 @@ function updateKeywordSelection() {
     document.getElementById('keywordSelectAll').checked = allSelected;
 }
 
-function reserveSelectedKeywords() {
+function showKeywordPurchaseConfirmation() {
     if (keywordSelectedIds.length === 0) return;
+    if (!selectedKeywordSubAccountId) {
+        alert('Please select a sub-account before purchasing keywords.');
+        return;
+    }
     
     var selectedKeywords = keywordSelectedIds.map(function(id) {
         return keywordMockData.find(function(k) { return k.id === id; });
-    });
+    }).filter(function(k) { return k; });
     
-    console.log('TODO: API call - POST /api/purchase/keywords/reserve');
-    console.log('TODO: No keyword routing logic here - UI only');
-    console.log('Selected keywords:', selectedKeywords);
+    var totalSetup = selectedKeywords.reduce(function(sum, k) { return sum + (k.setupFee || 25.00); }, 0);
+    var totalMonthly = selectedKeywords.reduce(function(sum, k) { return sum + (k.monthlyFee || 50.00); }, 0);
+    
+    if (totalSetup > accountBalance) {
+        document.getElementById('insufficientCurrentBalance').textContent = accountBalance.toFixed(2);
+        document.getElementById('insufficientRequiredAmount').textContent = totalSetup.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (totalSetup - accountBalance).toFixed(2);
+        var modal = new bootstrap.Modal(document.getElementById('insufficientBalanceModal'));
+        modal.show();
+        return;
+    }
+    
+    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedKeywordSubAccountId; });
+    
+    var listHtml = selectedKeywords.map(function(k) {
+        return '<div class="number-item"><span class="number">' + k.keyword + '</span><span class="setup-fee">£' + (k.setupFee || 25.00).toFixed(2) + ' setup</span></div>';
+    }).join('');
+    
+    document.getElementById('confirmKeywordsList').innerHTML = listHtml;
+    document.getElementById('confirmKeywordCount').textContent = selectedKeywords.length;
+    document.getElementById('confirmKeywordSubAccount').textContent = subAccount ? subAccount.name : '-';
+    document.getElementById('confirmKeywordSetupFee').textContent = totalSetup.toFixed(2);
+    document.getElementById('confirmKeywordMonthlyFee').textContent = totalMonthly.toFixed(2);
+    document.getElementById('confirmKeywordDueNow').textContent = totalSetup.toFixed(2);
+    
+    var modal = new bootstrap.Modal(document.getElementById('keywordPurchaseConfirmationModal'));
+    modal.show();
+}
+
+function executeKeywordPurchase() {
+    var selectedKeywords = keywordSelectedIds.map(function(id) {
+        return keywordMockData.find(function(k) { return k.id === id; });
+    }).filter(function(k) { return k; });
+    
+    var totalSetup = selectedKeywords.reduce(function(sum, k) { return sum + (k.setupFee || 25.00); }, 0);
+    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedKeywordSubAccountId; });
+    
+    console.log('TODO: API call - POST /api/purchase/keywords');
+    console.log('TODO: Payload:', {
+        keywords: selectedKeywords.map(function(k) { return k.keyword; }),
+        subAccountId: selectedKeywordSubAccountId,
+        totalSetupFee: totalSetup,
+        billingInfo: {
+            setupFeeChargedNow: true,
+            monthlyFeeScheduled: true,
+            firstOfMonth: true
+        }
+    });
+    console.log('TODO: Atomic transaction - all keywords must succeed or fail together');
+    console.log('TODO: On success - deduct setup fees, schedule monthly fees, reserve keywords, assign to sub-account');
     
     var keywordList = selectedKeywords.map(function(k) { return k.keyword; }).join(', ');
-    alert('Keyword reservation coming soon.\n\nSelected keywords: ' + keywordList + '\n\n(This is a demo - no actual reservation was made)');
+    
+    bootstrap.Modal.getInstance(document.getElementById('keywordPurchaseConfirmationModal')).hide();
+    
+    alert('Keyword purchase successful!\n\nKeywords: ' + keywordList + '\nAssigned to: ' + (subAccount ? subAccount.name : '-') + '\nSetup fee charged: £' + totalSetup.toFixed(2) + '\n\n(This is a demo - no actual purchase was made)');
+    
+    keywordSelectedIds = [];
+    renderKeywordTable();
+    updateKeywordSelection();
+    document.getElementById('keywordSubAccountSelect').value = '';
+    selectedKeywordSubAccountId = '';
 }
 
 function validateCustomKeyword() {
