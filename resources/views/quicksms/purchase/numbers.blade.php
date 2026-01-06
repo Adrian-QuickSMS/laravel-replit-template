@@ -838,6 +838,47 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="insufficientBalanceModal" tabindex="-1" aria-labelledby="insufficientBalanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="insufficientBalanceModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Insufficient Balance
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <i class="fas fa-wallet text-danger" style="font-size: 3rem; opacity: 0.8;"></i>
+                </div>
+                <h5 class="mb-3">You do not have sufficient balance to complete this purchase.</h5>
+                <div class="bg-light rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Current Balance:</span>
+                        <strong>£<span id="insufficientCurrentBalance">0.00</span></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Required Amount:</span>
+                        <strong class="text-danger">£<span id="insufficientRequiredAmount">0.00</span></strong>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Shortfall:</span>
+                        <strong class="text-danger">£<span id="insufficientShortfall">0.00</span></strong>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">Please top up your account balance before proceeding with this purchase.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <a href="{{ route('purchase.messages') }}" class="btn btn-primary">
+                    <i class="fas fa-coins me-2"></i>Go to Purchase → Messages
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -855,6 +896,8 @@ var subAccountsMockData = [
 ];
 
 var selectedSubAccountId = '';
+
+var accountBalance = 45.00;
 
 var vmnMockData = [
     { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_001' },
@@ -1098,6 +1141,16 @@ function showPurchaseConfirmation() {
         monthlyTotal += item.monthlyFee;
         numbersList.push(item.number + ' (' + item.countryName + ')');
     });
+    
+    if (setupTotal > accountBalance) {
+        document.getElementById('insufficientCurrentBalance').textContent = accountBalance.toFixed(2);
+        document.getElementById('insufficientRequiredAmount').textContent = setupTotal.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        
+        var insufficientModal = new bootstrap.Modal(document.getElementById('insufficientBalanceModal'));
+        insufficientModal.show();
+        return;
+    }
     
     document.getElementById('confirmNumbersList').innerHTML = numbersList.join('<br>');
     document.getElementById('confirmNumberCount').textContent = selectedNumbers.length;

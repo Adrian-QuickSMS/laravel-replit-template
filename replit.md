@@ -38,6 +38,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - Mock data with `hubspotProductId` field for future HubSpot Products API integration
     - Sub-Account selector (mandatory): Permission-aware dropdown above table, determines ownership of selected numbers, one sub-account per purchase
     - Purchase flow: "Purchase Selected Numbers" button (disabled until sub-account selected and numbers chosen), confirmation modal with billing summary (setup fee charged immediately, monthly fee on 1st of each month), explicit confirmation required
+    - Insufficient balance handling: Pre-purchase validation blocks purchase if account balance is insufficient, shows modal with current balance, required amount, and shortfall, CTA links to Purchase → Messages (no auto-redirect)
     - Atomic transaction constraint: All actions succeed or fail together (no partial purchases)
     - UI-only scaffold with TODO markers for purchase logic integration
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
