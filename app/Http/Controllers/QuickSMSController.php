@@ -1706,4 +1706,18 @@ class QuickSMSController extends Controller
             'page_title' => 'RCS Preview Demo'
         ]);
     }
+
+    /**
+     * API: Get numbers pricing from HubSpot
+     * Returns setup and monthly fees for VMNs and keywords
+     */
+    public function getNumbersPricing(Request $request)
+    {
+        $currency = $request->query('currency', 'GBP');
+        
+        $hubspotService = new \App\Services\HubSpotProductService();
+        $pricing = $hubspotService->fetchNumbersPricing($currency);
+        
+        return response()->json($pricing);
+    }
 }

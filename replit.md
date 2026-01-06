@@ -61,7 +61,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **MetisMenu:** JavaScript library for navigation.
 - **SQLite:** Database for local development.
 - **Stripe PHP SDK (stripe/stripe-php):** For Checkout Sessions, webhooks, and payment processing.
-- **HubSpot Products API:** For live product pricing.
+- **HubSpot Products API:** For live product pricing (messages and numbers).
 - **HubSpot Invoices API:** For fetching invoice data.
 - **Stripe Checkout:** For secure payment processing.
 - **Intervention Image (v3):** PHP image manipulation library for RCS asset processing.

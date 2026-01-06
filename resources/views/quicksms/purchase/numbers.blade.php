@@ -666,6 +666,21 @@
             <p>Acquire dedicated numbers for two-way messaging and customer engagement.</p>
         </div>
 
+        <div id="pricingLoadingIndicator" class="alert alert-info d-flex align-items-center mb-3" style="display: none;">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span>Fetching live pricing from HubSpot...</span>
+        </div>
+
+        <div id="pricingWarning" class="alert alert-warning mb-3" style="display: none;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="pricingWarningMessage">Unable to fetch live pricing. Using cached values.</span>
+            <button type="button" class="btn btn-sm btn-outline-warning ms-3" onclick="fetchNumbersPricing()">
+                <i class="fas fa-sync-alt me-1"></i>Retry
+            </button>
+        </div>
+
         <div class="purchase-section" id="vmnSection">
             <div class="section-header">
                 <i class="fas fa-mobile-alt"></i>
@@ -1309,13 +1324,111 @@ var keywordValidationConfig = {
     pattern: /^[A-Za-z0-9]+$/
 };
 
+var numbersPricing = null;
+var pricingLoaded = false;
+var pricingError = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
     populateSubAccountDropdown();
     populateKeywordSubAccountDropdown();
-    initializeVmnTable();
-    initializeKeywordTable();
+    fetchNumbersPricing();
 });
+
+function fetchNumbersPricing() {
+    showPricingLoading(true);
+    
+    fetch('/api/purchase/numbers/pricing?currency=GBP')
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('API request failed');
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                numbersPricing = data.pricing;
+                pricingLoaded = true;
+                pricingError = false;
+                
+                applyPricingToData();
+                
+                if (data.is_mock || data.api_error) {
+                    showPricingWarning(data.error_message || 'Using cached pricing data');
+                }
+            } else {
+                throw new Error(data.error || 'Failed to fetch pricing');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error fetching pricing:', error);
+            pricingError = true;
+            showPricingWarning('Unable to fetch live pricing. Using cached values.');
+            applyFallbackPricing();
+        })
+        .finally(function() {
+            showPricingLoading(false);
+            initializeVmnTable();
+            initializeKeywordTable();
+        });
+}
+
+function applyPricingToData() {
+    if (!numbersPricing) return;
+    
+    vmnMockData.forEach(function(vmn) {
+        var pricingKey = getPricingKeyForVmn(vmn);
+        if (numbersPricing.vmn && numbersPricing.vmn[pricingKey]) {
+            vmn.setupFee = numbersPricing.vmn[pricingKey].setup_fee;
+            vmn.monthlyFee = numbersPricing.vmn[pricingKey].monthly_fee;
+        }
+    });
+    
+    keywordMockData.forEach(function(keyword) {
+        if (numbersPricing.keyword) {
+            keyword.setupFee = numbersPricing.keyword.setup_fee;
+            keyword.monthlyFee = numbersPricing.keyword.monthly_fee;
+        }
+    });
+}
+
+function getPricingKeyForVmn(vmn) {
+    if (vmn.country === 'GB') {
+        return 'uk_longcode';
+    } else if (vmn.number.startsWith('+1800') || vmn.number.startsWith('+1888')) {
+        return 'tollfree';
+    } else {
+        return 'international';
+    }
+}
+
+function applyFallbackPricing() {
+    numbersPricing = {
+        vmn: {
+            uk_longcode: { setup_fee: 10.00, monthly_fee: 8.00 },
+            international: { setup_fee: 15.00, monthly_fee: 12.00 },
+            tollfree: { setup_fee: 25.00, monthly_fee: 20.00 }
+        },
+        keyword: { setup_fee: 25.00, monthly_fee: 50.00 }
+    };
+    applyPricingToData();
+}
+
+function showPricingLoading(show) {
+    var indicator = document.getElementById('pricingLoadingIndicator');
+    if (indicator) {
+        indicator.style.display = show ? 'flex' : 'none';
+    }
+}
+
+function showPricingWarning(message) {
+    var warningEl = document.getElementById('pricingWarning');
+    var messageEl = document.getElementById('pricingWarningMessage');
+    if (warningEl && messageEl) {
+        messageEl.textContent = message;
+        warningEl.style.display = 'block';
+    }
+}
 
 function checkAccess() {
     var hasAccess = allowedRoles.includes(currentUserRole);

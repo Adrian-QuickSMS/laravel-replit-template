@@ -32,9 +32,20 @@ class HubSpotProductService
         'ai' => 'QSMS-AI',
     ];
 
+    private array $numberProductSkuMapping = [
+        'vmn_uk_longcode_setup' => 'QSMS-VMN-UK-SETUP',
+        'vmn_uk_longcode_monthly' => 'QSMS-VMN-UK-MONTHLY',
+        'vmn_international_setup' => 'QSMS-VMN-INTL-SETUP',
+        'vmn_international_monthly' => 'QSMS-VMN-INTL-MONTHLY',
+        'vmn_tollfree_setup' => 'QSMS-VMN-TOLLFREE-SETUP',
+        'vmn_tollfree_monthly' => 'QSMS-VMN-TOLLFREE-MONTHLY',
+        'keyword_setup' => 'QSMS-KEYWORD-SETUP',
+        'keyword_monthly' => 'QSMS-KEYWORD-MONTHLY',
+    ];
+
     public function __construct()
     {
-        $this->accessToken = env('HUBSPOT_ACCESS_TOKEN');
+        $this->accessToken = config('services.hubspot.access_token');
     }
 
     /**
@@ -314,5 +325,151 @@ class HubSpotProductService
             'fetched_at' => now()->toIso8601String(),
             'is_mock' => true,
         ];
+    }
+
+    /**
+     * Fetch numbers pricing (VMN and Keywords) from HubSpot
+     * Returns setup and monthly fees for each number type
+     */
+    public function fetchNumbersPricing(string $currency = 'GBP'): array
+    {
+        $currency = strtoupper($currency);
+        if (!in_array($currency, self::SUPPORTED_CURRENCIES)) {
+            Log::warning('Unsupported currency requested for numbers pricing', ['currency' => $currency]);
+            $currency = 'GBP';
+        }
+
+        if (empty($this->accessToken)) {
+            Log::warning('HubSpot access token not configured - using mock numbers pricing');
+            return $this->getMockNumbersPricing($currency);
+        }
+
+        try {
+            $properties = implode(',', [
+                'name',
+                'price',
+                'hs_sku',
+                'description',
+                'hs_price_gbp',
+                'hs_price_eur',
+                'hs_price_usd',
+                'hs_recurring_billing_period',
+            ]);
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->accessToken,
+                'Content-Type' => 'application/json',
+            ])->get($this->baseUrl, [
+                'properties' => $properties,
+                'limit' => 100,
+            ]);
+
+            if ($response->failed()) {
+                Log::error('HubSpot API error fetching numbers pricing', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return $this->getMockNumbersPricing($currency, true);
+            }
+
+            $data = $response->json();
+            Log::info('HubSpot numbers pricing fetched successfully', [
+                'currency' => $currency,
+                'product_count' => count($data['results'] ?? []),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            return $this->mapNumbersProducts($data['results'] ?? [], $currency);
+
+        } catch (\Exception $e) {
+            Log::error('HubSpot API exception fetching numbers pricing', ['message' => $e->getMessage()]);
+            return $this->getMockNumbersPricing($currency, true);
+        }
+    }
+
+    private function mapNumbersProducts(array $hubspotProducts, string $currency): array
+    {
+        $products = [];
+        $currencyPriceField = $this->getCurrencyPriceField($currency);
+
+        foreach ($hubspotProducts as $product) {
+            $props = $product['properties'] ?? [];
+            $sku = $props['hs_sku'] ?? '';
+            
+            $productKey = array_search($sku, $this->numberProductSkuMapping);
+            if ($productKey === false) {
+                continue;
+            }
+
+            $price = $props[$currencyPriceField] ?? $props['price'] ?? '0.00';
+
+            $products[$productKey] = [
+                'id' => $product['id'],
+                'name' => $props['name'] ?? $productKey,
+                'sku' => $sku,
+                'price' => (float) $price,
+                'description' => $props['description'] ?? '',
+                'billing_period' => $props['hs_recurring_billing_period'] ?? null,
+                'currency' => $currency,
+            ];
+        }
+
+        return $this->formatNumbersPricingResponse($products, $currency, false);
+    }
+
+    private function formatNumbersPricingResponse(array $products, string $currency, bool $isMock): array
+    {
+        return [
+            'success' => true,
+            'pricing' => [
+                'vmn' => [
+                    'uk_longcode' => [
+                        'setup_fee' => $products['vmn_uk_longcode_setup']['price'] ?? 10.00,
+                        'monthly_fee' => $products['vmn_uk_longcode_monthly']['price'] ?? 8.00,
+                    ],
+                    'international' => [
+                        'setup_fee' => $products['vmn_international_setup']['price'] ?? 15.00,
+                        'monthly_fee' => $products['vmn_international_monthly']['price'] ?? 12.00,
+                    ],
+                    'tollfree' => [
+                        'setup_fee' => $products['vmn_tollfree_setup']['price'] ?? 25.00,
+                        'monthly_fee' => $products['vmn_tollfree_monthly']['price'] ?? 20.00,
+                    ],
+                ],
+                'keyword' => [
+                    'setup_fee' => $products['keyword_setup']['price'] ?? 25.00,
+                    'monthly_fee' => $products['keyword_monthly']['price'] ?? 50.00,
+                ],
+            ],
+            'currency' => $currency,
+            'fetched_at' => now()->toIso8601String(),
+            'is_mock' => $isMock,
+        ];
+    }
+
+    /**
+     * Mock numbers pricing for development/demo or API fallback
+     */
+    private function getMockNumbersPricing(string $currency, bool $isApiError = false): array
+    {
+        $products = [
+            'vmn_uk_longcode_setup' => ['price' => 10.00],
+            'vmn_uk_longcode_monthly' => ['price' => 8.00],
+            'vmn_international_setup' => ['price' => 15.00],
+            'vmn_international_monthly' => ['price' => 12.00],
+            'vmn_tollfree_setup' => ['price' => 25.00],
+            'vmn_tollfree_monthly' => ['price' => 20.00],
+            'keyword_setup' => ['price' => 25.00],
+            'keyword_monthly' => ['price' => 50.00],
+        ];
+
+        $response = $this->formatNumbersPricingResponse($products, $currency, true);
+        
+        if ($isApiError) {
+            $response['api_error'] = true;
+            $response['error_message'] = 'HubSpot API unavailable - using cached pricing';
+        }
+
+        return $response;
     }
 }

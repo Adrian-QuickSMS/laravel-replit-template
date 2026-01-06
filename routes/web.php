@@ -59,3 +59,7 @@ Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(fu
     Route::put('/{uuid}', 'updateAsset')->name('api.rcs.assets.update');
     Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
 });
+
+Route::prefix('api/purchase')->controller(QuickSMSController::class)->group(function () {
+    Route::get('/numbers/pricing', 'getNumbersPricing')->name('api.purchase.numbers.pricing');
+});
