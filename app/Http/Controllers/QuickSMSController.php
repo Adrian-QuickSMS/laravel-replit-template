@@ -1720,4 +1720,105 @@ class QuickSMSController extends Controller
         
         return response()->json($pricing);
     }
+
+    /**
+     * API: Lock numbers/keywords for purchase
+     * Prevents race conditions during checkout
+     */
+    public function lockNumbersForPurchase(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.type' => 'required|in:vmn,keyword',
+            'items.*.identifier' => 'required|string',
+            'purchase_type' => 'required|in:vmn,keyword',
+        ]);
+
+        $purchaseService = new \App\Services\NumberPurchaseService();
+        
+        try {
+            $sessionId = \Illuminate\Support\Str::uuid()->toString();
+            $userId = 1;
+
+            $result = $purchaseService->acquireLocks(
+                $request->input('items'),
+                $sessionId,
+                $userId
+            );
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 409);
+        }
+    }
+
+    /**
+     * API: Process numbers/keywords purchase
+     * Atomic transaction with audit logging
+     */
+    public function processNumbersPurchase(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|string',
+            'sub_account_id' => 'required|string',
+            'sub_account_name' => 'nullable|string',
+            'purchase_type' => 'required|in:vmn,keyword',
+            'items' => 'required|array|min:1',
+            'items.*.identifier' => 'required|string',
+        ]);
+
+        $purchaseService = new \App\Services\NumberPurchaseService();
+
+        try {
+            $result = $purchaseService->processPurchase([
+                'session_id' => $request->input('session_id'),
+                'user_id' => 1,
+                'user_email' => 'demo@quicksms.com',
+                'user_name' => 'Demo User',
+                'sub_account_id' => $request->input('sub_account_id'),
+                'sub_account_name' => $request->input('sub_account_name'),
+                'purchase_type' => $request->input('purchase_type'),
+                'items' => $request->input('items'),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * API: Release locked numbers/keywords
+     * Called when user cancels or times out
+     */
+    public function releaseNumberLocks(Request $request)
+    {
+        $request->validate([
+            'session_id' => 'required|string',
+        ]);
+
+        $purchaseService = new \App\Services\NumberPurchaseService();
+        
+        try {
+            $purchaseService->releaseLocks($request->input('session_id'));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Locks released successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
 }

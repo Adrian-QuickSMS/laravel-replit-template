@@ -62,4 +62,7 @@ Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(fu
 
 Route::prefix('api/purchase')->controller(QuickSMSController::class)->group(function () {
     Route::get('/numbers/pricing', 'getNumbersPricing')->name('api.purchase.numbers.pricing');
+    Route::post('/numbers/lock', 'lockNumbersForPurchase')->name('api.purchase.numbers.lock');
+    Route::post('/numbers/purchase', 'processNumbersPurchase')->name('api.purchase.numbers.purchase');
+    Route::post('/numbers/release', 'releaseNumberLocks')->name('api.purchase.numbers.release');
 });

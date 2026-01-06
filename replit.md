@@ -29,7 +29,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - **Sorting:** All columns sortable with visual indicators (ascending/descending arrows).
     - **Pagination:** Configurable page size (10/25/50/100) with page navigation.
 - **Purchase:** Functionality for purchasing messages and numbers (Admin/Finance/Messaging Managers only) with HubSpot Products API for live pricing and Stripe for payment processing. Includes "Pay Invoice" and "Top Up Balance" flows with Stripe Checkout for PCI DSS compliance and comprehensive audit logging.
-  - **Purchase Numbers:** Page for acquiring dedicated numbers with two sections:
+  - **Purchase Numbers:** Page for acquiring dedicated numbers with full audit logging and concurrency control. Two sections:
     - Virtual Mobile Numbers (VMNs): UK Long Code, International VMN, Toll-Free Number options
     - Shortcode Keywords: Shared Shortcode, Dedicated Shortcode, Premium Rate Shortcode options
     - Shared Shortcode Keywords section: Displays read-only shared shortcode (82228), keyword table with columns (Keyword, Status, Select), search functionality, A-Z/Z-A sorting, multi-select for available keywords only, taken keywords visible but disabled

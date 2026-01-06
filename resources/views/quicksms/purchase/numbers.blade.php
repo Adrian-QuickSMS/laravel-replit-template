@@ -1693,37 +1693,124 @@ function executePurchase() {
     
     var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedSubAccountId; });
     
-    var setupTotal = 0;
-    var monthlyTotal = 0;
-    selectedNumbers.forEach(function(item) {
-        setupTotal += item.setupFee;
-        monthlyTotal += item.monthlyFee;
+    var confirmBtn = document.querySelector('#purchaseConfirmationModal .btn-success');
+    var originalBtnText = confirmBtn.innerHTML;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+    
+    var items = selectedNumbers.map(function(n) {
+        return {
+            type: 'vmn',
+            identifier: n.number,
+            country_code: n.country
+        };
     });
     
-    console.log('TODO: API call - POST /api/purchase/numbers/execute');
-    console.log('TODO: Atomic transaction required - all or nothing');
-    console.log('TODO: 1. Deduct setup fee from account balance');
-    console.log('TODO: 2. Schedule monthly fee for 1st of each month');
-    console.log('TODO: 3. Mark numbers as owned/reserved');
-    console.log('TODO: 4. Assign numbers to sub-account');
-    console.log('Purchase details:', {
-        subAccountId: selectedSubAccountId,
-        subAccountName: subAccount ? subAccount.name : null,
-        numbers: selectedNumbers.map(function(n) { return { id: n.id, number: n.number, hubspotProductId: n.hubspotProductId }; }),
-        setupFeeTotal: setupTotal,
-        monthlyFeeTotal: monthlyTotal
+    fetch('/api/purchase/numbers/lock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            items: items,
+            purchase_type: 'vmn'
+        })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(lockResult) {
+        if (!lockResult.success) {
+            throw new Error(lockResult.message || 'Failed to lock items for purchase');
+        }
+        
+        return fetch('/api/purchase/numbers/purchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                session_id: lockResult.session_id,
+                sub_account_id: selectedSubAccountId,
+                sub_account_name: subAccount ? subAccount.name : null,
+                purchase_type: 'vmn',
+                items: items
+            })
+        });
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (!result.success) {
+            throw new Error(result.message || 'Purchase failed');
+        }
+        
+        var modal = bootstrap.Modal.getInstance(document.getElementById('purchaseConfirmationModal'));
+        modal.hide();
+        
+        selectedNumbers.forEach(function(n) {
+            var idx = vmnMockData.findIndex(function(v) { return v.id === n.id; });
+            if (idx !== -1) {
+                vmnMockData[idx].availability = 'Reserved';
+            }
+        });
+        
+        accountBalance = result.balance_after;
+        
+        showPurchaseSuccessToast(
+            'VMN Purchase Complete',
+            selectedNumbers.length + ' number(s) assigned to ' + (subAccount ? subAccount.name : 'Unknown') + '. Ref: ' + result.transaction_reference
+        );
+        
+        console.log('[Audit] VMN Purchase logged:', result.audit_id);
+        
+        vmnSelectedIds = [];
+        selectedSubAccountId = '';
+        document.getElementById('vmnSubAccountSelect').value = '';
+        renderVmnTable();
+        updateVmnSelection();
+    })
+    .catch(function(error) {
+        console.error('Purchase error:', error);
+        showPurchaseErrorToast('Purchase Failed', error.message);
+    })
+    .finally(function() {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalBtnText;
     });
+}
+
+function showPurchaseSuccessToast(title, message) {
+    var toastHtml = '<div class="toast align-items-center text-white bg-success border-0" role="alert">' +
+        '<div class="d-flex"><div class="toast-body"><strong>' + title + '</strong><br>' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('purchaseConfirmationModal'));
-    modal.hide();
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    container.innerHTML = toastHtml;
+    var toast = new bootstrap.Toast(container.querySelector('.toast'));
+    toast.show();
+}
+
+function showPurchaseErrorToast(title, message) {
+    var toastHtml = '<div class="toast align-items-center text-white bg-danger border-0" role="alert">' +
+        '<div class="d-flex"><div class="toast-body"><strong>' + title + '</strong><br>' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
     
-    alert('Purchase confirmed!\n\n' + selectedNumbers.length + ' number(s) purchased and assigned to ' + (subAccount ? subAccount.name : 'Unknown') + '.\n\nSetup fee charged: £' + setupTotal.toFixed(2) + '\nMonthly fee: £' + monthlyTotal.toFixed(2) + '/month\n\n(This is a demo - no actual purchase was made)');
-    
-    vmnSelectedIds = [];
-    selectedSubAccountId = '';
-    document.getElementById('vmnSubAccountSelect').value = '';
-    renderVmnTable();
-    updateVmnSelection();
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    container.innerHTML = toastHtml;
+    var toast = new bootstrap.Toast(container.querySelector('.toast'));
+    toast.show();
 }
 
 function selectNumberType(type) {
@@ -1927,34 +2014,90 @@ function executeKeywordPurchase() {
         return keywordMockData.find(function(k) { return k.id === id; });
     }).filter(function(k) { return k; });
     
-    var totalSetup = selectedKeywords.reduce(function(sum, k) { return sum + (k.setupFee || 25.00); }, 0);
     var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedKeywordSubAccountId; });
     
-    console.log('TODO: API call - POST /api/purchase/keywords');
-    console.log('TODO: Payload:', {
-        keywords: selectedKeywords.map(function(k) { return k.keyword; }),
-        subAccountId: selectedKeywordSubAccountId,
-        totalSetupFee: totalSetup,
-        billingInfo: {
-            setupFeeChargedNow: true,
-            monthlyFeeScheduled: true,
-            firstOfMonth: true
-        }
+    var confirmBtn = document.querySelector('#keywordPurchaseConfirmationModal .btn-success');
+    var originalBtnText = confirmBtn.innerHTML;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+    
+    var items = selectedKeywords.map(function(k) {
+        return {
+            type: 'keyword',
+            identifier: k.keyword
+        };
     });
-    console.log('TODO: Atomic transaction - all keywords must succeed or fail together');
-    console.log('TODO: On success - deduct setup fees, schedule monthly fees, reserve keywords, assign to sub-account');
     
-    var keywordList = selectedKeywords.map(function(k) { return k.keyword; }).join(', ');
-    
-    bootstrap.Modal.getInstance(document.getElementById('keywordPurchaseConfirmationModal')).hide();
-    
-    alert('Keyword purchase successful!\n\nKeywords: ' + keywordList + '\nAssigned to: ' + (subAccount ? subAccount.name : '-') + '\nSetup fee charged: £' + totalSetup.toFixed(2) + '\n\n(This is a demo - no actual purchase was made)');
-    
-    keywordSelectedIds = [];
-    renderKeywordTable();
-    updateKeywordSelection();
-    document.getElementById('keywordSubAccountSelect').value = '';
-    selectedKeywordSubAccountId = '';
+    fetch('/api/purchase/numbers/lock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            items: items,
+            purchase_type: 'keyword'
+        })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(lockResult) {
+        if (!lockResult.success) {
+            throw new Error(lockResult.message || 'Failed to lock keywords for purchase');
+        }
+        
+        return fetch('/api/purchase/numbers/purchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                session_id: lockResult.session_id,
+                sub_account_id: selectedKeywordSubAccountId,
+                sub_account_name: subAccount ? subAccount.name : null,
+                purchase_type: 'keyword',
+                items: items
+            })
+        });
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (!result.success) {
+            throw new Error(result.message || 'Keyword purchase failed');
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('keywordPurchaseConfirmationModal')).hide();
+        
+        selectedKeywords.forEach(function(k) {
+            var idx = keywordMockData.findIndex(function(kw) { return kw.id === k.id; });
+            if (idx !== -1) {
+                keywordMockData[idx].status = 'Taken';
+            }
+        });
+        
+        accountBalance = result.balance_after;
+        
+        showPurchaseSuccessToast(
+            'Keyword Purchase Complete',
+            selectedKeywords.length + ' keyword(s) assigned to ' + (subAccount ? subAccount.name : 'Unknown') + '. Ref: ' + result.transaction_reference
+        );
+        
+        console.log('[Audit] Keyword Purchase logged:', result.audit_id);
+        
+        keywordSelectedIds = [];
+        renderKeywordTable();
+        updateKeywordSelection();
+        document.getElementById('keywordSubAccountSelect').value = '';
+        selectedKeywordSubAccountId = '';
+    })
+    .catch(function(error) {
+        console.error('Keyword purchase error:', error);
+        showPurchaseErrorToast('Purchase Failed', error.message);
+    })
+    .finally(function() {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalBtnText;
+    });
 }
 
 function validateCustomKeyword() {
