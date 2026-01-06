@@ -1918,41 +1918,41 @@ function initializeRcsCard(cardNum) {
  * @returns {Promise<{url: string, blob: Blob, width: number, height: number}>}
  */
 function generateCroppedImage(imageUrl, orientation, zoom, cropPosition) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function(resolve, reject) {
         // RCS card dimensions (width is typically 764px for RCS)
-        const RCS_WIDTH = 764;
-        const orientationHeights = {
+        var RCS_WIDTH = 764;
+        var orientationHeights = {
             'vertical_short': 268,    // 112px displayed * 2.39 scale
             'vertical_medium': 402,   // 168px displayed * 2.39 scale
             'horizontal': 631         // 264px displayed * 2.39 scale
         };
 
-        const canvasWidth = RCS_WIDTH;
-        const canvasHeight = orientationHeights[orientation] || orientationHeights['vertical_short'];
+        var canvasWidth = RCS_WIDTH;
+        var canvasHeight = orientationHeights[orientation] || orientationHeights['vertical_short'];
 
-        const img = new Image();
+        var img = new Image();
         img.crossOrigin = 'anonymous';
 
         img.onload = function() {
             try {
-                const canvas = document.createElement('canvas');
+                var canvas = document.createElement('canvas');
                 canvas.width = canvasWidth;
                 canvas.height = canvasHeight;
-                const ctx = canvas.getContext('2d');
+                var ctx = canvas.getContext('2d');
 
                 // Calculate zoom scale
-                const zoomScale = zoom / 100;
+                var zoomScale = zoom / 100;
 
                 // Calculate source dimensions with zoom
-                const scaledWidth = img.width * zoomScale;
-                const scaledHeight = img.height * zoomScale;
+                var scaledWidth = img.width * zoomScale;
+                var scaledHeight = img.height * zoomScale;
 
                 // Calculate aspect ratios
-                const canvasAspect = canvasWidth / canvasHeight;
-                const imageAspect = scaledWidth / scaledHeight;
+                var canvasAspect = canvasWidth / canvasHeight;
+                var imageAspect = scaledWidth / scaledHeight;
 
-                let sourceWidth, sourceHeight, sourceX, sourceY;
-                let destX = 0, destY = 0, destWidth = canvasWidth, destHeight = canvasHeight;
+                var sourceWidth, sourceHeight, sourceX, sourceY;
+                var destX = 0, destY = 0, destWidth = canvasWidth, destHeight = canvasHeight;
 
                 // Cover the canvas (like object-fit: cover)
                 if (imageAspect > canvasAspect) {
@@ -1999,9 +1999,9 @@ function generateCroppedImage(imageUrl, orientation, zoom, cropPosition) {
                     }
 
                     // Create object URL with timestamp for cache busting
-                    const objectUrl = URL.createObjectURL(blob);
-                    const timestamp = Date.now();
-                    const cacheBustedUrl = objectUrl + '?v=' + timestamp;
+                    var objectUrl = URL.createObjectURL(blob);
+                    var timestamp = Date.now();
+                    var cacheBustedUrl = objectUrl + '?v=' + timestamp;
 
                     resolve({
                         url: cacheBustedUrl,
