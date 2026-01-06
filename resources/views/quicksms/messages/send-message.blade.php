@@ -3158,7 +3158,7 @@ function loadRcsMediaUrl() {
     fetch(url, { method: 'HEAD', mode: 'cors' })
         .then(function(response) {
             if (!response.ok) {
-                throw new Error('URL not accessible');
+                throw new Error('URL not publicly accessible. Please check the URL returns a valid response (HTTP ' + response.status + ').');
             }
             
             var contentType = response.headers.get('Content-Type') || '';
@@ -3171,21 +3171,33 @@ function loadRcsMediaUrl() {
             }) || hasValidExtension;
             
             if (!isValidType) {
-                throw new Error('Unsupported file type. Only JPEG, PNG, and GIF images are allowed.');
+                throw new Error('File type not supported. Only JPEG, PNG, and GIF images are allowed.');
             }
             
             if (fileSize > 0 && fileSize > rcsMaxFileSize) {
                 var sizeMB = (fileSize / (1024 * 1024)).toFixed(1);
-                throw new Error('File size (' + sizeMB + ' MB) exceeds 100 MB limit. Please use a smaller image.');
+                throw new Error('File size exceeds limit. This file is ' + sizeMB + ' MB but the maximum allowed is 100 MB.');
             }
             
             var warnLargeFile = fileSize > 0 && fileSize > rcsWarnFileSize;
-            return { fileSize: fileSize, contentType: contentType, warnLargeFile: warnLargeFile };
+            return { fileSize: fileSize, contentType: contentType, warnLargeFile: warnLargeFile, validationPassed: true };
         })
         .catch(function(err) {
-            return { fileSize: 0, contentType: '', corsBlocked: err.message === 'Failed to fetch' };
+            if (err.message === 'Failed to fetch') {
+                return { fileSize: 0, contentType: '', corsBlocked: true, validationPassed: true };
+            }
+            return { validationPassed: false, errorMessage: err.message };
         })
         .then(function(metadata) {
+            if (!metadata.validationPassed) {
+                showRcsMediaError(metadata.errorMessage);
+                if (loadBtn) {
+                    loadBtn.disabled = false;
+                    loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                }
+                return;
+            }
+            
             var img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
@@ -3213,20 +3225,13 @@ function loadRcsMediaUrl() {
                 }
             };
             img.onerror = function() {
-                showRcsMediaError('Unable to load image from URL. Please check the URL is publicly accessible.');
+                showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
                 if (loadBtn) {
                     loadBtn.disabled = false;
                     loadBtn.innerHTML = '<i class="fas fa-check"></i>';
                 }
             };
             img.src = url;
-        })
-        .catch(function(err) {
-            showRcsMediaError(err.message || 'Unable to load image from URL.');
-            if (loadBtn) {
-                loadBtn.disabled = false;
-                loadBtn.innerHTML = '<i class="fas fa-check"></i>';
-            }
         });
 }
 
