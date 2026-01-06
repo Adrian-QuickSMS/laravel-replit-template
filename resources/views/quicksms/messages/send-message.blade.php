@@ -2157,25 +2157,6 @@ function loadRcsFromStorage() {
     }
 }
 
-function toggleRcsMessageType() {
-    saveCurrentCardData();
-    
-    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
-    document.getElementById('rcsCarouselNav').classList.toggle('d-none', !isCarousel);
-    document.getElementById('rcsCurrentCardLabel').classList.toggle('d-none', !isCarousel);
-    
-    if (!isCarousel) {
-        for (var i = 2; i <= rcsCardCount; i++) {
-            delete rcsCardsData[i];
-        }
-        rcsCardCount = 1;
-        rcsCurrentCard = 1;
-        resetRcsCardTabs();
-        loadCardData(1);
-    }
-    updateRcsCardCount();
-}
-
 function resetRcsCardTabs() {
     var tabsContainer = document.getElementById('rcsCardTabs');
     var addBtn = document.getElementById('rcsAddCardBtn');
@@ -3305,29 +3286,6 @@ function setRcsCropPosition(position) {
     constrainRcsCropPosition();
     applyRcsCropTransform();
     markRcsImageDirty();
-}
-
-function updateCarouselOrientationWarning() {
-    var isCarousel = document.getElementById('rcsTypeCarousel').checked;
-    var horizInput = document.getElementById('rcsOrientHoriz');
-    var horizLabel = document.getElementById('rcsOrientHorizLabel');
-    var warning = document.getElementById('rcsCarouselOrientWarning');
-    
-    if (isCarousel) {
-        if (horizInput) horizInput.style.display = 'none';
-        if (horizLabel) horizLabel.style.display = 'none';
-        horizInput.disabled = true;
-        warning.classList.remove('d-none');
-        if (horizInput.checked) {
-            document.getElementById('rcsOrientVertShort').checked = true;
-            updateRcsCropFrame('vertical_short');
-        }
-    } else {
-        if (horizInput) horizInput.style.display = '';
-        if (horizLabel) horizLabel.style.display = '';
-        horizInput.disabled = false;
-        warning.classList.add('d-none');
-    }
 }
 
 var rcsActiveTextField = null;
