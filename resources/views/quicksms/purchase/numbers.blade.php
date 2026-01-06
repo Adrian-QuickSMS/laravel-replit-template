@@ -215,6 +215,140 @@
     font-size: 0.875rem;
     margin-bottom: 0;
 }
+.vmn-table-card {
+    margin-top: 2rem;
+}
+.vmn-table-card .card-header {
+    background: #fff;
+    border-bottom: 1px solid #f0ebf8;
+    padding: 1rem 1.25rem;
+}
+.vmn-table-card .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c2c2c;
+}
+.vmn-search-box {
+    max-width: 300px;
+}
+.vmn-table {
+    margin-bottom: 0;
+}
+.vmn-table th {
+    background: #f8f9fa;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.vmn-table th:hover {
+    background: #f0ebf8;
+}
+.vmn-table th.sortable i {
+    margin-left: 0.5rem;
+    opacity: 0.5;
+}
+.vmn-table th.sorted-asc i.fa-sort-up,
+.vmn-table th.sorted-desc i.fa-sort-down {
+    opacity: 1;
+    color: #6f42c1;
+}
+.vmn-table td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+.vmn-table tbody tr:hover {
+    background: rgba(111, 66, 193, 0.04);
+}
+.vmn-table tbody tr.selected {
+    background: rgba(111, 66, 193, 0.08);
+}
+.vmn-table tbody tr.row-reserved {
+    opacity: 0.6;
+}
+.vmn-number {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-weight: 600;
+    color: #2c2c2c;
+}
+.country-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.country-flag {
+    font-size: 1.25rem;
+}
+.country-code {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.fee-cell {
+    font-weight: 500;
+}
+.status-available {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.status-reserved {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    background: #e2e3e5;
+    color: #6c757d;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.vmn-select-checkbox {
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+}
+.vmn-select-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.vmn-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+.selection-summary {
+    font-size: 0.875rem;
+    color: #495057;
+}
+.selection-summary strong {
+    color: #6f42c1;
+}
+.vmn-empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+.vmn-empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
 </style>
 @endpush
 
@@ -353,6 +487,67 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card vmn-table-card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5><i class="fas fa-list me-2 text-primary"></i>Available Numbers</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm vmn-search-box">
+                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="vmnSearchInput" placeholder="Search by number...">
+                        </div>
+                        <select class="form-select form-select-sm" id="vmnCountryFilter" style="width: auto;">
+                            <option value="">All Countries</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="US">United States</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="ES">Spain</option>
+                            <option value="IE">Ireland</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table vmn-table" id="vmnTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">
+                                    <input type="checkbox" class="form-check-input vmn-select-checkbox" id="vmnSelectAll" onclick="toggleVmnSelectAll()">
+                                </th>
+                                <th class="sortable" data-sort="number" onclick="sortVmnTable('number')">
+                                    Mobile Number <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="country" onclick="sortVmnTable('country')">
+                                    Country <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="setupFee" onclick="sortVmnTable('setupFee')">
+                                    Setup Fee <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="monthlyFee" onclick="sortVmnTable('monthlyFee')">
+                                    Monthly Fee <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="availability" onclick="sortVmnTable('availability')">
+                                    Availability <i class="fas fa-sort"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="vmnTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="vmn-table-footer">
+                    <div class="selection-summary">
+                        <span id="vmnSelectedCount">0</span> number(s) selected
+                        <span id="vmnTotalCost" class="ms-3" style="display: none;">
+                            Total: <strong>£<span id="vmnSetupTotal">0</span></strong> setup + 
+                            <strong>£<span id="vmnMonthlyTotal">0</span></strong>/month
+                        </span>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="vmnProceedBtn" onclick="proceedWithSelectedNumbers()" disabled>
+                        <i class="fas fa-shopping-cart me-2"></i>Proceed to Checkout
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="purchase-section" id="shortcodeSection">
@@ -484,18 +679,222 @@
 @push('scripts')
 <script>
 var currentUserRole = 'admin';
-
 var allowedRoles = ['admin', 'finance', 'messaging_manager'];
+
+var vmnMockData = [
+    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_001' },
+    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_002' },
+    { id: 3, number: '+447700900003', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Reserved', hubspotProductId: 'prod_uk_vmn_003' },
+    { id: 4, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_004' },
+    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 15.00, monthlyFee: 10.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_100' },
+    { id: 6, number: '+12025551234', country: 'US', countryName: 'United States', flag: '🇺🇸', setupFee: 15.00, monthlyFee: 12.00, availability: 'Available', hubspotProductId: 'prod_us_vmn_001' },
+    { id: 7, number: '+12025551235', country: 'US', countryName: 'United States', flag: '🇺🇸', setupFee: 15.00, monthlyFee: 12.00, availability: 'Reserved', hubspotProductId: 'prod_us_vmn_002' },
+    { id: 8, number: '+12025551236', country: 'US', countryName: 'United States', flag: '🇺🇸', setupFee: 15.00, monthlyFee: 12.00, availability: 'Available', hubspotProductId: 'prod_us_vmn_003' },
+    { id: 9, number: '+4915123456789', country: 'DE', countryName: 'Germany', flag: '🇩🇪', setupFee: 20.00, monthlyFee: 15.00, availability: 'Available', hubspotProductId: 'prod_de_vmn_001' },
+    { id: 10, number: '+4915123456790', country: 'DE', countryName: 'Germany', flag: '🇩🇪', setupFee: 20.00, monthlyFee: 15.00, availability: 'Available', hubspotProductId: 'prod_de_vmn_002' },
+    { id: 11, number: '+33612345678', country: 'FR', countryName: 'France', flag: '🇫🇷', setupFee: 18.00, monthlyFee: 14.00, availability: 'Available', hubspotProductId: 'prod_fr_vmn_001' },
+    { id: 12, number: '+33612345679', country: 'FR', countryName: 'France', flag: '🇫🇷', setupFee: 18.00, monthlyFee: 14.00, availability: 'Reserved', hubspotProductId: 'prod_fr_vmn_002' },
+    { id: 13, number: '+34612345678', country: 'ES', countryName: 'Spain', flag: '🇪🇸', setupFee: 18.00, monthlyFee: 14.00, availability: 'Available', hubspotProductId: 'prod_es_vmn_001' },
+    { id: 14, number: '+353871234567', country: 'IE', countryName: 'Ireland', flag: '🇮🇪', setupFee: 12.00, monthlyFee: 10.00, availability: 'Available', hubspotProductId: 'prod_ie_vmn_001' },
+    { id: 15, number: '+353871234568', country: 'IE', countryName: 'Ireland', flag: '🇮🇪', setupFee: 12.00, monthlyFee: 10.00, availability: 'Available', hubspotProductId: 'prod_ie_vmn_002' }
+];
+
+var vmnSelectedIds = [];
+var vmnSortColumn = 'number';
+var vmnSortDirection = 'asc';
+var vmnSearchTerm = '';
+var vmnCountryFilter = '';
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
+    initializeVmnTable();
 });
 
 function checkAccess() {
     var hasAccess = allowedRoles.includes(currentUserRole);
-    
     document.getElementById('accessDeniedView').style.display = hasAccess ? 'none' : 'block';
     document.getElementById('purchaseContent').style.display = hasAccess ? 'block' : 'none';
+}
+
+function initializeVmnTable() {
+    document.getElementById('vmnSearchInput').addEventListener('input', function(e) {
+        vmnSearchTerm = e.target.value.toLowerCase();
+        renderVmnTable();
+    });
+    
+    document.getElementById('vmnCountryFilter').addEventListener('change', function(e) {
+        vmnCountryFilter = e.target.value;
+        renderVmnTable();
+    });
+    
+    renderVmnTable();
+}
+
+function getFilteredVmnData() {
+    return vmnMockData.filter(function(item) {
+        if (vmnSearchTerm && !item.number.toLowerCase().includes(vmnSearchTerm)) {
+            return false;
+        }
+        if (vmnCountryFilter && item.country !== vmnCountryFilter) {
+            return false;
+        }
+        return true;
+    });
+}
+
+function getSortedVmnData(data) {
+    return data.slice().sort(function(a, b) {
+        var valA = a[vmnSortColumn];
+        var valB = b[vmnSortColumn];
+        
+        if (typeof valA === 'number') {
+            return vmnSortDirection === 'asc' ? valA - valB : valB - valA;
+        }
+        
+        valA = String(valA).toLowerCase();
+        valB = String(valB).toLowerCase();
+        
+        if (valA < valB) return vmnSortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return vmnSortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function renderVmnTable() {
+    var tbody = document.getElementById('vmnTableBody');
+    var filtered = getFilteredVmnData();
+    var sorted = getSortedVmnData(filtered);
+    
+    if (sorted.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="vmn-empty-state"><i class="fas fa-search"></i><h5>No numbers found</h5><p>Try adjusting your search or filter criteria.</p></div></td></tr>';
+        updateVmnSortIndicators();
+        updateVmnSelection();
+        return;
+    }
+    
+    var html = '';
+    sorted.forEach(function(item) {
+        var isSelected = vmnSelectedIds.includes(item.id);
+        var isAvailable = item.availability === 'Available';
+        var rowClass = isSelected ? 'selected' : '';
+        if (!isAvailable) rowClass += ' row-reserved';
+        
+        html += '<tr class="' + rowClass + '" data-id="' + item.id + '">';
+        html += '<td><input type="checkbox" class="form-check-input vmn-select-checkbox" ' + 
+                (isSelected ? 'checked' : '') + ' ' + 
+                (!isAvailable ? 'disabled' : '') + 
+                ' onchange="toggleVmnSelect(' + item.id + ')"></td>';
+        html += '<td><span class="vmn-number">' + item.number + '</span></td>';
+        html += '<td><div class="country-cell"><span class="country-flag">' + item.flag + '</span><span>' + item.countryName + '</span><span class="country-code">(' + item.country + ')</span></div></td>';
+        html += '<td class="fee-cell">£' + item.setupFee.toFixed(2) + '</td>';
+        html += '<td class="fee-cell">£' + item.monthlyFee.toFixed(2) + '</td>';
+        html += '<td><span class="' + (isAvailable ? 'status-available' : 'status-reserved') + '">' + item.availability + '</span></td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+    updateVmnSortIndicators();
+    updateVmnSelection();
+}
+
+function sortVmnTable(column) {
+    if (vmnSortColumn === column) {
+        vmnSortDirection = vmnSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        vmnSortColumn = column;
+        vmnSortDirection = 'asc';
+    }
+    renderVmnTable();
+}
+
+function updateVmnSortIndicators() {
+    document.querySelectorAll('#vmnTable th.sortable').forEach(function(th) {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        var icon = th.querySelector('i');
+        icon.className = 'fas fa-sort';
+    });
+    
+    var activeHeader = document.querySelector('#vmnTable th[data-sort="' + vmnSortColumn + '"]');
+    if (activeHeader) {
+        activeHeader.classList.add(vmnSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        var icon = activeHeader.querySelector('i');
+        icon.className = vmnSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+    }
+}
+
+function toggleVmnSelectAll() {
+    var selectAllCheckbox = document.getElementById('vmnSelectAll');
+    var filtered = getFilteredVmnData().filter(function(item) {
+        return item.availability === 'Available';
+    });
+    
+    if (selectAllCheckbox.checked) {
+        vmnSelectedIds = filtered.map(function(item) { return item.id; });
+    } else {
+        vmnSelectedIds = [];
+    }
+    
+    renderVmnTable();
+}
+
+function toggleVmnSelect(id) {
+    var idx = vmnSelectedIds.indexOf(id);
+    if (idx > -1) {
+        vmnSelectedIds.splice(idx, 1);
+    } else {
+        var item = vmnMockData.find(function(n) { return n.id === id; });
+        if (item && item.availability === 'Available') {
+            vmnSelectedIds.push(id);
+        }
+    }
+    updateVmnSelection();
+}
+
+function updateVmnSelection() {
+    var count = vmnSelectedIds.length;
+    document.getElementById('vmnSelectedCount').textContent = count;
+    document.getElementById('vmnProceedBtn').disabled = count === 0;
+    
+    var totalCostEl = document.getElementById('vmnTotalCost');
+    if (count > 0) {
+        var setupTotal = 0;
+        var monthlyTotal = 0;
+        vmnSelectedIds.forEach(function(id) {
+            var item = vmnMockData.find(function(n) { return n.id === id; });
+            if (item) {
+                setupTotal += item.setupFee;
+                monthlyTotal += item.monthlyFee;
+            }
+        });
+        document.getElementById('vmnSetupTotal').textContent = setupTotal.toFixed(2);
+        document.getElementById('vmnMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+        totalCostEl.style.display = 'inline';
+    } else {
+        totalCostEl.style.display = 'none';
+    }
+    
+    var availableFiltered = getFilteredVmnData().filter(function(item) {
+        return item.availability === 'Available';
+    });
+    var allSelected = availableFiltered.length > 0 && availableFiltered.every(function(item) {
+        return vmnSelectedIds.includes(item.id);
+    });
+    document.getElementById('vmnSelectAll').checked = allSelected;
+}
+
+function proceedWithSelectedNumbers() {
+    if (vmnSelectedIds.length === 0) return;
+    
+    var selectedNumbers = vmnSelectedIds.map(function(id) {
+        return vmnMockData.find(function(n) { return n.id === id; });
+    });
+    
+    console.log('TODO: API call - POST /api/purchase/numbers/checkout');
+    console.log('TODO: Fetch live pricing from HubSpot Products API using hubspotProductId');
+    console.log('Selected numbers:', selectedNumbers);
+    
+    var numberList = selectedNumbers.map(function(n) { return n.number; }).join(', ');
+    alert('Checkout coming soon.\n\nSelected numbers: ' + numberList);
 }
 
 function selectNumberType(type) {

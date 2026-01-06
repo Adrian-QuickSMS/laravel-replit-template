@@ -32,6 +32,10 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Purchase Numbers:** Page for acquiring dedicated numbers with two sections:
     - Virtual Mobile Numbers (VMNs): UK Long Code, International VMN, Toll-Free Number options
     - Shortcode Keywords: Shared Shortcode, Dedicated Shortcode, Premium Rate Shortcode options
+    - VMN Available Numbers table with columns: Mobile Number, Country (flag + name + ISO), Setup Fee, Monthly Fee, Availability status, Select checkbox
+    - Table features: Search by number, country filter dropdown, sortable columns (asc/desc), multi-select with "Select All" for available numbers only, selection summary with total costs, "Proceed to Checkout" button
+    - Reserved numbers are greyed out and cannot be selected
+    - Mock data with `hubspotProductId` field for future HubSpot Products API integration
     - UI-only scaffold with TODO markers for purchase logic integration
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
 - **Account:** Details, User/Access management, Sub Accounts, Audit Logs, and Security settings.
