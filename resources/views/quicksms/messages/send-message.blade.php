@@ -2428,6 +2428,7 @@ function getWizardCardSchema(cardNum) {
     
     if (isCurrentCard) {
         mediaUrl = rcsMediaData.hostedUrl || rcsMediaData.url || null;
+        console.log('[getWizardCardSchema] Current card - hostedUrl:', rcsMediaData.hostedUrl, 'url:', rcsMediaData.url, 'using:', mediaUrl);
     } else {
         mediaUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : 
                    (card.media && card.media.url) ? card.media.url : null;
@@ -2846,6 +2847,7 @@ function saveRcsImageEdits() {
     .then(function(data) {
         hideRcsProcessingIndicator();
         if (data.success && data.asset) {
+            console.log('[RCS Save] Asset saved:', data.asset.public_url, 'Dimensions:', data.asset.width, 'x', data.asset.height);
             rcsMediaData.assetUuid = data.asset.uuid;
             rcsMediaData.hostedUrl = data.asset.public_url;
             rcsMediaData.url = data.asset.public_url;
@@ -2855,6 +2857,7 @@ function saveRcsImageEdits() {
             updateRcsImageInfo();
             clearRcsImageDirtyState();
             initRcsImageBaseline();
+            console.log('[RCS Save] Before updateRcsWizardPreview - hostedUrl:', rcsMediaData.hostedUrl, 'url:', rcsMediaData.url);
             updateRcsWizardPreview();
         } else if (data.error) {
             showRcsMediaError(data.error);

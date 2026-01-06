@@ -298,6 +298,15 @@ class RcsAssetService
         $originalWidth = $image->width();
         $originalHeight = $image->height();
         
+        \Log::info('[RCS Asset] Processing image', [
+            'originalSize' => "{$originalWidth}x{$originalHeight}",
+            'zoom' => $zoom,
+            'displayScale' => $displayScale,
+            'cropOffsetX' => $cropOffsetX,
+            'cropOffsetY' => $cropOffsetY,
+            'frameSize' => "{$frameWidth}x{$frameHeight}",
+        ]);
+        
         $effectiveScale = $displayScale * $zoom;
         
         $cropLeftInOriginal = (int) (($originalWidth / 2) - ($cropOffsetX / $effectiveScale) - ($frameWidth / 2 / $effectiveScale));
@@ -311,12 +320,18 @@ class RcsAssetService
         $cropWidthInOriginal = max(1, min($cropWidthInOriginal, $originalWidth - $cropLeftInOriginal));
         $cropHeightInOriginal = max(1, min($cropHeightInOriginal, $originalHeight - $cropTopInOriginal));
         
+        \Log::info('[RCS Asset] Crop calculated', [
+            'cropRect' => "left:{$cropLeftInOriginal}, top:{$cropTopInOriginal}, w:{$cropWidthInOriginal}, h:{$cropHeightInOriginal}",
+            'effectiveScale' => $effectiveScale,
+        ]);
+        
         if ($cropWidthInOriginal > 0 && $cropHeightInOriginal > 0) {
             $image->crop($cropWidthInOriginal, $cropHeightInOriginal, $cropLeftInOriginal, $cropTopInOriginal);
         }
         
         $targetWidth = 800;
         $targetHeight = (int) ($targetWidth * $frameHeight / $frameWidth);
+        \Log::info('[RCS Asset] Resizing to', ['target' => "{$targetWidth}x{$targetHeight}"]);
         $image->resize($targetWidth, $targetHeight);
         
         $mimeType = 'image/jpeg';
