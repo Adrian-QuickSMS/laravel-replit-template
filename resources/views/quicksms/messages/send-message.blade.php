@@ -1573,30 +1573,6 @@ function insertTrackingUrl() {
     toggleTrackableLinkModal();
 }
 
-function openRcsWizard() {
-    if (!rcsPersistentPayload && Object.keys(rcsCardsData).length === 0) {
-        var hasStoredDraft = loadRcsFromStorage();
-        if (!hasStoredDraft) {
-            initializeRcsCard(1);
-            rcsCurrentCard = 1;
-            rcsCardCount = 1;
-        }
-    }
-    
-    hideRcsValidationErrors();
-    
-    var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
-    modal.show();
-    
-    document.getElementById('rcsApplyContentBtn').disabled = false;
-    
-    setTimeout(function() {
-        initRcsCropEditor();
-        updateCarouselOrientationWarning();
-        updateRcsWizardPreview();
-    }, 100);
-}
-
 function getRcsPayloadForSubmission() {
     if (!rcsPersistentPayload) {
         return null;
