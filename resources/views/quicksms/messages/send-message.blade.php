@@ -2025,7 +2025,7 @@ function clearRcsContent() {
 var rcsCardCount = 1;
 var rcsCurrentCard = 1;
 var rcsMaxCards = 10;
-var rcsMaxButtons = 3;
+var rcsMaxButtons = 4;
 
 var rcsCardsData = {};
 var rcsPersistentPayload = null;
