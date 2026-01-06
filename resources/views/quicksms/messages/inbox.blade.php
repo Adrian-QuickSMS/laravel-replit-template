@@ -2568,13 +2568,16 @@ function mapPayloadCardToRendererFormat(card) {
         'tall': 'tall'
     };
     
-    // Capture description from all possible field names
-    var descText = card.description || card.textBody || card.body || card.text || card.content || '';
+    // In RCS wizard payload:
+    // - "description" is the title/heading
+    // - "textBody" is the main body content
+    var titleText = card.title || card.description || '';
+    var bodyText = card.textBody || card.body || card.text || card.content || '';
     
     return {
-        title: card.title || '',
-        description: descText,
-        textBody: descText,
+        title: titleText,
+        description: bodyText,
+        textBody: bodyText,
         media: card.media ? {
             url: card.media.hostedUrl || card.media.url || '',
             hostedUrl: card.media.hostedUrl || '',
@@ -2610,13 +2613,17 @@ function renderRichCardHtmlInbox(card) {
         mediaHtml = '<img src="' + escapeHtml(imgUrl) + '" alt="" style="width: 100%; height: ' + heightPx + '; object-fit: cover;" onerror="this.style.display=\'none\'">';
     }
     
-    // Title - check multiple field names
-    var titleText = card.title || '';
+    // Title - in RCS wizard payload, "description" is actually the title field
+    var titleText = card.title || card.description || '';
     var titleHtml = titleText ? '<div class="rcs-card-title">' + escapeHtml(titleText) + '</div>' : '';
     
-    // Description/body text - check all possible field names
-    var descText = card.description || card.textBody || card.body || card.text || card.content || '';
-    var descHtml = descText ? '<div class="rcs-card-desc">' + escapeHtml(descText) + '</div>' : '';
+    // Body text - in RCS wizard payload, "textBody" is the main content
+    var bodyText = card.textBody || card.body || card.text || card.content || '';
+    // If description was used as title, don't duplicate it in body
+    if (bodyText === '' && card.description && !card.title) {
+        bodyText = ''; // description already used as title
+    }
+    var bodyHtml = bodyText ? '<div class="rcs-card-desc">' + escapeHtml(bodyText) + '</div>' : '';
     
     // Buttons
     var buttonsHtml = '';
@@ -2631,7 +2638,7 @@ function renderRichCardHtmlInbox(card) {
     
     return '<div class="rcs-rich-card-inbox">' +
         mediaHtml +
-        '<div class="rcs-card-body">' + titleHtml + descHtml + '</div>' +
+        '<div class="rcs-card-body">' + titleHtml + bodyHtml + '</div>' +
         buttonsHtml +
         '</div>';
 }
