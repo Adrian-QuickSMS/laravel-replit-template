@@ -1,0 +1,126 @@
+Purchase → Numbers — Design Consistency + Product/Selection Flows (Match Purchase → Messages)
+
+Goal:
+Make Purchase → Numbers visually consistent with Purchase → Messages (same card/tile design, badge styling, spacing, typography, and CTA patterns). Reuse existing template components. Do NOT invent new UI designs.
+
+────────────────────────
+A) Replace the 3 tiles and align naming to UK purchase products
+────────────────────────
+Current issue:
+- Tiles currently show: “UK long code”, “international VMN”, “Toll Free Number” (not aligned to spec or UK-first design).
+
+Requirement:
+- Replace the three tiles with these exact products/labels:
+  1) UK Virtual Mobile Number
+  2) UK Shared Short Code
+  3) UK Dedicated Short Code
+
+Design:
+- Tiles/cards must use the same design system as Purchase → Messages cards:
+  - Same background, padding, rounded corners, typography
+  - Same badge styling (white rounded badges)
+  - Same primary CTA button style
+
+Acceptance Criteria:
+- The 3 tiles look and feel identical to Purchase → Messages cards (only content differs).
+- Labels match exactly as above.
+
+────────────────────────
+B) Pricing badges: Setup Cost + Monthly Cost
+────────────────────────
+Requirement:
+- Each tile shows 2 pricing badges:
+  - “Setup Cost”
+  - “Monthly Cost”
+- Badge style must match Purchase → Messages (white badge, rounded corners, consistent font weights).
+
+Dedicated Short Code pricing rule:
+- For UK Dedicated Short Code:
+  - Setup Cost badge value: “Contact sales (price on request)”
+  - Monthly Cost badge value: “Contact sales (price on request)”
+  - No numeric price shown.
+
+Acceptance Criteria:
+- Badges appear consistently on all three tiles.
+- Dedicated Short Code shows “Contact sales (price on request)” for both badges.
+
+────────────────────────
+C) Tile selection behaviour: show the correct table per chosen product
+────────────────────────
+Requirement:
+- Selecting a tile switches the lower section to the appropriate table UI:
+
+1) UK Virtual Mobile Number
+- Show a table of AVAILABLE VMNs only.
+- Do NOT show bought/owned numbers.
+- Do NOT show reserved/unavailable VMNs.
+
+2) UK Shared Short Code
+- Show a table/list of available shared short codes.
+- Also include keyword purchase UI (see section D).
+
+3) UK Dedicated Short Code
+- Do NOT show inventory table.
+- Show “Contact sales” guidance and a CTA (e.g., “Contact Sales”) only.
+
+Constraints:
+- Only one product selection active at a time.
+- Keep page layout stable; only the lower content swaps.
+
+Acceptance Criteria:
+- VMN selection shows only available VMNs.
+- Shared shortcode selection shows available shortcode(s) + keyword UI.
+- Dedicated shortcode shows contact sales only.
+
+────────────────────────
+D) UK Shared Short Code: keyword input + taken keywords list
+────────────────────────
+Requirement:
+- Under UK Shared Short Code:
+  - Input box: “Enter keyword”
+  - User can add multiple keywords (multi-add).
+  - Below: a “Taken keywords” list/table that is:
+    - searchable
+    - filterable
+  - Taken keywords are read-only (cannot be selected).
+
+Validation (lightweight UI enforcement):
+- Alphanumeric only, no spaces, case-insensitive uniqueness.
+- Show inline errors under the input if invalid.
+
+Acceptance Criteria:
+- User can add multiple keywords to a “selected keywords” list before purchase.
+- Taken keywords list supports search and filters.
+
+────────────────────────
+E) Multi-select purchase flows + primary CTA placement
+────────────────────────
+Requirement:
+- For VMN and Shared Short Code flows, support selecting/adding multiple items before purchase:
+  - VMN: multi-select numbers from table
+  - Shared shortcode: multiple keywords via input + list
+
+CTA placement:
+- The primary “Purchase” button must be positioned at the TOP RIGHT of the active table area:
+  - VMN: top right of VMN table
+  - Shared shortcode: top right of shortcode/keyword table section
+- This must be the primary CTA styling (same as Purchase → Messages).
+
+On click “Purchase”:
+- Show a confirmation modal that includes:
+  - Count of items selected (numbers or keywords)
+  - Setup Cost total
+  - Monthly Cost total
+  - Assignment:
+    - Option A: Assign to sub-account now (dropdown)
+    - Option B: Choose later (allowed)
+  - Confirm Purchase button
+
+Constraints:
+- Reuse existing modal + CTA patterns from Purchase → Messages where possible.
+- Do NOT force assignment immediately; user may choose later.
+
+Acceptance Criteria:
+- Users can select multiple VMNs or enter multiple keywords.
+- Purchase CTA is top-right of the relevant table section and visually primary.
+- Confirmation modal allows “assign now” or “choose later” and then confirms purchase.

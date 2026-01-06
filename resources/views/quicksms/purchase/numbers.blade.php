@@ -26,257 +26,198 @@
     font-size: 2rem;
     color: #dc3545;
 }
-.page-header {
-    margin-bottom: 2rem;
+.purchase-header {
+    margin-bottom: 1.5rem;
 }
-.page-header h2 {
+.purchase-header h2 {
     margin-bottom: 0.25rem;
-    color: #2c2c2c;
 }
-.page-header p {
+.purchase-header p {
     color: #6c757d;
     margin-bottom: 0;
 }
-.section-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f0ebf8;
-}
-.section-header i {
-    font-size: 1.5rem;
-    color: #6f42c1;
-    margin-right: 0.75rem;
-}
-.section-header h4 {
-    margin: 0;
-    font-weight: 600;
-    color: #2c2c2c;
-}
-.section-header .badge {
-    margin-left: 0.75rem;
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-.purchase-section {
-    margin-bottom: 2.5rem;
-}
-.purchase-card {
+.product-card {
     border: none;
     border-radius: 0.75rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     transition: all 0.2s ease;
     height: 100%;
+    overflow: hidden;
+    cursor: pointer;
 }
-.purchase-card:hover {
-    box-shadow: 0 4px 16px rgba(111, 66, 193, 0.15);
+.product-card:hover {
+    box-shadow: 0 8px 24px rgba(111, 66, 193, 0.25);
     transform: translateY(-2px);
 }
-.purchase-card .card-body {
+.product-card.selected {
+    box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.4), 0 8px 24px rgba(111, 66, 193, 0.25);
+}
+.product-card .product-header {
     padding: 1.5rem;
-}
-.number-type-card {
-    border-left: 4px solid #6f42c1;
-}
-.number-type-card.shortcode {
-    border-left-color: #20c997;
-}
-.number-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-}
-.number-icon.vmn {
-    background: rgba(111, 66, 193, 0.12);
-    color: #6f42c1;
-}
-.number-icon.shortcode {
-    background: rgba(32, 201, 151, 0.12);
-    color: #20c997;
-}
-.number-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2c2c2c;
-    margin-bottom: 0.5rem;
-}
-.number-description {
-    font-size: 0.875rem;
-    color: #6c757d;
-    margin-bottom: 1rem;
-    line-height: 1.5;
-}
-.feature-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.25rem 0;
-}
-.feature-list li {
-    display: flex;
-    align-items: flex-start;
-    padding: 0.375rem 0;
-    font-size: 0.8125rem;
-    color: #495057;
-}
-.feature-list li i {
-    color: #28a745;
-    margin-right: 0.5rem;
-    margin-top: 0.125rem;
-    flex-shrink: 0;
-}
-.price-indicator {
-    display: flex;
-    align-items: baseline;
-    margin-bottom: 1rem;
-}
-.price-label {
-    font-size: 0.75rem;
-    color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-right: 0.5rem;
-}
-.price-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #2c2c2c;
-}
-.price-period {
-    font-size: 0.8125rem;
-    color: #6c757d;
-    margin-left: 0.25rem;
-}
-.section-intro {
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-}
-.section-intro p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #495057;
-}
-.section-intro i {
-    color: #6f42c1;
-    margin-right: 0.5rem;
-}
-.availability-note {
-    display: flex;
-    align-items: center;
-    padding: 0.625rem 0.875rem;
-    background: #fff3cd;
-    border-radius: 0.375rem;
-    font-size: 0.75rem;
-    color: #856404;
-    margin-top: auto;
-}
-.availability-note i {
-    margin-right: 0.5rem;
-    flex-shrink: 0;
-}
-.coming-soon-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: linear-gradient(135deg, #6f42c1, #8b5cf6);
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 0.25rem 0.625rem;
-    border-radius: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.empty-state-inline {
     text-align: center;
-    padding: 3rem 2rem;
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    border: 2px dashed #dee2e6;
+    position: relative;
+    z-index: 1;
 }
-.empty-state-inline i {
-    font-size: 2.5rem;
-    color: #adb5bd;
-    margin-bottom: 1rem;
-}
-.empty-state-inline h5 {
-    color: #495057;
+.product-card .product-header h4 {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.25rem;
     margin-bottom: 0.5rem;
 }
-.empty-state-inline p {
-    color: #6c757d;
+.product-card .product-header p {
+    color: rgba(255, 255, 255, 0.85);
     font-size: 0.875rem;
     margin-bottom: 0;
 }
-.vmn-table-card {
-    margin-top: 2rem;
-}
-.vmn-table-card .card-header {
+.product-card .product-body {
+    padding: 1.25rem 1.5rem;
     background: #fff;
-    border-bottom: 1px solid #f0ebf8;
-    padding: 1rem 1.25rem;
 }
-.vmn-table-card .card-header h5 {
+.pricing-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0.25rem;
+}
+.pricing-badge i {
+    margin-right: 0.375rem;
+}
+.product-body .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.product-body .price-row:last-child {
+    border-bottom: none;
+}
+.product-body .price-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+.product-body .price-value {
+    font-weight: 600;
+    color: var(--primary);
+}
+.product-body .price-value.contact-sales {
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+.product-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    background: #fff;
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+}
+.product-footer .btn-select {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    width: 100%;
+    padding: 0.625rem 1.5rem;
+    font-weight: 600;
+}
+.product-footer .btn-select:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+.product-card.selected .btn-select {
+    background: #1cbb8c;
+    border-color: #1cbb8c;
+}
+.product-card.selected .btn-select::after {
+    content: ' ✓';
+}
+.selection-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: none;
+}
+.selection-panel.active {
+    display: block;
+}
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0ebf8;
+}
+.panel-header h5 {
     margin: 0;
     font-weight: 600;
-    font-size: 1rem;
     color: #2c2c2c;
 }
-.vmn-search-box {
-    max-width: 300px;
+.panel-header .btn-purchase {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+}
+.panel-header .btn-purchase:hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+.panel-header .btn-purchase:disabled {
+    background: #ccc;
+    border-color: #ccc;
+}
+.vmn-table-container {
+    overflow-x: auto;
 }
 .vmn-table {
-    margin-bottom: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 .vmn-table th {
     background: #f8f9fa;
-    font-size: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
     font-weight: 600;
+    color: #495057;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #6c757d;
     border-bottom: 2px solid #e9ecef;
-    padding: 0.75rem 1rem;
-    white-space: nowrap;
     cursor: pointer;
     user-select: none;
 }
 .vmn-table th:hover {
-    background: #f0ebf8;
+    background: #e9ecef;
 }
-.vmn-table th.sortable i {
+.vmn-table th .sort-icon {
     margin-left: 0.5rem;
-    opacity: 0.5;
+    opacity: 0.3;
 }
-.vmn-table th.sorted-asc i.fa-sort-up,
-.vmn-table th.sorted-desc i.fa-sort-down {
+.vmn-table th.sorted .sort-icon {
     opacity: 1;
-    color: #6f42c1;
+    color: var(--primary);
 }
 .vmn-table td {
-    padding: 0.875rem 1rem;
-    vertical-align: middle;
-    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid #f0f0f0;
+    font-size: 0.875rem;
+    vertical-align: middle;
 }
-.vmn-table tbody tr:hover {
-    background: rgba(111, 66, 193, 0.04);
+.vmn-table tr:hover {
+    background: #faf8fc;
 }
-.vmn-table tbody tr.selected {
+.vmn-table tr.selected {
     background: rgba(111, 66, 193, 0.08);
 }
-.vmn-table tbody tr.row-reserved {
-    opacity: 0.6;
-}
 .vmn-number {
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-family: 'Monaco', 'Consolas', monospace;
     font-weight: 600;
     color: #2c2c2c;
 }
@@ -288,361 +229,202 @@
 .country-flag {
     font-size: 1.25rem;
 }
-.country-code {
-    font-size: 0.75rem;
-    color: #6c757d;
-}
 .fee-cell {
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--primary);
 }
-.status-available {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    background: #d4edda;
-    color: #155724;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-.status-reserved {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    background: #e2e3e5;
-    color: #6c757d;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-.vmn-select-checkbox {
-    width: 1.125rem;
-    height: 1.125rem;
-    cursor: pointer;
-}
-.vmn-select-checkbox:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-.vmn-table-footer {
+.table-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.25rem;
-    background: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-}
-.selection-summary {
-    font-size: 0.875rem;
-    color: #495057;
-}
-.selection-summary strong {
-    color: #6f42c1;
-}
-.vmn-empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #6c757d;
-}
-.vmn-empty-state i {
-    font-size: 2.5rem;
     margin-bottom: 1rem;
-    opacity: 0.5;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
-.subaccount-selector-card {
-    background: linear-gradient(135deg, #f8f6fc 0%, #f0ebf8 100%);
-    border: 1px solid #e0d6f2;
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-.subaccount-selector-card .card-body {
-    padding: 1.25rem;
-}
-.subaccount-selector-card label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.subaccount-selector-card label .required-badge {
-    background: #dc3545;
-    color: #fff;
-    font-size: 0.625rem;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    text-transform: uppercase;
-    font-weight: 700;
-}
-.subaccount-selector-card .form-select {
-    max-width: 400px;
-}
-.subaccount-selector-card .help-text {
-    font-size: 0.8125rem;
-    color: #6c757d;
-    margin-top: 0.5rem;
-}
-.purchase-confirmation-modal .modal-header {
-    background: linear-gradient(135deg, #6f42c1 0%, #8b5cf6 100%);
-    color: #fff;
-    border-bottom: none;
-}
-.purchase-confirmation-modal .modal-header .btn-close {
-    filter: invert(1);
-}
-.purchase-confirmation-modal .confirmation-summary {
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-}
-.purchase-confirmation-modal .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #e9ecef;
-}
-.purchase-confirmation-modal .summary-row:last-child {
-    border-bottom: none;
-}
-.purchase-confirmation-modal .summary-row.total {
-    font-weight: 600;
-    font-size: 1.1rem;
-    padding-top: 0.75rem;
-    border-top: 2px solid #6f42c1;
-    margin-top: 0.5rem;
-}
-.purchase-confirmation-modal .billing-info {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-.purchase-confirmation-modal .billing-info i {
-    color: #856404;
-}
-.purchase-confirmation-modal .numbers-list {
-    max-height: 150px;
-    overflow-y: auto;
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: 0.875rem;
-    background: #f8f9fa;
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
-}
-.shared-shortcode-display {
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    border: 2px solid #28a745;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-.shared-shortcode-display .shortcode-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #155724;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-.shared-shortcode-display .shortcode-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    color: #155724;
-    letter-spacing: 2px;
-}
-.shared-shortcode-display .shortcode-note {
-    font-size: 0.8125rem;
-    color: #155724;
-    margin-top: 0.5rem;
-}
-.keyword-table-card {
-    margin-top: 1rem;
-}
-.keyword-table-card .card-header {
-    background: #fff;
-    border-bottom: 1px solid #d4edda;
-    padding: 1rem 1.25rem;
-}
-.keyword-table-card .card-header h5 {
-    margin: 0;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #2c2c2c;
-}
-.keyword-search-box {
+.table-controls .search-box {
+    flex: 1;
     max-width: 300px;
 }
-.keyword-table {
-    margin-bottom: 0;
+.table-controls .filter-box {
+    min-width: 180px;
 }
-.keyword-table th {
-    background: #f8f9fa;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #6c757d;
-    border-bottom: 2px solid #e9ecef;
-    padding: 0.75rem 1rem;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-}
-.keyword-table th:hover {
-    background: #d4edda;
-}
-.keyword-table th.sortable i {
-    margin-left: 0.5rem;
-    opacity: 0.5;
-}
-.keyword-table th.sorted-asc i.fa-sort-up,
-.keyword-table th.sorted-desc i.fa-sort-down {
-    opacity: 1;
-    color: #28a745;
-}
-.keyword-table td {
-    padding: 0.875rem 1rem;
-    vertical-align: middle;
-    font-size: 0.875rem;
-    border-bottom: 1px solid #f0f0f0;
-}
-.keyword-table tbody tr:hover {
-    background: rgba(40, 167, 69, 0.04);
-}
-.keyword-table tbody tr.selected {
-    background: rgba(40, 167, 69, 0.08);
-}
-.keyword-table tbody tr.row-taken {
-    opacity: 0.6;
-}
-.keyword-text {
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-weight: 600;
-    color: #2c2c2c;
-    text-transform: uppercase;
-}
-.status-available-kw {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    background: #d4edda;
-    color: #155724;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-.status-taken {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    background: #f8d7da;
-    color: #721c24;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-.keyword-select-checkbox {
-    width: 1.125rem;
-    height: 1.125rem;
-    cursor: pointer;
-}
-.keyword-select-checkbox:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-.keyword-table-footer {
+.selection-summary {
+    background: rgba(111, 66, 193, 0.08);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.25rem;
-    background: #f8f9fa;
-    border-top: 1px solid #e9ecef;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
-.keyword-empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #6c757d;
-}
-.keyword-empty-state i {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-.custom-keyword-section {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-}
-.custom-keyword-section h6 {
-    font-weight: 600;
+.selection-summary .summary-text {
+    font-size: 0.9375rem;
     color: #495057;
-    margin-bottom: 0.75rem;
 }
-.custom-keyword-input-group {
-    max-width: 400px;
+.selection-summary .summary-text strong {
+    color: var(--primary);
 }
-.custom-keyword-input-group .form-control {
-    text-transform: uppercase;
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-weight: 600;
-    letter-spacing: 1px;
+.selection-summary .summary-costs {
+    display: flex;
+    gap: 1.5rem;
 }
-.custom-keyword-input-group .form-control.is-valid {
-    border-color: #28a745;
+.selection-summary .cost-item {
+    text-align: right;
 }
-.custom-keyword-input-group .form-control.is-invalid {
-    border-color: #dc3545;
+.selection-summary .cost-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    display: block;
+}
+.selection-summary .cost-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.keyword-section {
+    margin-top: 1.5rem;
+}
+.keyword-input-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.keyword-input-group .form-control {
+    flex: 1;
+    max-width: 300px;
+}
+.keyword-input-group .btn {
+    min-width: 100px;
 }
 .keyword-validation-feedback {
     font-size: 0.8125rem;
-    margin-top: 0.5rem;
-    min-height: 1.5rem;
+    margin-top: 0.25rem;
 }
 .keyword-validation-feedback.valid {
-    color: #28a745;
+    color: #1cbb8c;
 }
 .keyword-validation-feedback.invalid {
     color: #dc3545;
 }
-.keyword-validation-feedback i {
-    margin-right: 0.375rem;
+.selected-keywords-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
-.keyword-rules {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
+.keyword-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(111, 66, 193, 0.12);
+    color: var(--primary);
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+.keyword-tag .remove-keyword {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.keyword-tag .remove-keyword:hover {
+    opacity: 1;
+}
+.taken-keywords-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
     border-top: 1px solid #e9ecef;
 }
-.keyword-rules ul {
-    margin: 0;
-    padding-left: 1.25rem;
+.taken-keywords-section h6 {
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 1rem;
 }
-.keyword-rules li {
-    margin-bottom: 0.25rem;
+.taken-keywords-table {
+    max-height: 300px;
+    overflow-y: auto;
+}
+.contact-sales-panel {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+.contact-sales-panel .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(111, 66, 193, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+.contact-sales-panel .icon-wrapper i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+.contact-sales-panel h5 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+.contact-sales-panel p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.sub-account-selector {
+    margin-bottom: 1rem;
+}
+.sub-account-selector label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #495057;
+    margin-bottom: 0.375rem;
+    display: block;
+}
+.pricing-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(111, 66, 193, 0.08);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.pricing-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: #856404;
+}
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+.empty-state i {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
 }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid purchase-numbers-container">
-    <div class="row page-titles">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('purchase') }}">Purchase</a></li>
-            <li class="breadcrumb-item active">Numbers</li>
-        </ol>
-    </div>
-
+    @php
+        $currentUserRole = 'admin';
+        $allowedRoles = ['admin', 'finance', 'messaging_manager'];
+    @endphp
+    
     <div id="accessDeniedView" style="display: none;">
         <div class="card access-denied-card">
             <div class="card-body py-5">
@@ -650,492 +432,328 @@
                     <i class="fas fa-lock"></i>
                 </div>
                 <h4 class="mb-3">Access Restricted</h4>
-                <p class="text-muted mb-4">
-                    You don't have permission to view this page. Only Admin, Finance, or Messaging Managers with the appropriate permissions can access number purchasing.
-                </p>
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <p class="text-muted mb-4">This page is only accessible to Admin, Finance, and Messaging Manager users. Please contact your administrator if you need access.</p>
+                <a href="{{ route('dashboard') }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left me-2"></i>Return to Dashboard
                 </a>
             </div>
         </div>
     </div>
-
+    
     <div id="purchaseContent">
-        <div class="page-header">
-            <h2>Purchase Numbers</h2>
-            <p>Acquire dedicated numbers for two-way messaging and customer engagement.</p>
+        <div class="purchase-header d-flex justify-content-between align-items-start">
+            <div>
+                <h2>Purchase Numbers</h2>
+                <p>Acquire dedicated numbers for two-way messaging and customer engagement</p>
+            </div>
+            <div class="badge bg-light text-dark fs-6 px-3 py-2">
+                <i class="fas fa-globe me-1"></i>
+                <span>GBP</span>
+            </div>
         </div>
 
-        <div id="pricingLoadingIndicator" class="alert alert-info d-flex align-items-center mb-3" style="display: none;">
-            <div class="spinner-border spinner-border-sm me-2" role="status">
+        <div id="pricingLoadingIndicator" class="pricing-loading" style="display: none;">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
             <span>Fetching live pricing from HubSpot...</span>
         </div>
 
-        <div id="pricingWarning" class="alert alert-warning mb-3" style="display: none;">
-            <i class="fas fa-exclamation-triangle me-2"></i>
+        <div id="pricingWarning" class="pricing-warning" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
             <span id="pricingWarningMessage">Unable to fetch live pricing. Using cached values.</span>
-            <button type="button" class="btn btn-sm btn-outline-warning ms-3" onclick="fetchNumbersPricing()">
+            <button type="button" class="btn btn-sm btn-outline-warning ms-auto" onclick="fetchNumbersPricing()">
                 <i class="fas fa-sync-alt me-1"></i>Retry
             </button>
         </div>
 
-        <div class="purchase-section" id="vmnSection">
-            <div class="section-header">
-                <i class="fas fa-mobile-alt"></i>
-                <h4>Virtual Mobile Numbers</h4>
-                <span class="badge bg-primary">Inbound & Outbound</span>
+        <div class="row g-4 mb-4" id="productCards">
+            <div class="col-md-4">
+                <div class="card product-card tryal-gradient" data-product="vmn" onclick="selectProduct('vmn')">
+                    <div class="product-header">
+                        <div class="mb-2">
+                            <span class="pricing-badge"><i class="fas fa-mobile-alt"></i>Long Code</span>
+                        </div>
+                        <h4>UK Virtual Mobile Number</h4>
+                        <p>Standard UK mobile (07xxx) for two-way SMS and RCS messaging</p>
+                    </div>
+                    <div class="product-body">
+                        <div class="price-row">
+                            <span class="price-label">Setup Cost</span>
+                            <span class="price-value" id="vmnSetupPrice">£10.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">Monthly Cost</span>
+                            <span class="price-value" id="vmnMonthlyPrice">£8.00</span>
+                        </div>
+                    </div>
+                    <div class="product-footer">
+                        <button class="btn btn-select">Select</button>
+                    </div>
+                </div>
             </div>
             
-            <div class="section-intro">
-                <p><i class="fas fa-info-circle"></i>Virtual Mobile Numbers (VMNs) enable two-way SMS and RCS messaging. Customers can reply directly to your messages, creating conversational experiences.</p>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="card purchase-card number-type-card position-relative">
-                        <div class="card-body d-flex flex-column">
-                            <div class="number-icon vmn">
-                                <i class="fas fa-mobile-alt"></i>
-                            </div>
-                            <h5 class="number-title">UK Long Code</h5>
-                            <p class="number-description">Standard UK mobile number (07xxx) for local presence and two-way messaging.</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>Full two-way SMS capability</li>
-                                <li><i class="fas fa-check"></i>RCS Business Messaging ready</li>
-                                <li><i class="fas fa-check"></i>Instant provisioning</li>
-                                <li><i class="fas fa-check"></i>Webhook delivery reports</li>
-                            </ul>
-                            <div class="price-indicator">
-                                <span class="price-label">From</span>
-                                <span class="price-value">£10</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="selectNumberType('uk-longcode')" disabled>
-                                <i class="fas fa-plus me-2"></i>Select Number
-                            </button>
-                            <div class="availability-note mt-3">
-                                <i class="fas fa-clock"></i>
-                                Coming soon - contact sales for early access
-                            </div>
+            <div class="col-md-4">
+                <div class="card product-card tryal-gradient" data-product="shared" onclick="selectProduct('shared')">
+                    <div class="product-header">
+                        <div class="mb-2">
+                            <span class="pricing-badge"><i class="fas fa-share-alt"></i>Shared</span>
+                        </div>
+                        <h4>UK Shared Short Code</h4>
+                        <p>Share shortcode 82228 with custom keywords for inbound messaging</p>
+                    </div>
+                    <div class="product-body">
+                        <div class="price-row">
+                            <span class="price-label">Setup Cost (per keyword)</span>
+                            <span class="price-value" id="keywordSetupPrice">£25.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">Monthly Cost (per keyword)</span>
+                            <span class="price-value" id="keywordMonthlyPrice">£50.00</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="card purchase-card number-type-card position-relative">
-                        <div class="card-body d-flex flex-column">
-                            <div class="number-icon vmn">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <h5 class="number-title">International VMN</h5>
-                            <p class="number-description">Virtual numbers in 50+ countries for global reach and local presence.</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>50+ country coverage</li>
-                                <li><i class="fas fa-check"></i>Local regulatory compliance</li>
-                                <li><i class="fas fa-check"></i>Multi-language support</li>
-                                <li><i class="fas fa-check"></i>Pooled number options</li>
-                            </ul>
-                            <div class="price-indicator">
-                                <span class="price-label">From</span>
-                                <span class="price-value">£15</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="selectNumberType('international')" disabled>
-                                <i class="fas fa-plus me-2"></i>Select Number
-                            </button>
-                            <div class="availability-note mt-3">
-                                <i class="fas fa-clock"></i>
-                                Coming soon - contact sales for early access
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="card purchase-card number-type-card position-relative">
-                        <div class="card-body d-flex flex-column">
-                            <div class="number-icon vmn">
-                                <i class="fas fa-phone-volume"></i>
-                            </div>
-                            <h5 class="number-title">Toll-Free Number</h5>
-                            <p class="number-description">Free-to-text numbers that remove cost barriers for customer engagement.</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>Free for customers to text</li>
-                                <li><i class="fas fa-check"></i>Memorable number patterns</li>
-                                <li><i class="fas fa-check"></i>High trust & recognition</li>
-                                <li><i class="fas fa-check"></i>Available in select regions</li>
-                            </ul>
-                            <div class="price-indicator">
-                                <span class="price-label">From</span>
-                                <span class="price-value">£25</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                            <button class="btn btn-primary w-100" onclick="selectNumberType('toll-free')" disabled>
-                                <i class="fas fa-plus me-2"></i>Select Number
-                            </button>
-                            <div class="availability-note mt-3">
-                                <i class="fas fa-clock"></i>
-                                Coming soon - contact sales for early access
-                            </div>
-                        </div>
+                    <div class="product-footer">
+                        <button class="btn btn-select">Select</button>
                     </div>
                 </div>
             </div>
-
-            <div class="card subaccount-selector-card">
-                <div class="card-body">
-                    <label for="vmnSubAccountSelect">
-                        <i class="fas fa-building text-primary"></i>
-                        Assign to Sub-Account
-                        <span class="required-badge">Required</span>
-                    </label>
-                    <select class="form-select" id="vmnSubAccountSelect" onchange="onSubAccountChange()">
-                        <option value="">-- Select Sub-Account --</option>
-                    </select>
-                    <p class="help-text">
-                        <i class="fas fa-info-circle me-1"></i>
-                        All selected numbers will be assigned to this sub-account. One sub-account per purchase.
-                    </p>
-                </div>
-            </div>
-
-            <div class="card vmn-table-card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5><i class="fas fa-list me-2 text-primary"></i>Available Numbers</h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="input-group input-group-sm vmn-search-box">
-                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="vmnSearchInput" placeholder="Search by number...">
+            
+            <div class="col-md-4">
+                <div class="card product-card tryal-gradient" data-product="dedicated" onclick="selectProduct('dedicated')">
+                    <div class="product-header">
+                        <div class="mb-2">
+                            <span class="pricing-badge"><i class="fas fa-star"></i>Dedicated</span>
                         </div>
-                        <select class="form-select form-select-sm" id="vmnCountryFilter" style="width: auto;">
-                            <option value="">All Countries</option>
-                            <option value="GB">United Kingdom</option>
-                            <option value="US">United States</option>
-                            <option value="DE">Germany</option>
-                            <option value="FR">France</option>
-                            <option value="ES">Spain</option>
-                            <option value="IE">Ireland</option>
-                        </select>
+                        <h4>UK Dedicated Short Code</h4>
+                        <p>Exclusive shortcode for high-volume enterprise campaigns</p>
                     </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table vmn-table" id="vmnTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">
-                                    <input type="checkbox" class="form-check-input vmn-select-checkbox" id="vmnSelectAll" onclick="toggleVmnSelectAll()">
-                                </th>
-                                <th class="sortable" data-sort="number" onclick="sortVmnTable('number')">
-                                    Mobile Number <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-sort="country" onclick="sortVmnTable('country')">
-                                    Country <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-sort="setupFee" onclick="sortVmnTable('setupFee')">
-                                    Setup Fee <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-sort="monthlyFee" onclick="sortVmnTable('monthlyFee')">
-                                    Monthly Fee <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-sort="availability" onclick="sortVmnTable('availability')">
-                                    Availability <i class="fas fa-sort"></i>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="vmnTableBody">
-                        </tbody>
-                    </table>
-                </div>
-                <div class="vmn-table-footer">
-                    <div class="selection-summary">
-                        <span id="vmnSelectedCount">0</span> number(s) selected
-                        <span id="vmnTotalCost" class="ms-3" style="display: none;">
-                            Total: <strong>£<span id="vmnSetupTotal">0</span></strong> setup + 
-                            <strong>£<span id="vmnMonthlyTotal">0</span></strong>/month
-                        </span>
+                    <div class="product-body">
+                        <div class="price-row">
+                            <span class="price-label">Setup Cost</span>
+                            <span class="price-value contact-sales">Contact sales (price on request)</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">Monthly Cost</span>
+                            <span class="price-value contact-sales">Contact sales (price on request)</span>
+                        </div>
                     </div>
-                    <button class="btn btn-primary btn-sm" id="vmnProceedBtn" onclick="showPurchaseConfirmation()" disabled>
-                        <i class="fas fa-credit-card me-2"></i>Purchase Selected Numbers
-                    </button>
+                    <div class="product-footer">
+                        <button class="btn btn-select">Select</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="purchase-section" id="shortcodeSection">
-            <div class="section-header">
-                <i class="fas fa-hashtag"></i>
-                <h4>Shortcode Keywords</h4>
-                <span class="badge bg-success">High Volume</span>
-            </div>
-            
-            <div class="section-intro">
-                <p><i class="fas fa-info-circle"></i>Shortcodes are memorable 5-6 digit numbers ideal for marketing campaigns, competitions, and high-volume two-way messaging. Keywords allow multiple campaigns on a shared shortcode.</p>
+        <div id="vmnPanel" class="selection-panel">
+            <div class="panel-header">
+                <h5><i class="fas fa-mobile-alt me-2 text-primary"></i>Available UK Virtual Mobile Numbers</h5>
+                <button class="btn btn-purchase" id="vmnPurchaseBtn" disabled onclick="showVmnPurchaseModal()">
+                    <i class="fas fa-shopping-cart me-2"></i>Purchase Selected
+                </button>
             </div>
 
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="card purchase-card number-type-card shortcode position-relative">
-                        <div class="card-body d-flex flex-column">
-                            <div class="number-icon shortcode">
-                                <i class="fas fa-hashtag"></i>
-                            </div>
-                            <h5 class="number-title">Shared Shortcode Keyword</h5>
-                            <p class="number-description">Reserve a keyword on our shared shortcode for cost-effective campaigns.</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>Instant setup</li>
-                                <li><i class="fas fa-check"></i>Cost-effective entry point</li>
-                                <li><i class="fas fa-check"></i>Text-to-win campaigns</li>
-                                <li><i class="fas fa-check"></i>Opt-in list building</li>
-                            </ul>
-                            <div class="price-indicator">
-                                <span class="price-label">From</span>
-                                <span class="price-value">£50</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                            <button class="btn btn-success w-100" onclick="selectKeywordType('shared')" disabled>
-                                <i class="fas fa-plus me-2"></i>Reserve Keyword
-                            </button>
-                            <div class="availability-note mt-3">
-                                <i class="fas fa-clock"></i>
-                                Coming soon - contact sales for early access
-                            </div>
-                        </div>
+            <div class="sub-account-selector">
+                <label>Assign to Sub-Account (optional)</label>
+                <select class="form-select" id="vmnSubAccountSelect" style="max-width: 300px;">
+                    <option value="">Choose later...</option>
+                </select>
+            </div>
+
+            <div class="table-controls">
+                <div class="search-box">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="vmnSearchInput" placeholder="Search numbers...">
                     </div>
                 </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="card purchase-card number-type-card shortcode position-relative">
-                        <div class="card-body d-flex flex-column">
-                            <div class="number-icon shortcode">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <h5 class="number-title">Dedicated Shortcode</h5>
-                            <p class="number-description">Your own exclusive shortcode for maximum brand recognition and control.</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>Exclusive to your brand</li>
-                                <li><i class="fas fa-check"></i>Unlimited keywords</li>
-                                <li><i class="fas fa-check"></i>Custom vanity numbers</li>
-                                <li><i class="fas fa-check"></i>Highest throughput</li>
-                            </ul>
-                            <div class="price-indicator">
-                                <span class="price-label">From</span>
-                                <span class="price-value">£500</span>
-                                <span class="price-period">/month</span>
-                            </div>
-                            <button class="btn btn-success w-100" onclick="selectKeywordType('dedicated')" disabled>
-                                <i class="fas fa-plus me-2"></i>Request Quote
-                            </button>
-                            <div class="availability-note mt-3">
-                                <i class="fas fa-clock"></i>
-                                Contact sales for dedicated shortcode enquiries
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="card purchase-card number-type-card shortcode position-relative">
-                        <div class="card-body d-flex flex-column">
-                            <div class="number-icon shortcode">
-                                <i class="fas fa-award"></i>
-                            </div>
-                            <h5 class="number-title">Premium Rate Shortcode</h5>
-                            <p class="number-description">Revenue-generating shortcodes for competitions, voting, and donations.</p>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i>Revenue share model</li>
-                                <li><i class="fas fa-check"></i>PSA & charity approved</li>
-                                <li><i class="fas fa-check"></i>Compliance managed</li>
-                                <li><i class="fas fa-check"></i>Real-time reporting</li>
-                            </ul>
-                            <div class="price-indicator">
-                                <span class="price-label">Setup</span>
-                                <span class="price-value">Custom</span>
-                                <span class="price-period">pricing</span>
-                            </div>
-                            <button class="btn btn-success w-100" onclick="selectKeywordType('premium')" disabled>
-                                <i class="fas fa-envelope me-2"></i>Contact Sales
-                            </button>
-                            <div class="availability-note mt-3">
-                                <i class="fas fa-info-circle"></i>
-                                Requires regulatory approval - 4-6 week lead time
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="shared-shortcode-display">
-                <div class="shortcode-label">
-                    <i class="fas fa-hashtag me-1"></i>Shared Shortcode
-                </div>
-                <div class="shortcode-number">82228</div>
-                <div class="shortcode-note">
-                    <i class="fas fa-info-circle me-1"></i>Text your keyword to this shortcode
-                </div>
-            </div>
-
-            <div class="card subaccount-selector-card" style="border-color: #c3e6cb; background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);">
-                <div class="card-body">
-                    <label for="keywordSubAccountSelect">
-                        <i class="fas fa-building text-success"></i>
-                        Assign Keywords to Sub-Account
-                        <span class="required-badge">Required</span>
-                    </label>
-                    <select class="form-select" id="keywordSubAccountSelect" onchange="onKeywordSubAccountChange()">
-                        <option value="">-- Select Sub-Account --</option>
+                <div class="filter-box">
+                    <select class="form-select" id="vmnCountryFilter">
+                        <option value="">All Countries</option>
+                        <option value="GB">United Kingdom</option>
                     </select>
-                    <p class="help-text">
-                        <i class="fas fa-info-circle me-1"></i>
-                        All selected keywords will be assigned to this sub-account. One sub-account per purchase.
-                    </p>
                 </div>
             </div>
 
-            <div class="custom-keyword-section">
-                <h6><i class="fas fa-plus-circle me-2 text-success"></i>Request a Custom Keyword</h6>
-                <div class="d-flex align-items-start gap-2">
-                    <div class="custom-keyword-input-group flex-grow-1">
+            <div class="vmn-table-container">
+                <table class="vmn-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" class="form-check-input" id="vmnSelectAll" onchange="toggleVmnSelectAll()">
+                            </th>
+                            <th onclick="sortVmnTable('number')">
+                                Mobile Number <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th onclick="sortVmnTable('country')">
+                                Country <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th onclick="sortVmnTable('setupFee')">
+                                Setup Fee <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th onclick="sortVmnTable('monthlyFee')">
+                                Monthly Fee <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="vmnTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="vmnSelectionSummary" class="selection-summary" style="display: none;">
+                <div class="summary-text">
+                    <strong id="vmnSelectedCount">0</strong> number(s) selected
+                </div>
+                <div class="summary-costs">
+                    <div class="cost-item">
+                        <span class="cost-label">Setup Total</span>
+                        <span class="cost-value">£<span id="vmnSetupTotal">0.00</span></span>
+                    </div>
+                    <div class="cost-item">
+                        <span class="cost-label">Monthly Total</span>
+                        <span class="cost-value">£<span id="vmnMonthlyTotal">0.00</span>/mo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sharedPanel" class="selection-panel">
+            <div class="panel-header">
+                <h5><i class="fas fa-share-alt me-2 text-primary"></i>UK Shared Short Code - Keywords</h5>
+                <button class="btn btn-purchase" id="keywordPurchaseBtn" disabled onclick="showKeywordPurchaseModal()">
+                    <i class="fas fa-shopping-cart me-2"></i>Purchase Selected
+                </button>
+            </div>
+
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Shared shortcode: <strong>82228</strong> — Add keywords to receive inbound messages on this shared number.
+            </div>
+
+            <div class="sub-account-selector">
+                <label>Assign to Sub-Account (optional)</label>
+                <select class="form-select" id="keywordSubAccountSelect" style="max-width: 300px;">
+                    <option value="">Choose later...</option>
+                </select>
+            </div>
+
+            <div class="keyword-section">
+                <label class="form-label fw-semibold">Enter Keywords</label>
+                <div class="keyword-input-group">
+                    <input type="text" class="form-control" id="keywordInput" placeholder="Enter keyword (e.g., PROMO)" maxlength="20">
+                    <button class="btn btn-primary" id="addKeywordBtn" onclick="addKeyword()" disabled>
+                        <i class="fas fa-plus me-1"></i>Add
+                    </button>
+                </div>
+                <div id="keywordValidationFeedback" class="keyword-validation-feedback"></div>
+            </div>
+
+            <div id="selectedKeywordsContainer" style="display: none;">
+                <label class="form-label fw-semibold mt-3">Selected Keywords</label>
+                <div id="selectedKeywordsList" class="selected-keywords-list"></div>
+            </div>
+
+            <div id="keywordSelectionSummary" class="selection-summary" style="display: none;">
+                <div class="summary-text">
+                    <strong id="keywordSelectedCount">0</strong> keyword(s) selected
+                </div>
+                <div class="summary-costs">
+                    <div class="cost-item">
+                        <span class="cost-label">Setup Total</span>
+                        <span class="cost-value">£<span id="keywordSetupTotal">0.00</span></span>
+                    </div>
+                    <div class="cost-item">
+                        <span class="cost-label">Monthly Total</span>
+                        <span class="cost-value">£<span id="keywordMonthlyTotal">0.00</span>/mo</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="taken-keywords-section">
+                <h6><i class="fas fa-ban me-2"></i>Taken Keywords (unavailable)</h6>
+                <div class="table-controls">
+                    <div class="search-box">
                         <div class="input-group">
-                            <input type="text" class="form-control" id="customKeywordInput" placeholder="Enter keyword..." maxlength="20" oninput="validateCustomKeyword()">
-                            <button class="btn btn-success" type="button" id="addCustomKeywordBtn" onclick="addCustomKeyword()" disabled>
-                                <i class="fas fa-plus me-1"></i>Add
-                            </button>
-                        </div>
-                        <div class="keyword-validation-feedback" id="keywordValidationFeedback"></div>
-                    </div>
-                </div>
-                <div class="keyword-rules">
-                    <strong>Keyword Rules:</strong>
-                    <ul>
-                        <li>3-20 characters (alphanumeric only)</li>
-                        <li>No spaces or special characters</li>
-                        <li>Must be unique (case-insensitive)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="card keyword-table-card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5><i class="fas fa-key me-2 text-success"></i>Available Keywords</h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="input-group input-group-sm keyword-search-box">
-                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="keywordSearchInput" placeholder="Search keywords...">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="takenKeywordSearch" placeholder="Search taken keywords...">
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table keyword-table" id="keywordTable">
+                <div class="taken-keywords-table">
+                    <table class="vmn-table">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">
-                                    <input type="checkbox" class="form-check-input keyword-select-checkbox" id="keywordSelectAll" onclick="toggleKeywordSelectAll()">
-                                </th>
-                                <th class="sortable" data-sort="keyword" onclick="sortKeywordTable('keyword')">
-                                    Keyword <i class="fas fa-sort"></i>
-                                </th>
-                                <th class="sortable" data-sort="status" onclick="sortKeywordTable('status')">
-                                    Status <i class="fas fa-sort"></i>
-                                </th>
+                                <th>Keyword</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody id="keywordTableBody">
+                        <tbody id="takenKeywordsBody">
                         </tbody>
                     </table>
-                </div>
-                <div class="keyword-table-footer">
-                    <div class="selection-summary">
-                        <span id="keywordSelectedCount">0</span> keyword(s) selected
-                        <span id="keywordTotalCost" class="ms-3" style="display: none;">
-                            Total: <strong>£<span id="keywordSetupTotal">0</span></strong> setup + 
-                            <strong>£<span id="keywordMonthlyTotal">0</span></strong>/month
-                        </span>
-                    </div>
-                    <button class="btn btn-success btn-sm" id="keywordPurchaseBtn" onclick="showKeywordPurchaseConfirmation()" disabled>
-                        <i class="fas fa-credit-card me-2"></i>Purchase Keywords
-                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="card mt-4">
-            <div class="card-body">
-                <div class="d-flex align-items-start">
-                    <div class="flex-shrink-0 me-3">
-                        <div class="number-icon vmn">
-                            <i class="fas fa-question"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h5 class="mb-2">Need help choosing?</h5>
-                        <p class="text-muted mb-3">Our team can help you select the right number type for your messaging needs. Whether you're setting up customer support, running marketing campaigns, or building two-way conversational experiences.</p>
-                        <a href="{{ route('support.create-ticket') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-headset me-2"></i>Contact Support
-                        </a>
-                    </div>
+        <div id="dedicatedPanel" class="selection-panel">
+            <div class="contact-sales-panel">
+                <div class="icon-wrapper">
+                    <i class="fas fa-headset"></i>
                 </div>
+                <h5>Contact Sales for Dedicated Short Codes</h5>
+                <p>Dedicated short codes are exclusive numbers for your organization. Our team will help you choose the right short code and guide you through the regulatory approval process.</p>
+                <a href="mailto:sales@quicksms.com" class="btn btn-primary btn-lg">
+                    <i class="fas fa-envelope me-2"></i>Contact Sales
+                </a>
+                <p class="mt-3 text-muted small">Or call us at <strong>0800 123 4567</strong></p>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade purchase-confirmation-modal" id="purchaseConfirmationModal" tabindex="-1" aria-labelledby="purchaseConfirmationModalLabel" aria-hidden="true">
+<div class="modal fade" id="vmnPurchaseModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="purchaseConfirmationModalLabel">
-                    <i class="fas fa-credit-card me-2"></i>Confirm Purchase
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-shopping-cart me-2 text-primary"></i>Confirm VMN Purchase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-3">You are about to purchase the following virtual mobile numbers:</p>
-                
-                <div class="numbers-list" id="confirmNumbersList"></div>
-                
-                <div class="confirmation-summary">
-                    <div class="summary-row">
-                        <span>Numbers Selected</span>
-                        <strong id="confirmNumberCount">0</strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Assigned To</span>
-                        <strong id="confirmSubAccount">-</strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Setup Fee (charged now)</span>
-                        <strong>£<span id="confirmSetupFee">0.00</span></strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Monthly Fee</span>
-                        <strong>£<span id="confirmMonthlyFee">0.00</span>/month</strong>
-                    </div>
-                    <div class="summary-row total">
-                        <span>Due Now</span>
-                        <strong class="text-primary">£<span id="confirmDueNow">0.00</span></strong>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Selected Numbers</label>
+                    <div id="modalVmnList" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
                 
-                <div class="billing-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Billing Information:</strong>
-                    <ul class="mb-0 mt-2 ps-4">
-                        <li>Setup fee will be charged immediately upon confirmation.</li>
-                        <li>Monthly fees are charged on the 1st of each month.</li>
-                        <li>First monthly charge will be pro-rated based on remaining days.</li>
-                    </ul>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Setup Cost (due now)</div>
+                            <div class="fs-4 fw-bold text-primary">£<span id="modalVmnSetup">0.00</span></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Monthly Cost</div>
+                            <div class="fs-4 fw-bold text-primary">£<span id="modalVmnMonthly">0.00</span>/mo</div>
+                        </div>
+                    </div>
                 </div>
-                
-                <p class="text-muted small mb-0">
-                    <i class="fas fa-lock me-1"></i>
-                    By clicking "Confirm Purchase", you agree to purchase all selected numbers. This action cannot be partially completed.
-                </p>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Assign to Sub-Account</label>
+                    <select class="form-select" id="modalVmnSubAccount">
+                        <option value="">Choose later...</option>
+                    </select>
+                    <div class="form-text">You can assign these numbers to a sub-account now or later.</div>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Setup fee is charged immediately. Monthly fee starts on the 1st of each month.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmPurchaseBtn" onclick="executePurchase()">
+                <button type="button" class="btn btn-primary" onclick="executeVmnPurchase()">
                     <i class="fas fa-check me-2"></i>Confirm Purchase
                 </button>
             </div>
@@ -1143,104 +761,95 @@
     </div>
 </div>
 
-<div class="modal fade" id="insufficientBalanceModal" tabindex="-1" aria-labelledby="insufficientBalanceModalLabel" aria-hidden="true">
+<div class="modal fade" id="keywordPurchaseModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="insufficientBalanceModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Insufficient Balance
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-shopping-cart me-2 text-primary"></i>Confirm Keyword Purchase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Selected Keywords</label>
+                    <div id="modalKeywordList" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Setup Cost (due now)</div>
+                            <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordSetup">0.00</span></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 text-center">
+                            <div class="text-muted small">Monthly Cost</div>
+                            <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordMonthly">0.00</span>/mo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Assign to Sub-Account</label>
+                    <select class="form-select" id="modalKeywordSubAccount">
+                        <option value="">Choose later...</option>
+                    </select>
+                    <div class="form-text">You can assign these keywords to a sub-account now or later.</div>
+                </div>
+
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Setup fee is charged immediately. Monthly fee starts on the 1st of each month.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="executeKeywordPurchase()">
+                    <i class="fas fa-check me-2"></i>Confirm Purchase
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="insufficientBalanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Insufficient Balance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center py-4">
                 <div class="mb-4">
-                    <i class="fas fa-wallet text-danger" style="font-size: 3rem; opacity: 0.8;"></i>
+                    <i class="fas fa-wallet text-warning" style="font-size: 3rem; opacity: 0.6;"></i>
                 </div>
-                <h5 class="mb-3">You do not have sufficient balance to complete this purchase.</h5>
-                <div class="bg-light rounded p-3 mb-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Current Balance:</span>
-                        <strong>£<span id="insufficientCurrentBalance">0.00</span></strong>
+                <p class="mb-3">Your account balance is insufficient to complete this purchase.</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <div class="text-muted small">Current Balance</div>
+                            <div class="fw-bold">£<span id="insufficientBalance">0.00</span></div>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Required Amount:</span>
-                        <strong class="text-danger">£<span id="insufficientRequiredAmount">0.00</span></strong>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <div class="text-muted small">Required</div>
+                            <div class="fw-bold text-danger">£<span id="insufficientRequired">0.00</span></div>
+                        </div>
                     </div>
-                    <hr class="my-2">
-                    <div class="d-flex justify-content-between">
-                        <span class="text-muted">Shortfall:</span>
-                        <strong class="text-danger">£<span id="insufficientShortfall">0.00</span></strong>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <div class="text-muted small">Shortfall</div>
+                            <div class="fw-bold text-danger">£<span id="insufficientShortfall">0.00</span></div>
+                        </div>
                     </div>
                 </div>
-                <p class="text-muted small mb-0">Please top up your account balance before proceeding with this purchase.</p>
             </div>
-            <div class="modal-footer justify-content-center">
+            <div class="modal-footer border-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                 <a href="{{ route('purchase.messages') }}" class="btn btn-primary">
-                    <i class="fas fa-coins me-2"></i>Go to Purchase → Messages
+                    <i class="fas fa-plus me-2"></i>Top Up Balance
                 </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade purchase-confirmation-modal" id="keywordPurchaseConfirmationModal" tabindex="-1" aria-labelledby="keywordPurchaseConfirmationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                <h5 class="modal-title text-white" id="keywordPurchaseConfirmationModalLabel">
-                    <i class="fas fa-key me-2"></i>Confirm Keyword Purchase
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-3">You are about to purchase the following keywords on shortcode <strong>82228</strong>:</p>
-                
-                <div class="numbers-list" id="confirmKeywordsList"></div>
-                
-                <div class="confirmation-summary">
-                    <div class="summary-row">
-                        <span>Keywords Selected</span>
-                        <strong id="confirmKeywordCount">0</strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Assigned To</span>
-                        <strong id="confirmKeywordSubAccount">-</strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Setup Fee (charged now)</span>
-                        <strong>£<span id="confirmKeywordSetupFee">0.00</span></strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Monthly Fee</span>
-                        <strong>£<span id="confirmKeywordMonthlyFee">0.00</span>/month</strong>
-                    </div>
-                    <div class="summary-row total">
-                        <span>Due Now</span>
-                        <strong class="text-success">£<span id="confirmKeywordDueNow">0.00</span></strong>
-                    </div>
-                </div>
-                
-                <div class="billing-info" style="background: #d4edda; border-color: #28a745;">
-                    <i class="fas fa-info-circle me-2" style="color: #155724;"></i>
-                    <strong style="color: #155724;">Billing Information:</strong>
-                    <ul class="mb-0 mt-2 ps-4" style="color: #155724;">
-                        <li>Setup fee will be charged immediately upon confirmation.</li>
-                        <li>Monthly fees are charged on the 1st of each month.</li>
-                        <li>Each keyword is billed individually.</li>
-                    </ul>
-                </div>
-                
-                <p class="text-muted small mb-0">
-                    <i class="fas fa-lock me-1"></i>
-                    By clicking "Confirm Purchase", you agree to purchase all selected keywords. This action cannot be partially completed.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirmKeywordPurchaseBtn" onclick="executeKeywordPurchase()">
-                    <i class="fas fa-check me-2"></i>Confirm Purchase
-                </button>
             </div>
         </div>
     </div>
@@ -1251,184 +860,45 @@
 <script>
 var currentUserRole = 'admin';
 var allowedRoles = ['admin', 'finance', 'messaging_manager'];
+var accountBalance = 45.00;
+var selectedProduct = null;
 
 var subAccountsMockData = [
-    { id: 'sa_001', name: 'Main Account', canPurchase: true, allowedRoles: ['admin', 'finance', 'messaging_manager'] },
-    { id: 'sa_002', name: 'Marketing Team', canPurchase: true, allowedRoles: ['admin', 'finance', 'messaging_manager'] },
-    { id: 'sa_003', name: 'Sales Department', canPurchase: true, allowedRoles: ['admin', 'finance', 'messaging_manager'] },
-    { id: 'sa_004', name: 'Customer Support', canPurchase: true, allowedRoles: ['admin', 'messaging_manager'] },
-    { id: 'sa_005', name: 'Operations', canPurchase: true, allowedRoles: ['admin'] },
-    { id: 'sa_006', name: 'HR Department', canPurchase: false, allowedRoles: ['admin'] }
+    { id: 'sa_001', name: 'Main Account' },
+    { id: 'sa_002', name: 'Marketing Team' },
+    { id: 'sa_003', name: 'Sales Department' },
+    { id: 'sa_004', name: 'Customer Support' },
+    { id: 'sa_005', name: 'Operations' }
 ];
-
-var selectedSubAccountId = '';
-
-var accountBalance = 45.00;
 
 var vmnMockData = [
-    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_001' },
-    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_002' },
-    { id: 3, number: '+447700900003', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Reserved', hubspotProductId: 'prod_uk_vmn_003' },
-    { id: 4, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_004' },
-    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 15.00, monthlyFee: 10.00, availability: 'Available', hubspotProductId: 'prod_uk_vmn_100' },
-    { id: 6, number: '+12025551234', country: 'US', countryName: 'United States', flag: '🇺🇸', setupFee: 15.00, monthlyFee: 12.00, availability: 'Available', hubspotProductId: 'prod_us_vmn_001' },
-    { id: 7, number: '+12025551235', country: 'US', countryName: 'United States', flag: '🇺🇸', setupFee: 15.00, monthlyFee: 12.00, availability: 'Reserved', hubspotProductId: 'prod_us_vmn_002' },
-    { id: 8, number: '+12025551236', country: 'US', countryName: 'United States', flag: '🇺🇸', setupFee: 15.00, monthlyFee: 12.00, availability: 'Available', hubspotProductId: 'prod_us_vmn_003' },
-    { id: 9, number: '+4915123456789', country: 'DE', countryName: 'Germany', flag: '🇩🇪', setupFee: 20.00, monthlyFee: 15.00, availability: 'Available', hubspotProductId: 'prod_de_vmn_001' },
-    { id: 10, number: '+4915123456790', country: 'DE', countryName: 'Germany', flag: '🇩🇪', setupFee: 20.00, monthlyFee: 15.00, availability: 'Available', hubspotProductId: 'prod_de_vmn_002' },
-    { id: 11, number: '+33612345678', country: 'FR', countryName: 'France', flag: '🇫🇷', setupFee: 18.00, monthlyFee: 14.00, availability: 'Available', hubspotProductId: 'prod_fr_vmn_001' },
-    { id: 12, number: '+33612345679', country: 'FR', countryName: 'France', flag: '🇫🇷', setupFee: 18.00, monthlyFee: 14.00, availability: 'Reserved', hubspotProductId: 'prod_fr_vmn_002' },
-    { id: 13, number: '+34612345678', country: 'ES', countryName: 'Spain', flag: '🇪🇸', setupFee: 18.00, monthlyFee: 14.00, availability: 'Available', hubspotProductId: 'prod_es_vmn_001' },
-    { id: 14, number: '+353871234567', country: 'IE', countryName: 'Ireland', flag: '🇮🇪', setupFee: 12.00, monthlyFee: 10.00, availability: 'Available', hubspotProductId: 'prod_ie_vmn_001' },
-    { id: 15, number: '+353871234568', country: 'IE', countryName: 'Ireland', flag: '🇮🇪', setupFee: 12.00, monthlyFee: 10.00, availability: 'Available', hubspotProductId: 'prod_ie_vmn_002' }
+    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 3, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 4, number: '+447700900005', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 6, number: '+447700900101', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 7, number: '+447700900102', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
+    { id: 8, number: '+447700900103', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 }
 ];
 
-var vmnSelectedIds = [];
+var takenKeywords = ['SALE', 'FREE', 'VOTE', 'STOP', 'ALERT', 'VIP'];
+var selectedVmnIds = [];
+var selectedKeywords = [];
 var vmnSortColumn = 'number';
 var vmnSortDirection = 'asc';
 var vmnSearchTerm = '';
-var vmnCountryFilter = '';
-
-var keywordMockData = [
-    { id: 1, keyword: 'WIN', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 2, keyword: 'PRIZE', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 3, keyword: 'SALE', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 4, keyword: 'DEAL', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 5, keyword: 'FREE', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 6, keyword: 'OFFER', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 7, keyword: 'SAVE', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 8, keyword: 'JOIN', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 9, keyword: 'VOTE', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 10, keyword: 'HELP', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 11, keyword: 'INFO', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 12, keyword: 'STOP', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 13, keyword: 'START', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 14, keyword: 'NEWS', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 15, keyword: 'ALERT', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 16, keyword: 'UPDATE', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 17, keyword: 'PROMO', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 18, keyword: 'CLUB', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 19, keyword: 'VIP', status: 'Taken', setupFee: 25.00, monthlyFee: 50.00 },
-    { id: 20, keyword: 'REWARDS', status: 'Available', setupFee: 25.00, monthlyFee: 50.00 }
-];
-
-var keywordSelectedIds = [];
-var keywordSortColumn = 'keyword';
-var keywordSortDirection = 'asc';
-var keywordSearchTerm = '';
-var selectedKeywordSubAccountId = '';
-
-var keywordValidationConfig = {
-    minLength: 3,
-    maxLength: 20,
-    pattern: /^[A-Za-z0-9]+$/
-};
 
 var numbersPricing = null;
-var pricingLoaded = false;
-var pricingError = false;
+var keywordSetupFee = 25.00;
+var keywordMonthlyFee = 50.00;
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
-    populateSubAccountDropdown();
-    populateKeywordSubAccountDropdown();
+    populateSubAccountDropdowns();
     fetchNumbersPricing();
+    setupEventListeners();
 });
-
-function fetchNumbersPricing() {
-    showPricingLoading(true);
-    
-    fetch('/api/purchase/numbers/pricing?currency=GBP')
-        .then(function(response) {
-            if (!response.ok) {
-                throw new Error('API request failed');
-            }
-            return response.json();
-        })
-        .then(function(data) {
-            if (data.success) {
-                numbersPricing = data.pricing;
-                pricingLoaded = true;
-                pricingError = false;
-                
-                applyPricingToData();
-                
-                if (data.is_mock || data.api_error) {
-                    showPricingWarning(data.error_message || 'Using cached pricing data');
-                }
-            } else {
-                throw new Error(data.error || 'Failed to fetch pricing');
-            }
-        })
-        .catch(function(error) {
-            console.error('Error fetching pricing:', error);
-            pricingError = true;
-            showPricingWarning('Unable to fetch live pricing. Using cached values.');
-            applyFallbackPricing();
-        })
-        .finally(function() {
-            showPricingLoading(false);
-            initializeVmnTable();
-            initializeKeywordTable();
-        });
-}
-
-function applyPricingToData() {
-    if (!numbersPricing) return;
-    
-    vmnMockData.forEach(function(vmn) {
-        var pricingKey = getPricingKeyForVmn(vmn);
-        if (numbersPricing.vmn && numbersPricing.vmn[pricingKey]) {
-            vmn.setupFee = numbersPricing.vmn[pricingKey].setup_fee;
-            vmn.monthlyFee = numbersPricing.vmn[pricingKey].monthly_fee;
-        }
-    });
-    
-    keywordMockData.forEach(function(keyword) {
-        if (numbersPricing.keyword) {
-            keyword.setupFee = numbersPricing.keyword.setup_fee;
-            keyword.monthlyFee = numbersPricing.keyword.monthly_fee;
-        }
-    });
-}
-
-function getPricingKeyForVmn(vmn) {
-    if (vmn.country === 'GB') {
-        return 'uk_longcode';
-    } else if (vmn.number.startsWith('+1800') || vmn.number.startsWith('+1888')) {
-        return 'tollfree';
-    } else {
-        return 'international';
-    }
-}
-
-function applyFallbackPricing() {
-    numbersPricing = {
-        vmn: {
-            uk_longcode: { setup_fee: 10.00, monthly_fee: 8.00 },
-            international: { setup_fee: 15.00, monthly_fee: 12.00 },
-            tollfree: { setup_fee: 25.00, monthly_fee: 20.00 }
-        },
-        keyword: { setup_fee: 25.00, monthly_fee: 50.00 }
-    };
-    applyPricingToData();
-}
-
-function showPricingLoading(show) {
-    var indicator = document.getElementById('pricingLoadingIndicator');
-    if (indicator) {
-        indicator.style.display = show ? 'flex' : 'none';
-    }
-}
-
-function showPricingWarning(message) {
-    var warningEl = document.getElementById('pricingWarning');
-    var messageEl = document.getElementById('pricingWarningMessage');
-    if (warningEl && messageEl) {
-        messageEl.textContent = message;
-        warningEl.style.display = 'block';
-    }
-}
 
 function checkAccess() {
     var hasAccess = allowedRoles.includes(currentUserRole);
@@ -1436,124 +906,140 @@ function checkAccess() {
     document.getElementById('purchaseContent').style.display = hasAccess ? 'block' : 'none';
 }
 
-function populateSubAccountDropdown() {
-    var select = document.getElementById('vmnSubAccountSelect');
-    var availableAccounts = subAccountsMockData.filter(function(sa) {
-        return sa.canPurchase && sa.allowedRoles.includes(currentUserRole);
+function populateSubAccountDropdowns() {
+    var selects = ['vmnSubAccountSelect', 'keywordSubAccountSelect', 'modalVmnSubAccount', 'modalKeywordSubAccount'];
+    selects.forEach(function(selectId) {
+        var select = document.getElementById(selectId);
+        if (!select) return;
+        subAccountsMockData.forEach(function(sa) {
+            var option = document.createElement('option');
+            option.value = sa.id;
+            option.textContent = sa.name;
+            select.appendChild(option);
+        });
     });
+}
+
+function fetchNumbersPricing() {
+    document.getElementById('pricingLoadingIndicator').style.display = 'flex';
     
-    availableAccounts.forEach(function(sa) {
-        var option = document.createElement('option');
-        option.value = sa.id;
-        option.textContent = sa.name;
-        select.appendChild(option);
-    });
+    fetch('/api/purchase/numbers/pricing?currency=GBP')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success && data.pricing) {
+                numbersPricing = data.pricing;
+                applyPricingToUI();
+                
+                if (data.is_mock) {
+                    showPricingWarning('Using cached pricing data');
+                }
+            } else {
+                throw new Error('Failed to fetch pricing');
+            }
+        })
+        .catch(function(error) {
+            console.error('Pricing error:', error);
+            showPricingWarning('Unable to fetch live pricing. Using cached values.');
+        })
+        .finally(function() {
+            document.getElementById('pricingLoadingIndicator').style.display = 'none';
+            renderVmnTable();
+            renderTakenKeywords();
+        });
 }
 
-function onSubAccountChange() {
-    var select = document.getElementById('vmnSubAccountSelect');
-    selectedSubAccountId = select.value;
-    updateVmnSelection();
-}
-
-function populateKeywordSubAccountDropdown() {
-    var select = document.getElementById('keywordSubAccountSelect');
-    var availableAccounts = subAccountsMockData.filter(function(sa) {
-        return sa.canPurchase && sa.allowedRoles.includes(currentUserRole);
-    });
+function applyPricingToUI() {
+    if (!numbersPricing) return;
     
-    availableAccounts.forEach(function(sa) {
-        var option = document.createElement('option');
-        option.value = sa.id;
-        option.textContent = sa.name;
-        select.appendChild(option);
-    });
+    if (numbersPricing.vmn && numbersPricing.vmn.uk_longcode) {
+        document.getElementById('vmnSetupPrice').textContent = '£' + numbersPricing.vmn.uk_longcode.setup_fee.toFixed(2);
+        document.getElementById('vmnMonthlyPrice').textContent = '£' + numbersPricing.vmn.uk_longcode.monthly_fee.toFixed(2);
+        
+        vmnMockData.forEach(function(vmn) {
+            vmn.setupFee = numbersPricing.vmn.uk_longcode.setup_fee;
+            vmn.monthlyFee = numbersPricing.vmn.uk_longcode.monthly_fee;
+        });
+    }
+    
+    if (numbersPricing.keyword) {
+        keywordSetupFee = numbersPricing.keyword.setup_fee;
+        keywordMonthlyFee = numbersPricing.keyword.monthly_fee;
+        document.getElementById('keywordSetupPrice').textContent = '£' + keywordSetupFee.toFixed(2);
+        document.getElementById('keywordMonthlyPrice').textContent = '£' + keywordMonthlyFee.toFixed(2);
+    }
 }
 
-function onKeywordSubAccountChange() {
-    var select = document.getElementById('keywordSubAccountSelect');
-    selectedKeywordSubAccountId = select.value;
-    updateKeywordSelection();
+function showPricingWarning(message) {
+    document.getElementById('pricingWarningMessage').textContent = message;
+    document.getElementById('pricingWarning').style.display = 'flex';
 }
 
-function initializeVmnTable() {
+function setupEventListeners() {
     document.getElementById('vmnSearchInput').addEventListener('input', function(e) {
         vmnSearchTerm = e.target.value.toLowerCase();
         renderVmnTable();
     });
     
-    document.getElementById('vmnCountryFilter').addEventListener('change', function(e) {
-        vmnCountryFilter = e.target.value;
-        renderVmnTable();
+    document.getElementById('keywordInput').addEventListener('input', validateKeywordInput);
+    document.getElementById('keywordInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !document.getElementById('addKeywordBtn').disabled) {
+            addKeyword();
+        }
     });
     
-    renderVmnTable();
+    document.getElementById('takenKeywordSearch').addEventListener('input', renderTakenKeywords);
 }
 
-function getFilteredVmnData() {
-    return vmnMockData.filter(function(item) {
-        if (vmnSearchTerm && !item.number.toLowerCase().includes(vmnSearchTerm)) {
-            return false;
-        }
-        if (vmnCountryFilter && item.country !== vmnCountryFilter) {
-            return false;
-        }
-        return true;
+function selectProduct(product) {
+    document.querySelectorAll('.product-card').forEach(function(card) {
+        card.classList.remove('selected');
     });
-}
-
-function getSortedVmnData(data) {
-    return data.slice().sort(function(a, b) {
-        var valA = a[vmnSortColumn];
-        var valB = b[vmnSortColumn];
-        
-        if (typeof valA === 'number') {
-            return vmnSortDirection === 'asc' ? valA - valB : valB - valA;
-        }
-        
-        valA = String(valA).toLowerCase();
-        valB = String(valB).toLowerCase();
-        
-        if (valA < valB) return vmnSortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return vmnSortDirection === 'asc' ? 1 : -1;
-        return 0;
+    document.querySelector('[data-product="' + product + '"]').classList.add('selected');
+    
+    document.querySelectorAll('.selection-panel').forEach(function(panel) {
+        panel.classList.remove('active');
     });
+    
+    selectedProduct = product;
+    document.getElementById(product + 'Panel').classList.add('active');
 }
 
 function renderVmnTable() {
     var tbody = document.getElementById('vmnTableBody');
-    var filtered = getFilteredVmnData();
-    var sorted = getSortedVmnData(filtered);
+    var filtered = vmnMockData.filter(function(vmn) {
+        if (vmnSearchTerm && !vmn.number.toLowerCase().includes(vmnSearchTerm)) {
+            return false;
+        }
+        return true;
+    });
     
-    if (sorted.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6"><div class="vmn-empty-state"><i class="fas fa-search"></i><h5>No numbers found</h5><p>Try adjusting your search or filter criteria.</p></div></td></tr>';
-        updateVmnSortIndicators();
-        updateVmnSelection();
+    filtered.sort(function(a, b) {
+        var valA = a[vmnSortColumn];
+        var valB = b[vmnSortColumn];
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        if (valA < valB) return vmnSortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return vmnSortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-search"></i><h5>No numbers found</h5><p>Try adjusting your search.</p></div></td></tr>';
         return;
     }
     
     var html = '';
-    sorted.forEach(function(item) {
-        var isSelected = vmnSelectedIds.includes(item.id);
-        var isAvailable = item.availability === 'Available';
-        var rowClass = isSelected ? 'selected' : '';
-        if (!isAvailable) rowClass += ' row-reserved';
-        
-        html += '<tr class="' + rowClass + '" data-id="' + item.id + '">';
-        html += '<td><input type="checkbox" class="form-check-input vmn-select-checkbox" ' + 
-                (isSelected ? 'checked' : '') + ' ' + 
-                (!isAvailable ? 'disabled' : '') + 
-                ' onchange="toggleVmnSelect(' + item.id + ')"></td>';
-        html += '<td><span class="vmn-number">' + item.number + '</span></td>';
-        html += '<td><div class="country-cell"><span class="country-flag">' + item.flag + '</span><span>' + item.countryName + '</span><span class="country-code">(' + item.country + ')</span></div></td>';
-        html += '<td class="fee-cell">£' + item.setupFee.toFixed(2) + '</td>';
-        html += '<td class="fee-cell">£' + item.monthlyFee.toFixed(2) + '</td>';
-        html += '<td><span class="' + (isAvailable ? 'status-available' : 'status-reserved') + '">' + item.availability + '</span></td>';
+    filtered.forEach(function(vmn) {
+        var isSelected = selectedVmnIds.includes(vmn.id);
+        html += '<tr class="' + (isSelected ? 'selected' : '') + '">';
+        html += '<td><input type="checkbox" class="form-check-input" ' + (isSelected ? 'checked' : '') + ' onchange="toggleVmnSelect(' + vmn.id + ')"></td>';
+        html += '<td><span class="vmn-number">' + vmn.number + '</span></td>';
+        html += '<td><div class="country-cell"><span class="country-flag">' + vmn.flag + '</span>' + vmn.countryName + '</div></td>';
+        html += '<td><span class="fee-cell">£' + vmn.setupFee.toFixed(2) + '</span></td>';
+        html += '<td><span class="fee-cell">£' + vmn.monthlyFee.toFixed(2) + '/mo</span></td>';
         html += '</tr>';
     });
-    
     tbody.innerHTML = html;
-    updateVmnSortIndicators();
     updateVmnSelection();
 }
 
@@ -1567,642 +1053,372 @@ function sortVmnTable(column) {
     renderVmnTable();
 }
 
-function updateVmnSortIndicators() {
-    document.querySelectorAll('#vmnTable th.sortable').forEach(function(th) {
-        th.classList.remove('sorted-asc', 'sorted-desc');
-        var icon = th.querySelector('i');
-        icon.className = 'fas fa-sort';
-    });
-    
-    var activeHeader = document.querySelector('#vmnTable th[data-sort="' + vmnSortColumn + '"]');
-    if (activeHeader) {
-        activeHeader.classList.add(vmnSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
-        var icon = activeHeader.querySelector('i');
-        icon.className = vmnSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
-    }
-}
-
-function toggleVmnSelectAll() {
-    var selectAllCheckbox = document.getElementById('vmnSelectAll');
-    var filtered = getFilteredVmnData().filter(function(item) {
-        return item.availability === 'Available';
-    });
-    
-    if (selectAllCheckbox.checked) {
-        vmnSelectedIds = filtered.map(function(item) { return item.id; });
+function toggleVmnSelect(id) {
+    var idx = selectedVmnIds.indexOf(id);
+    if (idx === -1) {
+        selectedVmnIds.push(id);
     } else {
-        vmnSelectedIds = [];
+        selectedVmnIds.splice(idx, 1);
     }
-    
     renderVmnTable();
 }
 
-function toggleVmnSelect(id) {
-    var idx = vmnSelectedIds.indexOf(id);
-    if (idx > -1) {
-        vmnSelectedIds.splice(idx, 1);
+function toggleVmnSelectAll() {
+    var allChecked = document.getElementById('vmnSelectAll').checked;
+    if (allChecked) {
+        selectedVmnIds = vmnMockData.map(function(v) { return v.id; });
     } else {
-        var item = vmnMockData.find(function(n) { return n.id === id; });
-        if (item && item.availability === 'Available') {
-            vmnSelectedIds.push(id);
-        }
+        selectedVmnIds = [];
     }
-    updateVmnSelection();
+    renderVmnTable();
 }
 
 function updateVmnSelection() {
-    var count = vmnSelectedIds.length;
-    document.getElementById('vmnSelectedCount').textContent = count;
-    
-    var canPurchase = count > 0 && selectedSubAccountId !== '';
-    document.getElementById('vmnProceedBtn').disabled = !canPurchase;
-    
-    var totalCostEl = document.getElementById('vmnTotalCost');
-    if (count > 0) {
-        var setupTotal = 0;
-        var monthlyTotal = 0;
-        vmnSelectedIds.forEach(function(id) {
-            var item = vmnMockData.find(function(n) { return n.id === id; });
-            if (item) {
-                setupTotal += item.setupFee;
-                monthlyTotal += item.monthlyFee;
-            }
-        });
-        document.getElementById('vmnSetupTotal').textContent = setupTotal.toFixed(2);
-        document.getElementById('vmnMonthlyTotal').textContent = monthlyTotal.toFixed(2);
-        totalCostEl.style.display = 'inline';
-    } else {
-        totalCostEl.style.display = 'none';
-    }
-    
-    var availableFiltered = getFilteredVmnData().filter(function(item) {
-        return item.availability === 'Available';
-    });
-    var allSelected = availableFiltered.length > 0 && availableFiltered.every(function(item) {
-        return vmnSelectedIds.includes(item.id);
-    });
-    document.getElementById('vmnSelectAll').checked = allSelected;
-}
-
-function showPurchaseConfirmation() {
-    if (vmnSelectedIds.length === 0 || !selectedSubAccountId) return;
-    
-    var selectedNumbers = vmnSelectedIds.map(function(id) {
-        return vmnMockData.find(function(n) { return n.id === id; });
-    });
-    
-    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedSubAccountId; });
-    
+    var count = selectedVmnIds.length;
     var setupTotal = 0;
     var monthlyTotal = 0;
-    var numbersList = [];
     
-    selectedNumbers.forEach(function(item) {
-        setupTotal += item.setupFee;
-        monthlyTotal += item.monthlyFee;
-        numbersList.push(item.number + ' (' + item.countryName + ')');
+    selectedVmnIds.forEach(function(id) {
+        var vmn = vmnMockData.find(function(v) { return v.id === id; });
+        if (vmn) {
+            setupTotal += vmn.setupFee;
+            monthlyTotal += vmn.monthlyFee;
+        }
     });
     
-    if (setupTotal > accountBalance) {
-        document.getElementById('insufficientCurrentBalance').textContent = accountBalance.toFixed(2);
-        document.getElementById('insufficientRequiredAmount').textContent = setupTotal.toFixed(2);
-        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
-        
-        var insufficientModal = new bootstrap.Modal(document.getElementById('insufficientBalanceModal'));
-        insufficientModal.show();
+    document.getElementById('vmnPurchaseBtn').disabled = count === 0;
+    document.getElementById('vmnSelectedCount').textContent = count;
+    document.getElementById('vmnSetupTotal').textContent = setupTotal.toFixed(2);
+    document.getElementById('vmnMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+    document.getElementById('vmnSelectionSummary').style.display = count > 0 ? 'flex' : 'none';
+}
+
+function validateKeywordInput() {
+    var input = document.getElementById('keywordInput');
+    var feedback = document.getElementById('keywordValidationFeedback');
+    var btn = document.getElementById('addKeywordBtn');
+    var value = input.value.trim().toUpperCase();
+    
+    input.classList.remove('is-valid', 'is-invalid');
+    feedback.classList.remove('valid', 'invalid');
+    btn.disabled = true;
+    
+    if (value === '') {
+        feedback.innerHTML = '';
         return;
     }
     
-    document.getElementById('confirmNumbersList').innerHTML = numbersList.join('<br>');
-    document.getElementById('confirmNumberCount').textContent = selectedNumbers.length;
-    document.getElementById('confirmSubAccount').textContent = subAccount ? subAccount.name : '-';
-    document.getElementById('confirmSetupFee').textContent = setupTotal.toFixed(2);
-    document.getElementById('confirmMonthlyFee').textContent = monthlyTotal.toFixed(2);
-    document.getElementById('confirmDueNow').textContent = setupTotal.toFixed(2);
+    if (value.length < 3) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle me-1"></i>Minimum 3 characters';
+        return;
+    }
     
-    var modal = new bootstrap.Modal(document.getElementById('purchaseConfirmationModal'));
-    modal.show();
+    if (value.length > 20) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle me-1"></i>Maximum 20 characters';
+        return;
+    }
+    
+    if (!/^[A-Za-z0-9]+$/.test(value)) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle me-1"></i>Alphanumeric only (no spaces)';
+        return;
+    }
+    
+    if (takenKeywords.includes(value)) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle me-1"></i>This keyword is already taken';
+        return;
+    }
+    
+    if (selectedKeywords.includes(value)) {
+        input.classList.add('is-invalid');
+        feedback.classList.add('invalid');
+        feedback.innerHTML = '<i class="fas fa-times-circle me-1"></i>Already added to your selection';
+        return;
+    }
+    
+    input.classList.add('is-valid');
+    feedback.classList.add('valid');
+    feedback.innerHTML = '<i class="fas fa-check-circle me-1"></i>Keyword available';
+    btn.disabled = false;
 }
 
-function executePurchase() {
-    if (vmnSelectedIds.length === 0 || !selectedSubAccountId) return;
+function addKeyword() {
+    var input = document.getElementById('keywordInput');
+    var value = input.value.trim().toUpperCase();
     
-    var selectedNumbers = vmnSelectedIds.map(function(id) {
-        return vmnMockData.find(function(n) { return n.id === id; });
+    if (value && !selectedKeywords.includes(value) && !takenKeywords.includes(value)) {
+        selectedKeywords.push(value);
+        input.value = '';
+        document.getElementById('keywordValidationFeedback').innerHTML = '';
+        document.getElementById('addKeywordBtn').disabled = true;
+        input.classList.remove('is-valid', 'is-invalid');
+        renderSelectedKeywords();
+    }
+}
+
+function removeKeyword(keyword) {
+    var idx = selectedKeywords.indexOf(keyword);
+    if (idx !== -1) {
+        selectedKeywords.splice(idx, 1);
+        renderSelectedKeywords();
+    }
+}
+
+function renderSelectedKeywords() {
+    var container = document.getElementById('selectedKeywordsContainer');
+    var list = document.getElementById('selectedKeywordsList');
+    
+    if (selectedKeywords.length === 0) {
+        container.style.display = 'none';
+        document.getElementById('keywordSelectionSummary').style.display = 'none';
+        document.getElementById('keywordPurchaseBtn').disabled = true;
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    var html = '';
+    selectedKeywords.forEach(function(kw) {
+        html += '<span class="keyword-tag">' + kw + '<i class="fas fa-times remove-keyword" onclick="removeKeyword(\'' + kw + '\')"></i></span>';
+    });
+    list.innerHTML = html;
+    
+    var count = selectedKeywords.length;
+    var setupTotal = count * keywordSetupFee;
+    var monthlyTotal = count * keywordMonthlyFee;
+    
+    document.getElementById('keywordSelectedCount').textContent = count;
+    document.getElementById('keywordSetupTotal').textContent = setupTotal.toFixed(2);
+    document.getElementById('keywordMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+    document.getElementById('keywordSelectionSummary').style.display = 'flex';
+    document.getElementById('keywordPurchaseBtn').disabled = false;
+}
+
+function renderTakenKeywords() {
+    var tbody = document.getElementById('takenKeywordsBody');
+    var searchTerm = document.getElementById('takenKeywordSearch').value.toLowerCase();
+    
+    var filtered = takenKeywords.filter(function(kw) {
+        return !searchTerm || kw.toLowerCase().includes(searchTerm);
     });
     
-    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedSubAccountId; });
+    var html = '';
+    filtered.forEach(function(kw) {
+        html += '<tr><td>' + kw + '</td><td><span class="badge bg-secondary">Taken</span></td></tr>';
+    });
+    tbody.innerHTML = html || '<tr><td colspan="2" class="text-muted text-center">No taken keywords found</td></tr>';
+}
+
+function showVmnPurchaseModal() {
+    if (selectedVmnIds.length === 0) return;
     
-    var confirmBtn = document.querySelector('#purchaseConfirmationModal .btn-success');
-    var originalBtnText = confirmBtn.innerHTML;
+    var selectedVmns = selectedVmnIds.map(function(id) {
+        return vmnMockData.find(function(v) { return v.id === id; });
+    });
+    
+    var setupTotal = 0;
+    var monthlyTotal = 0;
+    var listHtml = '';
+    
+    selectedVmns.forEach(function(vmn) {
+        setupTotal += vmn.setupFee;
+        monthlyTotal += vmn.monthlyFee;
+        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + vmn.number + '</span><span class="text-muted">£' + vmn.setupFee.toFixed(2) + '</span></div>';
+    });
+    
+    if (setupTotal > accountBalance) {
+        document.getElementById('insufficientBalance').textContent = accountBalance.toFixed(2);
+        document.getElementById('insufficientRequired').textContent = setupTotal.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
+        return;
+    }
+    
+    document.getElementById('modalVmnList').innerHTML = listHtml;
+    document.getElementById('modalVmnSetup').textContent = setupTotal.toFixed(2);
+    document.getElementById('modalVmnMonthly').textContent = monthlyTotal.toFixed(2);
+    
+    var subAccountValue = document.getElementById('vmnSubAccountSelect').value;
+    document.getElementById('modalVmnSubAccount').value = subAccountValue;
+    
+    new bootstrap.Modal(document.getElementById('vmnPurchaseModal')).show();
+}
+
+function showKeywordPurchaseModal() {
+    if (selectedKeywords.length === 0) return;
+    
+    var setupTotal = selectedKeywords.length * keywordSetupFee;
+    var monthlyTotal = selectedKeywords.length * keywordMonthlyFee;
+    
+    if (setupTotal > accountBalance) {
+        document.getElementById('insufficientBalance').textContent = accountBalance.toFixed(2);
+        document.getElementById('insufficientRequired').textContent = setupTotal.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
+        return;
+    }
+    
+    var listHtml = '';
+    selectedKeywords.forEach(function(kw) {
+        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + kw + '</span><span class="text-muted">£' + keywordSetupFee.toFixed(2) + '</span></div>';
+    });
+    
+    document.getElementById('modalKeywordList').innerHTML = listHtml;
+    document.getElementById('modalKeywordSetup').textContent = setupTotal.toFixed(2);
+    document.getElementById('modalKeywordMonthly').textContent = monthlyTotal.toFixed(2);
+    
+    var subAccountValue = document.getElementById('keywordSubAccountSelect').value;
+    document.getElementById('modalKeywordSubAccount').value = subAccountValue;
+    
+    new bootstrap.Modal(document.getElementById('keywordPurchaseModal')).show();
+}
+
+function executeVmnPurchase() {
+    var modal = bootstrap.Modal.getInstance(document.getElementById('vmnPurchaseModal'));
+    var confirmBtn = document.querySelector('#vmnPurchaseModal .btn-primary');
+    var originalText = confirmBtn.innerHTML;
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
-    var items = selectedNumbers.map(function(n) {
-        return {
-            type: 'vmn',
-            identifier: n.number,
-            country_code: n.country
-        };
+    var subAccountId = document.getElementById('modalVmnSubAccount').value;
+    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === subAccountId; });
+    
+    var items = selectedVmnIds.map(function(id) {
+        var vmn = vmnMockData.find(function(v) { return v.id === id; });
+        return { type: 'vmn', identifier: vmn.number, country_code: vmn.country };
     });
     
     fetch('/api/purchase/numbers/lock', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-            items: items,
-            purchase_type: 'vmn'
-        })
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({ items: items, purchase_type: 'vmn' })
     })
-    .then(function(response) { return response.json(); })
+    .then(function(r) { return r.json(); })
     .then(function(lockResult) {
-        if (!lockResult.success) {
-            throw new Error(lockResult.message || 'Failed to lock items for purchase');
-        }
-        
+        if (!lockResult.success) throw new Error(lockResult.message || 'Failed to lock items');
         return fetch('/api/purchase/numbers/purchase', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: JSON.stringify({
                 session_id: lockResult.session_id,
-                sub_account_id: selectedSubAccountId,
-                sub_account_name: subAccount ? subAccount.name : null,
+                sub_account_id: subAccountId || 'unassigned',
+                sub_account_name: subAccount ? subAccount.name : 'Unassigned',
                 purchase_type: 'vmn',
                 items: items
             })
         });
     })
-    .then(function(response) { return response.json(); })
+    .then(function(r) { return r.json(); })
     .then(function(result) {
-        if (!result.success) {
-            throw new Error(result.message || 'Purchase failed');
-        }
+        if (!result.success) throw new Error(result.message || 'Purchase failed');
         
-        var modal = bootstrap.Modal.getInstance(document.getElementById('purchaseConfirmationModal'));
         modal.hide();
-        
-        selectedNumbers.forEach(function(n) {
-            var idx = vmnMockData.findIndex(function(v) { return v.id === n.id; });
-            if (idx !== -1) {
-                vmnMockData[idx].availability = 'Reserved';
-            }
-        });
-        
         accountBalance = result.balance_after;
         
-        showPurchaseSuccessToast(
-            'VMN Purchase Complete',
-            selectedNumbers.length + ' number(s) assigned to ' + (subAccount ? subAccount.name : 'Unknown') + '. Ref: ' + result.transaction_reference
-        );
+        selectedVmnIds.forEach(function(id) {
+            var idx = vmnMockData.findIndex(function(v) { return v.id === id; });
+            if (idx !== -1) vmnMockData.splice(idx, 1);
+        });
         
-        console.log('[Audit] VMN Purchase logged:', result.audit_id);
-        
-        vmnSelectedIds = [];
-        selectedSubAccountId = '';
-        document.getElementById('vmnSubAccountSelect').value = '';
+        selectedVmnIds = [];
         renderVmnTable();
-        updateVmnSelection();
+        
+        showSuccessToast('Purchase Complete', result.items_purchased + ' number(s) purchased. Ref: ' + result.transaction_reference);
     })
     .catch(function(error) {
-        console.error('Purchase error:', error);
-        showPurchaseErrorToast('Purchase Failed', error.message);
+        showErrorToast('Purchase Failed', error.message);
     })
     .finally(function() {
         confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalBtnText;
+        confirmBtn.innerHTML = originalText;
     });
-}
-
-function showPurchaseSuccessToast(title, message) {
-    var toastHtml = '<div class="toast align-items-center text-white bg-success border-0" role="alert">' +
-        '<div class="d-flex"><div class="toast-body"><strong>' + title + '</strong><br>' + message + '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
-    
-    var container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        document.body.appendChild(container);
-    }
-    container.innerHTML = toastHtml;
-    var toast = new bootstrap.Toast(container.querySelector('.toast'));
-    toast.show();
-}
-
-function showPurchaseErrorToast(title, message) {
-    var toastHtml = '<div class="toast align-items-center text-white bg-danger border-0" role="alert">' +
-        '<div class="d-flex"><div class="toast-body"><strong>' + title + '</strong><br>' + message + '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
-    
-    var container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        document.body.appendChild(container);
-    }
-    container.innerHTML = toastHtml;
-    var toast = new bootstrap.Toast(container.querySelector('.toast'));
-    toast.show();
-}
-
-function selectNumberType(type) {
-    console.log('TODO: API call - POST /api/purchase/numbers/vmn with type:', type);
-    alert('Number selection coming soon. Please contact sales for early access.');
-}
-
-function selectKeywordType(type) {
-    console.log('TODO: API call - POST /api/purchase/numbers/shortcode with type:', type);
-    alert('Keyword reservation coming soon. Please contact sales for enquiries.');
-}
-
-function initializeKeywordTable() {
-    document.getElementById('keywordSearchInput').addEventListener('input', function(e) {
-        keywordSearchTerm = e.target.value.toLowerCase();
-        renderKeywordTable();
-    });
-    
-    renderKeywordTable();
-}
-
-function getFilteredKeywordData() {
-    return keywordMockData.filter(function(item) {
-        if (keywordSearchTerm && !item.keyword.toLowerCase().includes(keywordSearchTerm)) {
-            return false;
-        }
-        return true;
-    });
-}
-
-function getSortedKeywordData(data) {
-    return data.slice().sort(function(a, b) {
-        var valA = a[keywordSortColumn];
-        var valB = b[keywordSortColumn];
-        
-        valA = String(valA).toLowerCase();
-        valB = String(valB).toLowerCase();
-        
-        if (valA < valB) return keywordSortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return keywordSortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-}
-
-function renderKeywordTable() {
-    var tbody = document.getElementById('keywordTableBody');
-    var filtered = getFilteredKeywordData();
-    var sorted = getSortedKeywordData(filtered);
-    
-    if (sorted.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3"><div class="keyword-empty-state"><i class="fas fa-search"></i><h5>No keywords found</h5><p>Try adjusting your search criteria.</p></div></td></tr>';
-        updateKeywordSortIndicators();
-        updateKeywordSelection();
-        return;
-    }
-    
-    var html = '';
-    sorted.forEach(function(item) {
-        var isSelected = keywordSelectedIds.includes(item.id);
-        var isAvailable = item.status === 'Available';
-        var rowClass = isSelected ? 'selected' : '';
-        if (!isAvailable) rowClass += ' row-taken';
-        
-        html += '<tr class="' + rowClass + '" data-id="' + item.id + '">';
-        html += '<td><input type="checkbox" class="form-check-input keyword-select-checkbox" ' + 
-                (isSelected ? 'checked' : '') + ' ' + 
-                (!isAvailable ? 'disabled' : '') + 
-                ' onchange="toggleKeywordSelect(' + item.id + ')"></td>';
-        html += '<td><span class="keyword-text">' + item.keyword + '</span></td>';
-        html += '<td><span class="' + (isAvailable ? 'status-available-kw' : 'status-taken') + '">' + item.status + '</span></td>';
-        html += '</tr>';
-    });
-    
-    tbody.innerHTML = html;
-    updateKeywordSortIndicators();
-    updateKeywordSelection();
-}
-
-function sortKeywordTable(column) {
-    if (keywordSortColumn === column) {
-        keywordSortDirection = keywordSortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        keywordSortColumn = column;
-        keywordSortDirection = 'asc';
-    }
-    renderKeywordTable();
-}
-
-function updateKeywordSortIndicators() {
-    document.querySelectorAll('#keywordTable th.sortable').forEach(function(th) {
-        th.classList.remove('sorted-asc', 'sorted-desc');
-        var icon = th.querySelector('i');
-        icon.className = 'fas fa-sort';
-    });
-    
-    var activeHeader = document.querySelector('#keywordTable th[data-sort="' + keywordSortColumn + '"]');
-    if (activeHeader) {
-        activeHeader.classList.add(keywordSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
-        var icon = activeHeader.querySelector('i');
-        icon.className = keywordSortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
-    }
-}
-
-function toggleKeywordSelectAll() {
-    var selectAllCheckbox = document.getElementById('keywordSelectAll');
-    var filtered = getFilteredKeywordData().filter(function(item) {
-        return item.status === 'Available';
-    });
-    
-    if (selectAllCheckbox.checked) {
-        keywordSelectedIds = filtered.map(function(item) { return item.id; });
-    } else {
-        keywordSelectedIds = [];
-    }
-    
-    renderKeywordTable();
-}
-
-function toggleKeywordSelect(id) {
-    var idx = keywordSelectedIds.indexOf(id);
-    if (idx > -1) {
-        keywordSelectedIds.splice(idx, 1);
-    } else {
-        var item = keywordMockData.find(function(k) { return k.id === id; });
-        if (item && item.status === 'Available') {
-            keywordSelectedIds.push(id);
-        }
-    }
-    updateKeywordSelection();
-}
-
-function updateKeywordSelection() {
-    var count = keywordSelectedIds.length;
-    document.getElementById('keywordSelectedCount').textContent = count;
-    
-    var selectedKeywords = keywordSelectedIds.map(function(id) {
-        return keywordMockData.find(function(k) { return k.id === id; });
-    }).filter(function(k) { return k; });
-    
-    var totalSetup = selectedKeywords.reduce(function(sum, k) { return sum + (k.setupFee || 25.00); }, 0);
-    var totalMonthly = selectedKeywords.reduce(function(sum, k) { return sum + (k.monthlyFee || 50.00); }, 0);
-    
-    document.getElementById('keywordSetupTotal').textContent = totalSetup.toFixed(2);
-    document.getElementById('keywordMonthlyTotal').textContent = totalMonthly.toFixed(2);
-    document.getElementById('keywordTotalCost').style.display = count > 0 ? 'inline' : 'none';
-    
-    var canPurchase = count > 0 && selectedKeywordSubAccountId !== '';
-    document.getElementById('keywordPurchaseBtn').disabled = !canPurchase;
-    
-    var availableFiltered = getFilteredKeywordData().filter(function(item) {
-        return item.status === 'Available';
-    });
-    var allSelected = availableFiltered.length > 0 && availableFiltered.every(function(item) {
-        return keywordSelectedIds.includes(item.id);
-    });
-    document.getElementById('keywordSelectAll').checked = allSelected;
-}
-
-function showKeywordPurchaseConfirmation() {
-    if (keywordSelectedIds.length === 0) return;
-    if (!selectedKeywordSubAccountId) {
-        alert('Please select a sub-account before purchasing keywords.');
-        return;
-    }
-    
-    var selectedKeywords = keywordSelectedIds.map(function(id) {
-        return keywordMockData.find(function(k) { return k.id === id; });
-    }).filter(function(k) { return k; });
-    
-    var totalSetup = selectedKeywords.reduce(function(sum, k) { return sum + (k.setupFee || 25.00); }, 0);
-    var totalMonthly = selectedKeywords.reduce(function(sum, k) { return sum + (k.monthlyFee || 50.00); }, 0);
-    
-    if (totalSetup > accountBalance) {
-        document.getElementById('insufficientCurrentBalance').textContent = accountBalance.toFixed(2);
-        document.getElementById('insufficientRequiredAmount').textContent = totalSetup.toFixed(2);
-        document.getElementById('insufficientShortfall').textContent = (totalSetup - accountBalance).toFixed(2);
-        var modal = new bootstrap.Modal(document.getElementById('insufficientBalanceModal'));
-        modal.show();
-        return;
-    }
-    
-    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedKeywordSubAccountId; });
-    
-    var listHtml = selectedKeywords.map(function(k) {
-        return '<div class="number-item"><span class="number">' + k.keyword + '</span><span class="setup-fee">£' + (k.setupFee || 25.00).toFixed(2) + ' setup</span></div>';
-    }).join('');
-    
-    document.getElementById('confirmKeywordsList').innerHTML = listHtml;
-    document.getElementById('confirmKeywordCount').textContent = selectedKeywords.length;
-    document.getElementById('confirmKeywordSubAccount').textContent = subAccount ? subAccount.name : '-';
-    document.getElementById('confirmKeywordSetupFee').textContent = totalSetup.toFixed(2);
-    document.getElementById('confirmKeywordMonthlyFee').textContent = totalMonthly.toFixed(2);
-    document.getElementById('confirmKeywordDueNow').textContent = totalSetup.toFixed(2);
-    
-    var modal = new bootstrap.Modal(document.getElementById('keywordPurchaseConfirmationModal'));
-    modal.show();
 }
 
 function executeKeywordPurchase() {
-    var selectedKeywords = keywordSelectedIds.map(function(id) {
-        return keywordMockData.find(function(k) { return k.id === id; });
-    }).filter(function(k) { return k; });
-    
-    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === selectedKeywordSubAccountId; });
-    
-    var confirmBtn = document.querySelector('#keywordPurchaseConfirmationModal .btn-success');
-    var originalBtnText = confirmBtn.innerHTML;
+    var modal = bootstrap.Modal.getInstance(document.getElementById('keywordPurchaseModal'));
+    var confirmBtn = document.querySelector('#keywordPurchaseModal .btn-primary');
+    var originalText = confirmBtn.innerHTML;
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
-    var items = selectedKeywords.map(function(k) {
-        return {
-            type: 'keyword',
-            identifier: k.keyword
-        };
+    var subAccountId = document.getElementById('modalKeywordSubAccount').value;
+    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === subAccountId; });
+    
+    var items = selectedKeywords.map(function(kw) {
+        return { type: 'keyword', identifier: kw };
     });
     
     fetch('/api/purchase/numbers/lock', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-            items: items,
-            purchase_type: 'keyword'
-        })
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({ items: items, purchase_type: 'keyword' })
     })
-    .then(function(response) { return response.json(); })
+    .then(function(r) { return r.json(); })
     .then(function(lockResult) {
-        if (!lockResult.success) {
-            throw new Error(lockResult.message || 'Failed to lock keywords for purchase');
-        }
-        
+        if (!lockResult.success) throw new Error(lockResult.message || 'Failed to lock keywords');
         return fetch('/api/purchase/numbers/purchase', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: JSON.stringify({
                 session_id: lockResult.session_id,
-                sub_account_id: selectedKeywordSubAccountId,
-                sub_account_name: subAccount ? subAccount.name : null,
+                sub_account_id: subAccountId || 'unassigned',
+                sub_account_name: subAccount ? subAccount.name : 'Unassigned',
                 purchase_type: 'keyword',
                 items: items
             })
         });
     })
-    .then(function(response) { return response.json(); })
+    .then(function(r) { return r.json(); })
     .then(function(result) {
-        if (!result.success) {
-            throw new Error(result.message || 'Keyword purchase failed');
-        }
+        if (!result.success) throw new Error(result.message || 'Purchase failed');
         
-        bootstrap.Modal.getInstance(document.getElementById('keywordPurchaseConfirmationModal')).hide();
-        
-        selectedKeywords.forEach(function(k) {
-            var idx = keywordMockData.findIndex(function(kw) { return kw.id === k.id; });
-            if (idx !== -1) {
-                keywordMockData[idx].status = 'Taken';
-            }
-        });
-        
+        modal.hide();
         accountBalance = result.balance_after;
         
-        showPurchaseSuccessToast(
-            'Keyword Purchase Complete',
-            selectedKeywords.length + ' keyword(s) assigned to ' + (subAccount ? subAccount.name : 'Unknown') + '. Ref: ' + result.transaction_reference
-        );
+        selectedKeywords.forEach(function(kw) {
+            takenKeywords.push(kw);
+        });
         
-        console.log('[Audit] Keyword Purchase logged:', result.audit_id);
+        selectedKeywords = [];
+        renderSelectedKeywords();
+        renderTakenKeywords();
         
-        keywordSelectedIds = [];
-        renderKeywordTable();
-        updateKeywordSelection();
-        document.getElementById('keywordSubAccountSelect').value = '';
-        selectedKeywordSubAccountId = '';
+        showSuccessToast('Purchase Complete', result.items_purchased + ' keyword(s) purchased. Ref: ' + result.transaction_reference);
     })
     .catch(function(error) {
-        console.error('Keyword purchase error:', error);
-        showPurchaseErrorToast('Purchase Failed', error.message);
+        showErrorToast('Purchase Failed', error.message);
     })
     .finally(function() {
         confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalBtnText;
+        confirmBtn.innerHTML = originalText;
     });
 }
 
-function validateCustomKeyword() {
-    var input = document.getElementById('customKeywordInput');
-    var feedback = document.getElementById('keywordValidationFeedback');
-    var addBtn = document.getElementById('addCustomKeywordBtn');
-    var value = input.value.trim().toUpperCase();
-    
-    input.classList.remove('is-valid', 'is-invalid');
-    feedback.classList.remove('valid', 'invalid');
-    addBtn.disabled = true;
-    
-    if (value === '') {
-        feedback.innerHTML = '';
-        return { valid: false, message: '' };
-    }
-    
-    if (value.length < keywordValidationConfig.minLength) {
-        input.classList.add('is-invalid');
-        feedback.classList.add('invalid');
-        feedback.innerHTML = '<i class="fas fa-times-circle"></i>Keyword must be at least ' + keywordValidationConfig.minLength + ' characters';
-        return { valid: false, message: 'Too short' };
-    }
-    
-    if (value.length > keywordValidationConfig.maxLength) {
-        input.classList.add('is-invalid');
-        feedback.classList.add('invalid');
-        feedback.innerHTML = '<i class="fas fa-times-circle"></i>Keyword cannot exceed ' + keywordValidationConfig.maxLength + ' characters';
-        return { valid: false, message: 'Too long' };
-    }
-    
-    if (!keywordValidationConfig.pattern.test(value)) {
-        input.classList.add('is-invalid');
-        feedback.classList.add('invalid');
-        feedback.innerHTML = '<i class="fas fa-times-circle"></i>Alphanumeric characters only (no spaces or special characters)';
-        return { valid: false, message: 'Invalid characters' };
-    }
-    
-    var existingKeyword = keywordMockData.find(function(k) {
-        return k.keyword.toUpperCase() === value;
-    });
-    
-    if (existingKeyword) {
-        if (existingKeyword.status === 'Taken') {
-            input.classList.add('is-invalid');
-            feedback.classList.add('invalid');
-            feedback.innerHTML = '<i class="fas fa-times-circle"></i>This keyword is already taken';
-            return { valid: false, message: 'Keyword taken' };
-        } else {
-            input.classList.add('is-valid');
-            feedback.classList.add('valid');
-            feedback.innerHTML = '<i class="fas fa-check-circle"></i>Keyword available! Click Add to select it.';
-            addBtn.disabled = false;
-            return { valid: true, message: 'Available', existing: true, id: existingKeyword.id };
-        }
-    }
-    
-    console.log('TODO: API call - GET /api/keywords/check-availability?keyword=' + value);
-    
-    input.classList.add('is-valid');
-    feedback.classList.add('valid');
-    feedback.innerHTML = '<i class="fas fa-check-circle"></i>Keyword available for reservation!';
-    addBtn.disabled = false;
-    return { valid: true, message: 'Available', existing: false };
+function showSuccessToast(title, message) {
+    var container = document.getElementById('toastContainer') || createToastContainer();
+    container.innerHTML = '<div class="toast align-items-center text-white bg-success border-0" role="alert"><div class="d-flex"><div class="toast-body"><strong>' + title + '</strong><br>' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+    new bootstrap.Toast(container.querySelector('.toast')).show();
 }
 
-function addCustomKeyword() {
-    var input = document.getElementById('customKeywordInput');
-    var value = input.value.trim().toUpperCase();
-    
-    var validation = validateCustomKeyword();
-    if (!validation.valid) return;
-    
-    if (validation.existing) {
-        if (!keywordSelectedIds.includes(validation.id)) {
-            keywordSelectedIds.push(validation.id);
-            renderKeywordTable();
-            updateKeywordSelection();
-        }
-        input.value = '';
-        document.getElementById('keywordValidationFeedback').innerHTML = '<i class="fas fa-check-circle text-success"></i>Keyword "' + value + '" added to selection!';
-        document.getElementById('keywordValidationFeedback').classList.remove('invalid');
-        document.getElementById('keywordValidationFeedback').classList.add('valid');
-        document.getElementById('addCustomKeywordBtn').disabled = true;
-        input.classList.remove('is-valid', 'is-invalid');
-    } else {
-        var newId = Math.max.apply(null, keywordMockData.map(function(k) { return k.id; })) + 1;
-        keywordMockData.push({
-            id: newId,
-            keyword: value,
-            status: 'Available'
-        });
-        keywordSelectedIds.push(newId);
-        renderKeywordTable();
-        updateKeywordSelection();
-        
-        input.value = '';
-        document.getElementById('keywordValidationFeedback').innerHTML = '<i class="fas fa-check-circle text-success"></i>New keyword "' + value + '" created and added to selection!';
-        document.getElementById('keywordValidationFeedback').classList.remove('invalid');
-        document.getElementById('keywordValidationFeedback').classList.add('valid');
-        document.getElementById('addCustomKeywordBtn').disabled = true;
-        input.classList.remove('is-valid', 'is-invalid');
-        
-        console.log('TODO: API call - POST /api/keywords/reserve with keyword:', value);
-    }
+function showErrorToast(title, message) {
+    var container = document.getElementById('toastContainer') || createToastContainer();
+    container.innerHTML = '<div class="toast align-items-center text-white bg-danger border-0" role="alert"><div class="d-flex"><div class="toast-body"><strong>' + title + '</strong><br>' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+    new bootstrap.Toast(container.querySelector('.toast')).show();
+}
+
+function createToastContainer() {
+    var container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    document.body.appendChild(container);
+    return container;
 }
 </script>
 @endpush

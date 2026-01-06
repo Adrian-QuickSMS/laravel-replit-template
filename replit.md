@@ -29,9 +29,10 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - **Sorting:** All columns sortable with visual indicators (ascending/descending arrows).
     - **Pagination:** Configurable page size (10/25/50/100) with page navigation.
 - **Purchase:** Functionality for purchasing messages and numbers (Admin/Finance/Messaging Managers only) with HubSpot Products API for live pricing and Stripe for payment processing. Includes "Pay Invoice" and "Top Up Balance" flows with Stripe Checkout for PCI DSS compliance and comprehensive audit logging.
-  - **Purchase Numbers:** Page for acquiring dedicated numbers with full audit logging and concurrency control. Two sections:
-    - Virtual Mobile Numbers (VMNs): UK Long Code, International VMN, Toll-Free Number options
-    - Shortcode Keywords: Shared Shortcode, Dedicated Shortcode, Premium Rate Shortcode options
+  - **Purchase Numbers:** Page for acquiring dedicated numbers with full audit logging and concurrency control. Design matches Purchase Messages styling (same cards, badges, typography). Three product tiles:
+    - UK Virtual Mobile Number: Available VMN table with multi-select, search, sorting
+    - UK Shared Short Code: Keyword input with validation, taken keywords list (searchable), multi-keyword selection
+    - UK Dedicated Short Code: Contact sales only (no inventory table)
     - Shared Shortcode Keywords section: Displays read-only shared shortcode (82228), keyword table with columns (Keyword, Status, Select), search functionality, A-Z/Z-A sorting, multi-select for available keywords only, taken keywords visible but disabled
     - Custom keyword input with real-time validation: alphanumeric only, no spaces, 3-20 characters (configurable), case-insensitive uniqueness check, inline error messages for invalid input, availability check before selection
     - Keyword purchase flow: Sub-account selector (mandatory), "Purchase Keywords" button, confirmation modal with keyword count/setup/monthly fees, balance validation, atomic transaction constraint
