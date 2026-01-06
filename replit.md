@@ -34,6 +34,7 @@ QuickSMS is built on PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Te
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
 - **Account:** Details, User/Access management, Sub Accounts, Audit Logs, and Security settings.
 - **Support:** Dashboard, Ticket creation, and a Knowledge Base.
+- **Unified RCS Wizard:** The RCS Rich Card Wizard is a shared fullscreen modal component (`resources/views/quicksms/partials/rcs-wizard-modal.blade.php`) used identically across Send Message and Inbox pages via `@include`. Both pages load the shared `public/js/rcs-wizard.js` for wizard functionality. Note: Send Message retains inline JavaScript functions as overrides (functionally equivalent to shared version) - full JavaScript deduplication is deferred technical debt.
 - **RCS Preview System:** A schema-driven renderer at `/rcs/preview-demo` providing an Android-style phone UI for previewing RCS messages, built with Alpine.js. The shared renderer (`public/js/rcs-preview-renderer.js`) now supports channel-specific rendering:
   - **Rich RCS:** Full card/carousel rendering with RCS agent header (logo, verified badge), rich input bar (emoji, camera, microphone)
   - **Basic RCS:** Agent header with verified badge, RCS-style purple gradient text bubble, full RCS input affordances
