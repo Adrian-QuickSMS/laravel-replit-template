@@ -1656,6 +1656,8 @@ function toggleReplyChannel(channel) {
     var rcsRichSection = document.getElementById('rcsRichContentSection');
     var contentLabel = document.getElementById('replyContentLabel');
     var segmentDisplay = document.getElementById('segmentDisplay');
+    var composerCard = document.getElementById('replyComposerCard');
+    var composerBody = composerCard ? composerCard.querySelector('.card-body') : null;
     
     if (channel === 'sms') {
         senderIdSection.classList.remove('d-none');
@@ -1664,6 +1666,10 @@ function toggleReplyChannel(channel) {
         rcsRichSection.classList.add('d-none');
         contentLabel.textContent = 'SMS Content';
         segmentDisplay.classList.remove('d-none');
+        if (composerBody) {
+            composerBody.style.overflowY = 'visible';
+            composerBody.style.maxHeight = 'none';
+        }
     } else if (channel === 'rcs_basic') {
         senderIdSection.classList.add('d-none');
         rcsAgentSection.classList.remove('d-none');
@@ -1671,6 +1677,10 @@ function toggleReplyChannel(channel) {
         rcsRichSection.classList.add('d-none');
         contentLabel.textContent = 'RCS Content';
         segmentDisplay.classList.add('d-none');
+        if (composerBody) {
+            composerBody.style.overflowY = 'visible';
+            composerBody.style.maxHeight = 'none';
+        }
     } else if (channel === 'rcs_rich') {
         senderIdSection.classList.add('d-none');
         rcsAgentSection.classList.remove('d-none');
@@ -1678,6 +1688,10 @@ function toggleReplyChannel(channel) {
         rcsRichSection.classList.remove('d-none');
         contentLabel.textContent = 'RCS Content (Optional Fallback Text)';
         segmentDisplay.classList.add('d-none');
+        if (composerBody) {
+            composerBody.style.overflowY = 'auto';
+            composerBody.style.maxHeight = '460px';
+        }
     }
     updateCharCount();
 }
