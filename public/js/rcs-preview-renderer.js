@@ -64,9 +64,11 @@ var RcsPreviewRenderer = (function() {
         if (height === 'none') return '';
         var heightPx = getMediaHeight(height);
         
-        if (media.url) {
+        // Prefer hostedUrl (saved/cropped image) over original url
+        var imageUrl = media.hostedUrl || media.url;
+        if (imageUrl) {
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + ';">' +
-                '<img src="' + escapeHtml(media.url) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +
+                '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +
                 '</div>';
         } else {
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">' +
@@ -85,7 +87,7 @@ var RcsPreviewRenderer = (function() {
         var buttonsHtml = renderButtons(card.buttons);
         
         var cardClass = isCarousel ? 'rcs-card rcs-carousel-card' : 'rcs-card';
-        var mediaClass = card.media && card.media.url ? 'rcs-card--has-media' : 'rcs-card--no-media';
+        var mediaClass = card.media && (card.media.hostedUrl || card.media.url) ? 'rcs-card--has-media' : 'rcs-card--no-media';
         
         return '<div class="' + cardClass + ' ' + mediaClass + '">' + 
             mediaHtml + 
