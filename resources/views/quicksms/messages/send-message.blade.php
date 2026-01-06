@@ -388,9 +388,6 @@
         
         <div class="col-lg-4">
             <div class="card sticky-top" style="top: 20px;">
-                <div class="card-header bg-primary text-white py-3">
-                    <h6 class="card-title mb-0">Preview</h6>
-                </div>
                 <div class="card-body p-2">
                     <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
                     
