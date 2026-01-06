@@ -45,7 +45,13 @@ var rcsCropState = {
     orientation: 'vertical_short'
 };
 
-var rcsCropFrameSizes = {
+var rcsSingleCardFrameSizes = {
+    'vertical_short': { width: 300, height: 112 },
+    'vertical_medium': { width: 300, height: 168 },
+    'vertical_tall': { width: 300, height: 264 }
+};
+
+var rcsCarouselFrameSizes = {
     'small': {
         'vertical_short': { width: 180, height: 112 },
         'vertical_medium': { width: 180, height: 168 }
@@ -60,6 +66,11 @@ var rcsCropFrameSizes = {
 var rcsCurrentCardWidth = 'medium';
 var rcsCarouselHeight = 'vertical_short';
 var rcsCarouselWidth = 'medium';
+
+function isRcsCarouselMode() {
+    var carouselEl = document.getElementById('rcsTypeCarousel');
+    return carouselEl ? carouselEl.checked : false;
+}
 
 var rcsImageDirtyState = {
     isDirty: false,
@@ -128,9 +139,25 @@ function openRcsWizard() {
     
     setTimeout(function() {
         initRcsCropEditor();
+        initializeMessageTypeUI();
         updateCarouselOrientationWarning();
         updateRcsWizardPreview();
     }, 100);
+}
+
+function initializeMessageTypeUI() {
+    var isCarousel = isRcsCarouselMode();
+    var cardWidthSection = document.getElementById('rcsCardWidthSection');
+    var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
+    
+    if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
+    if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
+    
+    updateCardWidthAndHeightRestrictions();
+    
+    var currentOrientation = document.querySelector('input[name="rcsOrientation"]:checked');
+    var orientation = currentOrientation ? currentOrientation.value : 'vertical_short';
+    updateRcsCropFrame(orientation);
 }
 
 function clearRcsContent() {
@@ -681,8 +708,19 @@ function toggleRcsMessageType() {
     var isCarousel = isCarouselEl ? isCarouselEl.checked : false;
     var carouselNav = document.getElementById('rcsCarouselNav');
     var cardLabel = document.getElementById('rcsCurrentCardLabel');
+    var cardWidthSection = document.getElementById('rcsCardWidthSection');
+    var carouselWidthHint = document.getElementById('rcsCarouselWidthHint');
+    
     if (carouselNav) carouselNav.classList.toggle('d-none', !isCarousel);
     if (cardLabel) cardLabel.classList.toggle('d-none', !isCarousel);
+    if (cardWidthSection) cardWidthSection.classList.toggle('d-none', !isCarousel);
+    if (carouselWidthHint) carouselWidthHint.classList.toggle('d-none', !isCarousel);
+    
+    updateCardWidthAndHeightRestrictions();
+    
+    var currentOrientation = document.querySelector('input[name="rcsOrientation"]:checked');
+    var orientation = currentOrientation ? currentOrientation.value : 'vertical_short';
+    updateRcsCropFrame(orientation);
     
     if (!isCarousel) {
         for (var i = 2; i <= rcsCardCount; i++) {
@@ -694,6 +732,43 @@ function toggleRcsMessageType() {
         loadCardData(1);
     }
     updateRcsCardCount();
+}
+
+function updateCardWidthAndHeightRestrictions() {
+    var isCarousel = isRcsCarouselMode();
+    var tallInput = document.getElementById('rcsOrientVertTall');
+    var tallLabel = document.getElementById('rcsOrientVertTallLabel');
+    var warningEl = document.getElementById('rcsCardWidthHeightWarning');
+    
+    if (!isCarousel) {
+        if (tallInput) tallInput.disabled = false;
+        if (tallLabel) {
+            tallLabel.classList.remove('disabled');
+            tallLabel.style.opacity = '1';
+            tallLabel.style.pointerEvents = 'auto';
+        }
+        if (warningEl) warningEl.classList.add('d-none');
+    } else {
+        if (rcsCurrentCardWidth === 'small') {
+            if (tallInput) tallInput.disabled = true;
+            if (tallLabel) {
+                tallLabel.classList.add('disabled');
+                tallLabel.style.opacity = '0.5';
+                tallLabel.style.pointerEvents = 'none';
+            }
+            if (tallInput && tallInput.checked) {
+                var medOrient = document.getElementById('rcsOrientVertMed');
+                if (medOrient) medOrient.checked = true;
+            }
+        } else {
+            if (tallInput) tallInput.disabled = false;
+            if (tallLabel) {
+                tallLabel.classList.remove('disabled');
+                tallLabel.style.opacity = '1';
+                tallLabel.style.pointerEvents = 'auto';
+            }
+        }
+    }
 }
 
 function resetRcsCardTabs() {
@@ -1477,8 +1552,14 @@ function updateRcsCropFrame(orientation) {
     var frame = document.getElementById('rcsCropFrame');
     if (!frame) return;
     
-    var widthSizes = rcsCropFrameSizes[rcsCurrentCardWidth] || rcsCropFrameSizes['medium'];
-    var sizes = widthSizes[orientation] || widthSizes['vertical_short'];
+    var sizes;
+    if (isRcsCarouselMode()) {
+        var widthSizes = rcsCarouselFrameSizes[rcsCurrentCardWidth] || rcsCarouselFrameSizes['medium'];
+        sizes = widthSizes[orientation] || widthSizes['vertical_short'];
+    } else {
+        sizes = rcsSingleCardFrameSizes[orientation] || rcsSingleCardFrameSizes['vertical_short'];
+    }
+    
     rcsCropState.frameWidth = sizes.width;
     rcsCropState.frameHeight = sizes.height;
     
@@ -1503,40 +1584,24 @@ function updateRcsCardWidth(cardWidth) {
     rcsCurrentCardWidth = cardWidth;
     
     var tallInput = document.getElementById('rcsOrientVertTall');
-    var tallLabel = document.getElementById('rcsOrientVertTallLabel');
     var warningEl = document.getElementById('rcsCardWidthHeightWarning');
     
-    if (cardWidth === 'small') {
-        if (tallInput) tallInput.disabled = true;
-        if (tallLabel) {
-            tallLabel.classList.add('disabled');
-            tallLabel.style.opacity = '0.5';
-            tallLabel.style.pointerEvents = 'none';
-        }
-        
-        if (tallInput && tallInput.checked) {
-            var medOrient = document.getElementById('rcsOrientVertMed');
-            if (medOrient) medOrient.checked = true;
-            if (warningEl) {
-                warningEl.classList.remove('d-none');
-                var warningText = document.getElementById('rcsCardWidthHeightWarningText');
-                if (warningText) warningText.textContent = 'Tall media height is not available with Small card width. Height has been reset to Medium.';
-            }
-            updateRcsCropFrame('vertical_medium');
-        }
-    } else {
-        if (tallInput) tallInput.disabled = false;
-        if (tallLabel) {
-            tallLabel.classList.remove('disabled');
-            tallLabel.style.opacity = '1';
-            tallLabel.style.pointerEvents = 'auto';
-        }
-        if (warningEl) warningEl.classList.add('d-none');
-    }
+    updateCardWidthAndHeightRestrictions();
     
-    var currentOrientation = document.querySelector('input[name="rcsOrientation"]:checked');
-    if (currentOrientation) {
-        updateRcsCropFrame(currentOrientation.value);
+    if (isRcsCarouselMode() && cardWidth === 'small' && tallInput && tallInput.checked) {
+        var medOrient = document.getElementById('rcsOrientVertMed');
+        if (medOrient) medOrient.checked = true;
+        if (warningEl) {
+            warningEl.classList.remove('d-none');
+            var warningText = document.getElementById('rcsCardWidthHeightWarningText');
+            if (warningText) warningText.textContent = 'Tall media height is not available with Small card width. Height has been reset to Medium.';
+        }
+        updateRcsCropFrame('vertical_medium');
+    } else {
+        var currentOrientation = document.querySelector('input[name="rcsOrientation"]:checked');
+        if (currentOrientation) {
+            updateRcsCropFrame(currentOrientation.value);
+        }
     }
 }
 
