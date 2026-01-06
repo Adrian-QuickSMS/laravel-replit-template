@@ -972,8 +972,8 @@
 
 @include('quicksms.partials.rcs-wizard-modal')
 
-<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106a"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260106a"></script>
+<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260106b"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -1731,8 +1731,8 @@ function validateRcsContent() {
         }
         
         if (card.media.source === 'upload' && card.media.file) {
-            if (card.media.fileSize > 250 * 1024) {
-                errors.push('Card ' + i + ': Media file exceeds 250KB limit (' + (card.media.fileSize / 1024).toFixed(1) + 'KB)');
+            if (card.media.fileSize > 100 * 1024 * 1024) {
+                errors.push('Card ' + i + ': Media file exceeds 100MB limit (' + (card.media.fileSize / (1024 * 1024)).toFixed(1) + 'MB)');
             }
             var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (card.media.file.type && !allowedTypes.includes(card.media.file.type)) {
@@ -2630,28 +2630,24 @@ function constrainRcsCropPosition() {
     var workspace = document.getElementById('rcsCropWorkspace');
     if (!workspace) return;
     
-    var workspaceWidth = workspace.clientWidth;
-    var workspaceHeight = workspace.clientHeight;
-    
     var scale = rcsCropState.displayScale * (rcsCropState.zoom / 100);
     var displayWidth = rcsCropState.imageWidth * scale;
     var displayHeight = rcsCropState.imageHeight * scale;
     
-    var frameHalfW = rcsCropState.frameWidth / 2;
-    var frameHalfH = rcsCropState.frameHeight / 2;
+    var frameWidth = rcsCropState.frameWidth;
+    var frameHeight = rcsCropState.frameHeight;
     
-    var minOffsetX = frameHalfW - (workspaceWidth / 2 + displayWidth / 2);
-    var maxOffsetX = (workspaceWidth / 2 + displayWidth / 2) - workspaceWidth + frameHalfW;
-    var minOffsetY = frameHalfH - (workspaceHeight / 2 + displayHeight / 2);
-    var maxOffsetY = (workspaceHeight / 2 + displayHeight / 2) - workspaceHeight + frameHalfH;
-    
-    if (displayWidth >= rcsCropState.frameWidth) {
+    if (displayWidth > frameWidth) {
+        var maxOffsetX = (displayWidth - frameWidth) / 2;
+        var minOffsetX = -maxOffsetX;
         rcsCropState.offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, rcsCropState.offsetX));
     } else {
         rcsCropState.offsetX = 0;
     }
     
-    if (displayHeight >= rcsCropState.frameHeight) {
+    if (displayHeight > frameHeight) {
+        var maxOffsetY = (displayHeight - frameHeight) / 2;
+        var minOffsetY = -maxOffsetY;
         rcsCropState.offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, rcsCropState.offsetY));
     } else {
         rcsCropState.offsetY = 0;
