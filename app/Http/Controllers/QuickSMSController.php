@@ -1590,6 +1590,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function rcsAgentCreate()
+    {
+        return view('quicksms.management.rcs-agent-wizard', [
+            'page_title' => 'Register RCS Agent'
+        ]);
+    }
+
     public function smsSenderIdRegistration()
     {
         return view('quicksms.placeholder', [

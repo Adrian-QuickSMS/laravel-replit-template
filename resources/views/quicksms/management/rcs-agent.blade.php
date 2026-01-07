@@ -1717,22 +1717,23 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('billingFilter').addEventListener('change', applyFilters);
     document.getElementById('useCaseFilter').addEventListener('change', applyFilters);
     
-    // Create buttons only exist for users with canCreate permission
+    // Create buttons now navigate to the new wizard page instead of opening a modal
     var createAgentBtn = document.getElementById('createAgentBtn');
     if (createAgentBtn) {
         createAgentBtn.addEventListener('click', function() {
-            openAgentWizard();
+            window.location.href = '{{ route("management.rcs-agent.create") }}';
         });
     }
     
     var createAgentEmptyBtn = document.getElementById('createAgentEmptyBtn');
     if (createAgentEmptyBtn) {
         createAgentEmptyBtn.addEventListener('click', function() {
-            openAgentWizard();
+            window.location.href = '{{ route("management.rcs-agent.create") }}';
         });
     }
     
-    initializeWizard();
+    // Legacy modal wizard initialization removed - now using page-based wizard at /management/rcs-agent/create
+    // initializeWizard();
     
     document.getElementById('confirmResubmitBtn').addEventListener('click', function() {
         if (!pendingResubmitAgentId) return;
