@@ -40,9 +40,10 @@
     border: none;
     border-radius: 0.75rem;
     transition: all 0.2s ease;
-    height: 100%;
     overflow: hidden;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
 }
 .product-card:hover {
     box-shadow: 0 8px 24px rgba(111, 66, 193, 0.25);
@@ -52,25 +53,32 @@
     box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.4), 0 8px 24px rgba(111, 66, 193, 0.25);
 }
 .product-card .product-header {
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
     text-align: center;
     position: relative;
     z-index: 1;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .product-card .product-header h4 {
     color: #fff;
     font-weight: 700;
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.375rem;
+    line-height: 1.3;
 }
 .product-card .product-header p {
     color: rgba(255, 255, 255, 0.85);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     margin-bottom: 0;
+    line-height: 1.4;
 }
 .product-card .product-body {
-    padding: 1.25rem 1.5rem;
+    padding: 0.75rem 1.25rem;
     background: #fff;
+    flex: 1;
 }
 .pricing-badge {
     display: inline-flex;
@@ -90,38 +98,42 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0;
+    padding: 0.375rem 0;
     border-bottom: 1px solid #f0f0f0;
 }
 .product-body .price-row:last-child {
     border-bottom: none;
 }
 .product-body .price-label {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     color: #6c757d;
 }
 .product-body .price-value {
     font-weight: 600;
+    font-size: 0.875rem;
     color: var(--primary);
 }
 .product-body .price-value.contact-sales {
     color: #6c757d;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-style: italic;
+    text-align: right;
 }
 .product-footer {
-    padding: 1rem 1.5rem 1.5rem;
+    padding: 0.75rem 1.25rem 1rem;
     background: #fff;
     border-bottom-left-radius: 0.75rem;
     border-bottom-right-radius: 0.75rem;
+    margin-top: auto;
 }
 .product-footer .btn-select {
     background: var(--primary);
     border-color: var(--primary);
     color: #fff;
     width: 100%;
-    padding: 0.625rem 1.5rem;
+    padding: 0.5rem 1rem;
     font-weight: 600;
+    font-size: 0.875rem;
 }
 .product-footer .btn-select:hover {
     background: var(--primary-hover);
@@ -467,9 +479,9 @@
             </button>
         </div>
 
-        <div class="row g-4 mb-4" id="productCards">
-            <div class="col-md-4">
-                <div class="card product-card tryal-gradient" data-product="vmn" onclick="selectProduct('vmn')">
+        <div class="row g-4 mb-4" id="productCards" style="align-items: stretch;">
+            <div class="col-md-4 d-flex">
+                <div class="card product-card tryal-gradient w-100" data-product="vmn" onclick="selectProduct('vmn')">
                     <div class="product-header">
                         <div class="mb-2">
                             <span class="pricing-badge"><i class="fas fa-mobile-alt"></i>Long Code</span>
@@ -493,8 +505,8 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="card product-card tryal-gradient" data-product="shared" onclick="selectProduct('shared')">
+            <div class="col-md-4 d-flex">
+                <div class="card product-card tryal-gradient w-100" data-product="shared" onclick="selectProduct('shared')">
                     <div class="product-header">
                         <div class="mb-2">
                             <span class="pricing-badge"><i class="fas fa-share-alt"></i>Shared</span>
@@ -518,8 +530,8 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="card product-card tryal-gradient" data-product="dedicated" onclick="selectProduct('dedicated')">
+            <div class="col-md-4 d-flex">
+                <div class="card product-card tryal-gradient w-100" data-product="dedicated" onclick="selectProduct('dedicated')">
                     <div class="product-header">
                         <div class="mb-2">
                             <span class="pricing-badge"><i class="fas fa-star"></i>Dedicated</span>
