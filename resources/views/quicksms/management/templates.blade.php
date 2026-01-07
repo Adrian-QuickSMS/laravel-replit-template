@@ -2225,6 +2225,94 @@
     </div>
 </div>
 
+<!-- Template Trackable Link Modal -->
+<div class="modal fade" id="tplTrackableLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-link me-2"></i>Trackable Link Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">A unique shortened URL will be generated for each recipient to track clicks.</p>
+                <div class="mb-3">
+                    <label class="form-label">Short URL Domain</label>
+                    <select class="form-select" id="tplShortUrlDomain">
+                        <option value="qsms.uk" selected>qsms.uk (default)</option>
+                        <option value="custom1.co.uk">custom1.co.uk</option>
+                        <option value="custom2.com">custom2.com</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Destination URL</label>
+                    <input type="url" class="form-control" id="tplDestinationUrl" placeholder="https://example.com/landing-page">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Insert Link As</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tplLinkInsertMethod" id="tplLinkAtCursor" value="cursor" checked>
+                        <label class="form-check-label" for="tplLinkAtCursor">Insert at cursor position</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tplLinkInsertMethod" id="tplLinkAsPlaceholder" value="placeholder">
+                        <label class="form-check-label" for="tplLinkAsPlaceholder">Use placeholder @{{trackingUrl}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmTplTrackableLink()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template Message Expiry Modal -->
+<div class="modal fade" id="tplMessageExpiryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-hourglass-half me-2"></i>Message Expiry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Define how long the platform should attempt delivery before expiring a message.</p>
+                <div class="mb-3">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="tplValidityToggle" onchange="toggleTplValidityFields()" checked>
+                        <label class="form-check-label fw-medium" for="tplValidityToggle">Set message validity period</label>
+                    </div>
+                    <div class="ps-4" id="tplValidityFields">
+                        <p class="text-muted small mb-3">If a message cannot be delivered within this period, it will expire and no further attempts will be made.</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Validity Duration</label>
+                                <input type="number" class="form-control" id="tplValidityDuration" value="24" min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Unit</label>
+                                <select class="form-select" id="tplValidityUnit">
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours" selected>Hours</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info py-2 mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <small>When off, operator/platform defaults apply (typically 24-72 hours for SMS, configurable for RCS).</small>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmTplMessageExpiry()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @include('quicksms.partials.rcs-wizard-modal')
 @endsection
 
@@ -2494,6 +2582,14 @@ function setupEventListeners() {
             opt.style.pointerEvents = '';
             opt.style.opacity = '';
         });
+    });
+    
+    document.getElementById('tplTrackableLinkModal').addEventListener('hidden.bs.modal', function() {
+        onTplTrackableLinkModalHidden();
+    });
+    
+    document.getElementById('tplMessageExpiryModal').addEventListener('hidden.bs.modal', function() {
+        onTplMessageExpiryModalHidden();
     });
 }
 
@@ -4071,38 +4167,126 @@ function handleTemplateContentChange() {
     detectPlaceholders(content);
 }
 
+var tplTrackableLinkConfirmed = false;
+var tplMessageExpiryConfirmed = false;
+
 function toggleTplTrackableLink() {
     var isChecked = document.getElementById('tplIncludeTrackableLink').checked;
-    var summary = document.getElementById('tplTrackableLinkSummary');
     
     if (isChecked) {
-        summary.classList.remove('d-none');
-        wizardData.trackableLink = { enabled: true, domain: 'qsms.uk' };
+        tplTrackableLinkConfirmed = false;
+        openTplTrackableLinkModal();
     } else {
-        summary.classList.add('d-none');
+        document.getElementById('tplTrackableLinkSummary').classList.add('d-none');
         wizardData.trackableLink = { enabled: false };
     }
 }
 
 function openTplTrackableLinkModal() {
-    showToast('Trackable link settings would open here', 'info');
+    var modal = new bootstrap.Modal(document.getElementById('tplTrackableLinkModal'));
+    modal.show();
+}
+
+function confirmTplTrackableLink() {
+    var domain = document.getElementById('tplShortUrlDomain').value;
+    var url = document.getElementById('tplDestinationUrl').value.trim();
+    var method = document.querySelector('input[name="tplLinkInsertMethod"]:checked').value;
+    
+    if (!url) {
+        alert('Please enter a destination URL');
+        return;
+    }
+    
+    tplTrackableLinkConfirmed = true;
+    wizardData.trackableLink = { 
+        enabled: true, 
+        domain: domain,
+        destinationUrl: url,
+        insertMethod: method
+    };
+    
+    document.getElementById('tplTrackableLinkDomain').textContent = domain;
+    document.getElementById('tplTrackableLinkSummary').classList.remove('d-none');
+    
+    bootstrap.Modal.getInstance(document.getElementById('tplTrackableLinkModal')).hide();
+    showToast('Trackable link settings saved', 'success');
+}
+
+function onTplTrackableLinkModalHidden() {
+    if (!tplTrackableLinkConfirmed) {
+        document.getElementById('tplIncludeTrackableLink').checked = false;
+        document.getElementById('tplTrackableLinkSummary').classList.add('d-none');
+        wizardData.trackableLink = { enabled: false };
+        document.getElementById('tplDestinationUrl').value = '';
+        document.getElementById('tplShortUrlDomain').value = 'qsms.uk';
+    }
 }
 
 function toggleTplMessageExpiry() {
     var isChecked = document.getElementById('tplMessageExpiry').checked;
-    var summary = document.getElementById('tplMessageExpirySummary');
     
     if (isChecked) {
-        summary.classList.remove('d-none');
-        wizardData.messageExpiry = { enabled: true, value: '24 Hours' };
+        tplMessageExpiryConfirmed = false;
+        openTplMessageExpiryModal();
     } else {
-        summary.classList.add('d-none');
+        document.getElementById('tplMessageExpirySummary').classList.add('d-none');
         wizardData.messageExpiry = { enabled: false };
     }
 }
 
 function openTplMessageExpiryModal() {
-    showToast('Message expiry settings would open here', 'info');
+    var modal = new bootstrap.Modal(document.getElementById('tplMessageExpiryModal'));
+    modal.show();
+}
+
+function toggleTplValidityFields() {
+    var isEnabled = document.getElementById('tplValidityToggle').checked;
+    var fields = document.getElementById('tplValidityFields');
+    
+    if (isEnabled) {
+        fields.style.opacity = '1';
+        fields.style.pointerEvents = 'auto';
+    } else {
+        fields.style.opacity = '0.5';
+        fields.style.pointerEvents = 'none';
+    }
+}
+
+function confirmTplMessageExpiry() {
+    var isEnabled = document.getElementById('tplValidityToggle').checked;
+    
+    if (isEnabled) {
+        var duration = document.getElementById('tplValidityDuration').value;
+        var unit = document.getElementById('tplValidityUnit').value;
+        var unitLabel = unit.charAt(0).toUpperCase() + unit.slice(1);
+        
+        wizardData.messageExpiry = { 
+            enabled: true, 
+            duration: duration,
+            unit: unit,
+            displayValue: duration + ' ' + unitLabel
+        };
+        
+        document.getElementById('tplMessageExpiryValue').textContent = duration + ' ' + unitLabel;
+        document.getElementById('tplMessageExpirySummary').classList.remove('d-none');
+        tplMessageExpiryConfirmed = true;
+    } else {
+        document.getElementById('tplMessageExpiry').checked = false;
+        document.getElementById('tplMessageExpirySummary').classList.add('d-none');
+        wizardData.messageExpiry = { enabled: false };
+        tplMessageExpiryConfirmed = true;
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('tplMessageExpiryModal')).hide();
+    showToast('Message expiry settings saved', 'success');
+}
+
+function onTplMessageExpiryModalHidden() {
+    if (!tplMessageExpiryConfirmed) {
+        document.getElementById('tplMessageExpiry').checked = false;
+        document.getElementById('tplMessageExpirySummary').classList.add('d-none');
+        wizardData.messageExpiry = { enabled: false };
+    }
 }
 
 function toggleTplOptoutManagement() {
