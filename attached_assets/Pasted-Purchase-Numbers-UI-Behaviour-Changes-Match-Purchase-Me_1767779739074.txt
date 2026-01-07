@@ -1,0 +1,73 @@
+Purchase → Numbers — UI & Behaviour Changes (Match Purchase → Messages Exactly)
+
+Goal:
+Restore design consistency with Purchase → Messages cards (Starter package style). Reuse the same components/styles. Do NOT invent new UI patterns.
+
+────────────────────────
+A) Remove type pills; keep ONLY “Best value” pill for UK VMN
+────────────────────────
+Current issue:
+- Pills/badges like “Long Code”, “Shared”, “Dedicated” are showing.
+
+Requirement:
+- Remove ALL type/category pills/badges (“Long Code”, “Shared”, “Dedicated”, etc.) from the tiles/cards.
+- Only show a “Best value” pill, and ONLY on:
+  - UK Virtual Mobile Number
+- The “Best value” pill must look exactly the same as the one used on Purchase → Messages (Starter package).
+
+Constraints:
+- Do not add any other pills.
+- Match the existing pill styling (rounded, padding, font, pastel/purple as per template).
+
+Acceptance Criteria:
+- No type pills remain anywhere.
+- UK VMN shows the “Best value” pill identical to Purchase → Messages.
+
+────────────────────────
+B) CTA button styling: “Select” must be primary purple
+────────────────────────
+Requirement:
+- The CTA button on the tiles/cards (“Select”) must use the same purple primary button styling as Purchase → Messages.
+- Same colour, hover state, border radius, and sizing.
+
+Constraints:
+- Reuse the existing primary button component.
+- Do not create new colours.
+
+Acceptance Criteria:
+- “Select” button is visually identical to the primary button used in Purchase → Messages.
+
+────────────────────────
+C) Remove “Assign to sub-account” dropdown entirely
+────────────────────────
+Requirement:
+- Remove the assign-to-sub-account dropdown from the purchase flow UI for now.
+- Purchase selection should not ask for sub-account assignment in this module.
+
+Constraints:
+- Do not show assignment anywhere on this page.
+- Keep the purchase confirmation modal focused only on items selected and costs.
+
+Acceptance Criteria:
+- No sub-account dropdown appears on Purchase → Numbers (cards, tables, modals).
+
+────────────────────────
+D) Use mock pricing data: Setup + Monthly costs = £2 for UK VMN and UK Shared Short Code
+────────────────────────
+Requirement:
+- Use mock data pricing values:
+  - UK Virtual Mobile Number:
+    • Setup cost = £2
+    • Monthly cost = £2
+  - UK Shared Short Code:
+    • Setup cost = £2
+    • Monthly cost = £2
+- These should mirror the Purchase → Messages “Starter package” visual pricing style.
+
+Constraints:
+- This is mock data only (do not wire HubSpot yet in this change).
+- Display currency as £.
+
+Acceptance Criteria:
+- Both tiles show Setup and Monthly costs as £2 using the same badge formatting as Purchase → Messages.
+- No other price labels or variants are shown.

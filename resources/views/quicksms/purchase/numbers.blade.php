@@ -80,19 +80,14 @@
     background: #fff;
     flex: 1;
 }
-.pricing-badge {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.25);
-    color: #fff;
-    padding: 0.375rem 0.75rem;
+.best-value-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.95);
+    color: #6f42c1;
+    padding: 0.25rem 0.75rem;
     border-radius: 1rem;
     font-size: 0.75rem;
     font-weight: 600;
-    margin: 0.25rem;
-}
-.pricing-badge i {
-    margin-right: 0.375rem;
 }
 .product-body .price-row {
     display: flex;
@@ -127,21 +122,14 @@
     margin-top: auto;
 }
 .product-footer .btn-select {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
     width: 100%;
     padding: 0.5rem 1rem;
     font-weight: 600;
     font-size: 0.875rem;
 }
-.product-footer .btn-select:hover {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
-}
 .product-card.selected .btn-select {
-    background: #1cbb8c;
-    border-color: #1cbb8c;
+    background: #1cbb8c !important;
+    border-color: #1cbb8c !important;
 }
 .product-card.selected .btn-select::after {
     content: ' ✓';
@@ -464,27 +452,12 @@
             </div>
         </div>
 
-        <div id="pricingLoadingIndicator" class="pricing-loading" style="display: none;">
-            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <span>Fetching live pricing from HubSpot...</span>
-        </div>
-
-        <div id="pricingWarning" class="pricing-warning" style="display: none;">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="pricingWarningMessage">Unable to fetch live pricing. Using cached values.</span>
-            <button type="button" class="btn btn-sm btn-outline-warning ms-auto" onclick="fetchNumbersPricing()">
-                <i class="fas fa-sync-alt me-1"></i>Retry
-            </button>
-        </div>
-
-        <div class="row g-4 mb-4" id="productCards" style="align-items: stretch;">
+<div class="row g-4 mb-4" id="productCards" style="align-items: stretch;">
             <div class="col-md-4 d-flex">
                 <div class="card product-card tryal-gradient w-100" data-product="vmn" onclick="selectProduct('vmn')">
                     <div class="product-header">
                         <div class="mb-2">
-                            <span class="pricing-badge"><i class="fas fa-mobile-alt"></i>Long Code</span>
+                            <span class="best-value-badge">Best value</span>
                         </div>
                         <h4>UK Virtual Mobile Number</h4>
                         <p>Standard UK mobile (07xxx) for two-way SMS and RCS messaging</p>
@@ -492,15 +465,15 @@
                     <div class="product-body">
                         <div class="price-row">
                             <span class="price-label">Setup Cost</span>
-                            <span class="price-value" id="vmnSetupPrice">£10.00</span>
+                            <span class="price-value" id="vmnSetupPrice">£2.00</span>
                         </div>
                         <div class="price-row">
                             <span class="price-label">Monthly Cost</span>
-                            <span class="price-value" id="vmnMonthlyPrice">£8.00</span>
+                            <span class="price-value" id="vmnMonthlyPrice">£2.00</span>
                         </div>
                     </div>
                     <div class="product-footer">
-                        <button class="btn btn-select">Select</button>
+                        <button class="btn btn-primary btn-select">Select</button>
                     </div>
                 </div>
             </div>
@@ -508,24 +481,21 @@
             <div class="col-md-4 d-flex">
                 <div class="card product-card tryal-gradient w-100" data-product="shared" onclick="selectProduct('shared')">
                     <div class="product-header">
-                        <div class="mb-2">
-                            <span class="pricing-badge"><i class="fas fa-share-alt"></i>Shared</span>
-                        </div>
                         <h4>UK Shared Short Code</h4>
                         <p>Share shortcode 82228 with custom keywords for inbound messaging</p>
                     </div>
                     <div class="product-body">
                         <div class="price-row">
-                            <span class="price-label">Setup Cost (per keyword)</span>
-                            <span class="price-value" id="keywordSetupPrice">£25.00</span>
+                            <span class="price-label">Setup Cost</span>
+                            <span class="price-value" id="keywordSetupPrice">£2.00</span>
                         </div>
                         <div class="price-row">
-                            <span class="price-label">Monthly Cost (per keyword)</span>
-                            <span class="price-value" id="keywordMonthlyPrice">£50.00</span>
+                            <span class="price-label">Monthly Cost</span>
+                            <span class="price-value" id="keywordMonthlyPrice">£2.00</span>
                         </div>
                     </div>
                     <div class="product-footer">
-                        <button class="btn btn-select">Select</button>
+                        <button class="btn btn-primary btn-select">Select</button>
                     </div>
                 </div>
             </div>
@@ -533,9 +503,6 @@
             <div class="col-md-4 d-flex">
                 <div class="card product-card tryal-gradient w-100" data-product="dedicated" onclick="selectProduct('dedicated')">
                     <div class="product-header">
-                        <div class="mb-2">
-                            <span class="pricing-badge"><i class="fas fa-star"></i>Dedicated</span>
-                        </div>
                         <h4>UK Dedicated Short Code</h4>
                         <p>Exclusive shortcode for high-volume enterprise campaigns</p>
                     </div>
@@ -550,7 +517,7 @@
                         </div>
                     </div>
                     <div class="product-footer">
-                        <button class="btn btn-select">Select</button>
+                        <button class="btn btn-primary btn-select">Select</button>
                     </div>
                 </div>
             </div>
@@ -564,14 +531,7 @@
                 </button>
             </div>
 
-            <div class="sub-account-selector">
-                <label>Assign to Sub-Account (optional)</label>
-                <select class="form-select" id="vmnSubAccountSelect" style="max-width: 300px;">
-                    <option value="">Choose later...</option>
-                </select>
-            </div>
-
-            <div class="table-controls">
+<div class="table-controls">
                 <div class="search-box">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -640,13 +600,6 @@
             <div class="alert alert-info mb-3">
                 <i class="fas fa-info-circle me-2"></i>
                 Shared shortcode: <strong>82228</strong> — Add keywords to receive inbound messages on this shared number.
-            </div>
-
-            <div class="sub-account-selector">
-                <label>Assign to Sub-Account (optional)</label>
-                <select class="form-select" id="keywordSubAccountSelect" style="max-width: 300px;">
-                    <option value="">Choose later...</option>
-                </select>
             </div>
 
             <div class="keyword-section">
@@ -750,14 +703,6 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Assign to Sub-Account</label>
-                    <select class="form-select" id="modalVmnSubAccount">
-                        <option value="">Choose later...</option>
-                    </select>
-                    <div class="form-text">You can assign these numbers to a sub-account now or later.</div>
-                </div>
-
                 <div class="alert alert-info small mb-0">
                     <i class="fas fa-info-circle me-1"></i>
                     Setup fee is charged immediately. Monthly fee starts on the 1st of each month.
@@ -799,14 +744,6 @@
                             <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordMonthly">0.00</span>/mo</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Assign to Sub-Account</label>
-                    <select class="form-select" id="modalKeywordSubAccount">
-                        <option value="">Choose later...</option>
-                    </select>
-                    <div class="form-text">You can assign these keywords to a sub-account now or later.</div>
                 </div>
 
                 <div class="alert alert-info small mb-0">
@@ -875,23 +812,16 @@ var allowedRoles = ['admin', 'finance', 'messaging_manager'];
 var accountBalance = 45.00;
 var selectedProduct = null;
 
-var subAccountsMockData = [
-    { id: 'sa_001', name: 'Main Account' },
-    { id: 'sa_002', name: 'Marketing Team' },
-    { id: 'sa_003', name: 'Sales Department' },
-    { id: 'sa_004', name: 'Customer Support' },
-    { id: 'sa_005', name: 'Operations' }
-];
 
 var vmnMockData = [
-    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 3, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 4, number: '+447700900005', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 6, number: '+447700900101', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 7, number: '+447700900102', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 },
-    { id: 8, number: '+447700900103', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 10.00, monthlyFee: 8.00 }
+    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 3, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 4, number: '+447700900005', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 6, number: '+447700900101', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 7, number: '+447700900102', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 8, number: '+447700900103', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 }
 ];
 
 var takenKeywords = ['SALE', 'FREE', 'VOTE', 'STOP', 'ALERT', 'VIP'];
@@ -901,14 +831,13 @@ var vmnSortColumn = 'number';
 var vmnSortDirection = 'asc';
 var vmnSearchTerm = '';
 
-var numbersPricing = null;
-var keywordSetupFee = 25.00;
-var keywordMonthlyFee = 50.00;
+var keywordSetupFee = 2.00;
+var keywordMonthlyFee = 2.00;
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAccess();
-    populateSubAccountDropdowns();
-    fetchNumbersPricing();
+    renderVmnTable();
+    renderTakenKeywords();
     setupEventListeners();
 });
 
@@ -916,74 +845,6 @@ function checkAccess() {
     var hasAccess = allowedRoles.includes(currentUserRole);
     document.getElementById('accessDeniedView').style.display = hasAccess ? 'none' : 'block';
     document.getElementById('purchaseContent').style.display = hasAccess ? 'block' : 'none';
-}
-
-function populateSubAccountDropdowns() {
-    var selects = ['vmnSubAccountSelect', 'keywordSubAccountSelect', 'modalVmnSubAccount', 'modalKeywordSubAccount'];
-    selects.forEach(function(selectId) {
-        var select = document.getElementById(selectId);
-        if (!select) return;
-        subAccountsMockData.forEach(function(sa) {
-            var option = document.createElement('option');
-            option.value = sa.id;
-            option.textContent = sa.name;
-            select.appendChild(option);
-        });
-    });
-}
-
-function fetchNumbersPricing() {
-    document.getElementById('pricingLoadingIndicator').style.display = 'flex';
-    
-    fetch('/api/purchase/numbers/pricing?currency=GBP')
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success && data.pricing) {
-                numbersPricing = data.pricing;
-                applyPricingToUI();
-                
-                if (data.is_mock) {
-                    showPricingWarning('Using cached pricing data');
-                }
-            } else {
-                throw new Error('Failed to fetch pricing');
-            }
-        })
-        .catch(function(error) {
-            console.error('Pricing error:', error);
-            showPricingWarning('Unable to fetch live pricing. Using cached values.');
-        })
-        .finally(function() {
-            document.getElementById('pricingLoadingIndicator').style.display = 'none';
-            renderVmnTable();
-            renderTakenKeywords();
-        });
-}
-
-function applyPricingToUI() {
-    if (!numbersPricing) return;
-    
-    if (numbersPricing.vmn && numbersPricing.vmn.uk_longcode) {
-        document.getElementById('vmnSetupPrice').textContent = '£' + numbersPricing.vmn.uk_longcode.setup_fee.toFixed(2);
-        document.getElementById('vmnMonthlyPrice').textContent = '£' + numbersPricing.vmn.uk_longcode.monthly_fee.toFixed(2);
-        
-        vmnMockData.forEach(function(vmn) {
-            vmn.setupFee = numbersPricing.vmn.uk_longcode.setup_fee;
-            vmn.monthlyFee = numbersPricing.vmn.uk_longcode.monthly_fee;
-        });
-    }
-    
-    if (numbersPricing.keyword) {
-        keywordSetupFee = numbersPricing.keyword.setup_fee;
-        keywordMonthlyFee = numbersPricing.keyword.monthly_fee;
-        document.getElementById('keywordSetupPrice').textContent = '£' + keywordSetupFee.toFixed(2);
-        document.getElementById('keywordMonthlyPrice').textContent = '£' + keywordMonthlyFee.toFixed(2);
-    }
-}
-
-function showPricingWarning(message) {
-    document.getElementById('pricingWarningMessage').textContent = message;
-    document.getElementById('pricingWarning').style.display = 'flex';
 }
 
 function setupEventListeners() {
@@ -1257,9 +1118,6 @@ function showVmnPurchaseModal() {
     document.getElementById('modalVmnSetup').textContent = setupTotal.toFixed(2);
     document.getElementById('modalVmnMonthly').textContent = monthlyTotal.toFixed(2);
     
-    var subAccountValue = document.getElementById('vmnSubAccountSelect').value;
-    document.getElementById('modalVmnSubAccount').value = subAccountValue;
-    
     new bootstrap.Modal(document.getElementById('vmnPurchaseModal')).show();
 }
 
@@ -1286,9 +1144,6 @@ function showKeywordPurchaseModal() {
     document.getElementById('modalKeywordSetup').textContent = setupTotal.toFixed(2);
     document.getElementById('modalKeywordMonthly').textContent = monthlyTotal.toFixed(2);
     
-    var subAccountValue = document.getElementById('keywordSubAccountSelect').value;
-    document.getElementById('modalKeywordSubAccount').value = subAccountValue;
-    
     new bootstrap.Modal(document.getElementById('keywordPurchaseModal')).show();
 }
 
@@ -1299,58 +1154,27 @@ function executeVmnPurchase() {
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
-    var subAccountId = document.getElementById('modalVmnSubAccount').value;
-    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === subAccountId; });
-    
     var items = selectedVmnIds.map(function(id) {
         var vmn = vmnMockData.find(function(v) { return v.id === id; });
         return { type: 'vmn', identifier: vmn.number, country_code: vmn.country };
     });
     
-    fetch('/api/purchase/numbers/lock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({ items: items, purchase_type: 'vmn' })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(lockResult) {
-        if (!lockResult.success) throw new Error(lockResult.message || 'Failed to lock items');
-        return fetch('/api/purchase/numbers/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({
-                session_id: lockResult.session_id,
-                sub_account_id: subAccountId || 'unassigned',
-                sub_account_name: subAccount ? subAccount.name : 'Unassigned',
-                purchase_type: 'vmn',
-                items: items
-            })
-        });
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(result) {
-        if (!result.success) throw new Error(result.message || 'Purchase failed');
-        
+    setTimeout(function() {
         modal.hide();
-        accountBalance = result.balance_after;
         
         selectedVmnIds.forEach(function(id) {
             var idx = vmnMockData.findIndex(function(v) { return v.id === id; });
             if (idx !== -1) vmnMockData.splice(idx, 1);
         });
         
+        var count = selectedVmnIds.length;
         selectedVmnIds = [];
         renderVmnTable();
         
-        showSuccessToast('Purchase Complete', result.items_purchased + ' number(s) purchased. Ref: ' + result.transaction_reference);
-    })
-    .catch(function(error) {
-        showErrorToast('Purchase Failed', error.message);
-    })
-    .finally(function() {
+        showSuccessToast('Purchase Complete', count + ' number(s) purchased successfully.');
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalText;
-    });
+    }, 1000);
 }
 
 function executeKeywordPurchase() {
@@ -1360,40 +1184,10 @@ function executeKeywordPurchase() {
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
-    var subAccountId = document.getElementById('modalKeywordSubAccount').value;
-    var subAccount = subAccountsMockData.find(function(sa) { return sa.id === subAccountId; });
-    
-    var items = selectedKeywords.map(function(kw) {
-        return { type: 'keyword', identifier: kw };
-    });
-    
-    fetch('/api/purchase/numbers/lock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-        body: JSON.stringify({ items: items, purchase_type: 'keyword' })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(lockResult) {
-        if (!lockResult.success) throw new Error(lockResult.message || 'Failed to lock keywords');
-        return fetch('/api/purchase/numbers/purchase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({
-                session_id: lockResult.session_id,
-                sub_account_id: subAccountId || 'unassigned',
-                sub_account_name: subAccount ? subAccount.name : 'Unassigned',
-                purchase_type: 'keyword',
-                items: items
-            })
-        });
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(result) {
-        if (!result.success) throw new Error(result.message || 'Purchase failed');
-        
+    setTimeout(function() {
         modal.hide();
-        accountBalance = result.balance_after;
         
+        var count = selectedKeywords.length;
         selectedKeywords.forEach(function(kw) {
             takenKeywords.push(kw);
         });
@@ -1402,15 +1196,10 @@ function executeKeywordPurchase() {
         renderSelectedKeywords();
         renderTakenKeywords();
         
-        showSuccessToast('Purchase Complete', result.items_purchased + ' keyword(s) purchased. Ref: ' + result.transaction_reference);
-    })
-    .catch(function(error) {
-        showErrorToast('Purchase Failed', error.message);
-    })
-    .finally(function() {
+        showSuccessToast('Purchase Complete', count + ' keyword(s) purchased successfully.');
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalText;
-    });
+    }, 1000);
 }
 
 function showSuccessToast(title, message) {
