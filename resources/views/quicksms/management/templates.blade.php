@@ -1064,6 +1064,223 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="templatePermissionsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-shield-alt me-2 text-primary"></i>Template Permissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1" id="permTemplateName">Template Name</h6>
+                        <small class="text-muted">ID: <span id="permTemplateId">00000000</span></small>
+                    </div>
+                    <div>
+                        <span class="badge bg-secondary" id="permAccessBadge">Restricted</span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Access Mode</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="permAccessMode" id="permAccessAll" value="all" onchange="updatePermAccessMode()">
+                            <label class="form-check-label" for="permAccessAll">
+                                <i class="fas fa-globe me-1 text-success"></i>All Users
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="permAccessMode" id="permAccessRestricted" value="restricted" checked onchange="updatePermAccessMode()">
+                            <label class="form-check-label" for="permAccessRestricted">
+                                <i class="fas fa-lock me-1 text-warning"></i>Restricted Access
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="permRestrictedSection">
+                    <ul class="nav nav-pills mb-4" id="permissionsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="subaccounts-tab" data-bs-toggle="pill" data-bs-target="#subaccounts-pane" type="button" role="tab">
+                                <i class="fas fa-building me-1"></i>Sub-accounts <span class="badge bg-primary ms-1" id="permSubAccountCount">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="roles-tab" data-bs-toggle="pill" data-bs-target="#roles-pane" type="button" role="tab">
+                                <i class="fas fa-user-tag me-1"></i>Roles <span class="badge bg-primary ms-1" id="permRoleCount">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="users-tab" data-bs-toggle="pill" data-bs-target="#users-pane" type="button" role="tab">
+                                <i class="fas fa-user me-1"></i>Users <span class="badge bg-primary ms-1" id="permUserCount">0</span>
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="permissionsTabContent">
+                        <div class="tab-pane fade show active" id="subaccounts-pane" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label">Select Sub-accounts</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="permSubAccountSearch" placeholder="Search sub-accounts..." oninput="filterPermSubAccounts()">
+                                </div>
+                                <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="permSubAccountList">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-subaccount-check" type="checkbox" value="all" id="permSubAll" onchange="togglePermSubAccount('all')">
+                                        <label class="form-check-label" for="permSubAll">
+                                            <i class="fas fa-globe me-1 text-muted"></i>All Sub-accounts
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-subaccount-check" type="checkbox" value="main" id="permSubMain" onchange="togglePermSubAccount('main')">
+                                        <label class="form-check-label" for="permSubMain">
+                                            <i class="fas fa-building me-1 text-primary"></i>Main Account
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-subaccount-check" type="checkbox" value="marketing" id="permSubMarketing" onchange="togglePermSubAccount('marketing')">
+                                        <label class="form-check-label" for="permSubMarketing">
+                                            <i class="fas fa-building me-1 text-primary"></i>Marketing Team
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-subaccount-check" type="checkbox" value="sales" id="permSubSales" onchange="togglePermSubAccount('sales')">
+                                        <label class="form-check-label" for="permSubSales">
+                                            <i class="fas fa-building me-1 text-primary"></i>Sales Department
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-subaccount-check" type="checkbox" value="support" id="permSubSupport" onchange="togglePermSubAccount('support')">
+                                        <label class="form-check-label" for="permSubSupport">
+                                            <i class="fas fa-building me-1 text-primary"></i>Customer Support
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="permSubAccountChips" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="roles-pane" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label">Select Roles</label>
+                                <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="permRoleList">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="admin" id="permRoleAdmin" onchange="togglePermRole('admin')">
+                                        <label class="form-check-label" for="permRoleAdmin">
+                                            <i class="fas fa-crown me-1 text-warning"></i>Administrator
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="manager" id="permRoleManager" onchange="togglePermRole('manager')">
+                                        <label class="form-check-label" for="permRoleManager">
+                                            <i class="fas fa-user-tie me-1 text-info"></i>Manager
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="messaging" id="permRoleMessaging" onchange="togglePermRole('messaging')">
+                                        <label class="form-check-label" for="permRoleMessaging">
+                                            <i class="fas fa-envelope me-1 text-primary"></i>Messaging User
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="viewer" id="permRoleViewer" onchange="togglePermRole('viewer')">
+                                        <label class="form-check-label" for="permRoleViewer">
+                                            <i class="fas fa-eye me-1 text-secondary"></i>Viewer
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="api" id="permRoleApi" onchange="togglePermRole('api')">
+                                        <label class="form-check-label" for="permRoleApi">
+                                            <i class="fas fa-code me-1 text-dark"></i>API User
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="permRoleChips" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="users-pane" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label">Select Individual Users</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="permUserSearch" placeholder="Search users by name or email..." oninput="filterPermUsers()">
+                                </div>
+                                <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="permUserList">
+                                    <div class="form-check mb-2 perm-user-item" data-name="john smith" data-email="john.smith@company.com">
+                                        <input class="form-check-input perm-user-check" type="checkbox" value="user1" id="permUser1" onchange="togglePermUser('user1')">
+                                        <label class="form-check-label" for="permUser1">
+                                            <i class="fas fa-user-circle me-1 text-primary"></i>John Smith <small class="text-muted">(john.smith@company.com)</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2 perm-user-item" data-name="sarah jones" data-email="sarah.jones@company.com">
+                                        <input class="form-check-input perm-user-check" type="checkbox" value="user2" id="permUser2" onchange="togglePermUser('user2')">
+                                        <label class="form-check-label" for="permUser2">
+                                            <i class="fas fa-user-circle me-1 text-primary"></i>Sarah Jones <small class="text-muted">(sarah.jones@company.com)</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2 perm-user-item" data-name="mike wilson" data-email="mike.wilson@company.com">
+                                        <input class="form-check-input perm-user-check" type="checkbox" value="user3" id="permUser3" onchange="togglePermUser('user3')">
+                                        <label class="form-check-label" for="permUser3">
+                                            <i class="fas fa-user-circle me-1 text-primary"></i>Mike Wilson <small class="text-muted">(mike.wilson@company.com)</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2 perm-user-item" data-name="emily brown" data-email="emily.brown@company.com">
+                                        <input class="form-check-input perm-user-check" type="checkbox" value="user4" id="permUser4" onchange="togglePermUser('user4')">
+                                        <label class="form-check-label" for="permUser4">
+                                            <i class="fas fa-user-circle me-1 text-primary"></i>Emily Brown <small class="text-muted">(emily.brown@company.com)</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2 perm-user-item" data-name="david lee" data-email="david.lee@company.com">
+                                        <input class="form-check-input perm-user-check" type="checkbox" value="user5" id="permUser5" onchange="togglePermUser('user5')">
+                                        <label class="form-check-label" for="permUser5">
+                                            <i class="fas fa-user-circle me-1 text-primary"></i>David Lee <small class="text-muted">(david.lee@company.com)</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="permUserChips" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3 d-none" id="permNoSelectionWarning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Restricted templates require at least one sub-account, role, or user to have access.
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3 d-none" id="permApiWarning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>API Template:</strong> Sub-account permissions are validated on API calls. Ensure selected sub-accounts have API access enabled.
+                    </div>
+                </div>
+                
+                <div id="permAllUsersSection" class="d-none">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>All Users:</strong> This template is accessible to everyone in your organization. No restrictions apply.
+                    </div>
+                </div>
+                
+                <div class="border-top pt-3 mt-3">
+                    <h6 class="mb-2"><i class="fas fa-clipboard-list me-2 text-muted"></i>Access Summary</h6>
+                    <div class="bg-light p-3 rounded" id="permAccessSummary">
+                        <span class="text-muted">No access configured</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-3">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveTemplatePermissions()" id="permSaveBtn">
+                    <i class="fas fa-save me-2"></i>Save Permissions
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1744,10 +1961,328 @@ function duplicateTemplate(id) {
     showToast('Template duplicated as "' + duplicate.name + '"', 'success');
 }
 
+var currentPermissions = {
+    templateId: null,
+    templateName: '',
+    accessMode: 'restricted',
+    subAccounts: [],
+    roles: [],
+    users: [],
+    trigger: ''
+};
+
+var subAccountLabels = {
+    'all': 'All Sub-accounts',
+    'main': 'Main Account',
+    'marketing': 'Marketing Team',
+    'sales': 'Sales Department',
+    'support': 'Customer Support'
+};
+
+var roleLabels = {
+    'admin': 'Administrator',
+    'manager': 'Manager',
+    'messaging': 'Messaging User',
+    'viewer': 'Viewer',
+    'api': 'API User'
+};
+
+var userLabels = {
+    'user1': 'John Smith',
+    'user2': 'Sarah Jones',
+    'user3': 'Mike Wilson',
+    'user4': 'Emily Brown',
+    'user5': 'David Lee'
+};
+
 function managePermissions(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (!template) return;
-    showToast('Opening permissions for "' + template.name + '"...', 'info');
+    
+    currentPermissions = {
+        templateId: template.id,
+        templateName: template.name,
+        accessMode: template.subAccounts.includes('all') ? 'all' : 'restricted',
+        subAccounts: template.permissions ? template.permissions.subAccounts || [] : (template.subAccounts || []),
+        roles: template.permissions ? template.permissions.roles || [] : [],
+        users: template.permissions ? template.permissions.users || [] : [],
+        trigger: template.trigger
+    };
+    
+    document.getElementById('permTemplateName').textContent = template.name;
+    document.getElementById('permTemplateId').textContent = template.templateId;
+    
+    if (currentPermissions.accessMode === 'all') {
+        document.getElementById('permAccessAll').checked = true;
+    } else {
+        document.getElementById('permAccessRestricted').checked = true;
+    }
+    
+    updatePermAccessMode();
+    
+    document.querySelectorAll('.perm-subaccount-check').forEach(function(cb) {
+        cb.checked = currentPermissions.subAccounts.includes(cb.value);
+    });
+    document.querySelectorAll('.perm-role-check').forEach(function(cb) {
+        cb.checked = currentPermissions.roles.includes(cb.value);
+    });
+    document.querySelectorAll('.perm-user-check').forEach(function(cb) {
+        cb.checked = currentPermissions.users.includes(cb.value);
+    });
+    
+    updatePermissionCounts();
+    updatePermissionChips();
+    updatePermAccessSummary();
+    
+    if (template.trigger === 'api') {
+        document.getElementById('permApiWarning').classList.remove('d-none');
+    } else {
+        document.getElementById('permApiWarning').classList.add('d-none');
+    }
+    
+    new bootstrap.Modal(document.getElementById('templatePermissionsModal')).show();
+}
+
+function updatePermAccessMode() {
+    var isAll = document.getElementById('permAccessAll').checked;
+    var restrictedSection = document.getElementById('permRestrictedSection');
+    var allUsersSection = document.getElementById('permAllUsersSection');
+    var accessBadge = document.getElementById('permAccessBadge');
+    
+    currentPermissions.accessMode = isAll ? 'all' : 'restricted';
+    
+    if (isAll) {
+        restrictedSection.classList.add('d-none');
+        allUsersSection.classList.remove('d-none');
+        accessBadge.className = 'badge bg-success';
+        accessBadge.textContent = 'All Users';
+    } else {
+        restrictedSection.classList.remove('d-none');
+        allUsersSection.classList.add('d-none');
+        accessBadge.className = 'badge bg-warning text-dark';
+        accessBadge.textContent = 'Restricted';
+    }
+    
+    updatePermAccessSummary();
+    validatePermissions();
+}
+
+function togglePermSubAccount(value) {
+    var idx = currentPermissions.subAccounts.indexOf(value);
+    if (idx > -1) {
+        currentPermissions.subAccounts.splice(idx, 1);
+    } else {
+        if (value === 'all') {
+            currentPermissions.subAccounts = ['all'];
+            document.querySelectorAll('.perm-subaccount-check').forEach(function(cb) {
+                cb.checked = cb.value === 'all';
+            });
+        } else {
+            var allIdx = currentPermissions.subAccounts.indexOf('all');
+            if (allIdx > -1) {
+                currentPermissions.subAccounts.splice(allIdx, 1);
+                document.getElementById('permSubAll').checked = false;
+            }
+            currentPermissions.subAccounts.push(value);
+        }
+    }
+    updatePermissionCounts();
+    updatePermissionChips();
+    updatePermAccessSummary();
+    validatePermissions();
+}
+
+function togglePermRole(value) {
+    var idx = currentPermissions.roles.indexOf(value);
+    if (idx > -1) {
+        currentPermissions.roles.splice(idx, 1);
+    } else {
+        currentPermissions.roles.push(value);
+    }
+    updatePermissionCounts();
+    updatePermissionChips();
+    updatePermAccessSummary();
+    validatePermissions();
+}
+
+function togglePermUser(value) {
+    var idx = currentPermissions.users.indexOf(value);
+    if (idx > -1) {
+        currentPermissions.users.splice(idx, 1);
+    } else {
+        currentPermissions.users.push(value);
+    }
+    updatePermissionCounts();
+    updatePermissionChips();
+    updatePermAccessSummary();
+    validatePermissions();
+}
+
+function updatePermissionCounts() {
+    document.getElementById('permSubAccountCount').textContent = currentPermissions.subAccounts.length;
+    document.getElementById('permRoleCount').textContent = currentPermissions.roles.length;
+    document.getElementById('permUserCount').textContent = currentPermissions.users.length;
+}
+
+function updatePermissionChips() {
+    var subAccountChips = document.getElementById('permSubAccountChips');
+    var roleChips = document.getElementById('permRoleChips');
+    var userChips = document.getElementById('permUserChips');
+    
+    subAccountChips.innerHTML = currentPermissions.subAccounts.map(function(sa) {
+        return '<span class="badge bg-primary py-2 px-3">' +
+               '<i class="fas fa-building me-1"></i>' + (subAccountLabels[sa] || sa) +
+               ' <i class="fas fa-times ms-1" style="cursor:pointer;" onclick="removePermSubAccount(\'' + sa + '\')"></i></span>';
+    }).join('');
+    
+    roleChips.innerHTML = currentPermissions.roles.map(function(r) {
+        return '<span class="badge bg-info py-2 px-3">' +
+               '<i class="fas fa-user-tag me-1"></i>' + (roleLabels[r] || r) +
+               ' <i class="fas fa-times ms-1" style="cursor:pointer;" onclick="removePermRole(\'' + r + '\')"></i></span>';
+    }).join('');
+    
+    userChips.innerHTML = currentPermissions.users.map(function(u) {
+        return '<span class="badge bg-secondary py-2 px-3">' +
+               '<i class="fas fa-user me-1"></i>' + (userLabels[u] || u) +
+               ' <i class="fas fa-times ms-1" style="cursor:pointer;" onclick="removePermUser(\'' + u + '\')"></i></span>';
+    }).join('');
+}
+
+function removePermSubAccount(value) {
+    document.querySelector('.perm-subaccount-check[value="' + value + '"]').checked = false;
+    togglePermSubAccount(value);
+}
+
+function removePermRole(value) {
+    document.querySelector('.perm-role-check[value="' + value + '"]').checked = false;
+    togglePermRole(value);
+}
+
+function removePermUser(value) {
+    document.querySelector('.perm-user-check[value="' + value + '"]').checked = false;
+    togglePermUser(value);
+}
+
+function updatePermAccessSummary() {
+    var summaryEl = document.getElementById('permAccessSummary');
+    
+    if (currentPermissions.accessMode === 'all') {
+        summaryEl.innerHTML = '<i class="fas fa-check-circle text-success me-2"></i>' +
+                              '<strong>All users</strong> in your organization can use this template.';
+        return;
+    }
+    
+    var parts = [];
+    
+    if (currentPermissions.subAccounts.length > 0) {
+        if (currentPermissions.subAccounts.includes('all')) {
+            parts.push('<span class="text-primary"><i class="fas fa-building me-1"></i>All sub-accounts</span>');
+        } else {
+            parts.push('<span class="text-primary"><i class="fas fa-building me-1"></i>' + 
+                      currentPermissions.subAccounts.length + ' sub-account(s)</span>');
+        }
+    }
+    
+    if (currentPermissions.roles.length > 0) {
+        parts.push('<span class="text-info"><i class="fas fa-user-tag me-1"></i>' + 
+                  currentPermissions.roles.length + ' role(s)</span>');
+    }
+    
+    if (currentPermissions.users.length > 0) {
+        parts.push('<span class="text-secondary"><i class="fas fa-user me-1"></i>' + 
+                  currentPermissions.users.length + ' user(s)</span>');
+    }
+    
+    if (parts.length === 0) {
+        summaryEl.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>No access configured - template will be unusable</span>';
+    } else {
+        summaryEl.innerHTML = 'Access granted to: ' + parts.join(' + ');
+    }
+}
+
+function validatePermissions() {
+    var warningEl = document.getElementById('permNoSelectionWarning');
+    var saveBtn = document.getElementById('permSaveBtn');
+    
+    if (currentPermissions.accessMode === 'all') {
+        warningEl.classList.add('d-none');
+        saveBtn.disabled = false;
+        return true;
+    }
+    
+    var hasAccess = currentPermissions.subAccounts.length > 0 || 
+                    currentPermissions.roles.length > 0 || 
+                    currentPermissions.users.length > 0;
+    
+    if (!hasAccess) {
+        warningEl.classList.remove('d-none');
+        saveBtn.disabled = true;
+        return false;
+    } else {
+        warningEl.classList.add('d-none');
+        saveBtn.disabled = false;
+        return true;
+    }
+}
+
+function filterPermSubAccounts() {
+    var search = document.getElementById('permSubAccountSearch').value.toLowerCase();
+    var items = document.querySelectorAll('#permSubAccountList .form-check');
+    
+    items.forEach(function(item) {
+        var label = item.querySelector('.form-check-label').textContent.toLowerCase();
+        item.style.display = label.includes(search) ? '' : 'none';
+    });
+}
+
+function filterPermUsers() {
+    var search = document.getElementById('permUserSearch').value.toLowerCase();
+    var items = document.querySelectorAll('.perm-user-item');
+    
+    items.forEach(function(item) {
+        var name = item.getAttribute('data-name') || '';
+        var email = item.getAttribute('data-email') || '';
+        item.style.display = (name.includes(search) || email.includes(search)) ? '' : 'none';
+    });
+}
+
+function saveTemplatePermissions() {
+    if (!validatePermissions()) {
+        showToast('Please configure access before saving', 'warning');
+        return;
+    }
+    
+    var template = mockTemplates.find(function(t) { return t.id === currentPermissions.templateId; });
+    if (!template) return;
+    
+    template.permissions = {
+        subAccounts: currentPermissions.subAccounts.slice(),
+        roles: currentPermissions.roles.slice(),
+        users: currentPermissions.users.slice()
+    };
+    
+    if (currentPermissions.accessMode === 'all') {
+        template.subAccounts = ['all'];
+        template.accessScope = 'All Users';
+    } else {
+        template.subAccounts = currentPermissions.subAccounts.slice();
+        
+        if (currentPermissions.subAccounts.includes('all')) {
+            template.accessScope = 'All Sub-accounts';
+        } else if (currentPermissions.subAccounts.length > 0) {
+            template.accessScope = currentPermissions.subAccounts.length + ' Sub-account(s)';
+        } else if (currentPermissions.roles.length > 0) {
+            template.accessScope = currentPermissions.roles.length + ' Role(s)';
+        } else {
+            template.accessScope = currentPermissions.users.length + ' User(s)';
+        }
+    }
+    
+    template.lastUpdated = new Date().toISOString().split('T')[0];
+    
+    bootstrap.Modal.getInstance(document.getElementById('templatePermissionsModal')).hide();
+    renderTemplates();
+    showToast('Permissions updated for "' + template.name + '"', 'success');
 }
 
 function viewApiStructure(id) {
