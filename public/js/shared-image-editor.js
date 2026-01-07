@@ -22,10 +22,11 @@
     var PRESET_CONFIGS = {
         'agent-logo': {
             aspectRatio: 1,
-            outputWidth: 224,
-            outputHeight: 224,
+            outputWidth: 222,
+            outputHeight: 222,
             frameWidth: 120,
             frameHeight: 120,
+            frameShape: 'circle',
             label: 'Logo (1:1)'
         },
         'agent-hero': {
@@ -111,13 +112,15 @@
             outputHeight: 200,
             frameWidth: 200,
             frameHeight: 200,
+            frameShape: 'rectangle',
             minZoom: 25,
             maxZoom: 200,
             defaultZoom: 100,
             showCrosshair: true,
             showZoomSlider: true,
             showResetButton: true,
-            onChange: null
+            onChange: null,
+            onValidationChange: null
         }, options);
 
         if (this.options.preset && PRESET_CONFIGS[this.options.preset]) {
@@ -184,6 +187,9 @@
 
         var frame = document.createElement('div');
         frame.className = 'sie-crop-frame';
+        if (this.options.frameShape === 'circle') {
+            frame.classList.add('sie-crop-frame--circle');
+        }
         frame.style.width = this.options.frameWidth + 'px';
         frame.style.height = this.options.frameHeight + 'px';
         this.elements.frame = frame;
@@ -697,6 +703,69 @@
 
         this.elements = {};
         this.boundHandlers = {};
+    };
+
+    SharedImageEditor.prototype.validateCrop = function() {
+        if (!this.state.imageLoaded) {
+            return { valid: false, error: 'No image loaded' };
+        }
+
+        var cropData = this.getCropData();
+        if (!cropData || !cropData.crop) {
+            return { valid: false, error: 'No crop data available' };
+        }
+
+        var sourceWidth = cropData.crop.width;
+        var sourceHeight = cropData.crop.height;
+        var targetRatio = this.options.aspectRatio;
+        var actualRatio = sourceWidth / sourceHeight;
+        var ratioDiff = Math.abs(actualRatio - targetRatio);
+
+        if (ratioDiff > 0.01) {
+            return { valid: false, error: 'Crop does not match required aspect ratio' };
+        }
+
+        if (sourceWidth < this.options.outputWidth * 0.5 || sourceHeight < this.options.outputHeight * 0.5) {
+            return { valid: false, error: 'Source image resolution too low for clean crop' };
+        }
+
+        return { 
+            valid: true, 
+            outputWidth: this.options.outputWidth,
+            outputHeight: this.options.outputHeight,
+            aspectRatio: this.options.aspectRatio
+        };
+    };
+
+    SharedImageEditor.prototype.getOutputInfo = function() {
+        return {
+            width: this.options.outputWidth,
+            height: this.options.outputHeight,
+            aspectRatio: this.options.aspectRatio,
+            frameShape: this.options.frameShape
+        };
+    };
+
+    SharedImageEditor.prototype.loadImageFromUrl = function(url, callback) {
+        var self = this;
+        
+        if (!url) {
+            if (callback) callback(new Error('No URL provided'));
+            return;
+        }
+
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = function() {
+            self.loadImage(url, callback);
+        };
+        
+        img.onerror = function() {
+            if (callback) callback(new Error('Failed to load image from URL'));
+        };
+        
+        img.src = url;
     };
 
     SharedImageEditor.PRESETS = PRESET_CONFIGS;

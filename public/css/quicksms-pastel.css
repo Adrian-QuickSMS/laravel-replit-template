@@ -203,3 +203,33 @@
     min-width: 50px;
     text-align: center;
 }
+
+.sie-crop-frame--circle {
+    border-radius: 50%;
+}
+
+.sie-crop-frame--circle .sie-crosshair-h,
+.sie-crop-frame--circle .sie-crosshair-v {
+    display: none;
+}
+
+.sie-crop-frame--circle .sie-crosshair-center {
+    width: 8px;
+    height: 8px;
+}
+
+/* Logo upload zone drag state */
+.logo-upload-zone.dragover {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.08);
+}
+
+.logo-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.logo-card-container .btn-group-sm .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}

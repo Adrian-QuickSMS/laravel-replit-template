@@ -878,24 +878,62 @@
                             <div class="col-lg-6">
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Agent Logo <span class="text-danger">*</span></label>
-                                    <div class="logo-upload-zone circular-crop" id="logoUploadZone">
-                                        <div id="logoPlaceholder">
-                                            <i class="fas fa-cloud-upload-alt text-muted mb-2" style="font-size: 2rem;"></i>
-                                            <p class="mb-1 text-muted">Click to upload</p>
-                                            <small class="text-muted">222 × 222 px, PNG/JPEG</small>
-                                        </div>
-                                        <div id="logoPreviewContainer" class="d-none">
-                                            <div class="circular-preview-wrapper">
-                                                <img src="" alt="Logo preview" class="logo-preview circular" id="logoPreviewImg">
+                                    <p class="text-muted small mb-2">Upload a square logo. Final output: 222×222 px with circular display.</p>
+                                    
+                                    <div class="logo-card-container">
+                                        <div class="logo-source-tabs mb-2">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <input type="radio" class="btn-check" name="logoSource" id="logoSourceFile" value="file" checked>
+                                                <label class="btn btn-outline-primary" for="logoSourceFile"><i class="fas fa-upload me-1"></i>Upload File</label>
+                                                <input type="radio" class="btn-check" name="logoSource" id="logoSourceUrl" value="url">
+                                                <label class="btn btn-outline-primary" for="logoSourceUrl"><i class="fas fa-link me-1"></i>From URL</label>
                                             </div>
-                                            <p class="mt-2 mb-0 text-primary small">Click to change</p>
+                                        </div>
+                                        
+                                        <div id="logoFileUploadSection">
+                                            <div class="logo-upload-zone circular-crop" id="logoUploadZone">
+                                                <div id="logoPlaceholder">
+                                                    <i class="fas fa-cloud-upload-alt text-muted mb-2" style="font-size: 2rem;"></i>
+                                                    <p class="mb-1 text-muted">Click or drag to upload</p>
+                                                    <small class="text-muted">PNG or JPEG, max 2MB</small>
+                                                </div>
+                                                <div id="logoPreviewContainer" class="d-none">
+                                                    <div class="circular-preview-wrapper">
+                                                        <img src="" alt="Logo preview" class="logo-preview circular" id="logoPreviewImg">
+                                                    </div>
+                                                    <div class="logo-actions mt-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" id="logoEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" id="logoRemoveBtn"><i class="fas fa-trash"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="file" id="logoFileInput" accept="image/png,image/jpeg" class="d-none">
+                                        </div>
+                                        
+                                        <div id="logoUrlUploadSection" class="d-none">
+                                            <div class="input-group mb-2">
+                                                <input type="url" class="form-control" id="logoUrlInput" placeholder="https://example.com/logo.png">
+                                                <button type="button" class="btn btn-primary" id="logoUrlFetchBtn"><i class="fas fa-download me-1"></i>Fetch</button>
+                                            </div>
+                                            <div id="logoUrlPreviewContainer" class="d-none">
+                                                <div class="logo-upload-zone circular-crop has-logo">
+                                                    <div class="circular-preview-wrapper">
+                                                        <img src="" alt="Logo preview" class="logo-preview circular" id="logoUrlPreviewImg">
+                                                    </div>
+                                                    <div class="logo-actions mt-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" id="logoUrlEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" id="logoUrlRemoveBtn"><i class="fas fa-trash"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <input type="file" id="logoFileInput" accept="image/png,image/jpeg" class="d-none">
-                                    <small class="text-muted d-block mt-1">Circular crop applied. Supports zoom & drag.</small>
+                                    
                                     <div class="invalid-feedback d-block" id="logoError" style="display: none !important;">Please upload a logo image</div>
                                     <div class="invalid-feedback d-block" id="logoFormatError" style="display: none !important;">Logo must be PNG or JPEG format</div>
                                     <div class="invalid-feedback d-block" id="logoSizeError" style="display: none !important;">Logo file size must be under 2MB</div>
+                                    <div class="invalid-feedback d-block" id="logoUrlError" style="display: none !important;">Unable to load image from URL</div>
+                                    <div class="invalid-feedback d-block" id="logoCropError" style="display: none !important;">Image must be cropped to 222×222 px</div>
                                 </div>
                             </div>
                         </div>
@@ -1512,9 +1550,31 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="logoCropEditorModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #886CC0 0%, #614099 100%);">
+                <h5 class="modal-title text-white"><i class="fas fa-crop-alt me-2"></i>Crop Agent Logo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small py-2 mb-3">
+                    <i class="fas fa-info-circle me-1"></i>Position your logo within the circular frame. Output: 222×222 px.
+                </div>
+                <div id="logoCropEditorContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="logoCropApplyBtn"><i class="fas fa-check me-1"></i>Apply Crop</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/shared-image-editor.js') }}"></script>
 <script>
 // RBAC Configuration - passed from PHP
 var currentUserRole = @json($currentUserRole);
@@ -2018,6 +2078,7 @@ var wizardData = {
     useCase: '',
     logoFile: null,
     logoDataUrl: null,
+    logoCropMetadata: null,
     heroFile: null,
     heroDataUrl: null,
     brandColor: '#886CC0',
@@ -2204,42 +2265,256 @@ function initializeWizard() {
         triggerAutosave();
     });
     
-    document.getElementById('logoUploadZone').addEventListener('click', function() {
+    // Logo Editor - Shared Image Editor Integration
+    var logoCropEditor = null;
+    var logoRawImageSrc = null;
+    var logoCropModal = null;
+    
+    function hideAllLogoErrors() {
+        ['logoError', 'logoFormatError', 'logoSizeError', 'logoUrlError', 'logoCropError'].forEach(function(id) {
+            document.getElementById(id).style.display = 'none';
+        });
+    }
+    
+    function showLogoError(errorId) {
+        hideAllLogoErrors();
+        document.getElementById(errorId).style.display = 'block';
+    }
+    
+    function openLogoCropEditor(imageSrc) {
+        logoRawImageSrc = imageSrc;
+        
+        if (!logoCropModal) {
+            logoCropModal = new bootstrap.Modal(document.getElementById('logoCropEditorModal'));
+        }
+        
+        if (logoCropEditor) {
+            logoCropEditor.destroy();
+        }
+        
+        logoCropEditor = new SharedImageEditor({
+            containerId: 'logoCropEditorContainer',
+            preset: 'agent-logo',
+            showCrosshair: true,
+            showZoomSlider: true,
+            showResetButton: true
+        });
+        
+        logoCropEditor.loadImage(imageSrc, function(err) {
+            if (err) {
+                showLogoError('logoUrlError');
+                return;
+            }
+            logoCropModal.show();
+        });
+    }
+    
+    function applyLogoCrop() {
+        if (!logoCropEditor) return;
+        
+        var validation = logoCropEditor.validateCrop();
+        if (!validation.valid) {
+            showLogoError('logoCropError');
+            return;
+        }
+        
+        logoCropEditor.generateCroppedImage(function(err, dataUrl) {
+            if (err || !dataUrl) {
+                showLogoError('logoCropError');
+                return;
+            }
+            
+            var cropData = logoCropEditor.getCropData();
+            
+            wizardData.logoDataUrl = dataUrl;
+            wizardData.logoValid = true;
+            wizardData.logoCropMetadata = {
+                originalSrc: logoRawImageSrc,
+                crop: cropData.crop,
+                zoom: cropData.zoom,
+                offsetX: cropData.offsetX,
+                offsetY: cropData.offsetY,
+                outputWidth: 222,
+                outputHeight: 222,
+                timestamp: new Date().toISOString()
+                // TODO: Add userId from Auth::id()
+                // TODO: Add cdnUrl after server-side upload
+            };
+            
+            // Update preview
+            document.getElementById('logoPreviewImg').src = dataUrl;
+            document.getElementById('logoPlaceholder').classList.add('d-none');
+            document.getElementById('logoPreviewContainer').classList.remove('d-none');
+            document.getElementById('logoUploadZone').classList.add('has-logo');
+            
+            // Also update URL preview if that source is active
+            document.getElementById('logoUrlPreviewImg').src = dataUrl;
+            
+            hideAllLogoErrors();
+            logoCropModal.hide();
+            triggerAutosave();
+        });
+    }
+    
+    function clearLogoPreview() {
+        wizardData.logoFile = null;
+        wizardData.logoDataUrl = null;
+        wizardData.logoValid = false;
+        wizardData.logoCropMetadata = null;
+        logoRawImageSrc = null;
+        
+        document.getElementById('logoPreviewImg').src = '';
+        document.getElementById('logoPlaceholder').classList.remove('d-none');
+        document.getElementById('logoPreviewContainer').classList.add('d-none');
+        document.getElementById('logoUploadZone').classList.remove('has-logo');
+        document.getElementById('logoFileInput').value = '';
+        
+        document.getElementById('logoUrlPreviewContainer').classList.add('d-none');
+        document.getElementById('logoUrlInput').value = '';
+        
+        hideAllLogoErrors();
+        triggerAutosave();
+    }
+    
+    // Logo source tab switching
+    document.querySelectorAll('input[name="logoSource"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var isFile = this.value === 'file';
+            document.getElementById('logoFileUploadSection').classList.toggle('d-none', !isFile);
+            document.getElementById('logoUrlUploadSection').classList.toggle('d-none', isFile);
+        });
+    });
+    
+    // File upload click handler
+    document.getElementById('logoUploadZone').addEventListener('click', function(e) {
+        if (e.target.closest('.logo-actions')) return;
         document.getElementById('logoFileInput').click();
     });
     
+    // File input change handler
     document.getElementById('logoFileInput').addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             var file = e.target.files[0];
-            
-            document.getElementById('logoError').style.display = 'none';
-            document.getElementById('logoFormatError').style.display = 'none';
-            document.getElementById('logoSizeError').style.display = 'none';
+            hideAllLogoErrors();
             
             var validTypes = ['image/png', 'image/jpeg'];
             if (!validTypes.includes(file.type)) {
-                document.getElementById('logoFormatError').style.display = 'block';
+                showLogoError('logoFormatError');
                 this.value = '';
                 return;
             }
             
             var maxSize = 2 * 1024 * 1024;
             if (file.size > maxSize) {
-                document.getElementById('logoSizeError').style.display = 'block';
+                showLogoError('logoSizeError');
                 this.value = '';
                 return;
             }
             
             wizardData.logoFile = file;
-            wizardData.logoValid = true;
             var reader = new FileReader();
             reader.onload = function(evt) {
-                wizardData.logoDataUrl = evt.target.result;
-                document.getElementById('logoPreviewImg').src = evt.target.result;
-                document.getElementById('logoPlaceholder').classList.add('d-none');
-                document.getElementById('logoPreviewContainer').classList.remove('d-none');
-                document.getElementById('logoUploadZone').classList.add('has-logo');
-                triggerAutosave();
+                openLogoCropEditor(evt.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Logo edit button
+    document.getElementById('logoEditBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (logoRawImageSrc || wizardData.logoDataUrl) {
+            openLogoCropEditor(logoRawImageSrc || wizardData.logoDataUrl);
+        }
+    });
+    
+    // Logo remove button
+    document.getElementById('logoRemoveBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearLogoPreview();
+    });
+    
+    // URL fetch button
+    document.getElementById('logoUrlFetchBtn').addEventListener('click', function() {
+        var url = document.getElementById('logoUrlInput').value.trim();
+        hideAllLogoErrors();
+        
+        if (!url) {
+            showLogoError('logoUrlError');
+            return;
+        }
+        
+        if (!url.startsWith('https://')) {
+            showLogoError('logoUrlError');
+            return;
+        }
+        
+        // TODO: Server-side fetch via /api/rcs/fetch-image to avoid CORS
+        // For now, attempt direct load with crossOrigin
+        openLogoCropEditor(url);
+    });
+    
+    // URL edit button
+    var logoUrlEditBtn = document.getElementById('logoUrlEditBtn');
+    if (logoUrlEditBtn) {
+        logoUrlEditBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (logoRawImageSrc || wizardData.logoDataUrl) {
+                openLogoCropEditor(logoRawImageSrc || wizardData.logoDataUrl);
+            }
+        });
+    }
+    
+    // URL remove button
+    var logoUrlRemoveBtn = document.getElementById('logoUrlRemoveBtn');
+    if (logoUrlRemoveBtn) {
+        logoUrlRemoveBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clearLogoPreview();
+        });
+    }
+    
+    // Crop apply button
+    document.getElementById('logoCropApplyBtn').addEventListener('click', applyLogoCrop);
+    
+    // Drag and drop support
+    document.getElementById('logoUploadZone').addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
+    
+    document.getElementById('logoUploadZone').addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
+    
+    document.getElementById('logoUploadZone').addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            var file = e.dataTransfer.files[0];
+            hideAllLogoErrors();
+            
+            var validTypes = ['image/png', 'image/jpeg'];
+            if (!validTypes.includes(file.type)) {
+                showLogoError('logoFormatError');
+                return;
+            }
+            
+            var maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showLogoError('logoSizeError');
+                return;
+            }
+            
+            wizardData.logoFile = file;
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+                openLogoCropEditor(evt.target.result);
             };
             reader.readAsDataURL(file);
         }
@@ -2445,6 +2720,7 @@ function resetWizardData() {
         useCase: '',
         logoFile: null,
         logoDataUrl: null,
+        logoCropMetadata: null,
         heroFile: null,
         heroDataUrl: null,
         brandColor: '#886CC0',
@@ -2937,6 +3213,7 @@ function autosaveDraft() {
             billing: wizardData.billing,
             useCase: wizardData.useCase,
             logoDataUrl: wizardData.logoDataUrl,
+            logoCropMetadata: wizardData.logoCropMetadata,
             heroDataUrl: wizardData.heroDataUrl,
             brandColor: wizardData.brandColor,
             website: wizardData.website,
@@ -3091,6 +3368,7 @@ function restoreWizardFromDraft(draft) {
     wizardData.billing = draft.billing || '';
     wizardData.useCase = draft.useCase || '';
     wizardData.logoDataUrl = draft.logoDataUrl || null;
+    wizardData.logoCropMetadata = draft.logoCropMetadata || null;
     wizardData.heroDataUrl = draft.heroDataUrl || null;
     wizardData.brandColor = draft.brandColor || '#886CC0';
     wizardData.website = draft.website || '';
@@ -3147,15 +3425,16 @@ function populateWizardUIFromData() {
         });
     }
     
-    // Logo preview
+    // Logo preview - use correct element IDs
     if (wizardData.logoDataUrl) {
-        var logoPreview = document.getElementById('logoPreview');
+        var logoPreviewImg = document.getElementById('logoPreviewImg');
         var logoPlaceholder = document.getElementById('logoPlaceholder');
-        if (logoPreview && logoPlaceholder) {
-            logoPreview.src = wizardData.logoDataUrl;
-            logoPreview.style.display = 'block';
-            logoPlaceholder.style.display = 'none';
-        }
+        var logoPreviewContainer = document.getElementById('logoPreviewContainer');
+        var logoUploadZone = document.getElementById('logoUploadZone');
+        if (logoPreviewImg) logoPreviewImg.src = wizardData.logoDataUrl;
+        if (logoPlaceholder) logoPlaceholder.classList.add('d-none');
+        if (logoPreviewContainer) logoPreviewContainer.classList.remove('d-none');
+        if (logoUploadZone) logoUploadZone.classList.add('has-logo');
     }
     
     // Hero preview
