@@ -16,7 +16,15 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Interactive Elements:** Mobile number masking, dynamic validation, real-time character counting.
 - **Content Editor:** Enhanced with personalization, emoji support, AI assistance, and channel-aware behavior.
 - **Color Scheme:** Portal-wide standardization using `public/css/quicksms-pastel.css`.
-- **RCS Agent Registration Wizard:** A 4-step fullscreen modal wizard for registering RCS agents, including branding, billing, company details, and a final review. Features field validation, draft autosave, and audit trails.
+- **RCS Agent Registration Wizard:** A 7-step fullscreen modal wizard for registering RCS agents:
+  1. Identity (agent name, description, brand colour)
+  2. Branding (logo, hero banner image)
+  3. Contact (phone, email, website with visibility toggles)
+  4. Compliance (privacy policy URL, terms of service URL)
+  5. Messaging (billing category, use case, campaign details, opt-in/out, test numbers)
+  6. Company (company information, approver details)
+  7. Review & Submit
+  Features field validation per step, draft autosave, and audit trails.
 - **Message Templates:** Complete management with a multi-step creation wizard, versioning, lifecycle states (Draft/Live/Archived), and a detailed version history with rollback capabilities and an audit trail.
 - **Unified RCS Wizard:** Shared component for creating rich RCS messages across different sections, supporting loading of Rich RCS templates.
 - **RCS Preview System:** Schema-driven renderer with an Android-style phone UI for channel-specific previews (Rich RCS, Basic RCS, SMS).

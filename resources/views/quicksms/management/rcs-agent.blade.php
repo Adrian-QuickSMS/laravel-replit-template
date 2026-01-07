@@ -820,18 +820,30 @@
                     <div class="wizard-steps ms-4">
                         <span class="wizard-step active" data-step="1">
                             <span class="step-number">1</span>
-                            <span class="step-label">Branding & Identity</span>
+                            <span class="step-label">Identity</span>
                         </span>
                         <span class="wizard-step" data-step="2">
                             <span class="step-number">2</span>
-                            <span class="step-label">Messaging Profile</span>
+                            <span class="step-label">Branding</span>
                         </span>
                         <span class="wizard-step" data-step="3">
                             <span class="step-number">3</span>
-                            <span class="step-label">Company Details</span>
+                            <span class="step-label">Contact</span>
                         </span>
                         <span class="wizard-step" data-step="4">
                             <span class="step-number">4</span>
+                            <span class="step-label">Compliance</span>
+                        </span>
+                        <span class="wizard-step" data-step="5">
+                            <span class="step-number">5</span>
+                            <span class="step-label">Messaging</span>
+                        </span>
+                        <span class="wizard-step" data-step="6">
+                            <span class="step-number">6</span>
+                            <span class="step-label">Company</span>
+                        </span>
+                        <span class="wizard-step" data-step="7">
+                            <span class="step-number">7</span>
                             <span class="step-label">Review</span>
                         </span>
                     </div>
@@ -843,29 +855,32 @@
             </div>
             
             <div class="modal-body flex-grow-1 p-0" style="overflow-y: auto; background: #f8f9fa;">
+                <!-- Step 1: Agent Identity -->
                 <div id="agentWizardStep1" class="wizard-content p-4">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 700px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 1: Branding, Identity & Contact Details</strong> - Configure your RCS Agent's visual identity and contact information.
+                            <strong>Step 1: Agent Identity</strong> - Define your RCS Agent's name, description, and brand colour.
                         </div>
                         
-                        <div class="row">
-                            <div class="col-lg-6">
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-id-card me-2 text-primary"></i>Basic Information</h6>
+                                
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">RCS Agent Name <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="agentName" placeholder="e.g., Your Brand Name" maxlength="25">
-                                    <small class="text-muted">Max 25 characters. Displayed as sender name.</small>
+                                    <small class="text-muted">Max 25 characters. Displayed as sender name on devices.</small>
                                     <div class="invalid-feedback">Please enter an agent name (max 25 characters)</div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">RCS Agent Description <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="agentDescription" rows="2" placeholder="Brief description of your business..." maxlength="100"></textarea>
+                                    <textarea class="form-control" id="agentDescription" rows="3" placeholder="Brief description of your business..." maxlength="100"></textarea>
                                     <small class="text-muted"><span id="descCharCount">0</span>/100 characters</small>
                                     <div class="invalid-feedback">Please enter a description (max 100 characters)</div>
                                 </div>
                                 
-                                <div class="mb-4">
+                                <div class="mb-0">
                                     <label class="form-label fw-semibold">Brand Colour <span class="text-danger">*</span></label>
                                     <div class="d-flex align-items-center gap-3">
                                         <input type="color" class="form-control form-control-color color-preview" id="brandColor" value="#886CC0" style="width: 50px; height: 38px;">
@@ -874,7 +889,18 @@
                                     <small class="text-muted">Used for buttons and accent elements in RCS messages</small>
                                 </div>
                             </div>
-                            
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Branding Assets -->
+                <div id="agentWizardStep2" class="wizard-content p-4 d-none">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 2: Branding Assets</strong> - Upload your logo and hero banner image.
+                        </div>
+                        
+                        <div class="row">
                             <div class="col-lg-6">
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Agent Logo <span class="text-danger">*</span></label>
@@ -1002,81 +1028,106 @@
                             <div class="invalid-feedback d-block" id="heroCropError" style="display: none !important;">Image must be cropped to 1480×448 px (45:14 ratio)</div>
                             <div class="invalid-feedback d-block" id="heroOrientationError" style="display: none !important;">Hero image must be horizontal (landscape orientation)</div>
                         </div>
-                        
-                        <hr class="my-4">
-                        <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Handset Contact Details</h6>
-                        <p class="text-muted small mb-3">These details will be shown to message recipients on their device. Toggle which fields to display.</p>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label fw-semibold mb-0">Phone Number <span class="text-danger">*</span></label>
-                                    <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" id="showPhoneToggle" checked>
-                                        <label class="form-check-label small text-muted" for="showPhoneToggle">Display on handset</label>
-                                    </div>
-                                </div>
-                                <div class="input-group">
-                                    <span class="input-group-text">+44</span>
-                                    <input type="tel" class="form-control" id="supportPhone" placeholder="20 1234 5678">
-                                </div>
-                                <small class="text-muted">UK numbers only. Leading 0 will be stripped automatically.</small>
-                                <div class="invalid-feedback" id="phoneError">Please enter a valid UK phone number</div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label fw-semibold mb-0">Website URL <span class="text-danger">*</span></label>
-                                    <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" id="showWebsiteToggle" checked>
-                                        <label class="form-check-label small text-muted" for="showWebsiteToggle">Display on handset</label>
-                                    </div>
-                                </div>
-                                <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
-                                <small class="text-muted">Must start with https://</small>
-                                <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label fw-semibold mb-0">Email Address <span class="text-danger">*</span></label>
-                                    <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" id="showEmailToggle" checked>
-                                        <label class="form-check-label small text-muted" for="showEmailToggle">Display on handset</label>
-                                    </div>
-                                </div>
-                                <input type="email" class="form-control" id="supportEmail" placeholder="support@example.com">
-                                <small class="text-muted">Contact email for customer inquiries</small>
-                                <div class="invalid-feedback">Please enter a valid email address</div>
-                            </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Contact Details -->
+                <div id="agentWizardStep3" class="wizard-content p-4 d-none">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 3: Contact Details</strong> - Configure contact information displayed on recipient devices.
                         </div>
                         
-                        <hr class="my-4">
-                        <h6 class="fw-semibold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>Compliance URLs</h6>
-                        <p class="text-muted small mb-3">Required for RCS agent registration. Both must use HTTPS.</p>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Privacy Policy URL <span class="text-danger">*</span></label>
-                                <input type="url" class="form-control" id="privacyUrl" placeholder="https://www.example.com/privacy">
-                                <small class="text-muted">Link to your privacy policy page</small>
-                                <div class="invalid-feedback">Please enter a valid HTTPS URL for your privacy policy</div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Terms of Service URL <span class="text-danger">*</span></label>
-                                <input type="url" class="form-control" id="termsUrl" placeholder="https://www.example.com/terms">
-                                <small class="text-muted">Link to your terms of service page</small>
-                                <div class="invalid-feedback">Please enter a valid HTTPS URL for your terms of service</div>
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Handset Contact Details</h6>
+                                <p class="text-muted small mb-3">These details will be shown to message recipients on their device. Toggle which fields to display.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <label class="form-label fw-semibold mb-0">Phone Number <span class="text-danger">*</span></label>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="showPhoneToggle" checked>
+                                                <label class="form-check-label small text-muted" for="showPhoneToggle">Display on handset</label>
+                                            </div>
+                                        </div>
+                                        <div class="input-group">
+                                            <span class="input-group-text">+44</span>
+                                            <input type="tel" class="form-control" id="supportPhone" placeholder="20 1234 5678">
+                                        </div>
+                                        <small class="text-muted">UK numbers only. Leading 0 will be stripped automatically.</small>
+                                        <div class="invalid-feedback" id="phoneError">Please enter a valid UK phone number</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <label class="form-label fw-semibold mb-0">Website URL <span class="text-danger">*</span></label>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="showWebsiteToggle" checked>
+                                                <label class="form-check-label small text-muted" for="showWebsiteToggle">Display on handset</label>
+                                            </div>
+                                        </div>
+                                        <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
+                                        <small class="text-muted">Must start with https://</small>
+                                        <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <label class="form-label fw-semibold mb-0">Email Address <span class="text-danger">*</span></label>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="showEmailToggle" checked>
+                                                <label class="form-check-label small text-muted" for="showEmailToggle">Display on handset</label>
+                                            </div>
+                                        </div>
+                                        <input type="email" class="form-control" id="supportEmail" placeholder="support@example.com">
+                                        <small class="text-muted">Contact email for customer inquiries</small>
+                                        <div class="invalid-feedback">Please enter a valid email address</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div id="agentWizardStep2" class="wizard-content p-4 d-none">
+                <!-- Step 4: Compliance -->
+                <div id="agentWizardStep4" class="wizard-content p-4 d-none">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 700px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 4: Compliance</strong> - Provide required legal and privacy policy URLs.
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>Compliance URLs</h6>
+                                <p class="text-muted small mb-3">Required for RCS agent registration. Both must use HTTPS.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Privacy Policy URL <span class="text-danger">*</span></label>
+                                        <input type="url" class="form-control" id="privacyUrl" placeholder="https://www.example.com/privacy">
+                                        <small class="text-muted">Link to your privacy policy page</small>
+                                        <div class="invalid-feedback">Please enter a valid HTTPS URL for your privacy policy</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Terms of Service URL <span class="text-danger">*</span></label>
+                                        <input type="url" class="form-control" id="termsUrl" placeholder="https://www.example.com/terms">
+                                        <small class="text-muted">Link to your terms of service page</small>
+                                        <div class="invalid-feedback">Please enter a valid HTTPS URL for your terms of service</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 5: Messaging Profile -->
+                <div id="agentWizardStep5" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 2: Billing Category & Messaging Behaviour</strong> - Configure billing, use case, and messaging behaviour for your RCS Agent.
+                            <strong>Step 5: Messaging Profile</strong> - Configure billing, use case, and messaging behaviour for your RCS Agent.
                         </div>
                         
                         <div class="card border mb-4">
@@ -1341,10 +1392,11 @@
                     </div>
                 </div>
                 
-                <div id="agentWizardStep3" class="wizard-content p-4 d-none">
+                <!-- Step 6: Company & Approver Details -->
+                <div id="agentWizardStep6" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 3: Company & Approver Details</strong> - Provide your company registration and approver information.
+                            <strong>Step 6: Company & Approver Details</strong> - Provide your company registration and approver information.
                         </div>
                         
                         <div class="alert alert-pastel-primary mb-4" style="background: rgba(136, 108, 192, 0.1); border-left: 4px solid #886CC0;">
@@ -1414,10 +1466,11 @@
                     </div>
                 </div>
                 
-                <div id="agentWizardStep4" class="wizard-content p-4 d-none">
+                <!-- Step 7: Review & Submit -->
+                <div id="agentWizardStep7" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 4: Review & Submit</strong> - Please review all information before submitting for approval.
+                            <strong>Step 7: Review & Submit</strong> - Please review all information before submitting for approval.
                         </div>
                         
                         <div class="review-section">
@@ -3231,8 +3284,11 @@ function isValidInternationalNumber(number) {
 function goToStep(step) {
     wizardData.currentStep = step;
     
-    for (var i = 1; i <= 4; i++) {
-        document.getElementById('agentWizardStep' + i).classList.toggle('d-none', i !== step);
+    for (var i = 1; i <= 7; i++) {
+        var stepEl = document.getElementById('agentWizardStep' + i);
+        if (stepEl) {
+            stepEl.classList.toggle('d-none', i !== step);
+        }
     }
     
     document.querySelectorAll('.wizard-step').forEach(function(el) {
@@ -3246,14 +3302,14 @@ function goToStep(step) {
     });
     
     document.getElementById('wizardPrevBtn').style.display = step > 1 ? '' : 'none';
-    document.getElementById('wizardNextBtn').style.display = step < 4 ? '' : 'none';
-    document.getElementById('wizardSubmitBtn').style.display = step === 4 ? '' : 'none';
+    document.getElementById('wizardNextBtn').style.display = step < 7 ? '' : 'none';
+    document.getElementById('wizardSubmitBtn').style.display = step === 7 ? '' : 'none';
     
-    if (step === 3) {
+    if (step === 6) {
         prefillCompanyDetails();
     }
     
-    if (step === 4) {
+    if (step === 7) {
         populateReviewStep();
     }
 }
@@ -3261,7 +3317,7 @@ function goToStep(step) {
 function nextStep() {
     if (!validateCurrentStep()) return;
     
-    if (wizardData.currentStep < 4) {
+    if (wizardData.currentStep < 7) {
         goToStep(wizardData.currentStep + 1);
     }
 }
@@ -3282,6 +3338,7 @@ function validateCurrentStep() {
     document.getElementById('heroError').style.display = 'none';
     
     if (wizardData.currentStep === 1) {
+        // Step 1: Agent Identity (name, description, brand colour)
         if (!wizardData.name.trim() || wizardData.name.length > 25) {
             document.getElementById('agentName').classList.add('is-invalid');
             isValid = false;
@@ -3290,6 +3347,8 @@ function validateCurrentStep() {
             document.getElementById('agentDescription').classList.add('is-invalid');
             isValid = false;
         }
+    } else if (wizardData.currentStep === 2) {
+        // Step 2: Branding Assets (logo, hero - both required)
         if (!wizardData.logoDataUrl || !wizardData.logoValid) {
             document.getElementById('logoError').style.display = 'block';
             isValid = false;
@@ -3298,6 +3357,8 @@ function validateCurrentStep() {
             document.getElementById('heroError').style.display = 'block';
             isValid = false;
         }
+    } else if (wizardData.currentStep === 3) {
+        // Step 3: Contact Details (phone, website, email)
         if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
             document.getElementById('supportPhone').classList.add('is-invalid');
             isValid = false;
@@ -3310,6 +3371,8 @@ function validateCurrentStep() {
             document.getElementById('supportEmail').classList.add('is-invalid');
             isValid = false;
         }
+    } else if (wizardData.currentStep === 4) {
+        // Step 4: Compliance (privacy URL, terms URL)
         if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
             document.getElementById('privacyUrl').classList.add('is-invalid');
             isValid = false;
@@ -3318,7 +3381,8 @@ function validateCurrentStep() {
             document.getElementById('termsUrl').classList.add('is-invalid');
             isValid = false;
         }
-    } else if (wizardData.currentStep === 2) {
+    } else if (wizardData.currentStep === 5) {
+        // Step 5: Messaging Profile (billing, use case, campaigns, opt-in/out, test numbers)
         if (!wizardData.billing) {
             document.getElementById('billingError').style.display = 'block';
             isValid = false;
@@ -3347,7 +3411,8 @@ function validateCurrentStep() {
             document.getElementById('useCaseOverview').classList.add('is-invalid');
             isValid = false;
         }
-    } else if (wizardData.currentStep === 3) {
+    } else if (wizardData.currentStep === 6) {
+        // Step 6: Company & Approver Details
         if (!wizardData.companyNumber.trim()) {
             document.getElementById('companyNumber').classList.add('is-invalid');
             isValid = false;
@@ -3373,6 +3438,7 @@ function validateCurrentStep() {
             isValid = false;
         }
     }
+    // Step 7 is Review - no validation needed
     
     return isValid;
 }
