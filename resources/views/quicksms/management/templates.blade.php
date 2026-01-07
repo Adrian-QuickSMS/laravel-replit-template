@@ -2196,8 +2196,8 @@
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" onclick="confirmRollback()">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmRollback()">
                     <i class="fas fa-undo me-1"></i>Confirm Roll Back
                 </button>
             </div>
@@ -4504,9 +4504,8 @@ function renderVersionsTable() {
     
     currentVersionHistory.versions.forEach(function(v) {
         var isCurrent = v.version === currentVersion;
-        var rowClass = isCurrent ? 'table-light' : '';
         
-        html += '<tr class="' + rowClass + '">';
+        html += '<tr>';
         
         html += '<td class="fw-medium">';
         html += 'v' + v.version;
@@ -4520,21 +4519,23 @@ function renderVersionsTable() {
         html += '<td class="small">' + (v.changeNote || '<span class="text-muted fst-italic">No summary</span>') + '</td>';
         
         html += '<td>';
-        var statusClass = v.status === 'live' ? 'text-success' : (v.status === 'archived' ? 'text-muted' : 'text-secondary');
-        html += '<span class="' + statusClass + '">' + getStatusLabel(v.status) + '</span>';
+        html += '<span class="badge rounded-pill ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span>';
         html += '</td>';
         
         html += '<td class="text-end">';
-        html += '<button class="btn btn-sm btn-link text-secondary p-0 me-2" onclick="viewVersion(' + v.version + ')" title="View version">';
-        html += '<i class="fas fa-eye"></i> View';
+        html += '<div class="dropdown">';
+        html += '<button class="btn btn-link p-0 text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
+        html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
+        html += '<ul class="dropdown-menu dropdown-menu-end">';
+        html += '<li><a class="dropdown-item" href="#" onclick="viewVersion(' + v.version + '); return false;"><i class="fas fa-eye me-2"></i>View version</a></li>';
         
         if (!isCurrent && !isArchived) {
-            html += '<button class="btn btn-sm btn-link text-warning p-0" onclick="initiateRollback(' + v.version + ')" title="Roll back to this version">';
-            html += '<i class="fas fa-undo"></i> Roll back';
-            html += '</button>';
+            html += '<li><a class="dropdown-item" href="#" onclick="initiateRollback(' + v.version + '); return false;"><i class="fas fa-undo me-2"></i>Roll back to this version</a></li>';
         }
         
+        html += '</ul>';
+        html += '</div>';
         html += '</td>';
         html += '</tr>';
     });
