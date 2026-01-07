@@ -939,6 +939,37 @@
                                         </span>
                                     </div>
                                     
+                                    <div class="border-top pt-3 mb-3">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="tplIncludeTrackableLink" onchange="toggleTplTrackableLink()">
+                                                    <label class="form-check-label" for="tplIncludeTrackableLink">Include trackable link</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="tplMessageExpiry" onchange="toggleTplMessageExpiry()">
+                                                    <label class="form-check-label" for="tplMessageExpiry">Message expiry</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-none mb-2" id="tplTrackableLinkSummary">
+                                        <div class="alert alert-secondary py-2 mb-0">
+                                            <i class="fas fa-link me-2"></i>Trackable link: <strong id="tplTrackableLinkDomain">qsms.uk</strong>
+                                            <a href="#" class="ms-2" onclick="openTplTrackableLinkModal(); return false;">Edit</a>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-none mb-2" id="tplMessageExpirySummary">
+                                        <div class="alert alert-secondary py-2 mb-0">
+                                            <i class="fas fa-hourglass-half me-2"></i>Message expiry: <strong id="tplMessageExpiryValue">24 Hours</strong>
+                                            <a href="#" class="ms-2" onclick="openTplMessageExpiryModal(); return false;">Edit</a>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="d-none mb-2" id="tplRcsTextHelper">
                                         <div class="alert alert-info py-2 mb-0">
                                             <i class="fas fa-info-circle me-1"></i>
@@ -1040,9 +1071,86 @@
                                 </div>
                             </div>
                             
+                            <div class="card mb-3">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Opt-out Management</h6>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="tplEnableOptout" onchange="toggleTplOptoutManagement()">
+                                            <label class="form-check-label" for="tplEnableOptout">Enable</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-none" id="tplOptoutSection">
+                                        <div class="mb-3">
+                                            <label class="form-label">Opt-out list <span class="text-muted">(optional)</span></label>
+                                            <select class="form-select" id="tplOptoutList">
+                                                <option value="" selected>No list selected</option>
+                                                @foreach($opt_out_lists as $list)
+                                                <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
+                                                @endforeach
+                                            </select>
+                                            <small class="text-muted">Select a list to exclude numbers when this template is used.</small>
+                                        </div>
+                                        
+                                        <div class="border-top pt-3">
+                                            <h6 class="mb-3">Opt-out Options</h6>
+                                            
+                                            @if(count($virtual_numbers) > 0)
+                                            <div class="mb-3 p-3 border rounded">
+                                                <div class="form-check form-switch mb-2">
+                                                    <input class="form-check-input" type="checkbox" id="tplEnableReplyOptout" onchange="toggleTplReplyOptout()">
+                                                    <label class="form-check-label fw-medium" for="tplEnableReplyOptout">Enable reply-to-opt-out</label>
+                                                </div>
+                                                <div class="d-none ps-3" id="tplReplyOptoutConfig">
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Virtual Number</label>
+                                                        <select class="form-select form-select-sm" id="tplReplyVirtualNumber">
+                                                            <option value="">-- Select virtual number --</option>
+                                                            @foreach($virtual_numbers as $vn)
+                                                            <option value="{{ $vn['id'] }}" data-number="{{ $vn['number'] }}">{{ $vn['number'] }} ({{ $vn['label'] }})</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Opt-out Text</label>
+                                                        <input type="text" class="form-control form-control-sm" id="tplReplyOptoutText" value="Reply STOP to @{{number}}" placeholder="e.g. Reply STOP to @{{number}}">
+                                                        <small class="text-muted">Use @{{number}} to insert the virtual number.</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            
+                                            <div class="p-3 border rounded">
+                                                <div class="form-check form-switch mb-2">
+                                                    <input class="form-check-input" type="checkbox" id="tplEnableUrlOptout" onchange="toggleTplUrlOptout()">
+                                                    <label class="form-check-label fw-medium" for="tplEnableUrlOptout">Enable click-to-opt-out</label>
+                                                </div>
+                                                <div class="d-none ps-3" id="tplUrlOptoutConfig">
+                                                    <div class="mb-2">
+                                                        <label class="form-label">URL Domain</label>
+                                                        <select class="form-select form-select-sm" id="tplUrlOptoutDomain">
+                                                            @foreach($optout_domains as $domain)
+                                                            <option value="{{ $domain['id'] }}" {{ $domain['is_default'] ? 'selected' : '' }}>{{ $domain['domain'] }}{{ $domain['is_default'] ? ' (default)' : '' }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        <small class="text-muted">A unique URL will be generated per message.</small>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Opt-out Text</label>
+                                                        <input type="text" class="form-control form-control-sm" id="tplUrlOptoutText" value="Opt-out: Click @{{unique_url}}" placeholder="e.g. Click @{{unique_url}}">
+                                                        <small class="text-muted">Use @{{unique_url}} to insert the tracking URL.</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="alert alert-secondary">
                                 <i class="fas fa-info-circle me-2"></i>
-                                <strong>Template Mode:</strong> This editor is the same as Send Message, but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
+                                <strong>Template Mode:</strong> This editor matches Send Message but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
                             </div>
                         </div>
                         
@@ -3804,6 +3912,75 @@ function handleTemplateContentChange() {
     wizardData.content = content;
     
     detectPlaceholders(content);
+}
+
+function toggleTplTrackableLink() {
+    var isChecked = document.getElementById('tplIncludeTrackableLink').checked;
+    var summary = document.getElementById('tplTrackableLinkSummary');
+    
+    if (isChecked) {
+        summary.classList.remove('d-none');
+        wizardData.trackableLink = { enabled: true, domain: 'qsms.uk' };
+    } else {
+        summary.classList.add('d-none');
+        wizardData.trackableLink = { enabled: false };
+    }
+}
+
+function openTplTrackableLinkModal() {
+    showToast('Trackable link settings would open here', 'info');
+}
+
+function toggleTplMessageExpiry() {
+    var isChecked = document.getElementById('tplMessageExpiry').checked;
+    var summary = document.getElementById('tplMessageExpirySummary');
+    
+    if (isChecked) {
+        summary.classList.remove('d-none');
+        wizardData.messageExpiry = { enabled: true, value: '24 Hours' };
+    } else {
+        summary.classList.add('d-none');
+        wizardData.messageExpiry = { enabled: false };
+    }
+}
+
+function openTplMessageExpiryModal() {
+    showToast('Message expiry settings would open here', 'info');
+}
+
+function toggleTplOptoutManagement() {
+    var isChecked = document.getElementById('tplEnableOptout').checked;
+    var section = document.getElementById('tplOptoutSection');
+    
+    if (isChecked) {
+        section.classList.remove('d-none');
+        wizardData.optout = { enabled: true };
+    } else {
+        section.classList.add('d-none');
+        wizardData.optout = { enabled: false };
+    }
+}
+
+function toggleTplReplyOptout() {
+    var isChecked = document.getElementById('tplEnableReplyOptout').checked;
+    var config = document.getElementById('tplReplyOptoutConfig');
+    
+    if (isChecked) {
+        config.classList.remove('d-none');
+    } else {
+        config.classList.add('d-none');
+    }
+}
+
+function toggleTplUrlOptout() {
+    var isChecked = document.getElementById('tplEnableUrlOptout').checked;
+    var config = document.getElementById('tplUrlOptoutConfig');
+    
+    if (isChecked) {
+        config.classList.remove('d-none');
+    } else {
+        config.classList.add('d-none');
+    }
 }
 
 function detectPlaceholders(content) {
