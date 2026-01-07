@@ -1576,10 +1576,8 @@ class QuickSMSController extends Controller
 
     public function rcsAgentRegistrations()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'RCS Agent Registrations',
-            'purpose' => 'Register and manage RCS Business Messaging agents.',
-            'sub_modules' => []
+        return view('quicksms.management.rcs-agent', [
+            'page_title' => 'RCS Agent Library'
         ]);
     }
 
