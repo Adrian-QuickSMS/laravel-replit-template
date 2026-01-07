@@ -2210,3 +2210,87 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Load RCS payload from a template into the wizard
+ * Used when selecting a Rich RCS template from the template selector
+ */
+function loadRcsPayloadIntoWizard(payload) {
+    if (!payload) return;
+    
+    console.log('[RCS Wizard] Loading template payload:', payload);
+    
+    rcsCardsData = {};
+    rcsCardCount = 1;
+    rcsCurrentCard = 1;
+    
+    var type = payload.type || 'standalone';
+    var isCarousel = type === 'carousel';
+    
+    var standaloneRadio = document.getElementById('rcsTypeStandalone');
+    var carouselRadio = document.getElementById('rcsTypeCarousel');
+    if (standaloneRadio && carouselRadio) {
+        if (isCarousel) {
+            carouselRadio.checked = true;
+        } else {
+            standaloneRadio.checked = true;
+        }
+    }
+    
+    if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
+        rcsCardCount = payload.cards.length;
+        payload.cards.forEach(function(card, index) {
+            var cardNum = index + 1;
+            rcsCardsData[cardNum] = {
+                title: card.title || '',
+                description: card.description || '',
+                media: card.media || null,
+                buttons: card.suggestions || []
+            };
+        });
+        
+        if (typeof rebuildCardTabs === 'function') rebuildCardTabs();
+        if (typeof selectRcsCard === 'function') selectRcsCard(1);
+    } else if (payload.card) {
+        var card = payload.card;
+        rcsCardsData[1] = {
+            title: card.title || '',
+            description: card.description || '',
+            media: card.media || null,
+            buttons: card.suggestions || []
+        };
+        
+        var titleInput = document.getElementById('rcsCardTitle');
+        var descInput = document.getElementById('rcsCardDescription');
+        
+        if (titleInput) titleInput.value = card.title || '';
+        if (descInput) descInput.value = card.description || '';
+        
+        if (card.suggestions && Array.isArray(card.suggestions)) {
+            rcsButtons = card.suggestions.map(function(s) {
+                return {
+                    label: s.text || s.label || '',
+                    type: s.type || 'url',
+                    url: s.url || '',
+                    phone: s.phone || '',
+                    title: s.title || '',
+                    start: s.start || '',
+                    end: s.end || '',
+                    description: s.description || ''
+                };
+            });
+            if (typeof updateButtonsList === 'function') updateButtonsList();
+        }
+    }
+    
+    var fallbackTextarea = document.getElementById('rcsFallbackText');
+    if (fallbackTextarea && payload.fallback) {
+        fallbackTextarea.value = payload.fallback;
+    }
+    
+    if (typeof updateRcsPreview === 'function') {
+        setTimeout(updateRcsPreview, 100);
+    }
+    
+    console.log('[RCS Wizard] Template loaded successfully');
+}

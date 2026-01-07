@@ -48,7 +48,15 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
 - **Account:** Details, User/Access management, Sub Accounts, Audit Logs, and Security settings.
 - **Support:** Dashboard, Ticket creation, and Knowledge Base.
-- **Unified RCS Wizard:** Shared fullscreen modal component (`rcs-wizard-modal.blade.php`) and JavaScript (`rcs-wizard.js`) for creating rich RCS messages, used across Send Message and Inbox pages.
+- **Unified RCS Wizard:** Shared fullscreen modal component (`rcs-wizard-modal.blade.php`) and JavaScript (`rcs-wizard.js`) for creating rich RCS messages, used across Send Message and Inbox pages. Supports `loadRcsPayloadIntoWizard()` for loading Rich RCS templates.
+- **Template Integration:** Templates integrated into Send Message and Inbox with:
+  - Dynamic filtering by trigger type (Portal/Email-to-SMS only, API templates excluded from UI)
+  - Channel-aware filtering (SMS templates available in all modes, RCS templates when RCS selected)
+  - Archived templates automatically excluded
+  - Version numbers displayed in template dropdown
+  - Refresh button for manual template reload
+  - Rich RCS templates load directly into the RCS wizard
+  - Channel auto-switching when applying RCS templates
 - **RCS Preview System:** Schema-driven renderer (`/rcs/preview-demo`) with an Android-style phone UI for channel-specific previews (Rich RCS, Basic RCS, SMS). Supports mock RCS agents with brand icons.
 - **RCS Asset Management:** Server-side image processing for RCS media, handling URL-based and uploaded images with transformations (zoom, crop, orientation) using Intervention Image. Features include SSRF protection, dedicated storage, `RcsAsset` model for tracking, and an explicit save workflow for URL images with interactive drag-to-position crop editor.
 - **MessageLog Model:** Defines message structure with encrypted content and role-based access.

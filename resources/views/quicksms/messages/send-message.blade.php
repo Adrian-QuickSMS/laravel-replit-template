@@ -169,10 +169,10 @@
                                 <label class="form-label mb-0 text-nowrap">Template</label>
                                 <select class="form-select form-select-sm" id="templateSelector" onchange="applySelectedTemplate()">
                                     <option value="">-- None --</option>
-                                    @foreach($templates as $template)
-                                    <option value="{{ $template['id'] }}" data-content="{{ addslashes($template['content']) }}">{{ $template['name'] }}</option>
-                                    @endforeach
                                 </select>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshTemplateList()" title="Refresh templates">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
                             </div>
                         </div>
                         <div class="col-md-6 col-lg-7 text-md-end">
@@ -1066,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="channel"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
             selectChannel(this.value);
+            populateTemplateSelector();
         });
     });
     
@@ -1073,6 +1074,7 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', toggleScheduling);
     });
     
+    populateTemplateSelector();
     checkForDuplicatePrefill();
     updatePreview();
 });
@@ -1515,16 +1517,101 @@ function confirmMessageExpiry() {
     if (modal) modal.hide();
 }
 
+var portalTemplates = @json($templates ?? []);
+
+function getCompatibleTemplates(currentChannel) {
+    var channelMap = {
+        'sms': ['sms'],
+        'rcs_basic': ['rcs_basic', 'sms'],
+        'rcs_rich': ['rcs_rich', 'rcs_basic', 'sms']
+    };
+    var allowedChannels = channelMap[currentChannel] || ['sms'];
+    
+    return portalTemplates.filter(function(t) {
+        if (t.trigger === 'API') return false;
+        if (t.status === 'Archived') return false;
+        var templateChannel = t.channel || 'sms';
+        if (templateChannel === 'Basic RCS + SMS') templateChannel = 'rcs_basic';
+        if (templateChannel === 'Rich RCS + SMS') templateChannel = 'rcs_rich';
+        if (templateChannel === 'SMS') templateChannel = 'sms';
+        return allowedChannels.indexOf(templateChannel) !== -1;
+    });
+}
+
+function populateTemplateSelector() {
+    var channel = document.querySelector('input[name="channel"]:checked')?.value || 'sms';
+    var selector = document.getElementById('templateSelector');
+    var currentValue = selector.value;
+    
+    selector.innerHTML = '<option value="">-- None --</option>';
+    
+    var compatible = getCompatibleTemplates(channel);
+    compatible.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.setAttribute('data-content', (t.content || '').replace(/'/g, "\\'"));
+        opt.setAttribute('data-channel', t.channel || 'SMS');
+        opt.setAttribute('data-rcs-payload', t.rcs_payload ? JSON.stringify(t.rcs_payload) : '');
+        opt.textContent = t.name + ' (v' + (t.version || '1') + ')';
+        selector.appendChild(opt);
+    });
+    
+    if (currentValue) selector.value = currentValue;
+}
+
+function refreshTemplateList() {
+    var btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    setTimeout(function() {
+        populateTemplateSelector();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    }, 300);
+}
+
 function applySelectedTemplate() {
     var selector = document.getElementById('templateSelector');
     var selectedOption = selector.options[selector.selectedIndex];
-    if (selectedOption.value) {
-        var content = selectedOption.getAttribute('data-content');
-        if (content) {
-            content = content.replace(/\\'/g, "'");
-            document.getElementById('smsContent').value = content;
-            handleContentChange();
+    
+    if (!selectedOption.value) {
+        document.getElementById('smsContent').value = '';
+        handleContentChange();
+        return;
+    }
+    
+    var channel = selectedOption.getAttribute('data-channel') || 'SMS';
+    var content = selectedOption.getAttribute('data-content') || '';
+    var rcsPayloadStr = selectedOption.getAttribute('data-rcs-payload');
+    
+    content = content.replace(/\\'/g, "'");
+    
+    if (channel === 'Rich RCS + SMS' && rcsPayloadStr) {
+        try {
+            var payload = JSON.parse(rcsPayloadStr);
+            document.querySelector('#channelRCSRich').click();
+            
+            setTimeout(function() {
+                if (typeof openRcsWizard === 'function') {
+                    openRcsWizard();
+                    setTimeout(function() {
+                        if (typeof loadRcsPayloadIntoWizard === 'function') {
+                            loadRcsPayloadIntoWizard(payload);
+                        }
+                    }, 300);
+                }
+            }, 200);
+        } catch (e) {
+            console.warn('Failed to parse RCS payload:', e);
         }
+    } else if (channel === 'Basic RCS + SMS') {
+        document.querySelector('#channelRCSBasic').click();
+        document.getElementById('smsContent').value = content;
+        handleContentChange();
+    } else {
+        document.getElementById('smsContent').value = content;
+        handleContentChange();
     }
 }
 

@@ -638,12 +638,12 @@ span.badge.channel-pill-rcs,
                                         <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
                                             <div class="d-flex align-items-center gap-2">
                                                 <label class="form-label mb-0 text-nowrap small">Template</label>
-                                                <select class="form-select form-select-sm" id="templateSelector" onchange="applyTemplate()">
+                                                <select class="form-select form-select-sm" id="templateSelector" onchange="applyInboxTemplate()">
                                                     <option value="">-- None --</option>
-                                                    @foreach($templates as $tpl)
-                                                    <option value="{{ $tpl['id'] }}" data-content="{{ addslashes($tpl['content']) }}">{{ $tpl['name'] }}</option>
-                                                    @endforeach
                                                 </select>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshInboxTemplates()" title="Refresh templates">
+                                                    <i class="fas fa-sync-alt"></i>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-7 text-md-end">
@@ -1332,8 +1332,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="replyChannel"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
             toggleReplyChannel(this.value);
+            populateInboxTemplateSelector();
         });
     });
+    
+    populateInboxTemplateSelector();
     
     var replyMsg = document.getElementById('replyMessage');
     if (replyMsg) {
@@ -1832,13 +1835,107 @@ function filterEmojis(searchTerm) {
     });
 }
 
-function applyTemplate() {
-    var select = document.getElementById('templateSelector');
-    var option = select.options[select.selectedIndex];
-    if (option && option.dataset.content) {
-        document.getElementById('replyMessage').value = option.dataset.content.replace(/\\'/g, "'");
+var inboxTemplates = @json($templates ?? []);
+
+function getInboxCompatibleTemplates(currentChannel) {
+    var channelMap = {
+        'sms': ['sms'],
+        'rcs_basic': ['rcs_basic', 'sms'],
+        'rcs_rich': ['rcs_rich', 'rcs_basic', 'sms']
+    };
+    var allowedChannels = channelMap[currentChannel] || ['sms'];
+    
+    return inboxTemplates.filter(function(t) {
+        if (t.trigger === 'API') return false;
+        if (t.status === 'Archived') return false;
+        var templateChannel = t.channel || 'sms';
+        if (templateChannel === 'Basic RCS + SMS') templateChannel = 'rcs_basic';
+        if (templateChannel === 'Rich RCS + SMS') templateChannel = 'rcs_rich';
+        if (templateChannel === 'SMS') templateChannel = 'sms';
+        return allowedChannels.indexOf(templateChannel) !== -1;
+    });
+}
+
+function populateInboxTemplateSelector() {
+    var channel = document.querySelector('input[name="replyChannel"]:checked')?.value || 'sms';
+    var selector = document.getElementById('templateSelector');
+    if (!selector) return;
+    
+    var currentValue = selector.value;
+    selector.innerHTML = '<option value="">-- None --</option>';
+    
+    var compatible = getInboxCompatibleTemplates(channel);
+    compatible.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.id;
+        opt.setAttribute('data-content', (t.content || '').replace(/'/g, "\\'"));
+        opt.setAttribute('data-channel', t.channel || 'SMS');
+        opt.setAttribute('data-rcs-payload', t.rcs_payload ? JSON.stringify(t.rcs_payload) : '');
+        opt.textContent = t.name + ' (v' + (t.version || '1') + ')';
+        selector.appendChild(opt);
+    });
+    
+    if (currentValue) selector.value = currentValue;
+}
+
+function refreshInboxTemplates() {
+    var btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    setTimeout(function() {
+        populateInboxTemplateSelector();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    }, 300);
+}
+
+function applyInboxTemplate() {
+    var selector = document.getElementById('templateSelector');
+    var selectedOption = selector.options[selector.selectedIndex];
+    
+    if (!selectedOption.value) {
+        document.getElementById('replyMessage').value = '';
+        updateCharCount();
+        return;
+    }
+    
+    var channel = selectedOption.getAttribute('data-channel') || 'SMS';
+    var content = selectedOption.getAttribute('data-content') || '';
+    var rcsPayloadStr = selectedOption.getAttribute('data-rcs-payload');
+    
+    content = content.replace(/\\'/g, "'");
+    
+    if (channel === 'Rich RCS + SMS' && rcsPayloadStr) {
+        try {
+            var payload = JSON.parse(rcsPayloadStr);
+            document.querySelector('#replyRcsRich').click();
+            
+            setTimeout(function() {
+                if (typeof openRcsWizard === 'function') {
+                    openRcsWizard();
+                    setTimeout(function() {
+                        if (typeof loadRcsPayloadIntoWizard === 'function') {
+                            loadRcsPayloadIntoWizard(payload);
+                        }
+                    }, 300);
+                }
+            }, 200);
+        } catch (e) {
+            console.warn('Failed to parse RCS payload:', e);
+        }
+    } else if (channel === 'Basic RCS + SMS') {
+        document.querySelector('#replyRcsBasic').click();
+        document.getElementById('replyMessage').value = content;
+        updateCharCount();
+    } else {
+        document.getElementById('replyMessage').value = content;
         updateCharCount();
     }
+}
+
+function applyTemplate() {
+    applyInboxTemplate();
 }
 
 function openAiAssistant() {
