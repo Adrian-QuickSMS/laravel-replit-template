@@ -1079,12 +1079,204 @@
                 </div>
                 
                 <div id="wizardStep3" class="wizard-content p-4" style="display: none;">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <i class="fas fa-shield-alt me-2 text-primary"></i>
+                            <strong>Step 3: Permissions</strong> - Define who can access and use this template.
+                        </div>
+                        
+                        <div class="step3-locked-info mb-3">
+                            <div class="d-flex gap-4 flex-wrap">
+                                <div><small class="text-muted d-block">Template Name</small><div class="fw-semibold" id="step3TemplateName">-</div></div>
+                                <div><small class="text-muted d-block">Trigger</small><span class="badge rounded-pill" id="step3TriggerBadge">-</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning py-2 d-none" id="wizardPermApiWarning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>API templates</strong> must be assigned to at least one sub-account.
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-body p-4">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Access Mode</label>
+                                    <div class="d-flex gap-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="wizardAccessMode" id="wizardAccessAll" value="all" onchange="updateWizardAccessMode()">
+                                            <label class="form-check-label" for="wizardAccessAll">
+                                                <i class="fas fa-globe me-1 text-success"></i>All Users
+                                                <small class="text-muted d-block">Everyone in your organization can use this template</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="wizardAccessMode" id="wizardAccessRestricted" value="restricted" checked onchange="updateWizardAccessMode()">
+                                            <label class="form-check-label" for="wizardAccessRestricted">
+                                                <i class="fas fa-lock me-1 text-warning"></i>Restricted Access
+                                                <small class="text-muted d-block">Only selected sub-accounts, roles, or users</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="wizardRestrictedSection">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label fw-semibold">
+                                                <i class="fas fa-building me-1 text-primary"></i>Sub-accounts
+                                                <span class="placeholder-counter ms-2" id="wizardSubAccountCount">0</span>
+                                            </label>
+                                            <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;">
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-subaccount-check" type="checkbox" value="all" id="wizardSubAll" onchange="toggleWizardSubAccount('all')">
+                                                    <label class="form-check-label small" for="wizardSubAll">
+                                                        <i class="fas fa-globe me-1 text-muted"></i>All Sub-accounts
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-subaccount-check" type="checkbox" value="main" id="wizardSubMain" onchange="toggleWizardSubAccount('main')">
+                                                    <label class="form-check-label small" for="wizardSubMain">Main Account</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-subaccount-check" type="checkbox" value="marketing" id="wizardSubMarketing" onchange="toggleWizardSubAccount('marketing')">
+                                                    <label class="form-check-label small" for="wizardSubMarketing">Marketing Team</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-subaccount-check" type="checkbox" value="sales" id="wizardSubSales" onchange="toggleWizardSubAccount('sales')">
+                                                    <label class="form-check-label small" for="wizardSubSales">Sales Department</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-subaccount-check" type="checkbox" value="support" id="wizardSubSupport" onchange="toggleWizardSubAccount('support')">
+                                                    <label class="form-check-label small" for="wizardSubSupport">Customer Support</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label fw-semibold">
+                                                <i class="fas fa-user-tag me-1 text-info"></i>Roles
+                                                <span class="placeholder-counter ms-2" id="wizardRoleCount">0</span>
+                                            </label>
+                                            <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;">
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="admin" id="wizardRoleAdmin" onchange="toggleWizardRole('admin')">
+                                                    <label class="form-check-label small" for="wizardRoleAdmin">
+                                                        <i class="fas fa-crown me-1 text-warning"></i>Administrator
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="manager" id="wizardRoleManager" onchange="toggleWizardRole('manager')">
+                                                    <label class="form-check-label small" for="wizardRoleManager">
+                                                        <i class="fas fa-user-tie me-1 text-info"></i>Manager
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="messaging" id="wizardRoleMessaging" onchange="toggleWizardRole('messaging')">
+                                                    <label class="form-check-label small" for="wizardRoleMessaging">
+                                                        <i class="fas fa-envelope me-1 text-primary"></i>Messaging User
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="viewer" id="wizardRoleViewer" onchange="toggleWizardRole('viewer')">
+                                                    <label class="form-check-label small" for="wizardRoleViewer">
+                                                        <i class="fas fa-eye me-1 text-secondary"></i>Viewer
+                                                    </label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="api" id="wizardRoleApi" onchange="toggleWizardRole('api')">
+                                                    <label class="form-check-label small" for="wizardRoleApi">
+                                                        <i class="fas fa-code me-1 text-dark"></i>API User
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label fw-semibold">
+                                                <i class="fas fa-user me-1 text-secondary"></i>Users <small class="text-muted">(optional)</small>
+                                                <span class="placeholder-counter ms-2" id="wizardUserCount">0</span>
+                                            </label>
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                <input type="text" class="form-control" id="wizardUserSearch" placeholder="Search users..." oninput="filterWizardUsers()">
+                                            </div>
+                                            <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;" id="wizardUserList">
+                                                <div class="form-check mb-2 wizard-user-item" data-name="john smith">
+                                                    <input class="form-check-input wizard-user-check" type="checkbox" value="user1" id="wizardUser1" onchange="toggleWizardUser('user1')">
+                                                    <label class="form-check-label small" for="wizardUser1">John Smith</label>
+                                                </div>
+                                                <div class="form-check mb-2 wizard-user-item" data-name="sarah wilson">
+                                                    <input class="form-check-input wizard-user-check" type="checkbox" value="user2" id="wizardUser2" onchange="toggleWizardUser('user2')">
+                                                    <label class="form-check-label small" for="wizardUser2">Sarah Wilson</label>
+                                                </div>
+                                                <div class="form-check mb-2 wizard-user-item" data-name="mike johnson">
+                                                    <input class="form-check-input wizard-user-check" type="checkbox" value="user3" id="wizardUser3" onchange="toggleWizardUser('user3')">
+                                                    <label class="form-check-label small" for="wizardUser3">Mike Johnson</label>
+                                                </div>
+                                                <div class="form-check mb-2 wizard-user-item" data-name="emily davis">
+                                                    <input class="form-check-input wizard-user-check" type="checkbox" value="user4" id="wizardUser4" onchange="toggleWizardUser('user4')">
+                                                    <label class="form-check-label small" for="wizardUser4">Emily Davis</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="wizardStep4" class="wizard-content p-4" style="display: none;">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <i class="fas fa-info-circle me-2 text-primary"></i>
-                            <strong>Step 3: Review & Save</strong> - Review your template details before saving.
+                            <i class="fas fa-check-circle me-2 text-primary"></i>
+                            <strong>Step 4: Review & Save</strong> - Review your template details before saving.
                         </div>
-                        <p class="text-muted">Review step coming in next iteration...</p>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Template Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small text-muted">Template Name</label>
+                                        <p class="mb-0 fw-semibold" id="reviewTemplateName">-</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small text-muted">Template ID</label>
+                                        <p class="mb-0"><code id="reviewTemplateId">-</code></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small text-muted">Channel</label>
+                                        <p class="mb-0" id="reviewChannel">-</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small text-muted">Trigger</label>
+                                        <p class="mb-0" id="reviewTrigger">-</p>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small text-muted">Content Preview</label>
+                                    <div class="border rounded p-3 bg-light" id="reviewContent">-</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-muted">Access Mode</label>
+                                        <p class="mb-0" id="reviewAccessMode">-</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-muted">Permissions</label>
+                                        <p class="mb-0" id="reviewPermissions">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Template will be created as <strong>Draft</strong>. You can launch it to make it Live after creation.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2246,7 +2438,11 @@ var wizardData = {
     templateId: '',
     trigger: '',
     channel: 'sms',
-    content: ''
+    content: '',
+    accessMode: 'restricted',
+    subAccounts: [],
+    roles: [],
+    users: []
 };
 
 function generateTemplateId() {
@@ -2260,8 +2456,26 @@ function showCreateModal() {
         templateId: generateTemplateId(),
         trigger: '',
         channel: 'sms',
-        content: ''
+        content: '',
+        accessMode: 'restricted',
+        subAccounts: [],
+        roles: [],
+        users: []
     };
+    
+    document.querySelectorAll('.wizard-subaccount-check').forEach(function(cb) {
+        cb.checked = false;
+        cb.disabled = false;
+    });
+    document.querySelectorAll('.wizard-role-check').forEach(function(cb) {
+        cb.checked = false;
+    });
+    document.querySelectorAll('.wizard-user-check').forEach(function(cb) {
+        cb.checked = false;
+    });
+    document.getElementById('wizardAccessRestricted').checked = true;
+    document.getElementById('wizardRestrictedSection').style.display = 'block';
+    updateWizardPermissionCounts();
     
     document.getElementById('templateName').value = '';
     document.getElementById('templateIdField').value = wizardData.templateId;
@@ -2325,10 +2539,11 @@ function updateWizardUI() {
     document.getElementById('wizardStep1').style.display = currentWizardStep === 1 ? 'block' : 'none';
     document.getElementById('wizardStep2').style.display = currentWizardStep === 2 ? 'block' : 'none';
     document.getElementById('wizardStep3').style.display = currentWizardStep === 3 ? 'block' : 'none';
+    document.getElementById('wizardStep4').style.display = currentWizardStep === 4 ? 'block' : 'none';
     
     document.getElementById('wizardBackBtn').style.display = currentWizardStep > 1 ? 'inline-block' : 'none';
-    document.getElementById('wizardNextBtn').style.display = currentWizardStep < 3 ? 'inline-block' : 'none';
-    document.getElementById('wizardSaveBtn').style.display = currentWizardStep === 3 ? 'inline-block' : 'none';
+    document.getElementById('wizardNextBtn').style.display = currentWizardStep < 4 ? 'inline-block' : 'none';
+    document.getElementById('wizardSaveBtn').style.display = currentWizardStep === 4 ? 'inline-block' : 'none';
     
     if (currentWizardStep === 2) {
         document.getElementById('step2TemplateName').textContent = wizardData.name;
@@ -2341,6 +2556,24 @@ function updateWizardUI() {
         setTimeout(function() {
             updateTemplatePreview();
         }, 100);
+    }
+    
+    if (currentWizardStep === 3) {
+        document.getElementById('step3TemplateName').textContent = wizardData.name;
+        var step3TriggerBadge = document.getElementById('step3TriggerBadge');
+        step3TriggerBadge.textContent = getTriggerLabel(wizardData.trigger);
+        step3TriggerBadge.className = 'badge rounded-pill ' + getTriggerBadgeClass(wizardData.trigger);
+        
+        var apiWarning = document.getElementById('wizardPermApiWarning');
+        if (wizardData.trigger === 'api') {
+            apiWarning.classList.remove('d-none');
+        } else {
+            apiWarning.classList.add('d-none');
+        }
+    }
+    
+    if (currentWizardStep === 4) {
+        populateReviewStep();
     }
 }
 
@@ -2376,9 +2609,151 @@ function wizardNext() {
         }
     }
     
-    if (currentWizardStep < 3) {
+    if (currentWizardStep === 3) {
+        if (!validateStep3()) {
+            return;
+        }
+    }
+    
+    if (currentWizardStep < 4) {
         currentWizardStep++;
         updateWizardUI();
+    }
+}
+
+function validateStep3() {
+    var accessMode = document.querySelector('input[name="wizardAccessMode"]:checked').value;
+    wizardData.accessMode = accessMode;
+    
+    if (accessMode === 'all') {
+        wizardData.subAccounts = ['all'];
+        wizardData.roles = [];
+        wizardData.users = [];
+        return true;
+    }
+    
+    var subAccounts = [];
+    document.querySelectorAll('.wizard-subaccount-check:checked').forEach(function(cb) {
+        subAccounts.push(cb.value);
+    });
+    
+    var roles = [];
+    document.querySelectorAll('.wizard-role-check:checked').forEach(function(cb) {
+        roles.push(cb.value);
+    });
+    
+    var users = [];
+    document.querySelectorAll('.wizard-user-check:checked').forEach(function(cb) {
+        users.push(cb.value);
+    });
+    
+    wizardData.subAccounts = subAccounts;
+    wizardData.roles = roles;
+    wizardData.users = users;
+    
+    if (wizardData.trigger === 'api' && subAccounts.length === 0) {
+        showToast('API templates must be assigned to at least one sub-account', 'error');
+        return false;
+    }
+    
+    if (subAccounts.length === 0 && roles.length === 0 && users.length === 0) {
+        showToast('Please select at least one sub-account, role, or user', 'warning');
+        return false;
+    }
+    
+    return true;
+}
+
+function updateWizardAccessMode() {
+    var accessMode = document.querySelector('input[name="wizardAccessMode"]:checked').value;
+    var restrictedSection = document.getElementById('wizardRestrictedSection');
+    
+    if (accessMode === 'all') {
+        restrictedSection.style.display = 'none';
+    } else {
+        restrictedSection.style.display = 'block';
+    }
+}
+
+function toggleWizardSubAccount(value) {
+    if (value === 'all') {
+        var allChecked = document.getElementById('wizardSubAll').checked;
+        document.querySelectorAll('.wizard-subaccount-check').forEach(function(cb) {
+            if (cb.value !== 'all') {
+                cb.checked = false;
+                cb.disabled = allChecked;
+            }
+        });
+    } else {
+        document.getElementById('wizardSubAll').checked = false;
+    }
+    updateWizardPermissionCounts();
+}
+
+function toggleWizardRole(value) {
+    updateWizardPermissionCounts();
+}
+
+function toggleWizardUser(value) {
+    updateWizardPermissionCounts();
+}
+
+function updateWizardPermissionCounts() {
+    var subCount = document.querySelectorAll('.wizard-subaccount-check:checked').length;
+    var roleCount = document.querySelectorAll('.wizard-role-check:checked').length;
+    var userCount = document.querySelectorAll('.wizard-user-check:checked').length;
+    
+    var subCountEl = document.getElementById('wizardSubAccountCount');
+    var roleCountEl = document.getElementById('wizardRoleCount');
+    var userCountEl = document.getElementById('wizardUserCount');
+    
+    subCountEl.textContent = subCount;
+    subCountEl.className = 'placeholder-counter ms-2' + (subCount === 0 ? ' empty' : '');
+    
+    roleCountEl.textContent = roleCount;
+    roleCountEl.className = 'placeholder-counter ms-2' + (roleCount === 0 ? ' empty' : '');
+    
+    userCountEl.textContent = userCount;
+    userCountEl.className = 'placeholder-counter ms-2' + (userCount === 0 ? ' empty' : '');
+}
+
+function filterWizardUsers() {
+    var search = document.getElementById('wizardUserSearch').value.toLowerCase();
+    document.querySelectorAll('.wizard-user-item').forEach(function(item) {
+        var name = item.getAttribute('data-name') || '';
+        item.style.display = name.includes(search) ? 'block' : 'none';
+    });
+}
+
+function populateReviewStep() {
+    document.getElementById('reviewTemplateName').textContent = wizardData.name;
+    document.getElementById('reviewTemplateId').textContent = wizardData.templateId;
+    document.getElementById('reviewChannel').textContent = getChannelLabel(wizardData.channel);
+    document.getElementById('reviewTrigger').innerHTML = getTriggerIcon(wizardData.trigger) + ' ' + getTriggerLabel(wizardData.trigger);
+    
+    var content = document.getElementById('templateContent').value;
+    if (wizardData.channel === 'rich_rcs' && templateRcsPayload) {
+        document.getElementById('reviewContent').innerHTML = '<span class="text-muted fst-italic">Rich RCS content configured</span>';
+    } else {
+        document.getElementById('reviewContent').textContent = content || '-';
+    }
+    
+    if (wizardData.accessMode === 'all') {
+        document.getElementById('reviewAccessMode').innerHTML = '<i class="fas fa-globe me-1 text-success"></i>All Users';
+        document.getElementById('reviewPermissions').textContent = 'Everyone in your organization';
+    } else {
+        document.getElementById('reviewAccessMode').innerHTML = '<i class="fas fa-lock me-1 text-warning"></i>Restricted';
+        var permParts = [];
+        if (wizardData.subAccounts.length > 0) {
+            permParts.push(wizardData.subAccounts.length + ' sub-account(s)');
+        }
+        if (wizardData.roles.length > 0) {
+            permParts.push(wizardData.roles.length + ' role(s)');
+        }
+        if (wizardData.users.length > 0) {
+            permParts.push(wizardData.users.length + ' user(s)');
+        }
+        document.getElementById('reviewPermissions').textContent = permParts.join(', ') || 'None selected';
     }
 }
 
