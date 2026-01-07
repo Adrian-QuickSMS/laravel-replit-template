@@ -1,0 +1,98 @@
+CRITICAL: Template Creation has broken the shared Send Message implementation.
+This must be corrected before any further feature work.
+
+Issue Summary:
+The “Send Message” screen used during Template Creation is visibly broken and does NOT match the core Send Message experience. This indicates the shared Send Message builder has either:
+- been partially copied,
+- overridden with custom layout rules, or
+- redesigned instead of reused.
+
+This is NOT acceptable. Template creation must use the SAME Send Message builder, layout, and components, with configuration flags only.
+
+────────────────────────
+A) Enforce shared Send Message builder usage
+────────────────────────
+Requirement:
+- The Template Creation flow MUST reuse the existing Send Message screen as a shared component.
+- No custom layout, no alternate JSX, no re-styled containers.
+
+Implementation rule (non-negotiable):
+- Use a single SendMessageBuilder component with a mode flag:
+  mode = "campaign" | "inbox" | "template"
+- The mode flag may:
+  - hide recipients
+  - hide pricing
+  - change final CTA label
+- The mode flag must NOT:
+  - change layout
+  - change component positioning
+  - remove feature cards
+
+If a separate implementation exists for templates, REMOVE IT.
+
+Acceptance:
+- Diff between Campaign Send Message and Template Send Message is limited strictly to hidden sections, not layout changes.
+
+────────────────────────
+B) Fix Phone Preview + Right Pane
+────────────────────────
+Current issues:
+- Phone preview is missing from the right pane.
+- SMS/RCS toggle is floating above the layout instead of being anchored in its card.
+
+Requirements:
+- Restore the right-hand preview pane EXACTLY as per Send Message:
+  - Phone preview always visible
+  - Preview uses shared preview component
+- SMS / Basic RCS / Rich RCS toggle must live inside the Channel / Sender card, not floating.
+
+Acceptance:
+- Preview pane renders identically to Send Message.
+- Channel toggle placement matches Send Message pixel-for-pixel.
+
+────────────────────────
+C) Fix Channel / Sender Card Height
+────────────────────────
+Issue:
+- Channel + Sender card is excessively tall and breaks visual hierarchy.
+
+Requirement:
+- Revert Channel / Sender card to the SAME dimensions and spacing used in Send Message.
+- SenderID dropdown (SMS) and Agent dropdown (RCS) must appear inline and collapse correctly when not applicable.
+
+Acceptance:
+- Card height matches Send Message.
+- No excessive vertical whitespace.
+
+────────────────────────
+D) Restore missing feature cards (must exist in Template mode)
+────────────────────────
+The following features are MISSING and must be restored:
+
+1) Include Trackable Link toggle
+2) Message Expiry toggle
+3) Opt-out Management card
+
+Rules:
+- These must be visible in Template Creation.
+- Behaviour should match Send Message exactly.
+- Any send-time-only logic can be disabled later, but UI must exist.
+
+Constraints:
+- Do NOT remove cards in template mode.
+- Do NOT replace with placeholders.
+
+Acceptance:
+- Trackable link, expiry, and opt-out cards are visible and configurable.
+- UI parity with Send Message is restored.
+
+────────────────────────
+E) Explicit regression guard
+────────────────────────
+Add a regression note for developers:
+
+- Template Creation is a CONFIGURATION of Send Message, not a new screen.
+- Any future Send Message UI changes must automatically reflect in Template Creation.
+
+Acceptance:
+- Developer confirms (in comments or commit message) that Send Message builder is shared.

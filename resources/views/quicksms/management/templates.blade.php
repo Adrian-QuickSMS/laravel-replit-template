@@ -1894,27 +1894,17 @@
 <div class="modal fade" id="versionHistoryModal" tabindex="-1" aria-labelledby="versionHistoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header py-2" style="background: linear-gradient(135deg, #886CC0 0%, #a78bda 100%);">
-                <h5 class="modal-title text-white" id="versionHistoryModalLabel">
-                    <i class="fas fa-history me-2"></i>Version History
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header border-bottom">
+                <div>
+                    <h5 class="modal-title mb-1" id="versionHistoryModalLabel">
+                        <i class="fas fa-history me-2 text-muted"></i>Version History
+                    </h5>
+                    <p class="text-muted small mb-0">Template: <span id="vhTemplateName" class="fw-medium">Template Name</span> <span class="text-muted">(ID: <span id="vhTemplateId">00000000</span>)</span></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
-                <div class="p-3 bg-light border-bottom">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h6 class="mb-1" id="vhTemplateName">Template Name</h6>
-                            <span class="text-muted small">ID: <code id="vhTemplateId">00000000</code></span>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            <span class="badge bg-primary" id="vhCurrentVersion">Current: v1</span>
-                            <span class="badge" id="vhCurrentStatus">Live</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <ul class="nav nav-tabs px-3 pt-2" id="vhTabs" role="tablist">
+                <ul class="nav nav-tabs px-3 pt-2 border-bottom-0" id="vhTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="versions-tab" data-bs-toggle="tab" data-bs-target="#versions-pane" type="button" role="tab">
                             <i class="fas fa-code-branch me-1"></i>Versions
@@ -1931,14 +1921,14 @@
                     <div class="tab-pane fade show active" id="versions-pane" role="tabpanel">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0" id="versionsTable">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
                                         <th style="width: 80px;">Version</th>
-                                        <th style="width: 100px;">Status</th>
-                                        <th>Change Note</th>
-                                        <th style="width: 150px;">Edited By</th>
+                                        <th style="width: 140px;">Edited By</th>
                                         <th style="width: 160px;">Edited At</th>
-                                        <th style="width: 120px;">Actions</th>
+                                        <th>Change Summary</th>
+                                        <th style="width: 100px;">Status</th>
+                                        <th style="width: 140px; text-align: right;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="versionsTableBody">
@@ -2046,35 +2036,45 @@
 <div class="modal fade" id="rollbackConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header py-2 bg-warning">
-                <h5 class="modal-title"><i class="fas fa-undo me-2"></i>Confirm Rollback</h5>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="fas fa-undo me-2 text-warning"></i>Roll back to <span id="rbVersionLabel">v1</span>?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>You are about to roll back to <strong id="rbVersionLabel">Version X</strong>.</p>
-                <p class="mb-3">This will create a <strong>new version</strong> with the content from the selected version. The current version will remain in history.</p>
+                <p class="mb-3">This will create a new version (<strong id="rbNewVersionLabel">v4</strong>) using <span id="rbSourceVersionLabel">v2</span> content.</p>
+                
+                <div class="bg-light rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Source version:</span>
+                        <span class="fw-medium" id="rbSourceVersion">v2</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">New version to create:</span>
+                        <span class="fw-medium text-success" id="rbNewVersion">v4</span>
+                    </div>
+                </div>
                 
                 <div class="mb-3">
-                    <label class="form-label">Change Note (optional)</label>
+                    <label class="form-label small text-muted">Change Note (optional)</label>
                     <input type="text" class="form-control" id="rbChangeNote" placeholder="e.g., Rolled back due to error in v3">
                 </div>
                 
-                <div class="form-check mb-2">
+                <div class="form-check mb-3">
                     <input class="form-check-input" type="checkbox" id="rbSetLive">
                     <label class="form-check-label" for="rbSetLive">
                         Set the new version as Live immediately
                     </label>
                 </div>
                 
-                <div class="alert alert-secondary py-2 small mb-0">
+                <div class="alert alert-info py-2 small mb-0">
                     <i class="fas fa-info-circle me-1"></i>
                     Rolling back creates a new version. No existing versions are deleted or modified.
                 </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-warning" onclick="confirmRollback()">
-                    <i class="fas fa-undo me-1"></i>Roll Back
+                    <i class="fas fa-undo me-1"></i>Confirm Roll Back
                 </button>
             </div>
         </div>
@@ -2211,19 +2211,29 @@ var mockTemplates = [
 var mockVersionHistory = {
     1: [
         { version: 3, status: 'live', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.', channel: 'sms', trigger: 'portal', changeNote: 'Added opt-out instructions', editedBy: 'John Smith', editedAt: '2026-01-05 14:32:00', userId: 'user1' },
-        { version: 2, status: 'draft', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Personalized greeting', editedBy: 'Sarah Jones', editedAt: '2026-01-03 10:15:00', userId: 'user2' },
-        { version: 1, status: 'draft', content: 'Welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2026-01-01 09:00:00', userId: 'user1' }
+        { version: 2, status: 'archived', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Personalized greeting', editedBy: 'Sarah Jones', editedAt: '2026-01-03 10:15:00', userId: 'user2' },
+        { version: 1, status: 'archived', content: 'Welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2026-01-01 09:00:00', userId: 'user1' }
     ],
     2: [
         { version: 2, status: 'live', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}. Reply YES to confirm.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Added confirmation prompt', editedBy: 'Mike Wilson', editedAt: '2026-01-04 16:45:00', userId: 'user3' },
-        { version: 1, status: 'draft', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Initial version', editedBy: 'Mike Wilson', editedAt: '2026-01-02 11:30:00', userId: 'user3' }
+        { version: 1, status: 'archived', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Initial version', editedBy: 'Mike Wilson', editedAt: '2026-01-02 11:30:00', userId: 'user3' }
+    ],
+    4: [
+        { version: 4, status: 'draft', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Updated carousel images for winter sale', editedBy: 'Lisa Chen', editedAt: '2025-12-20 09:15:00', userId: 'user6' },
+        { version: 3, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Added third carousel card', editedBy: 'Lisa Chen', editedAt: '2025-12-15 14:30:00', userId: 'user6' },
+        { version: 2, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Changed to carousel format', editedBy: 'Mike Wilson', editedAt: '2025-12-10 11:00:00', userId: 'user3' },
+        { version: 1, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'api', changeNote: 'Initial rich card version', editedBy: 'John Smith', editedAt: '2025-12-01 10:00:00', userId: 'user1' }
     ],
     6: [
         { version: 5, status: 'archived', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Archived - replaced by new auth system', editedBy: 'Emily Brown', editedAt: '2025-11-15 08:00:00', userId: 'user4' },
-        { version: 4, status: 'live', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Added security warning', editedBy: 'Emily Brown', editedAt: '2025-10-20 14:20:00', userId: 'user4' },
-        { version: 3, status: 'live', content: 'Your verification code is {Code}. Expires in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Shortened expiry text', editedBy: 'David Lee', editedAt: '2025-09-15 10:00:00', userId: 'user5' },
-        { version: 2, status: 'live', content: 'Your verification code is {Code}. This code will expire in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Added expiry info', editedBy: 'Emily Brown', editedAt: '2025-08-01 09:30:00', userId: 'user4' },
-        { version: 1, status: 'draft', content: 'Your verification code is {Code}.', channel: 'sms', trigger: 'api', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2025-07-15 15:00:00', userId: 'user1' }
+        { version: 4, status: 'archived', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Added security warning', editedBy: 'Emily Brown', editedAt: '2025-10-20 14:20:00', userId: 'user4' },
+        { version: 3, status: 'archived', content: 'Your verification code is {Code}. Expires in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Shortened expiry text', editedBy: 'David Lee', editedAt: '2025-09-15 10:00:00', userId: 'user5' },
+        { version: 2, status: 'archived', content: 'Your verification code is {Code}. This code will expire in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Added expiry info', editedBy: 'Emily Brown', editedAt: '2025-08-01 09:30:00', userId: 'user4' },
+        { version: 1, status: 'archived', content: 'Your verification code is {Code}.', channel: 'sms', trigger: 'api', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2025-07-15 15:00:00', userId: 'user1' }
+    ],
+    8: [
+        { version: 2, status: 'live', content: '', channel: 'rich_rcs', trigger: 'email', changeNote: 'Updated feedback survey link', editedBy: 'Sarah Jones', editedAt: '2026-01-02 15:45:00', userId: 'user2' },
+        { version: 1, status: 'archived', content: '', channel: 'rich_rcs', trigger: 'email', changeNote: 'Initial customer feedback template', editedBy: 'Sarah Jones', editedAt: '2025-12-28 10:30:00', userId: 'user2' }
     ]
 };
 
@@ -4262,11 +4272,6 @@ function viewVersionHistory(templateId) {
     
     document.getElementById('vhTemplateName').textContent = template.name;
     document.getElementById('vhTemplateId').textContent = template.templateId;
-    document.getElementById('vhCurrentVersion').textContent = 'Current: v' + template.version;
-    
-    var statusBadge = document.getElementById('vhCurrentStatus');
-    statusBadge.textContent = getStatusLabel(template.status);
-    statusBadge.className = 'badge ' + getStatusBadgeClass(template.status).replace('badge-', 'bg-');
     
     renderVersionsTable();
     renderAuditTimeline();
@@ -4311,31 +4316,42 @@ function renderVersionsTable() {
     
     currentVersionHistory.versions.forEach(function(v) {
         var isCurrent = v.version === currentVersion;
-        var rowClass = isCurrent ? 'vh-version-current' : '';
+        var rowClass = isCurrent ? 'table-light' : '';
         
         html += '<tr class="' + rowClass + '">';
-        html += '<td><span class="badge bg-primary">v' + v.version + '</span>';
+        
+        html += '<td class="fw-medium">';
+        html += 'v' + v.version;
         if (isCurrent) {
-            html += ' <span class="badge bg-success ms-1">Current</span>';
+            html += ' <small class="text-muted">(active)</small>';
         }
         html += '</td>';
         
-        html += '<td><span class="badge ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span></td>';
-        html += '<td class="text-muted small">' + (v.changeNote || '<em>No note</em>') + '</td>';
         html += '<td>' + v.editedBy + '</td>';
-        html += '<td class="small">' + formatTimestamp(v.editedAt) + '</td>';
+        html += '<td class="small text-muted">' + formatTimestamp(v.editedAt) + '</td>';
+        html += '<td class="small">' + (v.changeNote || '<span class="text-muted fst-italic">No summary</span>') + '</td>';
+        
         html += '<td>';
-        html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="viewVersion(' + v.version + ')" title="View"><i class="fas fa-eye"></i></button>';
+        var statusClass = v.status === 'live' ? 'text-success' : (v.status === 'archived' ? 'text-muted' : 'text-secondary');
+        html += '<span class="' + statusClass + '">' + getStatusLabel(v.status) + '</span>';
+        html += '</td>';
+        
+        html += '<td class="text-end">';
+        html += '<button class="btn btn-sm btn-link text-secondary p-0 me-2" onclick="viewVersion(' + v.version + ')" title="View version">';
+        html += '<i class="fas fa-eye"></i> View';
+        html += '</button>';
         
         if (!isCurrent && !isArchived) {
-            html += '<button class="btn btn-sm btn-outline-warning" onclick="initiateRollback(' + v.version + ')" title="Roll back"><i class="fas fa-undo"></i></button>';
+            html += '<button class="btn btn-sm btn-link text-warning p-0" onclick="initiateRollback(' + v.version + ')" title="Roll back to this version">';
+            html += '<i class="fas fa-undo"></i> Roll back';
+            html += '</button>';
         }
         
         html += '</td>';
         html += '</tr>';
     });
     
-    tbody.innerHTML = html || '<tr><td colspan="6" class="text-center text-muted">No version history available</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="6" class="text-center text-muted py-4">No version history available</td></tr>';
 }
 
 function renderAuditTimeline() {
@@ -4476,11 +4492,21 @@ function initiateRollback(versionNum) {
     var versionData = currentVersionHistory.versions.find(function(v) { return v.version === versionNum; });
     if (!versionData) return;
     
+    var template = mockTemplates.find(function(t) { return t.id === currentVersionHistory.templateId; });
+    if (!template) return;
+    
+    var newVersion = template.version + 1;
+    
     rollbackTarget.templateId = currentVersionHistory.templateId;
     rollbackTarget.version = versionNum;
     rollbackTarget.data = versionData;
+    rollbackTarget.newVersion = newVersion;
     
-    document.getElementById('rbVersionLabel').textContent = 'Version ' + versionNum;
+    document.getElementById('rbVersionLabel').textContent = 'v' + versionNum;
+    document.getElementById('rbSourceVersionLabel').textContent = 'v' + versionNum;
+    document.getElementById('rbNewVersionLabel').textContent = 'v' + newVersion;
+    document.getElementById('rbSourceVersion').textContent = 'v' + versionNum;
+    document.getElementById('rbNewVersion').textContent = 'v' + newVersion;
     document.getElementById('rbChangeNote').value = '';
     document.getElementById('rbSetLive').checked = false;
     
@@ -4582,11 +4608,9 @@ function confirmRollback() {
     renderVersionsTable();
     renderAuditTimeline();
     
-    document.getElementById('vhCurrentVersion').textContent = 'Current: v' + newVersion;
-    
     renderTemplates();
     
-    showToast('Rolled back to version ' + rollbackTarget.version + '. New version ' + newVersion + ' created.', 'success');
+    showToast('Rollback complete. Created v' + newVersion + ' from v' + rollbackTarget.version + '.', 'success');
     
     rollbackTarget = { templateId: null, version: null, data: null };
 }

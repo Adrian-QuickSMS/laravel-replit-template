@@ -1,0 +1,95 @@
+Message Templates — Version History Popup Redesign + Proper Mock Data + Rollback Demo
+
+Goal:
+Bring the Version History popup back in line with platform design principles (simple, table-first, no unnecessary banners/pills) and include mock data that demonstrates multi-version templates and rollback behaviour.
+
+────────────────────────
+A) Remove the grey top banner and unnecessary pills
+────────────────────────
+Requirements:
+- Remove the entire grey banner/header area currently shown at the top of the Version History popup.
+- Do NOT render:
+  - Template ID as a pill
+  - “Current v1” pill
+  - “Draft” pill in the banner
+- Keep the header minimal:
+  - Title: “Version History”
+  - Optional subtitle: “Template: {Template Name} (ID: 12345678)” as plain text only
+
+Constraints:
+- No coloured pills in the header.
+- Use standard modal header styling used across the portal.
+
+Acceptance:
+- No grey banner area exists.
+- Template ID is plain text (not a pill).
+- No “current v1” or “draft” pills appear in the header.
+
+────────────────────────
+B) Version list must show every version row (table-first)
+────────────────────────
+Requirements:
+- Display all versions in a table/list with one row per version (v1, v2, v3…).
+- Columns (plain text, no pills except if you keep Status elsewhere—prefer plain text here):
+  - Version (e.g. v1, v2, v3)
+  - Edited By
+  - Edited At (date/time)
+  - Change Summary (optional)
+  - Status (plain text: Draft / Live / Archived)
+  - Actions (buttons/links)
+
+Design rules:
+- “v1” must be plain text.
+- Do NOT show “Current” pills in the table.
+- If you need to indicate the active version, use subtle plain text like “(active)” or a small icon—not a pill.
+
+Constraints:
+- Use the same table typography + spacing as other list popups (Message Logs/Downloads style).
+- No badge/pill styling for version/channel/preview.
+
+Acceptance:
+- Every version is visible as its own row.
+- No “Current” pill appears.
+- Version labels are plain text (v1/v2/v3).
+
+────────────────────────
+C) Add mock data that demonstrates multi-version templates
+────────────────────────
+Requirements:
+- Update mock data so at least 2 templates have multiple versions:
+  - Template A: v1, v2, v3
+  - Template B: v1, v2
+  - Template C: v1 only
+- Each version must have different timestamps and “edited by” values so the list feels realistic.
+
+Constraints:
+- Mock versions must load based on the template selected from the three-dot menu (no static single list that ignores templateId).
+
+Acceptance:
+- Opening Version History for different templates shows different version counts.
+
+────────────────────────
+D) Rollback must be demonstrable and visibly changes current content
+────────────────────────
+Requirements:
+- Implement rollback UI that can be validated with mock data:
+  - Each version row has an action: “Roll back”
+  - Clicking Roll back opens a confirmation modal:
+    “Roll back to v2? This will create a new version (v4) using v2 content.”
+  - On confirm:
+    - Create a NEW version (next version number) with the selected version’s payload
+    - Mark it as the active version (and Live if template is Live)
+    - Refresh the version table so user can immediately see the new version row
+
+Additionally:
+- Provide a “View version” action per row to open a read-only preview of that version’s content (so rollback makes sense).
+
+Constraints:
+- Rollback must not overwrite existing versions.
+- Must never be silent—show success toast/message:
+  “Rollback complete. Created v4 from v2.”
+
+Acceptance:
+- With mock data, I can roll back v3 to v1 and see a new version created immediately.
+- “View version” lets me verify different content between versions.
+- Rollback confirmation and success feedback are visible.
