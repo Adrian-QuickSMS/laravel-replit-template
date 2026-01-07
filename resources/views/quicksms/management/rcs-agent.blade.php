@@ -921,7 +921,6 @@
                                         'required' => true,
                                         'helpText' => 'Upload a square logo. Final output: 222×222 px with circular display.'
                                     ])
-                                    <div class="invalid-feedback d-block" id="logoError" style="display: none !important;">Please upload a logo image</div>
                                 </div>
                             </div>
                             
@@ -941,7 +940,6 @@
                                         'required' => true,
                                         'helpText' => 'Wide banner image. Final output: 1480×448 px (45:14 aspect ratio).'
                                     ])
-                                    <div class="invalid-feedback d-block" id="heroError" style="display: none !important;">Please upload a hero image</div>
                                 </div>
                             </div>
                         </div>
@@ -2333,7 +2331,8 @@ function initializeWizard() {
                         cdnUrl: null,
                         uploadedAt: null
                     };
-                    document.getElementById('logoError').style.display = 'none';
+                    var logoErrorEl = document.getElementById('agentLogoError');
+                    if (logoErrorEl) logoErrorEl.classList.add('d-none');
                     triggerAutosave();
                 }
             });
@@ -2377,7 +2376,8 @@ function initializeWizard() {
                         cdnUrl: null,
                         uploadedAt: null
                     };
-                    document.getElementById('heroError').style.display = 'none';
+                    var heroErrorEl = document.getElementById('agentHeroError');
+                    if (heroErrorEl) heroErrorEl.classList.add('d-none');
                     triggerAutosave();
                 }
             });
@@ -2525,8 +2525,10 @@ function lockWizardFields() {
         tile.style.opacity = '0.7';
     });
     
-    document.getElementById('logoUploadZone').style.pointerEvents = 'none';
-    document.getElementById('heroUploadZone').style.pointerEvents = 'none';
+    var logoZone = document.getElementById('agentLogoUploadZone');
+    var heroZone = document.getElementById('agentHeroUploadZone');
+    if (logoZone) logoZone.style.pointerEvents = 'none';
+    if (heroZone) heroZone.style.pointerEvents = 'none';
     document.getElementById('wizardSubmitBtn').style.display = 'none';
     document.getElementById('wizardNextBtn').textContent = 'Next';
     
@@ -2590,12 +2592,9 @@ function resetWizardData() {
     document.querySelectorAll('.billing-tile, .usecase-tile').forEach(function(t) {
         t.classList.remove('selected');
     });
-    document.getElementById('logoPlaceholder').classList.remove('d-none');
-    document.getElementById('logoPreviewContainer').classList.add('d-none');
-    document.getElementById('logoUploadZone').classList.remove('has-logo');
-    document.getElementById('heroPlaceholder').classList.remove('d-none');
-    document.getElementById('heroPreviewContainer').classList.add('d-none');
-    document.getElementById('heroUploadZone').classList.remove('has-hero');
+    // Reset shared image editors using their API
+    if (typeof agentLogoReset === 'function') agentLogoReset();
+    if (typeof agentHeroReset === 'function') agentHeroReset();
     document.getElementById('brandColor').value = '#886CC0';
     document.getElementById('brandColorHex').value = '#886CC0';
     document.getElementById('businessWebsite').value = '';
@@ -2607,11 +2606,11 @@ function resetWizardData() {
     document.getElementById('showWebsiteToggle').checked = true;
     document.getElementById('showEmailToggle').checked = true;
     
-    document.getElementById('logoError').style.display = 'none';
-    document.getElementById('logoFormatError').style.display = 'none';
-    document.getElementById('logoSizeError').style.display = 'none';
-    document.getElementById('heroFormatError').style.display = 'none';
-    document.getElementById('heroSizeError').style.display = 'none';
+    // Hide shared component error alerts (they use d-none class)
+    var logoErr = document.getElementById('agentLogoError');
+    var heroErr = document.getElementById('agentHeroError');
+    if (logoErr) logoErr.classList.add('d-none');
+    if (heroErr) heroErr.classList.add('d-none');
     
     document.getElementById('campaignFrequency').value = '';
     document.getElementById('monthlyVolume').value = '';
@@ -2661,8 +2660,10 @@ function unlockWizardFields() {
         tile.style.opacity = '';
     });
     
-    document.getElementById('logoUploadZone').style.pointerEvents = '';
-    document.getElementById('heroUploadZone').style.pointerEvents = '';
+    var logoZone = document.getElementById('agentLogoUploadZone');
+    var heroZone = document.getElementById('agentHeroUploadZone');
+    if (logoZone) logoZone.style.pointerEvents = '';
+    if (heroZone) heroZone.style.pointerEvents = '';
 }
 
 function prefillCompanyDetails() {
@@ -2816,8 +2817,10 @@ function validateCurrentStep() {
     document.querySelectorAll('.form-control.is-invalid').forEach(function(el) {
         el.classList.remove('is-invalid');
     });
-    document.getElementById('logoError').style.display = 'none';
-    document.getElementById('heroError').style.display = 'none';
+    var logoErr = document.getElementById('agentLogoError');
+    var heroErr = document.getElementById('agentHeroError');
+    if (logoErr) logoErr.classList.add('d-none');
+    if (heroErr) heroErr.classList.add('d-none');
     
     if (wizardData.currentStep === 1) {
         // Step 1: Agent Basics (name, description, brand colour)
@@ -2832,11 +2835,25 @@ function validateCurrentStep() {
     } else if (wizardData.currentStep === 2) {
         // Step 2: Branding Assets (logo, hero - both required)
         if (!wizardData.logoDataUrl || !wizardData.logoValid) {
-            document.getElementById('logoError').style.display = 'block';
+            var logoErr = document.getElementById('agentLogoError');
+            if (logoErr) {
+                // Only set text if element is empty (avoid overwriting component errors)
+                if (!logoErr.textContent.trim()) {
+                    logoErr.textContent = 'Please upload a logo image';
+                }
+                logoErr.classList.remove('d-none');
+            }
             isValid = false;
         }
         if (!wizardData.heroDataUrl || !wizardData.heroValid) {
-            document.getElementById('heroError').style.display = 'block';
+            var heroErr = document.getElementById('agentHeroError');
+            if (heroErr) {
+                // Only set text if element is empty (avoid overwriting component errors)
+                if (!heroErr.textContent.trim()) {
+                    heroErr.textContent = 'Please upload a hero/banner image';
+                }
+                heroErr.classList.remove('d-none');
+            }
             isValid = false;
         }
     } else if (wizardData.currentStep === 3) {
@@ -3275,28 +3292,18 @@ function populateWizardUIFromData() {
         });
     }
     
-    // Logo preview - use correct element IDs
-    if (wizardData.logoDataUrl) {
-        var logoPreviewImg = document.getElementById('logoPreviewImg');
-        var logoPlaceholder = document.getElementById('logoPlaceholder');
-        var logoPreviewContainer = document.getElementById('logoPreviewContainer');
-        var logoUploadZone = document.getElementById('logoUploadZone');
-        if (logoPreviewImg) logoPreviewImg.src = wizardData.logoDataUrl;
-        if (logoPlaceholder) logoPlaceholder.classList.add('d-none');
-        if (logoPreviewContainer) logoPreviewContainer.classList.remove('d-none');
-        if (logoUploadZone) logoUploadZone.classList.add('has-logo');
+    // Restore logo using shared component API
+    if (wizardData.logoDataUrl && typeof agentLogoLoadImage === 'function') {
+        agentLogoLoadImage(wizardData.logoDataUrl, function(err) {
+            if (err) console.warn('Failed to restore logo from draft');
+        });
     }
     
-    // Hero preview - use correct element IDs
-    if (wizardData.heroDataUrl) {
-        var heroPreviewImg = document.getElementById('heroPreviewImg');
-        var heroPlaceholder = document.getElementById('heroPlaceholder');
-        var heroPreviewContainer = document.getElementById('heroPreviewContainer');
-        var heroUploadZone = document.getElementById('heroUploadZone');
-        if (heroPreviewImg) heroPreviewImg.src = wizardData.heroDataUrl;
-        if (heroPlaceholder) heroPlaceholder.classList.add('d-none');
-        if (heroPreviewContainer) heroPreviewContainer.classList.remove('d-none');
-        if (heroUploadZone) heroUploadZone.classList.add('has-hero');
+    // Restore hero using shared component API
+    if (wizardData.heroDataUrl && typeof agentHeroLoadImage === 'function') {
+        agentHeroLoadImage(wizardData.heroDataUrl, function(err) {
+            if (err) console.warn('Failed to restore hero from draft');
+        });
     }
     
     // Brand color
