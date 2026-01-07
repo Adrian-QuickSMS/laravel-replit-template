@@ -907,130 +907,43 @@
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="mb-4">
-                                    <label class="form-label fw-semibold">Agent Logo <span class="text-danger">*</span></label>
-                                    <p class="text-muted small mb-2">Upload a square logo. Final output: 222×222 px with circular display.</p>
                                     <div class="alert alert-light border py-2 px-3 mb-3" style="font-size: 0.8rem;">
                                         <i class="fas fa-mobile-alt text-primary me-2"></i>
                                         <strong>Device display:</strong> Logos are displayed as circles on handset devices. Ensure important elements are centred.
                                     </div>
                                     
-                                    <div class="logo-card-container">
-                                        <div class="logo-source-tabs mb-2">
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <input type="radio" class="btn-check" name="logoSource" id="logoSourceFile" value="file" checked>
-                                                <label class="btn btn-outline-primary" for="logoSourceFile"><i class="fas fa-upload me-1"></i>Upload File</label>
-                                                <input type="radio" class="btn-check" name="logoSource" id="logoSourceUrl" value="url">
-                                                <label class="btn btn-outline-primary" for="logoSourceUrl"><i class="fas fa-link me-1"></i>From URL</label>
-                                            </div>
-                                        </div>
-                                        
-                                        <div id="logoFileUploadSection">
-                                            <div class="logo-upload-zone circular-crop" id="logoUploadZone">
-                                                <div id="logoPlaceholder">
-                                                    <i class="fas fa-cloud-upload-alt text-muted mb-2" style="font-size: 2rem;"></i>
-                                                    <p class="mb-1 text-muted">Click or drag to upload</p>
-                                                    <small class="text-muted">PNG or JPEG, max 2MB</small>
-                                                </div>
-                                                <div id="logoPreviewContainer" class="d-none">
-                                                    <div class="circular-preview-wrapper">
-                                                        <img src="" alt="Logo preview" class="logo-preview circular" id="logoPreviewImg">
-                                                    </div>
-                                                    <div class="logo-actions mt-2">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" id="logoEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" id="logoRemoveBtn"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <input type="file" id="logoFileInput" accept="image/png,image/jpeg" class="d-none">
-                                        </div>
-                                        
-                                        <div id="logoUrlUploadSection" class="d-none">
-                                            <div class="input-group mb-2">
-                                                <input type="url" class="form-control" id="logoUrlInput" placeholder="https://example.com/logo.png">
-                                                <button type="button" class="btn btn-primary" id="logoUrlFetchBtn"><i class="fas fa-download me-1"></i>Fetch</button>
-                                            </div>
-                                            <div id="logoUrlPreviewContainer" class="d-none">
-                                                <div class="logo-upload-zone circular-crop has-logo">
-                                                    <div class="circular-preview-wrapper">
-                                                        <img src="" alt="Logo preview" class="logo-preview circular" id="logoUrlPreviewImg">
-                                                    </div>
-                                                    <div class="logo-actions mt-2">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" id="logoUrlEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" id="logoUrlRemoveBtn"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    @include('quicksms.partials.shared-image-editor', [
+                                        'editorId' => 'agentLogo',
+                                        'preset' => 'agent-logo',
+                                        'label' => 'Agent Logo',
+                                        'accept' => 'image/png,image/jpeg',
+                                        'maxSize' => 2 * 1024 * 1024,
+                                        'required' => true,
+                                        'helpText' => 'Upload a square logo. Final output: 222×222 px with circular display.'
+                                    ])
+                                    <div class="invalid-feedback d-block" id="logoError" style="display: none !important;">Please upload a logo image</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <div class="alert alert-light border py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                        <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                        <strong>Device display:</strong> Hero images partially overlap the logo on handset devices. Avoid placing key content near the centre.
                                     </div>
                                     
-                                    <div class="invalid-feedback d-block" id="logoError" style="display: none !important;">Please upload a logo image</div>
-                                    <div class="invalid-feedback d-block" id="logoFormatError" style="display: none !important;">Logo must be PNG or JPEG format</div>
-                                    <div class="invalid-feedback d-block" id="logoSizeError" style="display: none !important;">Logo file size must be under 2MB</div>
-                                    <div class="invalid-feedback d-block" id="logoUrlError" style="display: none !important;">Unable to load image from URL</div>
-                                    <div class="invalid-feedback d-block" id="logoCropError" style="display: none !important;">Image must be cropped to 222×222 px</div>
+                                    @include('quicksms.partials.shared-image-editor', [
+                                        'editorId' => 'agentHero',
+                                        'preset' => 'agent-hero',
+                                        'label' => 'Hero / Banner Image',
+                                        'accept' => 'image/png,image/jpeg',
+                                        'maxSize' => 5 * 1024 * 1024,
+                                        'required' => true,
+                                        'helpText' => 'Wide banner image. Final output: 1480×448 px (45:14 aspect ratio).'
+                                    ])
+                                    <div class="invalid-feedback d-block" id="heroError" style="display: none !important;">Please upload a hero image</div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Hero / Banner Image</label>
-                            <p class="text-muted small mb-2">Wide banner image. Final output: 1480×448 px (45:14 aspect ratio). Horizontal only.</p>
-                            
-                            <div class="hero-card-container">
-                                <div class="hero-source-tabs mb-2">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <input type="radio" class="btn-check" name="heroSource" id="heroSourceFile" value="file" checked>
-                                        <label class="btn btn-outline-primary" for="heroSourceFile"><i class="fas fa-upload me-1"></i>Upload File</label>
-                                        <input type="radio" class="btn-check" name="heroSource" id="heroSourceUrl" value="url">
-                                        <label class="btn btn-outline-primary" for="heroSourceUrl"><i class="fas fa-link me-1"></i>From URL</label>
-                                    </div>
-                                </div>
-                                
-                                <div id="heroFileUploadSection">
-                                    <div class="hero-upload-zone" id="heroUploadZone">
-                                        <div id="heroPlaceholder">
-                                            <i class="fas fa-panorama text-muted mb-2" style="font-size: 2rem;"></i>
-                                            <p class="mb-1 text-muted">Click or drag to upload</p>
-                                            <small class="text-muted">PNG or JPEG, max 5MB</small>
-                                        </div>
-                                        <div id="heroPreviewContainer" class="d-none">
-                                            <img src="" alt="Hero preview" class="hero-preview" id="heroPreviewImg">
-                                            <div class="hero-actions mt-2">
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" id="heroEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger" id="heroRemoveBtn"><i class="fas fa-trash"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <input type="file" id="heroFileInput" accept="image/png,image/jpeg" class="d-none">
-                                </div>
-                                
-                                <div id="heroUrlUploadSection" class="d-none">
-                                    <div class="input-group mb-2">
-                                        <input type="url" class="form-control" id="heroUrlInput" placeholder="https://example.com/hero.png">
-                                        <button type="button" class="btn btn-primary" id="heroUrlFetchBtn"><i class="fas fa-download me-1"></i>Fetch</button>
-                                    </div>
-                                    <div id="heroUrlPreviewContainer" class="d-none">
-                                        <div class="hero-upload-zone has-hero">
-                                            <img src="" alt="Hero preview" class="hero-preview" id="heroUrlPreviewImg">
-                                            <div class="hero-actions mt-2">
-                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" id="heroUrlEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger" id="heroUrlRemoveBtn"><i class="fas fa-trash"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="alert alert-light border py-2 px-3 mt-2 mb-0" style="font-size: 0.8rem;">
-                                <i class="fas fa-mobile-alt text-primary me-2"></i>
-                                <strong>Device display:</strong> Hero images partially overlap the logo on handset devices. Avoid placing key content near the centre.
-                            </div>
-                            <div class="invalid-feedback d-block" id="heroError" style="display: none !important;">Please upload a hero image</div>
-                            <div class="invalid-feedback d-block" id="heroFormatError" style="display: none !important;">Hero image must be PNG or JPEG format</div>
-                            <div class="invalid-feedback d-block" id="heroSizeError" style="display: none !important;">Hero image file size must be under 5MB</div>
-                            <div class="invalid-feedback d-block" id="heroUrlError" style="display: none !important;">Unable to load image from URL</div>
-                            <div class="invalid-feedback d-block" id="heroCropError" style="display: none !important;">Image must be cropped to 1480×448 px (45:14 ratio)</div>
-                            <div class="invalid-feedback d-block" id="heroOrientationError" style="display: none !important;">Hero image must be horizontal (landscape orientation)</div>
                         </div>
                     </div>
                 </div>
@@ -1683,47 +1596,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="logoCropEditorModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #886CC0 0%, #614099 100%);">
-                <h5 class="modal-title text-white"><i class="fas fa-crop-alt me-2"></i>Crop Agent Logo</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info small py-2 mb-3">
-                    <i class="fas fa-info-circle me-1"></i>Position your logo within the circular frame. Output: 222×222 px.
-                </div>
-                <div id="logoCropEditorContainer"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="logoCropApplyBtn"><i class="fas fa-check me-1"></i>Apply Crop</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="heroCropEditorModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #886CC0 0%, #614099 100%);">
-                <h5 class="modal-title text-white"><i class="fas fa-crop-alt me-2"></i>Crop Hero Banner</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info small py-2 mb-3">
-                    <i class="fas fa-info-circle me-1"></i>Position your banner within the frame. Output: 1480×448 px (45:14 ratio). Horizontal only.
-                </div>
-                <div id="heroCropEditorContainer"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="heroCropApplyBtn"><i class="fas fa-check me-1"></i>Apply Crop</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')
@@ -2430,402 +2302,94 @@ function initializeWizard() {
         triggerAutosave();
     });
     
-    // Logo Editor - Shared Image Editor Integration
-    var logoCropEditor = null;
-    var logoRawImageSrc = null;
-    var logoCropModal = null;
-    
-    function hideAllLogoErrors() {
-        ['logoError', 'logoFormatError', 'logoSizeError', 'logoUrlError', 'logoCropError'].forEach(function(id) {
-            document.getElementById(id).style.display = 'none';
-        });
-    }
-    
-    function showLogoError(errorId) {
-        hideAllLogoErrors();
-        document.getElementById(errorId).style.display = 'block';
-    }
-    
-    function openLogoCropEditor(imageSrc) {
-        logoRawImageSrc = imageSrc;
-        
-        if (!logoCropModal) {
-            logoCropModal = new bootstrap.Modal(document.getElementById('logoCropEditorModal'));
+    // Shared Image Editor Callbacks - Logo
+    // These callbacks wire the shared component to wizardData
+    window.onagentLogoChange = function(data) {
+        // Generate cropped image for wizardData
+        if (typeof agentLogoGenerateCroppedImage === 'function') {
+            agentLogoGenerateCroppedImage(function(err, dataUrl) {
+                if (!err && dataUrl) {
+                    var cropData = agentLogoGetCropData();
+                    wizardData.logoDataUrl = dataUrl;
+                    wizardData.logoValid = true;
+                    // Audit-compliant metadata structure
+                    wizardData.logoCropMetadata = {
+                        originalSrc: data.originalSrc || null,
+                        originalFileName: data.fileName || null,
+                        originalFileSize: data.fileSize || null,
+                        originalFileType: data.fileType || null,
+                        sourceType: 'file_upload',
+                        crop: cropData ? cropData.crop : null,
+                        zoom: cropData ? cropData.zoom : 1,
+                        offsetX: cropData ? cropData.offsetX : 0,
+                        offsetY: cropData ? cropData.offsetY : 0,
+                        outputWidth: 222,
+                        outputHeight: 222,
+                        aspectRatio: '1:1',
+                        frameShape: 'circle',
+                        userId: getCurrentUserId(),
+                        timestamp: new Date().toISOString(),
+                        clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        cdnUrl: null,
+                        uploadedAt: null
+                    };
+                    document.getElementById('logoError').style.display = 'none';
+                    triggerAutosave();
+                }
+            });
         }
-        
-        if (logoCropEditor) {
-            logoCropEditor.destroy();
-        }
-        
-        logoCropEditor = new SharedImageEditor({
-            containerId: 'logoCropEditorContainer',
-            preset: 'agent-logo',
-            showCrosshair: true,
-            showZoomSlider: true,
-            showResetButton: true
-        });
-        
-        logoCropEditor.loadImage(imageSrc, function(err) {
-            if (err) {
-                showLogoError('logoUrlError');
-                return;
-            }
-            logoCropModal.show();
-        });
-    }
+    };
     
-    function applyLogoCrop() {
-        if (!logoCropEditor) return;
-        
-        var validation = logoCropEditor.validateCrop();
-        if (!validation.valid) {
-            showLogoError('logoCropError');
-            return;
-        }
-        
-        logoCropEditor.generateCroppedImage(function(err, dataUrl) {
-            if (err || !dataUrl) {
-                showLogoError('logoCropError');
-                return;
-            }
-            
-            var cropData = logoCropEditor.getCropData();
-            
-            wizardData.logoDataUrl = dataUrl;
-            wizardData.logoValid = true;
-            // Audit-compliant metadata structure for reporting and dispute resolution
-            wizardData.logoCropMetadata = {
-                // Original asset reference
-                originalSrc: logoRawImageSrc,
-                originalFileName: wizardData.logoFile ? wizardData.logoFile.name : null,
-                originalFileSize: wizardData.logoFile ? wizardData.logoFile.size : null,
-                originalFileType: wizardData.logoFile ? wizardData.logoFile.type : null,
-                sourceType: wizardData.logoFile ? 'file_upload' : 'url_fetch',
-                
-                // Crop metadata
-                crop: cropData.crop,
-                zoom: cropData.zoom,
-                offsetX: cropData.offsetX,
-                offsetY: cropData.offsetY,
-                outputWidth: 222,
-                outputHeight: 222,
-                aspectRatio: '1:1',
-                frameShape: 'circle',
-                
-                // Audit fields
-                userId: getCurrentUserId(), // TODO: Replace stub with Auth::id()
-                timestamp: new Date().toISOString(),
-                clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                
-                // CDN URL - populated after server upload
-                cdnUrl: null, // TODO: Populated by backend after CDN upload
-                uploadedAt: null // TODO: Populated by backend after CDN upload
-            };
-            
-            // Update preview
-            document.getElementById('logoPreviewImg').src = dataUrl;
-            document.getElementById('logoPlaceholder').classList.add('d-none');
-            document.getElementById('logoPreviewContainer').classList.remove('d-none');
-            document.getElementById('logoUploadZone').classList.add('has-logo');
-            
-            // Also update URL preview if that source is active
-            document.getElementById('logoUrlPreviewImg').src = dataUrl;
-            
-            hideAllLogoErrors();
-            logoCropModal.hide();
-            triggerAutosave();
-        });
-    }
-    
-    function clearLogoPreview() {
-        wizardData.logoFile = null;
+    window.onagentLogoRemove = function() {
         wizardData.logoDataUrl = null;
         wizardData.logoValid = false;
         wizardData.logoCropMetadata = null;
-        logoRawImageSrc = null;
-        
-        document.getElementById('logoPreviewImg').src = '';
-        document.getElementById('logoPlaceholder').classList.remove('d-none');
-        document.getElementById('logoPreviewContainer').classList.add('d-none');
-        document.getElementById('logoUploadZone').classList.remove('has-logo');
-        document.getElementById('logoFileInput').value = '';
-        
-        document.getElementById('logoUrlPreviewContainer').classList.add('d-none');
-        document.getElementById('logoUrlInput').value = '';
-        
-        hideAllLogoErrors();
         triggerAutosave();
-    }
+    };
     
-    // Hero Editor - Shared Image Editor Integration
-    var heroCropEditor = null;
-    var heroRawImageSrc = null;
-    var heroCropModal = null;
-    
-    function clearHeroErrors() {
-        ['heroError', 'heroFormatError', 'heroSizeError', 'heroUrlError', 'heroCropError', 'heroOrientationError'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-        });
-    }
-    
-    function openHeroCropEditor(imageSrc) {
-        heroRawImageSrc = imageSrc;
-        
-        if (!heroCropModal) {
-            heroCropModal = new bootstrap.Modal(document.getElementById('heroCropEditorModal'));
+    // Shared Image Editor Callbacks - Hero
+    window.onagentHeroChange = function(data) {
+        // Generate cropped image for wizardData
+        if (typeof agentHeroGenerateCroppedImage === 'function') {
+            agentHeroGenerateCroppedImage(function(err, dataUrl) {
+                if (!err && dataUrl) {
+                    var cropData = agentHeroGetCropData();
+                    wizardData.heroDataUrl = dataUrl;
+                    wizardData.heroValid = true;
+                    // Audit-compliant metadata structure
+                    wizardData.heroCropMetadata = {
+                        originalSrc: data.originalSrc || null,
+                        originalFileName: data.fileName || null,
+                        originalFileSize: data.fileSize || null,
+                        originalFileType: data.fileType || null,
+                        sourceType: 'file_upload',
+                        crop: cropData ? cropData.crop : null,
+                        zoom: cropData ? cropData.zoom : 1,
+                        offsetX: cropData ? cropData.offsetX : 0,
+                        offsetY: cropData ? cropData.offsetY : 0,
+                        outputWidth: 1480,
+                        outputHeight: 448,
+                        aspectRatio: '45:14',
+                        frameShape: 'rectangle',
+                        userId: getCurrentUserId(),
+                        timestamp: new Date().toISOString(),
+                        clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        cdnUrl: null,
+                        uploadedAt: null
+                    };
+                    document.getElementById('heroError').style.display = 'none';
+                    triggerAutosave();
+                }
+            });
         }
-        
-        if (heroCropEditor) {
-            heroCropEditor.destroy();
-        }
-        
-        heroCropEditor = new SharedImageEditor({
-            containerId: 'heroCropEditorContainer',
-            preset: 'agent-hero',
-            showCrosshair: true,
-            showZoomSlider: true,
-            showResetButton: true
-        });
-        
-        heroCropEditor.loadImage(imageSrc, function(err) {
-            if (err) {
-                document.getElementById('heroUrlError').style.display = 'block';
-                return;
-            }
-            heroCropModal.show();
-        });
-    }
+    };
     
-    function applyHeroCrop() {
-        if (!heroCropEditor) return;
-        
-        var validation = heroCropEditor.validateCrop();
-        if (!validation.valid) {
-            document.getElementById('heroCropError').style.display = 'block';
-            return;
-        }
-        
-        heroCropEditor.generateCroppedImage(function(err, dataUrl) {
-            if (err || !dataUrl) {
-                document.getElementById('heroCropError').style.display = 'block';
-                return;
-            }
-            
-            var cropData = heroCropEditor.getCropData();
-            
-            wizardData.heroDataUrl = dataUrl;
-            wizardData.heroValid = true;
-            // Audit-compliant metadata structure for reporting and dispute resolution
-            wizardData.heroCropMetadata = {
-                // Original asset reference
-                originalSrc: heroRawImageSrc,
-                originalFileName: wizardData.heroFile ? wizardData.heroFile.name : null,
-                originalFileSize: wizardData.heroFile ? wizardData.heroFile.size : null,
-                originalFileType: wizardData.heroFile ? wizardData.heroFile.type : null,
-                sourceType: wizardData.heroFile ? 'file_upload' : 'url_fetch',
-                
-                // Crop metadata
-                crop: cropData.crop,
-                zoom: cropData.zoom,
-                offsetX: cropData.offsetX,
-                offsetY: cropData.offsetY,
-                outputWidth: 1480,
-                outputHeight: 448,
-                aspectRatio: '45:14',
-                frameShape: 'rectangle',
-                
-                // Audit fields
-                userId: getCurrentUserId(), // TODO: Replace stub with Auth::id()
-                timestamp: new Date().toISOString(),
-                clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                
-                // CDN URL - populated after server upload
-                cdnUrl: null, // TODO: Populated by backend after CDN upload
-                uploadedAt: null // TODO: Populated by backend after CDN upload
-            };
-            
-            // Update file upload preview
-            document.getElementById('heroPreviewImg').src = dataUrl;
-            document.getElementById('heroPlaceholder').classList.add('d-none');
-            document.getElementById('heroPreviewContainer').classList.remove('d-none');
-            document.getElementById('heroUploadZone').classList.add('has-hero');
-            
-            // Also update URL preview if that source is active
-            var urlPreviewImg = document.getElementById('heroUrlPreviewImg');
-            if (urlPreviewImg) urlPreviewImg.src = dataUrl;
-            
-            clearHeroErrors();
-            heroCropModal.hide();
-            triggerAutosave();
-        });
-    }
-    
-    function clearHeroPreview() {
-        wizardData.heroFile = null;
+    window.onagentHeroRemove = function() {
         wizardData.heroDataUrl = null;
         wizardData.heroValid = false;
         wizardData.heroCropMetadata = null;
-        heroRawImageSrc = null;
-        
-        document.getElementById('heroPreviewImg').src = '';
-        document.getElementById('heroPlaceholder').classList.remove('d-none');
-        document.getElementById('heroPreviewContainer').classList.add('d-none');
-        document.getElementById('heroUploadZone').classList.remove('has-hero');
-        document.getElementById('heroFileInput').value = '';
-        
-        var urlPreviewContainer = document.getElementById('heroUrlPreviewContainer');
-        if (urlPreviewContainer) urlPreviewContainer.classList.add('d-none');
-        var urlInput = document.getElementById('heroUrlInput');
-        if (urlInput) urlInput.value = '';
-        
-        clearHeroErrors();
         triggerAutosave();
-    }
-    
-    // Logo source tab switching
-    document.querySelectorAll('input[name="logoSource"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var isFile = this.value === 'file';
-            document.getElementById('logoFileUploadSection').classList.toggle('d-none', !isFile);
-            document.getElementById('logoUrlUploadSection').classList.toggle('d-none', isFile);
-        });
-    });
-    
-    // File upload click handler
-    document.getElementById('logoUploadZone').addEventListener('click', function(e) {
-        if (e.target.closest('.logo-actions')) return;
-        document.getElementById('logoFileInput').click();
-    });
-    
-    // File input change handler
-    document.getElementById('logoFileInput').addEventListener('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            var file = e.target.files[0];
-            hideAllLogoErrors();
-            
-            var validTypes = ['image/png', 'image/jpeg'];
-            if (!validTypes.includes(file.type)) {
-                showLogoError('logoFormatError');
-                this.value = '';
-                return;
-            }
-            
-            var maxSize = 2 * 1024 * 1024;
-            if (file.size > maxSize) {
-                showLogoError('logoSizeError');
-                this.value = '';
-                return;
-            }
-            
-            wizardData.logoFile = file;
-            var reader = new FileReader();
-            reader.onload = function(evt) {
-                openLogoCropEditor(evt.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-    
-    // Logo edit button
-    document.getElementById('logoEditBtn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (logoRawImageSrc || wizardData.logoDataUrl) {
-            openLogoCropEditor(logoRawImageSrc || wizardData.logoDataUrl);
-        }
-    });
-    
-    // Logo remove button
-    document.getElementById('logoRemoveBtn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        clearLogoPreview();
-    });
-    
-    // URL fetch button
-    document.getElementById('logoUrlFetchBtn').addEventListener('click', function() {
-        var url = document.getElementById('logoUrlInput').value.trim();
-        hideAllLogoErrors();
-        
-        if (!url) {
-            showLogoError('logoUrlError');
-            return;
-        }
-        
-        if (!url.startsWith('https://')) {
-            showLogoError('logoUrlError');
-            return;
-        }
-        
-        // TODO: Server-side fetch via /api/rcs/fetch-image to avoid CORS
-        // For now, attempt direct load with crossOrigin
-        openLogoCropEditor(url);
-    });
-    
-    // URL edit button
-    var logoUrlEditBtn = document.getElementById('logoUrlEditBtn');
-    if (logoUrlEditBtn) {
-        logoUrlEditBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (logoRawImageSrc || wizardData.logoDataUrl) {
-                openLogoCropEditor(logoRawImageSrc || wizardData.logoDataUrl);
-            }
-        });
-    }
-    
-    // URL remove button
-    var logoUrlRemoveBtn = document.getElementById('logoUrlRemoveBtn');
-    if (logoUrlRemoveBtn) {
-        logoUrlRemoveBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            clearLogoPreview();
-        });
-    }
-    
-    // Crop apply button
-    document.getElementById('logoCropApplyBtn').addEventListener('click', applyLogoCrop);
-    
-    // Drag and drop support
-    document.getElementById('logoUploadZone').addEventListener('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.classList.add('dragover');
-    });
-    
-    document.getElementById('logoUploadZone').addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.classList.remove('dragover');
-    });
-    
-    document.getElementById('logoUploadZone').addEventListener('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.classList.remove('dragover');
-        
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            var file = e.dataTransfer.files[0];
-            hideAllLogoErrors();
-            
-            var validTypes = ['image/png', 'image/jpeg'];
-            if (!validTypes.includes(file.type)) {
-                showLogoError('logoFormatError');
-                return;
-            }
-            
-            var maxSize = 2 * 1024 * 1024;
-            if (file.size > maxSize) {
-                showLogoError('logoSizeError');
-                return;
-            }
-            
-            wizardData.logoFile = file;
-            var reader = new FileReader();
-            reader.onload = function(evt) {
-                openLogoCropEditor(evt.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    };
     
     document.getElementById('brandColor').addEventListener('input', function() {
         wizardData.brandColor = this.value;
@@ -2847,120 +2411,6 @@ function initializeWizard() {
             wizardData[key] = this.value;
             triggerAutosave();
         });
-    });
-    
-    document.getElementById('heroUploadZone').addEventListener('click', function(e) {
-        if (e.target.closest('#heroEditBtn') || e.target.closest('#heroRemoveBtn')) return;
-        if (!document.getElementById('heroPreviewContainer').classList.contains('d-none')) return;
-        document.getElementById('heroFileInput').click();
-    });
-    
-    document.getElementById('heroUploadZone').addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.classList.add('drag-over');
-    });
-    
-    document.getElementById('heroUploadZone').addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.classList.remove('drag-over');
-    });
-    
-    document.getElementById('heroUploadZone').addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.classList.remove('drag-over');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            document.getElementById('heroFileInput').files = e.dataTransfer.files;
-            document.getElementById('heroFileInput').dispatchEvent(new Event('change'));
-        }
-    });
-    
-    document.getElementById('heroFileInput').addEventListener('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            var file = e.target.files[0];
-            clearHeroErrors();
-            
-            var validTypes = ['image/png', 'image/jpeg'];
-            if (!validTypes.includes(file.type)) {
-                document.getElementById('heroFormatError').style.display = 'block';
-                this.value = '';
-                return;
-            }
-            
-            var maxSize = 5 * 1024 * 1024;
-            if (file.size > maxSize) {
-                document.getElementById('heroSizeError').style.display = 'block';
-                this.value = '';
-                return;
-            }
-            
-            wizardData.heroFile = file;
-            var reader = new FileReader();
-            reader.onload = function(evt) {
-                var img = new Image();
-                img.onload = function() {
-                    if (img.width < img.height) {
-                        document.getElementById('heroOrientationError').style.display = 'block';
-                        wizardData.heroFile = null;
-                        return;
-                    }
-                    openHeroCropEditor(evt.target.result);
-                };
-                img.src = evt.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-    
-    document.querySelectorAll('input[name="heroSource"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var isFile = this.value === 'file';
-            document.getElementById('heroFileUploadSection').classList.toggle('d-none', !isFile);
-            document.getElementById('heroUrlUploadSection').classList.toggle('d-none', isFile);
-        });
-    });
-    
-    document.getElementById('heroUrlFetchBtn').addEventListener('click', function() {
-        var url = document.getElementById('heroUrlInput').value.trim();
-        if (!url) return;
-        
-        clearHeroErrors();
-        
-        if (!url.startsWith('https://')) {
-            document.getElementById('heroUrlError').style.display = 'block';
-            return;
-        }
-        
-        var img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function() {
-            if (img.width < img.height) {
-                document.getElementById('heroOrientationError').style.display = 'block';
-                return;
-            }
-            openHeroCropEditor(url);
-        };
-        img.onerror = function() {
-            document.getElementById('heroUrlError').style.display = 'block';
-        };
-        img.src = url;
-    });
-    
-    document.getElementById('heroEditBtn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (wizardData.heroCropMetadata && wizardData.heroCropMetadata.originalSrc) {
-            openHeroCropEditor(wizardData.heroCropMetadata.originalSrc);
-        } else if (wizardData.heroDataUrl) {
-            openHeroCropEditor(wizardData.heroDataUrl);
-        }
-    });
-    
-    document.getElementById('heroRemoveBtn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        clearHeroPreview();
-    });
-    
-    document.getElementById('heroCropApplyBtn').addEventListener('click', function() {
-        applyHeroCrop();
     });
     
     document.getElementById('showPhoneToggle').addEventListener('change', function() {
