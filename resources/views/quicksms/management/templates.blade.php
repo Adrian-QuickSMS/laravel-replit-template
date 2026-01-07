@@ -275,6 +275,26 @@
 .action-menu-btn:hover {
     color: var(--primary);
 }
+.version-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background-color: #f0ebf8;
+    color: var(--primary);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.archived-row {
+    opacity: 0.6;
+    background-color: #f8f9fa;
+}
+.archived-row:hover {
+    opacity: 0.8;
+}
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
 </style>
 @endpush
 
@@ -309,9 +329,15 @@
                     <input type="text" class="form-control" id="templateSearch" placeholder="Search by name or ID...">
                 </div>
             </div>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                <i class="fas fa-filter me-1"></i>Filters
-            </button>
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="showArchivedToggle">
+                    <label class="form-check-label small" for="showArchivedToggle">Show Archived</label>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                    <i class="fas fa-filter me-1"></i>Filters
+                </button>
+            </div>
         </div>
 
         <div class="collapse" id="filtersPanel">
@@ -397,6 +423,7 @@
                     <tr>
                         <th data-sort="name" onclick="sortTable('name')">Template Name <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="templateId" onclick="sortTable('templateId')">Template ID <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="version" onclick="sortTable('version')">Version <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
                         <th>Content Preview</th>
@@ -483,6 +510,7 @@ var mockTemplates = [
         accessScope: 'All Sub-accounts',
         subAccounts: ['all'],
         status: 'live',
+        version: 3,
         lastUpdated: '2026-01-05'
     },
     {
@@ -496,6 +524,7 @@ var mockTemplates = [
         accessScope: 'Marketing Team',
         subAccounts: ['marketing'],
         status: 'live',
+        version: 2,
         lastUpdated: '2026-01-04'
     },
     {
@@ -509,6 +538,7 @@ var mockTemplates = [
         accessScope: 'Sales, Support',
         subAccounts: ['sales', 'support'],
         status: 'draft',
+        version: 1,
         lastUpdated: '2026-01-06'
     },
     {
@@ -521,7 +551,8 @@ var mockTemplates = [
         contentType: 'carousel',
         accessScope: 'Marketing Team',
         subAccounts: ['marketing'],
-        status: 'paused',
+        status: 'draft',
+        version: 4,
         lastUpdated: '2025-12-20'
     },
     {
@@ -535,6 +566,7 @@ var mockTemplates = [
         accessScope: 'All Sub-accounts',
         subAccounts: ['all'],
         status: 'live',
+        version: 1,
         lastUpdated: '2026-01-03'
     },
     {
@@ -548,6 +580,7 @@ var mockTemplates = [
         accessScope: 'IT Security',
         subAccounts: ['it'],
         status: 'archived',
+        version: 5,
         lastUpdated: '2025-11-15'
     },
     {
@@ -561,6 +594,7 @@ var mockTemplates = [
         accessScope: 'Marketing Team',
         subAccounts: ['marketing'],
         status: 'draft',
+        version: 1,
         lastUpdated: '2026-01-07'
     },
     {
@@ -574,9 +608,12 @@ var mockTemplates = [
         accessScope: 'Support Team',
         subAccounts: ['support'],
         status: 'live',
+        version: 2,
         lastUpdated: '2026-01-02'
     }
 ];
+
+var showArchived = false;
 
 var sortColumn = 'lastUpdated';
 var sortDirection = 'desc';
@@ -617,6 +654,11 @@ function setupEventListeners() {
         appliedFilters.search = this.value;
         renderTemplates();
         renderActiveFilters();
+    });
+    
+    document.getElementById('showArchivedToggle').addEventListener('change', function() {
+        showArchived = this.checked;
+        renderTemplates();
     });
     
     document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
@@ -873,6 +915,10 @@ function renderTemplates() {
     var search = appliedFilters.search.toLowerCase();
     
     var filtered = mockTemplates.filter(function(t) {
+        if (!showArchived && t.status === 'archived') {
+            return false;
+        }
+        
         var matchSearch = !search || t.name.toLowerCase().includes(search) || t.templateId.includes(search);
         var matchChannel = !appliedFilters.channel || t.channel === appliedFilters.channel;
         var matchTrigger = !appliedFilters.trigger || t.trigger === appliedFilters.trigger;
@@ -893,6 +939,9 @@ function renderTemplates() {
         if (sortColumn === 'lastUpdated') {
             aVal = new Date(aVal);
             bVal = new Date(bVal);
+        } else if (sortColumn === 'version') {
+            aVal = parseInt(aVal) || 0;
+            bVal = parseInt(bVal) || 0;
         }
         
         if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
@@ -913,9 +962,13 @@ function renderTemplates() {
     var html = '';
     
     filtered.forEach(function(template) {
-        html += '<tr>';
+        var isArchived = template.status === 'archived';
+        var rowClass = isArchived ? 'archived-row' : '';
+        
+        html += '<tr class="' + rowClass + '">';
         html += '<td><span class="template-name">' + template.name + '</span></td>';
         html += '<td><span class="template-id">' + template.templateId + '</span></td>';
+        html += '<td><span class="version-badge">v' + template.version + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getChannelBadgeClass(template.channel) + '">' + getChannelLabel(template.channel) + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getTriggerBadgeClass(template.trigger) + '">' + getTriggerLabel(template.trigger) + '</span></td>';
         html += '<td>' + getContentPreview(template) + '</td>';
@@ -928,24 +981,122 @@ function renderTemplates() {
         html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
         html += '<ul class="dropdown-menu dropdown-menu-end">';
-        html += '<li><a class="dropdown-item" href="#"><i class="fas fa-eye"></i>View</a></li>';
-        html += '<li><a class="dropdown-item" href="#"><i class="fas fa-edit"></i>Edit</a></li>';
-        html += '<li><a class="dropdown-item" href="#"><i class="fas fa-copy"></i>Duplicate</a></li>';
-        if (template.status === 'live') {
-            html += '<li><a class="dropdown-item" href="#"><i class="fas fa-pause"></i>Pause</a></li>';
-        } else if (template.status === 'paused' || template.status === 'draft') {
-            html += '<li><a class="dropdown-item" href="#"><i class="fas fa-play"></i>Go Live</a></li>';
+        
+        if (!isArchived) {
+            html += '<li><a class="dropdown-item" href="#" onclick="editTemplate(' + template.id + '); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
-        if (template.status !== 'archived') {
-            html += '<li><a class="dropdown-item" href="#"><i class="fas fa-archive"></i>Archive</a></li>';
+        html += '<li><a class="dropdown-item" href="#" onclick="duplicateTemplate(' + template.id + '); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
+        if (!isArchived) {
+            html += '<li><a class="dropdown-item" href="#" onclick="managePermissions(' + template.id + '); return false;"><i class="fas fa-lock me-2"></i>Permissions</a></li>';
         }
+        if (template.trigger === 'api') {
+            html += '<li><a class="dropdown-item" href="#" onclick="viewApiStructure(' + template.id + '); return false;"><i class="fas fa-code me-2"></i>API Structure</a></li>';
+        }
+        if (!isArchived) {
+            html += '<li><hr class="dropdown-divider"></li>';
+            html += '<li><a class="dropdown-item text-warning" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+        }
+        
         html += '</ul>';
         html += '</div>';
         html += '</td>';
         html += '</tr>';
     });
     
-    tbody.innerHTML = html || '<tr><td colspan="9" class="text-center text-muted py-4">No templates match your filters</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted py-4">No templates match your filters</td></tr>';
+}
+
+function editTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template || template.status === 'archived') {
+        showToast('Archived templates cannot be edited', 'warning');
+        return;
+    }
+    showToast('Opening editor for "' + template.name + '"...', 'info');
+}
+
+function duplicateTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    
+    var newId = mockTemplates.length + 1;
+    var newTemplateId = Math.floor(10000000 + Math.random() * 90000000).toString();
+    
+    var duplicate = Object.assign({}, template, {
+        id: newId,
+        templateId: newTemplateId,
+        name: template.name + ' (Copy)',
+        status: 'draft',
+        version: 1,
+        lastUpdated: new Date().toISOString().split('T')[0]
+    });
+    
+    mockTemplates.push(duplicate);
+    renderTemplates();
+    showToast('Template duplicated as "' + duplicate.name + '"', 'success');
+}
+
+function managePermissions(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    showToast('Opening permissions for "' + template.name + '"...', 'info');
+}
+
+function viewApiStructure(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    showToast('Viewing API structure for "' + template.name + '"...', 'info');
+}
+
+function archiveTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    
+    if (confirm('Are you sure you want to archive "' + template.name + '"? Archived templates cannot be edited or used.')) {
+        template.status = 'archived';
+        template.lastUpdated = new Date().toISOString().split('T')[0];
+        renderTemplates();
+        showToast('Template "' + template.name + '" has been archived', 'success');
+    }
+}
+
+function goLiveTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template || template.status === 'archived') return;
+    
+    template.status = 'live';
+    template.version = template.version + 1;
+    template.lastUpdated = new Date().toISOString().split('T')[0];
+    renderTemplates();
+    showToast('Template "' + template.name + '" is now Live (v' + template.version + ')', 'success');
+}
+
+function showToast(message, type) {
+    var toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    var bgClass = type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning' : 'bg-info';
+    var textClass = type === 'warning' ? 'text-dark' : 'text-white';
+    
+    var toastHtml = '<div class="toast align-items-center ' + bgClass + ' ' + textClass + ' border-0" role="alert">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body">' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '</div></div>';
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    var toastEl = toastContainer.lastElementChild;
+    var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastEl.remove();
+    });
 }
 </script>
 @endpush
