@@ -1240,7 +1240,6 @@
                 <div id="wizardStep3" class="wizard-content p-4" style="display: none;">
                     <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <i class="fas fa-shield-alt me-2 text-primary"></i>
                             <strong>Step 3: Permissions</strong> - Define who can access and use this template.
                         </div>
                         
@@ -1252,7 +1251,6 @@
                         </div>
                         
                         <div class="alert alert-warning py-2 d-none" id="wizardPermApiWarning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>API templates</strong> must be assigned to at least one sub-account.
                         </div>
                         
@@ -1264,14 +1262,14 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="wizardAccessMode" id="wizardAccessAll" value="all" onchange="updateWizardAccessMode()">
                                             <label class="form-check-label" for="wizardAccessAll">
-                                                <i class="fas fa-globe me-1 text-success"></i>All Users
+                                                All Users
                                                 <small class="text-muted d-block">Everyone in your organization can use this template</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="wizardAccessMode" id="wizardAccessRestricted" value="restricted" checked onchange="updateWizardAccessMode()">
                                             <label class="form-check-label" for="wizardAccessRestricted">
-                                                <i class="fas fa-lock me-1 text-warning"></i>Restricted Access
+                                                Restricted Access
                                                 <small class="text-muted d-block">Only selected sub-accounts, roles, or users</small>
                                             </label>
                                         </div>
@@ -1282,15 +1280,13 @@
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label fw-semibold">
-                                                <i class="fas fa-building me-1 text-primary"></i>Sub-accounts
+                                                Sub-accounts
                                                 <span class="placeholder-counter ms-2" id="wizardSubAccountCount">0</span>
                                             </label>
                                             <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;">
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-subaccount-check" type="checkbox" value="all" id="wizardSubAll" onchange="toggleWizardSubAccount('all')">
-                                                    <label class="form-check-label small" for="wizardSubAll">
-                                                        <i class="fas fa-globe me-1 text-muted"></i>All Sub-accounts
-                                                    </label>
+                                                    <label class="form-check-label small" for="wizardSubAll">All Sub-accounts</label>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-subaccount-check" type="checkbox" value="main" id="wizardSubMain" onchange="toggleWizardSubAccount('main')">
@@ -1313,51 +1309,40 @@
                                         
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label fw-semibold">
-                                                <i class="fas fa-user-tag me-1 text-info"></i>Roles
+                                                Roles
                                                 <span class="placeholder-counter ms-2" id="wizardRoleCount">0</span>
                                             </label>
                                             <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;">
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-role-check" type="checkbox" value="admin" id="wizardRoleAdmin" onchange="toggleWizardRole('admin')">
-                                                    <label class="form-check-label small" for="wizardRoleAdmin">
-                                                        <i class="fas fa-crown me-1 text-warning"></i>Administrator
-                                                    </label>
+                                                    <label class="form-check-label small" for="wizardRoleAdmin">Administrator</label>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-role-check" type="checkbox" value="manager" id="wizardRoleManager" onchange="toggleWizardRole('manager')">
-                                                    <label class="form-check-label small" for="wizardRoleManager">
-                                                        <i class="fas fa-user-tie me-1 text-info"></i>Manager
-                                                    </label>
+                                                    <label class="form-check-label small" for="wizardRoleManager">Manager</label>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-role-check" type="checkbox" value="messaging" id="wizardRoleMessaging" onchange="toggleWizardRole('messaging')">
-                                                    <label class="form-check-label small" for="wizardRoleMessaging">
-                                                        <i class="fas fa-envelope me-1 text-primary"></i>Messaging User
-                                                    </label>
+                                                    <label class="form-check-label small" for="wizardRoleMessaging">Messaging User</label>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-role-check" type="checkbox" value="viewer" id="wizardRoleViewer" onchange="toggleWizardRole('viewer')">
-                                                    <label class="form-check-label small" for="wizardRoleViewer">
-                                                        <i class="fas fa-eye me-1 text-secondary"></i>Viewer
-                                                    </label>
+                                                    <label class="form-check-label small" for="wizardRoleViewer">Viewer</label>
                                                 </div>
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-role-check" type="checkbox" value="api" id="wizardRoleApi" onchange="toggleWizardRole('api')">
-                                                    <label class="form-check-label small" for="wizardRoleApi">
-                                                        <i class="fas fa-code me-1 text-dark"></i>API User
-                                                    </label>
+                                                    <label class="form-check-label small" for="wizardRoleApi">API User</label>
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label fw-semibold">
-                                                <i class="fas fa-user me-1 text-secondary"></i>Users <small class="text-muted">(optional)</small>
+                                                Users <small class="text-muted">(optional)</small>
                                                 <span class="placeholder-counter ms-2" id="wizardUserCount">0</span>
                                             </label>
-                                            <div class="input-group input-group-sm mb-2">
-                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                                <input type="text" class="form-control" id="wizardUserSearch" placeholder="Search users..." oninput="filterWizardUsers()">
+                                            <div class="mb-2">
+                                                <input type="text" class="form-control form-control-sm" id="wizardUserSearch" placeholder="Search users..." oninput="filterWizardUsers()">
                                             </div>
                                             <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;" id="wizardUserList">
                                                 <div class="form-check mb-2 wizard-user-item" data-name="john smith">
