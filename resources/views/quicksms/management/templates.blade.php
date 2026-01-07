@@ -753,6 +753,80 @@
                         </div>
                     </div>
                     
+                    <div class="card mb-3" id="tplPlaceholderCard">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0"><i class="fas fa-tags me-2 text-primary"></i>Detected Placeholders</h6>
+                                <span class="badge bg-secondary" id="tplPlaceholderCount">0 placeholders</span>
+                            </div>
+                            
+                            <div id="tplNoPlaceholders" class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>No placeholders detected. Add placeholders like <code>{FirstName}</code> to personalize messages.
+                            </div>
+                            
+                            <div id="tplPlaceholderList" class="d-none">
+                                <div class="d-flex flex-wrap gap-2 mb-3" id="tplPlaceholderChips"></div>
+                                
+                                <div class="border-top pt-3">
+                                    <h6 class="small text-muted mb-2">Placeholder Sources</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-address-book text-primary me-2"></i>
+                                                <span class="small"><strong>Contact Book:</strong> FirstName, LastName, Email, Phone, Company</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-code text-secondary me-2"></i>
+                                                <span class="small"><strong>API Payload:</strong> Custom fields via request body</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3 d-none" id="tplApiRulesCard">
+                        <div class="card-body p-4">
+                            <h6 class="mb-3"><i class="fas fa-code me-2 text-secondary"></i>API Template Rules</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3 mb-3 mb-md-0" id="tplApiRuleSingle">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-warning text-dark me-2">With Placeholders</span>
+                                        </div>
+                                        <ul class="small mb-0 ps-3">
+                                            <li>Only <strong>1 MSISDN</strong> per API request</li>
+                                            <li>All placeholders must be provided in payload</li>
+                                            <li>Missing placeholders block execution</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3" id="tplApiRuleMultiple">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-success me-2">Without Placeholders</span>
+                                        </div>
+                                        <ul class="small mb-0 ps-3">
+                                            <li>Multiple MSISDNs allowed per request</li>
+                                            <li>Same message sent to all recipients</li>
+                                            <li>Batch sending supported</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewPlaceholderSchema()">
+                                    <i class="fas fa-file-code me-1"></i>View Placeholder Schema
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="alert alert-secondary">
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Template Mode:</strong> This editor is the same as Send Message, but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
@@ -875,6 +949,77 @@
                 </div>
             </div>
             <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="placeholderSchemaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-file-code me-2 text-primary"></i>Placeholder Schema for API Templates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>API Request Requirements:</strong> When sending messages via API, you must provide values for all placeholders used in the template.
+                </div>
+                
+                <h6 class="mb-3">Detected Placeholders in This Template</h6>
+                <div class="bg-light p-3 rounded mb-4" id="schemaPlaceholdersList">
+                    <em class="text-muted">No placeholders detected</em>
+                </div>
+                
+                <h6 class="mb-3">Example API Request</h6>
+                <pre class="bg-dark text-light p-3 rounded" style="font-size: 0.85rem;"><code id="schemaExampleRequest">{
+  "template_id": "12345678",
+  "msisdn": "+447700900123",
+  "placeholders": {
+    "FirstName": "John",
+    "LastName": "Doe"
+  }
+}</code></pre>
+                
+                <h6 class="mb-3">Validation Rules</h6>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rule</th>
+                            <th>Description</th>
+                            <th>Error Code</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>MISSING_PLACEHOLDER</code></td>
+                            <td>A required placeholder was not provided in the request</td>
+                            <td><span class="badge bg-danger">400</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>SINGLE_MSISDN_REQUIRED</code></td>
+                            <td>Templates with placeholders only accept 1 MSISDN per request</td>
+                            <td><span class="badge bg-danger">400</span></td>
+                        </tr>
+                        <tr>
+                            <td><code>INVALID_PLACEHOLDER_VALUE</code></td>
+                            <td>Placeholder value exceeds maximum length or contains invalid characters</td>
+                            <td><span class="badge bg-danger">400</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> Placeholder names are case-sensitive. <code>{FirstName}</code> and <code>{firstname}</code> are treated as different placeholders.
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="copySchemaExample()">
+                    <i class="fas fa-copy me-1"></i>Copy Example
+                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -1681,6 +1826,159 @@ function handleTemplateContentChange() {
     document.getElementById('tplPartCount').textContent = segments;
     
     wizardData.content = content;
+    
+    detectPlaceholders(content);
+}
+
+function detectPlaceholders(content) {
+    var placeholderRegex = /\{([A-Za-z][A-Za-z0-9_]*)\}/g;
+    var matches = [];
+    var match;
+    
+    while ((match = placeholderRegex.exec(content)) !== null) {
+        if (!matches.includes(match[1])) {
+            matches.push(match[1]);
+        }
+    }
+    
+    wizardData.placeholders = matches;
+    
+    var countEl = document.getElementById('tplPlaceholderCount');
+    var noPlaceholdersEl = document.getElementById('tplNoPlaceholders');
+    var placeholderListEl = document.getElementById('tplPlaceholderList');
+    var chipsEl = document.getElementById('tplPlaceholderChips');
+    
+    countEl.textContent = matches.length + ' placeholder' + (matches.length !== 1 ? 's' : '');
+    countEl.className = 'badge ' + (matches.length > 0 ? 'bg-primary' : 'bg-secondary');
+    
+    if (matches.length === 0) {
+        noPlaceholdersEl.classList.remove('d-none');
+        placeholderListEl.classList.add('d-none');
+    } else {
+        noPlaceholdersEl.classList.add('d-none');
+        placeholderListEl.classList.remove('d-none');
+        
+        var contactBookFields = ['FirstName', 'LastName', 'Email', 'Phone', 'Company'];
+        
+        chipsEl.innerHTML = matches.map(function(ph) {
+            var isContactBook = contactBookFields.includes(ph);
+            var icon = isContactBook ? 'fas fa-address-book' : 'fas fa-code';
+            var badgeClass = isContactBook ? 'bg-primary' : 'bg-secondary';
+            var source = isContactBook ? 'Contact Book' : 'API Payload';
+            
+            return '<span class="badge ' + badgeClass + ' py-2 px-3" title="Source: ' + source + '">' +
+                   '<i class="' + icon + ' me-1"></i>{' + ph + '}' +
+                   '</span>';
+        }).join('');
+    }
+    
+    updateApiRulesDisplay();
+}
+
+function updateApiRulesDisplay() {
+    var apiRulesCard = document.getElementById('tplApiRulesCard');
+    var singleRule = document.getElementById('tplApiRuleSingle');
+    var multipleRule = document.getElementById('tplApiRuleMultiple');
+    
+    if (wizardData.trigger !== 'api') {
+        apiRulesCard.classList.add('d-none');
+        return;
+    }
+    
+    apiRulesCard.classList.remove('d-none');
+    
+    var hasPlaceholders = wizardData.placeholders && wizardData.placeholders.length > 0;
+    
+    if (hasPlaceholders) {
+        singleRule.style.borderColor = '#ffc107';
+        singleRule.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
+        multipleRule.style.borderColor = '#dee2e6';
+        multipleRule.style.backgroundColor = 'transparent';
+    } else {
+        singleRule.style.borderColor = '#dee2e6';
+        singleRule.style.backgroundColor = 'transparent';
+        multipleRule.style.borderColor = '#198754';
+        multipleRule.style.backgroundColor = 'rgba(25, 135, 84, 0.1)';
+    }
+}
+
+function viewPlaceholderSchema() {
+    var schemaListEl = document.getElementById('schemaPlaceholdersList');
+    var exampleEl = document.getElementById('schemaExampleRequest');
+    
+    var placeholders = wizardData.placeholders || [];
+    
+    if (placeholders.length === 0) {
+        schemaListEl.innerHTML = '<em class="text-muted">No placeholders detected in this template</em>';
+        
+        exampleEl.textContent = JSON.stringify({
+            template_id: wizardData.templateId || '12345678',
+            msisdn: ['+447700900123', '+447700900456', '+447700900789'],
+            placeholders: {}
+        }, null, 2);
+    } else {
+        schemaListEl.innerHTML = placeholders.map(function(ph) {
+            return '<span class="badge bg-primary me-2 mb-2 py-2 px-3">{' + ph + '}</span>';
+        }).join('');
+        
+        var examplePlaceholders = {};
+        placeholders.forEach(function(ph) {
+            examplePlaceholders[ph] = 'Example ' + ph;
+        });
+        
+        exampleEl.textContent = JSON.stringify({
+            template_id: wizardData.templateId || '12345678',
+            msisdn: '+447700900123',
+            placeholders: examplePlaceholders
+        }, null, 2);
+    }
+    
+    new bootstrap.Modal(document.getElementById('placeholderSchemaModal')).show();
+}
+
+function copySchemaExample() {
+    var exampleEl = document.getElementById('schemaExampleRequest');
+    navigator.clipboard.writeText(exampleEl.textContent).then(function() {
+        showToast('API example copied to clipboard', 'success');
+    }).catch(function() {
+        showToast('Failed to copy to clipboard', 'warning');
+    });
+}
+
+function validateTemplateForSave() {
+    var errors = [];
+    
+    if (!wizardData.name || wizardData.name.trim() === '') {
+        errors.push('Template name is required');
+    }
+    
+    if (!wizardData.trigger) {
+        errors.push('Trigger type is required');
+    }
+    
+    var channel = wizardData.channel || 'sms';
+    if (channel === 'rich_rcs') {
+        if (!wizardData.rcsContent) {
+            errors.push('RCS content is required for Rich RCS templates');
+        }
+    } else {
+        if (!wizardData.content || wizardData.content.trim() === '') {
+            errors.push('Message content is required');
+        }
+    }
+    
+    if (wizardData.trigger === 'api' && wizardData.placeholders && wizardData.placeholders.length > 0) {
+        var contactBookFields = ['FirstName', 'LastName', 'Email', 'Phone', 'Company', 'Custom1', 'Custom2', 'Custom3'];
+        var customPlaceholders = wizardData.placeholders.filter(function(ph) {
+            return !contactBookFields.includes(ph);
+        });
+        
+        if (customPlaceholders.length > 0) {
+            console.log('API template has custom placeholders:', customPlaceholders);
+        }
+    }
+    
+    return errors;
 }
 
 function openTemplatePersonalisation() {
