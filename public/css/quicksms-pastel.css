@@ -83,3 +83,123 @@
     background-color: rgba(111, 66, 193, 0.15);
     color: #6f42c1;
 }
+
+/* ===========================================
+   Shared Image Editor Component Styles
+   =========================================== */
+
+.sie-editor-container {
+    width: 100%;
+}
+
+.sie-workspace {
+    position: relative;
+    width: 100%;
+    min-height: 220px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+}
+
+.sie-workspace.sie-dragging {
+    cursor: grabbing;
+}
+
+.sie-image {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    max-width: none;
+}
+
+.sie-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.sie-crop-frame {
+    position: relative;
+    background: transparent;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+.sie-crosshair {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.sie-crosshair-active {
+    opacity: 1;
+}
+
+.sie-crosshair-h {
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-50%);
+}
+
+.sie-crosshair-v {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+}
+
+.sie-crosshair-center {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.sie-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(248, 249, 250, 0.9);
+    z-index: 5;
+}
+
+.sie-hint {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.sie-controls {
+    padding: 0 0.5rem;
+}
+
+.sie-zoom-slider {
+    accent-color: #886CC0;
+}
+
+.sie-zoom-value {
+    min-width: 50px;
+    text-align: center;
+}
