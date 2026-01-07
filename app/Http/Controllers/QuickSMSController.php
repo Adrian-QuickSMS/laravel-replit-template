@@ -36,10 +36,13 @@ class QuickSMSController extends Controller
             ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
         ];
 
-        // TODO: Replace with database query - GET /api/rcs-agents
+        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
+        // Only approved RCS agents are selectable in Send Message, Inbox, and RCS Wizard
+        // Status lifecycle: Draft -> Submitted -> In Review -> Approved/Rejected
+        // Draft/Rejected: editable | Submitted/In Review: locked | Approved: selectable across platform
         $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63'],
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
         ];
 
         // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
@@ -192,9 +195,11 @@ class QuickSMSController extends Controller
             ['id' => 'sid_5', 'name' => '82345', 'type' => 'Shortcode'],
         ];
 
+        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
+        // Only approved RCS agents are selectable in Inbox compose
         $rcs_agents = [
-            ['id' => 'agent_1', 'name' => 'QuickSMS Brand'],
-            ['id' => 'agent_2', 'name' => 'RetailBot'],
+            ['id' => 'agent_1', 'name' => 'QuickSMS Brand', 'status' => 'approved'],
+            ['id' => 'agent_2', 'name' => 'RetailBot', 'status' => 'approved'],
         ];
 
         // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
@@ -1599,10 +1604,12 @@ class QuickSMSController extends Controller
             ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
         ];
 
-        // TODO: Replace with database query - GET /api/rcs-agents
+        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
+        // Only approved RCS agents are selectable in Template wizard
+        // Status lifecycle: Draft -> Submitted -> In Review -> Approved/Rejected
         $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63'],
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
         ];
 
         // TODO: Replace with database query - GET /api/opt-out-lists
