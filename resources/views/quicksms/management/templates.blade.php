@@ -295,6 +295,108 @@
     background-color: var(--primary);
     border-color: var(--primary);
 }
+.wizard-steps {
+    display: flex;
+    gap: 1rem;
+}
+.wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #adb5bd;
+}
+.wizard-step.active {
+    color: var(--primary);
+}
+.wizard-step.completed {
+    color: #28a745;
+}
+.wizard-step .step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.wizard-step.active .step-number {
+    background-color: var(--primary);
+    color: white;
+}
+.wizard-step.completed .step-number {
+    background-color: #28a745;
+    color: white;
+}
+.wizard-step .step-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.trigger-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.trigger-option {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.trigger-option:hover {
+    border-color: rgba(136, 108, 192, 0.5);
+    background-color: #fdfcfe;
+}
+.trigger-option.selected {
+    border-color: var(--primary);
+    background-color: #f0ebf8;
+}
+.trigger-option .form-check {
+    margin: 0;
+    padding: 0;
+}
+.trigger-option .form-check-input {
+    position: absolute;
+    opacity: 0;
+}
+.trigger-option .form-check-label {
+    width: 100%;
+    cursor: pointer;
+}
+.trigger-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1rem;
+}
+.trigger-icon.bg-api {
+    background-color: #6c757d;
+}
+.trigger-icon.bg-portal {
+    background-color: #886CC0;
+}
+.trigger-icon.bg-email {
+    background-color: #17a2b8;
+}
+.step2-locked-info {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border-left: 3px solid var(--primary);
+}
+.alert-pastel-primary {
+    background-color: #f0ebf8;
+    border: 1px solid rgba(136, 108, 192, 0.2);
+    color: #5a4a7a;
+}
 </style>
 @endpush
 
@@ -440,54 +542,188 @@
     </div>
 </div>
 
-<div class="modal fade" id="createTemplateModal" tabindex="-1">
+<div class="modal fade" id="createTemplateModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-file-alt me-2 text-primary"></i>Create Template</h5>
+                <div class="d-flex align-items-center">
+                    <h5 class="modal-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Template</h5>
+                    <div class="wizard-steps ms-4">
+                        <span class="wizard-step active" data-step="1">
+                            <span class="step-number">1</span>
+                            <span class="step-label">Metadata</span>
+                        </span>
+                        <span class="wizard-step" data-step="2">
+                            <span class="step-number">2</span>
+                            <span class="step-label">Content</span>
+                        </span>
+                        <span class="wizard-step" data-step="3">
+                            <span class="step-number">3</span>
+                            <span class="step-label">Review</span>
+                        </span>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            
             <div class="modal-body">
-                <div class="alert alert-pastel-primary mb-3">
-                    <i class="fas fa-info-circle me-2 text-primary"></i>
-                    Templates allow you to save message content for quick reuse. Add personalization tags like {FirstName} to customize messages.
+                <div id="wizardStep1" class="wizard-content">
+                    <div class="alert alert-pastel-primary mb-4">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>
+                        <strong>Step 1: Template Metadata</strong> - Define the basic information for your template. The trigger type determines where and how the template can be used.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Template Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="templateName" placeholder="e.g., Welcome Message, Appointment Reminder" maxlength="100">
+                                <div class="invalid-feedback">Please enter a template name</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Template ID</label>
+                                <input type="text" class="form-control bg-light" id="templateIdField" readonly>
+                                <small class="text-muted">Auto-generated, read-only</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Trigger Type <span class="text-danger">*</span></label>
+                        <p class="text-muted small mb-2">Select how this template will be triggered. This cannot be changed after creation.</p>
+                        
+                        <div class="trigger-options">
+                            <div class="trigger-option" data-trigger="api">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="templateTrigger" id="triggerApi" value="api">
+                                    <label class="form-check-label" for="triggerApi">
+                                        <div class="d-flex align-items-center">
+                                            <div class="trigger-icon bg-api">
+                                                <i class="fas fa-code"></i>
+                                            </div>
+                                            <div>
+                                                <strong>API</strong>
+                                                <p class="mb-0 small text-muted">Template is called via API only. Assign to specific sub-accounts for access control.</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="trigger-option" data-trigger="portal">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="templateTrigger" id="triggerPortal" value="portal">
+                                    <label class="form-check-label" for="triggerPortal">
+                                        <div class="d-flex align-items-center">
+                                            <div class="trigger-icon bg-portal">
+                                                <i class="fas fa-desktop"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Portal</strong>
+                                                <p class="mb-0 small text-muted">Template is visible and selectable when sending messages through the QuickSMS portal.</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="trigger-option" data-trigger="email">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="templateTrigger" id="triggerEmail" value="email">
+                                    <label class="form-check-label" for="triggerEmail">
+                                        <div class="d-flex align-items-center">
+                                            <div class="trigger-icon bg-email">
+                                                <i class="fas fa-envelope"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Email-to-SMS</strong>
+                                                <p class="mb-0 small text-muted">Template is visible only in Email-to-SMS configuration for automated email conversion.</p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback" id="triggerError" style="display: none;">Please select a trigger type</div>
+                    </div>
                 </div>
                 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Template Name</label>
-                    <input type="text" class="form-control" id="templateName" placeholder="e.g., Welcome Message, Appointment Reminder">
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Channel</label>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="templateChannel" id="channelSms" value="sms" checked>
-                            <label class="form-check-label" for="channelSms">SMS</label>
+                <div id="wizardStep2" class="wizard-content" style="display: none;">
+                    <div class="alert alert-pastel-primary mb-4">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>
+                        <strong>Step 2: Message Content</strong> - Create your message content. You can use personalization tags to customize messages for each recipient.
+                    </div>
+                    
+                    <div class="step2-locked-info mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <small class="text-muted">Template Name</small>
+                                <div class="fw-semibold" id="step2TemplateName">-</div>
+                            </div>
+                            <div class="vr"></div>
+                            <div>
+                                <small class="text-muted">Template ID</small>
+                                <div class="fw-semibold" id="step2TemplateId">-</div>
+                            </div>
+                            <div class="vr"></div>
+                            <div>
+                                <small class="text-muted">Trigger</small>
+                                <div>
+                                    <span class="badge rounded-pill" id="step2TriggerBadge">-</span>
+                                    <i class="fas fa-lock ms-1 text-muted small" title="Locked after creation"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="templateChannel" id="channelBasicRcs" value="basic_rcs">
-                            <label class="form-check-label" for="channelBasicRcs">Basic RCS + SMS</label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Channel</label>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="templateChannel" id="channelSms" value="sms" checked>
+                                <label class="form-check-label" for="channelSms">SMS</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="templateChannel" id="channelBasicRcs" value="basic_rcs">
+                                <label class="form-check-label" for="channelBasicRcs">Basic RCS + SMS</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="templateChannel" id="channelRichRcs" value="rich_rcs">
+                                <label class="form-check-label" for="channelRichRcs">Rich RCS + SMS</label>
+                            </div>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="templateChannel" id="channelRichRcs" value="rich_rcs">
-                            <label class="form-check-label" for="channelRichRcs">Rich RCS + SMS</label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Message Content</label>
+                        <textarea class="form-control" id="templateContent" rows="5" placeholder="Enter your message content..."></textarea>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">Use {FirstName}, {LastName}, {Company} for personalization</small>
+                            <small class="text-muted"><span id="charCount">0</span> characters</small>
                         </div>
                     </div>
                 </div>
                 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Message Content</label>
-                    <textarea class="form-control" id="templateContent" rows="5" placeholder="Enter your message content..."></textarea>
-                    <div class="d-flex justify-content-between mt-2">
-                        <small class="text-muted">Use {FirstName}, {LastName}, {Company} for personalization</small>
-                        <small class="text-muted"><span id="charCount">0</span> characters</small>
+                <div id="wizardStep3" class="wizard-content" style="display: none;">
+                    <div class="alert alert-pastel-primary mb-4">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>
+                        <strong>Step 3: Review & Save</strong> - Review your template details before saving.
                     </div>
+                    <p class="text-muted">Review step coming in next iteration...</p>
                 </div>
             </div>
+            
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveTemplate()">
+                <button type="button" class="btn btn-outline-secondary" id="wizardBackBtn" style="display: none;" onclick="wizardBack()">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+                <button type="button" class="btn btn-primary" id="wizardNextBtn" onclick="wizardNext()">
+                    Continue<i class="fas fa-arrow-right ms-2"></i>
+                </button>
+                <button type="button" class="btn btn-primary" id="wizardSaveBtn" style="display: none;" onclick="saveTemplate()">
                     <i class="fas fa-save me-2"></i>Save Template
                 </button>
             </div>
@@ -778,12 +1014,146 @@ function createChip(label, value, filterType) {
         '</span>';
 }
 
+var currentWizardStep = 1;
+var wizardData = {
+    name: '',
+    templateId: '',
+    trigger: '',
+    channel: 'sms',
+    content: ''
+};
+
+function generateTemplateId() {
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
 function showCreateModal() {
+    currentWizardStep = 1;
+    wizardData = {
+        name: '',
+        templateId: generateTemplateId(),
+        trigger: '',
+        channel: 'sms',
+        content: ''
+    };
+    
     document.getElementById('templateName').value = '';
+    document.getElementById('templateIdField').value = wizardData.templateId;
     document.getElementById('templateContent').value = '';
     document.getElementById('charCount').textContent = '0';
     document.getElementById('channelSms').checked = true;
+    
+    document.querySelectorAll('input[name="templateTrigger"]').forEach(function(radio) {
+        radio.checked = false;
+    });
+    document.querySelectorAll('.trigger-option').forEach(function(opt) {
+        opt.classList.remove('selected');
+    });
+    
+    document.getElementById('templateName').classList.remove('is-invalid');
+    document.getElementById('triggerError').style.display = 'none';
+    
+    updateWizardUI();
     new bootstrap.Modal(document.getElementById('createTemplateModal')).show();
+    
+    setupTriggerOptionListeners();
+}
+
+function setupTriggerOptionListeners() {
+    document.querySelectorAll('.trigger-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+            var trigger = this.getAttribute('data-trigger');
+            var radio = this.querySelector('input[type="radio"]');
+            
+            document.querySelectorAll('.trigger-option').forEach(function(opt) {
+                opt.classList.remove('selected');
+            });
+            document.querySelectorAll('input[name="templateTrigger"]').forEach(function(r) {
+                r.checked = false;
+            });
+            
+            this.classList.add('selected');
+            radio.checked = true;
+            wizardData.trigger = trigger;
+            
+            document.getElementById('triggerError').style.display = 'none';
+        });
+    });
+}
+
+function updateWizardUI() {
+    document.querySelectorAll('.wizard-step').forEach(function(step) {
+        var stepNum = parseInt(step.getAttribute('data-step'));
+        step.classList.remove('active', 'completed');
+        
+        if (stepNum < currentWizardStep) {
+            step.classList.add('completed');
+        } else if (stepNum === currentWizardStep) {
+            step.classList.add('active');
+        }
+    });
+    
+    document.getElementById('wizardStep1').style.display = currentWizardStep === 1 ? 'block' : 'none';
+    document.getElementById('wizardStep2').style.display = currentWizardStep === 2 ? 'block' : 'none';
+    document.getElementById('wizardStep3').style.display = currentWizardStep === 3 ? 'block' : 'none';
+    
+    document.getElementById('wizardBackBtn').style.display = currentWizardStep > 1 ? 'inline-block' : 'none';
+    document.getElementById('wizardNextBtn').style.display = currentWizardStep < 3 ? 'inline-block' : 'none';
+    document.getElementById('wizardSaveBtn').style.display = currentWizardStep === 3 ? 'inline-block' : 'none';
+    
+    if (currentWizardStep === 2) {
+        document.getElementById('step2TemplateName').textContent = wizardData.name;
+        document.getElementById('step2TemplateId').textContent = wizardData.templateId;
+        
+        var triggerBadge = document.getElementById('step2TriggerBadge');
+        triggerBadge.textContent = getTriggerLabel(wizardData.trigger);
+        triggerBadge.className = 'badge rounded-pill ' + getTriggerBadgeClass(wizardData.trigger);
+    }
+}
+
+function validateStep1() {
+    var isValid = true;
+    
+    var nameInput = document.getElementById('templateName');
+    var name = nameInput.value.trim();
+    if (!name) {
+        nameInput.classList.add('is-invalid');
+        isValid = false;
+    } else {
+        nameInput.classList.remove('is-invalid');
+        wizardData.name = name;
+    }
+    
+    var selectedTrigger = document.querySelector('input[name="templateTrigger"]:checked');
+    if (!selectedTrigger) {
+        document.getElementById('triggerError').style.display = 'block';
+        isValid = false;
+    } else {
+        document.getElementById('triggerError').style.display = 'none';
+        wizardData.trigger = selectedTrigger.value;
+    }
+    
+    return isValid;
+}
+
+function wizardNext() {
+    if (currentWizardStep === 1) {
+        if (!validateStep1()) {
+            return;
+        }
+    }
+    
+    if (currentWizardStep < 3) {
+        currentWizardStep++;
+        updateWizardUI();
+    }
+}
+
+function wizardBack() {
+    if (currentWizardStep > 1) {
+        currentWizardStep--;
+        updateWizardUI();
+    }
 }
 
 function updateCharCount() {
@@ -792,34 +1162,35 @@ function updateCharCount() {
 }
 
 function saveTemplate() {
-    var name = document.getElementById('templateName').value.trim();
+    var name = wizardData.name || document.getElementById('templateName').value.trim();
     var content = document.getElementById('templateContent').value.trim();
     var channel = document.querySelector('input[name="templateChannel"]:checked').value;
+    var trigger = wizardData.trigger || 'portal';
     
     if (!name) {
         alert('Please enter a template name.');
         return;
     }
     
-    var templateId = Math.floor(10000000 + Math.random() * 90000000).toString();
-    
     var template = {
         id: Date.now(),
-        templateId: templateId,
+        templateId: wizardData.templateId,
         name: name,
         channel: channel,
-        trigger: 'portal',
+        trigger: trigger,
         content: content,
         contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
         accessScope: 'All Sub-accounts',
         subAccounts: ['all'],
         status: 'draft',
+        version: 1,
         lastUpdated: new Date().toISOString().split('T')[0]
     };
     
     mockTemplates.unshift(template);
     bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
     renderTemplates();
+    showToast('Template "' + name + '" created successfully', 'success');
 }
 
 function sortTable(column) {
