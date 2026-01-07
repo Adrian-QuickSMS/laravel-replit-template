@@ -1,0 +1,48 @@
+/* Shared Message Builder Layout CSS */
+
+#main-wrapper,
+.content-body {
+    overflow: visible !important;
+}
+
+.message-builder-layout {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.message-builder-left {
+    flex: 1 1 66.666%;
+    min-width: 0;
+}
+
+.message-builder-right {
+    flex: 0 0 33.333%;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+}
+
+@media (max-width: 991.98px) {
+    .message-builder-layout {
+        flex-direction: column;
+    }
+    .message-builder-left,
+    .message-builder-right {
+        flex: 0 0 100%;
+        max-width: 100%;
+        position: static;
+    }
+}
+
+/* Template wizard specific - fullscreen modal needs different sticky behavior */
+.template-wizard-step2 .message-builder-layout {
+    height: 100%;
+}
+
+.template-wizard-step2 .message-builder-right {
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}

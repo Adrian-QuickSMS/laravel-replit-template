@@ -569,6 +569,32 @@
     padding: 1rem;
     border-left: 3px solid var(--primary);
 }
+.tpl-builder-layout {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.tpl-builder-left {
+    flex: 1 1 66.666%;
+    min-width: 0;
+}
+.tpl-builder-right {
+    flex: 0 0 33.333%;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+}
+@media (max-width: 991.98px) {
+    .tpl-builder-layout {
+        flex-direction: column;
+    }
+    .tpl-builder-left,
+    .tpl-builder-right {
+        flex: 0 0 100%;
+        max-width: 100%;
+        position: static;
+    }
+}
 .alert-pastel-primary {
     background-color: #f0ebf8;
     border: 1px solid rgba(136, 108, 192, 0.2);
@@ -857,8 +883,8 @@
                         </div>
                     </div>
                     
-                    <div class="row mx-auto" style="max-width: 1200px;">
-                        <div class="col-lg-7">
+                    <div class="tpl-builder-layout mx-auto" style="max-width: 1200px;">
+                        <div class="tpl-builder-left">
                             <div class="card mb-3">
                                 <div class="card-body p-4">
                                     <h6 class="mb-3">Channel & Sender</h6>
@@ -1144,11 +1170,11 @@
                             </div>
                         </div>
                         
-                        <div class="col-lg-5">
-                            <div class="card mb-3 sticky-top" style="top: 1rem;">
+                        <div class="tpl-builder-right">
+                            <div class="card mb-3">
                                 <div class="card-body p-4">
                                     <h6 class="mb-3">Message Preview</h6>
-                                    <div id="tplPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.8); transform-origin: top center; margin-bottom: -80px;"></div>
+                                    <div id="tplPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
                                     
                                     <div class="text-center d-none" id="tplPreviewToggleContainer">
                                         <div class="btn-group btn-group-sm" role="group">
@@ -4366,7 +4392,7 @@ function updateTemplatePreview() {
         }
     }
     
-    container.innerHTML = RcsPreviewRenderer.render(previewConfig);
+    container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
     
     var segments = Math.ceil((content.length || 1) / 160);
     document.getElementById('tplPreviewSegments').textContent = segments;

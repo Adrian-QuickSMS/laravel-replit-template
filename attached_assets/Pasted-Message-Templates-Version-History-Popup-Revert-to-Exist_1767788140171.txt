@@ -1,0 +1,114 @@
+Message Templates — Version History Popup: Revert to Existing Template Styles (No New Design)
+
+CRITICAL:
+Stop introducing new design decisions. The Version History popup must use ONLY existing template/table/modal components and colours already used elsewhere (e.g. Message Templates library table, Message Logs, existing modals).
+
+────────────────────────
+A) Table header styling must match existing tables (NO dark grey header)
+────────────────────────
+Issue:
+- Version History table header is dark grey. No tables in the UI use a dark grey header fill.
+
+Requirement:
+- Replace the dark grey header background with the SAME header fill used in the Message Templates Library table (“Message Templates folder” table header styling).
+- Use the same:
+  - background colour token
+  - font size/weight
+  - padding
+  - border bottom
+
+Constraints:
+- Do not introduce new header colours.
+- Reuse the exact existing table component/theme used in Template Library.
+
+Acceptance:
+- Version History table header looks identical to the Template Library header (no dark grey).
+
+────────────────────────
+B) Remove “current version” row highlighting (NO dark grey filled row)
+────────────────────────
+Issue:
+- Current version row is filled dark grey.
+
+Requirement:
+- Remove the dark grey filled row for current version.
+- Current version should be indicated subtly:
+  - plain text “Active” in the Version column OR
+  - a small icon consistent with the platform
+- Do NOT use a new highlight colour.
+
+Constraints:
+- Keep row background identical across all rows (standard table).
+- Only allow standard hover highlight if it exists elsewhere.
+
+Acceptance:
+- Current version row is not filled with any special background colour.
+
+────────────────────────
+C) Status must be a pill using the SAME status colours as the main Template table
+────────────────────────
+Requirement:
+- Add a Status column (or keep it if present) showing a status pill:
+  - Draft
+  - Live
+  - Paused (if used)
+  - Archived
+- Use the exact same pill component + colour tokens as the main Message Templates library table.
+
+Constraints:
+- No new status colours.
+- No plain-text status if the main table uses pills (must match main table).
+
+Acceptance:
+- Status pills match main Template table colours and styling exactly.
+
+────────────────────────
+D) Actions column must be three-dot menu (not inline buttons)
+────────────────────────
+Requirement:
+- Replace “View” and “Rollback” inline buttons with a three-dot actions menu per row.
+- Menu items:
+  - View version
+  - Roll back to this version
+
+Constraints:
+- Reuse the same three-dot dropdown component as used in Template Library rows.
+- No new button styles inside the table.
+
+Acceptance:
+- Actions column shows only the three-dot menu, and actions are inside it.
+
+────────────────────────
+E) Rollback confirmation modal must use standard modal + standard primary button
+────────────────────────
+Issue:
+- Rollback modal uses new colours and a non-standard CTA style.
+
+Requirement:
+- Rebuild rollback modal using existing modal component and existing button styles.
+- CTA button must be the standard primary button used across the platform (same purple, hover, radius).
+- Secondary button must be the standard secondary button (same as other modals).
+
+Constraints:
+- Do NOT introduce any new colour tokens in modal backgrounds, CTA, headers, or alerts.
+- Copy button styling from an existing confirmed modal in the app (e.g. Purchase → Messages confirmation).
+
+Acceptance:
+- Rollback modal looks identical to other platform modals.
+- Primary CTA uses standard primary button styling with no new colours.
+
+────────────────────────
+F) Visual regression requirement
+────────────────────────
+Requirement:
+- Ensure Version History popup is visually consistent with:
+  - Message Templates Library table
+  - Message Logs table
+  - Existing modals
+
+Acceptance checklist:
+- No dark grey table header.
+- No dark grey “current version” row.
+- Status uses existing status pill colours.
+- Actions column is three-dot menu.
+- Rollback modal uses standard primary/secondary buttons with existing colours only.
