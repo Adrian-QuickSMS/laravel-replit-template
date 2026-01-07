@@ -66,15 +66,17 @@
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow: hidden;
+    overflow-x: auto;
 }
 .templates-table {
     width: 100%;
     margin: 0;
+    min-width: 900px;
+    table-layout: fixed;
 }
 .templates-table thead th {
     background: #f8f9fa;
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem 0.5rem;
     font-weight: 600;
     font-size: 0.8rem;
     color: #495057;
@@ -83,8 +85,28 @@
     white-space: nowrap;
     user-select: none;
 }
+.templates-table thead th:first-child { width: 15%; }
+.templates-table thead th:nth-child(2) { width: 10%; }
+.templates-table thead th:nth-child(3) { width: 6%; }
+.templates-table thead th:nth-child(4) { width: 10%; }
+.templates-table thead th:nth-child(5) { width: 8%; }
+.templates-table thead th:nth-child(6) { width: 18%; }
+.templates-table thead th:nth-child(7) { width: 10%; }
+.templates-table thead th:nth-child(8) { width: 8%; }
+.templates-table thead th:nth-child(9) { width: 10%; }
+.templates-table thead th:last-child { 
+    width: 5%; 
+    position: sticky;
+    right: 0;
+    background: #f8f9fa;
+    z-index: 2;
+    cursor: default;
+}
 .templates-table thead th:hover {
     background: #e9ecef;
+}
+.templates-table thead th:last-child:hover {
+    background: #f8f9fa;
 }
 .templates-table thead th .sort-icon {
     margin-left: 0.25rem;
@@ -95,15 +117,25 @@
     color: var(--primary);
 }
 .templates-table tbody td {
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem 0.5rem;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f5;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
+}
+.templates-table tbody td:last-child {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    z-index: 1;
+    box-shadow: -2px 0 4px rgba(0,0,0,0.05);
 }
 .templates-table tbody tr:last-child td {
     border-bottom: none;
 }
-.templates-table tbody tr:hover {
+.templates-table tbody tr:hover td {
+    background: #f8f9fa;
+}
+.templates-table tbody tr:hover td:last-child {
     background: #f8f9fa;
 }
 .template-name {
@@ -166,10 +198,24 @@
 .content-preview {
     color: #6c757d;
     font-size: 0.8rem;
-    max-width: 180px;
+    max-width: 200px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
+}
+.channel-text {
+    font-size: 0.85rem;
+    color: #495057;
+}
+.trigger-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+.version-text {
+    font-size: 0.85rem;
+    color: #886CC0;
+    font-weight: 500;
 }
 .access-scope {
     font-size: 0.8rem;
@@ -2425,6 +2471,17 @@ function getContentPreview(template) {
     }
 }
 
+function getContentPreviewText(template) {
+    if (template.contentType === 'rich_card') {
+        return 'Rich Card';
+    } else if (template.contentType === 'carousel') {
+        return 'Carousel';
+    } else {
+        var preview = template.content.length > 60 ? template.content.substring(0, 60) + '...' : template.content;
+        return preview || '-';
+    }
+}
+
 function renderTemplates() {
     var search = appliedFilters.search.toLowerCase();
     
@@ -2482,10 +2539,10 @@ function renderTemplates() {
         html += '<tr class="' + rowClass + '">';
         html += '<td><span class="template-name">' + template.name + '</span></td>';
         html += '<td><span class="template-id">' + template.templateId + '</span></td>';
-        html += '<td><span class="version-badge">v' + template.version + '</span></td>';
-        html += '<td><span class="badge rounded-pill ' + getChannelBadgeClass(template.channel) + '">' + getChannelLabel(template.channel) + '</span></td>';
-        html += '<td><span class="badge rounded-pill ' + getTriggerBadgeClass(template.trigger) + '">' + getTriggerLabel(template.trigger) + '</span></td>';
-        html += '<td>' + getContentPreview(template) + '</td>';
+        html += '<td><span class="version-text">v' + template.version + '</span></td>';
+        html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
+        html += '<td><span class="trigger-text">' + getTriggerLabel(template.trigger) + '</span></td>';
+        html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
         html += '<td>' + template.lastUpdated + '</td>';
