@@ -750,7 +750,7 @@
         <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
             <div class="modal-header py-3 flex-shrink-0" style="background: linear-gradient(135deg, #886CC0 0%, #a78bda 100%); color: #fff;">
                 <div class="d-flex align-items-center">
-                    <h5 class="modal-title mb-0"><i class="fas fa-file-alt me-2"></i>Create Template</h5>
+                    <h5 class="modal-title mb-0" id="wizardModalTitle"><i class="fas fa-file-alt me-2"></i>Create Template</h5>
                     <div class="wizard-steps ms-4 fullscreen-steps">
                         <span class="wizard-step active" data-step="1">
                             <span class="step-number">1</span>
@@ -769,7 +769,27 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             
-            <div class="modal-body flex-grow-1 p-0" style="overflow-y: auto; background: #f8f9fa;">
+            <div class="modal-body flex-grow-1 p-0" style="overflow-y: auto; background: #f8f9fa; position: relative;">
+                <div id="wizardLoadingOverlay" class="d-none" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); z-index: 100; display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mb-0">Loading template data...</p>
+                    </div>
+                </div>
+                
+                <div id="wizardErrorOverlay" class="d-none" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); z-index: 100; display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center" style="max-width: 400px;">
+                        <div class="text-danger mb-3">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="text-danger mb-2">Failed to Load Template</h5>
+                        <p class="text-muted mb-3" id="wizardErrorMessage">An error occurred while loading the template.</p>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+                
                 <div id="wizardStep1" class="wizard-content p-4">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
@@ -2458,6 +2478,23 @@ function setupEventListeners() {
     document.querySelectorAll('.subaccount-check').forEach(function(checkbox) {
         checkbox.addEventListener('change', updateSubAccountDropdownLabel);
     });
+    
+    document.getElementById('createTemplateModal').addEventListener('hidden.bs.modal', function() {
+        isEditMode = false;
+        editingTemplateId = null;
+        
+        document.getElementById('wizardLoadingOverlay').classList.add('d-none');
+        document.getElementById('wizardErrorOverlay').classList.add('d-none');
+        
+        document.querySelectorAll('input[name="templateTrigger"]').forEach(function(radio) {
+            radio.disabled = false;
+        });
+        document.querySelectorAll('.trigger-option').forEach(function(opt) {
+            opt.classList.remove('disabled-trigger');
+            opt.style.pointerEvents = '';
+            opt.style.opacity = '';
+        });
+    });
 }
 
 function updateSubAccountDropdownLabel() {
@@ -2570,6 +2607,8 @@ function createChip(label, value, filterType) {
 }
 
 var currentWizardStep = 1;
+var isEditMode = false;
+var editingTemplateId = null;
 var wizardData = {
     name: '',
     templateId: '',
@@ -2587,7 +2626,11 @@ function generateTemplateId() {
 }
 
 function showCreateModal() {
+    isEditMode = false;
+    editingTemplateId = null;
     currentWizardStep = 1;
+    templateRcsPayload = null;
+    
     wizardData = {
         name: '',
         templateId: generateTemplateId(),
@@ -2599,6 +2642,8 @@ function showCreateModal() {
         roles: [],
         users: []
     };
+    
+    document.getElementById('wizardModalTitle').innerHTML = '<i class="fas fa-file-alt me-2"></i>Create Template';
     
     document.querySelectorAll('.wizard-subaccount-check').forEach(function(cb) {
         cb.checked = false;
@@ -2625,9 +2670,13 @@ function showCreateModal() {
     
     document.querySelectorAll('input[name="templateTrigger"]').forEach(function(radio) {
         radio.checked = false;
+        radio.disabled = false;
     });
     document.querySelectorAll('.trigger-option').forEach(function(opt) {
         opt.classList.remove('selected');
+        opt.classList.remove('disabled-trigger');
+        opt.style.pointerEvents = '';
+        opt.style.opacity = '';
     });
     
     document.getElementById('templateName').classList.remove('is-invalid');
@@ -3277,12 +3326,109 @@ function renderTemplates() {
 }
 
 function editTemplate(id) {
-    var template = mockTemplates.find(function(t) { return t.id === id; });
-    if (!template || template.status === 'archived') {
-        showToast('Archived templates cannot be edited', 'warning');
-        return;
-    }
-    showToast('Opening editor for "' + template.name + '"...', 'info');
+    var loadingOverlay = document.getElementById('wizardLoadingOverlay');
+    var errorOverlay = document.getElementById('wizardErrorOverlay');
+    
+    loadingOverlay.classList.remove('d-none');
+    errorOverlay.classList.add('d-none');
+    
+    isEditMode = true;
+    editingTemplateId = id;
+    currentWizardStep = 1;
+    
+    document.getElementById('wizardModalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Edit Template';
+    new bootstrap.Modal(document.getElementById('createTemplateModal')).show();
+    
+    setTimeout(function() {
+        var template = mockTemplates.find(function(t) { return t.id === id; });
+        
+        if (!template) {
+            loadingOverlay.classList.add('d-none');
+            errorOverlay.classList.remove('d-none');
+            document.getElementById('wizardErrorMessage').textContent = 'Template not found. Please try again or contact support.';
+            return;
+        }
+        
+        if (template.status === 'archived') {
+            loadingOverlay.classList.add('d-none');
+            errorOverlay.classList.remove('d-none');
+            document.getElementById('wizardErrorMessage').textContent = 'Archived templates cannot be edited.';
+            return;
+        }
+        
+        wizardData = {
+            name: template.name,
+            templateId: template.templateId,
+            trigger: template.trigger,
+            channel: template.channel || 'sms',
+            content: template.content || '',
+            accessMode: template.subAccounts.includes('all') ? 'all' : 'restricted',
+            subAccounts: template.subAccounts || [],
+            roles: template.permissions ? template.permissions.roles || [] : [],
+            users: template.permissions ? template.permissions.users || [] : []
+        };
+        
+        templateRcsPayload = template.rcsPayload || null;
+        
+        document.getElementById('templateName').value = wizardData.name;
+        document.getElementById('templateIdField').value = wizardData.templateId;
+        document.getElementById('templateContent').value = wizardData.content;
+        document.getElementById('tplCharCount').textContent = wizardData.content.length;
+        
+        document.querySelectorAll('input[name="templateTrigger"]').forEach(function(radio) {
+            radio.checked = radio.value === wizardData.trigger;
+            radio.disabled = true;
+        });
+        document.querySelectorAll('.trigger-option').forEach(function(opt) {
+            var trigger = opt.getAttribute('data-trigger');
+            opt.classList.toggle('selected', trigger === wizardData.trigger);
+            opt.classList.add('disabled-trigger');
+            opt.style.pointerEvents = 'none';
+            opt.style.opacity = '0.7';
+        });
+        
+        if (wizardData.channel === 'sms') {
+            document.getElementById('tplChannelSMS').checked = true;
+            document.getElementById('tplRcsContentSection').classList.add('d-none');
+            document.getElementById('tplTextEditorContainer').classList.remove('d-none');
+        } else if (wizardData.channel === 'basic_rcs') {
+            document.getElementById('tplChannelBasicRCS').checked = true;
+            document.getElementById('tplRcsContentSection').classList.add('d-none');
+            document.getElementById('tplTextEditorContainer').classList.remove('d-none');
+        } else if (wizardData.channel === 'rich_rcs') {
+            document.getElementById('tplChannelRichRCS').checked = true;
+            document.getElementById('tplRcsContentSection').classList.remove('d-none');
+            document.getElementById('tplTextEditorContainer').classList.add('d-none');
+        }
+        
+        if (wizardData.accessMode === 'all') {
+            document.getElementById('wizardAccessAll').checked = true;
+            document.getElementById('wizardRestrictedSection').style.display = 'none';
+        } else {
+            document.getElementById('wizardAccessRestricted').checked = true;
+            document.getElementById('wizardRestrictedSection').style.display = 'block';
+        }
+        
+        document.querySelectorAll('.wizard-subaccount-check').forEach(function(cb) {
+            cb.checked = wizardData.subAccounts.includes(cb.value);
+        });
+        document.querySelectorAll('.wizard-role-check').forEach(function(cb) {
+            cb.checked = wizardData.roles.includes(cb.value);
+        });
+        document.querySelectorAll('.wizard-user-check').forEach(function(cb) {
+            cb.checked = wizardData.users.includes(cb.value);
+        });
+        
+        updateWizardPermissionCounts();
+        
+        document.getElementById('templateName').classList.remove('is-invalid');
+        document.getElementById('triggerError').style.display = 'none';
+        
+        loadingOverlay.classList.add('d-none');
+        updateWizardUI();
+        
+        showToast('Editing "' + template.name + '"', 'info');
+    }, 300);
 }
 
 function duplicateTemplate(id) {
