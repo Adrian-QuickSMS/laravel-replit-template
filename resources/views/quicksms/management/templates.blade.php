@@ -551,17 +551,19 @@
     align-items: center;
     justify-content: center;
     margin-right: 1rem;
-    color: white;
     font-size: 1rem;
 }
 .trigger-icon.bg-api {
-    background-color: #6c757d;
+    background-color: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
 }
 .trigger-icon.bg-portal {
-    background-color: #886CC0;
+    background-color: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
 }
 .trigger-icon.bg-email {
-    background-color: #17a2b8;
+    background-color: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
 }
 .step2-locked-info {
     background-color: #f8f9fa;
@@ -1439,7 +1441,7 @@
             </div>
             
             <div class="modal-footer flex-shrink-0 py-3 border-top">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-outline-secondary" id="wizardBackBtn" style="display: none;" onclick="wizardBack()">
                     <i class="fas fa-arrow-left me-2"></i>Back
                 </button>
