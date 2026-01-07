@@ -2342,8 +2342,31 @@ function openAgentWizard(existingAgent) {
     resetWizardData();
     
     var isLocked = existingAgent && ['submitted', 'in_review', 'approved'].includes(existingAgent.status);
+    var agentId = existingAgent ? existingAgent.id : null;
     
-    if (existingAgent) {
+    // Check for saved draft in localStorage (non-functional requirement: draft recovery)
+    var savedDraft = loadDraftFromStorage(agentId);
+    var draftRestored = false;
+    
+    if (savedDraft && !isLocked) {
+        // Prompt user to recover draft or start fresh
+        var draftDate = new Date(savedDraft.savedAt);
+        var draftAgeMinutes = Math.round((Date.now() - draftDate.getTime()) / 60000);
+        var draftAgeText = draftAgeMinutes < 60 ? 
+            draftAgeMinutes + ' minute' + (draftAgeMinutes !== 1 ? 's' : '') + ' ago' :
+            Math.round(draftAgeMinutes / 60) + ' hour' + (Math.round(draftAgeMinutes / 60) !== 1 ? 's' : '') + ' ago';
+        
+        if (confirm('A draft was found from ' + draftAgeText + '. Would you like to restore it?\n\nClick OK to restore, or Cancel to start fresh.')) {
+            restoreWizardFromDraft(savedDraft);
+            draftRestored = true;
+            showNotification('info', 'Draft Restored', 'Your previous work has been restored from the saved draft.');
+        } else {
+            // User chose to start fresh - clear the old draft
+            clearDraftFromStorage(agentId);
+        }
+    }
+    
+    if (existingAgent && !draftRestored) {
         wizardData.id = existingAgent.id;
         wizardData.name = existingAgent.name || '';
         wizardData.billing = existingAgent.billing || '';
@@ -2369,12 +2392,19 @@ function openAgentWizard(existingAgent) {
         if (isLocked) {
             lockWizardFields();
         }
-    } else {
+    } else if (!existingAgent && !draftRestored) {
         wizardData.id = 'agent-' + Date.now();
         document.getElementById('agentWizardTitle').innerHTML = '<i class="fas fa-robot me-2"></i>Create RCS Agent';
     }
     
-    goToStep(1);
+    // If draft was restored, populate the UI
+    if (draftRestored) {
+        populateWizardUIFromData();
+        document.getElementById('agentWizardTitle').innerHTML = '<i class="fas fa-robot me-2"></i>' + 
+            (wizardData.isEditing ? 'Edit RCS Agent' : 'Create RCS Agent');
+    }
+    
+    goToStep(draftRestored ? wizardData.currentStep : 1);
     wizardModal.show();
 }
 
@@ -2876,6 +2906,8 @@ function keepDraftAndExit() {
 }
 
 function discardDraftAndExit() {
+    // Clear the draft from localStorage when user explicitly discards
+    clearDraftFromStorage(wizardData.id);
     exitModal.hide();
     wizardModal.hide();
 }
@@ -2894,8 +2926,288 @@ function triggerAutosave() {
 }
 
 function autosaveDraft() {
+    // Persist draft to localStorage for recovery on refresh/navigation
+    var draftKey = getDraftStorageKey();
+    
+    try {
+        var draftData = {
+            id: wizardData.id,
+            name: wizardData.name,
+            description: wizardData.description,
+            billing: wizardData.billing,
+            useCase: wizardData.useCase,
+            logoDataUrl: wizardData.logoDataUrl,
+            heroDataUrl: wizardData.heroDataUrl,
+            brandColor: wizardData.brandColor,
+            website: wizardData.website,
+            privacyUrl: wizardData.privacyUrl,
+            termsUrl: wizardData.termsUrl,
+            supportEmail: wizardData.supportEmail,
+            supportPhone: wizardData.supportPhone,
+            showPhone: wizardData.showPhone,
+            showWebsite: wizardData.showWebsite,
+            showEmail: wizardData.showEmail,
+            campaignFrequency: wizardData.campaignFrequency,
+            monthlyVolume: wizardData.monthlyVolume,
+            optInDescription: wizardData.optInDescription,
+            optOutDescription: wizardData.optOutDescription,
+            useCaseOverview: wizardData.useCaseOverview,
+            testNumbers: wizardData.testNumbers,
+            companyNumber: wizardData.companyNumber,
+            companyWebsite: wizardData.companyWebsite,
+            registeredAddress: wizardData.registeredAddress,
+            approverName: wizardData.approverName,
+            approverJobTitle: wizardData.approverJobTitle,
+            approverEmail: wizardData.approverEmail,
+            currentStep: wizardData.currentStep,
+            isEditing: wizardData.isEditing,
+            tempDraftId: wizardData.tempDraftId,
+            savedAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem(draftKey, JSON.stringify(draftData));
+        
+        // Also maintain a draft index for listing all drafts (for all draft types, not just new)
+        updateDraftIndex(draftKey, wizardData.name || 'Untitled Agent');
+        
+        console.log('[Autosave] Draft saved to localStorage:', draftKey);
+    } catch (e) {
+        console.error('[Autosave] Failed to save draft:', e);
+        // Notify user of storage failure to maintain "no data loss" guarantee
+        showNotification('warning', 'Draft Save Issue', 'Unable to save draft to browser storage. Your work may not be preserved if you refresh the page.');
+    }
+    
     updateAutosaveIndicator('saved');
     wizardData.isDirty = false;
+}
+
+function getDraftStorageKey() {
+    // Use agent ID for existing agents, or generate temp ID for new ones
+    if (wizardData.id) {
+        return 'rcs_agent_draft_' + wizardData.id;
+    }
+    // For new agents, use a session-based temp key
+    if (!wizardData.tempDraftId) {
+        wizardData.tempDraftId = 'new_' + Date.now();
+    }
+    return 'rcs_agent_draft_' + wizardData.tempDraftId;
+}
+
+function updateDraftIndex(draftKey, agentName) {
+    // Maintain index of all drafts for recovery UI
+    try {
+        var indexStr = localStorage.getItem('rcs_agent_draft_index') || '{}';
+        var index = JSON.parse(indexStr);
+        index[draftKey] = {
+            name: agentName,
+            savedAt: new Date().toISOString()
+        };
+        localStorage.setItem('rcs_agent_draft_index', JSON.stringify(index));
+    } catch (e) {
+        console.error('[Autosave] Failed to update draft index:', e);
+    }
+}
+
+function loadDraftFromStorage(agentId) {
+    var draftKey = agentId ? 'rcs_agent_draft_' + agentId : null;
+    
+    // For new agents, check for any unsaved new drafts
+    if (!draftKey) {
+        draftKey = findLatestNewDraft();
+    }
+    
+    if (!draftKey) return null;
+    
+    try {
+        var draftStr = localStorage.getItem(draftKey);
+        if (draftStr) {
+            var draft = JSON.parse(draftStr);
+            console.log('[Autosave] Loaded draft from localStorage:', draftKey);
+            return draft;
+        }
+    } catch (e) {
+        console.error('[Autosave] Failed to load draft:', e);
+    }
+    return null;
+}
+
+function findLatestNewDraft() {
+    // Find the most recent unsaved new agent draft
+    try {
+        var indexStr = localStorage.getItem('rcs_agent_draft_index') || '{}';
+        var index = JSON.parse(indexStr);
+        var latestKey = null;
+        var latestTime = 0;
+        
+        for (var key in index) {
+            if (key.startsWith('rcs_agent_draft_new_')) {
+                var savedAt = new Date(index[key].savedAt).getTime();
+                if (savedAt > latestTime) {
+                    latestTime = savedAt;
+                    latestKey = key;
+                }
+            }
+        }
+        return latestKey;
+    } catch (e) {
+        return null;
+    }
+}
+
+function clearDraftFromStorage(agentId) {
+    // Build the key - handle both real IDs and temp IDs
+    var draftKey;
+    if (agentId) {
+        draftKey = 'rcs_agent_draft_' + agentId;
+    } else if (wizardData.tempDraftId) {
+        draftKey = 'rcs_agent_draft_' + wizardData.tempDraftId;
+    } else {
+        // No ID to clear
+        return;
+    }
+    
+    try {
+        localStorage.removeItem(draftKey);
+        
+        // Remove from index - handles all draft types
+        var indexStr = localStorage.getItem('rcs_agent_draft_index') || '{}';
+        var index = JSON.parse(indexStr);
+        delete index[draftKey];
+        localStorage.setItem('rcs_agent_draft_index', JSON.stringify(index));
+        
+        console.log('[Autosave] Cleared draft from localStorage:', draftKey);
+    } catch (e) {
+        console.error('[Autosave] Failed to clear draft:', e);
+    }
+}
+
+function restoreWizardFromDraft(draft) {
+    if (!draft) return false;
+    
+    // Restore all fields from draft
+    wizardData.id = draft.id || null;
+    wizardData.name = draft.name || '';
+    wizardData.description = draft.description || '';
+    wizardData.billing = draft.billing || '';
+    wizardData.useCase = draft.useCase || '';
+    wizardData.logoDataUrl = draft.logoDataUrl || null;
+    wizardData.heroDataUrl = draft.heroDataUrl || null;
+    wizardData.brandColor = draft.brandColor || '#886CC0';
+    wizardData.website = draft.website || '';
+    wizardData.privacyUrl = draft.privacyUrl || '';
+    wizardData.termsUrl = draft.termsUrl || '';
+    wizardData.supportEmail = draft.supportEmail || '';
+    wizardData.supportPhone = draft.supportPhone || '';
+    wizardData.showPhone = draft.showPhone !== false;
+    wizardData.showWebsite = draft.showWebsite !== false;
+    wizardData.showEmail = draft.showEmail !== false;
+    wizardData.campaignFrequency = draft.campaignFrequency || '';
+    wizardData.monthlyVolume = draft.monthlyVolume || '';
+    wizardData.optInDescription = draft.optInDescription || '';
+    wizardData.optOutDescription = draft.optOutDescription || '';
+    wizardData.useCaseOverview = draft.useCaseOverview || '';
+    wizardData.testNumbers = draft.testNumbers || [];
+    wizardData.companyNumber = draft.companyNumber || '';
+    wizardData.companyWebsite = draft.companyWebsite || '';
+    wizardData.registeredAddress = draft.registeredAddress || '';
+    wizardData.approverName = draft.approverName || '';
+    wizardData.approverJobTitle = draft.approverJobTitle || '';
+    wizardData.approverEmail = draft.approverEmail || '';
+    wizardData.currentStep = draft.currentStep || 1;
+    wizardData.isEditing = draft.isEditing || false;
+    // Preserve tempDraftId for new agent drafts (important for clearDraftFromStorage)
+    wizardData.tempDraftId = draft.tempDraftId || null;
+    
+    // Mark images as valid if we have data URLs
+    wizardData.logoValid = !!draft.logoDataUrl;
+    wizardData.heroValid = !!draft.heroDataUrl;
+    
+    return true;
+}
+
+function populateWizardUIFromData() {
+    // Populate form fields from wizardData
+    var nameInput = document.getElementById('agentName');
+    if (nameInput) nameInput.value = wizardData.name;
+    
+    var descInput = document.getElementById('agentDescription');
+    if (descInput) descInput.value = wizardData.description;
+    
+    // Billing category tiles
+    if (wizardData.billing) {
+        document.querySelectorAll('.billing-category-tile').forEach(function(tile) {
+            tile.classList.toggle('selected', tile.dataset.billing === wizardData.billing);
+        });
+    }
+    
+    // Use case tiles
+    if (wizardData.useCase) {
+        document.querySelectorAll('.use-case-tile').forEach(function(tile) {
+            tile.classList.toggle('selected', tile.dataset.usecase === wizardData.useCase);
+        });
+    }
+    
+    // Logo preview
+    if (wizardData.logoDataUrl) {
+        var logoPreview = document.getElementById('logoPreview');
+        var logoPlaceholder = document.getElementById('logoPlaceholder');
+        if (logoPreview && logoPlaceholder) {
+            logoPreview.src = wizardData.logoDataUrl;
+            logoPreview.style.display = 'block';
+            logoPlaceholder.style.display = 'none';
+        }
+    }
+    
+    // Hero preview
+    if (wizardData.heroDataUrl) {
+        var heroPreview = document.getElementById('heroPreview');
+        var heroPlaceholder = document.getElementById('heroPlaceholder');
+        if (heroPreview && heroPlaceholder) {
+            heroPreview.src = wizardData.heroDataUrl;
+            heroPreview.style.display = 'block';
+            heroPlaceholder.style.display = 'none';
+        }
+    }
+    
+    // Brand color
+    var colorPicker = document.getElementById('brandColorPicker');
+    var colorInput = document.getElementById('brandColorInput');
+    if (colorPicker) colorPicker.value = wizardData.brandColor;
+    if (colorInput) colorInput.value = wizardData.brandColor;
+    
+    // Contact fields
+    var fields = ['website', 'privacyUrl', 'termsUrl', 'supportEmail', 'supportPhone'];
+    fields.forEach(function(field) {
+        var el = document.getElementById(field);
+        if (el) el.value = wizardData[field] || '';
+    });
+    
+    // Visibility toggles
+    var showPhone = document.getElementById('showPhoneToggle');
+    var showWebsite = document.getElementById('showWebsiteToggle');
+    var showEmail = document.getElementById('showEmailToggle');
+    if (showPhone) showPhone.checked = wizardData.showPhone;
+    if (showWebsite) showWebsite.checked = wizardData.showWebsite;
+    if (showEmail) showEmail.checked = wizardData.showEmail;
+    
+    // Step 2 fields
+    var step2Fields = ['campaignFrequency', 'monthlyVolume', 'optInDescription', 'optOutDescription', 'useCaseOverview'];
+    step2Fields.forEach(function(field) {
+        var el = document.getElementById(field);
+        if (el) el.value = wizardData[field] || '';
+    });
+    
+    // Step 3 fields
+    var step3Fields = ['companyNumber', 'companyWebsite', 'registeredAddress', 'approverName', 'approverJobTitle', 'approverEmail'];
+    step3Fields.forEach(function(field) {
+        var el = document.getElementById(field);
+        if (el) el.value = wizardData[field] || '';
+    });
+    
+    // Restore test numbers
+    if (wizardData.testNumbers && wizardData.testNumbers.length > 0) {
+        renderTestNumbers();
+    }
 }
 
 function updateAutosaveIndicator(status) {
@@ -3065,10 +3377,13 @@ function submitAgent() {
             mockAgents.unshift(newAgent);
         }
         
+        // Clear the draft from localStorage after successful submission
+        clearDraftFromStorage(wizardData.id);
+        
         applyFilters();
         wizardModal.hide();
         
-        alert('RCS Agent submitted for review successfully! You will be notified once a decision has been made.');
+        showNotification('success', 'Agent Submitted', 'RCS Agent submitted for review successfully! You will be notified once a decision has been made.');
     }, 500);
 }
 </script>
