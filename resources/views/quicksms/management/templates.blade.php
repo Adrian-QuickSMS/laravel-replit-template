@@ -163,7 +163,7 @@
     font-size: 0.8rem;
     color: #495057;
 }
-.table-controls {
+.search-filter-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -174,17 +174,85 @@
 }
 .search-box {
     flex: 1;
-    max-width: 250px;
-    min-width: 180px;
+    max-width: 300px;
+    min-width: 200px;
 }
-.filter-box {
+.filters-panel {
+    background-color: #f0ebf8;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0 1rem 1rem;
+}
+.filters-panel .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.filters-panel .form-select,
+.filters-panel .form-control {
+    font-size: 0.875rem;
+}
+.filter-actions {
     display: flex;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    align-items: flex-end;
 }
-.filter-box .form-select {
-    min-width: 120px;
-    font-size: 0.875rem;
+.multiselect-dropdown .dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+    min-width: 200px;
+}
+.multiselect-dropdown .form-check {
+    padding: 0.25rem 0.5rem;
+    margin: 0;
+}
+.multiselect-dropdown .form-check:hover {
+    background-color: #f8f9fa;
+}
+.multiselect-dropdown .dropdown-toggle {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    color: #495057;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.multiselect-dropdown .dropdown-toggle::after {
+    margin-left: auto;
+}
+.active-filters {
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+.active-filters:empty {
+    display: none;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.filter-chip .chip-label {
+    margin-right: 0.25rem;
+    color: #6c757d;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 0.7rem;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
 }
 .dropdown-menu {
     min-width: 120px;
@@ -234,35 +302,94 @@
     </div>
 
     <div id="templatesTableContainer" class="templates-table-container">
-        <div class="table-controls">
+        <div class="search-filter-bar">
             <div class="search-box">
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control" id="templateSearch" placeholder="Search templates...">
+                    <input type="text" class="form-control" id="templateSearch" placeholder="Search by name or ID...">
                 </div>
             </div>
-            <div class="filter-box">
-                <select class="form-select" id="channelFilter">
-                    <option value="">All Channels</option>
-                    <option value="sms">SMS</option>
-                    <option value="basic_rcs">Basic RCS + SMS</option>
-                    <option value="rich_rcs">Rich RCS + SMS</option>
-                </select>
-                <select class="form-select" id="triggerFilter">
-                    <option value="">All Triggers</option>
-                    <option value="api">API</option>
-                    <option value="portal">Portal</option>
-                    <option value="email">Email-to-SMS</option>
-                </select>
-                <select class="form-select" id="statusFilter">
-                    <option value="">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="live">Live</option>
-                    <option value="paused">Paused</option>
-                    <option value="archived">Archived</option>
-                </select>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                <i class="fas fa-filter me-1"></i>Filters
+            </button>
+        </div>
+
+        <div class="collapse" id="filtersPanel">
+            <div class="filters-panel">
+                <div class="row g-3 align-items-end">
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Channel</label>
+                        <select class="form-select form-select-sm" id="channelFilter">
+                            <option value="">All Channels</option>
+                            <option value="sms">SMS</option>
+                            <option value="basic_rcs">Basic RCS + SMS</option>
+                            <option value="rich_rcs">Rich RCS + SMS</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Trigger</label>
+                        <select class="form-select form-select-sm" id="triggerFilter">
+                            <option value="">All Triggers</option>
+                            <option value="api">API</option>
+                            <option value="portal">Portal</option>
+                            <option value="email">Email-to-SMS</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select form-select-sm" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="draft">Draft</option>
+                            <option value="live">Live</option>
+                            <option value="paused">Paused</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Sub-account</label>
+                        <div class="dropdown multiselect-dropdown" id="subAccountDropdown">
+                            <button class="btn btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                <span class="dropdown-label">All Sub-accounts</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="form-check">
+                                    <input class="form-check-input subaccount-check" type="checkbox" value="marketing" id="subMarketing">
+                                    <label class="form-check-label" for="subMarketing">Marketing Team</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input subaccount-check" type="checkbox" value="sales" id="subSales">
+                                    <label class="form-check-label" for="subSales">Sales</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input subaccount-check" type="checkbox" value="support" id="subSupport">
+                                    <label class="form-check-label" for="subSupport">Support Team</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input subaccount-check" type="checkbox" value="it" id="subIT">
+                                    <label class="form-check-label" for="subIT">IT Security</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input subaccount-check" type="checkbox" value="all" id="subAll">
+                                    <label class="form-check-label" for="subAll">All Sub-accounts</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="filter-actions">
+                            <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
+                                <i class="fas fa-check me-1"></i>Apply Filters
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div class="active-filters" id="activeFilters"></div>
 
         <div class="table-responsive">
             <table class="templates-table">
@@ -354,6 +481,7 @@ var mockTemplates = [
         content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.',
         contentType: 'text',
         accessScope: 'All Sub-accounts',
+        subAccounts: ['all'],
         status: 'live',
         lastUpdated: '2026-01-05'
     },
@@ -366,6 +494,7 @@ var mockTemplates = [
         content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}. Reply YES to confirm.',
         contentType: 'text',
         accessScope: 'Marketing Team',
+        subAccounts: ['marketing'],
         status: 'live',
         lastUpdated: '2026-01-04'
     },
@@ -378,6 +507,7 @@ var mockTemplates = [
         content: '',
         contentType: 'rich_card',
         accessScope: 'Sales, Support',
+        subAccounts: ['sales', 'support'],
         status: 'draft',
         lastUpdated: '2026-01-06'
     },
@@ -390,6 +520,7 @@ var mockTemplates = [
         content: '',
         contentType: 'carousel',
         accessScope: 'Marketing Team',
+        subAccounts: ['marketing'],
         status: 'paused',
         lastUpdated: '2025-12-20'
     },
@@ -402,6 +533,7 @@ var mockTemplates = [
         content: 'Order #{OrderID} confirmed! Your items will ship within 2 business days. Track at: {TrackingURL}',
         contentType: 'text',
         accessScope: 'All Sub-accounts',
+        subAccounts: ['all'],
         status: 'live',
         lastUpdated: '2026-01-03'
     },
@@ -414,6 +546,7 @@ var mockTemplates = [
         content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.',
         contentType: 'text',
         accessScope: 'IT Security',
+        subAccounts: ['it'],
         status: 'archived',
         lastUpdated: '2025-11-15'
     },
@@ -426,6 +559,7 @@ var mockTemplates = [
         content: 'Flash Sale! 50% off all items for the next 24 hours. Shop now at {ShopURL}. Limited stock available!',
         contentType: 'text',
         accessScope: 'Marketing Team',
+        subAccounts: ['marketing'],
         status: 'draft',
         lastUpdated: '2026-01-07'
     },
@@ -438,6 +572,7 @@ var mockTemplates = [
         content: '',
         contentType: 'rich_card',
         accessScope: 'Support Team',
+        subAccounts: ['support'],
         status: 'live',
         lastUpdated: '2026-01-02'
     }
@@ -445,6 +580,29 @@ var mockTemplates = [
 
 var sortColumn = 'lastUpdated';
 var sortDirection = 'desc';
+
+var appliedFilters = {
+    search: '',
+    channel: '',
+    trigger: '',
+    status: '',
+    subAccounts: []
+};
+
+var pendingFilters = {
+    channel: '',
+    trigger: '',
+    status: '',
+    subAccounts: []
+};
+
+var subAccountLabels = {
+    'marketing': 'Marketing Team',
+    'sales': 'Sales',
+    'support': 'Support Team',
+    'it': 'IT Security',
+    'all': 'All Sub-accounts'
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
@@ -454,10 +612,128 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventListeners() {
     document.getElementById('createTemplateBtn').addEventListener('click', showCreateModal);
     document.getElementById('templateContent').addEventListener('input', updateCharCount);
-    document.getElementById('templateSearch').addEventListener('input', renderTemplates);
-    document.getElementById('channelFilter').addEventListener('change', renderTemplates);
-    document.getElementById('triggerFilter').addEventListener('change', renderTemplates);
-    document.getElementById('statusFilter').addEventListener('change', renderTemplates);
+    
+    document.getElementById('templateSearch').addEventListener('input', function() {
+        appliedFilters.search = this.value;
+        renderTemplates();
+        renderActiveFilters();
+    });
+    
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+    document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
+    
+    document.querySelectorAll('.subaccount-check').forEach(function(checkbox) {
+        checkbox.addEventListener('change', updateSubAccountDropdownLabel);
+    });
+}
+
+function updateSubAccountDropdownLabel() {
+    var checked = document.querySelectorAll('.subaccount-check:checked');
+    var label = document.querySelector('#subAccountDropdown .dropdown-label');
+    
+    if (checked.length === 0) {
+        label.textContent = 'All Sub-accounts';
+    } else if (checked.length === 1) {
+        label.textContent = subAccountLabels[checked[0].value] || checked[0].value;
+    } else {
+        label.textContent = checked.length + ' selected';
+    }
+}
+
+function applyFilters() {
+    appliedFilters.channel = document.getElementById('channelFilter').value;
+    appliedFilters.trigger = document.getElementById('triggerFilter').value;
+    appliedFilters.status = document.getElementById('statusFilter').value;
+    
+    var checkedSubAccounts = [];
+    document.querySelectorAll('.subaccount-check:checked').forEach(function(cb) {
+        checkedSubAccounts.push(cb.value);
+    });
+    appliedFilters.subAccounts = checkedSubAccounts;
+    
+    renderTemplates();
+    renderActiveFilters();
+}
+
+function resetFilters() {
+    document.getElementById('channelFilter').value = '';
+    document.getElementById('triggerFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.querySelectorAll('.subaccount-check').forEach(function(cb) {
+        cb.checked = false;
+    });
+    updateSubAccountDropdownLabel();
+    
+    appliedFilters.channel = '';
+    appliedFilters.trigger = '';
+    appliedFilters.status = '';
+    appliedFilters.subAccounts = [];
+    
+    renderTemplates();
+    renderActiveFilters();
+}
+
+function removeFilter(filterType) {
+    if (filterType === 'search') {
+        document.getElementById('templateSearch').value = '';
+        appliedFilters.search = '';
+    } else if (filterType === 'channel') {
+        document.getElementById('channelFilter').value = '';
+        appliedFilters.channel = '';
+    } else if (filterType === 'trigger') {
+        document.getElementById('triggerFilter').value = '';
+        appliedFilters.trigger = '';
+    } else if (filterType === 'status') {
+        document.getElementById('statusFilter').value = '';
+        appliedFilters.status = '';
+    } else if (filterType === 'subAccounts') {
+        document.querySelectorAll('.subaccount-check').forEach(function(cb) {
+            cb.checked = false;
+        });
+        updateSubAccountDropdownLabel();
+        appliedFilters.subAccounts = [];
+    }
+    
+    renderTemplates();
+    renderActiveFilters();
+}
+
+function renderActiveFilters() {
+    var container = document.getElementById('activeFilters');
+    var html = '';
+    
+    if (appliedFilters.search) {
+        html += createChip('Search', appliedFilters.search, 'search');
+    }
+    
+    if (appliedFilters.channel) {
+        html += createChip('Channel', getChannelLabel(appliedFilters.channel), 'channel');
+    }
+    
+    if (appliedFilters.trigger) {
+        html += createChip('Trigger', getTriggerLabel(appliedFilters.trigger), 'trigger');
+    }
+    
+    if (appliedFilters.status) {
+        html += createChip('Status', getStatusLabel(appliedFilters.status), 'status');
+    }
+    
+    if (appliedFilters.subAccounts.length > 0) {
+        var labels = appliedFilters.subAccounts.map(function(v) {
+            return subAccountLabels[v] || v;
+        });
+        html += createChip('Sub-account', labels.join(', '), 'subAccounts');
+    }
+    
+    container.innerHTML = html;
+}
+
+function createChip(label, value, filterType) {
+    return '<span class="filter-chip">' +
+        '<span class="chip-label">' + label + ':</span>' +
+        '<span class="chip-value">' + value + '</span>' +
+        '<i class="fas fa-times remove-chip" onclick="removeFilter(\'' + filterType + '\')"></i>' +
+        '</span>';
 }
 
 function showCreateModal() {
@@ -494,6 +770,7 @@ function saveTemplate() {
         content: content,
         contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
         accessScope: 'All Sub-accounts',
+        subAccounts: ['all'],
         status: 'draft',
         lastUpdated: new Date().toISOString().split('T')[0]
     };
@@ -593,17 +870,20 @@ function getContentPreview(template) {
 }
 
 function renderTemplates() {
-    var search = document.getElementById('templateSearch').value.toLowerCase();
-    var channelFilter = document.getElementById('channelFilter').value;
-    var triggerFilter = document.getElementById('triggerFilter').value;
-    var statusFilter = document.getElementById('statusFilter').value;
+    var search = appliedFilters.search.toLowerCase();
     
     var filtered = mockTemplates.filter(function(t) {
-        var matchSearch = !search || t.name.toLowerCase().includes(search) || t.templateId.includes(search) || t.content.toLowerCase().includes(search);
-        var matchChannel = !channelFilter || t.channel === channelFilter;
-        var matchTrigger = !triggerFilter || t.trigger === triggerFilter;
-        var matchStatus = !statusFilter || t.status === statusFilter;
-        return matchSearch && matchChannel && matchTrigger && matchStatus;
+        var matchSearch = !search || t.name.toLowerCase().includes(search) || t.templateId.includes(search);
+        var matchChannel = !appliedFilters.channel || t.channel === appliedFilters.channel;
+        var matchTrigger = !appliedFilters.trigger || t.trigger === appliedFilters.trigger;
+        var matchStatus = !appliedFilters.status || t.status === appliedFilters.status;
+        
+        var matchSubAccount = appliedFilters.subAccounts.length === 0 || 
+            appliedFilters.subAccounts.some(function(sa) {
+                return t.subAccounts.includes(sa) || t.subAccounts.includes('all');
+            });
+        
+        return matchSearch && matchChannel && matchTrigger && matchStatus && matchSubAccount;
     });
     
     filtered.sort(function(a, b) {
