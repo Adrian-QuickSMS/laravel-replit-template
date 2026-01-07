@@ -896,23 +896,25 @@
                         <strong>Step 2: Message Content</strong> - Create your message content using the same editor as Send Message. You can use personalization tags to customize messages for each recipient.
                     </div>
                     
-                    <div class="step2-locked-info mb-3 mx-auto" style="max-width: 1200px;">
-                        <div class="d-flex align-items-center gap-3 flex-wrap">
-                            <div>
-                                <small class="text-muted">Template Name</small>
-                                <div class="fw-semibold" id="step2TemplateName">-</div>
-                            </div>
-                            <div class="vr d-none d-md-block"></div>
-                            <div>
-                                <small class="text-muted">Template ID</small>
-                                <div class="fw-semibold" id="step2TemplateId">-</div>
-                            </div>
-                            <div class="vr d-none d-md-block"></div>
-                            <div>
-                                <small class="text-muted">Trigger</small>
+                    <div class="card mb-3 mx-auto" style="max-width: 1200px;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-4 flex-wrap">
                                 <div>
-                                    <span class="badge rounded-pill" id="step2TriggerBadge">-</span>
-                                    <i class="fas fa-lock ms-1 text-muted small" title="Locked after creation"></i>
+                                    <small class="text-muted d-block">Template Name</small>
+                                    <div class="fw-semibold" id="step2TemplateName">-</div>
+                                </div>
+                                <div class="vr d-none d-md-block"></div>
+                                <div>
+                                    <small class="text-muted d-block">Template ID</small>
+                                    <div class="fw-semibold" id="step2TemplateId">-</div>
+                                </div>
+                                <div class="vr d-none d-md-block"></div>
+                                <div>
+                                    <small class="text-muted d-block">Trigger</small>
+                                    <div>
+                                        <span class="badge rounded-pill" id="step2TriggerBadge">-</span>
+                                        <i class="fas fa-lock ms-1 text-muted small" title="Locked after creation"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
