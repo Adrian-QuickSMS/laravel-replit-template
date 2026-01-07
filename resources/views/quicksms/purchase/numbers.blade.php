@@ -120,12 +120,24 @@
     border-bottom-left-radius: 0.75rem;
     border-bottom-right-radius: 0.75rem;
     margin-top: auto;
+    position: relative;
+    z-index: 2;
 }
 .product-footer .btn-select {
     width: 100%;
     padding: 0.5rem 1rem;
     font-weight: 600;
     font-size: 0.875rem;
+}
+.product-card .product-footer .btn.btn-select {
+    background-color: #6f42c1 !important;
+    border-color: #6f42c1 !important;
+    color: #fff !important;
+    opacity: 1 !important;
+}
+.product-card .product-footer .btn.btn-select:hover {
+    background-color: #5a32a3 !important;
+    border-color: #5a32a3 !important;
 }
 .product-card.selected .btn-select {
     background: #1cbb8c !important;
@@ -467,7 +479,7 @@
                         </div>
                     </div>
                     <div class="product-footer">
-                        <button class="btn btn-primary btn-select">Select</button>
+                        <button class="btn btn-select" style="background-color: #6f42c1; border-color: #6f42c1; color: #fff;">Select</button>
                     </div>
                 </div>
             </div>
@@ -489,7 +501,7 @@
                         </div>
                     </div>
                     <div class="product-footer">
-                        <button class="btn btn-primary btn-select">Select</button>
+                        <button class="btn btn-select" style="background-color: #6f42c1; border-color: #6f42c1; color: #fff;">Select</button>
                     </div>
                 </div>
             </div>
@@ -511,7 +523,7 @@
                         </div>
                     </div>
                     <div class="product-footer">
-                        <button class="btn btn-primary btn-select">Select</button>
+                        <button class="btn btn-select" style="background-color: #6f42c1; border-color: #6f42c1; color: #fff;">Select</button>
                     </div>
                 </div>
             </div>
