@@ -653,21 +653,21 @@
                 <div id="wizardStep2" class="wizard-content" style="display: none;">
                     <div class="alert alert-pastel-primary mb-4">
                         <i class="fas fa-info-circle me-2 text-primary"></i>
-                        <strong>Step 2: Message Content</strong> - Create your message content. You can use personalization tags to customize messages for each recipient.
+                        <strong>Step 2: Message Content</strong> - Create your message content using the same editor as Send Message. You can use personalization tags to customize messages for each recipient.
                     </div>
                     
                     <div class="step2-locked-info mb-3">
-                        <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
                             <div>
                                 <small class="text-muted">Template Name</small>
                                 <div class="fw-semibold" id="step2TemplateName">-</div>
                             </div>
-                            <div class="vr"></div>
+                            <div class="vr d-none d-md-block"></div>
                             <div>
                                 <small class="text-muted">Template ID</small>
                                 <div class="fw-semibold" id="step2TemplateId">-</div>
                             </div>
-                            <div class="vr"></div>
+                            <div class="vr d-none d-md-block"></div>
                             <div>
                                 <small class="text-muted">Trigger</small>
                                 <div>
@@ -678,31 +678,84 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Channel</label>
-                        <div class="d-flex gap-3 flex-wrap">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="templateChannel" id="channelSms" value="sms" checked>
-                                <label class="form-check-label" for="channelSms">SMS</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="templateChannel" id="channelBasicRcs" value="basic_rcs">
-                                <label class="form-check-label" for="channelBasicRcs">Basic RCS + SMS</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="templateChannel" id="channelRichRcs" value="rich_rcs">
-                                <label class="form-check-label" for="channelRichRcs">Rich RCS + SMS</label>
+                    <div class="card mb-3">
+                        <div class="card-body p-4">
+                            <h6 class="mb-3">Channel</h6>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="templateChannel" id="tplChannelSMS" value="sms" checked>
+                                <label class="btn btn-outline-primary" for="tplChannelSMS"><i class="fas fa-sms me-1"></i>SMS only</label>
+                                <input type="radio" class="btn-check" name="templateChannel" id="tplChannelRCSBasic" value="basic_rcs">
+                                <label class="btn btn-outline-primary" for="tplChannelRCSBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                                <input type="radio" class="btn-check" name="templateChannel" id="tplChannelRCSRich" value="rich_rcs">
+                                <label class="btn btn-outline-primary" for="tplChannelRCSRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Message Content</label>
-                        <textarea class="form-control" id="templateContent" rows="5" placeholder="Enter your message content..."></textarea>
-                        <div class="d-flex justify-content-between mt-2">
-                            <small class="text-muted">Use {FirstName}, {LastName}, {Company} for personalization</small>
-                            <small class="text-muted"><span id="charCount">0</span> characters</small>
+                    <div class="card mb-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Content</h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="openTemplateAiAssistant()">
+                                    <i class="fas fa-magic me-1"></i>Improve with AI
+                                </button>
+                            </div>
+                            
+                            <label class="form-label mb-2" id="tplContentLabel">SMS Content</label>
+                            
+                            <div class="position-relative border rounded mb-2" id="tplTextEditorContainer">
+                                <textarea class="form-control border-0" id="templateContent" rows="5" placeholder="Type your message here..." oninput="handleTemplateContentChange()" style="padding-bottom: 40px;"></textarea>
+                                <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                                    <button type="button" class="btn btn-sm btn-light border" onclick="openTemplatePersonalisation()" title="Insert personalisation">
+                                        <i class="fas fa-user-tag"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-light border" id="tplEmojiPickerBtn" onclick="openTemplateEmojiPicker()" title="Insert emoji">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <span class="text-muted me-3">Characters: <strong id="tplCharCount">0</strong></span>
+                                    <span class="text-muted me-3">Encoding: <strong id="tplEncodingType">GSM-7</strong></span>
+                                    <span class="text-muted">Segments: <strong id="tplPartCount">1</strong></span>
+                                </div>
+                                <span class="badge bg-warning text-dark d-none" id="tplUnicodeWarning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+                                </span>
+                            </div>
+                            
+                            <div class="d-none mb-2" id="tplRcsTextHelper">
+                                <div class="alert alert-info py-2 mb-0">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Messages over 160 characters will be automatically sent as a single RCS message where supported.
+                                </div>
+                            </div>
+                            
+                            <div class="d-none mt-3" id="tplRcsContentSection">
+                                <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
+                                    <i class="fas fa-image fa-2x text-primary mb-2"></i>
+                                    <h6 class="mb-2">Rich RCS Card</h6>
+                                    <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                                    <button type="button" class="btn btn-primary" onclick="openTemplateRcsWizard()">
+                                        <i class="fas fa-magic me-1"></i>Create RCS Message
+                                    </button>
+                                    <div class="d-none mt-3" id="tplRcsConfiguredSummary">
+                                        <div class="alert alert-primary py-2 mb-0">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            <span id="tplRcsConfiguredText">RCS content configured</span>
+                                            <a href="#" class="ms-2" onclick="openTemplateRcsWizard(); return false;">Edit</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                    
+                    <div class="alert alert-secondary">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Template Mode:</strong> This editor is the same as Send Message, but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
                     </div>
                 </div>
                 
@@ -726,6 +779,142 @@
                 <button type="button" class="btn btn-primary" id="wizardSaveBtn" style="display: none;" onclick="saveTemplate()">
                     <i class="fas fa-save me-2"></i>Save Template
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="templatePersonalisationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-user-tag me-2 text-primary"></i>Insert Personalisation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Contact Book Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertTemplatePlaceholder('firstName')">{FirstName}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertTemplatePlaceholder('lastName')">{LastName}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertTemplatePlaceholder('company')">{Company}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertTemplatePlaceholder('email')">{Email}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertTemplatePlaceholder('phone')">{Phone}</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Custom Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertTemplatePlaceholder('custom1')">{Custom1}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertTemplatePlaceholder('custom2')">{Custom2}</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertTemplatePlaceholder('custom3')">{Custom3}</button>
+                    </div>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-2">System Fields</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="insertTemplatePlaceholder('date')">{Date}</button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="insertTemplatePlaceholder('time')">{Time}</button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="insertTemplatePlaceholder('shortUrl')">{ShortURL}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="templateEmojiModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-smile me-2 text-primary"></i>Insert Emoji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Smileys</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('😀')">😀</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('😊')">😊</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('😂')">😂</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🤔')">🤔</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('😍')">😍</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🥳')">🥳</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('👋')">👋</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('👍')">👍</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Objects</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('📱')">📱</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('📧')">📧</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('💬')">💬</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🔔')">🔔</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('⭐')">⭐</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🎉')">🎉</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('💯')">💯</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🔥')">🔥</button>
+                    </div>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-2">Symbols</h6>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('✅')">✅</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('❌')">❌</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('⚠️')">⚠️</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('ℹ️')">ℹ️</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('➡️')">➡️</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🔗')">🔗</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('💰')">💰</button>
+                        <button type="button" class="btn btn-light btn-sm" onclick="insertTemplateEmoji('🛒')">🛒</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="templateAiModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-magic me-2 text-primary"></i>AI Content Assistant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="mb-3">Current Message</h6>
+                    <div class="bg-light p-3 rounded" id="tplAiCurrentContent">
+                        <em class="text-muted">No content to improve</em>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h6 class="mb-3">What would you like to do?</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="templateAiImprove('tone')"><i class="fas fa-smile me-1"></i>Improve tone</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="templateAiImprove('shorten')"><i class="fas fa-compress-alt me-1"></i>Shorten message</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="templateAiImprove('grammar')"><i class="fas fa-spell-check me-1"></i>Correct spelling & grammar</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="templateAiImprove('clarity')"><i class="fas fa-lightbulb me-1"></i>Rephrase for clarity</button>
+                    </div>
+                </div>
+                <div class="d-none" id="tplAiResultSection">
+                    <h6 class="mb-3">Suggested Version</h6>
+                    <div class="bg-success bg-opacity-10 border border-success p-3 rounded mb-3" id="tplAiSuggestedContent"></div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="useTemplateAiSuggestion()"><i class="fas fa-check me-1"></i>Use this</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="discardTemplateAiSuggestion()">Discard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -1040,8 +1229,11 @@ function showCreateModal() {
     document.getElementById('templateName').value = '';
     document.getElementById('templateIdField').value = wizardData.templateId;
     document.getElementById('templateContent').value = '';
-    document.getElementById('charCount').textContent = '0';
-    document.getElementById('channelSms').checked = true;
+    document.getElementById('tplCharCount').textContent = '0';
+    document.getElementById('tplChannelSMS').checked = true;
+    
+    document.getElementById('tplRcsContentSection').classList.add('d-none');
+    document.getElementById('tplTextEditorContainer').classList.remove('d-none');
     
     document.querySelectorAll('input[name="templateTrigger"]').forEach(function(radio) {
         radio.checked = false;
@@ -1469,5 +1661,160 @@ function showToast(message, type) {
         toastEl.remove();
     });
 }
+
+function handleTemplateContentChange() {
+    var content = document.getElementById('templateContent').value;
+    var charCount = content.length;
+    
+    document.getElementById('tplCharCount').textContent = charCount;
+    
+    var hasUnicode = /[^\x00-\x7F\u00A0-\u00FF]/.test(content);
+    document.getElementById('tplEncodingType').textContent = hasUnicode ? 'Unicode' : 'GSM-7';
+    
+    var unicodeWarning = document.getElementById('tplUnicodeWarning');
+    if (unicodeWarning) {
+        unicodeWarning.classList.toggle('d-none', !hasUnicode);
+    }
+    
+    var maxCharsPerSegment = hasUnicode ? 70 : 160;
+    var segments = Math.ceil(charCount / maxCharsPerSegment) || 1;
+    document.getElementById('tplPartCount').textContent = segments;
+    
+    wizardData.content = content;
+}
+
+function openTemplatePersonalisation() {
+    new bootstrap.Modal(document.getElementById('templatePersonalisationModal')).show();
+}
+
+function insertTemplatePlaceholder(field) {
+    var fieldMap = {
+        'firstName': '{FirstName}',
+        'lastName': '{LastName}',
+        'company': '{Company}',
+        'email': '{Email}',
+        'phone': '{Phone}',
+        'custom1': '{Custom1}',
+        'custom2': '{Custom2}',
+        'custom3': '{Custom3}',
+        'date': '{Date}',
+        'time': '{Time}',
+        'shortUrl': '{ShortURL}'
+    };
+    
+    var placeholder = fieldMap[field] || '{' + field + '}';
+    var textarea = document.getElementById('templateContent');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    
+    textarea.value = text.substring(0, start) + placeholder + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+    textarea.focus();
+    
+    handleTemplateContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('templatePersonalisationModal')).hide();
+}
+
+function openTemplateEmojiPicker() {
+    new bootstrap.Modal(document.getElementById('templateEmojiModal')).show();
+}
+
+function insertTemplateEmoji(emoji) {
+    var textarea = document.getElementById('templateContent');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var text = textarea.value;
+    
+    textarea.value = text.substring(0, start) + emoji + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+    textarea.focus();
+    
+    handleTemplateContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('templateEmojiModal')).hide();
+}
+
+function openTemplateAiAssistant() {
+    var content = document.getElementById('templateContent').value;
+    var currentContentEl = document.getElementById('tplAiCurrentContent');
+    
+    if (content.trim()) {
+        currentContentEl.innerHTML = content;
+    } else {
+        currentContentEl.innerHTML = '<em class="text-muted">No content to improve</em>';
+    }
+    
+    document.getElementById('tplAiResultSection').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('templateAiModal')).show();
+}
+
+function templateAiImprove(action) {
+    var content = document.getElementById('templateContent').value;
+    if (!content.trim()) {
+        showToast('Please enter some content first', 'warning');
+        return;
+    }
+    
+    var suggestions = {
+        'tone': 'Hi there! 👋 We\'re excited to share this update with you. ' + content.replace(/^Hi|^Hello/i, '').trim(),
+        'shorten': content.substring(0, Math.min(content.length, 100)) + (content.length > 100 ? '...' : ''),
+        'grammar': content.charAt(0).toUpperCase() + content.slice(1).replace(/\s+/g, ' ').trim(),
+        'clarity': content.replace(/\{(\w+)\}/g, '[{$1}]').replace(/\s+/g, ' ').trim()
+    };
+    
+    document.getElementById('tplAiSuggestedContent').textContent = suggestions[action] || content;
+    document.getElementById('tplAiResultSection').classList.remove('d-none');
+}
+
+function useTemplateAiSuggestion() {
+    var suggestion = document.getElementById('tplAiSuggestedContent').textContent;
+    document.getElementById('templateContent').value = suggestion;
+    handleTemplateContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('templateAiModal')).hide();
+    showToast('AI suggestion applied', 'success');
+}
+
+function discardTemplateAiSuggestion() {
+    document.getElementById('tplAiResultSection').classList.add('d-none');
+}
+
+function openTemplateRcsWizard() {
+    showToast('RCS Wizard opening... (Shared wizard component)', 'info');
+}
+
+function setupTemplateChannelListeners() {
+    document.querySelectorAll('input[name="templateChannel"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var channel = this.value;
+            var textEditor = document.getElementById('tplTextEditorContainer');
+            var rcsSection = document.getElementById('tplRcsContentSection');
+            var contentLabel = document.getElementById('tplContentLabel');
+            var rcsHelper = document.getElementById('tplRcsTextHelper');
+            
+            wizardData.channel = channel;
+            
+            if (channel === 'rich_rcs') {
+                textEditor.classList.add('d-none');
+                rcsSection.classList.remove('d-none');
+                contentLabel.textContent = 'RCS Content';
+            } else {
+                textEditor.classList.remove('d-none');
+                rcsSection.classList.add('d-none');
+                
+                if (channel === 'rcs_basic') {
+                    contentLabel.textContent = 'Basic RCS Content';
+                    rcsHelper.classList.remove('d-none');
+                } else {
+                    contentLabel.textContent = 'SMS Content';
+                    rcsHelper.classList.add('d-none');
+                }
+            }
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupTemplateChannelListeners();
+});
 </script>
 @endpush
