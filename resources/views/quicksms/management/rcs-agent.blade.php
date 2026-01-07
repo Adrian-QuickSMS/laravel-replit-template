@@ -323,6 +323,134 @@
     background: rgba(28, 187, 140, 0.15);
     color: #1cbb8c;
 }
+
+.selectable-tile {
+    border: 2px solid #e9ecef;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.selectable-tile:hover {
+    border-color: rgba(136, 108, 192, 0.5);
+    box-shadow: 0 4px 12px rgba(136, 108, 192, 0.1);
+}
+.selectable-tile.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, #f8f5fd 0%, #f0ebf8 100%);
+    box-shadow: 0 4px 12px rgba(136, 108, 192, 0.15);
+}
+.selectable-tile .tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+.selectable-tile .tile-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+.selectable-tile .tile-icon.bg-pastel-primary {
+    background: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+}
+.selectable-tile .tile-icon.bg-pastel-secondary {
+    background: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+}
+.selectable-tile .tile-icon.bg-pastel-warning {
+    background: rgba(255, 191, 0, 0.15);
+    color: #cc9900;
+}
+.selectable-tile .tile-icon.bg-pastel-info {
+    background: rgba(48, 101, 208, 0.15);
+    color: #3065D0;
+}
+.selectable-tile .tile-icon.bg-pastel-danger {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+.selectable-tile .tile-icon.bg-pastel-success {
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
+}
+.selectable-tile .tile-check {
+    color: #e9ecef;
+    font-size: 1.25rem;
+    transition: all 0.2s ease;
+}
+.selectable-tile.selected .tile-check {
+    color: var(--primary);
+}
+.selectable-tile .tile-body {
+    flex: 1;
+}
+.selectable-tile .tile-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c2c2c;
+}
+.selectable-tile .tile-desc {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+.selectable-tile .tile-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f0f0f0;
+}
+.selectable-tile .tile-info {
+    font-size: 0.8rem;
+    color: #6c757d;
+    cursor: help;
+}
+.selectable-tile .tile-info i {
+    color: var(--primary);
+}
+.selectable-tile .learn-more-btn {
+    font-size: 0.8rem;
+    color: var(--primary);
+    text-decoration: none;
+}
+.selectable-tile .learn-more-btn:hover {
+    text-decoration: underline;
+}
+
+.test-numbers-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.test-number-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #f0ebf8;
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    border-radius: 2rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    color: #2c2c2c;
+}
+.test-number-tag .remove-number {
+    margin-left: 0.5rem;
+    color: #886CC0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.test-number-tag .remove-number:hover {
+    color: #dc3545;
+}
+
 .logo-upload-zone {
     border: 2px dashed #dee2e6;
     border-radius: 0.5rem;
@@ -774,132 +902,268 @@
                 </div>
                 
                 <div id="agentWizardStep2" class="wizard-content p-4 d-none">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 2: Messaging Profile</strong> - Select the billing model and primary use case for your RCS Agent.
+                            <strong>Step 2: Billing Category & Messaging Behaviour</strong> - Configure billing, use case, and messaging behaviour for your RCS Agent.
                         </div>
                         
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Billing Category <span class="text-danger">*</span></label>
-                            <p class="text-muted small mb-2">Select the billing model for this agent.</p>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <div class="billing-option" data-billing="conversational">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="agentBilling" id="billingConv" value="conversational">
-                                            <label class="form-check-label" for="billingConv">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="option-icon bg-conversational">
-                                                        <i class="fas fa-comments"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Conversational</strong>
-                                                        <p class="mb-0 small text-muted">Two-way messaging with customer interactions</p>
-                                                    </div>
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-credit-card me-2 text-primary"></i>Billing Category <span class="text-danger">*</span></h6>
+                                <p class="text-muted small mb-3">Select the billing model for this agent. This determines how message costs are calculated.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="selectable-tile billing-tile" data-billing="conversational" id="tileConversational">
+                                            <div class="tile-header">
+                                                <div class="tile-icon bg-pastel-primary">
+                                                    <i class="fas fa-comments"></i>
                                                 </div>
-                                            </label>
+                                                <div class="tile-check">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            </div>
+                                            <div class="tile-body">
+                                                <h6 class="tile-title">Conversational</h6>
+                                                <p class="tile-desc">Two-way messaging with customer interactions</p>
+                                            </div>
+                                            <div class="tile-footer">
+                                                <span class="tile-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Billed per conversation session. A session starts when you send a message and lasts 24 hours. Unlimited messages within a session.">
+                                                    <i class="fas fa-info-circle"></i> Session-based billing
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="selectable-tile billing-tile" data-billing="non-conversational" id="tileNonConversational">
+                                            <div class="tile-header">
+                                                <div class="tile-icon bg-pastel-secondary">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </div>
+                                                <div class="tile-check">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            </div>
+                                            <div class="tile-body">
+                                                <h6 class="tile-title">Non-conversational</h6>
+                                                <p class="tile-desc">One-way notifications and alerts only</p>
+                                            </div>
+                                            <div class="tile-footer">
+                                                <span class="tile-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Billed per message sent. Best for notifications, alerts, and one-way broadcasts where replies are not expected.">
+                                                    <i class="fas fa-info-circle"></i> Per-message billing
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="billing-option" data-billing="non-conversational">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="agentBilling" id="billingNonConv" value="non-conversational">
-                                            <label class="form-check-label" for="billingNonConv">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="option-icon bg-non-conversational">
-                                                        <i class="fas fa-paper-plane"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Non-conversational</strong>
-                                                        <p class="mb-0 small text-muted">One-way notifications and alerts</p>
-                                                    </div>
+                                <div class="invalid-feedback" id="billingError" style="display: none;">Please select a billing category</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-bullseye me-2 text-primary"></i>Use Case <span class="text-danger">*</span></h6>
+                                <p class="text-muted small mb-3">Select the primary use case for this agent. This helps carriers understand your messaging intent.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="selectable-tile usecase-tile" data-usecase="otp" id="tileOtp">
+                                            <div class="tile-header">
+                                                <div class="tile-icon bg-pastel-warning">
+                                                    <i class="fas fa-key"></i>
                                                 </div>
-                                            </label>
+                                                <div class="tile-check">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            </div>
+                                            <div class="tile-body">
+                                                <h6 class="tile-title">OTP</h6>
+                                                <p class="tile-desc">One-time passwords and verification codes</p>
+                                            </div>
+                                            <div class="tile-footer">
+                                                <button type="button" class="btn btn-link btn-sm p-0 learn-more-btn" data-usecase="otp">
+                                                    <i class="fas fa-external-link-alt me-1"></i> Learn More
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="selectable-tile usecase-tile" data-usecase="transactional" id="tileTrans">
+                                            <div class="tile-header">
+                                                <div class="tile-icon bg-pastel-info">
+                                                    <i class="fas fa-receipt"></i>
+                                                </div>
+                                                <div class="tile-check">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            </div>
+                                            <div class="tile-body">
+                                                <h6 class="tile-title">Transactional</h6>
+                                                <p class="tile-desc">Order updates, confirmations, alerts</p>
+                                            </div>
+                                            <div class="tile-footer">
+                                                <button type="button" class="btn btn-link btn-sm p-0 learn-more-btn" data-usecase="transactional">
+                                                    <i class="fas fa-external-link-alt me-1"></i> Learn More
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="selectable-tile usecase-tile" data-usecase="promotional" id="tilePromo">
+                                            <div class="tile-header">
+                                                <div class="tile-icon bg-pastel-danger">
+                                                    <i class="fas fa-bullhorn"></i>
+                                                </div>
+                                                <div class="tile-check">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            </div>
+                                            <div class="tile-body">
+                                                <h6 class="tile-title">Promotional</h6>
+                                                <p class="tile-desc">Marketing, offers, and campaigns</p>
+                                            </div>
+                                            <div class="tile-footer">
+                                                <button type="button" class="btn btn-link btn-sm p-0 learn-more-btn" data-usecase="promotional">
+                                                    <i class="fas fa-external-link-alt me-1"></i> Learn More
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="selectable-tile usecase-tile" data-usecase="multi-use" id="tileMulti">
+                                            <div class="tile-header">
+                                                <div class="tile-icon bg-pastel-success">
+                                                    <i class="fas fa-layer-group"></i>
+                                                </div>
+                                                <div class="tile-check">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </div>
+                                            </div>
+                                            <div class="tile-body">
+                                                <h6 class="tile-title">Multi-use</h6>
+                                                <p class="tile-desc">Combination of multiple use cases</p>
+                                            </div>
+                                            <div class="tile-footer">
+                                                <button type="button" class="btn btn-link btn-sm p-0 learn-more-btn" data-usecase="multi-use">
+                                                    <i class="fas fa-external-link-alt me-1"></i> Learn More
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback" id="useCaseError" style="display: none;">Please select a use case</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-cog me-2 text-primary"></i>Messaging Behaviour</h6>
+                                <p class="text-muted small mb-3">Provide details about your messaging patterns and compliance measures.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Campaign Frequency <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="campaignFrequency">
+                                            <option value="">Select frequency...</option>
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="on-demand">On-demand / Event-triggered</option>
+                                            <option value="continuous">Continuous (24/7)</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select campaign frequency</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Estimated Monthly Volume <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="monthlyVolume">
+                                            <option value="">Select volume...</option>
+                                            <option value="0-1000">Up to 1,000 messages</option>
+                                            <option value="1000-10000">1,000 - 10,000 messages</option>
+                                            <option value="10000-100000">10,000 - 100,000 messages</option>
+                                            <option value="100000-500000">100,000 - 500,000 messages</option>
+                                            <option value="500000-1000000">500,000 - 1,000,000 messages</option>
+                                            <option value="1000000-5000000">1M - 5M messages</option>
+                                            <option value="5000000-10000000">5M - 10M messages</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select estimated monthly volume</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Opt-in / Legitimate Interest Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="optInDescription" rows="3" maxlength="500" placeholder="Describe how users opt-in to receive messages from this agent (e.g., website sign-up form, in-store registration, existing customer relationship)..."></textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Explain your legal basis for sending messages</small>
+                                        <small class="text-muted"><span id="optInCharCount">0</span>/500</small>
+                                    </div>
+                                    <div class="invalid-feedback">Please describe your opt-in or legitimate interest basis</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Opt-out Mechanism Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="optOutDescription" rows="3" maxlength="500" placeholder="Describe how users can opt-out of receiving messages (e.g., reply STOP, unsubscribe link, customer service request)..."></textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Explain how recipients can stop receiving messages</small>
+                                        <small class="text-muted"><span id="optOutCharCount">0</span>/500</small>
+                                    </div>
+                                    <div class="invalid-feedback">Please describe your opt-out mechanism</div>
+                                </div>
+                                
+                                <div class="mb-0">
+                                    <label class="form-label fw-semibold">Use Case Overview <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="useCaseOverview" rows="4" maxlength="1000" placeholder="Provide a detailed description of how you will use this RCS Agent. Include example message types, target audience, and business purpose..."></textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Detailed explanation of your messaging use case</small>
+                                        <small class="text-muted"><span id="useCaseCharCount">0</span>/1000</small>
+                                    </div>
+                                    <div class="invalid-feedback">Please provide a use case overview</div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Use Case <span class="text-danger">*</span></label>
-                            <p class="text-muted small mb-2">Select the primary use case for this agent.</p>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <div class="usecase-option" data-usecase="otp">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="agentUseCase" id="useCaseOtp" value="otp">
-                                            <label class="form-check-label" for="useCaseOtp">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="option-icon bg-otp">
-                                                        <i class="fas fa-key"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>OTP</strong>
-                                                        <p class="mb-0 small text-muted">One-time passwords and verification codes</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Test Numbers</h6>
+                                <p class="text-muted small mb-3">Add up to 20 phone numbers for testing your RCS Agent before going live. Numbers must be in international format (e.g., +447700900123).</p>
+                                
+                                <div class="mb-3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="testNumberInput" placeholder="+447700900123">
+                                        <button class="btn btn-primary" type="button" id="addTestNumberBtn">
+                                            <i class="fas fa-plus me-1"></i> Add
+                                        </button>
                                     </div>
+                                    <div class="invalid-feedback" id="testNumberError" style="display: none;">Invalid format. Use international format (e.g., +447700900123)</div>
+                                    <small class="text-muted">Enter phone number in international format starting with +</small>
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="usecase-option" data-usecase="transactional">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="agentUseCase" id="useCaseTrans" value="transactional">
-                                            <label class="form-check-label" for="useCaseTrans">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="option-icon bg-transactional">
-                                                        <i class="fas fa-receipt"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Transactional</strong>
-                                                        <p class="mb-0 small text-muted">Order updates, confirmations, alerts</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
+                                
+                                <div id="testNumbersList" class="test-numbers-container">
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="usecase-option" data-usecase="promotional">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="agentUseCase" id="useCasePromo" value="promotional">
-                                            <label class="form-check-label" for="useCasePromo">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="option-icon bg-promotional">
-                                                        <i class="fas fa-bullhorn"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Promotional</strong>
-                                                        <p class="mb-0 small text-muted">Marketing, offers, and campaigns</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted"><span id="testNumberCount">0</span>/20 numbers added</small>
+                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllTestNumbers" style="display: none;">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear All
+                                    </button>
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <div class="usecase-option" data-usecase="multi-use">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="agentUseCase" id="useCaseMulti" value="multi-use">
-                                            <label class="form-check-label" for="useCaseMulti">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="option-icon bg-multiuse">
-                                                        <i class="fas fa-layer-group"></i>
-                                                    </div>
-                                                    <div>
-                                                        <strong>Multi-use</strong>
-                                                        <p class="mb-0 small text-muted">Combination of multiple use cases</p>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal fade" id="useCaseLearnMoreModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title" id="useCaseModalTitle">Use Case Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body pt-2">
+                                <div id="useCaseModalContent"></div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
                             </div>
                         </div>
                     </div>
@@ -976,7 +1240,7 @@
                         </div>
                         
                         <div class="review-section">
-                            <h6>Messaging Profile</h6>
+                            <h6>Billing & Use Case</h6>
                             <div class="review-row">
                                 <span class="review-label">Billing Category</span>
                                 <span class="review-value" id="reviewBilling">-</span>
@@ -984,6 +1248,34 @@
                             <div class="review-row">
                                 <span class="review-label">Use Case</span>
                                 <span class="review-value" id="reviewUseCase">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h6>Messaging Behaviour</h6>
+                            <div class="review-row">
+                                <span class="review-label">Campaign Frequency</span>
+                                <span class="review-value" id="reviewFrequency">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Monthly Volume</span>
+                                <span class="review-value" id="reviewVolume">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Opt-in Description</span>
+                                <span class="review-value" id="reviewOptIn" style="max-width: 60%; text-align: right;">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Opt-out Mechanism</span>
+                                <span class="review-value" id="reviewOptOut" style="max-width: 60%; text-align: right;">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Use Case Overview</span>
+                                <span class="review-value" id="reviewUseCaseOverview" style="max-width: 60%; text-align: right;">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Test Numbers</span>
+                                <span class="review-value" id="reviewTestNumbers" style="max-width: 60%; text-align: right;">-</span>
                             </div>
                         </div>
                         
@@ -1385,9 +1677,50 @@ var wizardData = {
     showPhone: true,
     showWebsite: true,
     showEmail: true,
+    campaignFrequency: '',
+    monthlyVolume: '',
+    optInDescription: '',
+    optOutDescription: '',
+    useCaseOverview: '',
+    testNumbers: [],
     currentStep: 1,
     isEditing: false,
     isDirty: false
+};
+
+var useCaseDetails = {
+    'otp': {
+        title: 'OTP (One-Time Passwords)',
+        content: '<p><strong>Best for:</strong> Account verification, two-factor authentication, password resets, and secure login codes.</p>' +
+            '<p><strong>Typical use cases:</strong></p>' +
+            '<ul><li>User registration verification</li><li>Transaction confirmations</li><li>Password reset codes</li><li>Login authentication</li></ul>' +
+            '<p><strong>Requirements:</strong></p>' +
+            '<ul><li>OTPs must expire within a reasonable timeframe</li><li>Messages should clearly identify the sender</li><li>Include security warnings about not sharing codes</li></ul>'
+    },
+    'transactional': {
+        title: 'Transactional Messages',
+        content: '<p><strong>Best for:</strong> Order confirmations, shipping updates, appointment reminders, and account notifications.</p>' +
+            '<p><strong>Typical use cases:</strong></p>' +
+            '<ul><li>Purchase receipts and confirmations</li><li>Delivery status updates</li><li>Booking confirmations</li><li>Account balance notifications</li></ul>' +
+            '<p><strong>Requirements:</strong></p>' +
+            '<ul><li>Messages must relate to an existing customer relationship or transaction</li><li>No promotional content allowed in transactional messages</li></ul>'
+    },
+    'promotional': {
+        title: 'Promotional Messages',
+        content: '<p><strong>Best for:</strong> Marketing campaigns, special offers, product announcements, and sales events.</p>' +
+            '<p><strong>Typical use cases:</strong></p>' +
+            '<ul><li>Flash sales and discounts</li><li>New product launches</li><li>Loyalty program updates</li><li>Seasonal promotions</li></ul>' +
+            '<p><strong>Requirements:</strong></p>' +
+            '<ul><li>Explicit opt-in consent required</li><li>Clear opt-out mechanism must be provided</li><li>Frequency caps may apply</li><li>Subject to carrier filtering policies</li></ul>'
+    },
+    'multi-use': {
+        title: 'Multi-use Agent',
+        content: '<p><strong>Best for:</strong> Businesses that send different types of messages from a single agent identity.</p>' +
+            '<p><strong>Typical use cases:</strong></p>' +
+            '<ul><li>Combined transactional and promotional messaging</li><li>Customer service with marketing updates</li><li>Full lifecycle customer communications</li></ul>' +
+            '<p><strong>Requirements:</strong></p>' +
+            '<ul><li>Must comply with requirements for each message type</li><li>Clear separation of message purposes in compliance documentation</li><li>May require additional review during registration</li></ul>'
+    }
 };
 
 var wizardModal = null;
@@ -1406,24 +1739,81 @@ function initializeWizard() {
     document.getElementById('keepDraftBtn').addEventListener('click', keepDraftAndExit);
     document.getElementById('discardDraftBtn').addEventListener('click', discardDraftAndExit);
     
-    document.querySelectorAll('.billing-option').forEach(function(opt) {
-        opt.addEventListener('click', function() {
-            document.querySelectorAll('.billing-option').forEach(function(o) { o.classList.remove('selected'); });
-            opt.classList.add('selected');
-            opt.querySelector('input').checked = true;
-            wizardData.billing = opt.dataset.billing;
+    document.querySelectorAll('.billing-tile').forEach(function(tile) {
+        tile.addEventListener('click', function(e) {
+            if (e.target.closest('.tile-info')) return;
+            document.querySelectorAll('.billing-tile').forEach(function(t) { t.classList.remove('selected'); });
+            tile.classList.add('selected');
+            wizardData.billing = tile.dataset.billing;
+            document.getElementById('billingError').style.display = 'none';
             triggerAutosave();
         });
     });
     
-    document.querySelectorAll('.usecase-option').forEach(function(opt) {
-        opt.addEventListener('click', function() {
-            document.querySelectorAll('.usecase-option').forEach(function(o) { o.classList.remove('selected'); });
-            opt.classList.add('selected');
-            opt.querySelector('input').checked = true;
-            wizardData.useCase = opt.dataset.usecase;
+    document.querySelectorAll('.usecase-tile').forEach(function(tile) {
+        tile.addEventListener('click', function(e) {
+            if (e.target.closest('.learn-more-btn')) return;
+            document.querySelectorAll('.usecase-tile').forEach(function(t) { t.classList.remove('selected'); });
+            tile.classList.add('selected');
+            wizardData.useCase = tile.dataset.usecase;
+            document.getElementById('useCaseError').style.display = 'none';
             triggerAutosave();
         });
+    });
+    
+    document.querySelectorAll('.learn-more-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var useCase = btn.dataset.usecase;
+            var details = useCaseDetails[useCase];
+            if (details) {
+                document.getElementById('useCaseModalTitle').textContent = details.title;
+                document.getElementById('useCaseModalContent').innerHTML = details.content;
+                new bootstrap.Modal(document.getElementById('useCaseLearnMoreModal')).show();
+            }
+        });
+    });
+    
+    document.getElementById('campaignFrequency').addEventListener('change', function() {
+        wizardData.campaignFrequency = this.value;
+        triggerAutosave();
+    });
+    
+    document.getElementById('monthlyVolume').addEventListener('change', function() {
+        wizardData.monthlyVolume = this.value;
+        triggerAutosave();
+    });
+    
+    document.getElementById('optInDescription').addEventListener('input', function() {
+        wizardData.optInDescription = this.value;
+        document.getElementById('optInCharCount').textContent = this.value.length;
+        triggerAutosave();
+    });
+    
+    document.getElementById('optOutDescription').addEventListener('input', function() {
+        wizardData.optOutDescription = this.value;
+        document.getElementById('optOutCharCount').textContent = this.value.length;
+        triggerAutosave();
+    });
+    
+    document.getElementById('useCaseOverview').addEventListener('input', function() {
+        wizardData.useCaseOverview = this.value;
+        document.getElementById('useCaseCharCount').textContent = this.value.length;
+        triggerAutosave();
+    });
+    
+    document.getElementById('addTestNumberBtn').addEventListener('click', addTestNumber);
+    document.getElementById('testNumberInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTestNumber();
+        }
+    });
+    document.getElementById('clearAllTestNumbers').addEventListener('click', clearAllTestNumbers);
+    
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(el) {
+        return new bootstrap.Tooltip(el);
     });
     
     document.getElementById('agentName').addEventListener('input', function() {
@@ -1545,17 +1935,15 @@ function openAgentWizard(existingAgent) {
         
         document.getElementById('agentName').value = wizardData.name;
         if (wizardData.billing) {
-            var billingOpt = document.querySelector('.billing-option[data-billing="' + wizardData.billing + '"]');
-            if (billingOpt) {
-                billingOpt.classList.add('selected');
-                billingOpt.querySelector('input').checked = true;
+            var billingTile = document.querySelector('.billing-tile[data-billing="' + wizardData.billing + '"]');
+            if (billingTile) {
+                billingTile.classList.add('selected');
             }
         }
         if (wizardData.useCase) {
-            var useCaseOpt = document.querySelector('.usecase-option[data-usecase="' + wizardData.useCase + '"]');
-            if (useCaseOpt) {
-                useCaseOpt.classList.add('selected');
-                useCaseOpt.querySelector('input').checked = true;
+            var useCaseTile = document.querySelector('.usecase-tile[data-usecase="' + wizardData.useCase + '"]');
+            if (useCaseTile) {
+                useCaseTile.classList.add('selected');
             }
         }
     } else {
@@ -1587,6 +1975,12 @@ function resetWizardData() {
         showPhone: true,
         showWebsite: true,
         showEmail: true,
+        campaignFrequency: '',
+        monthlyVolume: '',
+        optInDescription: '',
+        optOutDescription: '',
+        useCaseOverview: '',
+        testNumbers: [],
         currentStep: 1,
         isEditing: false,
         isDirty: false
@@ -1595,9 +1989,8 @@ function resetWizardData() {
     document.getElementById('agentName').value = '';
     document.getElementById('agentDescription').value = '';
     document.getElementById('descCharCount').textContent = '0';
-    document.querySelectorAll('.billing-option, .usecase-option').forEach(function(o) {
-        o.classList.remove('selected');
-        o.querySelector('input').checked = false;
+    document.querySelectorAll('.billing-tile, .usecase-tile').forEach(function(t) {
+        t.classList.remove('selected');
     });
     document.getElementById('logoPlaceholder').classList.remove('d-none');
     document.getElementById('logoPreviewContainer').classList.add('d-none');
@@ -1616,11 +2009,98 @@ function resetWizardData() {
     document.getElementById('showWebsiteToggle').checked = true;
     document.getElementById('showEmailToggle').checked = true;
     
-    document.querySelectorAll('.form-control.is-invalid').forEach(function(el) {
+    document.getElementById('campaignFrequency').value = '';
+    document.getElementById('monthlyVolume').value = '';
+    document.getElementById('optInDescription').value = '';
+    document.getElementById('optOutDescription').value = '';
+    document.getElementById('useCaseOverview').value = '';
+    document.getElementById('optInCharCount').textContent = '0';
+    document.getElementById('optOutCharCount').textContent = '0';
+    document.getElementById('useCaseCharCount').textContent = '0';
+    document.getElementById('testNumberInput').value = '';
+    document.getElementById('testNumbersList').innerHTML = '';
+    document.getElementById('testNumberCount').textContent = '0';
+    document.getElementById('clearAllTestNumbers').style.display = 'none';
+    document.getElementById('billingError').style.display = 'none';
+    document.getElementById('useCaseError').style.display = 'none';
+    document.getElementById('testNumberError').style.display = 'none';
+    
+    document.querySelectorAll('.form-control.is-invalid, .form-select.is-invalid').forEach(function(el) {
         el.classList.remove('is-invalid');
     });
     
     updateAutosaveIndicator('saved');
+}
+
+function addTestNumber() {
+    var input = document.getElementById('testNumberInput');
+    var number = input.value.trim();
+    var errorEl = document.getElementById('testNumberError');
+    
+    if (!number) return;
+    
+    if (!isValidInternationalNumber(number)) {
+        errorEl.style.display = 'block';
+        input.classList.add('is-invalid');
+        return;
+    }
+    
+    if (wizardData.testNumbers.length >= 20) {
+        errorEl.textContent = 'Maximum 20 test numbers allowed';
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    if (wizardData.testNumbers.includes(number)) {
+        errorEl.textContent = 'This number has already been added';
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    errorEl.style.display = 'none';
+    input.classList.remove('is-invalid');
+    
+    wizardData.testNumbers.push(number);
+    input.value = '';
+    renderTestNumbers();
+    triggerAutosave();
+}
+
+function removeTestNumber(number) {
+    var index = wizardData.testNumbers.indexOf(number);
+    if (index > -1) {
+        wizardData.testNumbers.splice(index, 1);
+        renderTestNumbers();
+        triggerAutosave();
+    }
+}
+
+function clearAllTestNumbers() {
+    wizardData.testNumbers = [];
+    renderTestNumbers();
+    triggerAutosave();
+}
+
+function renderTestNumbers() {
+    var container = document.getElementById('testNumbersList');
+    container.innerHTML = '';
+    
+    wizardData.testNumbers.forEach(function(number) {
+        var tag = document.createElement('span');
+        tag.className = 'test-number-tag';
+        tag.innerHTML = '<i class="fas fa-mobile-alt me-2 text-muted"></i>' + escapeHtml(number) +
+            '<span class="remove-number" onclick="removeTestNumber(\'' + escapeHtml(number) + '\')">' +
+            '<i class="fas fa-times"></i></span>';
+        container.appendChild(tag);
+    });
+    
+    document.getElementById('testNumberCount').textContent = wizardData.testNumbers.length;
+    document.getElementById('clearAllTestNumbers').style.display = wizardData.testNumbers.length > 0 ? '' : 'none';
+}
+
+function isValidInternationalNumber(number) {
+    var cleaned = number.replace(/[\s\-\(\)]/g, '');
+    return /^\+[1-9]\d{7,14}$/.test(cleaned);
 }
 
 function goToStep(step) {
@@ -1706,9 +2186,31 @@ function validateCurrentStep() {
         }
     } else if (wizardData.currentStep === 2) {
         if (!wizardData.billing) {
+            document.getElementById('billingError').style.display = 'block';
             isValid = false;
         }
         if (!wizardData.useCase) {
+            document.getElementById('useCaseError').style.display = 'block';
+            isValid = false;
+        }
+        if (!wizardData.campaignFrequency) {
+            document.getElementById('campaignFrequency').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.monthlyVolume) {
+            document.getElementById('monthlyVolume').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.optInDescription.trim()) {
+            document.getElementById('optInDescription').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.optOutDescription.trim()) {
+            document.getElementById('optOutDescription').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.useCaseOverview.trim()) {
+            document.getElementById('useCaseOverview').classList.add('is-invalid');
             isValid = false;
         }
     }
@@ -1768,6 +2270,37 @@ function populateReviewStep() {
     
     document.getElementById('reviewBilling').textContent = wizardData.billing === 'conversational' ? 'Conversational' : 'Non-conversational';
     document.getElementById('reviewUseCase').textContent = formatUseCase(wizardData.useCase);
+    
+    document.getElementById('reviewFrequency').textContent = formatFrequency(wizardData.campaignFrequency);
+    document.getElementById('reviewVolume').textContent = formatVolume(wizardData.monthlyVolume);
+    document.getElementById('reviewOptIn').textContent = wizardData.optInDescription || '-';
+    document.getElementById('reviewOptOut').textContent = wizardData.optOutDescription || '-';
+    document.getElementById('reviewUseCaseOverview').textContent = wizardData.useCaseOverview || '-';
+    document.getElementById('reviewTestNumbers').textContent = wizardData.testNumbers.length > 0 ? wizardData.testNumbers.join(', ') : 'None added';
+}
+
+function formatFrequency(value) {
+    var labels = {
+        'daily': 'Daily',
+        'weekly': 'Weekly',
+        'monthly': 'Monthly',
+        'on-demand': 'On-demand / Event-triggered',
+        'continuous': 'Continuous (24/7)'
+    };
+    return labels[value] || '-';
+}
+
+function formatVolume(value) {
+    var labels = {
+        '0-1000': 'Up to 1,000 messages',
+        '1000-10000': '1,000 - 10,000 messages',
+        '10000-100000': '10,000 - 100,000 messages',
+        '100000-500000': '100,000 - 500,000 messages',
+        '500000-1000000': '500,000 - 1,000,000 messages',
+        '1000000-5000000': '1M - 5M messages',
+        '5000000-10000000': '5M - 10M messages'
+    };
+    return labels[value] || '-';
 }
 
 function handleWizardCancel() {
