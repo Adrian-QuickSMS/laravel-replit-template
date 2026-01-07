@@ -340,6 +340,18 @@
     border-style: solid;
     border-color: var(--primary);
 }
+.logo-upload-zone.circular-crop {
+    padding: 1.5rem;
+}
+.circular-preview-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    border: 3px solid var(--primary);
+    box-shadow: 0 2px 8px rgba(136, 108, 192, 0.2);
+}
 .logo-preview {
     width: 120px;
     height: 120px;
@@ -347,6 +359,40 @@
     object-fit: cover;
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.logo-preview.circular {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+.hero-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+}
+.hero-upload-zone:hover {
+    border-color: var(--primary);
+    background: #f8f5fd;
+}
+.hero-upload-zone.has-hero {
+    border-style: solid;
+    border-color: var(--primary);
+    padding: 0.5rem;
+}
+.hero-preview {
+    width: 100%;
+    max-height: 120px;
+    object-fit: cover;
+    border-radius: 0.375rem;
 }
 .color-preview {
     width: 40px;
@@ -567,18 +613,14 @@
                     <div class="wizard-steps ms-4">
                         <span class="wizard-step active" data-step="1">
                             <span class="step-number">1</span>
-                            <span class="step-label">Business Info</span>
+                            <span class="step-label">Branding & Identity</span>
                         </span>
                         <span class="wizard-step" data-step="2">
                             <span class="step-number">2</span>
-                            <span class="step-label">Branding</span>
+                            <span class="step-label">Messaging Profile</span>
                         </span>
                         <span class="wizard-step" data-step="3">
                             <span class="step-number">3</span>
-                            <span class="step-label">Contact</span>
-                        </span>
-                        <span class="wizard-step" data-step="4">
-                            <span class="step-number">4</span>
                             <span class="step-label">Review</span>
                         </span>
                     </div>
@@ -591,23 +633,150 @@
             
             <div class="modal-body flex-grow-1 p-0" style="overflow-y: auto; background: #f8f9fa;">
                 <div id="agentWizardStep1" class="wizard-content p-4">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 1: Branding, Identity & Contact Details</strong> - Configure your RCS Agent's visual identity and contact information.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">RCS Agent Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="agentName" placeholder="e.g., Your Brand Name" maxlength="25">
+                                    <small class="text-muted">Max 25 characters. Displayed as sender name.</small>
+                                    <div class="invalid-feedback">Please enter an agent name (max 25 characters)</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">RCS Agent Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="agentDescription" rows="2" placeholder="Brief description of your business..." maxlength="100"></textarea>
+                                    <small class="text-muted"><span id="descCharCount">0</span>/100 characters</small>
+                                    <div class="invalid-feedback">Please enter a description (max 100 characters)</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Brand Colour <span class="text-danger">*</span></label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="color" class="form-control form-control-color color-preview" id="brandColor" value="#886CC0" style="width: 50px; height: 38px;">
+                                        <input type="text" class="form-control" id="brandColorHex" value="#886CC0" maxlength="7" style="max-width: 120px;">
+                                    </div>
+                                    <small class="text-muted">Used for buttons and accent elements in RCS messages</small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Agent Logo <span class="text-danger">*</span></label>
+                                    <div class="logo-upload-zone circular-crop" id="logoUploadZone">
+                                        <div id="logoPlaceholder">
+                                            <i class="fas fa-cloud-upload-alt text-muted mb-2" style="font-size: 2rem;"></i>
+                                            <p class="mb-1 text-muted">Click to upload</p>
+                                            <small class="text-muted">222 × 222 px, PNG/JPEG</small>
+                                        </div>
+                                        <div id="logoPreviewContainer" class="d-none">
+                                            <div class="circular-preview-wrapper">
+                                                <img src="" alt="Logo preview" class="logo-preview circular" id="logoPreviewImg">
+                                            </div>
+                                            <p class="mt-2 mb-0 text-primary small">Click to change</p>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="logoFileInput" accept="image/png,image/jpeg" class="d-none">
+                                    <small class="text-muted d-block mt-1">Circular crop applied. Supports zoom & drag.</small>
+                                    <div class="invalid-feedback d-block" id="logoError" style="display: none !important;">Please upload a logo image</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Hero Image</label>
+                            <div class="hero-upload-zone" id="heroUploadZone">
+                                <div id="heroPlaceholder">
+                                    <i class="fas fa-image text-muted me-2"></i>
+                                    <span class="text-muted">Click to upload hero image (1480 × 448 px recommended, 45:14 aspect ratio)</span>
+                                </div>
+                                <div id="heroPreviewContainer" class="d-none">
+                                    <img src="" alt="Hero preview" class="hero-preview" id="heroPreviewImg">
+                                    <p class="mt-2 mb-0 text-primary small">Click to change</p>
+                                </div>
+                            </div>
+                            <input type="file" id="heroFileInput" accept="image/png,image/jpeg" class="d-none">
+                            <small class="text-muted">Rectangular crop. Logo partially overlaps the bottom-left corner.</small>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Handset Contact Details</h6>
+                        <p class="text-muted small mb-3">These details will be shown to message recipients on their device. Toggle which fields to display.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label fw-semibold mb-0">Phone Number <span class="text-danger">*</span></label>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" id="showPhoneToggle" checked>
+                                        <label class="form-check-label small text-muted" for="showPhoneToggle">Display on handset</label>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text">+44</span>
+                                    <input type="tel" class="form-control" id="supportPhone" placeholder="20 1234 5678">
+                                </div>
+                                <small class="text-muted">UK numbers only. Leading 0 will be stripped automatically.</small>
+                                <div class="invalid-feedback" id="phoneError">Please enter a valid UK phone number</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label fw-semibold mb-0">Website URL <span class="text-danger">*</span></label>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" id="showWebsiteToggle" checked>
+                                        <label class="form-check-label small text-muted" for="showWebsiteToggle">Display on handset</label>
+                                    </div>
+                                </div>
+                                <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
+                                <small class="text-muted">Must start with https://</small>
+                                <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label fw-semibold mb-0">Email Address <span class="text-danger">*</span></label>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" id="showEmailToggle" checked>
+                                        <label class="form-check-label small text-muted" for="showEmailToggle">Display on handset</label>
+                                    </div>
+                                </div>
+                                <input type="email" class="form-control" id="supportEmail" placeholder="support@example.com">
+                                <small class="text-muted">Contact email for customer inquiries</small>
+                                <div class="invalid-feedback">Please enter a valid email address</div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h6 class="fw-semibold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>Compliance URLs</h6>
+                        <p class="text-muted small mb-3">Required for RCS agent registration. Both must use HTTPS.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Privacy Policy URL <span class="text-danger">*</span></label>
+                                <input type="url" class="form-control" id="privacyUrl" placeholder="https://www.example.com/privacy">
+                                <small class="text-muted">Link to your privacy policy page</small>
+                                <div class="invalid-feedback">Please enter a valid HTTPS URL for your privacy policy</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Terms of Service URL <span class="text-danger">*</span></label>
+                                <input type="url" class="form-control" id="termsUrl" placeholder="https://www.example.com/terms">
+                                <small class="text-muted">Link to your terms of service page</small>
+                                <div class="invalid-feedback">Please enter a valid HTTPS URL for your terms of service</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="agentWizardStep2" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 1: Business Information</strong> - Define the basic details for your RCS Agent. This information will be displayed to recipients.
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Agent Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="agentName" placeholder="e.g., Your Brand Name" maxlength="100">
-                            <small class="text-muted">This will be displayed as the sender name in RCS messages</small>
-                            <div class="invalid-feedback">Please enter an agent name</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Business Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="agentDescription" rows="3" placeholder="Describe your business and how you'll use RCS messaging..." maxlength="500"></textarea>
-                            <small class="text-muted"><span id="descCharCount">0</span>/500 characters</small>
-                            <div class="invalid-feedback">Please enter a business description</div>
+                            <strong>Step 2: Messaging Profile</strong> - Select the billing model and primary use case for your RCS Agent.
                         </div>
                         
                         <div class="mb-4">
@@ -736,103 +905,14 @@
                     </div>
                 </div>
                 
-                <div id="agentWizardStep2" class="wizard-content p-4 d-none">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
-                        <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 2: Branding</strong> - Upload your brand assets and configure visual identity for the RCS agent.
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-semibold">Agent Logo <span class="text-danger">*</span></label>
-                                <div class="logo-upload-zone" id="logoUploadZone">
-                                    <div id="logoPlaceholder">
-                                        <i class="fas fa-cloud-upload-alt text-muted mb-2" style="font-size: 2rem;"></i>
-                                        <p class="mb-1 text-muted">Click to upload logo</p>
-                                        <small class="text-muted">PNG or JPG, min 224x224px</small>
-                                    </div>
-                                    <div id="logoPreviewContainer" class="d-none">
-                                        <img src="" alt="Logo preview" class="logo-preview" id="logoPreviewImg">
-                                        <p class="mt-2 mb-0 text-primary small">Click to change</p>
-                                    </div>
-                                </div>
-                                <input type="file" id="logoFileInput" accept="image/png,image/jpeg" class="d-none">
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-semibold">Brand Color <span class="text-danger">*</span></label>
-                                <div class="d-flex align-items-center gap-3">
-                                    <input type="color" class="form-control form-control-color color-preview" id="brandColor" value="#886CC0">
-                                    <input type="text" class="form-control" id="brandColorHex" value="#886CC0" maxlength="7" style="max-width: 120px;">
-                                </div>
-                                <small class="text-muted">This color will be used for buttons and accents</small>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Business Website <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
-                            <small class="text-muted">Your official business website URL</small>
-                            <div class="invalid-feedback">Please enter a valid website URL</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Privacy Policy URL <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control" id="privacyUrl" placeholder="https://www.example.com/privacy">
-                            <small class="text-muted">Link to your privacy policy</small>
-                            <div class="invalid-feedback">Please enter a valid privacy policy URL</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Terms of Service URL</label>
-                            <input type="url" class="form-control" id="termsUrl" placeholder="https://www.example.com/terms">
-                            <small class="text-muted">Link to your terms of service (optional)</small>
-                        </div>
-                    </div>
-                </div>
-                
                 <div id="agentWizardStep3" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 3: Contact Information</strong> - Provide contact details for customer support and verification purposes.
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Support Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="supportEmail" placeholder="support@example.com">
-                            <small class="text-muted">Email address for customer inquiries</small>
-                            <div class="invalid-feedback">Please enter a valid email address</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Support Phone <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="supportPhone" placeholder="+44 20 1234 5678">
-                            <small class="text-muted">Phone number for customer support</small>
-                            <div class="invalid-feedback">Please enter a valid phone number</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Business Address</label>
-                            <textarea class="form-control" id="businessAddress" rows="2" placeholder="123 Business Street, City, Country"></textarea>
-                            <small class="text-muted">Physical business address (optional)</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Additional Notes</label>
-                            <textarea class="form-control" id="additionalNotes" rows="3" placeholder="Any additional information for the review team..."></textarea>
-                            <small class="text-muted">Include any relevant context that may help with approval</small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="agentWizardStep4" class="wizard-content p-4 d-none">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
-                        <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 4: Review & Submit</strong> - Please review all information before submitting for approval.
+                            <strong>Step 3: Review & Submit</strong> - Please review all information before submitting for approval.
                         </div>
                         
                         <div class="review-section">
-                            <h6>Business Information</h6>
+                            <h6>Branding & Identity</h6>
                             <div class="review-row">
                                 <span class="review-label">Agent Name</span>
                                 <span class="review-value" id="reviewAgentName">-</span>
@@ -842,47 +922,68 @@
                                 <span class="review-value" id="reviewDescription" style="max-width: 60%; text-align: right;">-</span>
                             </div>
                             <div class="review-row">
+                                <span class="review-label">Logo</span>
+                                <span class="review-value" id="reviewLogo">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Hero Image</span>
+                                <span class="review-value" id="reviewHero">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Brand Colour</span>
+                                <span class="review-value d-flex align-items-center justify-content-end gap-2">
+                                    <span class="color-preview" id="reviewColorPreview" style="width: 24px; height: 24px;"></span>
+                                    <span id="reviewColor">-</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h6>Handset Contact Details</h6>
+                            <div class="review-row">
+                                <span class="review-label">Phone Number</span>
+                                <span class="review-value">
+                                    <span id="reviewPhone">-</span>
+                                    <span class="badge badge-pastel-primary ms-2" id="reviewPhoneDisplay">Visible</span>
+                                </span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Website URL</span>
+                                <span class="review-value">
+                                    <span id="reviewWebsite">-</span>
+                                    <span class="badge badge-pastel-primary ms-2" id="reviewWebsiteDisplay">Visible</span>
+                                </span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Email Address</span>
+                                <span class="review-value">
+                                    <span id="reviewEmail">-</span>
+                                    <span class="badge badge-pastel-primary ms-2" id="reviewEmailDisplay">Visible</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h6>Compliance URLs</h6>
+                            <div class="review-row">
+                                <span class="review-label">Privacy Policy</span>
+                                <span class="review-value" id="reviewPrivacy">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Terms of Service</span>
+                                <span class="review-value" id="reviewTerms">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h6>Messaging Profile</h6>
+                            <div class="review-row">
                                 <span class="review-label">Billing Category</span>
                                 <span class="review-value" id="reviewBilling">-</span>
                             </div>
                             <div class="review-row">
                                 <span class="review-label">Use Case</span>
                                 <span class="review-value" id="reviewUseCase">-</span>
-                            </div>
-                        </div>
-                        
-                        <div class="review-section">
-                            <h6>Branding</h6>
-                            <div class="review-row">
-                                <span class="review-label">Logo</span>
-                                <span class="review-value" id="reviewLogo">-</span>
-                            </div>
-                            <div class="review-row">
-                                <span class="review-label">Brand Color</span>
-                                <span class="review-value d-flex align-items-center justify-content-end gap-2">
-                                    <span class="color-preview" id="reviewColorPreview" style="width: 24px; height: 24px;"></span>
-                                    <span id="reviewColor">-</span>
-                                </span>
-                            </div>
-                            <div class="review-row">
-                                <span class="review-label">Website</span>
-                                <span class="review-value" id="reviewWebsite">-</span>
-                            </div>
-                            <div class="review-row">
-                                <span class="review-label">Privacy Policy</span>
-                                <span class="review-value" id="reviewPrivacy">-</span>
-                            </div>
-                        </div>
-                        
-                        <div class="review-section">
-                            <h6>Contact Information</h6>
-                            <div class="review-row">
-                                <span class="review-label">Support Email</span>
-                                <span class="review-value" id="reviewEmail">-</span>
-                            </div>
-                            <div class="review-row">
-                                <span class="review-label">Support Phone</span>
-                                <span class="review-value" id="reviewPhone">-</span>
                             </div>
                         </div>
                         
@@ -1273,14 +1374,17 @@ var wizardData = {
     useCase: '',
     logoFile: null,
     logoDataUrl: null,
+    heroFile: null,
+    heroDataUrl: null,
     brandColor: '#886CC0',
     website: '',
     privacyUrl: '',
     termsUrl: '',
     supportEmail: '',
     supportPhone: '',
-    businessAddress: '',
-    additionalNotes: '',
+    showPhone: true,
+    showWebsite: true,
+    showEmail: true,
     currentStep: 1,
     isEditing: false,
     isDirty: false
@@ -1368,12 +1472,63 @@ function initializeWizard() {
         }
     });
     
-    ['businessWebsite', 'privacyUrl', 'termsUrl', 'supportEmail', 'supportPhone', 'businessAddress', 'additionalNotes'].forEach(function(id) {
+    ['businessWebsite', 'privacyUrl', 'termsUrl', 'supportEmail', 'supportPhone'].forEach(function(id) {
         document.getElementById(id).addEventListener('input', function() {
             var key = id === 'businessWebsite' ? 'website' : id;
             wizardData[key] = this.value;
             triggerAutosave();
         });
+    });
+    
+    document.getElementById('heroUploadZone').addEventListener('click', function() {
+        document.getElementById('heroFileInput').click();
+    });
+    
+    document.getElementById('heroFileInput').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            var file = e.target.files[0];
+            wizardData.heroFile = file;
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+                wizardData.heroDataUrl = evt.target.result;
+                document.getElementById('heroPreviewImg').src = evt.target.result;
+                document.getElementById('heroPlaceholder').classList.add('d-none');
+                document.getElementById('heroPreviewContainer').classList.remove('d-none');
+                document.getElementById('heroUploadZone').classList.add('has-hero');
+                triggerAutosave();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    document.getElementById('showPhoneToggle').addEventListener('change', function() {
+        wizardData.showPhone = this.checked;
+        triggerAutosave();
+    });
+    
+    document.getElementById('showWebsiteToggle').addEventListener('change', function() {
+        wizardData.showWebsite = this.checked;
+        triggerAutosave();
+    });
+    
+    document.getElementById('showEmailToggle').addEventListener('change', function() {
+        wizardData.showEmail = this.checked;
+        triggerAutosave();
+    });
+    
+    document.getElementById('supportPhone').addEventListener('blur', function() {
+        var value = this.value.replace(/[\s\-\(\)]/g, '');
+        if (value.startsWith('0')) {
+            value = value.substring(1);
+        }
+        if (value.startsWith('44')) {
+            value = value.substring(2);
+        }
+        if (value.startsWith('+44')) {
+            value = value.substring(3);
+        }
+        this.value = value;
+        wizardData.supportPhone = value;
     });
 }
 
@@ -1421,14 +1576,17 @@ function resetWizardData() {
         useCase: '',
         logoFile: null,
         logoDataUrl: null,
+        heroFile: null,
+        heroDataUrl: null,
         brandColor: '#886CC0',
         website: '',
         privacyUrl: '',
         termsUrl: '',
         supportEmail: '',
         supportPhone: '',
-        businessAddress: '',
-        additionalNotes: '',
+        showPhone: true,
+        showWebsite: true,
+        showEmail: true,
         currentStep: 1,
         isEditing: false,
         isDirty: false
@@ -1444,6 +1602,9 @@ function resetWizardData() {
     document.getElementById('logoPlaceholder').classList.remove('d-none');
     document.getElementById('logoPreviewContainer').classList.add('d-none');
     document.getElementById('logoUploadZone').classList.remove('has-logo');
+    document.getElementById('heroPlaceholder').classList.remove('d-none');
+    document.getElementById('heroPreviewContainer').classList.add('d-none');
+    document.getElementById('heroUploadZone').classList.remove('has-hero');
     document.getElementById('brandColor').value = '#886CC0';
     document.getElementById('brandColorHex').value = '#886CC0';
     document.getElementById('businessWebsite').value = '';
@@ -1451,8 +1612,9 @@ function resetWizardData() {
     document.getElementById('termsUrl').value = '';
     document.getElementById('supportEmail').value = '';
     document.getElementById('supportPhone').value = '';
-    document.getElementById('businessAddress').value = '';
-    document.getElementById('additionalNotes').value = '';
+    document.getElementById('showPhoneToggle').checked = true;
+    document.getElementById('showWebsiteToggle').checked = true;
+    document.getElementById('showEmailToggle').checked = true;
     
     document.querySelectorAll('.form-control.is-invalid').forEach(function(el) {
         el.classList.remove('is-invalid');
@@ -1464,7 +1626,7 @@ function resetWizardData() {
 function goToStep(step) {
     wizardData.currentStep = step;
     
-    for (var i = 1; i <= 4; i++) {
+    for (var i = 1; i <= 3; i++) {
         document.getElementById('agentWizardStep' + i).classList.toggle('d-none', i !== step);
     }
     
@@ -1479,10 +1641,10 @@ function goToStep(step) {
     });
     
     document.getElementById('wizardPrevBtn').style.display = step > 1 ? '' : 'none';
-    document.getElementById('wizardNextBtn').style.display = step < 4 ? '' : 'none';
-    document.getElementById('wizardSubmitBtn').style.display = step === 4 ? '' : 'none';
+    document.getElementById('wizardNextBtn').style.display = step < 3 ? '' : 'none';
+    document.getElementById('wizardSubmitBtn').style.display = step === 3 ? '' : 'none';
     
-    if (step === 4) {
+    if (step === 3) {
         populateReviewStep();
     }
 }
@@ -1490,7 +1652,7 @@ function goToStep(step) {
 function nextStep() {
     if (!validateCurrentStep()) return;
     
-    if (wizardData.currentStep < 4) {
+    if (wizardData.currentStep < 3) {
         goToStep(wizardData.currentStep + 1);
     }
 }
@@ -1507,46 +1669,65 @@ function validateCurrentStep() {
     document.querySelectorAll('.form-control.is-invalid').forEach(function(el) {
         el.classList.remove('is-invalid');
     });
+    document.getElementById('logoError').style.display = 'none';
     
     if (wizardData.currentStep === 1) {
-        if (!wizardData.name.trim()) {
+        if (!wizardData.name.trim() || wizardData.name.length > 25) {
             document.getElementById('agentName').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.description.trim()) {
+        if (!wizardData.description.trim() || wizardData.description.length > 100) {
             document.getElementById('agentDescription').classList.add('is-invalid');
             isValid = false;
         }
+        if (!wizardData.logoDataUrl) {
+            document.getElementById('logoError').style.display = 'block';
+            isValid = false;
+        }
+        if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
+            document.getElementById('supportPhone').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.website.trim() || !isValidHttpsUrl(wizardData.website)) {
+            document.getElementById('businessWebsite').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
+            document.getElementById('supportEmail').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
+            document.getElementById('privacyUrl').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.termsUrl.trim() || !isValidHttpsUrl(wizardData.termsUrl)) {
+            document.getElementById('termsUrl').classList.add('is-invalid');
+            isValid = false;
+        }
+    } else if (wizardData.currentStep === 2) {
         if (!wizardData.billing) {
             isValid = false;
         }
         if (!wizardData.useCase) {
             isValid = false;
         }
-    } else if (wizardData.currentStep === 2) {
-        if (!wizardData.logoDataUrl) {
-            isValid = false;
-        }
-        if (!wizardData.website.trim() || !isValidUrl(wizardData.website)) {
-            document.getElementById('businessWebsite').classList.add('is-invalid');
-            isValid = false;
-        }
-        if (!wizardData.privacyUrl.trim() || !isValidUrl(wizardData.privacyUrl)) {
-            document.getElementById('privacyUrl').classList.add('is-invalid');
-            isValid = false;
-        }
-    } else if (wizardData.currentStep === 3) {
-        if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
-            document.getElementById('supportEmail').classList.add('is-invalid');
-            isValid = false;
-        }
-        if (!wizardData.supportPhone.trim()) {
-            document.getElementById('supportPhone').classList.add('is-invalid');
-            isValid = false;
-        }
     }
     
     return isValid;
+}
+
+function isValidUKPhone(phone) {
+    var cleaned = phone.replace(/[\s\-\(\)]/g, '');
+    return /^\d{9,11}$/.test(cleaned);
+}
+
+function isValidHttpsUrl(str) {
+    try {
+        var url = new URL(str);
+        return url.protocol === 'https:';
+    } catch (e) {
+        return false;
+    }
 }
 
 function isValidUrl(str) {
@@ -1565,15 +1746,28 @@ function isValidEmail(str) {
 function populateReviewStep() {
     document.getElementById('reviewAgentName').textContent = wizardData.name || '-';
     document.getElementById('reviewDescription').textContent = wizardData.description || '-';
-    document.getElementById('reviewBilling').textContent = wizardData.billing === 'conversational' ? 'Conversational' : 'Non-conversational';
-    document.getElementById('reviewUseCase').textContent = formatUseCase(wizardData.useCase);
     document.getElementById('reviewLogo').textContent = wizardData.logoDataUrl ? 'Uploaded' : 'Not uploaded';
+    document.getElementById('reviewHero').textContent = wizardData.heroDataUrl ? 'Uploaded' : 'Not uploaded';
     document.getElementById('reviewColorPreview').style.backgroundColor = wizardData.brandColor;
     document.getElementById('reviewColor').textContent = wizardData.brandColor;
+    
+    document.getElementById('reviewPhone').textContent = wizardData.supportPhone ? '+44 ' + wizardData.supportPhone : '-';
+    document.getElementById('reviewPhoneDisplay').textContent = wizardData.showPhone ? 'Visible' : 'Hidden';
+    document.getElementById('reviewPhoneDisplay').className = 'badge ms-2 ' + (wizardData.showPhone ? 'badge-pastel-primary' : 'badge-pastel-secondary');
+    
     document.getElementById('reviewWebsite').textContent = wizardData.website || '-';
-    document.getElementById('reviewPrivacy').textContent = wizardData.privacyUrl || '-';
+    document.getElementById('reviewWebsiteDisplay').textContent = wizardData.showWebsite ? 'Visible' : 'Hidden';
+    document.getElementById('reviewWebsiteDisplay').className = 'badge ms-2 ' + (wizardData.showWebsite ? 'badge-pastel-primary' : 'badge-pastel-secondary');
+    
     document.getElementById('reviewEmail').textContent = wizardData.supportEmail || '-';
-    document.getElementById('reviewPhone').textContent = wizardData.supportPhone || '-';
+    document.getElementById('reviewEmailDisplay').textContent = wizardData.showEmail ? 'Visible' : 'Hidden';
+    document.getElementById('reviewEmailDisplay').className = 'badge ms-2 ' + (wizardData.showEmail ? 'badge-pastel-primary' : 'badge-pastel-secondary');
+    
+    document.getElementById('reviewPrivacy').textContent = wizardData.privacyUrl || '-';
+    document.getElementById('reviewTerms').textContent = wizardData.termsUrl || '-';
+    
+    document.getElementById('reviewBilling').textContent = wizardData.billing === 'conversational' ? 'Conversational' : 'Non-conversational';
+    document.getElementById('reviewUseCase').textContent = formatUseCase(wizardData.useCase);
 }
 
 function handleWizardCancel() {
