@@ -2313,6 +2313,27 @@
     </div>
 </div>
 
+<!-- Archive Confirmation Modal -->
+<div class="modal fade" id="archiveConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-archive me-2 text-warning"></i>Archive Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Are you sure you want to archive this template?</p>
+                <p class="text-muted mb-0">Archived templates cannot be edited or used.</p>
+                <input type="hidden" id="archiveTemplateId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="executeArchiveTemplate()">Archive</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @include('quicksms.partials.rcs-wizard-modal')
 @endsection
 
@@ -4095,12 +4116,22 @@ function archiveTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (!template) return;
     
-    if (confirm('Are you sure you want to archive "' + template.name + '"? Archived templates cannot be edited or used.')) {
-        template.status = 'archived';
-        template.lastUpdated = new Date().toISOString().split('T')[0];
-        renderTemplates();
-        showToast('Template "' + template.name + '" has been archived', 'success');
-    }
+    document.getElementById('archiveTemplateId').value = id;
+    new bootstrap.Modal(document.getElementById('archiveConfirmModal')).show();
+}
+
+function executeArchiveTemplate() {
+    var id = parseInt(document.getElementById('archiveTemplateId').value);
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('archiveConfirmModal'));
+    modal.hide();
+    
+    template.status = 'archived';
+    template.lastUpdated = new Date().toISOString().split('T')[0];
+    renderTemplates();
+    showToast('Template "' + template.name + '" has been archived', 'success');
 }
 
 function goLiveTemplate(id) {
