@@ -815,6 +815,8 @@
                                     <input type="file" id="logoFileInput" accept="image/png,image/jpeg" class="d-none">
                                     <small class="text-muted d-block mt-1">Circular crop applied. Supports zoom & drag.</small>
                                     <div class="invalid-feedback d-block" id="logoError" style="display: none !important;">Please upload a logo image</div>
+                                    <div class="invalid-feedback d-block" id="logoFormatError" style="display: none !important;">Logo must be PNG or JPEG format</div>
+                                    <div class="invalid-feedback d-block" id="logoSizeError" style="display: none !important;">Logo file size must be under 2MB</div>
                                 </div>
                             </div>
                         </div>
@@ -833,6 +835,8 @@
                             </div>
                             <input type="file" id="heroFileInput" accept="image/png,image/jpeg" class="d-none">
                             <small class="text-muted">Rectangular crop. Logo partially overlaps the bottom-left corner.</small>
+                            <div class="invalid-feedback d-block" id="heroFormatError" style="display: none !important;">Hero image must be PNG or JPEG format</div>
+                            <div class="invalid-feedback d-block" id="heroSizeError" style="display: none !important;">Hero image file size must be under 5MB</div>
                         </div>
                         
                         <hr class="my-4">
@@ -1800,7 +1804,10 @@ var wizardData = {
     approverEmail: '',
     currentStep: 1,
     isEditing: false,
-    isDirty: false
+    isDirty: false,
+    logoValid: false,
+    heroValid: false,
+    isSubmitted: false
 };
 
 var mockAccountDetails = {
@@ -1965,7 +1972,27 @@ function initializeWizard() {
     document.getElementById('logoFileInput').addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             var file = e.target.files[0];
+            
+            document.getElementById('logoError').style.display = 'none';
+            document.getElementById('logoFormatError').style.display = 'none';
+            document.getElementById('logoSizeError').style.display = 'none';
+            
+            var validTypes = ['image/png', 'image/jpeg'];
+            if (!validTypes.includes(file.type)) {
+                document.getElementById('logoFormatError').style.display = 'block';
+                this.value = '';
+                return;
+            }
+            
+            var maxSize = 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                document.getElementById('logoSizeError').style.display = 'block';
+                this.value = '';
+                return;
+            }
+            
             wizardData.logoFile = file;
+            wizardData.logoValid = true;
             var reader = new FileReader();
             reader.onload = function(evt) {
                 wizardData.logoDataUrl = evt.target.result;
@@ -2008,7 +2035,26 @@ function initializeWizard() {
     document.getElementById('heroFileInput').addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             var file = e.target.files[0];
+            
+            document.getElementById('heroFormatError').style.display = 'none';
+            document.getElementById('heroSizeError').style.display = 'none';
+            
+            var validTypes = ['image/png', 'image/jpeg'];
+            if (!validTypes.includes(file.type)) {
+                document.getElementById('heroFormatError').style.display = 'block';
+                this.value = '';
+                return;
+            }
+            
+            var maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                document.getElementById('heroSizeError').style.display = 'block';
+                this.value = '';
+                return;
+            }
+            
             wizardData.heroFile = file;
+            wizardData.heroValid = true;
             var reader = new FileReader();
             reader.onload = function(evt) {
                 wizardData.heroDataUrl = evt.target.result;
@@ -2056,13 +2102,16 @@ function initializeWizard() {
 function openAgentWizard(existingAgent) {
     resetWizardData();
     
+    var isLocked = existingAgent && ['submitted', 'in_review', 'approved'].includes(existingAgent.status);
+    
     if (existingAgent) {
         wizardData.id = existingAgent.id;
         wizardData.name = existingAgent.name || '';
         wizardData.billing = existingAgent.billing || '';
         wizardData.useCase = existingAgent.useCase || '';
         wizardData.isEditing = true;
-        document.getElementById('agentWizardTitle').innerHTML = '<i class="fas fa-robot me-2"></i>Edit RCS Agent';
+        wizardData.isSubmitted = isLocked;
+        document.getElementById('agentWizardTitle').innerHTML = '<i class="fas fa-robot me-2"></i>' + (isLocked ? 'View RCS Agent' : 'Edit RCS Agent');
         
         document.getElementById('agentName').value = wizardData.name;
         if (wizardData.billing) {
@@ -2077,6 +2126,10 @@ function openAgentWizard(existingAgent) {
                 useCaseTile.classList.add('selected');
             }
         }
+        
+        if (isLocked) {
+            lockWizardFields();
+        }
     } else {
         wizardData.id = 'agent-' + Date.now();
         document.getElementById('agentWizardTitle').innerHTML = '<i class="fas fa-robot me-2"></i>Create RCS Agent';
@@ -2084,6 +2137,34 @@ function openAgentWizard(existingAgent) {
     
     goToStep(1);
     wizardModal.show();
+}
+
+function lockWizardFields() {
+    var inputs = document.querySelectorAll('#agentWizardModal input:not([type="file"]), #agentWizardModal textarea, #agentWizardModal select');
+    inputs.forEach(function(input) {
+        input.disabled = true;
+    });
+    
+    document.querySelectorAll('.billing-tile, .usecase-tile').forEach(function(tile) {
+        tile.style.pointerEvents = 'none';
+        tile.style.opacity = '0.7';
+    });
+    
+    document.getElementById('logoUploadZone').style.pointerEvents = 'none';
+    document.getElementById('heroUploadZone').style.pointerEvents = 'none';
+    document.getElementById('wizardSubmitBtn').style.display = 'none';
+    document.getElementById('wizardNextBtn').textContent = 'Next';
+    
+    var lockedBanner = document.createElement('div');
+    lockedBanner.id = 'lockedBanner';
+    lockedBanner.className = 'alert alert-info mb-0';
+    lockedBanner.style.cssText = 'position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 10; max-width: 600px;';
+    lockedBanner.innerHTML = '<i class="fas fa-lock me-2"></i>This agent has been submitted and cannot be edited.';
+    
+    var existingBanner = document.getElementById('lockedBanner');
+    if (!existingBanner) {
+        document.querySelector('#agentWizardModal .modal-body').prepend(lockedBanner);
+    }
 }
 
 function resetWizardData() {
@@ -2120,7 +2201,10 @@ function resetWizardData() {
         approverEmail: '',
         currentStep: 1,
         isEditing: false,
-        isDirty: false
+        isDirty: false,
+        logoValid: false,
+        heroValid: false,
+        isSubmitted: false
     };
     
     document.getElementById('agentName').value = '';
@@ -2145,6 +2229,12 @@ function resetWizardData() {
     document.getElementById('showPhoneToggle').checked = true;
     document.getElementById('showWebsiteToggle').checked = true;
     document.getElementById('showEmailToggle').checked = true;
+    
+    document.getElementById('logoError').style.display = 'none';
+    document.getElementById('logoFormatError').style.display = 'none';
+    document.getElementById('logoSizeError').style.display = 'none';
+    document.getElementById('heroFormatError').style.display = 'none';
+    document.getElementById('heroSizeError').style.display = 'none';
     
     document.getElementById('campaignFrequency').value = '';
     document.getElementById('monthlyVolume').value = '';
@@ -2173,7 +2263,29 @@ function resetWizardData() {
         el.classList.remove('is-invalid');
     });
     
+    unlockWizardFields();
+    
+    var lockedBanner = document.getElementById('lockedBanner');
+    if (lockedBanner) {
+        lockedBanner.remove();
+    }
+    
     updateAutosaveIndicator('saved');
+}
+
+function unlockWizardFields() {
+    var inputs = document.querySelectorAll('#agentWizardModal input:not([type="file"]), #agentWizardModal textarea, #agentWizardModal select');
+    inputs.forEach(function(input) {
+        input.disabled = false;
+    });
+    
+    document.querySelectorAll('.billing-tile, .usecase-tile').forEach(function(tile) {
+        tile.style.pointerEvents = '';
+        tile.style.opacity = '';
+    });
+    
+    document.getElementById('logoUploadZone').style.pointerEvents = '';
+    document.getElementById('heroUploadZone').style.pointerEvents = '';
 }
 
 function prefillCompanyDetails() {
@@ -2562,21 +2674,147 @@ function updateAutosaveIndicator(status) {
     }
 }
 
+function validateAllSteps() {
+    var errors = [];
+    
+    if (!wizardData.name.trim() || wizardData.name.length > 25) {
+        errors.push('Agent name is required (max 25 characters)');
+    }
+    if (!wizardData.description.trim() || wizardData.description.length > 100) {
+        errors.push('Agent description is required (max 100 characters)');
+    }
+    if (!wizardData.logoDataUrl) {
+        errors.push('Logo image is required');
+    }
+    if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
+        errors.push('Valid UK phone number is required');
+    }
+    if (!wizardData.website.trim() || !isValidHttpsUrl(wizardData.website)) {
+        errors.push('Website URL must be valid HTTPS');
+    }
+    if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
+        errors.push('Valid email address is required');
+    }
+    if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
+        errors.push('Privacy Policy URL must be valid HTTPS');
+    }
+    if (!wizardData.termsUrl.trim() || !isValidHttpsUrl(wizardData.termsUrl)) {
+        errors.push('Terms of Service URL must be valid HTTPS');
+    }
+    
+    if (!wizardData.billing) {
+        errors.push('Billing category is required');
+    }
+    if (!wizardData.useCase) {
+        errors.push('Use case is required');
+    }
+    if (!wizardData.campaignFrequency) {
+        errors.push('Campaign frequency is required');
+    }
+    if (!wizardData.monthlyVolume) {
+        errors.push('Monthly volume is required');
+    }
+    if (!wizardData.optInDescription.trim()) {
+        errors.push('Opt-in description is required');
+    }
+    if (!wizardData.optOutDescription.trim()) {
+        errors.push('Opt-out description is required');
+    }
+    if (!wizardData.useCaseOverview.trim()) {
+        errors.push('Use case overview is required');
+    }
+    
+    if (!wizardData.companyNumber.trim()) {
+        errors.push('Company number is required');
+    }
+    if (!wizardData.companyWebsite.trim() || !isValidUrl(wizardData.companyWebsite)) {
+        errors.push('Company website must be a valid URL');
+    }
+    if (!wizardData.registeredAddress.trim()) {
+        errors.push('Registered address is required');
+    }
+    if (!wizardData.approverName.trim()) {
+        errors.push('Approver name is required');
+    }
+    if (!wizardData.approverJobTitle.trim()) {
+        errors.push('Approver job title is required');
+    }
+    if (!wizardData.approverEmail.trim() || !isValidEmail(wizardData.approverEmail)) {
+        errors.push('Approver email must be valid');
+    }
+    
+    return errors;
+}
+
+function showValidationErrors(errors) {
+    var errorHtml = '<div class="alert alert-danger mb-0">' +
+        '<h6 class="alert-heading mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>' +
+        '<ul class="mb-0 ps-3">';
+    errors.forEach(function(err) {
+        errorHtml += '<li>' + err + '</li>';
+    });
+    errorHtml += '</ul></div>';
+    
+    var container = document.getElementById('submissionErrors');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'submissionErrors';
+        container.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 10001; max-width: 600px; width: 90%;';
+        document.body.appendChild(container);
+    }
+    container.innerHTML = errorHtml;
+    
+    setTimeout(function() {
+        container.innerHTML = '';
+    }, 8000);
+}
+
 function submitAgent() {
-    if (!validateCurrentStep()) return;
+    var errors = validateAllSteps();
+    
+    if (errors.length > 0) {
+        showValidationErrors(errors);
+        return;
+    }
     
     updateAutosaveIndicator('saving');
     
     setTimeout(function() {
         updateAutosaveIndicator('saved');
         
+        wizardData.isSubmitted = true;
+        
         var newAgent = {
             id: wizardData.id,
             name: wizardData.name,
+            description: wizardData.description,
             status: 'submitted',
             billing: wizardData.billing,
             useCase: wizardData.useCase,
-            created: new Date().toISOString().split('T')[0],
+            logoDataUrl: wizardData.logoDataUrl,
+            heroDataUrl: wizardData.heroDataUrl,
+            brandColor: wizardData.brandColor,
+            website: wizardData.website,
+            privacyUrl: wizardData.privacyUrl,
+            termsUrl: wizardData.termsUrl,
+            supportEmail: wizardData.supportEmail,
+            supportPhone: wizardData.supportPhone,
+            showPhone: wizardData.showPhone,
+            showWebsite: wizardData.showWebsite,
+            showEmail: wizardData.showEmail,
+            campaignFrequency: wizardData.campaignFrequency,
+            monthlyVolume: wizardData.monthlyVolume,
+            optInDescription: wizardData.optInDescription,
+            optOutDescription: wizardData.optOutDescription,
+            useCaseOverview: wizardData.useCaseOverview,
+            testNumbers: wizardData.testNumbers,
+            companyNumber: wizardData.companyNumber,
+            companyWebsite: wizardData.companyWebsite,
+            registeredAddress: wizardData.registeredAddress,
+            approverName: wizardData.approverName,
+            approverJobTitle: wizardData.approverJobTitle,
+            approverEmail: wizardData.approverEmail,
+            created: wizardData.isEditing ? (mockAgents.find(function(a) { return a.id === wizardData.id; }) || {}).created || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             updated: new Date().toISOString().split('T')[0],
             rejectionReason: null
         };
