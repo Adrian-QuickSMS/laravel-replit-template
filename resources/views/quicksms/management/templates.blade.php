@@ -823,7 +823,7 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Template ID</label>
-                                <input type="text" class="form-control bg-light" id="templateIdField" readonly>
+                                <input type="text" class="form-control bg-white border" id="templateIdField" readonly>
                                 <small class="text-muted">Auto-generated, read-only</small>
                             </div>
                         </div>
