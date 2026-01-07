@@ -202,7 +202,7 @@
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">RCS Agent Name <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" id="agentName" placeholder="e.g., Your Brand Name" maxlength="25">
-                                                <small class="text-muted">Max 25 characters. Displayed as sender name on devices.</small>
+                                                <small class="text-muted"><span id="nameCharCount">0</span>/25 characters. Displayed as sender name on devices.</small>
                                                 <div class="invalid-feedback">Please enter an agent name (max 25 characters)</div>
                                             </div>
                                             
@@ -1018,6 +1018,7 @@ $(document).ready(function() {
     
     $('#agentName').on('input', function() {
         wizardData.name = this.value;
+        $('#nameCharCount').text(this.value.length);
         triggerAutosave();
     });
     
