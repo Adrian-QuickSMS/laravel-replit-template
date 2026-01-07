@@ -47,6 +47,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - UI-only scaffold with TODO markers for purchase logic integration
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
   - **Message Templates:** Complete template management with multi-step creation wizard, versioning, lifecycle states (Draft/Live/Archived), and version history.
+    - **Create Template Wizard:** Fullscreen modal matching RCS wizard styling with purple gradient header, 3-step wizard (Metadata → Content → Review), footer pinned to bottom, scrollable content area.
     - **Version History:** Accessible from row action menu showing all versions with version number, status, change note, edited by, and timestamp. Dual-tab view (Versions table + Audit Log timeline).
     - **View Version:** Read-only modal displaying historical version content, channel, trigger, placeholders, and metadata.
     - **Rollback:** Creates NEW version from selected historical version (never overwrites). Option to set new version as Live immediately. Ensures only one Live version exists. Full audit trail for all rollback actions.

@@ -388,6 +388,37 @@
     font-size: 0.8rem;
     font-weight: 500;
 }
+.fullscreen-steps .wizard-step {
+    color: rgba(255, 255, 255, 0.6);
+}
+.fullscreen-steps .wizard-step.active {
+    color: #fff;
+}
+.fullscreen-steps .wizard-step.completed {
+    color: #fff;
+}
+.fullscreen-steps .wizard-step .step-number {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+.fullscreen-steps .wizard-step.active .step-number {
+    background-color: #fff;
+    color: var(--primary);
+}
+.fullscreen-steps .wizard-step.completed .step-number {
+    background-color: #28a745;
+    color: #fff;
+}
+.fullscreen-wizard-container {
+    min-height: 100%;
+    background: #f8f9fa;
+}
+.wizard-step-inner {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
 .trigger-options {
     display: flex;
     flex-direction: column;
@@ -597,12 +628,12 @@
 </div>
 
 <div class="modal fade" id="createTemplateModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
+            <div class="modal-header py-3 flex-shrink-0" style="background: linear-gradient(135deg, #886CC0 0%, #a78bda 100%); color: #fff;">
                 <div class="d-flex align-items-center">
-                    <h5 class="modal-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Template</h5>
-                    <div class="wizard-steps ms-4">
+                    <h5 class="modal-title mb-0"><i class="fas fa-file-alt me-2"></i>Create Template</h5>
+                    <div class="wizard-steps ms-4 fullscreen-steps">
                         <span class="wizard-step active" data-step="1">
                             <span class="step-number">1</span>
                             <span class="step-label">Metadata</span>
@@ -617,17 +648,18 @@
                         </span>
                     </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             
-            <div class="modal-body">
-                <div id="wizardStep1" class="wizard-content">
-                    <div class="alert alert-pastel-primary mb-4">
-                        <i class="fas fa-info-circle me-2 text-primary"></i>
-                        <strong>Step 1: Template Metadata</strong> - Define the basic information for your template. The trigger type determines where and how the template can be used.
-                    </div>
-                    
-                    <div class="row">
+            <div class="modal-body flex-grow-1 p-0" style="overflow-y: auto; background: #f8f9fa;">
+                <div id="wizardStep1" class="wizard-content p-4">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            <strong>Step 1: Template Metadata</strong> - Define the basic information for your template. The trigger type determines where and how the template can be used.
+                        </div>
+                        
+                        <div class="row">
                         <div class="col-md-8">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Template Name <span class="text-danger">*</span></label>
@@ -702,9 +734,11 @@
                         </div>
                         <div class="invalid-feedback" id="triggerError" style="display: none;">Please select a trigger type</div>
                     </div>
+                    </div>
                 </div>
                 
-                <div id="wizardStep2" class="wizard-content" style="display: none;">
+                <div id="wizardStep2" class="wizard-content p-4" style="display: none;">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                     <div class="alert alert-pastel-primary mb-4">
                         <i class="fas fa-info-circle me-2 text-primary"></i>
                         <strong>Step 2: Message Content</strong> - Create your message content using the same editor as Send Message. You can use personalization tags to customize messages for each recipient.
@@ -885,18 +919,21 @@
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Template Mode:</strong> This editor is the same as Send Message, but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
                     </div>
+                    </div>
                 </div>
                 
-                <div id="wizardStep3" class="wizard-content" style="display: none;">
-                    <div class="alert alert-pastel-primary mb-4">
-                        <i class="fas fa-info-circle me-2 text-primary"></i>
-                        <strong>Step 3: Review & Save</strong> - Review your template details before saving.
+                <div id="wizardStep3" class="wizard-content p-4" style="display: none;">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            <strong>Step 3: Review & Save</strong> - Review your template details before saving.
+                        </div>
+                        <p class="text-muted">Review step coming in next iteration...</p>
                     </div>
-                    <p class="text-muted">Review step coming in next iteration...</p>
                 </div>
             </div>
             
-            <div class="modal-footer">
+            <div class="modal-footer flex-shrink-0 py-3 border-top">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-outline-secondary" id="wizardBackBtn" style="display: none;" onclick="wizardBack()">
                     <i class="fas fa-arrow-left me-2"></i>Back
