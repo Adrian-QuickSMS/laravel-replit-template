@@ -820,7 +820,7 @@
                     <div class="wizard-steps ms-4">
                         <span class="wizard-step active" data-step="1">
                             <span class="step-number">1</span>
-                            <span class="step-label">Identity</span>
+                            <span class="step-label">Agent Basics</span>
                         </span>
                         <span class="wizard-step" data-step="2">
                             <span class="step-number">2</span>
@@ -828,11 +828,11 @@
                         </span>
                         <span class="wizard-step" data-step="3">
                             <span class="step-number">3</span>
-                            <span class="step-label">Contact</span>
+                            <span class="step-label">Handset</span>
                         </span>
                         <span class="wizard-step" data-step="4">
                             <span class="step-number">4</span>
-                            <span class="step-label">Compliance</span>
+                            <span class="step-label">Agent Type</span>
                         </span>
                         <span class="wizard-step" data-step="5">
                             <span class="step-number">5</span>
@@ -844,6 +844,10 @@
                         </span>
                         <span class="wizard-step" data-step="7">
                             <span class="step-number">7</span>
+                            <span class="step-label">Test Numbers</span>
+                        </span>
+                        <span class="wizard-step" data-step="8">
+                            <span class="step-number">8</span>
                             <span class="step-label">Review</span>
                         </span>
                     </div>
@@ -855,11 +859,11 @@
             </div>
             
             <div class="modal-body flex-grow-1 p-0" style="overflow-y: auto; background: #f8f9fa;">
-                <!-- Step 1: Agent Identity -->
+                <!-- Step 1: Agent Basics -->
                 <div id="agentWizardStep1" class="wizard-content p-4">
                     <div class="wizard-step-inner mx-auto" style="max-width: 700px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 1: Agent Identity</strong> - Define your RCS Agent's name, description, and brand colour.
+                            <strong>Step 1: Agent Basics</strong> - Define your RCS Agent's name, description, and brand colour.
                         </div>
                         
                         <div class="card border mb-4">
@@ -897,7 +901,7 @@
                 <div id="agentWizardStep2" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 2: Branding Assets</strong> - Upload your logo and hero banner image.
+                            <strong>Step 2: Branding Assets</strong> - Upload your agent logo and hero/banner image.
                         </div>
                         
                         <div class="row">
@@ -1031,11 +1035,11 @@
                     </div>
                 </div>
                 
-                <!-- Step 3: Contact Details -->
+                <!-- Step 3: Handset + Compliance -->
                 <div id="agentWizardStep3" class="wizard-content p-4 d-none">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 3: Contact Details</strong> - Configure contact information displayed on recipient devices.
+                            <strong>Step 3: Handset + Compliance</strong> - Configure handset contact details and compliance URLs.
                         </div>
                         
                         <div class="card border mb-4">
@@ -1088,15 +1092,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Step 4: Compliance -->
-                <div id="agentWizardStep4" class="wizard-content p-4 d-none">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 700px;">
-                        <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 4: Compliance</strong> - Provide required legal and privacy policy URLs.
-                        </div>
                         
                         <div class="card border mb-4">
                             <div class="card-body">
@@ -1123,11 +1118,11 @@
                     </div>
                 </div>
                 
-                <!-- Step 5: Messaging Profile -->
-                <div id="agentWizardStep5" class="wizard-content p-4 d-none">
+                <!-- Step 4: Agent Type -->
+                <div id="agentWizardStep4" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 5: Messaging Profile</strong> - Configure billing, use case, and messaging behaviour for your RCS Agent.
+                            <strong>Step 4: Agent Type</strong> - Select billing category, use case, and provide a use case description.
                         </div>
                         
                         <div class="card border mb-4">
@@ -1280,8 +1275,34 @@
                         
                         <div class="card border mb-4">
                             <div class="card-body">
-                                <h6 class="fw-semibold mb-3"><i class="fas fa-cog me-2 text-primary"></i>Messaging Behaviour</h6>
-                                <p class="text-muted small mb-3">Provide details about your messaging patterns and compliance measures.</p>
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-file-alt me-2 text-primary"></i>Use Case Description <span class="text-danger">*</span></h6>
+                                <p class="text-muted small mb-3">Provide a detailed description of how you will use this RCS Agent.</p>
+                                
+                                <div class="mb-0">
+                                    <label class="form-label fw-semibold">Use Case Overview</label>
+                                    <textarea class="form-control" id="useCaseOverview" rows="4" maxlength="1000" placeholder="Include example message types, target audience, and business purpose..."></textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Detailed explanation of your messaging use case</small>
+                                        <small class="text-muted"><span id="useCaseCharCount">0</span>/1000</small>
+                                    </div>
+                                    <div class="invalid-feedback">Please provide a use case overview</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 5: Messaging Behaviour -->
+                <div id="agentWizardStep5" class="wizard-content p-4 d-none">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 5: Messaging Behaviour</strong> - Define your messaging patterns and compliance measures.
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-cog me-2 text-primary"></i>Messaging Patterns</h6>
+                                <p class="text-muted small mb-3">Provide details about your messaging frequency and volume.</p>
                                 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -1312,6 +1333,13 @@
                                         <div class="invalid-feedback">Please select estimated monthly volume</div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-check-circle me-2 text-primary"></i>Consent & Opt-out</h6>
+                                <p class="text-muted small mb-3">Describe how you obtain consent and handle opt-out requests.</p>
                                 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Opt-in / Legitimate Interest Description <span class="text-danger">*</span></label>
@@ -1323,7 +1351,7 @@
                                     <div class="invalid-feedback">Please describe your opt-in or legitimate interest basis</div>
                                 </div>
                                 
-                                <div class="mb-3">
+                                <div class="mb-0">
                                     <label class="form-label fw-semibold">Opt-out Mechanism Description <span class="text-danger">*</span></label>
                                     <textarea class="form-control" id="optOutDescription" rows="3" maxlength="500" placeholder="Describe how users can opt-out of receiving messages (e.g., reply STOP, unsubscribe link, customer service request)..."></textarea>
                                     <div class="d-flex justify-content-between">
@@ -1331,44 +1359,6 @@
                                         <small class="text-muted"><span id="optOutCharCount">0</span>/500</small>
                                     </div>
                                     <div class="invalid-feedback">Please describe your opt-out mechanism</div>
-                                </div>
-                                
-                                <div class="mb-0">
-                                    <label class="form-label fw-semibold">Use Case Overview <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="useCaseOverview" rows="4" maxlength="1000" placeholder="Provide a detailed description of how you will use this RCS Agent. Include example message types, target audience, and business purpose..."></textarea>
-                                    <div class="d-flex justify-content-between">
-                                        <small class="text-muted">Detailed explanation of your messaging use case</small>
-                                        <small class="text-muted"><span id="useCaseCharCount">0</span>/1000</small>
-                                    </div>
-                                    <div class="invalid-feedback">Please provide a use case overview</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card border mb-4">
-                            <div class="card-body">
-                                <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Test Numbers</h6>
-                                <p class="text-muted small mb-3">Add up to 20 phone numbers for testing your RCS Agent before going live. Numbers must be in international format (e.g., +447700900123).</p>
-                                
-                                <div class="mb-3">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="testNumberInput" placeholder="+447700900123">
-                                        <button class="btn btn-primary" type="button" id="addTestNumberBtn">
-                                            <i class="fas fa-plus me-1"></i> Add
-                                        </button>
-                                    </div>
-                                    <div class="invalid-feedback" id="testNumberError" style="display: none;">Invalid format. Use international format (e.g., +447700900123)</div>
-                                    <small class="text-muted">Enter phone number in international format starting with +</small>
-                                </div>
-                                
-                                <div id="testNumbersList" class="test-numbers-container">
-                                </div>
-                                
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <small class="text-muted"><span id="testNumberCount">0</span>/20 numbers added</small>
-                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllTestNumbers" style="display: none;">
-                                        <i class="fas fa-trash-alt me-1"></i> Clear All
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1466,11 +1456,53 @@
                     </div>
                 </div>
                 
-                <!-- Step 7: Review & Submit -->
+                <!-- Step 7: Test Numbers -->
                 <div id="agentWizardStep7" class="wizard-content p-4 d-none">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 700px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 7: Test Numbers</strong> - Add phone numbers for testing your RCS Agent before going live.
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Test Numbers</h6>
+                                <p class="text-muted small mb-3">Add up to 20 phone numbers for testing your RCS Agent before going live. Numbers must be in international format (e.g., +447700900123).</p>
+                                
+                                <div class="mb-3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="testNumberInput" placeholder="+447700900123">
+                                        <button class="btn btn-primary" type="button" id="addTestNumberBtn">
+                                            <i class="fas fa-plus me-1"></i> Add
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback" id="testNumberError" style="display: none;">Invalid format. Use international format (e.g., +447700900123)</div>
+                                    <small class="text-muted">Enter phone number in international format starting with +</small>
+                                </div>
+                                
+                                <div id="testNumbersList" class="test-numbers-container">
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted"><span id="testNumberCount">0</span>/20 numbers added</small>
+                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllTestNumbers" style="display: none;">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light border py-2 px-3" style="font-size: 0.85rem;">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            <strong>Note:</strong> Test numbers are optional but recommended before submitting for approval.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 8: Review & Submit -->
+                <div id="agentWizardStep8" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 7: Review & Submit</strong> - Please review all information before submitting for approval.
+                            <strong>Step 8: Review & Submit</strong> - Please review all information before submitting for approval.
                         </div>
                         
                         <div class="review-section">
@@ -3284,7 +3316,7 @@ function isValidInternationalNumber(number) {
 function goToStep(step) {
     wizardData.currentStep = step;
     
-    for (var i = 1; i <= 7; i++) {
+    for (var i = 1; i <= 8; i++) {
         var stepEl = document.getElementById('agentWizardStep' + i);
         if (stepEl) {
             stepEl.classList.toggle('d-none', i !== step);
@@ -3302,14 +3334,14 @@ function goToStep(step) {
     });
     
     document.getElementById('wizardPrevBtn').style.display = step > 1 ? '' : 'none';
-    document.getElementById('wizardNextBtn').style.display = step < 7 ? '' : 'none';
-    document.getElementById('wizardSubmitBtn').style.display = step === 7 ? '' : 'none';
+    document.getElementById('wizardNextBtn').style.display = step < 8 ? '' : 'none';
+    document.getElementById('wizardSubmitBtn').style.display = step === 8 ? '' : 'none';
     
     if (step === 6) {
         prefillCompanyDetails();
     }
     
-    if (step === 7) {
+    if (step === 8) {
         populateReviewStep();
     }
 }
@@ -3317,7 +3349,7 @@ function goToStep(step) {
 function nextStep() {
     if (!validateCurrentStep()) return;
     
-    if (wizardData.currentStep < 7) {
+    if (wizardData.currentStep < 8) {
         goToStep(wizardData.currentStep + 1);
     }
 }
@@ -3338,7 +3370,7 @@ function validateCurrentStep() {
     document.getElementById('heroError').style.display = 'none';
     
     if (wizardData.currentStep === 1) {
-        // Step 1: Agent Identity (name, description, brand colour)
+        // Step 1: Agent Basics (name, description, brand colour)
         if (!wizardData.name.trim() || wizardData.name.length > 25) {
             document.getElementById('agentName').classList.add('is-invalid');
             isValid = false;
@@ -3358,7 +3390,7 @@ function validateCurrentStep() {
             isValid = false;
         }
     } else if (wizardData.currentStep === 3) {
-        // Step 3: Contact Details (phone, website, email)
+        // Step 3: Handset + Compliance (contact details + privacy/terms URLs)
         if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
             document.getElementById('supportPhone').classList.add('is-invalid');
             isValid = false;
@@ -3371,8 +3403,6 @@ function validateCurrentStep() {
             document.getElementById('supportEmail').classList.add('is-invalid');
             isValid = false;
         }
-    } else if (wizardData.currentStep === 4) {
-        // Step 4: Compliance (privacy URL, terms URL)
         if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
             document.getElementById('privacyUrl').classList.add('is-invalid');
             isValid = false;
@@ -3381,8 +3411,8 @@ function validateCurrentStep() {
             document.getElementById('termsUrl').classList.add('is-invalid');
             isValid = false;
         }
-    } else if (wizardData.currentStep === 5) {
-        // Step 5: Messaging Profile (billing, use case, campaigns, opt-in/out, test numbers)
+    } else if (wizardData.currentStep === 4) {
+        // Step 4: Agent Type (billing, use case, use case overview)
         if (!wizardData.billing) {
             document.getElementById('billingError').style.display = 'block';
             isValid = false;
@@ -3391,6 +3421,12 @@ function validateCurrentStep() {
             document.getElementById('useCaseError').style.display = 'block';
             isValid = false;
         }
+        if (!wizardData.useCaseOverview.trim()) {
+            document.getElementById('useCaseOverview').classList.add('is-invalid');
+            isValid = false;
+        }
+    } else if (wizardData.currentStep === 5) {
+        // Step 5: Messaging Behaviour (campaign frequency, monthly volume, opt-in, opt-out)
         if (!wizardData.campaignFrequency) {
             document.getElementById('campaignFrequency').classList.add('is-invalid');
             isValid = false;
@@ -3407,12 +3443,8 @@ function validateCurrentStep() {
             document.getElementById('optOutDescription').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.useCaseOverview.trim()) {
-            document.getElementById('useCaseOverview').classList.add('is-invalid');
-            isValid = false;
-        }
     } else if (wizardData.currentStep === 6) {
-        // Step 6: Company & Approver Details
+        // Step 6: Company Details (company + approver)
         if (!wizardData.companyNumber.trim()) {
             document.getElementById('companyNumber').classList.add('is-invalid');
             isValid = false;
@@ -3438,7 +3470,7 @@ function validateCurrentStep() {
             isValid = false;
         }
     }
-    // Step 7 is Review - no validation needed
+    // Step 7 (Test Numbers) and Step 8 (Review) - no validation needed
     
     return isValid;
 }
