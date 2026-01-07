@@ -465,7 +465,7 @@
     color: var(--primary);
 }
 .wizard-step.completed {
-    color: #28a745;
+    color: var(--primary);
 }
 .wizard-step .step-number {
     width: 24px;
@@ -483,7 +483,7 @@
     color: white;
 }
 .wizard-step.completed .step-number {
-    background-color: #28a745;
+    background-color: var(--primary);
     color: white;
 }
 .wizard-step .step-label {
@@ -508,8 +508,8 @@
     color: var(--primary);
 }
 .fullscreen-steps .wizard-step.completed .step-number {
-    background-color: #28a745;
-    color: #fff;
+    background-color: #fff;
+    color: var(--primary);
 }
 .fullscreen-wizard-container {
     min-height: 100%;
@@ -1289,8 +1289,11 @@
                 <button type="button" class="btn btn-primary" id="wizardNextBtn" onclick="wizardNext()">
                     Continue<i class="fas fa-arrow-right ms-2"></i>
                 </button>
-                <button type="button" class="btn btn-primary" id="wizardSaveBtn" style="display: none;" onclick="saveTemplate()">
-                    <i class="fas fa-save me-2"></i>Save Template
+                <button type="button" class="btn btn-outline-primary" id="wizardSaveDraftBtn" style="display: none;" onclick="saveTemplateAsDraft()">
+                    <i class="fas fa-save me-2"></i>Save Draft
+                </button>
+                <button type="button" class="btn btn-success" id="wizardLaunchBtn" style="display: none;" onclick="confirmLaunchTemplate()">
+                    <i class="fas fa-rocket me-2"></i>Launch
                 </button>
             </div>
         </div>
@@ -2543,7 +2546,8 @@ function updateWizardUI() {
     
     document.getElementById('wizardBackBtn').style.display = currentWizardStep > 1 ? 'inline-block' : 'none';
     document.getElementById('wizardNextBtn').style.display = currentWizardStep < 4 ? 'inline-block' : 'none';
-    document.getElementById('wizardSaveBtn').style.display = currentWizardStep === 4 ? 'inline-block' : 'none';
+    document.getElementById('wizardSaveDraftBtn').style.display = currentWizardStep === 4 ? 'inline-block' : 'none';
+    document.getElementById('wizardLaunchBtn').style.display = currentWizardStep === 4 ? 'inline-block' : 'none';
     
     if (currentWizardStep === 2) {
         document.getElementById('step2TemplateName').textContent = wizardData.name;
@@ -2769,15 +2773,133 @@ function updateCharCount() {
     document.getElementById('charCount').textContent = content.length;
 }
 
-function saveTemplate() {
+function saveTemplateAsDraft() {
     var name = wizardData.name || document.getElementById('templateName').value.trim();
     var content = document.getElementById('templateContent').value.trim();
     var channel = document.querySelector('input[name="templateChannel"]:checked').value;
     var trigger = wizardData.trigger || 'portal';
     
     if (!name) {
-        alert('Please enter a template name.');
+        showToast('Please enter a template name.', 'error');
         return;
+    }
+    
+    var accessScope = wizardData.accessMode === 'all' ? 'All Sub-accounts' : getAccessScopeLabel();
+    
+    var template = {
+        id: Date.now(),
+        templateId: wizardData.templateId,
+        name: name,
+        channel: channel,
+        trigger: trigger,
+        content: content,
+        contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
+        accessScope: accessScope,
+        subAccounts: wizardData.subAccounts,
+        roles: wizardData.roles,
+        users: wizardData.users,
+        status: 'draft',
+        version: 1,
+        lastUpdated: new Date().toISOString().split('T')[0]
+    };
+    
+    if (templateRcsPayload) {
+        template.rcsPayload = templateRcsPayload;
+    }
+    
+    mockTemplates.unshift(template);
+    bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
+    renderTemplates();
+    showToast('Template "' + name + '" saved as Draft (v1)', 'success');
+}
+
+function getAccessScopeLabel() {
+    var parts = [];
+    if (wizardData.subAccounts.length > 0 && wizardData.subAccounts[0] !== 'all') {
+        parts.push(wizardData.subAccounts.join(', '));
+    }
+    if (wizardData.roles.length > 0) {
+        parts.push(wizardData.roles.join(', '));
+    }
+    return parts.length > 0 ? parts.join(', ') : 'Restricted';
+}
+
+function confirmLaunchTemplate() {
+    var name = wizardData.name || document.getElementById('templateName').value.trim();
+    
+    if (!name) {
+        showToast('Please enter a template name.', 'error');
+        return;
+    }
+    
+    var existingLive = mockTemplates.find(function(t) {
+        return t.templateId === wizardData.templateId && t.status === 'live';
+    });
+    
+    var modalHtml = '<div class="modal fade" id="launchConfirmModal" tabindex="-1" data-bs-backdrop="static" style="z-index: 1060;">' +
+        '<div class="modal-dialog modal-dialog-centered">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header border-0 pb-0">' +
+                    '<h5 class="modal-title"><i class="fas fa-rocket me-2 text-success"></i>Launch Template</h5>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<p class="mb-3">You are about to launch <strong>"' + name + '"</strong> as a Live template.</p>' +
+                    (existingLive ? 
+                        '<div class="alert alert-info py-2 mb-3">' +
+                            '<i class="fas fa-info-circle me-2"></i>' +
+                            'A Live version (v' + existingLive.version + ') already exists. Launching will create a new version and set it as Live. The previous version will be archived.' +
+                        '</div>' : '') +
+                    '<div class="bg-light rounded p-3">' +
+                        '<div class="d-flex justify-content-between mb-2">' +
+                            '<span class="text-muted">Template ID:</span>' +
+                            '<span class="fw-medium">' + wizardData.templateId + '</span>' +
+                        '</div>' +
+                        '<div class="d-flex justify-content-between mb-2">' +
+                            '<span class="text-muted">Channel:</span>' +
+                            '<span class="fw-medium">' + getChannelLabel(wizardData.channel) + '</span>' +
+                        '</div>' +
+                        '<div class="d-flex justify-content-between">' +
+                            '<span class="text-muted">New Version:</span>' +
+                            '<span class="fw-medium text-success">v' + (existingLive ? existingLive.version + 1 : 1) + ' (Live)</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer border-0 pt-0">' +
+                    '<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-success" onclick="launchTemplate()">' +
+                        '<i class="fas fa-rocket me-2"></i>Confirm Launch' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('launchConfirmModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    new bootstrap.Modal(document.getElementById('launchConfirmModal')).show();
+}
+
+function launchTemplate() {
+    var name = wizardData.name || document.getElementById('templateName').value.trim();
+    var content = document.getElementById('templateContent').value.trim();
+    var channel = document.querySelector('input[name="templateChannel"]:checked').value;
+    var trigger = wizardData.trigger || 'portal';
+    
+    var accessScope = wizardData.accessMode === 'all' ? 'All Sub-accounts' : getAccessScopeLabel();
+    
+    var existingLiveIndex = mockTemplates.findIndex(function(t) {
+        return t.templateId === wizardData.templateId && t.status === 'live';
+    });
+    
+    var newVersion = 1;
+    if (existingLiveIndex !== -1) {
+        newVersion = mockTemplates[existingLiveIndex].version + 1;
+        mockTemplates[existingLiveIndex].status = 'archived';
     }
     
     var template = {
@@ -2788,17 +2910,27 @@ function saveTemplate() {
         trigger: trigger,
         content: content,
         contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
-        accessScope: 'All Sub-accounts',
-        subAccounts: ['all'],
-        status: 'draft',
-        version: 1,
+        accessScope: accessScope,
+        subAccounts: wizardData.subAccounts,
+        roles: wizardData.roles,
+        users: wizardData.users,
+        status: 'live',
+        version: newVersion,
         lastUpdated: new Date().toISOString().split('T')[0]
     };
     
+    if (templateRcsPayload) {
+        template.rcsPayload = templateRcsPayload;
+    }
+    
     mockTemplates.unshift(template);
+    
+    bootstrap.Modal.getInstance(document.getElementById('launchConfirmModal')).hide();
+    document.getElementById('launchConfirmModal').remove();
     bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
+    
     renderTemplates();
-    showToast('Template "' + name + '" created successfully', 'success');
+    showToast('Template "' + name + '" launched as Live (v' + newVersion + ')', 'success');
 }
 
 function sortTable(column) {
