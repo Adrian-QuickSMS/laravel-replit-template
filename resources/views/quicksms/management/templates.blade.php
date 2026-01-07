@@ -1281,6 +1281,172 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="apiStructureModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-code me-2 text-primary"></i>API Structure</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1" id="apiTemplateName">Template Name</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary" id="apiTemplateIdBadge">ID: 00000000</span>
+                            <span class="badge bg-primary" id="apiChannelBadge">SMS</span>
+                            <span class="badge bg-info" id="apiVersionBadge">v1</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i>API Enabled</span>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="card mb-3">
+                            <div class="card-header py-2 bg-light">
+                                <h6 class="mb-0"><i class="fas fa-list-ul me-2 text-primary"></i>Required Payload Fields</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Field</th>
+                                            <th>Type</th>
+                                            <th>Required</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="apiRequiredFields">
+                                        <tr>
+                                            <td><code>template_id</code></td>
+                                            <td>string</td>
+                                            <td><span class="badge bg-danger">Required</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>msisdn</code></td>
+                                            <td>string | string[]</td>
+                                            <td><span class="badge bg-danger">Required</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>sub_account_id</code></td>
+                                            <td>string</td>
+                                            <td><span class="badge bg-warning text-dark">Optional</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>callback_url</code></td>
+                                            <td>string</td>
+                                            <td><span class="badge bg-warning text-dark">Optional</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header py-2 bg-light">
+                                <h6 class="mb-0"><i class="fas fa-tags me-2 text-primary"></i>Placeholder Schema</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="apiPlaceholderSection">
+                                    <div id="apiNoPlaceholders" class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>No placeholders in this template.
+                                    </div>
+                                    <div id="apiPlaceholdersList" class="d-none">
+                                        <div class="d-flex flex-wrap gap-2 mb-3" id="apiPlaceholderChips"></div>
+                                        <div class="alert alert-warning py-2 mb-0">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            <strong>With placeholders:</strong> Only 1 MSISDN per request allowed.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header py-2 bg-light">
+                                <h6 class="mb-0"><i class="fas fa-broadcast-tower me-2 text-primary"></i>Channel Requirements</h6>
+                            </div>
+                            <div class="card-body" id="apiChannelRequirements">
+                                <div class="d-flex align-items-start mb-2">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <span>SMS fallback automatically enabled</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-7">
+                        <div class="card">
+                            <div class="card-header py-2 bg-light d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="fas fa-terminal me-2 text-primary"></i>Code Examples</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyApiCode()">
+                                    <i class="fas fa-copy me-1"></i>Copy
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="nav nav-tabs px-3 pt-2" id="apiCodeTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="curl-tab" data-bs-toggle="tab" data-bs-target="#curl-pane" type="button" role="tab">cURL</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="python-tab" data-bs-toggle="tab" data-bs-target="#python-pane" type="button" role="tab">Python</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="nodejs-tab" data-bs-toggle="tab" data-bs-target="#nodejs-pane" type="button" role="tab">Node.js</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="php-tab" data-bs-toggle="tab" data-bs-target="#php-pane" type="button" role="tab">PHP</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="java-tab" data-bs-toggle="tab" data-bs-target="#java-pane" type="button" role="tab">Java</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="csharp-tab" data-bs-toggle="tab" data-bs-target="#csharp-pane" type="button" role="tab">C#</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="apiCodeTabContent">
+                                    <div class="tab-pane fade show active" id="curl-pane" role="tabpanel">
+                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeCurl"></code></pre>
+                                    </div>
+                                    <div class="tab-pane fade" id="python-pane" role="tabpanel">
+                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodePython"></code></pre>
+                                    </div>
+                                    <div class="tab-pane fade" id="nodejs-pane" role="tabpanel">
+                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeNodejs"></code></pre>
+                                    </div>
+                                    <div class="tab-pane fade" id="php-pane" role="tabpanel">
+                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodePhp"></code></pre>
+                                    </div>
+                                    <div class="tab-pane fade" id="java-pane" role="tabpanel">
+                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeJava"></code></pre>
+                                    </div>
+                                    <div class="tab-pane fade" id="csharp-pane" role="tabpanel">
+                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeCsharp"></code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <h6 class="alert-heading mb-2"><i class="fas fa-key me-2"></i>Authentication</h6>
+                            <p class="mb-2 small">All API requests require authentication using your API key in the header:</p>
+                            <code class="bg-light text-dark px-2 py-1 rounded">Authorization: Bearer YOUR_API_KEY</code>
+                            <hr class="my-2">
+                            <p class="mb-0 small">
+                                <i class="fas fa-external-link-alt me-1"></i>
+                                <a href="#" class="alert-link">View full API documentation</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -2288,7 +2454,220 @@ function saveTemplatePermissions() {
 function viewApiStructure(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (!template) return;
-    showToast('Viewing API structure for "' + template.name + '"...', 'info');
+    
+    if (template.trigger !== 'api') {
+        showToast('API Structure is only available for API-triggered templates', 'warning');
+        return;
+    }
+    
+    document.getElementById('apiTemplateName').textContent = template.name;
+    document.getElementById('apiTemplateIdBadge').textContent = 'ID: ' + template.templateId;
+    document.getElementById('apiChannelBadge').textContent = getChannelLabel(template.channel);
+    document.getElementById('apiChannelBadge').className = 'badge ' + getChannelBadgeClass(template.channel);
+    document.getElementById('apiVersionBadge').textContent = 'v' + template.version;
+    
+    var placeholders = extractPlaceholders(template.content);
+    var hasPlaceholders = placeholders.length > 0;
+    
+    if (hasPlaceholders) {
+        document.getElementById('apiNoPlaceholders').classList.add('d-none');
+        document.getElementById('apiPlaceholdersList').classList.remove('d-none');
+        document.getElementById('apiPlaceholderChips').innerHTML = placeholders.map(function(ph) {
+            return '<span class="badge bg-primary py-2 px-3"><i class="fas fa-tag me-1"></i>{' + ph + '}</span>';
+        }).join('');
+    } else {
+        document.getElementById('apiNoPlaceholders').classList.remove('d-none');
+        document.getElementById('apiPlaceholdersList').classList.add('d-none');
+    }
+    
+    var channelReq = document.getElementById('apiChannelRequirements');
+    if (template.channel === 'sms') {
+        channelReq.innerHTML = '<div class="d-flex align-items-start mb-2">' +
+            '<i class="fas fa-check-circle text-success me-2 mt-1"></i>' +
+            '<span>Standard SMS delivery</span></div>' +
+            '<div class="d-flex align-items-start">' +
+            '<i class="fas fa-info-circle text-info me-2 mt-1"></i>' +
+            '<span class="small text-muted">Messages over 160 chars split into segments</span></div>';
+    } else if (template.channel === 'basic_rcs') {
+        channelReq.innerHTML = '<div class="d-flex align-items-start mb-2">' +
+            '<i class="fas fa-check-circle text-success me-2 mt-1"></i>' +
+            '<span>Basic RCS with SMS fallback</span></div>' +
+            '<div class="d-flex align-items-start">' +
+            '<i class="fas fa-info-circle text-info me-2 mt-1"></i>' +
+            '<span class="small text-muted">RCS branding enabled, falls back to SMS if unsupported</span></div>';
+    } else if (template.channel === 'rich_rcs') {
+        channelReq.innerHTML = '<div class="d-flex align-items-start mb-2">' +
+            '<i class="fas fa-check-circle text-success me-2 mt-1"></i>' +
+            '<span>Rich RCS with SMS fallback</span></div>' +
+            '<div class="d-flex align-items-start mb-2">' +
+            '<i class="fas fa-image text-primary me-2 mt-1"></i>' +
+            '<span class="small">Rich cards, carousels, and interactive buttons</span></div>' +
+            '<div class="d-flex align-items-start">' +
+            '<i class="fas fa-info-circle text-info me-2 mt-1"></i>' +
+            '<span class="small text-muted">Falls back to SMS with link if RCS unsupported</span></div>';
+    }
+    
+    generateApiCodeExamples(template, placeholders);
+    
+    new bootstrap.Modal(document.getElementById('apiStructureModal')).show();
+}
+
+function extractPlaceholders(content) {
+    var regex = /\{([A-Za-z][A-Za-z0-9_]*)\}/g;
+    var matches = [];
+    var match;
+    while ((match = regex.exec(content)) !== null) {
+        if (!matches.includes(match[1])) {
+            matches.push(match[1]);
+        }
+    }
+    return matches;
+}
+
+function generateApiCodeExamples(template, placeholders) {
+    var hasPlaceholders = placeholders.length > 0;
+    var msisdnType = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
+    var msisdnPy = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
+    
+    var placeholderObj = {};
+    placeholders.forEach(function(ph) {
+        placeholderObj[ph] = 'Example ' + ph;
+    });
+    var placeholderJson = JSON.stringify(placeholderObj, null, 2);
+    var placeholderJsonInline = JSON.stringify(placeholderObj);
+    
+    var curlCode = 'curl -X POST https://api.quicksms.co.uk/v1/messages/template \\\n' +
+        '  -H "Authorization: Bearer YOUR_API_KEY" \\\n' +
+        '  -H "Content-Type: application/json" \\\n' +
+        '  -d \'{\n' +
+        '    "template_id": "' + template.templateId + '",\n' +
+        '    "msisdn": ' + msisdnType;
+    if (hasPlaceholders) {
+        curlCode += ',\n    "placeholders": ' + placeholderJson.replace(/\n/g, '\n    ');
+    }
+    curlCode += '\n  }\'';
+    
+    var pythonCode = 'import requests\n\n' +
+        'url = "https://api.quicksms.co.uk/v1/messages/template"\n' +
+        'headers = {\n' +
+        '    "Authorization": "Bearer YOUR_API_KEY",\n' +
+        '    "Content-Type": "application/json"\n' +
+        '}\n\n' +
+        'payload = {\n' +
+        '    "template_id": "' + template.templateId + '",\n' +
+        '    "msisdn": ' + msisdnPy;
+    if (hasPlaceholders) {
+        pythonCode += ',\n    "placeholders": ' + placeholderJsonInline;
+    }
+    pythonCode += '\n}\n\n' +
+        'response = requests.post(url, json=payload, headers=headers)\n' +
+        'print(response.json())';
+    
+    var nodejsCode = 'const axios = require(\'axios\');\n\n' +
+        'const payload = {\n' +
+        '  template_id: "' + template.templateId + '",\n' +
+        '  msisdn: ' + msisdnType;
+    if (hasPlaceholders) {
+        nodejsCode += ',\n  placeholders: ' + placeholderJsonInline;
+    }
+    nodejsCode += '\n};\n\n' +
+        'axios.post(\'https://api.quicksms.co.uk/v1/messages/template\', payload, {\n' +
+        '  headers: {\n' +
+        '    \'Authorization\': \'Bearer YOUR_API_KEY\',\n' +
+        '    \'Content-Type\': \'application/json\'\n' +
+        '  }\n' +
+        '})\n' +
+        '.then(response => console.log(response.data))\n' +
+        '.catch(error => console.error(error));';
+    
+    var phpMsisdn = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
+    var phpCode = '<' + '?php\n\n' +
+        '$curl = curl_init();\n\n' +
+        '$payload = [\n' +
+        '    "template_id" => "' + template.templateId + '",\n' +
+        '    "msisdn" => ' + phpMsisdn;
+    if (hasPlaceholders) {
+        var phpPlaceholders = placeholders.map(function(ph) {
+            return '"' + ph + '" => "Example ' + ph + '"';
+        }).join(', ');
+        phpCode += ',\n    "placeholders" => [' + phpPlaceholders + ']';
+    }
+    phpCode += '\n];\n\n' +
+        'curl_setopt_array($curl, [\n' +
+        '    CURLOPT_URL => "https://api.quicksms.co.uk/v1/messages/template",\n' +
+        '    CURLOPT_RETURNTRANSFER => true,\n' +
+        '    CURLOPT_POST => true,\n' +
+        '    CURLOPT_POSTFIELDS => json_encode($payload),\n' +
+        '    CURLOPT_HTTPHEADER => [\n' +
+        '        "Authorization: Bearer YOUR_API_KEY",\n' +
+        '        "Content-Type: application/json"\n' +
+        '    ]\n' +
+        ']);\n\n' +
+        '$response = curl_exec($curl);\n' +
+        'curl_close($curl);\n\n' +
+        'echo $response;';
+    
+    var javaCode = 'import java.net.http.*;\nimport java.net.URI;\n\n' +
+        'public class QuickSMSExample {\n' +
+        '    public static void main(String[] args) throws Exception {\n' +
+        '        String json = """{\n' +
+        '            "template_id": "' + template.templateId + '",\n' +
+        '            "msisdn": ' + msisdnType;
+    if (hasPlaceholders) {
+        javaCode += ',\n            "placeholders": ' + placeholderJsonInline;
+    }
+    javaCode += '\n        }""";\n\n' +
+        '        HttpClient client = HttpClient.newHttpClient();\n' +
+        '        HttpRequest request = HttpRequest.newBuilder()\n' +
+        '            .uri(URI.create("https://api.quicksms.co.uk/v1/messages/template"))\n' +
+        '            .header("Authorization", "Bearer YOUR_API_KEY")\n' +
+        '            .header("Content-Type", "application/json")\n' +
+        '            .POST(HttpRequest.BodyPublishers.ofString(json))\n' +
+        '            .build();\n\n' +
+        '        HttpResponse<String> response = client.send(request,\n' +
+        '            HttpResponse.BodyHandlers.ofString());\n' +
+        '        System.out.println(response.body());\n' +
+        '    }\n' +
+        '}';
+    
+    var csharpCode = 'using System.Net.Http;\nusing System.Text;\nusing System.Text.Json;\n\n' +
+        'var payload = new {\n' +
+        '    template_id = "' + template.templateId + '",\n' +
+        '    msisdn = ' + (hasPlaceholders ? '"+447700900123"' : 'new[] { "+447700900123", "+447700900456" }');
+    if (hasPlaceholders) {
+        csharpCode += ',\n    placeholders = new {\n';
+        placeholders.forEach(function(ph, i) {
+            csharpCode += '        ' + ph + ' = "Example ' + ph + '"' + (i < placeholders.length - 1 ? ',' : '') + '\n';
+        });
+        csharpCode += '    }';
+    }
+    csharpCode += '\n};\n\n' +
+        'using var client = new HttpClient();\n' +
+        'client.DefaultRequestHeaders.Add("Authorization", "Bearer YOUR_API_KEY");\n\n' +
+        'var json = JsonSerializer.Serialize(payload);\n' +
+        'var content = new StringContent(json, Encoding.UTF8, "application/json");\n\n' +
+        'var response = await client.PostAsync(\n' +
+        '    "https://api.quicksms.co.uk/v1/messages/template", content);\n\n' +
+        'var result = await response.Content.ReadAsStringAsync();\n' +
+        'Console.WriteLine(result);';
+    
+    document.getElementById('apiCodeCurl').textContent = curlCode;
+    document.getElementById('apiCodePython').textContent = pythonCode;
+    document.getElementById('apiCodeNodejs').textContent = nodejsCode;
+    document.getElementById('apiCodePhp').textContent = phpCode;
+    document.getElementById('apiCodeJava').textContent = javaCode;
+    document.getElementById('apiCodeCsharp').textContent = csharpCode;
+}
+
+function copyApiCode() {
+    var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active code');
+    if (activePane) {
+        navigator.clipboard.writeText(activePane.textContent).then(function() {
+            showToast('Code copied to clipboard', 'success');
+        }).catch(function() {
+            showToast('Failed to copy code', 'warning');
+        });
+    }
 }
 
 function archiveTemplate(id) {
