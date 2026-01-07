@@ -1097,7 +1097,7 @@ function renderTakenKeywords() {
     
     var html = '';
     filtered.forEach(function(kw) {
-        html += '<tr><td>' + kw + '</td><td><span class="badge bg-secondary">Taken</span></td></tr>';
+        html += '<tr><td>' + kw + '</td><td><span class="badge badge-pastel-danger rounded-pill">Taken</span></td></tr>';
     });
     tbody.innerHTML = html || '<tr><td colspan="2" class="text-muted text-center">No taken keywords found</td></tr>';
 }
