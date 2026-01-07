@@ -1623,7 +1623,7 @@
             <div class="modal-body">
                 <div class="mb-4">
                     <h6 class="mb-3">Current Message</h6>
-                    <div class="bg-light p-3 rounded" id="tplAiCurrentContent">
+                    <div class="border rounded p-3 bg-white" id="tplAiCurrentContent">
                         <em class="text-muted">No content to improve</em>
                     </div>
                 </div>
@@ -1638,10 +1638,10 @@
                 </div>
                 <div class="d-none" id="tplAiResultSection">
                     <h6 class="mb-3">Suggested Version</h6>
-                    <div class="bg-success bg-opacity-10 border border-success p-3 rounded mb-3" id="tplAiSuggestedContent"></div>
+                    <div class="bg-primary bg-opacity-10 border border-primary p-3 rounded mb-3" id="tplAiSuggestedContent"></div>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-success" onclick="useTemplateAiSuggestion()"><i class="fas fa-check me-1"></i>Use this</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="discardTemplateAiSuggestion()">Discard</button>
+                        <button type="button" class="btn btn-primary" onclick="useTemplateAiSuggestion()"><i class="fas fa-check me-1"></i>Use this</button>
+                        <button type="button" class="btn btn-outline-info" onclick="discardTemplateAiSuggestion()">Discard</button>
                     </div>
                 </div>
             </div>
@@ -2146,7 +2146,7 @@
                 
                 <div class="mb-3">
                     <label class="form-label small text-muted">Content Preview</label>
-                    <div class="border rounded p-3 bg-light" id="vvContentPreview" style="min-height: 100px;">
+                    <div class="border rounded p-3 bg-white" id="vvContentPreview" style="min-height: 100px;">
                         <p class="text-muted mb-0">No content</p>
                     </div>
                 </div>
@@ -2188,14 +2188,14 @@
             <div class="modal-body">
                 <p class="mb-3">This will create a new version (<strong id="rbNewVersionLabel">v4</strong>) using <span id="rbSourceVersionLabel">v2</span> content.</p>
                 
-                <div class="bg-light rounded p-3 mb-3">
+                <div class="border rounded p-3 mb-3 bg-white">
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Source version:</span>
                         <span class="fw-medium" id="rbSourceVersion">v2</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span class="text-muted">New version to create:</span>
-                        <span class="fw-medium text-success" id="rbNewVersion">v4</span>
+                        <span class="fw-medium text-primary" id="rbNewVersion">v4</span>
                     </div>
                 </div>
                 
@@ -2211,13 +2211,12 @@
                     </label>
                 </div>
                 
-                <div class="alert alert-info py-2 small mb-0">
-                    <i class="fas fa-info-circle me-1"></i>
+                <div class="alert alert-pastel-primary py-2 small mb-0">
                     Rolling back creates a new version. No existing versions are deleted or modified.
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="confirmRollback()">
                     <i class="fas fa-undo me-1"></i>Confirm Roll Back
                 </button>
@@ -3169,17 +3168,16 @@ function confirmLaunchTemplate() {
         '<div class="modal-dialog modal-dialog-centered">' +
             '<div class="modal-content">' +
                 '<div class="modal-header border-0 pb-0">' +
-                    '<h5 class="modal-title"><i class="fas fa-rocket me-2 text-success"></i>Launch Template</h5>' +
+                    '<h5 class="modal-title"><i class="fas fa-rocket me-2 text-primary"></i>Launch Template</h5>' +
                     '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
                 '</div>' +
                 '<div class="modal-body">' +
                     '<p class="mb-3">You are about to launch <strong>"' + name + '"</strong> as a Live template.</p>' +
                     (existingLive ? 
-                        '<div class="alert alert-info py-2 mb-3">' +
-                            '<i class="fas fa-info-circle me-2"></i>' +
+                        '<div class="alert alert-pastel-primary py-2 mb-3">' +
                             'A Live version (v' + existingLive.version + ') already exists. Launching will create a new version and set it as Live. The previous version will be archived.' +
                         '</div>' : '') +
-                    '<div class="bg-light rounded p-3">' +
+                    '<div class="border rounded p-3 bg-white">' +
                         '<div class="d-flex justify-content-between mb-2">' +
                             '<span class="text-muted">Template ID:</span>' +
                             '<span class="fw-medium">' + wizardData.templateId + '</span>' +
@@ -3190,13 +3188,13 @@ function confirmLaunchTemplate() {
                         '</div>' +
                         '<div class="d-flex justify-content-between">' +
                             '<span class="text-muted">New Version:</span>' +
-                            '<span class="fw-medium text-success">v' + (existingLive ? existingLive.version + 1 : 1) + ' (Live)</span>' +
+                            '<span class="fw-medium text-primary">v' + (existingLive ? existingLive.version + 1 : 1) + ' (Live)</span>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="modal-footer border-0 pt-0">' +
-                    '<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>' +
-                    '<button type="button" class="btn btn-success" onclick="launchTemplate()">' +
+                    '<button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="launchTemplate()">' +
                         '<i class="fas fa-rocket me-2"></i>Confirm Launch' +
                     '</button>' +
                 '</div>' +
