@@ -722,7 +722,21 @@
                 <div class="alert alert-pastel-primary mb-3">
                     You are about to resubmit <strong id="resubmitAgentName"></strong> for review.
                 </div>
+                
+                <div id="resubmitRejectionInfo" class="mb-3" style="display: none;">
+                    <label class="form-label small text-muted">Previous Rejection Reason</label>
+                    <div class="border rounded p-3 bg-white">
+                        <p class="mb-0 text-danger" id="resubmitRejectionReason"></p>
+                    </div>
+                    <small class="text-muted">Please ensure you have addressed this feedback before resubmitting.</small>
+                </div>
+                
                 <p class="text-muted">The agent will be placed back in the review queue. You will be notified once a decision has been made.</p>
+                
+                <div class="alert alert-warning small mb-0 mt-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Note:</strong> Status updates are synced from Google, MNOs, and third-party validators. Review typically takes 2-5 business days.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
@@ -1544,7 +1558,19 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeWizard();
     
     document.getElementById('confirmResubmitBtn').addEventListener('click', function() {
-        alert('TODO: Resubmit agent via API');
+        if (!pendingResubmitAgentId) return;
+        
+        var agent = mockAgents.find(function(a) { return a.id === pendingResubmitAgentId; });
+        
+        if (agent) {
+            agent.status = 'submitted';
+            agent.updated = new Date().toISOString().split('T')[0];
+            
+            applyFilters();
+            showNotification('success', 'Agent Resubmitted', agent.name + ' has been resubmitted for review. You will be notified when a decision is made.');
+        }
+        
+        pendingResubmitAgentId = null;
         bootstrap.Modal.getInstance(document.getElementById('resubmitAgentModal')).hide();
     });
     
@@ -1757,12 +1783,63 @@ function editAgent(agentId) {
     openAgentWizard(agent);
 }
 
+var pendingResubmitAgentId = null;
+
 function resubmitAgent(agentId) {
     var agent = mockAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
+    pendingResubmitAgentId = agentId;
     document.getElementById('resubmitAgentName').textContent = agent.name;
+    
+    var rejectionInfo = document.getElementById('resubmitRejectionInfo');
+    if (rejectionInfo && agent.rejectionReason) {
+        rejectionInfo.style.display = 'block';
+        document.getElementById('resubmitRejectionReason').textContent = agent.rejectionReason;
+    } else if (rejectionInfo) {
+        rejectionInfo.style.display = 'none';
+    }
+    
     new bootstrap.Modal(document.getElementById('resubmitAgentModal')).show();
+}
+
+function showNotification(type, title, message) {
+    var toastContainer = document.getElementById('notificationToastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'notificationToastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '10000';
+        document.body.appendChild(toastContainer);
+    }
+    
+    var icons = {
+        'success': 'fa-check-circle text-success',
+        'error': 'fa-exclamation-circle text-danger',
+        'warning': 'fa-exclamation-triangle text-warning',
+        'info': 'fa-info-circle text-primary'
+    };
+    
+    var toastId = 'toast-' + Date.now();
+    var toastHtml = '<div id="' + toastId + '" class="toast" role="alert">' +
+        '<div class="toast-header">' +
+            '<i class="fas ' + (icons[type] || icons['info']) + ' me-2"></i>' +
+            '<strong class="me-auto">' + title + '</strong>' +
+            '<small>Just now</small>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
+        '</div>' +
+        '<div class="toast-body">' + message + '</div>' +
+    '</div>';
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    var toastEl = document.getElementById(toastId);
+    var toast = new bootstrap.Toast(toastEl, { delay: 6000 });
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastEl.remove();
+    });
 }
 
 function escapeHtml(text) {
