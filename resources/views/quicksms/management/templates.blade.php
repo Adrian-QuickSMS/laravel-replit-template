@@ -649,72 +649,85 @@
             <div class="filters-panel">
                 <div class="row g-3 align-items-end">
                     <div class="col-6 col-md-3 col-lg-2">
-                        <label class="form-label">Channel</label>
-                        <select class="form-select form-select-sm" id="channelFilter">
-                            <option value="">All Channels</option>
-                            <option value="sms">SMS</option>
-                            <option value="basic_rcs">Basic RCS + SMS</option>
-                            <option value="rich_rcs">Rich RCS + SMS</option>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-3 col-lg-2">
-                        <label class="form-label">Trigger</label>
-                        <select class="form-select form-select-sm" id="triggerFilter">
-                            <option value="">All Triggers</option>
-                            <option value="api">API</option>
-                            <option value="portal">Portal</option>
-                            <option value="email">Email-to-SMS</option>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-3 col-lg-2">
-                        <label class="form-label">Status</label>
-                        <select class="form-select form-select-sm" id="statusFilter">
-                            <option value="">All Statuses</option>
-                            <option value="draft">Draft</option>
-                            <option value="live">Live</option>
-                            <option value="paused">Paused</option>
-                            <option value="archived">Archived</option>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-3 col-lg-2">
-                        <label class="form-label">Sub-account</label>
-                        <div class="dropdown multiselect-dropdown" id="subAccountDropdown">
-                            <button class="btn btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                                <span class="dropdown-label">All Sub-accounts</span>
+                        <label class="form-label small fw-bold">Channel</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="channels">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Channels</span>
                             </button>
                             <div class="dropdown-menu w-100 p-2">
-                                <div class="form-check">
-                                    <input class="form-check-input subaccount-check" type="checkbox" value="marketing" id="subMarketing">
-                                    <label class="form-check-label" for="subMarketing">Marketing Team</label>
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input subaccount-check" type="checkbox" value="sales" id="subSales">
-                                    <label class="form-check-label" for="subSales">Sales</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input subaccount-check" type="checkbox" value="support" id="subSupport">
-                                    <label class="form-check-label" for="subSupport">Support Team</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input subaccount-check" type="checkbox" value="it" id="subIT">
-                                    <label class="form-check-label" for="subIT">IT Security</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input subaccount-check" type="checkbox" value="all" id="subAll">
-                                    <label class="form-check-label" for="subAll">All Sub-accounts</label>
-                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="sms" id="channelSms"><label class="form-check-label small" for="channelSms">SMS</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="basic_rcs" id="channelBasicRcs"><label class="form-check-label small" for="channelBasicRcs">Basic RCS + SMS</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="rich_rcs" id="channelRichRcs"><label class="form-check-label small" for="channelRichRcs">Rich RCS + SMS</label></div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-lg-4">
-                        <div class="filter-actions">
-                            <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
-                                <i class="fas fa-check me-1"></i>Apply Filters
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label small fw-bold">Trigger</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="triggers">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Triggers</span>
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">
-                                <i class="fas fa-undo me-1"></i>Reset
-                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="api" id="triggerApi"><label class="form-check-label small" for="triggerApi">API</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="portal" id="triggerPortal"><label class="form-check-label small" for="triggerPortal">Portal</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="email" id="triggerEmail"><label class="form-check-label small" for="triggerEmail">Email-to-SMS</label></div>
+                            </div>
                         </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label small fw-bold">Status</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Statuses</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Live</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="paused" id="statusPaused"><label class="form-check-label small" for="statusPaused">Paused</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="archived" id="statusArchived"><label class="form-check-label small" for="statusArchived">Archived</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label small fw-bold">Sub-account</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Sub-accounts</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="marketing" id="subMarketing"><label class="form-check-label small" for="subMarketing">Marketing Team</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="sales" id="subSales"><label class="form-check-label small" for="subSales">Sales</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="support" id="subSupport"><label class="form-check-label small" for="subSupport">Support Team</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="it" id="subIT"><label class="form-check-label small" for="subIT">IT Security</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="all" id="subAll"><label class="form-check-label small" for="subAll">All Sub-accounts</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
+                            <i class="fas fa-check me-1"></i> Apply Filters
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="resetFiltersBtn">
+                            <i class="fas fa-undo me-1"></i> Reset Filters
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2540,26 +2553,19 @@ var sortDirection = 'desc';
 
 var appliedFilters = {
     search: '',
-    channel: '',
-    trigger: '',
-    status: '',
+    channels: [],
+    triggers: [],
+    statuses: [],
     subAccounts: []
 };
 
-var pendingFilters = {
-    channel: '',
-    trigger: '',
-    status: '',
-    subAccounts: []
+var filterLabels = {
+    channels: { 'sms': 'SMS', 'basic_rcs': 'Basic RCS', 'rich_rcs': 'Rich RCS' },
+    triggers: { 'api': 'API', 'portal': 'Portal', 'email': 'Email-to-SMS' },
+    statuses: { 'draft': 'Draft', 'live': 'Live', 'paused': 'Paused', 'archived': 'Archived' },
+    subAccounts: { 'marketing': 'Marketing Team', 'sales': 'Sales', 'support': 'Support Team', 'it': 'IT Security', 'all': 'All Sub-accounts' }
 };
 
-var subAccountLabels = {
-    'marketing': 'Marketing Team',
-    'sales': 'Sales',
-    'support': 'Support Team',
-    'it': 'IT Security',
-    'all': 'All Sub-accounts'
-};
 
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
@@ -2584,8 +2590,37 @@ function setupEventListeners() {
     document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
     document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
     
-    document.querySelectorAll('.subaccount-check').forEach(function(checkbox) {
-        checkbox.addEventListener('change', updateSubAccountDropdownLabel);
+    document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
+        var filterType = dropdown.dataset.filter;
+        
+        dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                updateDropdownLabel(dropdown, filterType);
+            });
+        });
+        
+        var selectAllBtn = dropdown.querySelector('.select-all-btn');
+        var clearAllBtn = dropdown.querySelector('.clear-all-btn');
+        
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                    cb.checked = true;
+                });
+                updateDropdownLabel(dropdown, filterType);
+            });
+        }
+        
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                    cb.checked = false;
+                });
+                updateDropdownLabel(dropdown, filterType);
+            });
+        }
     });
     
     document.getElementById('createTemplateModal').addEventListener('hidden.bs.modal', function() {
@@ -2614,71 +2649,79 @@ function setupEventListeners() {
     });
 }
 
-function updateSubAccountDropdownLabel() {
-    var checked = document.querySelectorAll('.subaccount-check:checked');
-    var label = document.querySelector('#subAccountDropdown .dropdown-label');
+function updateDropdownLabel(dropdown, filterType) {
+    var checked = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+    var label = dropdown.querySelector('.dropdown-label');
+    var defaultLabels = {
+        channels: 'All Channels',
+        triggers: 'All Triggers',
+        statuses: 'All Statuses',
+        subAccounts: 'All Sub-accounts'
+    };
     
     if (checked.length === 0) {
-        label.textContent = 'All Sub-accounts';
+        label.textContent = defaultLabels[filterType] || 'All';
     } else if (checked.length === 1) {
-        label.textContent = subAccountLabels[checked[0].value] || checked[0].value;
+        var labelMap = filterLabels[filterType] || {};
+        label.textContent = labelMap[checked[0].value] || checked[0].value;
     } else {
         label.textContent = checked.length + ' selected';
     }
 }
 
+function getCheckedValues(filterType) {
+    var dropdown = document.querySelector('.multiselect-dropdown[data-filter="' + filterType + '"]');
+    var values = [];
+    if (dropdown) {
+        dropdown.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
+            values.push(cb.value);
+        });
+    }
+    return values;
+}
+
 function applyFilters() {
-    appliedFilters.channel = document.getElementById('channelFilter').value;
-    appliedFilters.trigger = document.getElementById('triggerFilter').value;
-    appliedFilters.status = document.getElementById('statusFilter').value;
-    
-    var checkedSubAccounts = [];
-    document.querySelectorAll('.subaccount-check:checked').forEach(function(cb) {
-        checkedSubAccounts.push(cb.value);
-    });
-    appliedFilters.subAccounts = checkedSubAccounts;
+    appliedFilters.channels = getCheckedValues('channels');
+    appliedFilters.triggers = getCheckedValues('triggers');
+    appliedFilters.statuses = getCheckedValues('statuses');
+    appliedFilters.subAccounts = getCheckedValues('subAccounts');
     
     renderTemplates();
     renderActiveFilters();
 }
 
 function resetFilters() {
-    document.getElementById('channelFilter').value = '';
-    document.getElementById('triggerFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    document.querySelectorAll('.subaccount-check').forEach(function(cb) {
+    document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
         cb.checked = false;
     });
-    updateSubAccountDropdownLabel();
     
-    appliedFilters.channel = '';
-    appliedFilters.trigger = '';
-    appliedFilters.status = '';
+    document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
+        updateDropdownLabel(dropdown, dropdown.dataset.filter);
+    });
+    
+    appliedFilters.channels = [];
+    appliedFilters.triggers = [];
+    appliedFilters.statuses = [];
     appliedFilters.subAccounts = [];
     
     renderTemplates();
     renderActiveFilters();
 }
 
-function removeFilter(filterType) {
+function removeFilter(filterType, value) {
     if (filterType === 'search') {
         document.getElementById('templateSearch').value = '';
         appliedFilters.search = '';
-    } else if (filterType === 'channel') {
-        document.getElementById('channelFilter').value = '';
-        appliedFilters.channel = '';
-    } else if (filterType === 'trigger') {
-        document.getElementById('triggerFilter').value = '';
-        appliedFilters.trigger = '';
-    } else if (filterType === 'status') {
-        document.getElementById('statusFilter').value = '';
-        appliedFilters.status = '';
-    } else if (filterType === 'subAccounts') {
-        document.querySelectorAll('.subaccount-check').forEach(function(cb) {
-            cb.checked = false;
+    } else {
+        var dropdown = document.querySelector('.multiselect-dropdown[data-filter="' + filterType + '"]');
+        if (dropdown && value) {
+            var cb = dropdown.querySelector('input[value="' + value + '"]');
+            if (cb) cb.checked = false;
+            updateDropdownLabel(dropdown, filterType);
+        }
+        appliedFilters[filterType] = appliedFilters[filterType].filter(function(v) {
+            return v !== value;
         });
-        updateSubAccountDropdownLabel();
-        appliedFilters.subAccounts = [];
     }
     
     renderTemplates();
@@ -2690,36 +2733,34 @@ function renderActiveFilters() {
     var html = '';
     
     if (appliedFilters.search) {
-        html += createChip('Search', appliedFilters.search, 'search');
+        html += createChip('Search', appliedFilters.search, 'search', null);
     }
     
-    if (appliedFilters.channel) {
-        html += createChip('Channel', getChannelLabel(appliedFilters.channel), 'channel');
-    }
+    appliedFilters.channels.forEach(function(val) {
+        html += createChip('Channel', filterLabels.channels[val] || val, 'channels', val);
+    });
     
-    if (appliedFilters.trigger) {
-        html += createChip('Trigger', getTriggerLabel(appliedFilters.trigger), 'trigger');
-    }
+    appliedFilters.triggers.forEach(function(val) {
+        html += createChip('Trigger', filterLabels.triggers[val] || val, 'triggers', val);
+    });
     
-    if (appliedFilters.status) {
-        html += createChip('Status', getStatusLabel(appliedFilters.status), 'status');
-    }
+    appliedFilters.statuses.forEach(function(val) {
+        html += createChip('Status', filterLabels.statuses[val] || val, 'statuses', val);
+    });
     
-    if (appliedFilters.subAccounts.length > 0) {
-        var labels = appliedFilters.subAccounts.map(function(v) {
-            return subAccountLabels[v] || v;
-        });
-        html += createChip('Sub-account', labels.join(', '), 'subAccounts');
-    }
+    appliedFilters.subAccounts.forEach(function(val) {
+        html += createChip('Sub-account', filterLabels.subAccounts[val] || val, 'subAccounts', val);
+    });
     
     container.innerHTML = html;
 }
 
-function createChip(label, value, filterType) {
+function createChip(label, value, filterType, filterValue) {
+    var onclick = filterValue ? "removeFilter('" + filterType + "', '" + filterValue + "')" : "removeFilter('" + filterType + "')";
     return '<span class="filter-chip">' +
         '<span class="chip-label">' + label + ':</span>' +
         '<span class="chip-value">' + value + '</span>' +
-        '<i class="fas fa-times remove-chip" onclick="removeFilter(\'' + filterType + '\')"></i>' +
+        '<i class="fas fa-times remove-chip" onclick="' + onclick + '"></i>' +
         '</span>';
 }
 
@@ -3355,9 +3396,9 @@ function renderTemplates() {
         }
         
         var matchSearch = !search || t.name.toLowerCase().includes(search) || t.templateId.includes(search);
-        var matchChannel = !appliedFilters.channel || t.channel === appliedFilters.channel;
-        var matchTrigger = !appliedFilters.trigger || t.trigger === appliedFilters.trigger;
-        var matchStatus = !appliedFilters.status || t.status === appliedFilters.status;
+        var matchChannel = appliedFilters.channels.length === 0 || appliedFilters.channels.includes(t.channel);
+        var matchTrigger = appliedFilters.triggers.length === 0 || appliedFilters.triggers.includes(t.trigger);
+        var matchStatus = appliedFilters.statuses.length === 0 || appliedFilters.statuses.includes(t.status);
         
         var matchSubAccount = appliedFilters.subAccounts.length === 0 || 
             appliedFilters.subAccounts.some(function(sa) {
