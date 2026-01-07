@@ -1184,8 +1184,8 @@
                                 </div>
                             </div>
                             
-                            <div class="alert alert-secondary">
-                                <i class="fas fa-info-circle me-2"></i>
+                            <div class="alert alert-pastel-primary">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>
                                 <strong>Template Mode:</strong> This editor matches Send Message but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
                             </div>
                         </div>
@@ -4695,11 +4695,11 @@ function updateTemplatePreview() {
             previewConfig.channel = 'basic_rcs';
             var selectedOption = rcsAgentSelect?.selectedOptions[0];
             if (selectedOption && selectedOption.value) {
-                previewConfig.rcsAgent = {
+                previewConfig.agent = {
                     name: selectedOption.dataset?.name || 'RCS Agent',
                     logo: selectedOption.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
                     tagline: selectedOption.dataset?.tagline || '',
-                    brandColor: selectedOption.dataset?.brandColor || '#886CC0'
+                    verified: true
                 };
             }
         }
@@ -4711,11 +4711,11 @@ function updateTemplatePreview() {
             previewConfig.channel = 'rich_rcs';
             var selectedOption = rcsAgentSelect?.selectedOptions[0];
             if (selectedOption && selectedOption.value) {
-                previewConfig.rcsAgent = {
+                previewConfig.agent = {
                     name: selectedOption.dataset?.name || 'RCS Agent',
                     logo: selectedOption.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
                     tagline: selectedOption.dataset?.tagline || '',
-                    brandColor: selectedOption.dataset?.brandColor || '#886CC0'
+                    verified: true
                 };
             }
             previewConfig.rcsPayload = templateRcsPayload;
