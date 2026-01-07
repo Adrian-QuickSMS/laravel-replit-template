@@ -365,16 +365,6 @@
     margin-left: auto;
     margin-right: auto;
 }
-.sub-account-selector {
-    margin-bottom: 1rem;
-}
-.sub-account-selector label {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #495057;
-    margin-bottom: 0.375rem;
-    display: block;
-}
 .pricing-loading {
     display: flex;
     align-items: center;
