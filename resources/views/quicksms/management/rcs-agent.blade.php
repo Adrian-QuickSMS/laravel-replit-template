@@ -749,6 +749,10 @@
                         </span>
                         <span class="wizard-step" data-step="3">
                             <span class="step-number">3</span>
+                            <span class="step-label">Company Details</span>
+                        </span>
+                        <span class="wizard-step" data-step="4">
+                            <span class="step-number">4</span>
                             <span class="step-label">Review</span>
                         </span>
                     </div>
@@ -1170,9 +1174,82 @@
                 </div>
                 
                 <div id="agentWizardStep3" class="wizard-content p-4 d-none">
+                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 3: Company & Approver Details</strong> - Provide your company registration and approver information.
+                        </div>
+                        
+                        <div class="alert alert-pastel-primary mb-4" style="background: rgba(136, 108, 192, 0.1); border-left: 4px solid #886CC0;">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            <strong>Important:</strong> Incorrect or inconsistent information may delay approval. Please ensure all details match your official company records.
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-building me-2 text-primary"></i>Company Information</h6>
+                                <p class="text-muted small mb-3">These details are pre-populated from your account settings. You can edit them if needed for this registration.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Company Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="companyNumber" placeholder="e.g., 12345678">
+                                        <small class="text-muted">Your registered company number</small>
+                                        <div class="invalid-feedback">Please enter your company number</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Company Website <span class="text-danger">*</span></label>
+                                        <input type="url" class="form-control" id="companyWebsite" placeholder="https://www.yourcompany.com">
+                                        <small class="text-muted">Your main company website</small>
+                                        <div class="invalid-feedback">Please enter a valid company website URL</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Registered Address <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="registeredAddress" rows="3" placeholder="Enter your full registered business address..."></textarea>
+                                    <small class="text-muted">Your official registered business address</small>
+                                    <div class="invalid-feedback">Please enter your registered address</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card border mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-user-tie me-2 text-primary"></i>Approver Details</h6>
+                                <p class="text-muted small mb-3">The approver is the person authorizing this RCS Agent registration on behalf of your company.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Approver Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="approverName" placeholder="e.g., John Smith">
+                                        <small class="text-muted">Full name of the authorizing person</small>
+                                        <div class="invalid-feedback">Please enter the approver's name</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Approver Job Title <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="approverJobTitle" placeholder="e.g., Marketing Director">
+                                        <small class="text-muted">Their role within your organization</small>
+                                        <div class="invalid-feedback">Please enter the approver's job title</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-0">
+                                    <label class="form-label fw-semibold">Approver Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="approverEmail" placeholder="e.g., john.smith@yourcompany.com">
+                                    <small class="text-muted">Email address for verification and approval communications</small>
+                                    <div class="invalid-feedback">Please enter a valid email address</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="agentWizardStep4" class="wizard-content p-4 d-none">
                     <div class="wizard-step-inner mx-auto" style="max-width: 800px;">
                         <div class="alert alert-pastel-primary mb-4">
-                            <strong>Step 3: Review & Submit</strong> - Please review all information before submitting for approval.
+                            <strong>Step 4: Review & Submit</strong> - Please review all information before submitting for approval.
                         </div>
                         
                         <div class="review-section">
@@ -1276,6 +1353,38 @@
                             <div class="review-row">
                                 <span class="review-label">Test Numbers</span>
                                 <span class="review-value" id="reviewTestNumbers" style="max-width: 60%; text-align: right;">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h6>Company Information</h6>
+                            <div class="review-row">
+                                <span class="review-label">Company Number</span>
+                                <span class="review-value" id="reviewCompanyNumber">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Company Website</span>
+                                <span class="review-value" id="reviewCompanyWebsite">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Registered Address</span>
+                                <span class="review-value" id="reviewRegisteredAddress" style="max-width: 60%; text-align: right; white-space: pre-line;">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="review-section">
+                            <h6>Approver Details</h6>
+                            <div class="review-row">
+                                <span class="review-label">Approver Name</span>
+                                <span class="review-value" id="reviewApproverName">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Approver Job Title</span>
+                                <span class="review-value" id="reviewApproverJobTitle">-</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Approver Email</span>
+                                <span class="review-value" id="reviewApproverEmail">-</span>
                             </div>
                         </div>
                         
@@ -1683,9 +1792,24 @@ var wizardData = {
     optOutDescription: '',
     useCaseOverview: '',
     testNumbers: [],
+    companyNumber: '',
+    companyWebsite: '',
+    registeredAddress: '',
+    approverName: '',
+    approverJobTitle: '',
+    approverEmail: '',
     currentStep: 1,
     isEditing: false,
     isDirty: false
+};
+
+var mockAccountDetails = {
+    companyNumber: '12345678',
+    companyWebsite: 'https://www.quicksms.example.com',
+    registeredAddress: '123 Business Park\nLondon\nEC1A 1BB\nUnited Kingdom',
+    approverName: 'Sarah Johnson',
+    approverJobTitle: 'Head of Marketing',
+    approverEmail: 'sarah.johnson@quicksms.example.com'
 };
 
 var useCaseDetails = {
@@ -1810,6 +1934,13 @@ function initializeWizard() {
         }
     });
     document.getElementById('clearAllTestNumbers').addEventListener('click', clearAllTestNumbers);
+    
+    ['companyNumber', 'companyWebsite', 'registeredAddress', 'approverName', 'approverJobTitle', 'approverEmail'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', function() {
+            wizardData[id] = this.value;
+            triggerAutosave();
+        });
+    });
     
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(el) {
@@ -1981,6 +2112,12 @@ function resetWizardData() {
         optOutDescription: '',
         useCaseOverview: '',
         testNumbers: [],
+        companyNumber: '',
+        companyWebsite: '',
+        registeredAddress: '',
+        approverName: '',
+        approverJobTitle: '',
+        approverEmail: '',
         currentStep: 1,
         isEditing: false,
         isDirty: false
@@ -2025,11 +2162,45 @@ function resetWizardData() {
     document.getElementById('useCaseError').style.display = 'none';
     document.getElementById('testNumberError').style.display = 'none';
     
+    document.getElementById('companyNumber').value = '';
+    document.getElementById('companyWebsite').value = '';
+    document.getElementById('registeredAddress').value = '';
+    document.getElementById('approverName').value = '';
+    document.getElementById('approverJobTitle').value = '';
+    document.getElementById('approverEmail').value = '';
+    
     document.querySelectorAll('.form-control.is-invalid, .form-select.is-invalid').forEach(function(el) {
         el.classList.remove('is-invalid');
     });
     
     updateAutosaveIndicator('saved');
+}
+
+function prefillCompanyDetails() {
+    if (!wizardData.companyNumber) {
+        wizardData.companyNumber = mockAccountDetails.companyNumber;
+        document.getElementById('companyNumber').value = mockAccountDetails.companyNumber;
+    }
+    if (!wizardData.companyWebsite) {
+        wizardData.companyWebsite = mockAccountDetails.companyWebsite;
+        document.getElementById('companyWebsite').value = mockAccountDetails.companyWebsite;
+    }
+    if (!wizardData.registeredAddress) {
+        wizardData.registeredAddress = mockAccountDetails.registeredAddress;
+        document.getElementById('registeredAddress').value = mockAccountDetails.registeredAddress;
+    }
+    if (!wizardData.approverName) {
+        wizardData.approverName = mockAccountDetails.approverName;
+        document.getElementById('approverName').value = mockAccountDetails.approverName;
+    }
+    if (!wizardData.approverJobTitle) {
+        wizardData.approverJobTitle = mockAccountDetails.approverJobTitle;
+        document.getElementById('approverJobTitle').value = mockAccountDetails.approverJobTitle;
+    }
+    if (!wizardData.approverEmail) {
+        wizardData.approverEmail = mockAccountDetails.approverEmail;
+        document.getElementById('approverEmail').value = mockAccountDetails.approverEmail;
+    }
 }
 
 function addTestNumber() {
@@ -2106,7 +2277,7 @@ function isValidInternationalNumber(number) {
 function goToStep(step) {
     wizardData.currentStep = step;
     
-    for (var i = 1; i <= 3; i++) {
+    for (var i = 1; i <= 4; i++) {
         document.getElementById('agentWizardStep' + i).classList.toggle('d-none', i !== step);
     }
     
@@ -2121,10 +2292,14 @@ function goToStep(step) {
     });
     
     document.getElementById('wizardPrevBtn').style.display = step > 1 ? '' : 'none';
-    document.getElementById('wizardNextBtn').style.display = step < 3 ? '' : 'none';
-    document.getElementById('wizardSubmitBtn').style.display = step === 3 ? '' : 'none';
+    document.getElementById('wizardNextBtn').style.display = step < 4 ? '' : 'none';
+    document.getElementById('wizardSubmitBtn').style.display = step === 4 ? '' : 'none';
     
     if (step === 3) {
+        prefillCompanyDetails();
+    }
+    
+    if (step === 4) {
         populateReviewStep();
     }
 }
@@ -2132,7 +2307,7 @@ function goToStep(step) {
 function nextStep() {
     if (!validateCurrentStep()) return;
     
-    if (wizardData.currentStep < 3) {
+    if (wizardData.currentStep < 4) {
         goToStep(wizardData.currentStep + 1);
     }
 }
@@ -2213,6 +2388,31 @@ function validateCurrentStep() {
             document.getElementById('useCaseOverview').classList.add('is-invalid');
             isValid = false;
         }
+    } else if (wizardData.currentStep === 3) {
+        if (!wizardData.companyNumber.trim()) {
+            document.getElementById('companyNumber').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.companyWebsite.trim() || !isValidUrl(wizardData.companyWebsite)) {
+            document.getElementById('companyWebsite').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.registeredAddress.trim()) {
+            document.getElementById('registeredAddress').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.approverName.trim()) {
+            document.getElementById('approverName').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.approverJobTitle.trim()) {
+            document.getElementById('approverJobTitle').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.approverEmail.trim() || !isValidEmail(wizardData.approverEmail)) {
+            document.getElementById('approverEmail').classList.add('is-invalid');
+            isValid = false;
+        }
     }
     
     return isValid;
@@ -2277,6 +2477,13 @@ function populateReviewStep() {
     document.getElementById('reviewOptOut').textContent = wizardData.optOutDescription || '-';
     document.getElementById('reviewUseCaseOverview').textContent = wizardData.useCaseOverview || '-';
     document.getElementById('reviewTestNumbers').textContent = wizardData.testNumbers.length > 0 ? wizardData.testNumbers.join(', ') : 'None added';
+    
+    document.getElementById('reviewCompanyNumber').textContent = wizardData.companyNumber || '-';
+    document.getElementById('reviewCompanyWebsite').textContent = wizardData.companyWebsite || '-';
+    document.getElementById('reviewRegisteredAddress').textContent = wizardData.registeredAddress || '-';
+    document.getElementById('reviewApproverName').textContent = wizardData.approverName || '-';
+    document.getElementById('reviewApproverJobTitle').textContent = wizardData.approverJobTitle || '-';
+    document.getElementById('reviewApproverEmail').textContent = wizardData.approverEmail || '-';
 }
 
 function formatFrequency(value) {
