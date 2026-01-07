@@ -227,6 +227,44 @@
     font-size: 0.8rem;
     color: #495057;
 }
+.placeholder-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 50rem;
+    background: rgba(136, 108, 192, 0.12);
+    color: #886CC0;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+.placeholder-pill i {
+    margin-right: 0.35rem;
+    font-size: 0.75rem;
+}
+.placeholder-pill .remove-btn {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.placeholder-pill .remove-btn:hover {
+    opacity: 1;
+}
+.placeholder-counter {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 50rem;
+    background: rgba(136, 108, 192, 0.12);
+    color: #886CC0;
+}
+.placeholder-counter.empty {
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
+}
 .search-filter-bar {
     display: flex;
     justify-content: space-between;
@@ -932,7 +970,7 @@
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h6 class="mb-0"><i class="fas fa-tags me-2 text-primary"></i>Detected Placeholders</h6>
-                                        <span class="badge bg-secondary" id="tplPlaceholderCount">0 placeholders</span>
+                                        <span class="placeholder-counter empty" id="tplPlaceholderCount">0 placeholders</span>
                                     </div>
                                     
                                     <div id="tplNoPlaceholders" class="text-muted">
@@ -971,7 +1009,7 @@
                                         <div class="col-md-6">
                                             <div class="border rounded p-3 mb-3 mb-md-0" id="tplApiRuleSingle">
                                                 <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-warning text-dark me-2">With Placeholders</span>
+                                                    <span class="placeholder-counter" style="padding: 0.35rem 0.65rem;">With Placeholders</span>
                                                 </div>
                                                 <ul class="small mb-0 ps-3">
                                                     <li>Only <strong>1 MSISDN</strong> per API request</li>
@@ -983,7 +1021,7 @@
                                         <div class="col-md-6">
                                             <div class="border rounded p-3" id="tplApiRuleMultiple">
                                                 <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-success me-2">Without Placeholders</span>
+                                                    <span class="placeholder-counter empty" style="padding: 0.35rem 0.65rem;">Without Placeholders</span>
                                                 </div>
                                                 <ul class="small mb-0 ps-3">
                                                     <li>Multiple MSISDNs allowed per request</li>
@@ -2978,7 +3016,7 @@ function viewApiStructure(id) {
         document.getElementById('apiNoPlaceholders').classList.add('d-none');
         document.getElementById('apiPlaceholdersList').classList.remove('d-none');
         document.getElementById('apiPlaceholderChips').innerHTML = placeholders.map(function(ph) {
-            return '<span class="badge bg-primary py-2 px-3"><i class="fas fa-tag me-1"></i>{' + ph + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + ph + '}</span>';
         }).join('');
     } else {
         document.getElementById('apiNoPlaceholders').classList.remove('d-none');
@@ -3270,7 +3308,7 @@ function detectPlaceholders(content) {
     var chipsEl = document.getElementById('tplPlaceholderChips');
     
     countEl.textContent = matches.length + ' placeholder' + (matches.length !== 1 ? 's' : '');
-    countEl.className = 'badge ' + (matches.length > 0 ? 'bg-primary' : 'bg-secondary');
+    countEl.className = 'placeholder-counter' + (matches.length === 0 ? ' empty' : '');
     
     if (matches.length === 0) {
         noPlaceholdersEl.classList.remove('d-none');
@@ -3339,7 +3377,7 @@ function viewPlaceholderSchema() {
         }, null, 2);
     } else {
         schemaListEl.innerHTML = placeholders.map(function(ph) {
-            return '<span class="badge bg-primary me-2 mb-2 py-2 px-3">{' + ph + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + ph + '}</span>';
         }).join('');
         
         var examplePlaceholders = {};
@@ -3893,7 +3931,7 @@ function viewVersion(versionNum) {
     
     var contentPreview = document.getElementById('vvContentPreview');
     if (versionData.content) {
-        var highlightedContent = versionData.content.replace(/\{(\w+)\}/g, '<span class="badge bg-info text-dark">{$1}</span>');
+        var highlightedContent = versionData.content.replace(/\{(\w+)\}/g, '<span class="placeholder-pill" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;"><i class="fas fa-tag"></i>{$1}</span>');
         contentPreview.innerHTML = '<p class="mb-0">' + highlightedContent + '</p>';
     } else {
         contentPreview.innerHTML = '<p class="text-muted mb-0 fst-italic">Rich RCS content (not displayed in text view)</p>';
@@ -3903,7 +3941,7 @@ function viewVersion(versionNum) {
     var placeholderContainer = document.getElementById('vvPlaceholders');
     if (placeholders.length > 0) {
         placeholderContainer.innerHTML = placeholders.map(function(p) {
-            return '<span class="badge bg-light text-dark me-1 mb-1">{' + p + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + p + '}</span>';
         }).join('');
     } else {
         placeholderContainer.innerHTML = '<span class="text-muted">None</span>';
