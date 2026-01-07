@@ -29,6 +29,20 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - RCS Rich Card Media (presets: `rich-card-short`, `rich-card-medium`, `rich-card-tall`)
   - For new image requirements, add a preset to PRESET_CONFIGS in the component.
 
+- **Branding Asset Audit Trail:** All logo and hero image uploads persist audit-compliant metadata for reporting and dispute resolution:
+  - `cdnUrl`: Final CDN URL after server upload (populated by backend)
+  - `originalSrc`: Original image source (data URL or fetch URL)
+  - `originalFileName`, `originalFileSize`, `originalFileType`: Original file details
+  - `sourceType`: Upload method (`file_upload` or `url_fetch`)
+  - `crop`: Crop coordinates `{x, y, width, height}`
+  - `zoom`, `offsetX`, `offsetY`: Editor state
+  - `outputWidth`, `outputHeight`, `aspectRatio`, `frameShape`: Output specifications
+  - `userId`: User who performed the upload (from Auth::id())
+  - `timestamp`: ISO 8601 timestamp when crop was applied
+  - `clientTimezone`: User's timezone for audit context
+  - `uploadedAt`: Server-side timestamp when CDN upload completed (populated by backend)
+  - Database columns: `logo_crop_metadata` and `hero_crop_metadata` (JSON) in `rcs_agents` table
+
 **Technical Implementations & Feature Specifications:**
 - **Dashboard:** Provides an operational overview, RCS promotion, support access, and notifications.
 - **Messages:** Includes features for sending messages, an Inbox with a three-panel conversation workspace (conversation list, chat pane, contact info sidebar), and Campaign History. Supports Rich RCS message rendering directly in the chat thread and a "Test Message" feature.

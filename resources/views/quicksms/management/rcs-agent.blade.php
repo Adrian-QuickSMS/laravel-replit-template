@@ -1654,6 +1654,18 @@ var userPermissions = {
     canView: @json($canView)
 };
 
+// Current user ID for audit trail - passed from PHP
+// TODO: Replace with actual Auth::id() when backend is integrated
+var currentUserId = @json($currentUserId ?? 1);
+
+/**
+ * Get current user ID for audit metadata
+ * Used in logo/hero crop metadata for compliance and dispute resolution
+ */
+function getCurrentUserId() {
+    return currentUserId;
+}
+
 var mockAgents = [
     {
         id: 'agent-001',
@@ -2396,17 +2408,33 @@ function initializeWizard() {
             
             wizardData.logoDataUrl = dataUrl;
             wizardData.logoValid = true;
+            // Audit-compliant metadata structure for reporting and dispute resolution
             wizardData.logoCropMetadata = {
+                // Original asset reference
                 originalSrc: logoRawImageSrc,
+                originalFileName: wizardData.logoFile ? wizardData.logoFile.name : null,
+                originalFileSize: wizardData.logoFile ? wizardData.logoFile.size : null,
+                originalFileType: wizardData.logoFile ? wizardData.logoFile.type : null,
+                sourceType: wizardData.logoFile ? 'file_upload' : 'url_fetch',
+                
+                // Crop metadata
                 crop: cropData.crop,
                 zoom: cropData.zoom,
                 offsetX: cropData.offsetX,
                 offsetY: cropData.offsetY,
                 outputWidth: 222,
                 outputHeight: 222,
-                timestamp: new Date().toISOString()
-                // TODO: Add userId from Auth::id()
-                // TODO: Add cdnUrl after server-side upload
+                aspectRatio: '1:1',
+                frameShape: 'circle',
+                
+                // Audit fields
+                userId: getCurrentUserId(), // TODO: Replace stub with Auth::id()
+                timestamp: new Date().toISOString(),
+                clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                
+                // CDN URL - populated after server upload
+                cdnUrl: null, // TODO: Populated by backend after CDN upload
+                uploadedAt: null // TODO: Populated by backend after CDN upload
             };
             
             // Update preview
@@ -2503,17 +2531,33 @@ function initializeWizard() {
             
             wizardData.heroDataUrl = dataUrl;
             wizardData.heroValid = true;
+            // Audit-compliant metadata structure for reporting and dispute resolution
             wizardData.heroCropMetadata = {
+                // Original asset reference
                 originalSrc: heroRawImageSrc,
+                originalFileName: wizardData.heroFile ? wizardData.heroFile.name : null,
+                originalFileSize: wizardData.heroFile ? wizardData.heroFile.size : null,
+                originalFileType: wizardData.heroFile ? wizardData.heroFile.type : null,
+                sourceType: wizardData.heroFile ? 'file_upload' : 'url_fetch',
+                
+                // Crop metadata
                 crop: cropData.crop,
                 zoom: cropData.zoom,
                 offsetX: cropData.offsetX,
                 offsetY: cropData.offsetY,
                 outputWidth: 1480,
                 outputHeight: 448,
-                timestamp: new Date().toISOString()
-                // TODO: Add userId from Auth::id()
-                // TODO: Add cdnUrl after server-side upload
+                aspectRatio: '45:14',
+                frameShape: 'rectangle',
+                
+                // Audit fields
+                userId: getCurrentUserId(), // TODO: Replace stub with Auth::id()
+                timestamp: new Date().toISOString(),
+                clientTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                
+                // CDN URL - populated after server upload
+                cdnUrl: null, // TODO: Populated by backend after CDN upload
+                uploadedAt: null // TODO: Populated by backend after CDN upload
             };
             
             // Update file upload preview

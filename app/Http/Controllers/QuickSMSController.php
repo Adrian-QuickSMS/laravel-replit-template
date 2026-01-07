@@ -1581,8 +1581,12 @@ class QuickSMSController extends Controller
 
     public function rcsAgentRegistrations()
     {
+        // TODO: Replace with Auth::id() when authentication is integrated
+        $currentUserId = auth()->id() ?? 1;
+        
         return view('quicksms.management.rcs-agent', [
-            'page_title' => 'RCS Agent Library'
+            'page_title' => 'RCS Agent Library',
+            'currentUserId' => $currentUserId
         ]);
     }
 
