@@ -233,3 +233,60 @@
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
 }
+
+/* Hero upload zone styles */
+.hero-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 100px;
+}
+
+.hero-upload-zone:hover {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.04);
+}
+
+.hero-upload-zone.drag-over {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.08);
+}
+
+.hero-upload-zone.has-hero {
+    border-style: solid;
+    border-color: #886CC0;
+    cursor: default;
+}
+
+.hero-preview {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: center;
+}
+
+.hero-card-container .btn-group-sm .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.hero-source-tabs .btn-outline-primary {
+    border-color: #886CC0;
+    color: #886CC0;
+}
+
+.hero-source-tabs .btn-outline-primary:hover,
+.hero-source-tabs .btn-check:checked + .btn-outline-primary {
+    background: #886CC0;
+    border-color: #886CC0;
+    color: #fff;
+}

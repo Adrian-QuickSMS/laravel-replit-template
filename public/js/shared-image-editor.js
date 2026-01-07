@@ -30,12 +30,13 @@
             label: 'Logo (1:1)'
         },
         'agent-hero': {
-            aspectRatio: 16/9,
-            outputWidth: 1440,
-            outputHeight: 810,
-            frameWidth: 280,
-            frameHeight: 158,
-            label: 'Hero (16:9)'
+            aspectRatio: 45/14,
+            outputWidth: 1480,
+            outputHeight: 448,
+            frameWidth: 296,
+            frameHeight: 92,
+            frameShape: 'rectangle',
+            label: 'Hero (45:14)'
         },
         'rich-card-short': {
             aspectRatio: 2,

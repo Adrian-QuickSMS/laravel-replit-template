@@ -939,21 +939,61 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">Hero Image</label>
-                            <div class="hero-upload-zone" id="heroUploadZone">
-                                <div id="heroPlaceholder">
-                                    <i class="fas fa-image text-muted me-2"></i>
-                                    <span class="text-muted">Click to upload hero image (1480 × 448 px recommended, 45:14 aspect ratio)</span>
+                            <label class="form-label fw-semibold">Hero / Banner Image</label>
+                            <p class="text-muted small mb-2">Wide banner image. Final output: 1480×448 px (45:14 aspect ratio). Horizontal only.</p>
+                            
+                            <div class="hero-card-container">
+                                <div class="hero-source-tabs mb-2">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <input type="radio" class="btn-check" name="heroSource" id="heroSourceFile" value="file" checked>
+                                        <label class="btn btn-outline-primary" for="heroSourceFile"><i class="fas fa-upload me-1"></i>Upload File</label>
+                                        <input type="radio" class="btn-check" name="heroSource" id="heroSourceUrl" value="url">
+                                        <label class="btn btn-outline-primary" for="heroSourceUrl"><i class="fas fa-link me-1"></i>From URL</label>
+                                    </div>
                                 </div>
-                                <div id="heroPreviewContainer" class="d-none">
-                                    <img src="" alt="Hero preview" class="hero-preview" id="heroPreviewImg">
-                                    <p class="mt-2 mb-0 text-primary small">Click to change</p>
+                                
+                                <div id="heroFileUploadSection">
+                                    <div class="hero-upload-zone" id="heroUploadZone">
+                                        <div id="heroPlaceholder">
+                                            <i class="fas fa-panorama text-muted mb-2" style="font-size: 2rem;"></i>
+                                            <p class="mb-1 text-muted">Click or drag to upload</p>
+                                            <small class="text-muted">PNG or JPEG, max 5MB</small>
+                                        </div>
+                                        <div id="heroPreviewContainer" class="d-none">
+                                            <img src="" alt="Hero preview" class="hero-preview" id="heroPreviewImg">
+                                            <div class="hero-actions mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" id="heroEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" id="heroRemoveBtn"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="heroFileInput" accept="image/png,image/jpeg" class="d-none">
+                                </div>
+                                
+                                <div id="heroUrlUploadSection" class="d-none">
+                                    <div class="input-group mb-2">
+                                        <input type="url" class="form-control" id="heroUrlInput" placeholder="https://example.com/hero.png">
+                                        <button type="button" class="btn btn-primary" id="heroUrlFetchBtn"><i class="fas fa-download me-1"></i>Fetch</button>
+                                    </div>
+                                    <div id="heroUrlPreviewContainer" class="d-none">
+                                        <div class="hero-upload-zone has-hero">
+                                            <img src="" alt="Hero preview" class="hero-preview" id="heroUrlPreviewImg">
+                                            <div class="hero-actions mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-1" id="heroUrlEditBtn"><i class="fas fa-crop me-1"></i>Edit</button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" id="heroUrlRemoveBtn"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <input type="file" id="heroFileInput" accept="image/png,image/jpeg" class="d-none">
-                            <small class="text-muted">Rectangular crop. Logo partially overlaps the bottom-left corner.</small>
+                            
+                            <small class="text-muted d-block mt-1">Logo partially overlaps the bottom-left corner of the hero.</small>
+                            <div class="invalid-feedback d-block" id="heroError" style="display: none !important;">Please upload a hero image</div>
                             <div class="invalid-feedback d-block" id="heroFormatError" style="display: none !important;">Hero image must be PNG or JPEG format</div>
                             <div class="invalid-feedback d-block" id="heroSizeError" style="display: none !important;">Hero image file size must be under 5MB</div>
+                            <div class="invalid-feedback d-block" id="heroUrlError" style="display: none !important;">Unable to load image from URL</div>
+                            <div class="invalid-feedback d-block" id="heroCropError" style="display: none !important;">Image must be cropped to 1480×448 px (45:14 ratio)</div>
+                            <div class="invalid-feedback d-block" id="heroOrientationError" style="display: none !important;">Hero image must be horizontal (landscape orientation)</div>
                         </div>
                         
                         <hr class="my-4">
@@ -1567,6 +1607,27 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="logoCropApplyBtn"><i class="fas fa-check me-1"></i>Apply Crop</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="heroCropEditorModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #886CC0 0%, #614099 100%);">
+                <h5 class="modal-title text-white"><i class="fas fa-crop-alt me-2"></i>Crop Hero Banner</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small py-2 mb-3">
+                    <i class="fas fa-info-circle me-1"></i>Position your banner within the frame. Output: 1480×448 px (45:14 ratio). Horizontal only.
+                </div>
+                <div id="heroCropEditorContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="heroCropApplyBtn"><i class="fas fa-check me-1"></i>Apply Crop</button>
             </div>
         </div>
     </div>
@@ -2376,6 +2437,116 @@ function initializeWizard() {
         triggerAutosave();
     }
     
+    // Hero Editor - Shared Image Editor Integration
+    var heroCropEditor = null;
+    var heroRawImageSrc = null;
+    var heroCropModal = null;
+    
+    function clearHeroErrors() {
+        ['heroError', 'heroFormatError', 'heroSizeError', 'heroUrlError', 'heroCropError', 'heroOrientationError'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
+    
+    function openHeroCropEditor(imageSrc) {
+        heroRawImageSrc = imageSrc;
+        
+        if (!heroCropModal) {
+            heroCropModal = new bootstrap.Modal(document.getElementById('heroCropEditorModal'));
+        }
+        
+        if (heroCropEditor) {
+            heroCropEditor.destroy();
+        }
+        
+        heroCropEditor = new SharedImageEditor({
+            containerId: 'heroCropEditorContainer',
+            preset: 'agent-hero',
+            showCrosshair: true,
+            showZoomSlider: true,
+            showResetButton: true
+        });
+        
+        heroCropEditor.loadImage(imageSrc, function(err) {
+            if (err) {
+                document.getElementById('heroUrlError').style.display = 'block';
+                return;
+            }
+            heroCropModal.show();
+        });
+    }
+    
+    function applyHeroCrop() {
+        if (!heroCropEditor) return;
+        
+        var validation = heroCropEditor.validateCrop();
+        if (!validation.valid) {
+            document.getElementById('heroCropError').style.display = 'block';
+            return;
+        }
+        
+        heroCropEditor.generateCroppedImage(function(err, dataUrl) {
+            if (err || !dataUrl) {
+                document.getElementById('heroCropError').style.display = 'block';
+                return;
+            }
+            
+            var cropData = heroCropEditor.getCropData();
+            
+            wizardData.heroDataUrl = dataUrl;
+            wizardData.heroValid = true;
+            wizardData.heroCropMetadata = {
+                originalSrc: heroRawImageSrc,
+                crop: cropData.crop,
+                zoom: cropData.zoom,
+                offsetX: cropData.offsetX,
+                offsetY: cropData.offsetY,
+                outputWidth: 1480,
+                outputHeight: 448,
+                timestamp: new Date().toISOString()
+                // TODO: Add userId from Auth::id()
+                // TODO: Add cdnUrl after server-side upload
+            };
+            
+            // Update file upload preview
+            document.getElementById('heroPreviewImg').src = dataUrl;
+            document.getElementById('heroPlaceholder').classList.add('d-none');
+            document.getElementById('heroPreviewContainer').classList.remove('d-none');
+            document.getElementById('heroUploadZone').classList.add('has-hero');
+            
+            // Also update URL preview if that source is active
+            var urlPreviewImg = document.getElementById('heroUrlPreviewImg');
+            if (urlPreviewImg) urlPreviewImg.src = dataUrl;
+            
+            clearHeroErrors();
+            heroCropModal.hide();
+            triggerAutosave();
+        });
+    }
+    
+    function clearHeroPreview() {
+        wizardData.heroFile = null;
+        wizardData.heroDataUrl = null;
+        wizardData.heroValid = false;
+        wizardData.heroCropMetadata = null;
+        heroRawImageSrc = null;
+        
+        document.getElementById('heroPreviewImg').src = '';
+        document.getElementById('heroPlaceholder').classList.remove('d-none');
+        document.getElementById('heroPreviewContainer').classList.add('d-none');
+        document.getElementById('heroUploadZone').classList.remove('has-hero');
+        document.getElementById('heroFileInput').value = '';
+        
+        var urlPreviewContainer = document.getElementById('heroUrlPreviewContainer');
+        if (urlPreviewContainer) urlPreviewContainer.classList.add('d-none');
+        var urlInput = document.getElementById('heroUrlInput');
+        if (urlInput) urlInput.value = '';
+        
+        clearHeroErrors();
+        triggerAutosave();
+    }
+    
     // Logo source tab switching
     document.querySelectorAll('input[name="logoSource"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -2542,16 +2713,35 @@ function initializeWizard() {
         });
     });
     
-    document.getElementById('heroUploadZone').addEventListener('click', function() {
+    document.getElementById('heroUploadZone').addEventListener('click', function(e) {
+        if (e.target.closest('#heroEditBtn') || e.target.closest('#heroRemoveBtn')) return;
+        if (!document.getElementById('heroPreviewContainer').classList.contains('d-none')) return;
         document.getElementById('heroFileInput').click();
+    });
+    
+    document.getElementById('heroUploadZone').addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+    
+    document.getElementById('heroUploadZone').addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+    });
+    
+    document.getElementById('heroUploadZone').addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            document.getElementById('heroFileInput').files = e.dataTransfer.files;
+            document.getElementById('heroFileInput').dispatchEvent(new Event('change'));
+        }
     });
     
     document.getElementById('heroFileInput').addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             var file = e.target.files[0];
-            
-            document.getElementById('heroFormatError').style.display = 'none';
-            document.getElementById('heroSizeError').style.display = 'none';
+            clearHeroErrors();
             
             var validTypes = ['image/png', 'image/jpeg'];
             if (!validTypes.includes(file.type)) {
@@ -2568,18 +2758,73 @@ function initializeWizard() {
             }
             
             wizardData.heroFile = file;
-            wizardData.heroValid = true;
             var reader = new FileReader();
             reader.onload = function(evt) {
-                wizardData.heroDataUrl = evt.target.result;
-                document.getElementById('heroPreviewImg').src = evt.target.result;
-                document.getElementById('heroPlaceholder').classList.add('d-none');
-                document.getElementById('heroPreviewContainer').classList.remove('d-none');
-                document.getElementById('heroUploadZone').classList.add('has-hero');
-                triggerAutosave();
+                var img = new Image();
+                img.onload = function() {
+                    if (img.width < img.height) {
+                        document.getElementById('heroOrientationError').style.display = 'block';
+                        wizardData.heroFile = null;
+                        return;
+                    }
+                    openHeroCropEditor(evt.target.result);
+                };
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         }
+    });
+    
+    document.querySelectorAll('input[name="heroSource"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var isFile = this.value === 'file';
+            document.getElementById('heroFileUploadSection').classList.toggle('d-none', !isFile);
+            document.getElementById('heroUrlUploadSection').classList.toggle('d-none', isFile);
+        });
+    });
+    
+    document.getElementById('heroUrlFetchBtn').addEventListener('click', function() {
+        var url = document.getElementById('heroUrlInput').value.trim();
+        if (!url) return;
+        
+        clearHeroErrors();
+        
+        if (!url.startsWith('https://')) {
+            document.getElementById('heroUrlError').style.display = 'block';
+            return;
+        }
+        
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            if (img.width < img.height) {
+                document.getElementById('heroOrientationError').style.display = 'block';
+                return;
+            }
+            openHeroCropEditor(url);
+        };
+        img.onerror = function() {
+            document.getElementById('heroUrlError').style.display = 'block';
+        };
+        img.src = url;
+    });
+    
+    document.getElementById('heroEditBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (wizardData.heroCropMetadata && wizardData.heroCropMetadata.originalSrc) {
+            openHeroCropEditor(wizardData.heroCropMetadata.originalSrc);
+        } else if (wizardData.heroDataUrl) {
+            openHeroCropEditor(wizardData.heroDataUrl);
+        }
+    });
+    
+    document.getElementById('heroRemoveBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearHeroPreview();
+    });
+    
+    document.getElementById('heroCropApplyBtn').addEventListener('click', function() {
+        applyHeroCrop();
     });
     
     document.getElementById('showPhoneToggle').addEventListener('change', function() {
@@ -2723,6 +2968,7 @@ function resetWizardData() {
         logoCropMetadata: null,
         heroFile: null,
         heroDataUrl: null,
+        heroCropMetadata: null,
         brandColor: '#886CC0',
         website: '',
         privacyUrl: '',
@@ -3437,15 +3683,16 @@ function populateWizardUIFromData() {
         if (logoUploadZone) logoUploadZone.classList.add('has-logo');
     }
     
-    // Hero preview
+    // Hero preview - use correct element IDs
     if (wizardData.heroDataUrl) {
-        var heroPreview = document.getElementById('heroPreview');
+        var heroPreviewImg = document.getElementById('heroPreviewImg');
         var heroPlaceholder = document.getElementById('heroPlaceholder');
-        if (heroPreview && heroPlaceholder) {
-            heroPreview.src = wizardData.heroDataUrl;
-            heroPreview.style.display = 'block';
-            heroPlaceholder.style.display = 'none';
-        }
+        var heroPreviewContainer = document.getElementById('heroPreviewContainer');
+        var heroUploadZone = document.getElementById('heroUploadZone');
+        if (heroPreviewImg) heroPreviewImg.src = wizardData.heroDataUrl;
+        if (heroPlaceholder) heroPlaceholder.classList.add('d-none');
+        if (heroPreviewContainer) heroPreviewContainer.classList.remove('d-none');
+        if (heroUploadZone) heroUploadZone.classList.add('has-hero');
     }
     
     // Brand color
