@@ -395,6 +395,20 @@
     opacity: 0.3;
     margin-bottom: 1rem;
 }
+.success-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(28, 187, 140, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+.success-icon-wrapper i {
+    font-size: 2rem;
+    color: #1cbb8c;
+}
 </style>
 @endpush
 
@@ -783,6 +797,25 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="purchaseSuccessModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="mb-4">
+                    <div class="success-icon-wrapper">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                <h4 class="mb-2">Payment successful</h4>
+                <p class="text-muted mb-4" id="successMessage">Your number has been purchased successfully.</p>
+                <a href="{{ route('management.numbers') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-cog me-2"></i>Configure number
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1134,10 +1167,7 @@ function executeVmnPurchase() {
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
-    var items = selectedVmnIds.map(function(id) {
-        var vmn = vmnMockData.find(function(v) { return v.id === id; });
-        return { type: 'vmn', identifier: vmn.number, country_code: vmn.country };
-    });
+    var count = selectedVmnIds.length;
     
     setTimeout(function() {
         modal.hide();
@@ -1147,13 +1177,15 @@ function executeVmnPurchase() {
             if (idx !== -1) vmnMockData.splice(idx, 1);
         });
         
-        var count = selectedVmnIds.length;
         selectedVmnIds = [];
         renderVmnTable();
         
-        showSuccessToast('Purchase Complete', count + ' number(s) purchased successfully.');
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalText;
+        
+        var message = count === 1 ? 'Your number has been purchased successfully.' : 'Your ' + count + ' numbers have been purchased successfully.';
+        document.getElementById('successMessage').textContent = message;
+        new bootstrap.Modal(document.getElementById('purchaseSuccessModal')).show();
     }, 1000);
 }
 
@@ -1164,10 +1196,11 @@ function executeKeywordPurchase() {
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
     
+    var count = selectedKeywords.length;
+    
     setTimeout(function() {
         modal.hide();
         
-        var count = selectedKeywords.length;
         selectedKeywords.forEach(function(kw) {
             takenKeywords.push(kw);
         });
@@ -1176,9 +1209,12 @@ function executeKeywordPurchase() {
         renderSelectedKeywords();
         renderTakenKeywords();
         
-        showSuccessToast('Purchase Complete', count + ' keyword(s) purchased successfully.');
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalText;
+        
+        var message = count === 1 ? 'Your keyword has been purchased successfully.' : 'Your ' + count + ' keywords have been purchased successfully.';
+        document.getElementById('successMessage').textContent = message;
+        new bootstrap.Modal(document.getElementById('purchaseSuccessModal')).show();
     }, 1000);
 }
 
