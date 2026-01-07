@@ -76,7 +76,16 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **MessageLog Model:** Defines message structure with encrypted content and role-based access.
 - **Development Environment:** Utilizes PostgreSQL database with Neon backend for persistence.
 - **CSS Architecture:** Module-specific CSS overrides Fillow styles with unique prefixes.
-- **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, particularly enforced on the Purchase Messages page.
+- **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles. Enforced on:
+  - **Purchase Messages/Numbers:** Admin, Finance, Messaging Manager access only
+  - **RCS Agent Registration:** Role-specific permissions:
+    - Admin: full access (create, edit, submit, delete, view)
+    - Message Manager: create, edit, submit agents (no delete)
+    - Viewer/Analyst/Finance: view-only access
+    - Others: access denied with redirect to dashboard
+  - Uses PHP `$currentUserRole` and `$canCreate`/`$canEdit`/`$canSubmit`/`$canDelete`/`$canView` flags passed to JavaScript via `@json()` for client-side enforcement
+  - Delete action limited to draft agents only (admin role required)
+  - TODO markers for backend API enforcement
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

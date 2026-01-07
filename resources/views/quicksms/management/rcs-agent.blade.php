@@ -572,14 +572,51 @@
 
 @section('content')
 <div class="container-fluid">
+    @php
+        // TODO: Replace with Auth::user()->role or session-based role
+        $currentUserRole = 'admin'; // Options: 'admin', 'message_manager', 'viewer', 'analyst'
+        
+        // RBAC Configuration for RCS Agent Registration
+        // Admin: full access (create, edit, submit, delete, view)
+        // Message Manager: create, edit, submit (no delete)
+        // Others (viewer, analyst, etc.): view-only
+        $canCreate = in_array($currentUserRole, ['admin', 'message_manager']);
+        $canEdit = in_array($currentUserRole, ['admin', 'message_manager']);
+        $canSubmit = in_array($currentUserRole, ['admin', 'message_manager']);
+        $canDelete = $currentUserRole === 'admin';
+        $canView = true; // All authenticated users can view
+        
+        // Roles that have any access to this page
+        $allowedRoles = ['admin', 'message_manager', 'viewer', 'analyst', 'finance'];
+        $hasPageAccess = in_array($currentUserRole, $allowedRoles);
+    @endphp
+    
+    @if(!$hasPageAccess)
+    <div id="accessDeniedView">
+        <div class="card" style="max-width: 500px; margin: 3rem auto; text-align: center;">
+            <div class="card-body py-5">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(136, 108, 192, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                    <i class="fas fa-lock" style="font-size: 2rem; color: var(--primary);"></i>
+                </div>
+                <h4 class="mb-3">Access Restricted</h4>
+                <p class="text-muted mb-4">You don't have permission to access the RCS Agent Library. Please contact your administrator if you need access.</p>
+                <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    @else
     <div class="rcs-agents-header">
         <div>
             <h2>RCS Agent Library</h2>
             <p>View, manage, and track all RCS Agents for your account</p>
         </div>
+        @if($canCreate)
         <button class="btn btn-primary" id="createAgentBtn">
             <i class="fas fa-plus me-2"></i>Create RCS Agent
         </button>
+        @endif
     </div>
 
     <div class="agents-table-container" id="agentsTableContainer">
@@ -652,11 +689,16 @@
             <i class="fas fa-robot"></i>
         </div>
         <h4>No RCS Agents Yet</h4>
+        @if($canCreate)
         <p>Create your first RCS Agent to enable rich messaging experiences for your customers.</p>
         <button class="btn btn-primary" id="createAgentEmptyBtn">
             <i class="fas fa-plus me-2"></i>Create RCS Agent
         </button>
+        @else
+        <p>No RCS Agents have been created yet. Contact an administrator or message manager to create one.</p>
+        @endif
     </div>
+    @endif
 </div>
 
 <div class="modal fade" id="viewAgentModal" tabindex="-1">
@@ -741,6 +783,29 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="confirmResubmitBtn">Resubmit for Review</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteAgentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete RCS Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                <p>Are you sure you want to permanently delete <strong id="deleteAgentName"></strong>?</p>
+                <p class="text-muted small mb-0">This will remove all agent data including branding assets, messaging profile, and configuration. Only draft agents can be deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Agent</button>
             </div>
         </div>
     </div>
@@ -1451,6 +1516,16 @@
 
 @push('scripts')
 <script>
+// RBAC Configuration - passed from PHP
+var currentUserRole = @json($currentUserRole);
+var userPermissions = {
+    canCreate: @json($canCreate),
+    canEdit: @json($canEdit),
+    canSubmit: @json($canSubmit),
+    canDelete: @json($canDelete),
+    canView: @json($canView)
+};
+
 var mockAgents = [
     {
         id: 'agent-001',
@@ -1547,13 +1622,20 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('billingFilter').addEventListener('change', applyFilters);
     document.getElementById('useCaseFilter').addEventListener('change', applyFilters);
     
-    document.getElementById('createAgentBtn').addEventListener('click', function() {
-        openAgentWizard();
-    });
+    // Create buttons only exist for users with canCreate permission
+    var createAgentBtn = document.getElementById('createAgentBtn');
+    if (createAgentBtn) {
+        createAgentBtn.addEventListener('click', function() {
+            openAgentWizard();
+        });
+    }
     
-    document.getElementById('createAgentEmptyBtn').addEventListener('click', function() {
-        openAgentWizard();
-    });
+    var createAgentEmptyBtn = document.getElementById('createAgentEmptyBtn');
+    if (createAgentEmptyBtn) {
+        createAgentEmptyBtn.addEventListener('click', function() {
+            openAgentWizard();
+        });
+    }
     
     initializeWizard();
     
@@ -1573,6 +1655,9 @@ document.addEventListener('DOMContentLoaded', function() {
         pendingResubmitAgentId = null;
         bootstrap.Modal.getInstance(document.getElementById('resubmitAgentModal')).hide();
     });
+    
+    // Delete confirmation button handler (Admin only)
+    document.getElementById('confirmDeleteBtn').addEventListener('click', deleteAgent);
     
     document.getElementById('prevPageBtn').addEventListener('click', function() {
         if (currentPage > 1) {
@@ -1737,21 +1822,49 @@ function formatDate(dateStr) {
 }
 
 function getActionsMenu(agent) {
-    var canEdit = agent.status === 'draft' || agent.status === 'rejected';
-    var canResubmit = agent.status === 'rejected';
+    // Status-based permissions (agent must be editable)
+    var agentIsEditable = agent.status === 'draft' || agent.status === 'rejected';
+    var agentCanResubmit = agent.status === 'rejected';
+    var agentCanDelete = agent.status === 'draft'; // Only draft agents can be deleted
+    
+    // Role-based permissions combined with status-based
+    var showEdit = userPermissions.canEdit && agentIsEditable;
+    var showResubmit = userPermissions.canSubmit && agentCanResubmit;
+    var showDelete = userPermissions.canDelete && agentCanDelete;
+    
+    var menuItems = '';
+    
+    // View - always available if user has view permission
+    if (userPermissions.canView) {
+        menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewAgent(\'' + agent.id + '\')">' +
+            '<i class="fas fa-eye"></i>View</a></li>';
+    }
+    
+    // Edit - requires canEdit permission AND agent is draft/rejected
+    if (userPermissions.canEdit) {
+        menuItems += '<li><a class="dropdown-item' + (showEdit ? '' : ' disabled') + '" href="javascript:void(0)"' + 
+            (showEdit ? ' onclick="editAgent(\'' + agent.id + '\')"' : '') + '>' +
+            '<i class="fas fa-edit"></i>Edit</a></li>';
+    }
+    
+    // Resubmit - requires canSubmit permission AND agent is rejected
+    if (showResubmit) {
+        menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="resubmitAgent(\'' + agent.id + '\')">' +
+            '<i class="fas fa-redo"></i>Resubmit</a></li>';
+    }
+    
+    // Delete - Admin only, draft agents only
+    if (showDelete) {
+        menuItems += '<li><hr class="dropdown-divider"></li>' +
+            '<li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="confirmDeleteAgent(\'' + agent.id + '\')">' +
+            '<i class="fas fa-trash-alt"></i>Delete</a></li>';
+    }
     
     return '<div class="dropdown action-menu">' +
         '<button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">' +
             '<i class="fas fa-ellipsis-v"></i>' +
         '</button>' +
-        '<ul class="dropdown-menu dropdown-menu-end">' +
-            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewAgent(\'' + agent.id + '\')">' +
-                '<i class="fas fa-eye"></i>View</a></li>' +
-            '<li><a class="dropdown-item' + (canEdit ? '' : ' disabled') + '" href="javascript:void(0)"' + (canEdit ? ' onclick="editAgent(\'' + agent.id + '\')"' : '') + '>' +
-                '<i class="fas fa-edit"></i>Edit</a></li>' +
-            (canResubmit ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="resubmitAgent(\'' + agent.id + '\')">' +
-                '<i class="fas fa-redo"></i>Resubmit</a></li>' : '') +
-        '</ul>' +
+        '<ul class="dropdown-menu dropdown-menu-end">' + menuItems + '</ul>' +
     '</div>';
 }
 
@@ -1801,6 +1914,55 @@ function resubmitAgent(agentId) {
     }
     
     new bootstrap.Modal(document.getElementById('resubmitAgentModal')).show();
+}
+
+var pendingDeleteAgentId = null;
+
+function confirmDeleteAgent(agentId) {
+    // RBAC check: Only admin can delete
+    if (!userPermissions.canDelete) {
+        showNotification('error', 'Access Denied', 'You do not have permission to delete RCS agents.');
+        return;
+    }
+    
+    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    if (!agent) return;
+    
+    // Only draft agents can be deleted
+    if (agent.status !== 'draft') {
+        showNotification('error', 'Cannot Delete', 'Only draft agents can be deleted. Submitted, in-review, or approved agents cannot be deleted.');
+        return;
+    }
+    
+    pendingDeleteAgentId = agentId;
+    document.getElementById('deleteAgentName').textContent = agent.name;
+    new bootstrap.Modal(document.getElementById('deleteAgentModal')).show();
+}
+
+function deleteAgent() {
+    if (!pendingDeleteAgentId) return;
+    
+    // RBAC check: Only admin can delete
+    if (!userPermissions.canDelete) {
+        showNotification('error', 'Access Denied', 'You do not have permission to delete RCS agents.');
+        return;
+    }
+    
+    var agent = mockAgents.find(function(a) { return a.id === pendingDeleteAgentId; });
+    if (!agent) return;
+    
+    // TODO: Replace with API call - DELETE /api/rcs-agents/{id}
+    // API should validate: user role is admin, agent status is 'draft'
+    
+    var agentName = agent.name;
+    mockAgents = mockAgents.filter(function(a) { return a.id !== pendingDeleteAgentId; });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('deleteAgentModal'));
+    if (modal) modal.hide();
+    
+    pendingDeleteAgentId = null;
+    renderTable();
+    showNotification('success', 'Agent Deleted', 'The RCS agent "' + agentName + '" has been permanently deleted.');
 }
 
 function showNotification(type, title, message) {
