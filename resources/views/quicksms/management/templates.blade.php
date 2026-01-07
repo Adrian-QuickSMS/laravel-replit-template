@@ -210,8 +210,14 @@
 }
 .trigger-text {
     font-size: 0.85rem;
-    color: #6c757d;
+    color: #495057;
 }
+.trigger-text i {
+    margin-right: 0.35rem;
+}
+.trigger-text.trigger-api i { color: #6c757d; }
+.trigger-text.trigger-portal i { color: #cc9900; }
+.trigger-text.trigger-email i { color: #D653C1; }
 .version-text {
     font-size: 0.85rem;
     color: #886CC0;
@@ -2446,6 +2452,24 @@ function getTriggerBadgeClass(trigger) {
     }
 }
 
+function getTriggerTextClass(trigger) {
+    switch(trigger) {
+        case 'api': return 'trigger-api';
+        case 'portal': return 'trigger-portal';
+        case 'email': return 'trigger-email';
+        default: return 'trigger-api';
+    }
+}
+
+function getTriggerIcon(trigger) {
+    switch(trigger) {
+        case 'api': return '<i class="fas fa-code"></i>';
+        case 'portal': return '<i class="fas fa-desktop"></i>';
+        case 'email': return '<i class="fas fa-envelope"></i>';
+        default: return '<i class="fas fa-code"></i>';
+    }
+}
+
 function getStatusLabel(status) {
     return status.charAt(0).toUpperCase() + status.slice(1);
 }
@@ -2541,7 +2565,7 @@ function renderTemplates() {
         html += '<td><span class="template-id">' + template.templateId + '</span></td>';
         html += '<td><span class="version-text">v' + template.version + '</span></td>';
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
-        html += '<td><span class="trigger-text">' + getTriggerLabel(template.trigger) + '</span></td>';
+        html += '<td><span class="trigger-text ' + getTriggerTextClass(template.trigger) + '">' + getTriggerIcon(template.trigger) + getTriggerLabel(template.trigger) + '</span></td>';
         html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
