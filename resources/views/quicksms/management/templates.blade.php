@@ -291,6 +291,60 @@
 .archived-row:hover {
     opacity: 0.8;
 }
+.vh-audit-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+.vh-audit-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+.vh-audit-entry {
+    position: relative;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+.vh-audit-entry:last-child {
+    border-bottom: none;
+}
+.vh-audit-entry::before {
+    content: '';
+    position: absolute;
+    left: -1.55rem;
+    top: 1rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #886CC0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+.vh-audit-entry.action-created::before { background: #1cbb8c; }
+.vh-audit-entry.action-edited::before { background: #3065D0; }
+.vh-audit-entry.action-launched::before { background: #28a745; }
+.vh-audit-entry.action-archived::before { background: #dc3545; }
+.vh-audit-entry.action-rolled-back::before { background: #fd7e14; }
+.vh-audit-entry.action-duplicated::before { background: #6f42c1; }
+.vh-audit-entry.action-permissions::before { background: #17a2b8; }
+.vh-audit-action {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+.vh-audit-meta {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+.vh-version-current {
+    background-color: rgba(136, 108, 192, 0.08);
+}
+.vh-version-current td:first-child {
+    border-left: 3px solid #886CC0;
+}
 .form-check-input:checked {
     background-color: var(--primary);
     border-color: var(--primary);
@@ -1447,6 +1501,197 @@
         </div>
     </div>
 </div>
+
+<!-- Version History Modal -->
+<div class="modal fade" id="versionHistoryModal" tabindex="-1" aria-labelledby="versionHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2" style="background: linear-gradient(135deg, #886CC0 0%, #a78bda 100%);">
+                <h5 class="modal-title text-white" id="versionHistoryModalLabel">
+                    <i class="fas fa-history me-2"></i>Version History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="p-3 bg-light border-bottom">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="mb-1" id="vhTemplateName">Template Name</h6>
+                            <span class="text-muted small">ID: <code id="vhTemplateId">00000000</code></span>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <span class="badge bg-primary" id="vhCurrentVersion">Current: v1</span>
+                            <span class="badge" id="vhCurrentStatus">Live</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="nav nav-tabs px-3 pt-2" id="vhTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="versions-tab" data-bs-toggle="tab" data-bs-target="#versions-pane" type="button" role="tab">
+                            <i class="fas fa-code-branch me-1"></i>Versions
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit-pane" type="button" role="tab">
+                            <i class="fas fa-clipboard-list me-1"></i>Audit Log
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content p-3">
+                    <div class="tab-pane fade show active" id="versions-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="versionsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Version</th>
+                                        <th style="width: 100px;">Status</th>
+                                        <th>Change Note</th>
+                                        <th style="width: 150px;">Edited By</th>
+                                        <th style="width: 160px;">Edited At</th>
+                                        <th style="width: 120px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="versionsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="audit-pane" role="tabpanel">
+                        <div class="vh-audit-timeline" id="auditTimeline">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Version Modal (Read-only) -->
+<div class="modal fade" id="viewVersionModal" tabindex="-1" aria-labelledby="viewVersionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-light">
+                <h5 class="modal-title" id="viewVersionModalLabel">
+                    <i class="fas fa-eye me-2"></i>View Version
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Read-only view</strong> - This is a historical snapshot of the template.
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Template Name</label>
+                        <p class="mb-0 fw-medium" id="vvTemplateName">-</p>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label small text-muted">Version</label>
+                        <p class="mb-0"><span class="badge bg-primary" id="vvVersion">v1</span></p>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label small text-muted">Status at Save</label>
+                        <p class="mb-0"><span class="badge" id="vvStatus">Draft</span></p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Channel</label>
+                        <p class="mb-0"><span class="badge" id="vvChannel">SMS</span></p>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted">Trigger</label>
+                        <p class="mb-0"><span class="badge" id="vvTrigger">Portal</span></p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Change Note</label>
+                    <p class="mb-0 text-muted fst-italic" id="vvChangeNote">No change note provided</p>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Content Preview</label>
+                    <div class="border rounded p-3 bg-light" id="vvContentPreview" style="min-height: 100px;">
+                        <p class="text-muted mb-0">No content</p>
+                    </div>
+                </div>
+                
+                <div class="mb-3" id="vvPlaceholdersSection">
+                    <label class="form-label small text-muted">Placeholders Used</label>
+                    <div id="vvPlaceholders">
+                        <span class="text-muted">None</span>
+                    </div>
+                </div>
+                
+                <div class="row text-muted small">
+                    <div class="col-6">
+                        <i class="fas fa-user me-1"></i>Edited by: <span id="vvEditedBy">-</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <i class="fas fa-clock me-1"></i>Edited at: <span id="vvEditedAt">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-primary" id="vvRollbackBtn" onclick="rollbackFromViewVersion()">
+                    <i class="fas fa-undo me-1"></i>Roll Back to This Version
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rollback Confirmation Modal -->
+<div class="modal fade" id="rollbackConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2 bg-warning">
+                <h5 class="modal-title"><i class="fas fa-undo me-2"></i>Confirm Rollback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to roll back to <strong id="rbVersionLabel">Version X</strong>.</p>
+                <p class="mb-3">This will create a <strong>new version</strong> with the content from the selected version. The current version will remain in history.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Change Note (optional)</label>
+                    <input type="text" class="form-control" id="rbChangeNote" placeholder="e.g., Rolled back due to error in v3">
+                </div>
+                
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="rbSetLive">
+                    <label class="form-check-label" for="rbSetLive">
+                        Set the new version as Live immediately
+                    </label>
+                </div>
+                
+                <div class="alert alert-secondary py-2 small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Rolling back creates a new version. No existing versions are deleted or modified.
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="confirmRollback()">
+                    <i class="fas fa-undo me-1"></i>Roll Back
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1565,6 +1810,68 @@ var mockTemplates = [
         lastUpdated: '2026-01-02'
     }
 ];
+
+var mockVersionHistory = {
+    1: [
+        { version: 3, status: 'live', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.', channel: 'sms', trigger: 'portal', changeNote: 'Added opt-out instructions', editedBy: 'John Smith', editedAt: '2026-01-05 14:32:00', userId: 'user1' },
+        { version: 2, status: 'draft', content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Personalized greeting', editedBy: 'Sarah Jones', editedAt: '2026-01-03 10:15:00', userId: 'user2' },
+        { version: 1, status: 'draft', content: 'Welcome to QuickSMS! Your account is now active.', channel: 'sms', trigger: 'portal', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2026-01-01 09:00:00', userId: 'user1' }
+    ],
+    2: [
+        { version: 2, status: 'live', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}. Reply YES to confirm.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Added confirmation prompt', editedBy: 'Mike Wilson', editedAt: '2026-01-04 16:45:00', userId: 'user3' },
+        { version: 1, status: 'draft', content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}.', channel: 'basic_rcs', trigger: 'api', changeNote: 'Initial version', editedBy: 'Mike Wilson', editedAt: '2026-01-02 11:30:00', userId: 'user3' }
+    ],
+    6: [
+        { version: 5, status: 'archived', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Archived - replaced by new auth system', editedBy: 'Emily Brown', editedAt: '2025-11-15 08:00:00', userId: 'user4' },
+        { version: 4, status: 'live', content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.', channel: 'sms', trigger: 'api', changeNote: 'Added security warning', editedBy: 'Emily Brown', editedAt: '2025-10-20 14:20:00', userId: 'user4' },
+        { version: 3, status: 'live', content: 'Your verification code is {Code}. Expires in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Shortened expiry text', editedBy: 'David Lee', editedAt: '2025-09-15 10:00:00', userId: 'user5' },
+        { version: 2, status: 'live', content: 'Your verification code is {Code}. This code will expire in 10 minutes.', channel: 'sms', trigger: 'api', changeNote: 'Added expiry info', editedBy: 'Emily Brown', editedAt: '2025-08-01 09:30:00', userId: 'user4' },
+        { version: 1, status: 'draft', content: 'Your verification code is {Code}.', channel: 'sms', trigger: 'api', changeNote: 'Initial version', editedBy: 'John Smith', editedAt: '2025-07-15 15:00:00', userId: 'user1' }
+    ]
+};
+
+var mockAuditLog = {
+    1: [
+        { action: 'launched', version: 3, userId: 'user1', userName: 'John Smith', timestamp: '2026-01-05 14:35:00', details: 'Published version 3 as Live' },
+        { action: 'edited', version: 3, userId: 'user1', userName: 'John Smith', timestamp: '2026-01-05 14:32:00', details: 'Added opt-out instructions' },
+        { action: 'edited', version: 2, userId: 'user2', userName: 'Sarah Jones', timestamp: '2026-01-03 10:15:00', details: 'Personalized greeting' },
+        { action: 'created', version: 1, userId: 'user1', userName: 'John Smith', timestamp: '2026-01-01 09:00:00', details: 'Template created' }
+    ],
+    2: [
+        { action: 'launched', version: 2, userId: 'user3', userName: 'Mike Wilson', timestamp: '2026-01-04 16:50:00', details: 'Published version 2 as Live' },
+        { action: 'edited', version: 2, userId: 'user3', userName: 'Mike Wilson', timestamp: '2026-01-04 16:45:00', details: 'Added confirmation prompt' },
+        { action: 'created', version: 1, userId: 'user3', userName: 'Mike Wilson', timestamp: '2026-01-02 11:30:00', details: 'Template created' }
+    ],
+    6: [
+        { action: 'archived', version: 5, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-11-15 08:00:00', details: 'Template archived - replaced by new auth system' },
+        { action: 'permissions', version: 4, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-10-25 11:00:00', details: 'Restricted access to IT Security only' },
+        { action: 'launched', version: 4, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-10-20 14:25:00', details: 'Published version 4 as Live' },
+        { action: 'edited', version: 4, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-10-20 14:20:00', details: 'Added security warning' },
+        { action: 'edited', version: 3, userId: 'user5', userName: 'David Lee', timestamp: '2025-09-15 10:00:00', details: 'Shortened expiry text' },
+        { action: 'launched', version: 3, userId: 'user5', userName: 'David Lee', timestamp: '2025-09-15 10:05:00', details: 'Published version 3 as Live' },
+        { action: 'edited', version: 2, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-08-01 09:30:00', details: 'Added expiry info' },
+        { action: 'launched', version: 2, userId: 'user4', userName: 'Emily Brown', timestamp: '2025-08-01 09:35:00', details: 'Published version 2 as Live' },
+        { action: 'created', version: 1, userId: 'user1', userName: 'John Smith', timestamp: '2025-07-15 15:00:00', details: 'Template created' }
+    ]
+};
+
+var currentVersionHistory = {
+    templateId: null,
+    versions: [],
+    auditLog: []
+};
+
+var currentViewVersion = {
+    templateId: null,
+    version: null,
+    data: null
+};
+
+var rollbackTarget = {
+    templateId: null,
+    version: null,
+    data: null
+};
 
 var showArchived = false;
 
@@ -2077,6 +2384,7 @@ function renderTemplates() {
             html += '<li><a class="dropdown-item" href="#" onclick="editTemplate(' + template.id + '); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         html += '<li><a class="dropdown-item" href="#" onclick="duplicateTemplate(' + template.id + '); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
+        html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(' + template.id + '); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
         if (!isArchived) {
             html += '<li><a class="dropdown-item" href="#" onclick="managePermissions(' + template.id + '); return false;"><i class="fas fa-lock me-2"></i>Permissions</a></li>';
         }
@@ -3028,5 +3336,344 @@ function setupTemplateChannelListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     setupTemplateChannelListeners();
 });
+
+function viewVersionHistory(templateId) {
+    var template = mockTemplates.find(function(t) { return t.id === templateId; });
+    if (!template) return;
+    
+    currentVersionHistory.templateId = templateId;
+    currentVersionHistory.versions = mockVersionHistory[templateId] || generateDefaultVersionHistory(template);
+    currentVersionHistory.auditLog = mockAuditLog[templateId] || generateDefaultAuditLog(template);
+    
+    document.getElementById('vhTemplateName').textContent = template.name;
+    document.getElementById('vhTemplateId').textContent = template.templateId;
+    document.getElementById('vhCurrentVersion').textContent = 'Current: v' + template.version;
+    
+    var statusBadge = document.getElementById('vhCurrentStatus');
+    statusBadge.textContent = getStatusLabel(template.status);
+    statusBadge.className = 'badge ' + getStatusBadgeClass(template.status).replace('badge-', 'bg-');
+    
+    renderVersionsTable();
+    renderAuditTimeline();
+    
+    document.getElementById('versions-tab').click();
+    
+    new bootstrap.Modal(document.getElementById('versionHistoryModal')).show();
+}
+
+function generateDefaultVersionHistory(template) {
+    return [{
+        version: template.version,
+        status: template.status,
+        content: template.content,
+        channel: template.channel,
+        trigger: template.trigger,
+        changeNote: 'Current version',
+        editedBy: 'System',
+        editedAt: template.lastUpdated + ' 12:00:00',
+        userId: 'system'
+    }];
+}
+
+function generateDefaultAuditLog(template) {
+    return [{
+        action: 'created',
+        version: 1,
+        userId: 'system',
+        userName: 'System',
+        timestamp: template.lastUpdated + ' 12:00:00',
+        details: 'Template created'
+    }];
+}
+
+function renderVersionsTable() {
+    var tbody = document.getElementById('versionsTableBody');
+    var template = mockTemplates.find(function(t) { return t.id === currentVersionHistory.templateId; });
+    var currentVersion = template ? template.version : 1;
+    var isArchived = template && template.status === 'archived';
+    
+    var html = '';
+    
+    currentVersionHistory.versions.forEach(function(v) {
+        var isCurrent = v.version === currentVersion;
+        var rowClass = isCurrent ? 'vh-version-current' : '';
+        
+        html += '<tr class="' + rowClass + '">';
+        html += '<td><span class="badge bg-primary">v' + v.version + '</span>';
+        if (isCurrent) {
+            html += ' <span class="badge bg-success ms-1">Current</span>';
+        }
+        html += '</td>';
+        
+        html += '<td><span class="badge ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span></td>';
+        html += '<td class="text-muted small">' + (v.changeNote || '<em>No note</em>') + '</td>';
+        html += '<td>' + v.editedBy + '</td>';
+        html += '<td class="small">' + formatTimestamp(v.editedAt) + '</td>';
+        html += '<td>';
+        html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="viewVersion(' + v.version + ')" title="View"><i class="fas fa-eye"></i></button>';
+        
+        if (!isCurrent && !isArchived) {
+            html += '<button class="btn btn-sm btn-outline-warning" onclick="initiateRollback(' + v.version + ')" title="Roll back"><i class="fas fa-undo"></i></button>';
+        }
+        
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html || '<tr><td colspan="6" class="text-center text-muted">No version history available</td></tr>';
+}
+
+function renderAuditTimeline() {
+    var container = document.getElementById('auditTimeline');
+    var html = '';
+    
+    currentVersionHistory.auditLog.forEach(function(entry) {
+        var actionClass = 'action-' + entry.action.replace(/_/g, '-');
+        var actionIcon = getAuditActionIcon(entry.action);
+        var actionLabel = getAuditActionLabel(entry.action);
+        
+        html += '<div class="vh-audit-entry ' + actionClass + '">';
+        html += '<div class="vh-audit-action">';
+        html += '<i class="' + actionIcon + ' me-2"></i>' + actionLabel;
+        html += ' <span class="badge bg-light text-dark">v' + entry.version + '</span>';
+        html += '</div>';
+        html += '<div class="vh-audit-meta">';
+        html += '<span class="me-3"><i class="fas fa-user me-1"></i>' + entry.userName + '</span>';
+        html += '<span><i class="fas fa-clock me-1"></i>' + formatTimestamp(entry.timestamp) + '</span>';
+        html += '</div>';
+        if (entry.details) {
+            html += '<div class="small text-muted mt-1">' + entry.details + '</div>';
+        }
+        html += '</div>';
+    });
+    
+    container.innerHTML = html || '<p class="text-muted text-center py-3">No audit entries available</p>';
+}
+
+function getAuditActionIcon(action) {
+    switch(action) {
+        case 'created': return 'fas fa-plus-circle text-success';
+        case 'edited': return 'fas fa-edit text-primary';
+        case 'launched': return 'fas fa-rocket text-success';
+        case 'archived': return 'fas fa-archive text-danger';
+        case 'rolled-back': return 'fas fa-undo text-warning';
+        case 'duplicated': return 'fas fa-copy text-purple';
+        case 'permissions': return 'fas fa-lock text-info';
+        default: return 'fas fa-circle';
+    }
+}
+
+function getAuditActionLabel(action) {
+    switch(action) {
+        case 'created': return 'Created';
+        case 'edited': return 'Edited';
+        case 'launched': return 'Launched';
+        case 'archived': return 'Archived';
+        case 'rolled-back': return 'Rolled Back';
+        case 'duplicated': return 'Duplicated';
+        case 'permissions': return 'Permissions Changed';
+        default: return action.charAt(0).toUpperCase() + action.slice(1);
+    }
+}
+
+function formatTimestamp(timestamp) {
+    if (!timestamp) return '-';
+    var date = new Date(timestamp.replace(' ', 'T'));
+    if (isNaN(date.getTime())) return timestamp;
+    
+    var options = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    return date.toLocaleDateString('en-GB', options);
+}
+
+function viewVersion(versionNum) {
+    var versionData = currentVersionHistory.versions.find(function(v) { return v.version === versionNum; });
+    if (!versionData) return;
+    
+    var template = mockTemplates.find(function(t) { return t.id === currentVersionHistory.templateId; });
+    if (!template) return;
+    
+    currentViewVersion.templateId = currentVersionHistory.templateId;
+    currentViewVersion.version = versionNum;
+    currentViewVersion.data = versionData;
+    
+    document.getElementById('vvTemplateName').textContent = template.name;
+    document.getElementById('vvVersion').textContent = 'v' + versionNum;
+    
+    var statusBadge = document.getElementById('vvStatus');
+    statusBadge.textContent = getStatusLabel(versionData.status);
+    statusBadge.className = 'badge ' + getStatusBadgeClass(versionData.status).replace('badge-', 'bg-');
+    
+    var channelBadge = document.getElementById('vvChannel');
+    channelBadge.textContent = getChannelLabel(versionData.channel);
+    channelBadge.className = 'badge ' + getChannelBadgeClass(versionData.channel);
+    
+    var triggerBadge = document.getElementById('vvTrigger');
+    triggerBadge.textContent = getTriggerLabel(versionData.trigger);
+    triggerBadge.className = 'badge ' + getTriggerBadgeClass(versionData.trigger);
+    
+    document.getElementById('vvChangeNote').textContent = versionData.changeNote || 'No change note provided';
+    document.getElementById('vvEditedBy').textContent = versionData.editedBy;
+    document.getElementById('vvEditedAt').textContent = formatTimestamp(versionData.editedAt);
+    
+    var contentPreview = document.getElementById('vvContentPreview');
+    if (versionData.content) {
+        var highlightedContent = versionData.content.replace(/\{(\w+)\}/g, '<span class="badge bg-info text-dark">{$1}</span>');
+        contentPreview.innerHTML = '<p class="mb-0">' + highlightedContent + '</p>';
+    } else {
+        contentPreview.innerHTML = '<p class="text-muted mb-0 fst-italic">Rich RCS content (not displayed in text view)</p>';
+    }
+    
+    var placeholders = extractPlaceholders(versionData.content || '');
+    var placeholderContainer = document.getElementById('vvPlaceholders');
+    if (placeholders.length > 0) {
+        placeholderContainer.innerHTML = placeholders.map(function(p) {
+            return '<span class="badge bg-light text-dark me-1 mb-1">{' + p + '}</span>';
+        }).join('');
+    } else {
+        placeholderContainer.innerHTML = '<span class="text-muted">None</span>';
+    }
+    
+    var isCurrent = versionNum === template.version;
+    var isArchived = template.status === 'archived';
+    var rollbackBtn = document.getElementById('vvRollbackBtn');
+    
+    if (isCurrent || isArchived) {
+        rollbackBtn.style.display = 'none';
+    } else {
+        rollbackBtn.style.display = 'inline-block';
+    }
+    
+    new bootstrap.Modal(document.getElementById('viewVersionModal')).show();
+}
+
+function extractPlaceholders(content) {
+    var matches = content.match(/\{(\w+)\}/g) || [];
+    return matches.map(function(m) { return m.replace(/[{}]/g, ''); });
+}
+
+function initiateRollback(versionNum) {
+    var versionData = currentVersionHistory.versions.find(function(v) { return v.version === versionNum; });
+    if (!versionData) return;
+    
+    rollbackTarget.templateId = currentVersionHistory.templateId;
+    rollbackTarget.version = versionNum;
+    rollbackTarget.data = versionData;
+    
+    document.getElementById('rbVersionLabel').textContent = 'Version ' + versionNum;
+    document.getElementById('rbChangeNote').value = '';
+    document.getElementById('rbSetLive').checked = false;
+    
+    new bootstrap.Modal(document.getElementById('rollbackConfirmModal')).show();
+}
+
+function rollbackFromViewVersion() {
+    if (!currentViewVersion.version || !currentViewVersion.data) return;
+    
+    bootstrap.Modal.getInstance(document.getElementById('viewVersionModal')).hide();
+    
+    setTimeout(function() {
+        initiateRollback(currentViewVersion.version);
+    }, 300);
+}
+
+function confirmRollback() {
+    if (!rollbackTarget.templateId || !rollbackTarget.version || !rollbackTarget.data) return;
+    
+    var template = mockTemplates.find(function(t) { return t.id === rollbackTarget.templateId; });
+    if (!template) return;
+    
+    var changeNote = document.getElementById('rbChangeNote').value.trim() || 'Rolled back from version ' + rollbackTarget.version;
+    var setLive = document.getElementById('rbSetLive').checked;
+    
+    var newVersion = template.version + 1;
+    
+    var newVersionEntry = {
+        version: newVersion,
+        status: setLive ? 'live' : 'draft',
+        content: rollbackTarget.data.content,
+        channel: rollbackTarget.data.channel,
+        trigger: rollbackTarget.data.trigger,
+        changeNote: changeNote,
+        editedBy: 'Current User',
+        editedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        userId: 'current'
+    };
+    
+    if (!mockVersionHistory[rollbackTarget.templateId]) {
+        mockVersionHistory[rollbackTarget.templateId] = generateDefaultVersionHistory(template);
+    }
+    mockVersionHistory[rollbackTarget.templateId].unshift(newVersionEntry);
+    
+    if (setLive) {
+        mockVersionHistory[rollbackTarget.templateId].forEach(function(v) {
+            if (v.version !== newVersion && v.status === 'live') {
+                v.status = 'draft';
+            }
+        });
+    }
+    
+    var auditEntry = {
+        action: 'rolled-back',
+        version: newVersion,
+        userId: 'current',
+        userName: 'Current User',
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        details: 'Rolled back to version ' + rollbackTarget.version + '. ' + changeNote
+    };
+    
+    if (!mockAuditLog[rollbackTarget.templateId]) {
+        mockAuditLog[rollbackTarget.templateId] = generateDefaultAuditLog(template);
+    }
+    mockAuditLog[rollbackTarget.templateId].unshift(auditEntry);
+    
+    if (setLive) {
+        var launchEntry = {
+            action: 'launched',
+            version: newVersion,
+            userId: 'current',
+            userName: 'Current User',
+            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            details: 'Published version ' + newVersion + ' as Live'
+        };
+        mockAuditLog[rollbackTarget.templateId].unshift(launchEntry);
+    }
+    
+    template.version = newVersion;
+    template.content = rollbackTarget.data.content;
+    template.channel = rollbackTarget.data.channel;
+    
+    if (setLive) {
+        template.status = 'live';
+    } else {
+        template.status = 'draft';
+    }
+    template.lastUpdated = new Date().toISOString().split('T')[0];
+    
+    var statusBadge = document.getElementById('vhCurrentStatus');
+    statusBadge.textContent = getStatusLabel(template.status);
+    statusBadge.className = 'badge ' + getStatusBadgeClass(template.status).replace('badge-', 'bg-');
+    
+    bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal')).hide();
+    
+    currentVersionHistory.versions = mockVersionHistory[rollbackTarget.templateId];
+    currentVersionHistory.auditLog = mockAuditLog[rollbackTarget.templateId];
+    
+    renderVersionsTable();
+    renderAuditTimeline();
+    
+    document.getElementById('vhCurrentVersion').textContent = 'Current: v' + newVersion;
+    
+    renderTemplates();
+    
+    showToast('Rolled back to version ' + rollbackTarget.version + '. New version ' + newVersion + ' created.', 'success');
+    
+    rollbackTarget = { templateId: null, version: null, data: null };
+}
 </script>
 @endpush
