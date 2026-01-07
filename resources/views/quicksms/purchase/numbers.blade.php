@@ -697,8 +697,8 @@
                     </div>
                 </div>
 
-                <div class="alert alert-info small mb-0">
-                    <i class="fas fa-info-circle me-1"></i>
+                <div class="alert alert-pastel-primary small mb-0">
+                    <i class="fas fa-info-circle me-1 text-primary"></i>
                     Setup fee is charged immediately. Monthly fee starts on the 1st of each month.
                 </div>
             </div>
@@ -740,8 +740,8 @@
                     </div>
                 </div>
 
-                <div class="alert alert-info small mb-0">
-                    <i class="fas fa-info-circle me-1"></i>
+                <div class="alert alert-pastel-primary small mb-0">
+                    <i class="fas fa-info-circle me-1 text-primary"></i>
                     Setup fee is charged immediately. Monthly fee starts on the 1st of each month.
                 </div>
             </div>
