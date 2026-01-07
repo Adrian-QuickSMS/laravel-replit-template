@@ -3765,19 +3765,19 @@ function updatePermissionChips() {
     var userChips = document.getElementById('permUserChips');
     
     subAccountChips.innerHTML = currentPermissions.subAccounts.map(function(sa) {
-        return '<span class="badge bg-primary py-2 px-3">' +
+        return '<span class="badge badge-pastel-primary py-2 px-3">' +
                '<i class="fas fa-building me-1"></i>' + (subAccountLabels[sa] || sa) +
                ' <i class="fas fa-times ms-1" style="cursor:pointer;" onclick="removePermSubAccount(\'' + sa + '\')"></i></span>';
     }).join('');
     
     roleChips.innerHTML = currentPermissions.roles.map(function(r) {
-        return '<span class="badge bg-info py-2 px-3">' +
+        return '<span class="badge badge-pastel-info py-2 px-3">' +
                '<i class="fas fa-user-tag me-1"></i>' + (roleLabels[r] || r) +
                ' <i class="fas fa-times ms-1" style="cursor:pointer;" onclick="removePermRole(\'' + r + '\')"></i></span>';
     }).join('');
     
     userChips.innerHTML = currentPermissions.users.map(function(u) {
-        return '<span class="badge bg-secondary py-2 px-3">' +
+        return '<span class="badge badge-pastel-secondary py-2 px-3">' +
                '<i class="fas fa-user me-1"></i>' + (userLabels[u] || u) +
                ' <i class="fas fa-times ms-1" style="cursor:pointer;" onclick="removePermUser(\'' + u + '\')"></i></span>';
     }).join('');
@@ -4415,7 +4415,7 @@ function detectPlaceholders(content) {
         chipsEl.innerHTML = matches.map(function(ph) {
             var isContactBook = contactBookFields.includes(ph);
             var icon = isContactBook ? 'fas fa-address-book' : 'fas fa-code';
-            var badgeClass = isContactBook ? 'bg-primary' : 'bg-secondary';
+            var badgeClass = isContactBook ? 'badge-pastel-primary' : 'badge-pastel-secondary';
             var source = isContactBook ? 'Contact Book' : 'API Payload';
             
             return '<span class="badge ' + badgeClass + ' py-2 px-3" title="Source: ' + source + '">' +
