@@ -591,8 +591,8 @@
                 </button>
             </div>
 
-            <div class="alert alert-info mb-3">
-                <i class="fas fa-info-circle me-2"></i>
+            <div class="alert alert-pastel-primary mb-3">
+                <i class="fas fa-info-circle me-2 text-primary"></i>
                 Shared shortcode: <strong>82228</strong> — Add keywords to receive inbound messages on this shared number.
             </div>
 
