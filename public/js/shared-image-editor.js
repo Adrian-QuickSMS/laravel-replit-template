@@ -1,10 +1,27 @@
 /**
- * Shared Image Editor Component
- * Reusable drag, zoom, crop editor with fixed aspect ratio enforcement
+ * ============================================================================
+ * SHARED IMAGE EDITOR COMPONENT
+ * ============================================================================
+ * 
+ * PLATFORM RULE - MANDATORY REUSE:
+ * This is the ONLY authorized image upload and crop component for the portal.
+ * All RCS-related image uploads MUST use this component:
+ *   - RCS Agent Logo (preset: 'agent-logo')
+ *   - RCS Agent Hero/Banner (preset: 'agent-hero')
+ *   - RCS Rich Card Media (presets: 'rich-card-short', 'rich-card-medium', 'rich-card-tall')
+ * 
+ * DO NOT introduce alternative image upload or crop logic elsewhere.
+ * If new image requirements arise, add a new preset to PRESET_CONFIGS below.
+ * 
+ * ============================================================================
+ * 
+ * Reusable drag, zoom, crop editor with fixed aspect ratio enforcement.
  * 
  * Usage:
  *   var editor = new SharedImageEditor({
  *       containerId: 'myEditorContainer',
+ *       preset: 'agent-logo',     // Use preset OR custom config
+ *       // OR custom config:
  *       aspectRatio: 1,           // 1:1 square, or 16/9, or 2/1
  *       outputWidth: 224,         // Exact output dimensions
  *       outputHeight: 224,
@@ -14,6 +31,13 @@
  *   });
  *   editor.loadImage(imageUrl);
  *   var result = editor.getCropData();
+ * 
+ * Available Presets:
+ *   - 'agent-logo':       222×222 px, 1:1 ratio, circular frame
+ *   - 'agent-hero':       1480×448 px, 45:14 ratio, rectangular frame
+ *   - 'rich-card-short':  200×100 px, 2:1 ratio
+ *   - 'rich-card-medium': 240×120 px, 2:1 ratio
+ *   - 'rich-card-tall':   150×300 px, 1:2 ratio
  */
 
 (function(global) {

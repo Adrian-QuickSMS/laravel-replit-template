@@ -22,6 +22,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **RCS Preview System:** Schema-driven renderer with an Android-style phone UI for channel-specific previews (Rich RCS, Basic RCS, SMS).
 - **Shared Image Editor Component:** Reusable JavaScript component for drag, zoom, and crop operations with fixed aspect ratio enforcement, used for RCS media assets.
 
+**Platform Rules:**
+- **Image Editor Consistency:** All RCS-related image uploads MUST use the SharedImageEditor component (`public/js/shared-image-editor.js`). No alternative image upload or crop logic should be introduced elsewhere. Supported use cases:
+  - RCS Agent Logo (preset: `agent-logo`, 222×222 px, circular)
+  - RCS Agent Hero/Banner (preset: `agent-hero`, 1480×448 px, 45:14 ratio)
+  - RCS Rich Card Media (presets: `rich-card-short`, `rich-card-medium`, `rich-card-tall`)
+  - For new image requirements, add a preset to PRESET_CONFIGS in the component.
+
 **Technical Implementations & Feature Specifications:**
 - **Dashboard:** Provides an operational overview, RCS promotion, support access, and notifications.
 - **Messages:** Includes features for sending messages, an Inbox with a three-panel conversation workspace (conversation list, chat pane, contact info sidebar), and Campaign History. Supports Rich RCS message rendering directly in the chat thread and a "Test Message" feature.
