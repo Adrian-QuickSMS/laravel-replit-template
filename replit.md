@@ -46,6 +46,12 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - Atomic transaction constraint: All actions succeed or fail together (no partial purchases)
     - UI-only scaffold with TODO markers for purchase logic integration
 - **Management:** RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
+  - **RCS Agent Registration Wizard:** 4-step fullscreen modal wizard for registering RCS agents:
+    - **Step 1 (Branding, Identity & Contact):** Agent name (25 chars), description (100 chars), logo/hero uploads with previews, brand color picker, contact details (phone, website, email), privacy/terms URLs, handset visibility toggles
+    - **Step 2 (Billing & Messaging):** Selectable tiles for billing category (Conversational/Non-conversational with tooltips), use case (OTP/Transactional/Promotional/Multi-use with Learn More modals), campaign frequency dropdown, monthly volume (up to 10M), opt-in/opt-out descriptions (500 chars), use case overview (1000 chars), test numbers section (up to 20 MSISDNs with international format validation)
+    - **Step 3 (Company & Approver):** Auto-populated editable fields for company number, website, registered address, approver name/title/email. Warning banner about incorrect information delaying approval
+    - **Step 4 (Review):** Complete summary of all wizard data before submission
+    - All steps include field validation before progression
   - **Message Templates:** Complete template management with multi-step creation wizard, versioning, lifecycle states (Draft/Live/Archived), and version history.
     - **Create Template Wizard:** Fullscreen modal matching RCS wizard styling with purple gradient header, 3-step wizard (Metadata → Content → Review), footer pinned to bottom, scrollable content area. Step 2 features a two-column layout with content builder (left) and live message preview (right), including SMS SenderID and RCS Agent dropdowns that match the Send Message screen behavior. Now includes full feature parity with Send Message: Trackable Link toggle, Message Expiry toggle, and Opt-out Management card (with reply-to-opt-out and click-to-opt-out options).
     - **Version History:** Accessible from row action menu showing all versions with version number, status, change note, edited by, and timestamp. Dual-tab view (Versions table + Audit Log timeline).
