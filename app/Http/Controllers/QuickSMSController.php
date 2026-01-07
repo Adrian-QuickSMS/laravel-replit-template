@@ -1566,10 +1566,8 @@ class QuickSMSController extends Controller
 
     public function templates()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Templates',
-            'purpose' => 'Create and manage reusable message templates.',
-            'sub_modules' => []
+        return view('quicksms.management.templates', [
+            'page_title' => 'Message Templates'
         ]);
     }
 

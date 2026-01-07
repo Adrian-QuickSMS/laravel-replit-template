@@ -66,7 +66,7 @@
                 <ul aria-expanded="false">
                     <li><a href="{{ route('management.rcs-agent') }}" class="{{ request()->routeIs('management.rcs-agent') ? 'mm-active' : '' }}">RCS Agent Registrations</a></li>
                     <li><a href="{{ route('management.sms-sender-id') }}" class="{{ request()->routeIs('management.sms-sender-id') ? 'mm-active' : '' }}">SMS SenderID Registration</a></li>
-                    <li><a href="{{ route('management.templates') }}" class="{{ request()->routeIs('management.templates') ? 'mm-active' : '' }}">Templates</a></li>
+                    <li><a href="{{ route('management.templates') }}" class="{{ request()->routeIs('management.templates') ? 'mm-active' : '' }}">Message Templates</a></li>
                     <li><a href="{{ route('management.api-connections') }}" class="{{ request()->routeIs('management.api-connections') ? 'mm-active' : '' }}">API Connections</a></li>
                     <li><a href="{{ route('management.email-to-sms') }}" class="{{ request()->routeIs('management.email-to-sms') ? 'mm-active' : '' }}">Email-to-SMS</a></li>
                     <li><a href="{{ route('management.numbers') }}" class="{{ request()->routeIs('management.numbers') ? 'mm-active' : '' }}">Numbers</a></li>
