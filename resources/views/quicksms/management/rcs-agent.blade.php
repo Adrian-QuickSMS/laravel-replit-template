@@ -879,6 +879,10 @@
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Agent Logo <span class="text-danger">*</span></label>
                                     <p class="text-muted small mb-2">Upload a square logo. Final output: 222×222 px with circular display.</p>
+                                    <div class="alert alert-light border py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                        <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                        <strong>Device display:</strong> Logos are displayed as circles on handset devices. Ensure important elements are centred.
+                                    </div>
                                     
                                     <div class="logo-card-container">
                                         <div class="logo-source-tabs mb-2">
@@ -987,7 +991,10 @@
                                 </div>
                             </div>
                             
-                            <small class="text-muted d-block mt-1">Logo partially overlaps the bottom-left corner of the hero.</small>
+                            <div class="alert alert-light border py-2 px-3 mt-2 mb-0" style="font-size: 0.8rem;">
+                                <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                <strong>Device display:</strong> Hero images partially overlap the logo on handset devices. Avoid placing key content near the centre.
+                            </div>
                             <div class="invalid-feedback d-block" id="heroError" style="display: none !important;">Please upload a hero image</div>
                             <div class="invalid-feedback d-block" id="heroFormatError" style="display: none !important;">Hero image must be PNG or JPEG format</div>
                             <div class="invalid-feedback d-block" id="heroSizeError" style="display: none !important;">Hero image file size must be under 5MB</div>
@@ -3228,6 +3235,7 @@ function validateCurrentStep() {
         el.classList.remove('is-invalid');
     });
     document.getElementById('logoError').style.display = 'none';
+    document.getElementById('heroError').style.display = 'none';
     
     if (wizardData.currentStep === 1) {
         if (!wizardData.name.trim() || wizardData.name.length > 25) {
@@ -3238,8 +3246,12 @@ function validateCurrentStep() {
             document.getElementById('agentDescription').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.logoDataUrl) {
+        if (!wizardData.logoDataUrl || !wizardData.logoValid) {
             document.getElementById('logoError').style.display = 'block';
+            isValid = false;
+        }
+        if (!wizardData.heroDataUrl || !wizardData.heroValid) {
+            document.getElementById('heroError').style.display = 'block';
             isValid = false;
         }
         if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
