@@ -5,6 +5,17 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
+#rcsWizardModal {
+    z-index: 1060 !important;
+}
+#rcsWizardModal .modal-backdrop,
+.modal-backdrop.show + #rcsWizardModal {
+    z-index: 1055 !important;
+}
+#rcsUnsavedChangesModal,
+#rcsDeleteCardModal {
+    z-index: 1070 !important;
+}
 .templates-header {
     display: flex;
     justify-content: space-between;
@@ -1784,14 +1795,18 @@
         </div>
     </div>
 </div>
+
+@include('quicksms.partials.rcs-wizard-modal')
 @endsection
 
 @push('scripts')
 <script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260107t"></script>
 <script>
 var tplBasicRcsPreviewMode = 'rcs';
 var tplRichRcsPreviewMode = 'rcs';
 var templateRcsPayload = null;
+var isTemplateWizardContext = true;
 
 var mockTemplates = [
     {
@@ -3402,7 +3417,37 @@ function discardTemplateAiSuggestion() {
 }
 
 function openTemplateRcsWizard() {
-    showToast('RCS Wizard opening... (Shared wizard component)', 'info');
+    if (typeof openRcsWizard === 'function') {
+        if (templateRcsPayload && typeof loadRcsPayloadIntoWizard === 'function') {
+            loadRcsPayloadIntoWizard(templateRcsPayload);
+        }
+        openRcsWizard();
+    } else {
+        showToast('RCS Wizard is not available', 'error');
+    }
+}
+
+function updateRcsWizardPreviewInMain() {
+    if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        templateRcsPayload = rcsPersistentPayload;
+        wizardData.rcsPayload = rcsPersistentPayload;
+        
+        var summaryText = templateRcsPayload.type === 'carousel' 
+            ? 'RCS Carousel (' + templateRcsPayload.cardCount + ' cards) configured'
+            : 'RCS Rich Card configured';
+        
+        var totalButtons = templateRcsPayload.cards.reduce(function(sum, c) { return sum + c.buttons.length; }, 0);
+        if (totalButtons > 0) {
+            summaryText += ' with ' + totalButtons + ' action button' + (totalButtons > 1 ? 's' : '');
+        }
+        
+        var configuredText = document.getElementById('tplRcsConfiguredText');
+        var configuredSummary = document.getElementById('tplRcsConfiguredSummary');
+        if (configuredText) configuredText.textContent = summaryText;
+        if (configuredSummary) configuredSummary.classList.remove('d-none');
+        
+        updateTemplatePreview();
+    }
 }
 
 function setupTemplateChannelListeners() {
