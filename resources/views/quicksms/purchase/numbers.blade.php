@@ -217,17 +217,7 @@
     background: rgba(111, 66, 193, 0.08);
 }
 .vmn-number {
-    font-family: 'Monaco', 'Consolas', monospace;
-    font-weight: 600;
     color: #2c2c2c;
-}
-.country-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.country-flag {
-    font-size: 1.25rem;
 }
 .fee-cell {
     font-weight: 600;
@@ -814,14 +804,14 @@ var selectedProduct = null;
 
 
 var vmnMockData = [
-    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 3, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 4, number: '+447700900005', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 6, number: '+447700900101', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 7, number: '+447700900102', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 8, number: '+447700900103', country: 'GB', countryName: 'United Kingdom', flag: '🇬🇧', setupFee: 2.00, monthlyFee: 2.00 }
+    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 3, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 4, number: '+447700900005', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 6, number: '+447700900101', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 7, number: '+447700900102', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
+    { id: 8, number: '+447700900103', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 }
 ];
 
 var takenKeywords = ['SALE', 'FREE', 'VOTE', 'STOP', 'ALERT', 'VIP'];
@@ -907,7 +897,7 @@ function renderVmnTable() {
         html += '<tr class="' + (isSelected ? 'selected' : '') + '">';
         html += '<td><input type="checkbox" class="form-check-input" ' + (isSelected ? 'checked' : '') + ' onchange="toggleVmnSelect(' + vmn.id + ')"></td>';
         html += '<td><span class="vmn-number">' + vmn.number + '</span></td>';
-        html += '<td><div class="country-cell"><span class="country-flag">' + vmn.flag + '</span>' + vmn.countryName + '</div></td>';
+        html += '<td>' + vmn.countryName + '</td>';
         html += '<td><span class="fee-cell">£' + vmn.setupFee.toFixed(2) + '</span></td>';
         html += '<td><span class="fee-cell">£' + vmn.monthlyFee.toFixed(2) + '/mo</span></td>';
         html += '</tr>';
