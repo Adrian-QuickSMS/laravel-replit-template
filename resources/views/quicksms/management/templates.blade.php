@@ -3,6 +3,7 @@
 @section('title', 'Message Templates')
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
 .templates-header {
     display: flex;
@@ -738,13 +739,12 @@
                 </div>
                 
                 <div id="wizardStep2" class="wizard-content p-4" style="display: none;">
-                    <div class="wizard-step-inner mx-auto" style="max-width: 900px;">
-                    <div class="alert alert-pastel-primary mb-4">
+                    <div class="alert alert-pastel-primary mb-3 mx-auto" style="max-width: 1200px;">
                         <i class="fas fa-info-circle me-2 text-primary"></i>
                         <strong>Step 2: Message Content</strong> - Create your message content using the same editor as Send Message. You can use personalization tags to customize messages for each recipient.
                     </div>
                     
-                    <div class="step2-locked-info mb-3">
+                    <div class="step2-locked-info mb-3 mx-auto" style="max-width: 1200px;">
                         <div class="d-flex align-items-center gap-3 flex-wrap">
                             <div>
                                 <small class="text-muted">Template Name</small>
@@ -766,159 +766,214 @@
                         </div>
                     </div>
                     
-                    <div class="card mb-3">
-                        <div class="card-body p-4">
-                            <h6 class="mb-3">Channel</h6>
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="templateChannel" id="tplChannelSMS" value="sms" checked>
-                                <label class="btn btn-outline-primary" for="tplChannelSMS"><i class="fas fa-sms me-1"></i>SMS only</label>
-                                <input type="radio" class="btn-check" name="templateChannel" id="tplChannelRCSBasic" value="basic_rcs">
-                                <label class="btn btn-outline-primary" for="tplChannelRCSBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
-                                <input type="radio" class="btn-check" name="templateChannel" id="tplChannelRCSRich" value="rich_rcs">
-                                <label class="btn btn-outline-primary" for="tplChannelRCSRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card mb-3">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Content</h6>
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="openTemplateAiAssistant()">
-                                    <i class="fas fa-magic me-1"></i>Improve with AI
-                                </button>
-                            </div>
-                            
-                            <label class="form-label mb-2" id="tplContentLabel">SMS Content</label>
-                            
-                            <div class="position-relative border rounded mb-2" id="tplTextEditorContainer">
-                                <textarea class="form-control border-0" id="templateContent" rows="5" placeholder="Type your message here..." oninput="handleTemplateContentChange()" style="padding-bottom: 40px;"></textarea>
-                                <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
-                                    <button type="button" class="btn btn-sm btn-light border" onclick="openTemplatePersonalisation()" title="Insert personalisation">
-                                        <i class="fas fa-user-tag"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-light border" id="tplEmojiPickerBtn" onclick="openTemplateEmojiPicker()" title="Insert emoji">
-                                        <i class="fas fa-smile"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <span class="text-muted me-3">Characters: <strong id="tplCharCount">0</strong></span>
-                                    <span class="text-muted me-3">Encoding: <strong id="tplEncodingType">GSM-7</strong></span>
-                                    <span class="text-muted">Segments: <strong id="tplPartCount">1</strong></span>
-                                </div>
-                                <span class="badge bg-warning text-dark d-none" id="tplUnicodeWarning">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>Unicode
-                                </span>
-                            </div>
-                            
-                            <div class="d-none mb-2" id="tplRcsTextHelper">
-                                <div class="alert alert-info py-2 mb-0">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Messages over 160 characters will be automatically sent as a single RCS message where supported.
-                                </div>
-                            </div>
-                            
-                            <div class="d-none mt-3" id="tplRcsContentSection">
-                                <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
-                                    <i class="fas fa-image fa-2x text-primary mb-2"></i>
-                                    <h6 class="mb-2">Rich RCS Card</h6>
-                                    <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
-                                    <button type="button" class="btn btn-primary" onclick="openTemplateRcsWizard()">
-                                        <i class="fas fa-magic me-1"></i>Create RCS Message
-                                    </button>
-                                    <div class="d-none mt-3" id="tplRcsConfiguredSummary">
-                                        <div class="alert alert-primary py-2 mb-0">
-                                            <i class="fas fa-check-circle me-1"></i>
-                                            <span id="tplRcsConfiguredText">RCS content configured</span>
-                                            <a href="#" class="ms-2" onclick="openTemplateRcsWizard(); return false;">Edit</a>
+                    <div class="row mx-auto" style="max-width: 1200px;">
+                        <div class="col-lg-7">
+                            <div class="card mb-3">
+                                <div class="card-body p-4">
+                                    <h6 class="mb-3">Channel & Sender</h6>
+                                    <div class="btn-group w-100 mb-3" role="group">
+                                        <input type="radio" class="btn-check" name="templateChannel" id="tplChannelSMS" value="sms" checked>
+                                        <label class="btn btn-outline-primary" for="tplChannelSMS"><i class="fas fa-sms me-1"></i>SMS only</label>
+                                        <input type="radio" class="btn-check" name="templateChannel" id="tplChannelRCSBasic" value="basic_rcs">
+                                        <label class="btn btn-outline-primary" for="tplChannelRCSBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                                        <input type="radio" class="btn-check" name="templateChannel" id="tplChannelRCSRich" value="rich_rcs">
+                                        <label class="btn btn-outline-primary" for="tplChannelRCSRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6" id="tplSenderIdSection">
+                                            <select class="form-select" id="tplSenderId" onchange="updateTemplatePreview()">
+                                                <option value="">SMS Sender ID *</option>
+                                                @foreach($sender_ids as $sender)
+                                                <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 d-none" id="tplRcsAgentSection">
+                                            <select class="form-select" id="tplRcsAgent" onchange="updateTemplatePreview()">
+                                                <option value="">RCS Agent *</option>
+                                                @foreach($rcs_agents as $agent)
+                                                <option value="{{ $agent['id'] }}" 
+                                                    data-name="{{ $agent['name'] }}"
+                                                    data-logo="{{ $agent['logo'] ?? '' }}"
+                                                    data-tagline="{{ $agent['tagline'] ?? '' }}"
+                                                    data-brand-color="{{ $agent['brand_color'] ?? '#886CC0' }}">{{ $agent['name'] }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card mb-3" id="tplPlaceholderCard">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0"><i class="fas fa-tags me-2 text-primary"></i>Detected Placeholders</h6>
-                                <span class="badge bg-secondary" id="tplPlaceholderCount">0 placeholders</span>
+                            
+                            <div class="card mb-3">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Content</h6>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="openTemplateAiAssistant()">
+                                            <i class="fas fa-magic me-1"></i>Improve with AI
+                                        </button>
+                                    </div>
+                                    
+                                    <label class="form-label mb-2" id="tplContentLabel">SMS Content</label>
+                                    
+                                    <div class="position-relative border rounded mb-2" id="tplTextEditorContainer">
+                                        <textarea class="form-control border-0" id="templateContent" rows="5" placeholder="Type your message here..." oninput="handleTemplateContentChange()" style="padding-bottom: 40px;"></textarea>
+                                        <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                                            <button type="button" class="btn btn-sm btn-light border" onclick="openTemplatePersonalisation()" title="Insert personalisation">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light border" id="tplEmojiPickerBtn" onclick="openTemplateEmojiPicker()" title="Insert emoji">
+                                                <i class="fas fa-smile"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <span class="text-muted me-3">Characters: <strong id="tplCharCount">0</strong></span>
+                                            <span class="text-muted me-3">Encoding: <strong id="tplEncodingType">GSM-7</strong></span>
+                                            <span class="text-muted">Segments: <strong id="tplPartCount">1</strong></span>
+                                        </div>
+                                        <span class="badge bg-warning text-dark d-none" id="tplUnicodeWarning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-none mb-2" id="tplRcsTextHelper">
+                                        <div class="alert alert-info py-2 mb-0">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Messages over 160 characters will be automatically sent as a single RCS message where supported.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-none mt-3" id="tplRcsContentSection">
+                                        <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
+                                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
+                                            <h6 class="mb-2">Rich RCS Card</h6>
+                                            <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                                            <button type="button" class="btn btn-primary" onclick="openTemplateRcsWizard()">
+                                                <i class="fas fa-magic me-1"></i>Create RCS Message
+                                            </button>
+                                            <div class="d-none mt-3" id="tplRcsConfiguredSummary">
+                                                <div class="alert alert-primary py-2 mb-0">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    <span id="tplRcsConfiguredText">RCS content configured</span>
+                                                    <a href="#" class="ms-2" onclick="openTemplateRcsWizard(); return false;">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div id="tplNoPlaceholders" class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>No placeholders detected. Add placeholders like <code>{FirstName}</code> to personalize messages.
+                            <div class="card mb-3" id="tplPlaceholderCard">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0"><i class="fas fa-tags me-2 text-primary"></i>Detected Placeholders</h6>
+                                        <span class="badge bg-secondary" id="tplPlaceholderCount">0 placeholders</span>
+                                    </div>
+                                    
+                                    <div id="tplNoPlaceholders" class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>No placeholders detected. Add placeholders like <code>{FirstName}</code> to personalize messages.
+                                    </div>
+                                    
+                                    <div id="tplPlaceholderList" class="d-none">
+                                        <div class="d-flex flex-wrap gap-2 mb-3" id="tplPlaceholderChips"></div>
+                                        
+                                        <div class="border-top pt-3">
+                                            <h6 class="small text-muted mb-2">Placeholder Sources</h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-address-book text-primary me-2"></i>
+                                                        <span class="small"><strong>Contact Book:</strong> FirstName, LastName, Email, Phone, Company</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-code text-secondary me-2"></i>
+                                                        <span class="small"><strong>API Payload:</strong> Custom fields via request body</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div id="tplPlaceholderList" class="d-none">
-                                <div class="d-flex flex-wrap gap-2 mb-3" id="tplPlaceholderChips"></div>
-                                
-                                <div class="border-top pt-3">
-                                    <h6 class="small text-muted mb-2">Placeholder Sources</h6>
+                            <div class="card mb-3 d-none" id="tplApiRulesCard">
+                                <div class="card-body p-4">
+                                    <h6 class="mb-3"><i class="fas fa-code me-2 text-secondary"></i>API Template Rules</h6>
+                                    
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-address-book text-primary me-2"></i>
-                                                <span class="small"><strong>Contact Book:</strong> FirstName, LastName, Email, Phone, Company</span>
+                                            <div class="border rounded p-3 mb-3 mb-md-0" id="tplApiRuleSingle">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-warning text-dark me-2">With Placeholders</span>
+                                                </div>
+                                                <ul class="small mb-0 ps-3">
+                                                    <li>Only <strong>1 MSISDN</strong> per API request</li>
+                                                    <li>All placeholders must be provided in payload</li>
+                                                    <li>Missing placeholders block execution</li>
+                                                </ul>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <i class="fas fa-code text-secondary me-2"></i>
-                                                <span class="small"><strong>API Payload:</strong> Custom fields via request body</span>
+                                            <div class="border rounded p-3" id="tplApiRuleMultiple">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-success me-2">Without Placeholders</span>
+                                                </div>
+                                                <ul class="small mb-0 ps-3">
+                                                    <li>Multiple MSISDNs allowed per request</li>
+                                                    <li>Same message sent to all recipients</li>
+                                                    <li>Batch sending supported</li>
+                                                </ul>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card mb-3 d-none" id="tplApiRulesCard">
-                        <div class="card-body p-4">
-                            <h6 class="mb-3"><i class="fas fa-code me-2 text-secondary"></i>API Template Rules</h6>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="border rounded p-3 mb-3 mb-md-0" id="tplApiRuleSingle">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="badge bg-warning text-dark me-2">With Placeholders</span>
-                                        </div>
-                                        <ul class="small mb-0 ps-3">
-                                            <li>Only <strong>1 MSISDN</strong> per API request</li>
-                                            <li>All placeholders must be provided in payload</li>
-                                            <li>Missing placeholders block execution</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="border rounded p-3" id="tplApiRuleMultiple">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="badge bg-success me-2">Without Placeholders</span>
-                                        </div>
-                                        <ul class="small mb-0 ps-3">
-                                            <li>Multiple MSISDNs allowed per request</li>
-                                            <li>Same message sent to all recipients</li>
-                                            <li>Batch sending supported</li>
-                                        </ul>
+                                    
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewPlaceholderSchema()">
+                                            <i class="fas fa-file-code me-1"></i>View Placeholder Schema
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="mt-3">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewPlaceholderSchema()">
-                                    <i class="fas fa-file-code me-1"></i>View Placeholder Schema
-                                </button>
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Template Mode:</strong> This editor is the same as Send Message, but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="alert alert-secondary">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Template Mode:</strong> This editor is the same as Send Message, but without recipients, pricing, or scheduling options. Templates can be reused across campaigns.
-                    </div>
+                        
+                        <div class="col-lg-5">
+                            <div class="card mb-3 sticky-top" style="top: 1rem;">
+                                <div class="card-body p-4">
+                                    <h6 class="mb-3">Message Preview</h6>
+                                    <div id="tplPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.8); transform-origin: top center; margin-bottom: -80px;"></div>
+                                    
+                                    <div class="text-center d-none" id="tplPreviewToggleContainer">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-sm py-0 px-3 active" id="tplPreviewRCSBtn" onclick="showTemplatePreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                                            <button type="button" class="btn btn-sm py-0 px-3" id="tplPreviewSMSBtn" onclick="showTemplatePreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center d-none" id="tplBasicRcsPreviewToggle">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-sm py-0 px-3 active" id="tplBasicPreviewRCSBtn" onclick="toggleTemplateBasicRcsPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                                            <button type="button" class="btn btn-sm py-0 px-3" id="tplBasicPreviewSMSBtn" onclick="toggleTemplateBasicRcsPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 border-top pt-2">
+                                        <div class="row text-center">
+                                            <div class="col-6"><small class="text-muted d-block mb-1">Channel</small><strong id="tplPreviewChannel" class="small">SMS</strong></div>
+                                            <div class="col-6"><small class="text-muted d-block mb-1">Segments</small><strong id="tplPreviewSegments" class="small">1</strong></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1732,7 +1787,12 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
 <script>
+var tplBasicRcsPreviewMode = 'rcs';
+var tplRichRcsPreviewMode = 'rcs';
+var templateRcsPayload = null;
+
 var mockTemplates = [
     {
         id: 1,
@@ -2172,6 +2232,10 @@ function updateWizardUI() {
         var triggerBadge = document.getElementById('step2TriggerBadge');
         triggerBadge.textContent = getTriggerLabel(wizardData.trigger);
         triggerBadge.className = 'badge rounded-pill ' + getTriggerBadgeClass(wizardData.trigger);
+        
+        setTimeout(function() {
+            updateTemplatePreview();
+        }, 100);
     }
 }
 
@@ -3082,6 +3146,8 @@ function handleTemplateContentChange() {
     
     var maxCharsPerSegment = hasUnicode ? 70 : 160;
     var segments = Math.ceil(charCount / maxCharsPerSegment) || 1;
+    
+    updateTemplatePreview();
     document.getElementById('tplPartCount').textContent = segments;
     
     wizardData.content = content;
@@ -3347,6 +3413,11 @@ function setupTemplateChannelListeners() {
             var rcsSection = document.getElementById('tplRcsContentSection');
             var contentLabel = document.getElementById('tplContentLabel');
             var rcsHelper = document.getElementById('tplRcsTextHelper');
+            var senderIdSection = document.getElementById('tplSenderIdSection');
+            var rcsAgentSection = document.getElementById('tplRcsAgentSection');
+            var previewChannel = document.getElementById('tplPreviewChannel');
+            var previewToggle = document.getElementById('tplPreviewToggleContainer');
+            var basicRcsToggle = document.getElementById('tplBasicRcsPreviewToggle');
             
             wizardData.channel = channel;
             
@@ -3354,20 +3425,156 @@ function setupTemplateChannelListeners() {
                 textEditor.classList.add('d-none');
                 rcsSection.classList.remove('d-none');
                 contentLabel.textContent = 'RCS Content';
+                rcsAgentSection.classList.remove('d-none');
+                previewChannel.textContent = 'Rich RCS';
+                previewToggle.classList.remove('d-none');
+                basicRcsToggle.classList.add('d-none');
+                tplRichRcsPreviewMode = 'rcs';
+                document.getElementById('tplPreviewRCSBtn').classList.add('active');
+                document.getElementById('tplPreviewSMSBtn').classList.remove('active');
+                document.getElementById('tplPreviewRCSBtn').style.background = '#886CC0';
+                document.getElementById('tplPreviewRCSBtn').style.color = 'white';
+                document.getElementById('tplPreviewSMSBtn').style.background = 'white';
+                document.getElementById('tplPreviewSMSBtn').style.color = '#886CC0';
             } else {
                 textEditor.classList.remove('d-none');
                 rcsSection.classList.add('d-none');
                 
-                if (channel === 'rcs_basic') {
+                if (channel === 'basic_rcs') {
                     contentLabel.textContent = 'Basic RCS Content';
                     rcsHelper.classList.remove('d-none');
+                    rcsAgentSection.classList.remove('d-none');
+                    previewChannel.textContent = 'Basic RCS';
+                    previewToggle.classList.add('d-none');
+                    basicRcsToggle.classList.remove('d-none');
+                    tplBasicRcsPreviewMode = 'rcs';
+                    document.getElementById('tplBasicPreviewRCSBtn').classList.add('active');
+                    document.getElementById('tplBasicPreviewSMSBtn').classList.remove('active');
+                    document.getElementById('tplBasicPreviewRCSBtn').style.background = '#886CC0';
+                    document.getElementById('tplBasicPreviewRCSBtn').style.color = 'white';
+                    document.getElementById('tplBasicPreviewSMSBtn').style.background = 'white';
+                    document.getElementById('tplBasicPreviewSMSBtn').style.color = '#886CC0';
                 } else {
                     contentLabel.textContent = 'SMS Content';
                     rcsHelper.classList.add('d-none');
+                    rcsAgentSection.classList.add('d-none');
+                    previewChannel.textContent = 'SMS';
+                    previewToggle.classList.add('d-none');
+                    basicRcsToggle.classList.add('d-none');
                 }
             }
+            
+            updateTemplatePreview();
         });
     });
+}
+
+function updateTemplatePreview() {
+    var container = document.getElementById('tplPreviewContainer');
+    if (!container || typeof RcsPreviewRenderer === 'undefined') return;
+    
+    var channel = document.querySelector('input[name="templateChannel"]:checked')?.value || 'sms';
+    var content = document.getElementById('templateContent')?.value || '';
+    var senderId = document.getElementById('tplSenderId');
+    var rcsAgentSelect = document.getElementById('tplRcsAgent');
+    var senderIdText = (senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, '');
+    
+    var previewConfig = {
+        channel: 'sms',
+        content: content,
+        senderId: senderIdText,
+        rcsAgent: null,
+        rcsPayload: null
+    };
+    
+    if (channel === 'sms') {
+        previewConfig.channel = 'sms';
+    } else if (channel === 'basic_rcs') {
+        if (tplBasicRcsPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+        } else {
+            previewConfig.channel = 'basic_rcs';
+            var selectedOption = rcsAgentSelect?.selectedOptions[0];
+            if (selectedOption && selectedOption.value) {
+                previewConfig.rcsAgent = {
+                    name: selectedOption.dataset?.name || 'RCS Agent',
+                    logo: selectedOption.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                    tagline: selectedOption.dataset?.tagline || '',
+                    brandColor: selectedOption.dataset?.brandColor || '#886CC0'
+                };
+            }
+        }
+    } else if (channel === 'rich_rcs') {
+        if (tplRichRcsPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+            previewConfig.content = templateRcsPayload?.fallback || content || 'SMS fallback content';
+        } else {
+            previewConfig.channel = 'rich_rcs';
+            var selectedOption = rcsAgentSelect?.selectedOptions[0];
+            if (selectedOption && selectedOption.value) {
+                previewConfig.rcsAgent = {
+                    name: selectedOption.dataset?.name || 'RCS Agent',
+                    logo: selectedOption.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                    tagline: selectedOption.dataset?.tagline || '',
+                    brandColor: selectedOption.dataset?.brandColor || '#886CC0'
+                };
+            }
+            previewConfig.rcsPayload = templateRcsPayload;
+        }
+    }
+    
+    container.innerHTML = RcsPreviewRenderer.render(previewConfig);
+    
+    var segments = Math.ceil((content.length || 1) / 160);
+    document.getElementById('tplPreviewSegments').textContent = segments;
+}
+
+function showTemplatePreview(mode) {
+    tplRichRcsPreviewMode = mode;
+    var rcsBtn = document.getElementById('tplPreviewRCSBtn');
+    var smsBtn = document.getElementById('tplPreviewSMSBtn');
+    
+    if (mode === 'rcs') {
+        rcsBtn.classList.add('active');
+        smsBtn.classList.remove('active');
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        smsBtn.classList.add('active');
+        rcsBtn.classList.remove('active');
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+    }
+    
+    updateTemplatePreview();
+}
+
+function toggleTemplateBasicRcsPreview(mode) {
+    tplBasicRcsPreviewMode = mode;
+    var rcsBtn = document.getElementById('tplBasicPreviewRCSBtn');
+    var smsBtn = document.getElementById('tplBasicPreviewSMSBtn');
+    
+    if (mode === 'rcs') {
+        rcsBtn.classList.add('active');
+        smsBtn.classList.remove('active');
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        smsBtn.classList.add('active');
+        rcsBtn.classList.remove('active');
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+    }
+    
+    updateTemplatePreview();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -1594,8 +1594,23 @@ class QuickSMSController extends Controller
 
     public function templates()
     {
+        // TODO: Replace with database query - GET /api/sender-ids
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        // TODO: Replace with database query - GET /api/rcs-agents
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63'],
+        ];
+
         return view('quicksms.management.templates', [
-            'page_title' => 'Message Templates'
+            'page_title' => 'Message Templates',
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents
         ]);
     }
 
