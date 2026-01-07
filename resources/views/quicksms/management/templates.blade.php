@@ -1389,7 +1389,7 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label small text-muted">Template ID</label>
-                                        <p class="mb-0"><code id="reviewTemplateId">-</code></p>
+                                        <p class="mb-0" id="reviewTemplateId">-</p>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label small text-muted">Channel</label>
@@ -1402,7 +1402,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small text-muted">Content Preview</label>
-                                    <div class="border rounded p-3 bg-light" id="reviewContent">-</div>
+                                    <div class="border rounded p-3 bg-white" id="reviewContent">-</div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -1417,8 +1417,7 @@
                             </div>
                         </div>
                         
-                        <div class="alert alert-info py-2">
-                            <i class="fas fa-info-circle me-2"></i>
+                        <div class="alert alert-pastel-primary py-2">
                             Template will be created as <strong>Draft</strong>. You can launch it to make it Live after creation.
                         </div>
                     </div>
@@ -1433,10 +1432,10 @@
                 <button type="button" class="btn btn-primary" id="wizardNextBtn" onclick="wizardNext()">
                     Continue<i class="fas fa-arrow-right ms-2"></i>
                 </button>
-                <button type="button" class="btn btn-outline-primary" id="wizardSaveDraftBtn" style="display: none;" onclick="saveTemplateAsDraft()">
+                <button type="button" class="btn btn-outline-info" id="wizardSaveDraftBtn" style="display: none;" onclick="saveTemplateAsDraft()">
                     <i class="fas fa-save me-2"></i>Save Draft
                 </button>
-                <button type="button" class="btn btn-success" id="wizardLaunchBtn" style="display: none;" onclick="confirmLaunchTemplate()">
+                <button type="button" class="btn btn-primary" id="wizardLaunchBtn" style="display: none;" onclick="confirmLaunchTemplate()">
                     <i class="fas fa-rocket me-2"></i>Launch
                 </button>
             </div>
