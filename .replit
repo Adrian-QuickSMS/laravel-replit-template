@@ -9,9 +9,13 @@ packages = ["unzip"]
 [userenv]
 
 [userenv.shared]
-DB_CONNECTION = "sqlite"
+DB_CONNECTION = "pgsql"
 APP_URL = "http://0.0.0.0:5000"
-DB_DATABASE = "database/database.sqlite"
+DB_DATABASE = "heliumdb"
+DB_HOST = "helium"
+DB_PORT = "5432"
+DB_USERNAME = "postgres"
+DB_PASSWORD = "password"
 
 [workflows]
 runButton = "Project"

@@ -1,0 +1,172 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+
+class RcsAgent extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'uuid',
+        'user_id',
+        'sub_account_id',
+        'name',
+        'description',
+        'brand_color',
+        'logo_url',
+        'logo_crop_metadata',
+        'hero_url',
+        'hero_crop_metadata',
+        'support_phone',
+        'website',
+        'support_email',
+        'privacy_url',
+        'terms_url',
+        'show_phone',
+        'show_website',
+        'show_email',
+        'billing_category',
+        'use_case',
+        'campaign_frequency',
+        'monthly_volume',
+        'opt_in_description',
+        'opt_out_description',
+        'use_case_overview',
+        'test_numbers',
+        'company_number',
+        'company_website',
+        'registered_address',
+        'approver_name',
+        'approver_job_title',
+        'approver_email',
+        'status',
+        'rejection_reason',
+        'submitted_at',
+        'reviewed_at',
+        'reviewed_by',
+        'full_payload',
+        'is_locked',
+    ];
+
+    protected $casts = [
+        'logo_crop_metadata' => 'array',
+        'hero_crop_metadata' => 'array',
+        'test_numbers' => 'array',
+        'full_payload' => 'array',
+        'show_phone' => 'boolean',
+        'show_website' => 'boolean',
+        'show_email' => 'boolean',
+        'is_locked' => 'boolean',
+        'submitted_at' => 'datetime',
+        'reviewed_at' => 'datetime',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::uuid();
+            }
+        });
+    }
+
+    public function statusHistories()
+    {
+        return $this->hasMany(RcsAgentStatusHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    public function isEditable(): bool
+    {
+        return $this->status === 'draft' || $this->status === 'rejected';
+    }
+
+    public function isLocked(): bool
+    {
+        return in_array($this->status, ['submitted', 'in_review', 'approved']);
+    }
+
+    public function transitionStatus(string $newStatus, int $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
+    {
+        $oldStatus = $this->status;
+
+        if ($newStatus === 'submitted') {
+            $this->full_payload = $this->toArray();
+            $this->submitted_at = now();
+            $this->is_locked = true;
+        } elseif ($newStatus === 'rejected') {
+            $this->rejection_reason = $reason;
+            $this->reviewed_at = now();
+            $this->reviewed_by = $userId;
+            $this->is_locked = false;
+            $this->full_payload = array_merge($this->full_payload ?? [], [
+                'rejection_reason' => $reason,
+                'reviewed_at' => now()->toIso8601String(),
+            ]);
+        } elseif ($newStatus === 'approved') {
+            $this->reviewed_at = now();
+            $this->reviewed_by = $userId;
+            $this->is_locked = true;
+        } elseif ($newStatus === 'draft') {
+            $this->is_locked = false;
+        }
+
+        $this->status = $newStatus;
+        $this->save();
+
+        $this->recordStatusHistory($oldStatus, $newStatus, $this->getActionForTransition($oldStatus, $newStatus), $userId, $reason, $notes, $actingUser);
+    }
+
+    public function recordStatusHistory(
+        ?string $fromStatus,
+        string $toStatus,
+        string $action,
+        int $userId,
+        ?string $reason = null,
+        ?string $notes = null,
+        $actingUser = null
+    ): RcsAgentStatusHistory {
+        $ipAddress = null;
+        $userAgent = null;
+        
+        try {
+            $ipAddress = request()->ip();
+            $userAgent = request()->userAgent();
+        } catch (\Exception $e) {
+        }
+        
+        return $this->statusHistories()->create([
+            'from_status' => $fromStatus,
+            'to_status' => $toStatus,
+            'action' => $action,
+            'reason' => $reason,
+            'notes' => $notes,
+            'payload_snapshot' => $this->full_payload,
+            'user_id' => $userId,
+            'user_name' => $actingUser ? $actingUser->name ?? null : null,
+            'user_email' => $actingUser ? $actingUser->email ?? null : null,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+        ]);
+    }
+
+    protected function getActionForTransition(?string $from, string $to): string
+    {
+        $transitions = [
+            'draft_submitted' => 'submitted',
+            'submitted_in_review' => 'review_started',
+            'in_review_approved' => 'approved',
+            'in_review_rejected' => 'rejected',
+            'rejected_submitted' => 'resubmitted',
+        ];
+
+        $key = ($from ?? 'null') . '_' . $to;
+        return $transitions[$key] ?? 'status_changed';
+    }
+}

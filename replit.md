@@ -52,6 +52,8 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - **Step 3 (Company & Approver):** Auto-populated editable fields for company number, website, registered address, approver name/title/email. Warning banner about incorrect information delaying approval
     - **Step 4 (Review):** Complete summary of all wizard data before submission
     - All steps include field validation before progression
+    - **Validation & Submission:** Comprehensive validation blocks submission unless all required fields complete, logo/hero meet size/format rules (PNG/JPEG, logo <2MB, hero <5MB), all URLs are HTTPS, and descriptions provided. Invalid data shows inline error list.
+    - **Persistence & Audit:** RcsAgent model stores full registration payload including image URLs, crop metadata, status, user ID, and timestamps. RcsAgentStatusHistory tracks all status transitions with payload snapshots for compliance audit, resubmission, and dispute resolution. No data mutation after submission except via rejection flow.
   - **Message Templates:** Complete template management with multi-step creation wizard, versioning, lifecycle states (Draft/Live/Archived), and version history.
     - **Create Template Wizard:** Fullscreen modal matching RCS wizard styling with purple gradient header, 3-step wizard (Metadata → Content → Review), footer pinned to bottom, scrollable content area. Step 2 features a two-column layout with content builder (left) and live message preview (right), including SMS SenderID and RCS Agent dropdowns that match the Send Message screen behavior. Now includes full feature parity with Send Message: Trackable Link toggle, Message Expiry toggle, and Opt-out Management card (with reply-to-opt-out and click-to-opt-out options).
     - **Version History:** Accessible from row action menu showing all versions with version number, status, change note, edited by, and timestamp. Dual-tab view (Versions table + Audit Log timeline).
@@ -72,7 +74,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **RCS Preview System:** Schema-driven renderer (`/rcs/preview-demo`) with an Android-style phone UI for channel-specific previews (Rich RCS, Basic RCS, SMS). Supports mock RCS agents with brand icons.
 - **RCS Asset Management:** Server-side image processing for RCS media, handling URL-based and uploaded images with transformations (zoom, crop, orientation) using Intervention Image. Features include SSRF protection, dedicated storage, `RcsAsset` model for tracking, and an explicit save workflow for URL images with interactive drag-to-position crop editor.
 - **MessageLog Model:** Defines message structure with encrypted content and role-based access.
-- **Development Environment:** Utilizes SQLite for local development.
+- **Development Environment:** Utilizes PostgreSQL database with Neon backend for persistence.
 - **CSS Architecture:** Module-specific CSS overrides Fillow styles with unique prefixes.
 - **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, particularly enforced on the Purchase Messages page.
 
