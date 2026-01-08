@@ -158,10 +158,14 @@
 
 #integrationPartnerSection {
     margin-top: 1rem;
-    display: none;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 #integrationPartnerSection.show {
-    display: block !important;
+    max-height: 500px;
+    opacity: 1;
 }
 
 .selectable-tile {
