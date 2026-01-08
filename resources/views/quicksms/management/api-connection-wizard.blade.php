@@ -533,7 +533,6 @@
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
                                             <strong>Step 4: Security Controls</strong> - Configure additional security settings.
-                                            <span class="skip-section-btn float-end" onclick="skipStep(4)">Skip this section</span>
                                         </div>
                                         
                                         <div class="mb-4">
@@ -575,7 +574,6 @@
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
                                             <strong>Step 5: Webhook Configuration</strong> - Configure callback URLs for delivery reports and inbound messages.
-                                            <span class="skip-section-btn float-end" onclick="skipStep(5)">Skip this section</span>
                                         </div>
                                         
                                         <div class="mb-3">
@@ -1036,7 +1034,7 @@ $(document).ready(function() {
         
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
         if (wizardData.ipAllowList) {
-            $('#ipRestrictionFields').addClass('show');
+            $('#ipRestrictionFields').attr('style', 'display: block !important');
             renderIpAddresses();
         }
         
@@ -1110,12 +1108,13 @@ $(document).ready(function() {
     
     $(document).on('change', '#enableIpRestriction', function() {
         console.log('[API Wizard] IP Restriction toggle changed:', $(this).is(':checked'));
+        var $fields = $('#ipRestrictionFields');
         if ($(this).is(':checked')) {
-            console.log('[API Wizard] Adding show class to ipRestrictionFields');
-            $('#ipRestrictionFields').addClass('show');
+            console.log('[API Wizard] Showing ipRestrictionFields');
+            $fields.attr('style', 'display: block !important');
         } else {
-            console.log('[API Wizard] Removing show class from ipRestrictionFields');
-            $('#ipRestrictionFields').removeClass('show');
+            console.log('[API Wizard] Hiding ipRestrictionFields');
+            $fields.attr('style', 'display: none !important');
         }
         wizardData.ipAllowList = $(this).is(':checked');
         saveDraft();
