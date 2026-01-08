@@ -330,40 +330,40 @@
    RCS Wizard Step States
    =========================================== */
 
-/* Not Visited - default grey, no additional indicator */
+/* Not Visited - white background, default border, default text */
 .form-wizard .nav-wizard li.step-not-visited .nav-link span {
-    background: #e9ecef;
+    background: #fff;
     color: #6c757d;
-    border-color: #dee2e6;
+    border: 2px solid #dee2e6;
 }
 
 .form-wizard .nav-wizard li.step-not-visited .nav-link:after {
     background: #dee2e6;
 }
 
-/* Visited but Incomplete - light amber/warning indicator */
+/* Visited but Incomplete - pastel red background, red number text */
 .form-wizard .nav-wizard li.step-visited-incomplete .nav-link span {
-    background: #fff3cd;
-    color: #856404;
-    border: 2px solid #ffc107;
+    background: #f8d7da;
+    color: #dc3545;
+    border: 2px solid #f5c6cb;
 }
 
 .form-wizard .nav-wizard li.step-visited-incomplete .nav-link:after {
-    background: #ffc107;
+    background: #f5c6cb;
 }
 
-/* Completed - green success indicator */
+/* Completed - purple background, white number text */
 .form-wizard .nav-wizard li.step-completed .nav-link span {
-    background: #d4edda;
-    color: #155724;
-    border: 2px solid #28a745;
+    background: #886CC0;
+    color: #fff;
+    border: 2px solid #886CC0;
 }
 
 .form-wizard .nav-wizard li.step-completed .nav-link:after {
-    background: #28a745;
+    background: #886CC0;
 }
 
-/* Active step overrides (current step) */
+/* Active step overrides (current step) - purple with white text */
 .form-wizard .nav-wizard li .nav-link.active span {
     background: #886CC0 !important;
     color: #fff !important;
