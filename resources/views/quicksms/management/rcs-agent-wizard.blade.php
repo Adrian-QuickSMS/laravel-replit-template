@@ -1615,7 +1615,7 @@ $(document).ready(function() {
         }
     };
     
-    // Learn More button handler - show popover modal
+    // Learn More button handler - show modal
     $(document).on('click', '.btn-tile-learn-more', function(e) {
         e.stopPropagation(); // Prevent tile selection
         
@@ -1624,16 +1624,16 @@ $(document).ready(function() {
         
         if (!info) return;
         
-        // Create or update modal
+        // Create or update modal (matching VMN purchase modal style)
         if (!$('#tileInfoModal').length) {
             var modalHtml = '<div class="modal fade" id="tileInfoModal" tabindex="-1">';
-            modalHtml += '<div class="modal-dialog modal-dialog-centered modal-sm">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">';
             modalHtml += '<div class="modal-content">';
-            modalHtml += '<div class="modal-header bg-light py-2">';
-            modalHtml += '<h6 class="modal-title" id="tileInfoModalTitle"></h6>';
-            modalHtml += '<button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>';
+            modalHtml += '<div class="modal-header">';
+            modalHtml += '<h5 class="modal-title"><i class="fas fa-info-circle me-2 text-primary" id="tileInfoModalIcon"></i><span id="tileInfoModalTitle"></span></h5>';
+            modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
             modalHtml += '</div>';
-            modalHtml += '<div class="modal-body" id="tileInfoModalBody"></div>';
+            modalHtml += '<div class="modal-body" id="tileInfoModalBody" style="min-height: 100px;"></div>';
             modalHtml += '</div></div></div>';
             $('body').append(modalHtml);
         }
