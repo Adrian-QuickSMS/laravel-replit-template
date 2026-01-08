@@ -308,7 +308,7 @@
                                                     <input type="color" class="form-control form-control-color color-preview" id="brandColor" value="#886CC0" style="width: 50px; height: 38px;">
                                                     <input type="text" class="form-control" id="brandColorHex" value="#886CC0" maxlength="7" style="max-width: 120px;">
                                                 </div>
-                                                <small class="text-muted">Used for buttons and accent elements in RCS messages</small>
+                                                <small class="text-muted">Colour used for selected elements in the agent details view on the device.</small>
                                             </div>
                                         </div>
                                     </div>
