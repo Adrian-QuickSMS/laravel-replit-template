@@ -1057,7 +1057,7 @@ $(document).ready(function() {
         
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
         if (wizardData.ipAllowList) {
-            $('#ipRestrictionFields').addClass('show');
+            $('#ipRestrictionFields').css('display', 'block');
             renderIpAddresses();
         }
         
@@ -1135,10 +1135,10 @@ $(document).ready(function() {
         var fields = document.getElementById('ipRestrictionFields');
         if (isChecked) {
             console.log('[API Wizard] Showing ipRestrictionFields');
-            fields.classList.add('show');
+            fields.style.display = 'block';
         } else {
             console.log('[API Wizard] Hiding ipRestrictionFields');
-            fields.classList.remove('show');
+            fields.style.display = 'none';
         }
         wizardData.ipAllowList = isChecked;
         saveDraft();
