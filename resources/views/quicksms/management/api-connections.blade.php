@@ -1582,16 +1582,14 @@ $(document).ready(function() {
             html += '<td>' + conn.subAccount + '</td>';
             
             html += '<td>';
-            var typeHtml = '<span class="badge rounded-pill ' + getTypeBadgeClass(conn.type) + '"';
+            var typeText = getTypeLabel(conn.type);
             if (conn.type === 'integration' && conn.integrationName) {
-                typeHtml += ' title="' + conn.integrationName + '" data-bs-toggle="tooltip"';
+                typeText += ' <span class="text-muted small">(' + conn.integrationName + ')</span>';
             }
-            typeHtml += '>' + getTypeLabel(conn.type) + '</span>';
-            html += typeHtml;
+            html += typeText;
             html += '</td>';
             
-            html += '<td><span class="badge rounded-pill ' + getEnvironmentBadgeClass(conn.environment) + '">' + 
-                    (conn.environment === 'live' ? 'Live' : 'Test') + '</span></td>';
+            html += '<td>' + (conn.environment === 'live' ? 'Live' : 'Test') + '</td>';
             
             html += '<td>' + conn.authType + '</td>';
             
