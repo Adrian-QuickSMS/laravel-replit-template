@@ -1243,6 +1243,26 @@ $(document).ready(function() {
         });
     }
     
+    // Re-validate a specific step and update its indicator in real-time
+    function revalidateStep(stepIndex) {
+        // Only revalidate if the step has been validated (user left it at least once)
+        if (wizardData.validatedSteps.indexOf(stepIndex) === -1) {
+            return;
+        }
+        
+        var isValid = checkStepValidity(stepIndex);
+        if (isValid) {
+            markStepCompleted(stepIndex);
+        } else {
+            unmarkStepCompleted(stepIndex);
+        }
+    }
+    
+    // Get current step index
+    function getCurrentStepIndex() {
+        return $('#rcsAgentWizard').smartWizard('getStepIndex');
+    }
+    
     $('#rcsAgentWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
         // Mark step as visited when entering
         markStepVisited(stepIndex);
@@ -1265,12 +1285,14 @@ $(document).ready(function() {
     $('#agentName').on('input', function() {
         wizardData.name = this.value;
         $('#nameCharCount').text(this.value.length);
+        revalidateStep(0); // Step 1: Agent Basics
         triggerAutosave();
     });
     
     $('#agentDescription').on('input', function() {
         wizardData.description = this.value;
         $('#descCharCount').text(this.value.length);
+        revalidateStep(0); // Step 1: Agent Basics
         triggerAutosave();
     });
     
@@ -1306,6 +1328,7 @@ $(document).ready(function() {
                         timestamp: new Date().toISOString()
                     };
                     $('#agentLogoError').addClass('d-none');
+                    revalidateStep(1); // Step 2: Branding Assets
                     triggerAutosave();
                 }
             });
@@ -1314,6 +1337,7 @@ $(document).ready(function() {
     
     window.onagentLogoRemove = function() {
         wizardData.logoDataUrl = null;
+        revalidateStep(1); // Step 2: Branding Assets
         wizardData.logoValid = false;
         wizardData.logoCropMetadata = null;
         triggerAutosave();
@@ -1337,6 +1361,7 @@ $(document).ready(function() {
                         timestamp: new Date().toISOString()
                     };
                     $('#agentHeroError').addClass('d-none');
+                    revalidateStep(1); // Step 2: Branding Assets
                     triggerAutosave();
                 }
             });
@@ -1345,6 +1370,7 @@ $(document).ready(function() {
     
     window.onagentHeroRemove = function() {
         wizardData.heroDataUrl = null;
+        revalidateStep(1); // Step 2: Branding Assets
         wizardData.heroValid = false;
         wizardData.heroCropMetadata = null;
         triggerAutosave();
@@ -1354,6 +1380,7 @@ $(document).ready(function() {
         var id = this.id;
         var key = id === 'businessWebsite' ? 'website' : id;
         wizardData[key] = this.value;
+        revalidateStep(2); // Step 3: Handset + Compliance
         triggerAutosave();
     });
     
@@ -1377,6 +1404,7 @@ $(document).ready(function() {
         var key = this.id.replace('Toggle', '').replace('show', 'show');
         wizardData[key] = this.checked;
         updateWebsiteRequired();
+        revalidateStep(2); // Step 3: Handset + Compliance
         triggerAutosave();
     });
     
@@ -1390,6 +1418,7 @@ $(document).ready(function() {
         $(this).addClass('selected');
         wizardData.billing = $(this).data('billing');
         $('#billingError').hide();
+        revalidateStep(3); // Step 4: Agent Type
         triggerAutosave();
     });
     
@@ -1398,34 +1427,40 @@ $(document).ready(function() {
         $(this).addClass('selected');
         wizardData.useCase = $(this).data('usecase');
         $('#useCaseError').hide();
+        revalidateStep(3); // Step 4: Agent Type
         triggerAutosave();
     });
     
     $('#useCaseOverview').on('input', function() {
         wizardData.useCaseOverview = this.value;
         $('#useCaseCharCount').text(this.value.length);
+        revalidateStep(3); // Step 4: Agent Type
         triggerAutosave();
     });
     
     $('#campaignFrequency, #monthlyVolume').on('change', function() {
         wizardData[this.id] = this.value;
+        revalidateStep(4); // Step 5: Messaging Behaviour
         triggerAutosave();
     });
     
     $('#optInDescription').on('input', function() {
         wizardData.optInDescription = this.value;
         $('#optInCharCount').text(this.value.length);
+        revalidateStep(4); // Step 5: Messaging Behaviour
         triggerAutosave();
     });
     
     $('#optOutDescription').on('input', function() {
         wizardData.optOutDescription = this.value;
         $('#optOutCharCount').text(this.value.length);
+        revalidateStep(4); // Step 5: Messaging Behaviour
         triggerAutosave();
     });
     
     $('#companyNumber, #companyWebsite, #registeredAddress, #approverName, #approverJobTitle, #approverEmail').on('input', function() {
         wizardData[this.id] = this.value;
+        revalidateStep(5); // Step 6: Company Details
         triggerAutosave();
     });
     
