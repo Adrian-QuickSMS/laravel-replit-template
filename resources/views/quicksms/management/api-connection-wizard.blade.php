@@ -81,6 +81,40 @@
     background: #e9ecef !important;
 }
 
+/* Step state colors - matches RCS Agent wizard */
+.form-wizard .nav-wizard li .nav-link.step-not-visited span {
+    background: #fff !important;
+    color: var(--primary, #886CC0) !important;
+    border-color: var(--primary, #886CC0) !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-not-visited:after {
+    background: #e9ecef !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-visited-incomplete span {
+    background: rgba(220, 53, 69, 0.15) !important;
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-visited-incomplete:after {
+    background: rgba(220, 53, 69, 0.3) !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-completed span {
+    background: var(--primary, #886CC0) !important;
+    color: #fff !important;
+    border-color: var(--primary, #886CC0) !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-completed:after {
+    background: var(--primary, #886CC0) !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-skipped span {
+    background: #e9ecef !important;
+    color: #6c757d !important;
+    border-color: #dee2e6 !important;
+}
+.form-wizard .nav-wizard li .nav-link.step-skipped:after {
+    background: #e9ecef !important;
+}
+
 .form-wizard .toolbar-bottom {
     display: flex;
     justify-content: flex-end;
@@ -632,11 +666,95 @@ $(document).ready(function() {
         ipAllowList: false,
         allowedIps: [],
         dlrUrl: '',
-        inboundUrl: ''
+        inboundUrl: '',
+        validatedSteps: [],
+        completedSteps: []
     };
     
     var skippedSteps = [];
     var connectionCreated = false;
+    
+    function checkStepValidity(stepIndex) {
+        if (skippedSteps.indexOf(stepIndex) > -1) return true;
+        
+        if (stepIndex === 0) {
+            return wizardData.name.trim() && wizardData.subAccount;
+        } else if (stepIndex === 1) {
+            return !!wizardData.type;
+        } else if (stepIndex === 2) {
+            return !!wizardData.authType;
+        } else if (stepIndex === 3) {
+            if (!wizardData.ipAllowList) return true;
+            return wizardData.allowedIps.length > 0;
+        } else if (stepIndex === 4) {
+            var dlrValid = !wizardData.dlrUrl || wizardData.dlrUrl.startsWith('https://');
+            var inboundValid = !wizardData.inboundUrl || wizardData.inboundUrl.startsWith('https://');
+            return dlrValid && inboundValid;
+        }
+        return true;
+    }
+    
+    function getStepState(stepIndex) {
+        if (skippedSteps.indexOf(stepIndex) > -1) return 'skipped';
+        var isValidated = wizardData.validatedSteps.indexOf(stepIndex) > -1;
+        var isCompleted = wizardData.completedSteps.indexOf(stepIndex) > -1;
+        
+        if (isCompleted) return 'completed';
+        if (isValidated) return 'visited-incomplete';
+        return 'not-visited';
+    }
+    
+    function updateStepIndicators() {
+        $('#apiConnectionWizard .nav-wizard li').each(function(index) {
+            var $step = $(this);
+            var $link = $step.find('.nav-link');
+            var state = getStepState(index);
+            
+            $link.removeClass('step-not-visited step-visited-incomplete step-completed step-skipped done active');
+            $link.addClass('step-' + state);
+        });
+    }
+    
+    function markStepValidated(stepIndex) {
+        if (wizardData.validatedSteps.indexOf(stepIndex) === -1) {
+            wizardData.validatedSteps.push(stepIndex);
+        }
+    }
+    
+    function markStepCompleted(stepIndex) {
+        if (wizardData.completedSteps.indexOf(stepIndex) === -1) {
+            wizardData.completedSteps.push(stepIndex);
+        }
+        var idx = wizardData.validatedSteps.indexOf(stepIndex);
+        if (idx > -1) {
+            wizardData.validatedSteps.splice(idx, 1);
+        }
+    }
+    
+    function unmarkStepCompleted(stepIndex) {
+        var idx = wizardData.completedSteps.indexOf(stepIndex);
+        if (idx > -1) {
+            wizardData.completedSteps.splice(idx, 1);
+        }
+        if (wizardData.validatedSteps.indexOf(stepIndex) === -1) {
+            wizardData.validatedSteps.push(stepIndex);
+        }
+    }
+    
+    function revalidateStep(stepIndex) {
+        if (wizardData.validatedSteps.indexOf(stepIndex) === -1 && 
+            wizardData.completedSteps.indexOf(stepIndex) === -1) {
+            return;
+        }
+        
+        var isValid = checkStepValidity(stepIndex);
+        if (isValid) {
+            markStepCompleted(stepIndex);
+        } else {
+            unmarkStepCompleted(stepIndex);
+        }
+        updateStepIndicators();
+    }
     
     var savedDraft = localStorage.getItem('apiConnectionWizardDraft');
     if (savedDraft) {
@@ -689,6 +807,16 @@ $(document).ready(function() {
         if (connectionCreated) return false;
         
         saveFormData();
+        
+        markStepValidated(currentStepIndex);
+        var isValid = checkStepValidity(currentStepIndex);
+        if (isValid) {
+            markStepCompleted(currentStepIndex);
+        } else {
+            unmarkStepCompleted(currentStepIndex);
+        }
+        updateStepIndicators();
+        
         saveDraft();
         
         if (stepDirection === 'forward') {
@@ -698,7 +826,7 @@ $(document).ready(function() {
     });
     
     $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
-        updateSkippedStepStyles();
+        updateStepIndicators();
         
         if (stepIndex === 5) {
             populateReview();
@@ -837,6 +965,8 @@ $(document).ready(function() {
         
         $('#dlrUrl').val(wizardData.dlrUrl);
         $('#inboundUrl').val(wizardData.inboundUrl);
+        
+        updateStepIndicators();
     }
     
     function saveDraft() {
@@ -870,6 +1000,7 @@ $(document).ready(function() {
             $('#integrationPartnerSection').slideUp();
             $('.partner-tile').removeClass('selected');
         }
+        revalidateStep(1);
     };
     
     window.selectPartner = function(partner) {
@@ -883,24 +1014,43 @@ $(document).ready(function() {
         $('.selectable-tile[data-auth]').removeClass('selected');
         $('.selectable-tile[data-auth="' + authType + '"]').addClass('selected');
         $('#authTypeError').hide();
+        revalidateStep(2);
     };
     
     window.skipStep = function(stepIndex) {
         if (skippedSteps.indexOf(stepIndex) === -1) {
             skippedSteps.push(stepIndex);
         }
+        markStepCompleted(stepIndex);
+        updateStepIndicators();
+        saveDraft();
         $('#apiConnectionWizard').smartWizard('next');
     };
     
-    function updateSkippedStepStyles() {
-        skippedSteps.forEach(function(stepIdx) {
-            var $navLink = $('.nav-wizard li:nth-child(' + stepIdx + ') .nav-link');
-            $navLink.addClass('skipped');
-        });
-    }
-    
     $('#enableIpRestriction').on('change', function() {
         $('#ipRestrictionFields').slideToggle($(this).is(':checked'));
+        saveFormData();
+        revalidateStep(3);
+    });
+    
+    $('#allowedIps').on('input', function() {
+        saveFormData();
+        revalidateStep(3);
+    });
+    
+    $('#apiName').on('input', function() {
+        wizardData.name = this.value.trim();
+        revalidateStep(0);
+    });
+    
+    $('#subAccount').on('change', function() {
+        wizardData.subAccount = this.value;
+        revalidateStep(0);
+    });
+    
+    $('#dlrUrl, #inboundUrl').on('input', function() {
+        saveFormData();
+        revalidateStep(4);
     });
     
     $('#apiDescription').on('input', updateDescCharCount);
