@@ -50,45 +50,19 @@
                                 
                                 <div class="mb-4">
                                     <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-image me-2"></i>Media</h6>
-                                    <div class="border rounded p-3">
-                                        <div class="btn-group btn-group-sm w-100 mb-3" role="group">
-                                            <input type="radio" class="btn-check" name="rcsMediaSource" id="rcsMediaUrl" value="url" checked>
-                                            <label class="btn btn-outline-secondary" for="rcsMediaUrl">
-                                                <i class="fas fa-link me-1"></i>URL
-                                            </label>
-                                            <input type="radio" class="btn-check" name="rcsMediaSource" id="rcsMediaUpload" value="upload">
-                                            <label class="btn btn-outline-secondary" for="rcsMediaUpload">
-                                                <i class="fas fa-upload me-1"></i>Upload
-                                            </label>
-                                        </div>
-                                        
-                                        <div id="rcsMediaUrlSection">
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text"><i class="fas fa-globe"></i></span>
-                                                <input type="url" class="form-control" id="rcsMediaUrlInput" placeholder="https://example.com/image.jpg">
-                                                <button type="button" class="btn btn-outline-primary" onclick="loadRcsMediaUrl()">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </div>
-                                            <small class="text-muted d-block mt-1">Enter a publicly accessible image URL (JPEG, PNG, GIF)</small>
-                                        </div>
-                                        
-                                        <div id="rcsMediaUploadSection" class="d-none">
-                                            <div class="border border-dashed rounded p-3 text-center bg-light" id="rcsMediaDropzone">
-                                                <input type="file" id="rcsMediaFileInput" class="d-none" accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif">
-                                                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                                                <p class="mb-1 small">Drag & drop or</p>
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('rcsMediaFileInput').click();">
-                                                    <i class="fas fa-folder-open me-1"></i>Browse files
-                                                </button>
-                                                <small class="text-muted d-block mt-2">JPEG, PNG, GIF only. Max 100 MB</small>
-                                            </div>
-                                            <div id="rcsMediaError" class="alert alert-danger py-2 px-3 mt-2 d-none small">
-                                                <i class="fas fa-exclamation-circle me-1"></i><span id="rcsMediaErrorText"></span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div id="rcsMediaPreview" class="d-none mt-3">
+                                    <div id="rcsMediaInputContainer">
+                                        @include('quicksms.partials.shared-image-editor', [
+                                            'editorId' => 'rcsMedia',
+                                            'preset' => 'rich-card-short',
+                                            'showLabel' => false,
+                                            'showUrlTab' => true,
+                                            'inputOnly' => true,
+                                            'maxSize' => 100 * 1024 * 1024,
+                                            'accept' => 'image/jpeg,image/png,image/gif'
+                                        ])
+                                    </div>
+                                    
+                                    <div id="rcsMediaPreview" class="d-none mt-3">
                                             <div class="mt-3 p-3 border rounded" id="rcsImageEditor" style="background: rgba(136, 108, 192, 0.1);">
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                                     <h6 class="small text-muted text-uppercase mb-0"><i class="fas fa-crop-alt me-1"></i>Image Crop & Position</h6>

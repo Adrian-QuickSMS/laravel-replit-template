@@ -67,6 +67,58 @@ var rcsCurrentCardWidth = 'medium';
 var rcsCarouselHeight = 'vertical_short';
 var rcsCarouselWidth = 'medium';
 
+window.onrcsMediaLoadSuccess = function(data) {
+    if (data.source === 'file') {
+        var img = new Image();
+        img.onload = function() {
+            rcsMediaData.source = 'upload';
+            rcsMediaData.file = data.file;
+            rcsMediaData.url = data.dataUrl;
+            rcsMediaData.dimensions = { width: img.width, height: img.height };
+            rcsMediaData.fileSize = data.file.size;
+            showRcsMediaPreview(data.dataUrl);
+            updateRcsImageInfo();
+            initRcsImageBaseline();
+            
+            if (data.file.size > rcsWarnFileSize) {
+                var sizeMB = (data.file.size / (1024 * 1024)).toFixed(1);
+                showRcsMediaWarning('This file is ' + sizeMB + ' MB. Large media may load slowly and may not render optimally on handsets.');
+            }
+        };
+        img.src = data.dataUrl;
+    } else if (data.source === 'url') {
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            rcsMediaData.source = 'url';
+            rcsMediaData.url = data.url;
+            rcsMediaData.originalUrl = data.url;
+            rcsMediaData.dimensions = { width: img.width, height: img.height };
+            rcsMediaData.fileSize = 0;
+            rcsMediaData.assetUuid = null;
+            rcsMediaData.hostedUrl = null;
+            showRcsMediaPreview(data.url);
+            updateRcsImageInfo();
+            initRcsImageBaseline();
+        };
+        img.onerror = function() {
+            showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+            if (typeof window.rcsMediaReset === 'function') {
+                window.rcsMediaReset();
+            }
+        };
+        img.src = data.url;
+    }
+};
+
+window.onrcsMediaRemove = function() {
+    removeRcsMedia();
+};
+
+window.onrcsMediaError = function(message) {
+    showRcsMediaError(message);
+};
+
 function isRcsCarouselMode() {
     var carouselEl = document.getElementById('rcsTypeCarousel');
     return carouselEl ? carouselEl.checked : false;
@@ -1430,6 +1482,10 @@ function removeRcsMedia() {
     if (urlInput) urlInput.value = '';
     if (fileInput) fileInput.value = '';
     if (zoomSlider) zoomSlider.value = 100;
+    
+    if (typeof window.rcsMediaReset === 'function') {
+        window.rcsMediaReset();
+    }
     
     rcsCropState.zoom = 100;
     rcsCropState.offsetX = 0;

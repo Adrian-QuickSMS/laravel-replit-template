@@ -6,43 +6,57 @@
         'editorId' => 'logoEditor',
         'preset' => 'agent-logo',           // or custom config
         'label' => 'Upload Logo',
-        'accept' => 'image/png,image/jpeg',
+        'accept' => 'image/png,image/jpeg,image/gif',
         'maxSize' => 2 * 1024 * 1024,       // 2MB
         'required' => true,
         'showUrlTab' => true,               // Show URL/Upload toggle
-        'browseLabel' => 'Browse files'     // Customize browse button text
+        'browseLabel' => 'Browse files',    // Customize browse button text
+        'fileTypeText' => 'JPEG, PNG, GIF only',  // Customize file type hint
+        'showLabel' => true,                // Show/hide the form label
+        'compact' => false,                 // Compact mode for embedded use
+        'inputOnly' => false                // Input-only mode (no built-in crop editor)
     ])
     
     Presets available:
-    - agent-logo (1:1, 224x224)
-    - agent-hero (16:9, 1440x810)
-    - rich-card-short, rich-card-medium, rich-card-tall
+    - agent-logo (1:1, 222x222, circular)
+    - agent-hero (45:14, 1480x448, horizontal banner)
+    - rich-card-short (2:1, 296x112)
+    - rich-card-medium (2:1, 296x168)
+    - rich-card-tall (2:1, 296x264)
     - carousel-small-short, carousel-small-medium
     - carousel-medium-short, carousel-medium-medium, carousel-medium-tall
     
     JavaScript API (exposed on window):
     - {editorId}Instance: The SharedImageEditor instance
     - {editorId}GetCropData(): Returns current crop data
+    - {editorId}GetLoadedImageData(): Returns loaded image data (for inputOnly mode)
     - {editorId}LoadImage(src, callback): Load image from URL
     - {editorId}SetCropData(data): Restore saved crop state
     - {editorId}GenerateCroppedImage(callback): Export cropped image as data URL
     - {editorId}SetPreset(presetName): Change aspect ratio preset
+    - {editorId}Reset(): Clear editor and reset to upload prompt
     
     Callbacks (set on window before including):
     - on{editorId}Change(data): Called on crop/zoom changes
     - on{editorId}Remove(): Called when image is removed
+    - on{editorId}LoadSuccess(data): Called when image loads successfully
+    - on{editorId}Error(message): Called on error
 --}}
 
 @php
     $editorId = $editorId ?? 'imageEditor';
     $preset = $preset ?? 'agent-logo';
     $label = $label ?? 'Upload Image';
-    $accept = $accept ?? 'image/png,image/jpeg';
+    $accept = $accept ?? 'image/png,image/jpeg,image/gif';
     $maxSize = $maxSize ?? 2 * 1024 * 1024;
     $required = $required ?? false;
     $helpText = $helpText ?? null;
     $showUrlTab = $showUrlTab ?? false;
     $browseLabel = $browseLabel ?? 'Browse files';
+    $fileTypeText = $fileTypeText ?? 'JPEG, PNG, GIF only';
+    $showLabel = $showLabel ?? true;
+    $compact = $compact ?? false;
+    $inputOnly = $inputOnly ?? false;
 @endphp
 
 @once
@@ -61,8 +75,10 @@
 @endpush
 @endonce
 
-<div class="sie-component" data-editor-id="{{ $editorId }}" data-preset="{{ $preset }}" data-max-size="{{ $maxSize }}" data-show-url-tab="{{ $showUrlTab ? 'true' : 'false' }}">
+<div class="sie-component" data-editor-id="{{ $editorId }}" data-preset="{{ $preset }}" data-max-size="{{ $maxSize }}" data-show-url-tab="{{ $showUrlTab ? 'true' : 'false' }}" data-input-only="{{ $inputOnly ? 'true' : 'false' }}">
+    @if($showLabel)
     <label class="form-label">{{ $label }}@if($required)<span class="text-danger">*</span>@endif</label>
+    @endif
     
     @if($helpText)
     <p class="text-muted small mb-2">{{ $helpText }}</p>
@@ -112,7 +128,7 @@
                     <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
                         <i class="fas fa-folder-open me-1"></i>{{ $browseLabel }}
                     </button>
-                    <small class="text-muted d-block mt-2">JPEG, PNG, GIF only. Max {{ number_format($maxSize / 1024 / 1024, 0) }} MB</small>
+                    <small class="text-muted d-block mt-2">{{ $fileTypeText }}. Max {{ number_format($maxSize / 1024 / 1024, 0) }} MB</small>
                 </div>
             </div>
             
@@ -121,6 +137,7 @@
             </div>
         </div>
         
+        @if(!$inputOnly)
         <div class="sie-editor-wrapper d-none" id="{{ $editorId }}EditorWrapper">
             <div id="{{ $editorId }}Container"></div>
             
@@ -133,6 +150,7 @@
                 </button>
             </div>
         </div>
+        @endif
     </div>
     
     <div class="alert alert-danger d-none small py-2" id="{{ $editorId }}Error"></div>
@@ -144,10 +162,12 @@
     var component = document.querySelector('[data-editor-id="' + editorId + '"]');
     var preset = component.dataset.preset;
     var maxSize = parseInt(component.dataset.maxSize);
+    var inputOnly = component.dataset.inputOnly === 'true';
     
     var editor = null;
     var cropData = null;
     var initialized = false;
+    var loadedImageData = null;
     
     var uploadZone = document.getElementById(editorId + 'UploadZone');
     var uploadPrompt = document.getElementById(editorId + 'UploadPrompt');
@@ -164,10 +184,20 @@
     function showError(message) {
         errorEl.textContent = message;
         errorEl.classList.remove('d-none');
+        if (typeof window['on' + editorId + 'Error'] === 'function') {
+            window['on' + editorId + 'Error'](message);
+        }
     }
     
     function hideError() {
         errorEl.classList.add('d-none');
+    }
+    
+    function notifyLoadSuccess(data) {
+        cropData = null;
+        if (typeof window['on' + editorId + 'LoadSuccess'] === 'function') {
+            window['on' + editorId + 'LoadSuccess'](data);
+        }
     }
     
     function initEditor() {
@@ -204,8 +234,22 @@
             return;
         }
         
+        if (inputOnly) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                loadedImageData = { source: 'file', file: file, dataUrl: e.target.result };
+                uploadPrompt.classList.add('d-none');
+                notifyLoadSuccess(loadedImageData);
+            };
+            reader.onerror = function() {
+                showError('Failed to read image file.');
+            };
+            reader.readAsDataURL(file);
+            return;
+        }
+        
         uploadPrompt.classList.add('d-none');
-        editorWrapper.classList.remove('d-none');
+        if (editorWrapper) editorWrapper.classList.remove('d-none');
         
         initEditor();
         
@@ -213,14 +257,18 @@
             if (err) {
                 showError('Failed to load image. Please try another file.');
                 uploadPrompt.classList.remove('d-none');
-                editorWrapper.classList.add('d-none');
+                if (editorWrapper) editorWrapper.classList.add('d-none');
+            } else {
+                notifyLoadSuccess({ source: 'file', file: file });
             }
         });
     }
     
-    changeBtn.addEventListener('click', function() {
-        fileInput.click();
-    });
+    if (changeBtn) {
+        changeBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
+    }
     
     fileInput.addEventListener('change', function() {
         if (this.files && this.files[0]) {
@@ -228,20 +276,22 @@
         }
     });
     
-    removeBtn.addEventListener('click', function() {
-        if (editor) {
-            editor.clearImage();
-        }
-        cropData = null;
-        fileInput.value = '';
-        uploadPrompt.classList.remove('d-none');
-        editorWrapper.classList.add('d-none');
-        hideError();
-        
-        if (typeof window['on' + editorId + 'Remove'] === 'function') {
-            window['on' + editorId + 'Remove']();
-        }
-    });
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            if (editor) {
+                editor.clearImage();
+            }
+            cropData = null;
+            fileInput.value = '';
+            uploadPrompt.classList.remove('d-none');
+            if (editorWrapper) editorWrapper.classList.add('d-none');
+            hideError();
+            
+            if (typeof window['on' + editorId + 'Remove'] === 'function') {
+                window['on' + editorId + 'Remove']();
+            }
+        });
+    }
     
     var dropzone = document.getElementById(editorId + 'Dropzone') || uploadZone;
     
@@ -313,8 +363,16 @@
                 }
                 
                 hideError();
+                
+                if (inputOnly) {
+                    loadedImageData = { source: 'url', url: url };
+                    uploadPrompt.classList.add('d-none');
+                    notifyLoadSuccess(loadedImageData);
+                    return;
+                }
+                
                 uploadPrompt.classList.add('d-none');
-                editorWrapper.classList.remove('d-none');
+                if (editorWrapper) editorWrapper.classList.remove('d-none');
                 
                 initEditor();
                 
@@ -322,7 +380,9 @@
                     if (err) {
                         showError('Failed to load image from URL. Please check the URL and try again.');
                         uploadPrompt.classList.remove('d-none');
-                        editorWrapper.classList.add('d-none');
+                        if (editorWrapper) editorWrapper.classList.add('d-none');
+                    } else {
+                        notifyLoadSuccess({ source: 'url', url: url });
                     }
                 });
             }
@@ -347,12 +407,22 @@
         return cropData;
     };
     
+    window[editorId + 'GetLoadedImageData'] = function() {
+        return loadedImageData;
+    };
+    
     window[editorId + 'LoadImage'] = function(src, callback) {
         hideError();
         uploadPrompt.classList.add('d-none');
-        editorWrapper.classList.remove('d-none');
-        initEditor();
-        editor.loadImage(src, callback);
+        if (editorWrapper) editorWrapper.classList.remove('d-none');
+        if (!inputOnly) {
+            initEditor();
+            editor.loadImage(src, callback);
+        } else {
+            loadedImageData = { source: 'url', url: src };
+            notifyLoadSuccess(loadedImageData);
+            if (callback) callback(null);
+        }
     };
     
     window[editorId + 'SetCropData'] = function(data) {
@@ -382,10 +452,19 @@
             editor = null;
         }
         cropData = null;
+        loadedImageData = null;
         fileInput.value = '';
+        var urlInput = document.getElementById(editorId + 'UrlInput');
+        if (urlInput) urlInput.value = '';
         uploadPrompt.classList.remove('d-none');
-        editorWrapper.classList.add('d-none');
+        if (editorWrapper) editorWrapper.classList.add('d-none');
         hideError();
+        var sourceUrlRadio = document.getElementById(editorId + 'SourceUrl');
+        if (sourceUrlRadio) sourceUrlRadio.checked = true;
+        var uploadContent = document.getElementById(editorId + 'UploadContent');
+        var urlContent = document.getElementById(editorId + 'UrlContent');
+        if (uploadContent) uploadContent.classList.remove('active');
+        if (urlContent) urlContent.classList.add('active');
     };
 })();
 </script>
