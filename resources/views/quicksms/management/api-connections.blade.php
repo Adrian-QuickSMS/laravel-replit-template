@@ -3,7 +3,178 @@
 @section('title', 'API Connections')
 
 @push('styles')
+<link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
 <style>
+.wizard-modal-fullscreen .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+    height: 100%;
+}
+.wizard-modal-fullscreen .modal-content {
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+}
+.wizard-modal-fullscreen .modal-header {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+    color: #fff;
+    border-radius: 0;
+    padding: 1rem 2rem;
+}
+.wizard-modal-fullscreen .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+.wizard-modal-fullscreen .modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    background: #f8f9fa;
+}
+.wizard-modal-fullscreen .wizard-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+.api-wizard .nav-wizard {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 2rem;
+    gap: 0;
+}
+.api-wizard .nav-wizard li {
+    flex: 1;
+    max-width: 140px;
+}
+.api-wizard .nav-wizard li .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #6c757d;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+    position: relative;
+}
+.api-wizard .nav-wizard li .nav-link .step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    background: #fff;
+    color: #6c757d;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+.api-wizard .nav-wizard li .nav-link .step-title {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+.api-wizard .nav-wizard li .nav-link:after {
+    position: absolute;
+    top: 1.25rem;
+    left: 50%;
+    height: 2px;
+    background: #e9ecef;
+    content: "";
+    z-index: 0;
+    width: 100%;
+}
+.api-wizard .nav-wizard li:last-child .nav-link:after {
+    display: none;
+}
+.api-wizard .nav-wizard li .nav-link.active .step-number,
+.api-wizard .nav-wizard li .nav-link.done .step-number {
+    background: var(--primary, #886CC0);
+    color: #fff;
+    border-color: var(--primary, #886CC0);
+}
+.api-wizard .nav-wizard li .nav-link.done:after {
+    background: var(--primary, #886CC0);
+}
+.api-wizard .step-content {
+    min-height: 300px;
+}
+.api-wizard .wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+.integration-tile {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+.integration-tile:hover {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.05);
+}
+.integration-tile.selected {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.1);
+}
+.integration-tile .tile-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 0.75rem;
+}
+.integration-tile .tile-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.integration-tile .tile-desc {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+.credentials-display {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+.credential-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.credential-row:last-child {
+    border-bottom: none;
+}
+.credential-label {
+    font-weight: 500;
+    color: #495057;
+}
+.credential-value {
+    font-family: monospace;
+    background: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid #dee2e6;
+}
+.ip-list-input {
+    min-height: 100px;
+}
 .api-connections-header {
     display: flex;
     justify-content: space-between;
@@ -596,6 +767,274 @@
                     <h6 class="text-muted mb-3"><i class="fas fa-project-diagram me-2"></i>Dependencies</h6>
                     <div id="drawerDependencies">
                         <p class="text-muted small mb-0">No dependencies configured.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade wizard-modal-fullscreen" id="createApiWizardModal" tabindex="-1" aria-labelledby="createApiWizardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-1" id="createApiWizardModalLabel"><i class="fas fa-plug me-2"></i>Create API Connection</h5>
+                    <small class="opacity-75">Configure a new API connection for your account</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="wizard-container">
+                    <div class="api-wizard" id="apiConnectionWizard">
+                        <ul class="nav-wizard mb-4">
+                            <li><a href="#step-1" class="nav-link active"><span class="step-number">1</span><span class="step-title">Configuration</span></a></li>
+                            <li><a href="#step-2" class="nav-link"><span class="step-number">2</span><span class="step-title">Type</span></a></li>
+                            <li><a href="#step-3" class="nav-link"><span class="step-number">3</span><span class="step-title">Authentication</span></a></li>
+                            <li><a href="#step-4" class="nav-link"><span class="step-number">4</span><span class="step-title">Security</span></a></li>
+                            <li><a href="#step-5" class="nav-link"><span class="step-number">5</span><span class="step-title">Callbacks</span></a></li>
+                            <li><a href="#step-6" class="nav-link"><span class="step-number">6</span><span class="step-title">Complete</span></a></li>
+                        </ul>
+                        
+                        <div class="step-content">
+                            <div id="step-1" class="step-pane active">
+                                <h5 class="mb-4"><i class="fas fa-cog me-2 text-primary"></i>Core Configuration</h5>
+                                <div class="mb-3">
+                                    <label for="wizardApiName" class="form-label">API Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="wizardApiName" placeholder="e.g., Production Messaging API" maxlength="100">
+                                    <div class="form-text">A unique, descriptive name for this connection.</div>
+                                    <div class="invalid-feedback">API name is required and must be unique.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="wizardDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" id="wizardDescription" rows="2" placeholder="Optional description of this API connection"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="wizardSubAccount" class="form-label">Sub-Account <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="wizardSubAccount">
+                                            <option value="">Select sub-account...</option>
+                                            <option value="Main Account">Main Account</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="Development">Development</option>
+                                            <option value="Sales">Sales</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select a sub-account.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="wizardEnvironment" class="form-label">Environment <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="wizardEnvironment">
+                                            <option value="test">Test (Sandbox)</option>
+                                            <option value="live">Live (Production)</option>
+                                        </select>
+                                        <div class="form-text">Test environments do not incur charges.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="step-2" class="step-pane" style="display: none;">
+                                <h5 class="mb-4"><i class="fas fa-sitemap me-2 text-primary"></i>Connection Type</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Select API Type <span class="text-danger">*</span></label>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="integration-tile" data-type="bulk" onclick="selectApiType('bulk')">
+                                                <div class="tile-icon bg-pastel-primary"><i class="fas fa-paper-plane"></i></div>
+                                                <div class="tile-name">Bulk API</div>
+                                                <div class="tile-desc">High-volume messaging</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="integration-tile" data-type="campaign" onclick="selectApiType('campaign')">
+                                                <div class="tile-icon bg-pastel-warning"><i class="fas fa-bullhorn"></i></div>
+                                                <div class="tile-name">Campaign API</div>
+                                                <div class="tile-desc">Scheduled campaigns</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="integration-tile" data-type="integration" onclick="selectApiType('integration')">
+                                                <div class="tile-icon bg-pastel-info"><i class="fas fa-plug"></i></div>
+                                                <div class="tile-name">Integration</div>
+                                                <div class="tile-desc">Third-party systems</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="apiTypeError" style="display: none !important;">Please select an API type.</div>
+                                </div>
+                                <div id="integrationSelector" style="display: none;">
+                                    <label class="form-label mt-3">Select Integration Partner</label>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="integration-tile integration-partner" data-partner="SystmOne" onclick="selectIntegrationPartner('SystmOne')">
+                                                <div class="tile-icon bg-pastel-success"><i class="fas fa-hospital"></i></div>
+                                                <div class="tile-name">SystmOne</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="integration-tile integration-partner" data-partner="Rio" onclick="selectIntegrationPartner('Rio')">
+                                                <div class="tile-icon bg-pastel-info"><i class="fas fa-notes-medical"></i></div>
+                                                <div class="tile-name">Rio</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="integration-tile integration-partner" data-partner="EMIS" onclick="selectIntegrationPartner('EMIS')">
+                                                <div class="tile-icon bg-pastel-primary"><i class="fas fa-clinic-medical"></i></div>
+                                                <div class="tile-name">EMIS</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="integration-tile integration-partner" data-partner="Accurx" onclick="selectIntegrationPartner('Accurx')">
+                                                <div class="tile-icon bg-pastel-warning"><i class="fas fa-stethoscope"></i></div>
+                                                <div class="tile-name">Accurx</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="step-3" class="step-pane" style="display: none;">
+                                <h5 class="mb-4"><i class="fas fa-key me-2 text-primary"></i>Authentication</h5>
+                                <div class="alert" style="background-color: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #5a32a3;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Note:</strong> Authentication method cannot be changed after creation.
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Authentication Method <span class="text-danger">*</span></label>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="integration-tile auth-tile" data-auth="API Key" onclick="selectAuthType('API Key')">
+                                                <div class="tile-icon bg-pastel-primary"><i class="fas fa-key"></i></div>
+                                                <div class="tile-name">API Key</div>
+                                                <div class="tile-desc">Simple token-based auth</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="integration-tile auth-tile" data-auth="Basic Auth" onclick="selectAuthType('Basic Auth')">
+                                                <div class="tile-icon bg-pastel-success"><i class="fas fa-user-lock"></i></div>
+                                                <div class="tile-name">Basic Auth</div>
+                                                <div class="tile-desc">Username & password</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="integration-tile auth-tile disabled" style="opacity: 0.5; cursor: not-allowed;">
+                                                <div class="tile-icon bg-pastel-secondary"><i class="fas fa-shield-alt"></i></div>
+                                                <div class="tile-name">OAuth 2.0</div>
+                                                <div class="tile-desc">Coming soon</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="invalid-feedback d-block" id="authTypeError" style="display: none !important;">Please select an authentication method.</div>
+                                </div>
+                            </div>
+                            
+                            <div id="step-4" class="step-pane" style="display: none;">
+                                <h5 class="mb-4"><i class="fas fa-shield-alt me-2 text-primary"></i>Security Controls</h5>
+                                <div class="mb-3">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="wizardEnableIpRestriction">
+                                        <label class="form-check-label" for="wizardEnableIpRestriction">Enable IP Address Restriction</label>
+                                    </div>
+                                    <div id="ipRestrictionFields" style="display: none;">
+                                        <label for="wizardAllowedIps" class="form-label">Allowed IP Addresses</label>
+                                        <textarea class="form-control ip-list-input" id="wizardAllowedIps" placeholder="Enter one IP address or CIDR range per line&#10;e.g., 192.168.1.100&#10;10.0.0.0/24&#10;2001:db8::1"></textarea>
+                                        <div class="form-text">Supports IPv4, IPv6, and CIDR notation. Leave empty to allow all IPs.</div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-light border mt-4">
+                                    <i class="fas fa-lightbulb me-2 text-warning"></i>
+                                    <strong>Tip:</strong> IP restrictions add an extra layer of security by only allowing requests from specified addresses.
+                                </div>
+                            </div>
+                            
+                            <div id="step-5" class="step-pane" style="display: none;">
+                                <h5 class="mb-4"><i class="fas fa-exchange-alt me-2 text-primary"></i>Callback Configuration</h5>
+                                <div class="mb-4">
+                                    <label for="wizardDlrUrl" class="form-label">Delivery Reports URL (Webhook)</label>
+                                    <input type="url" class="form-control" id="wizardDlrUrl" placeholder="https://your-server.com/webhooks/delivery">
+                                    <div class="form-text">We'll send delivery status updates to this URL. Must use HTTPS.</div>
+                                    <div class="invalid-feedback">URL must start with https://</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="wizardInboundUrl" class="form-label">Inbound Message URL (Webhook)</label>
+                                    <input type="url" class="form-control" id="wizardInboundUrl" placeholder="https://your-server.com/webhooks/inbound">
+                                    <div class="form-text">We'll forward incoming messages to this URL. Must use HTTPS.</div>
+                                    <div class="invalid-feedback">URL must start with https://</div>
+                                </div>
+                                <div class="alert alert-light border">
+                                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                                    Callback URLs are optional. You can configure them later from the connection settings.
+                                </div>
+                            </div>
+                            
+                            <div id="step-6" class="step-pane" style="display: none;">
+                                <div class="text-center mb-4">
+                                    <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                        <i class="fas fa-check fa-2x text-white"></i>
+                                    </div>
+                                    <h5 class="mt-3 mb-1">API Connection Created!</h5>
+                                    <p class="text-muted">Your new connection is ready to use.</p>
+                                </div>
+                                
+                                <div class="alert" style="background-color: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #856404;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Important:</strong> Copy your credentials now. They will only be shown once.
+                                </div>
+                                
+                                <div class="credentials-display mb-4">
+                                    <div class="credential-row">
+                                        <span class="credential-label">Base URL</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <code class="credential-value" id="createdBaseUrl">-</code>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="copyCreatedField('createdBaseUrl')"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="credential-row" id="createdApiKeyRow">
+                                        <span class="credential-label">API Key</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <code class="credential-value" id="createdApiKey">-</code>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="copyCreatedField('createdApiKey')"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="credential-row" id="createdUsernameRow" style="display: none;">
+                                        <span class="credential-label">Username</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <code class="credential-value" id="createdUsername">-</code>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="copyCreatedField('createdUsername')"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="credential-row" id="createdPasswordRow" style="display: none;">
+                                        <span class="credential-label">Password</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <code class="credential-value" id="createdPassword">-</code>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="copyCreatedField('createdPassword')"><i class="fas fa-copy"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-muted small">
+                                    <i class="fas fa-history me-1"></i> Connection created and logged for audit purposes.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="wizard-footer">
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary" id="wizardSaveDraft" onclick="saveDraft()">
+                                    <i class="fas fa-save me-1"></i> Save Draft
+                                </button>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-secondary" id="wizardPrevBtn" onclick="wizardPrev()" style="display: none;">
+                                    <i class="fas fa-arrow-left me-1"></i> Back
+                                </button>
+                                <button type="button" class="btn btn-primary" id="wizardNextBtn" onclick="wizardNext()">
+                                    Next <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                                <button type="button" class="btn btn-success" id="wizardFinishBtn" onclick="closeWizard()" style="display: none;">
+                                    <i class="fas fa-check me-1"></i> Done
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1337,9 +1776,357 @@ $(document).ready(function() {
         return apiConnections.find(function(c) { return c.id === id; });
     }
     
-    window.createApiConnection = function() {
-        alert('Create API Connection - TODO: Implement modal/wizard');
+    var wizardCurrentStep = 1;
+    var wizardTotalSteps = 6;
+    var wizardData = {
+        name: '',
+        description: '',
+        subAccount: '',
+        environment: 'test',
+        type: '',
+        integrationName: null,
+        authType: '',
+        ipAllowList: false,
+        allowedIps: [],
+        dlrUrl: '',
+        inboundUrl: ''
     };
+    var wizardDraft = null;
+    
+    window.createApiConnection = function() {
+        resetWizard();
+        
+        if (wizardDraft) {
+            if (confirm('You have a saved draft. Would you like to resume?')) {
+                loadDraft();
+            }
+        }
+        
+        $('#createApiWizardModal').modal('show');
+    };
+    
+    function resetWizard() {
+        wizardCurrentStep = 1;
+        wizardData = {
+            name: '',
+            description: '',
+            subAccount: '',
+            environment: 'test',
+            type: '',
+            integrationName: null,
+            authType: '',
+            ipAllowList: false,
+            allowedIps: [],
+            dlrUrl: '',
+            inboundUrl: ''
+        };
+        
+        $('#wizardApiName').val('').removeClass('is-invalid');
+        $('#wizardDescription').val('');
+        $('#wizardSubAccount').val('').removeClass('is-invalid');
+        $('#wizardEnvironment').val('test');
+        $('#wizardDlrUrl').val('').removeClass('is-invalid');
+        $('#wizardInboundUrl').val('').removeClass('is-invalid');
+        $('#wizardAllowedIps').val('');
+        $('#wizardEnableIpRestriction').prop('checked', false);
+        $('#ipRestrictionFields').hide();
+        
+        $('.integration-tile').removeClass('selected');
+        $('.auth-tile').removeClass('selected');
+        $('.integration-partner').removeClass('selected');
+        $('#integrationSelector').hide();
+        $('#apiTypeError, #authTypeError').css('display', 'none !important');
+        
+        updateWizardStep(1);
+    }
+    
+    function updateWizardStep(step) {
+        wizardCurrentStep = step;
+        
+        $('.step-pane').hide();
+        $('#step-' + step).show();
+        
+        $('.nav-wizard .nav-link').removeClass('active done');
+        $('.nav-wizard li').each(function(index) {
+            var $link = $(this).find('.nav-link');
+            if (index + 1 < step) {
+                $link.addClass('done');
+            } else if (index + 1 === step) {
+                $link.addClass('active');
+            }
+        });
+        
+        $('#wizardPrevBtn').toggle(step > 1 && step < 6);
+        $('#wizardNextBtn').toggle(step < 5);
+        $('#wizardSaveDraft').toggle(step < 6);
+        $('#wizardFinishBtn').toggle(step === 6);
+        
+        if (step === 5) {
+            $('#wizardNextBtn').html('<i class="fas fa-check me-1"></i> Create Connection');
+        } else {
+            $('#wizardNextBtn').html('Next <i class="fas fa-arrow-right ms-1"></i>');
+        }
+    }
+    
+    window.wizardPrev = function() {
+        if (wizardCurrentStep > 1) {
+            updateWizardStep(wizardCurrentStep - 1);
+        }
+    };
+    
+    window.wizardNext = function() {
+        if (!validateCurrentStep()) return;
+        
+        saveCurrentStepData();
+        
+        if (wizardCurrentStep === 5) {
+            createConnection();
+        } else {
+            updateWizardStep(wizardCurrentStep + 1);
+        }
+    };
+    
+    function validateCurrentStep() {
+        var isValid = true;
+        
+        if (wizardCurrentStep === 1) {
+            var name = $('#wizardApiName').val().trim();
+            var subAccount = $('#wizardSubAccount').val();
+            
+            if (!name) {
+                $('#wizardApiName').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#wizardApiName').removeClass('is-invalid');
+            }
+            
+            if (!subAccount) {
+                $('#wizardSubAccount').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#wizardSubAccount').removeClass('is-invalid');
+            }
+        }
+        
+        if (wizardCurrentStep === 2) {
+            if (!wizardData.type) {
+                $('#apiTypeError').css('display', 'block !important');
+                isValid = false;
+            }
+        }
+        
+        if (wizardCurrentStep === 3) {
+            if (!wizardData.authType) {
+                $('#authTypeError').css('display', 'block !important');
+                isValid = false;
+            }
+        }
+        
+        if (wizardCurrentStep === 5) {
+            var dlrUrl = $('#wizardDlrUrl').val().trim();
+            var inboundUrl = $('#wizardInboundUrl').val().trim();
+            
+            if (dlrUrl && !dlrUrl.startsWith('https://')) {
+                $('#wizardDlrUrl').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#wizardDlrUrl').removeClass('is-invalid');
+            }
+            
+            if (inboundUrl && !inboundUrl.startsWith('https://')) {
+                $('#wizardInboundUrl').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#wizardInboundUrl').removeClass('is-invalid');
+            }
+        }
+        
+        return isValid;
+    }
+    
+    function saveCurrentStepData() {
+        if (wizardCurrentStep === 1) {
+            wizardData.name = $('#wizardApiName').val().trim();
+            wizardData.description = $('#wizardDescription').val().trim();
+            wizardData.subAccount = $('#wizardSubAccount').val();
+            wizardData.environment = $('#wizardEnvironment').val();
+        }
+        
+        if (wizardCurrentStep === 4) {
+            wizardData.ipAllowList = $('#wizardEnableIpRestriction').is(':checked');
+            if (wizardData.ipAllowList) {
+                var ipText = $('#wizardAllowedIps').val().trim();
+                wizardData.allowedIps = ipText ? ipText.split('\n').map(function(ip) { return ip.trim(); }).filter(function(ip) { return ip; }) : [];
+            } else {
+                wizardData.allowedIps = [];
+            }
+        }
+        
+        if (wizardCurrentStep === 5) {
+            wizardData.dlrUrl = $('#wizardDlrUrl').val().trim();
+            wizardData.inboundUrl = $('#wizardInboundUrl').val().trim();
+        }
+    }
+    
+    window.selectApiType = function(type) {
+        wizardData.type = type;
+        wizardData.integrationName = null;
+        
+        $('.integration-tile[data-type]').removeClass('selected');
+        $('.integration-tile[data-type="' + type + '"]').addClass('selected');
+        $('#apiTypeError').css('display', 'none !important');
+        
+        if (type === 'integration') {
+            $('#integrationSelector').slideDown();
+        } else {
+            $('#integrationSelector').slideUp();
+            $('.integration-partner').removeClass('selected');
+        }
+    };
+    
+    window.selectIntegrationPartner = function(partner) {
+        wizardData.integrationName = partner;
+        $('.integration-partner').removeClass('selected');
+        $('.integration-partner[data-partner="' + partner + '"]').addClass('selected');
+    };
+    
+    window.selectAuthType = function(authType) {
+        wizardData.authType = authType;
+        $('.auth-tile').removeClass('selected');
+        $('.auth-tile[data-auth="' + authType + '"]').addClass('selected');
+        $('#authTypeError').css('display', 'none !important');
+    };
+    
+    $('#wizardEnableIpRestriction').on('change', function() {
+        $('#ipRestrictionFields').slideToggle($(this).is(':checked'));
+    });
+    
+    function createConnection() {
+        var newId = apiConnections.length + 1;
+        var envPrefix = wizardData.environment === 'live' ? 'api' : 'sandbox';
+        var typePrefix = wizardData.type === 'bulk' ? 'bulk' : (wizardData.type === 'campaign' ? 'campaigns' : 'integrations');
+        var connId = wizardData.environment === 'live' ? 'prod-' + String(newId).padStart(3, '0') : 'test-' + String(newId).padStart(3, '0');
+        
+        var baseUrl = 'https://' + envPrefix + '.quicksms.io/v1/' + typePrefix + '/' + connId;
+        
+        var newConnection = {
+            id: newId,
+            name: wizardData.name,
+            description: wizardData.description || null,
+            subAccount: wizardData.subAccount,
+            type: wizardData.type,
+            integrationName: wizardData.integrationName,
+            environment: wizardData.environment,
+            authType: wizardData.authType,
+            status: 'live',
+            baseUrl: baseUrl,
+            dlrUrl: wizardData.dlrUrl,
+            inboundUrl: wizardData.inboundUrl,
+            ipAllowList: wizardData.ipAllowList,
+            allowedIps: wizardData.allowedIps,
+            createdDate: new Date().toISOString().split('T')[0],
+            lastUsed: null,
+            archived: false,
+            dependencies: []
+        };
+        
+        apiConnections.push(newConnection);
+        
+        $('#createdBaseUrl').text(baseUrl);
+        
+        if (wizardData.authType === 'API Key') {
+            var apiKey = generateNewApiKey();
+            $('#createdApiKey').text(apiKey);
+            $('#createdApiKeyRow').show();
+            $('#createdUsernameRow, #createdPasswordRow').hide();
+        } else {
+            var username = 'api_user_' + newId;
+            var password = generateRandomPassword();
+            $('#createdUsername').text(username);
+            $('#createdPassword').text(password);
+            $('#createdUsernameRow, #createdPasswordRow').show();
+            $('#createdApiKeyRow').hide();
+        }
+        
+        console.log('[AUDIT] API Connection created:', newConnection.name, 'ID:', newConnection.id, 'Type:', newConnection.type, 'at:', new Date().toISOString());
+        
+        wizardDraft = null;
+        localStorage.removeItem('apiConnectionDraft');
+        
+        renderTable();
+        updateWizardStep(6);
+    }
+    
+    function generateRandomPassword() {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        var password = '';
+        for (var i = 0; i < 16; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    }
+    
+    window.copyCreatedField = function(fieldId) {
+        var text = $('#' + fieldId).text();
+        navigator.clipboard.writeText(text).then(function() {
+            showSuccessToast('Copied to clipboard!');
+        });
+    };
+    
+    window.closeWizard = function() {
+        $('#createApiWizardModal').modal('hide');
+        showSuccessToast('API Connection "' + wizardData.name + '" created successfully!');
+    };
+    
+    window.saveDraft = function() {
+        saveCurrentStepData();
+        wizardDraft = JSON.parse(JSON.stringify(wizardData));
+        wizardDraft.currentStep = wizardCurrentStep;
+        localStorage.setItem('apiConnectionDraft', JSON.stringify(wizardDraft));
+        showSuccessToast('Draft saved successfully!');
+    };
+    
+    function loadDraft() {
+        if (!wizardDraft) return;
+        
+        wizardData = JSON.parse(JSON.stringify(wizardDraft));
+        
+        $('#wizardApiName').val(wizardData.name);
+        $('#wizardDescription').val(wizardData.description);
+        $('#wizardSubAccount').val(wizardData.subAccount);
+        $('#wizardEnvironment').val(wizardData.environment);
+        
+        if (wizardData.type) {
+            selectApiType(wizardData.type);
+            if (wizardData.integrationName) {
+                selectIntegrationPartner(wizardData.integrationName);
+            }
+        }
+        
+        if (wizardData.authType) {
+            selectAuthType(wizardData.authType);
+        }
+        
+        $('#wizardEnableIpRestriction').prop('checked', wizardData.ipAllowList);
+        if (wizardData.ipAllowList) {
+            $('#ipRestrictionFields').show();
+            $('#wizardAllowedIps').val(wizardData.allowedIps.join('\n'));
+        }
+        
+        $('#wizardDlrUrl').val(wizardData.dlrUrl);
+        $('#wizardInboundUrl').val(wizardData.inboundUrl);
+        
+        updateWizardStep(wizardDraft.currentStep || 1);
+    }
+    
+    var savedDraft = localStorage.getItem('apiConnectionDraft');
+    if (savedDraft) {
+        try {
+            wizardDraft = JSON.parse(savedDraft);
+        } catch(e) {
+            wizardDraft = null;
+        }
+    }
     
     window.viewConnection = function(id) {
         var conn = getConnectionById(id);
