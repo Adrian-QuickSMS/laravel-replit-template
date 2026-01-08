@@ -1694,17 +1694,61 @@ $(document).ready(function() {
     
     window.convertToLive = function(id) {
         var conn = getConnectionById(id);
+        
         showConfirmModal(
-            'Convert to Live Environment',
-            'Are you sure you want to convert "' + conn.name + '" to a Live environment? This action is permanent and cannot be undone. The API will be configured for production use.',
-            'Convert to Live',
+            'Convert to Live Environment - Step 1 of 2',
+            'You are about to convert "' + conn.name + '" from a Test (sandbox) environment to a Live (production) environment.',
+            'Continue',
             'btn-primary',
             function() {
-                alert('Converted to Live: ' + conn.name + '\n\nTODO: Implement API call');
+                var detailedMessage = 'Please confirm you want to convert "' + conn.name + '" to Live.\n\n' +
+                    'Key differences:\n' +
+                    '• Live connections process real messages and incur charges\n' +
+                    '• Sandbox testing features will no longer be available\n' +
+                    '• This action is permanent and cannot be reversed';
+                
+                showConfirmModalWithDetails(
+                    'Convert to Live - Final Confirmation',
+                    detailedMessage,
+                    'Convert to Live Now',
+                    'btn-warning',
+                    function() {
+                        conn.environment = 'live';
+                        
+                        if (conn.baseUrl.includes('sandbox')) {
+                            conn.baseUrl = conn.baseUrl.replace('sandbox.', 'api.').replace('/test-', '/prod-');
+                        }
+                        
+                        console.log('[AUDIT] API Connection converted to Live:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        renderTable();
+                        showSuccessToast('API Connection "' + conn.name + '" has been converted to Live environment.');
+                    }
+                );
             },
             null
         );
     };
+    
+    function showConfirmModalWithDetails(title, message, confirmText, confirmClass, onConfirm) {
+        $('#confirmModalLabel').text(title);
+        
+        var formattedMessage = message.replace(/\n/g, '<br>');
+        $('#confirmModalMessage').html(formattedMessage);
+        
+        var permanentWarning = '<div class="alert mt-3 mb-0" style="background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #721c24;">' +
+            '<i class="fas fa-exclamation-circle me-2"></i>' +
+            '<strong>This action is permanent and cannot be undone.</strong>' +
+            '</div>';
+        $('#confirmModalMessage').append(permanentWarning);
+        
+        $('#confirmModalWarning').hide();
+        $('#confirmModalBtn').text(confirmText).removeClass('btn-danger btn-warning btn-primary btn-success').addClass(confirmClass);
+        $('#confirmModalBtn').off('click').on('click', function() {
+            $('#confirmModal').modal('hide');
+            onConfirm();
+        });
+        $('#confirmModal').modal('show');
+    }
     
     window.archiveConnection = function(id) {
         var conn = getConnectionById(id);
