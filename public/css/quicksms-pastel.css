@@ -290,3 +290,38 @@
     border-color: #886CC0;
     color: #fff;
 }
+
+/* ===========================================
+   SharedImageEditor Pastel Styling
+   =========================================== */
+
+/* Dropzone pastel grey background */
+.sie-dropzone {
+    background: rgba(111, 66, 193, 0.06) !important;
+    border-color: rgba(111, 66, 193, 0.25) !important;
+    transition: all 0.2s ease;
+}
+
+.sie-dropzone:hover {
+    background: rgba(111, 66, 193, 0.1) !important;
+    border-color: rgba(111, 66, 193, 0.4) !important;
+}
+
+/* Source toggle pills - pastel purple */
+.sie-source-toggle .btn-outline-secondary {
+    border-color: rgba(111, 66, 193, 0.4);
+    color: #6f42c1;
+    background: transparent;
+}
+
+.sie-source-toggle .btn-outline-secondary:hover {
+    background: rgba(111, 66, 193, 0.1);
+    border-color: rgba(111, 66, 193, 0.5);
+    color: #6f42c1;
+}
+
+.sie-source-toggle .btn-check:checked + .btn-outline-secondary {
+    background: #886CC0;
+    border-color: #886CC0;
+    color: #fff;
+}

@@ -120,7 +120,7 @@
         
         <div id="{{ $editorId }}UploadPrompt">
             @if($showUrlTab)
-            <div class="btn-group btn-group-sm w-100 mb-3" role="group">
+            <div class="btn-group btn-group-sm w-100 mb-3 sie-source-toggle" role="group">
                 <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUrl" value="url" checked>
                 <label class="btn btn-outline-secondary" for="{{ $editorId }}SourceUrl">
                     <i class="fas fa-link me-1"></i>URL
@@ -149,7 +149,7 @@
             @endif
             
             <div class="sie-tab-content{{ $showUrlTab ? '' : ' active' }}" data-tab-content="upload" id="{{ $editorId }}UploadContent">
-                <div class="border border-dashed rounded p-3 text-center bg-light" id="{{ $editorId }}Dropzone">
+                <div class="border border-dashed rounded p-3 text-center sie-dropzone" id="{{ $editorId }}Dropzone">
                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                     <p class="mb-1 small">Drag & drop or</p>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
