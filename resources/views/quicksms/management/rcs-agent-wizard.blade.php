@@ -298,7 +298,7 @@
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">RCS Agent Description <span class="text-danger">*</span></label>
                                                 <textarea class="form-control" id="agentDescription" rows="3" placeholder="Brief description of your business..." maxlength="100"></textarea>
-                                                <small class="text-muted"><span id="descCharCount">0</span>/100 characters</small>
+                                                <small class="text-muted"><span id="descCharCount">0</span>/100 characters — Visible to customers in the agent details view on their device</small>
                                                 <div class="invalid-feedback">Please enter a description (max 100 characters)</div>
                                             </div>
                                             
