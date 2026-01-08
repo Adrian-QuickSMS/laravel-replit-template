@@ -62,14 +62,27 @@
 @once
 @push('styles')
 <style>
+.sie-component {
+    overflow: visible;
+}
 .sie-editor-wrapper {
     padding: 1rem;
+    overflow: visible;
+}
+.sie-editor-wrapper .sie-editor-container {
+    width: 100%;
+    overflow: visible;
 }
 .sie-tab-content {
     display: none;
 }
 .sie-tab-content.active {
     display: block;
+}
+/* Ensure parent containers don't clip editor content */
+.form-wizard .tab-pane .sie-component,
+.form-wizard .tab-pane [id$="UploadZone"] {
+    overflow: visible !important;
 }
 </style>
 @endpush
