@@ -165,6 +165,13 @@
     display: block !important;
 }
 
+#ipRestrictionFields {
+    display: none;
+}
+#ipRestrictionFields.show {
+    display: block !important;
+}
+
 .selectable-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
@@ -537,7 +544,7 @@
                                             <p class="text-muted small">When enabled, API requests will only be accepted from specified IP addresses.</p>
                                         </div>
                                         
-                                        <div id="ipRestrictionFields" style="display: none;">
+                                        <div id="ipRestrictionFields">
                                             <div class="mb-3">
                                                 <label class="form-label">Allowed IP Addresses</label>
                                                 <div class="input-group mb-2">
@@ -1026,7 +1033,7 @@ $(document).ready(function() {
         
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
         if (wizardData.ipAllowList) {
-            $('#ipRestrictionFields').show();
+            $('#ipRestrictionFields').addClass('show');
             renderIpAddresses();
         }
         
@@ -1099,7 +1106,11 @@ $(document).ready(function() {
     };
     
     $('#enableIpRestriction').on('change', function() {
-        $('#ipRestrictionFields').slideToggle($(this).is(':checked'));
+        if ($(this).is(':checked')) {
+            $('#ipRestrictionFields').addClass('show');
+        } else {
+            $('#ipRestrictionFields').removeClass('show');
+        }
         saveFormData();
         revalidateStep(3);
     });
