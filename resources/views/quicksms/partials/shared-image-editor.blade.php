@@ -8,7 +8,9 @@
         'label' => 'Upload Logo',
         'accept' => 'image/png,image/jpeg',
         'maxSize' => 2 * 1024 * 1024,       // 2MB
-        'required' => true
+        'required' => true,
+        'showUrlTab' => true,               // Show URL/Upload toggle
+        'browseLabel' => 'Browse files'     // Customize browse button text
     ])
     
     Presets available:
@@ -40,6 +42,7 @@
     $required = $required ?? false;
     $helpText = $helpText ?? null;
     $showUrlTab = $showUrlTab ?? false;
+    $browseLabel = $browseLabel ?? 'Browse files';
 @endphp
 
 @once
@@ -107,7 +110,7 @@
                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                     <p class="mb-1 small">Drag & drop or</p>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
-                        <i class="fas fa-folder-open me-1"></i>Browse files
+                        <i class="fas fa-folder-open me-1"></i>{{ $browseLabel }}
                     </button>
                     <small class="text-muted d-block mt-2">JPEG, PNG, GIF only. Max {{ number_format($maxSize / 1024 / 1024, 0) }} MB</small>
                 </div>
