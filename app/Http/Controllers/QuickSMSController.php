@@ -1654,10 +1654,8 @@ class QuickSMSController extends Controller
 
     public function apiConnections()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'API Connections',
-            'purpose' => 'Manage API keys and integration settings.',
-            'sub_modules' => []
+        return view('quicksms.management.api-connections', [
+            'page_title' => 'API Connections'
         ]);
     }
 
