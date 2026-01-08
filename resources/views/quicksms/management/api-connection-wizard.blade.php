@@ -945,14 +945,20 @@ $(document).ready(function() {
         }
     });
     
-    $(document).on('click', '.sw-btn-next', function(e) {
+    // Use mousedown instead of click to run before SmartWizard's handlers
+    $(document).on('mousedown', '.sw-btn-next', function(e) {
         var currentStep = $('#apiConnectionWizard').smartWizard('getStepIndex');
-        console.log('[API Wizard] Next button clicked, currentStep:', currentStep, 'connectionCreated:', connectionCreated);
+        console.log('[API Wizard] Next button mousedown, currentStep:', currentStep, 'connectionCreated:', connectionCreated);
         if (currentStep === 5 && !connectionCreated) {
             e.preventDefault();
-            e.stopPropagation();
+            e.stopImmediatePropagation();
             console.log('[API Wizard] Calling createConnection...');
-            createConnection();
+            try {
+                createConnection();
+            } catch (err) {
+                console.error('[API Wizard] Error in createConnection:', err);
+                alert('Error creating connection: ' + err.message);
+            }
             return false;
         }
     });
@@ -1313,12 +1319,26 @@ $(document).ready(function() {
             }, 300);
         });
         
-        $('#validationSummaryModal').modal('show');
+        try {
+            $('#validationSummaryModal').modal('show');
+        } catch (modalErr) {
+            console.error('[API Wizard] Modal error:', modalErr);
+            // Fallback: show alert with incomplete steps
+            var alertMsg = 'Please complete the following steps:\n';
+            incompleteSteps.forEach(function(s) {
+                alertMsg += '- Step ' + s.step + ': ' + s.name + '\n';
+            });
+            alert(alertMsg);
+        }
     }
     
     function createConnection() {
         console.log('[API Wizard] createConnection called');
-        saveFormData();
+        try {
+            saveFormData();
+        } catch (saveErr) {
+            console.error('[API Wizard] saveFormData error:', saveErr);
+        }
         
         // Debug: Log current wizard data
         console.log('[API Wizard] Current wizardData:', JSON.stringify(wizardData, null, 2));
