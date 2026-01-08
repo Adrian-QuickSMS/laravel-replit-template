@@ -325,8 +325,8 @@
                                         
                                         <div class="row">
                                             <div class="col-lg-6 mb-4">
-                                                <div class="alert alert-light border py-2 px-3 mb-3" style="font-size: 0.8rem;">
-                                                    <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                                <div class="alert alert-pastel-primary py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                                    <i class="fas fa-mobile-alt me-2"></i>
                                                     <strong>Device display:</strong> Logos are displayed as circles on handset devices.
                                                 </div>
                                                 
@@ -337,13 +337,14 @@
                                                     'accept' => 'image/png,image/jpeg',
                                                     'maxSize' => 2 * 1024 * 1024,
                                                     'required' => true,
-                                                    'helpText' => 'Upload a square logo. Final output: 222×222 px with circular display.'
+                                                    'helpText' => 'Upload a square logo. Final output: 222×222 px with circular display.',
+                                                    'showUrlTab' => true
                                                 ])
                                             </div>
                                             
                                             <div class="col-lg-6 mb-4">
-                                                <div class="alert alert-light border py-2 px-3 mb-3" style="font-size: 0.8rem;">
-                                                    <i class="fas fa-mobile-alt text-primary me-2"></i>
+                                                <div class="alert alert-pastel-primary py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                                    <i class="fas fa-mobile-alt me-2"></i>
                                                     <strong>Device display:</strong> Hero images partially overlap the logo on handset devices.
                                                 </div>
                                                 
@@ -354,7 +355,8 @@
                                                     'accept' => 'image/png,image/jpeg',
                                                     'maxSize' => 5 * 1024 * 1024,
                                                     'required' => true,
-                                                    'helpText' => 'Wide banner image. Final output: 1480×448 px (45:14 aspect ratio).'
+                                                    'helpText' => 'Wide banner image. Final output: 1480×448 px (45:14 aspect ratio).',
+                                                    'showUrlTab' => true
                                                 ])
                                             </div>
                                         </div>

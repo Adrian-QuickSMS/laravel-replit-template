@@ -39,6 +39,7 @@
     $maxSize = $maxSize ?? 2 * 1024 * 1024;
     $required = $required ?? false;
     $helpText = $helpText ?? null;
+    $showUrlTab = $showUrlTab ?? false;
 @endphp
 
 @once
@@ -64,11 +65,62 @@
 .sie-editor-wrapper {
     padding: 1rem;
 }
+.sie-tab-nav {
+    display: flex;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+.sie-tab-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+.sie-tab-btn:first-child {
+    border-right: 1px solid #e9ecef;
+}
+.sie-tab-btn.active {
+    background: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+}
+.sie-tab-btn:hover:not(.active) {
+    background: #f8f9fa;
+}
+.sie-tab-content {
+    display: none;
+}
+.sie-tab-content.active {
+    display: block;
+}
+.sie-url-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sie-url-input-group .form-control {
+    flex: 1;
+}
+.sie-url-input-group .btn-confirm-url {
+    padding: 0.5rem 1rem;
+    min-width: 40px;
+}
+.sie-url-hint {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
 </style>
 @endpush
 @endonce
 
-<div class="sie-component" data-editor-id="{{ $editorId }}" data-preset="{{ $preset }}" data-max-size="{{ $maxSize }}">
+<div class="sie-component" data-editor-id="{{ $editorId }}" data-preset="{{ $preset }}" data-max-size="{{ $maxSize }}" data-show-url-tab="{{ $showUrlTab ? 'true' : 'false' }}">
     <label class="form-label">{{ $label }}@if($required)<span class="text-danger">*</span>@endif</label>
     
     @if($helpText)
@@ -82,16 +134,49 @@
                accept="{{ $accept }}"
                data-max-size="{{ $maxSize }}">
         
-        <div class="sie-upload-prompt text-center p-4" id="{{ $editorId }}UploadPrompt">
-            <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-            <p class="mb-1">Drag & drop an image here</p>
-            <p class="small text-muted mb-2">or</p>
-            <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
-                <i class="fas fa-folder-open me-1"></i>Browse Files
-            </button>
-            <p class="small text-muted mt-2 mb-0">
-                PNG or JPEG, max {{ number_format($maxSize / 1024 / 1024, 0) }}MB
-            </p>
+        <div class="sie-upload-prompt" id="{{ $editorId }}UploadPrompt">
+            @if($showUrlTab)
+            <div class="sie-tab-nav" id="{{ $editorId }}TabNav">
+                <button type="button" class="sie-tab-btn active" data-tab="upload">
+                    <i class="fas fa-upload me-1"></i>Upload
+                </button>
+                <button type="button" class="sie-tab-btn" data-tab="url">
+                    <i class="fas fa-link me-1"></i>URL
+                </button>
+            </div>
+            @endif
+            
+            <div class="sie-tab-content active" data-tab-content="upload">
+                <div class="text-center p-4">
+                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                    <p class="mb-1">Drag & drop an image here</p>
+                    <p class="small text-muted mb-2">or</p>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
+                        <i class="fas fa-folder-open me-1"></i>Browse Files
+                    </button>
+                    <p class="small text-muted mt-2 mb-0">
+                        PNG or JPEG, max {{ number_format($maxSize / 1024 / 1024, 0) }}MB
+                    </p>
+                </div>
+            </div>
+            
+            @if($showUrlTab)
+            <div class="sie-tab-content" data-tab-content="url">
+                <div class="p-3">
+                    <div class="sie-url-input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-globe text-muted"></i></span>
+                        <input type="url" 
+                               class="form-control border-start-0" 
+                               id="{{ $editorId }}UrlInput" 
+                               placeholder="https://example.com/image.jpg">
+                        <button type="button" class="btn btn-outline-primary btn-confirm-url" id="{{ $editorId }}UrlConfirmBtn">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                    <p class="sie-url-hint">Enter a publicly accessible image URL (JPEG, PNG, GIF)</p>
+                </div>
+            </div>
+            @endif
         </div>
         
         <div class="sie-editor-wrapper d-none" id="{{ $editorId }}EditorWrapper">
@@ -241,6 +326,73 @@
             handleFile(e.dataTransfer.files[0]);
         }
     });
+    
+    // Tab switching functionality
+    var showUrlTab = component.dataset.showUrlTab === 'true';
+    if (showUrlTab) {
+        var tabNav = document.getElementById(editorId + 'TabNav');
+        var urlInput = document.getElementById(editorId + 'UrlInput');
+        var urlConfirmBtn = document.getElementById(editorId + 'UrlConfirmBtn');
+        
+        if (tabNav) {
+            var tabBtns = tabNav.querySelectorAll('.sie-tab-btn');
+            var tabContents = uploadPrompt.querySelectorAll('.sie-tab-content');
+            
+            tabBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var tabName = this.dataset.tab;
+                    
+                    tabBtns.forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    
+                    tabContents.forEach(function(content) {
+                        content.classList.remove('active');
+                        if (content.dataset.tabContent === tabName) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+        
+        if (urlConfirmBtn && urlInput) {
+            function loadImageFromUrl() {
+                var url = urlInput.value.trim();
+                if (!url) {
+                    showError('Please enter an image URL.');
+                    return;
+                }
+                
+                if (!url.match(/^https?:\/\/.+/)) {
+                    showError('Please enter a valid URL starting with http:// or https://');
+                    return;
+                }
+                
+                hideError();
+                uploadPrompt.classList.add('d-none');
+                editorWrapper.classList.remove('d-none');
+                
+                initEditor();
+                
+                editor.loadImage(url, function(err) {
+                    if (err) {
+                        showError('Failed to load image from URL. Please check the URL and try again.');
+                        uploadPrompt.classList.remove('d-none');
+                        editorWrapper.classList.add('d-none');
+                    }
+                });
+            }
+            
+            urlConfirmBtn.addEventListener('click', loadImageFromUrl);
+            
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    loadImageFromUrl();
+                }
+            });
+        }
+    }
     
     window[editorId + 'GetCropData'] = function() {
         return cropData;
