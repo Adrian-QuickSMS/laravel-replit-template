@@ -903,6 +903,22 @@ $(document).ready(function() {
         }
     });
     
+    // Handler for Create Connection button on step 5
+    function handleCreateConnectionClick(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        console.log('[API Wizard] Create Connection clicked, connectionCreated:', connectionCreated);
+        if (!connectionCreated) {
+            try {
+                createConnection();
+            } catch (err) {
+                console.error('[API Wizard] Error in createConnection:', err);
+                alert('Error creating connection: ' + err.message);
+            }
+        }
+        return false;
+    }
+    
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         if (connectionCreated) return false;
         
@@ -922,6 +938,12 @@ $(document).ready(function() {
         
         saveDraft();
         
+        // Remove Create Connection handler when leaving step 5
+        if (currentStepIndex === 5) {
+            var $nextBtn = $('.toolbar-bottom .sw-btn-next');
+            $nextBtn.off('click.createConnection');
+        }
+        
         // Always allow navigation - users can skip steps freely
         return true;
     });
@@ -936,8 +958,12 @@ $(document).ready(function() {
             $nextBtn.text('Create Connection');
             // Ensure button is enabled and clickable on final step
             $nextBtn.prop('disabled', false).removeClass('disabled').css('pointer-events', 'auto');
+            // Attach direct click handler (namespaced to prevent duplicates)
+            $nextBtn.off('click.createConnection').on('click.createConnection', handleCreateConnectionClick);
         } else {
             $nextBtn.text('Next');
+            // Remove handler when not on step 5
+            $nextBtn.off('click.createConnection');
         }
         
         // Sync IP restriction visibility when entering step 4 (Security Settings)
@@ -947,24 +973,6 @@ $(document).ready(function() {
         
         if (connectionCreated) {
             $('.toolbar-bottom').hide();
-        }
-    });
-    
-    // Use mousedown instead of click to run before SmartWizard's handlers
-    $(document).on('mousedown', '.sw-btn-next', function(e) {
-        var currentStep = $('#apiConnectionWizard').smartWizard('getStepIndex');
-        console.log('[API Wizard] Next button mousedown, currentStep:', currentStep, 'connectionCreated:', connectionCreated);
-        if (currentStep === 5 && !connectionCreated) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            console.log('[API Wizard] Calling createConnection...');
-            try {
-                createConnection();
-            } catch (err) {
-                console.error('[API Wizard] Error in createConnection:', err);
-                alert('Error creating connection: ' + err.message);
-            }
-            return false;
         }
     });
     
