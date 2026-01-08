@@ -462,6 +462,24 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmModalBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -866,20 +884,36 @@ $(document).ready(function() {
             html += '<i class="fas fa-ellipsis-v"></i>';
             html += '</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
-            html += '<li><a class="dropdown-item" href="#" onclick="viewConnection(' + conn.id + '); return false;"><i class="fas fa-eye me-2"></i>View</a></li>';
-            html += '<li><a class="dropdown-item" href="#" onclick="editConnection(' + conn.id + '); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
-            html += '<li><a class="dropdown-item" href="#" onclick="regenerateKey(' + conn.id + '); return false;"><i class="fas fa-sync-alt me-2"></i>Regenerate Key</a></li>';
-            html += '<li><hr class="dropdown-divider"></li>';
+            
+            html += '<li><a class="dropdown-item" href="#" onclick="viewConnection(' + conn.id + '); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
+            
+            if (conn.authType === 'API Key') {
+                html += '<li><a class="dropdown-item" href="#" onclick="regenerateKey(' + conn.id + '); return false;"><i class="fas fa-sync-alt me-2"></i>Regenerate API Key</a></li>';
+            }
+            
+            if (conn.authType === 'Basic Auth') {
+                html += '<li><a class="dropdown-item" href="#" onclick="changePassword(' + conn.id + '); return false;"><i class="fas fa-key me-2"></i>Change Password</a></li>';
+            }
+            
             if (conn.status === 'live') {
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(' + conn.id + '); return false;"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
-            } else {
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="activateConnection(' + conn.id + '); return false;"><i class="fas fa-play me-2"></i>Activate</a></li>';
+                html += '<li><hr class="dropdown-divider"></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(' + conn.id + '); return false;"><i class="fas fa-pause me-2"></i>Suspend API</a></li>';
             }
-            if (!conn.archived) {
-                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveConnection(' + conn.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
-            } else {
-                html += '<li><a class="dropdown-item text-primary" href="#" onclick="restoreConnection(' + conn.id + '); return false;"><i class="fas fa-undo me-2"></i>Restore</a></li>';
+            
+            if (conn.status === 'suspended') {
+                html += '<li><hr class="dropdown-divider"></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateConnection(' + conn.id + '); return false;"><i class="fas fa-play me-2"></i>Reactivate API</a></li>';
             }
+            
+            if (conn.environment === 'test' && !conn.archived) {
+                html += '<li><a class="dropdown-item" href="#" onclick="convertToLive(' + conn.id + '); return false;"><i class="fas fa-rocket me-2"></i>Convert to Live</a></li>';
+            }
+            
+            if (conn.status === 'suspended' && !conn.archived) {
+                html += '<li><hr class="dropdown-divider"></li>';
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveConnection(' + conn.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive API</a></li>';
+            }
+            
             html += '</ul>';
             html += '</div>';
             html += '</td>';
@@ -962,42 +996,98 @@ $(document).ready(function() {
         renderTable();
     });
     
+    function showConfirmModal(title, message, confirmText, confirmClass, onConfirm) {
+        $('#confirmModalLabel').text(title);
+        $('#confirmModalMessage').text(message);
+        $('#confirmModalBtn').text(confirmText).removeClass('btn-danger btn-warning btn-primary btn-success').addClass(confirmClass);
+        $('#confirmModalBtn').off('click').on('click', function() {
+            $('#confirmModal').modal('hide');
+            onConfirm();
+        });
+        $('#confirmModal').modal('show');
+    }
+    
+    function getConnectionById(id) {
+        return apiConnections.find(function(c) { return c.id === id; });
+    }
+    
     window.createApiConnection = function() {
         alert('Create API Connection - TODO: Implement modal/wizard');
     };
     
     window.viewConnection = function(id) {
-        alert('View Connection ID: ' + id + ' - TODO: Implement view modal');
-    };
-    
-    window.editConnection = function(id) {
-        alert('Edit Connection ID: ' + id + ' - TODO: Implement edit modal');
+        var conn = getConnectionById(id);
+        alert('View Details for: ' + conn.name + '\n\nTODO: Implement view drawer/modal');
     };
     
     window.regenerateKey = function(id) {
-        if (confirm('Are you sure you want to regenerate the API key? The current key will be invalidated immediately.')) {
-            alert('Regenerate Key for ID: ' + id + ' - TODO: Implement API call');
-        }
+        var conn = getConnectionById(id);
+        showConfirmModal(
+            'Regenerate API Key',
+            'Are you sure you want to regenerate the API key for "' + conn.name + '"? The current key will be invalidated immediately and any applications using it will stop working.',
+            'Regenerate Key',
+            'btn-warning',
+            function() {
+                alert('API Key regenerated for: ' + conn.name + '\n\nTODO: Implement API call');
+            }
+        );
+    };
+    
+    window.changePassword = function(id) {
+        var conn = getConnectionById(id);
+        alert('Change Password for: ' + conn.name + '\n\nTODO: Implement password change modal');
     };
     
     window.suspendConnection = function(id) {
-        if (confirm('Are you sure you want to suspend this API connection?')) {
-            alert('Suspend Connection ID: ' + id + ' - TODO: Implement API call');
-        }
+        var conn = getConnectionById(id);
+        showConfirmModal(
+            'Suspend API Connection',
+            'Are you sure you want to suspend "' + conn.name + '"? All API requests using this connection will be rejected.',
+            'Suspend API',
+            'btn-warning',
+            function() {
+                alert('API suspended: ' + conn.name + '\n\nTODO: Implement API call');
+            }
+        );
     };
     
-    window.activateConnection = function(id) {
-        alert('Activate Connection ID: ' + id + ' - TODO: Implement API call');
+    window.reactivateConnection = function(id) {
+        var conn = getConnectionById(id);
+        showConfirmModal(
+            'Reactivate API Connection',
+            'Are you sure you want to reactivate "' + conn.name + '"? The API will immediately start accepting requests again.',
+            'Reactivate API',
+            'btn-success',
+            function() {
+                alert('API reactivated: ' + conn.name + '\n\nTODO: Implement API call');
+            }
+        );
+    };
+    
+    window.convertToLive = function(id) {
+        var conn = getConnectionById(id);
+        showConfirmModal(
+            'Convert to Live Environment',
+            'Are you sure you want to convert "' + conn.name + '" to a Live environment? This action is permanent and cannot be undone. The API will be configured for production use.',
+            'Convert to Live',
+            'btn-primary',
+            function() {
+                alert('Converted to Live: ' + conn.name + '\n\nTODO: Implement API call');
+            }
+        );
     };
     
     window.archiveConnection = function(id) {
-        if (confirm('Are you sure you want to archive this API connection?')) {
-            alert('Archive Connection ID: ' + id + ' - TODO: Implement API call');
-        }
-    };
-    
-    window.restoreConnection = function(id) {
-        alert('Restore Connection ID: ' + id + ' - TODO: Implement API call');
+        var conn = getConnectionById(id);
+        showConfirmModal(
+            'Archive API Connection',
+            'Are you sure you want to archive "' + conn.name + '"? The connection will be hidden from the main list but can be restored later.',
+            'Archive API',
+            'btn-danger',
+            function() {
+                alert('API archived: ' + conn.name + '\n\nTODO: Implement API call');
+            }
+        );
     };
     
     renderTable();
