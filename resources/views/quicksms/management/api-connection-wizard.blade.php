@@ -932,14 +932,15 @@ $(document).ready(function() {
     $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
         updateStepIndicators();
         
+        var $nextBtn = $('.toolbar-bottom .sw-btn-next');
+        
         if (stepIndex === 5) {
             populateReview();
-            
-            var $toolbar = $('.toolbar-bottom');
-            $toolbar.find('.sw-btn-next').text('Create Connection');
+            $nextBtn.text('Create Connection');
+            // Ensure button is enabled and clickable on final step
+            $nextBtn.prop('disabled', false).removeClass('disabled').css('pointer-events', 'auto');
         } else {
-            var $toolbar = $('.toolbar-bottom');
-            $toolbar.find('.sw-btn-next').text('Next');
+            $nextBtn.text('Next');
         }
         
         if (connectionCreated) {
