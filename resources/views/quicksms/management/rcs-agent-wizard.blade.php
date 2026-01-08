@@ -937,12 +937,20 @@
                                                         <span class="review-value" id="reviewPhone">-</span>
                                                     </div>
                                                     <div class="review-row">
-                                                        <span class="review-label">Website</span>
-                                                        <span class="review-value" id="reviewWebsite">-</span>
+                                                        <span class="review-label">Show Phone on Handset</span>
+                                                        <span class="review-value" id="reviewShowPhone">-</span>
                                                     </div>
                                                     <div class="review-row">
                                                         <span class="review-label">Email</span>
                                                         <span class="review-value" id="reviewEmail">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Show Email on Handset</span>
+                                                        <span class="review-value" id="reviewShowEmail">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Website</span>
+                                                        <span class="review-value" id="reviewWebsite">-</span>
                                                     </div>
                                                 </div>
                                                 
@@ -957,9 +965,7 @@
                                                         <span class="review-value" id="reviewTerms">-</span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            
-                                            <div class="col-lg-6">
+                                                
                                                 <div class="review-section">
                                                     <h6>Billing & Use Case</h6>
                                                     <div class="review-row">
@@ -971,24 +977,86 @@
                                                         <span class="review-value" id="reviewUseCase">-</span>
                                                     </div>
                                                     <div class="review-row">
-                                                        <span class="review-label">Frequency</span>
+                                                        <span class="review-label">Use Case Overview</span>
+                                                        <span class="review-value" id="reviewUseCaseOverview">-</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="review-section">
+                                                    <h6>Messaging Behaviour</h6>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Campaign Frequency</span>
                                                         <span class="review-value" id="reviewFrequency">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">User Consent</span>
+                                                        <span class="review-value" id="reviewUserConsent">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Opt-out Available</span>
+                                                        <span class="review-value" id="reviewOptOut">-</span>
                                                     </div>
                                                     <div class="review-row">
                                                         <span class="review-label">Monthly Volume</span>
                                                         <span class="review-value" id="reviewVolume">-</span>
                                                     </div>
                                                 </div>
-                                                
+                                            </div>
+                                            
+                                            <div class="col-lg-6">
                                                 <div class="review-section">
                                                     <h6>Company Information</h6>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Company Name</span>
+                                                        <span class="review-value" id="reviewCompanyName">-</span>
+                                                    </div>
                                                     <div class="review-row">
                                                         <span class="review-label">Company Number</span>
                                                         <span class="review-value" id="reviewCompanyNumber">-</span>
                                                     </div>
                                                     <div class="review-row">
-                                                        <span class="review-label">Approver</span>
+                                                        <span class="review-label">Company Website</span>
+                                                        <span class="review-value" id="reviewCompanyWebsite">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Sector</span>
+                                                        <span class="review-value" id="reviewSector">-</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="review-section">
+                                                    <h6>Registered Address</h6>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Address Line 1</span>
+                                                        <span class="review-value" id="reviewAddressLine1">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Address Line 2</span>
+                                                        <span class="review-value" id="reviewAddressLine2">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">City / Town</span>
+                                                        <span class="review-value" id="reviewAddressCity">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Post Code</span>
+                                                        <span class="review-value" id="reviewAddressPostCode">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Country</span>
+                                                        <span class="review-value" id="reviewAddressCountry">-</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="review-section">
+                                                    <h6>Approver Details</h6>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Approver Name</span>
                                                         <span class="review-value" id="reviewApproverName">-</span>
+                                                    </div>
+                                                    <div class="review-row">
+                                                        <span class="review-label">Approver Job Title</span>
+                                                        <span class="review-value" id="reviewApproverJobTitle">-</span>
                                                     </div>
                                                     <div class="review-row">
                                                         <span class="review-label">Approver Email</span>
@@ -1001,6 +1069,10 @@
                                                     <div class="review-row">
                                                         <span class="review-label">Numbers Added</span>
                                                         <span class="review-value" id="reviewTestNumbers">0</span>
+                                                    </div>
+                                                    <div class="review-row" id="reviewTestNumbersListRow" style="display: none;">
+                                                        <span class="review-label">Test Numbers</span>
+                                                        <span class="review-value" id="reviewTestNumbersList">-</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1252,19 +1324,57 @@ $(document).ready(function() {
         } else {
             $('#reviewHero').html('<span class="text-muted">Not uploaded</span>');
         }
+        
         $('#reviewPhone').text(wizardData.supportPhone ? '+44 ' + wizardData.supportPhone : '-');
-        $('#reviewWebsite').text(wizardData.website || '-');
+        $('#reviewShowPhone').text(wizardData.showPhone ? 'Yes' : 'No');
         $('#reviewEmail').text(wizardData.supportEmail || '-');
+        $('#reviewShowEmail').text(wizardData.showEmail ? 'Yes' : 'No');
+        $('#reviewWebsite').text(wizardData.website || '-');
+        
         $('#reviewPrivacy').text(wizardData.privacyUrl || '-');
         $('#reviewTerms').text(wizardData.termsUrl || '-');
-        $('#reviewBilling').text(wizardData.billing ? wizardData.billing.charAt(0).toUpperCase() + wizardData.billing.slice(1) : '-');
-        $('#reviewUseCase').text(wizardData.useCase ? wizardData.useCase.charAt(0).toUpperCase() + wizardData.useCase.slice(1) : '-');
+        
+        var billingText = wizardData.billing ? wizardData.billing.replace(/-/g, ' ') : '-';
+        billingText = billingText.split(' ').map(function(word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(' ');
+        $('#reviewBilling').text(billingText);
+        
+        var useCaseText = wizardData.useCase ? wizardData.useCase.replace(/-/g, ' ') : '-';
+        useCaseText = useCaseText.split(' ').map(function(word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(' ');
+        $('#reviewUseCase').text(useCaseText);
+        $('#reviewUseCaseOverview').text(wizardData.useCaseOverview || '-');
+        
         $('#reviewFrequency').text(wizardData.campaignFrequency || '-');
+        $('#reviewUserConsent').text(wizardData.userConsent || '-');
+        $('#reviewOptOut').text(wizardData.optOutAvailable || '-');
         $('#reviewVolume').text(wizardData.monthlyVolume || '-');
+        
+        $('#reviewCompanyName').text(wizardData.companyName || '-');
         $('#reviewCompanyNumber').text(wizardData.companyNumber || '-');
+        $('#reviewCompanyWebsite').text(wizardData.companyWebsite || '-');
+        
+        var sectorText = wizardData.companySector || '-';
+        if (wizardData.companySector === 'Other' && wizardData.otherSector) {
+            sectorText = 'Other: ' + wizardData.otherSector;
+        }
+        $('#reviewSector').text(sectorText);
+        
+        $('#reviewAddressLine1').text(wizardData.addressLine1 || '-');
+        $('#reviewAddressLine2').text(wizardData.addressLine2 || '-');
+        $('#reviewAddressCity').text(wizardData.addressCity || '-');
+        $('#reviewAddressPostCode').text(wizardData.addressPostCode || '-');
+        $('#reviewAddressCountry').text(wizardData.addressCountry || '-');
+        
         $('#reviewApproverName').text(wizardData.approverName || '-');
+        $('#reviewApproverJobTitle').text(wizardData.approverJobTitle || '-');
         $('#reviewApproverEmail').text(wizardData.approverEmail || '-');
+        
         $('#reviewTestNumbers').text(wizardData.testNumbers.length);
+        if (wizardData.testNumbers.length > 0) {
+            $('#reviewTestNumbersListRow').show();
+            $('#reviewTestNumbersList').text(wizardData.testNumbers.join(', '));
+        } else {
+            $('#reviewTestNumbersListRow').hide();
+        }
     }
     
     $('#rcsAgentWizard').smartWizard({
