@@ -690,6 +690,28 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="validationSummaryModal" tabindex="-1" aria-labelledby="validationSummaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="validationSummaryModalLabel">
+                    <i class="fas fa-exclamation-circle text-warning me-2"></i>Incomplete Steps
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Please complete the following steps before creating the connection:</p>
+                <div id="validationSummaryContent"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-arrow-left me-1"></i> Go Back and Complete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -815,12 +837,12 @@ $(document).ready(function() {
         },
         anchor: {
             enableNavigation: true,
-            enableNavigationAlways: false,
-            enableDoneStateNavigation: true,
-            markPreviousStepsAsDone: true,
-            markAllPreviousStepsAsDone: true,
+            enableAllAnchors: true,
+            enableDoneState: false,
+            markPreviousStepsAsDone: false,
+            markAllPreviousStepsAsDone: false,
             removeDoneStepOnNavigateBack: false,
-            enableAnchorOnDoneStep: true
+            enableDoneStateNavigation: true
         },
         keyboard: {
             keyNavigation: false
@@ -836,7 +858,10 @@ $(document).ready(function() {
         
         saveFormData();
         
+        // Mark step as validated (user has left it at least once)
         markStepValidated(currentStepIndex);
+        
+        // Check validity and update step indicators (but don't block navigation)
         var isValid = checkStepValidity(currentStepIndex);
         if (isValid) {
             markStepCompleted(currentStepIndex);
@@ -847,9 +872,7 @@ $(document).ready(function() {
         
         saveDraft();
         
-        if (stepDirection === 'forward') {
-            return validateStep(currentStepIndex);
-        }
+        // Always allow navigation - users can skip steps freely
         return true;
     });
     
@@ -1126,9 +1149,86 @@ $(document).ready(function() {
         }
     }
     
+    function showSubmissionValidationSummary(incompleteSteps) {
+        var visitedIncomplete = incompleteSteps.filter(function(s) { return s.visited; });
+        var notVisited = incompleteSteps.filter(function(s) { return !s.visited; });
+        
+        var summaryHtml = '<div class="submission-validation-summary">';
+        
+        if (visitedIncomplete.length > 0) {
+            summaryHtml += '<div class="mb-3">';
+            summaryHtml += '<h6 class="text-danger mb-2"><i class="fas fa-times-circle me-1"></i> Steps with missing information:</h6>';
+            summaryHtml += '<ul class="list-unstyled mb-0">';
+            visitedIncomplete.forEach(function(s) {
+                summaryHtml += '<li class="mb-1"><a href="#" class="validation-step-link text-decoration-none" data-step="' + (s.step - 1) + '"><i class="fas fa-arrow-right me-1"></i> Step ' + s.step + ': ' + s.name + '</a></li>';
+            });
+            summaryHtml += '</ul></div>';
+        }
+        
+        if (notVisited.length > 0) {
+            summaryHtml += '<div class="mb-3">';
+            summaryHtml += '<h6 class="text-muted mb-2"><i class="fas fa-eye-slash me-1"></i> Steps not yet visited:</h6>';
+            summaryHtml += '<ul class="list-unstyled mb-0">';
+            notVisited.forEach(function(s) {
+                summaryHtml += '<li class="mb-1"><a href="#" class="validation-step-link text-decoration-none" data-step="' + (s.step - 1) + '"><i class="fas fa-arrow-right me-1"></i> Step ' + s.step + ': ' + s.name + '</a></li>';
+            });
+            summaryHtml += '</ul></div>';
+        }
+        
+        summaryHtml += '</div>';
+        
+        $('#validationSummaryContent').html(summaryHtml);
+        
+        // Add click handlers for step links
+        $('.validation-step-link').on('click', function(e) {
+            e.preventDefault();
+            var stepIndex = parseInt($(this).data('step'));
+            $('#validationSummaryModal').modal('hide');
+            setTimeout(function() {
+                $('#apiConnectionWizard').smartWizard('goToStep', stepIndex);
+            }, 300);
+        });
+        
+        $('#validationSummaryModal').modal('show');
+    }
+    
     function createConnection() {
         saveFormData();
         
+        // Validate all steps before creating connection
+        var stepNames = [
+            'Core Configuration',
+            'API Type',
+            'Authentication',
+            'Security Settings',
+            'Webhooks'
+        ];
+        
+        var incompleteSteps = [];
+        var allValid = true;
+        
+        // Check each step (0-4, step 5 is Review)
+        for (var i = 0; i <= 4; i++) {
+            var isValid = checkStepValidity(i);
+            
+            if (!isValid) {
+                allValid = false;
+                var wasValidated = wizardData.validatedSteps.indexOf(i) > -1;
+                
+                incompleteSteps.push({
+                    step: i + 1,
+                    name: stepNames[i],
+                    visited: wasValidated
+                });
+            }
+        }
+        
+        if (!allValid) {
+            showSubmissionValidationSummary(incompleteSteps);
+            return false;
+        }
+        
+        // All valid - proceed with connection creation
         var envPrefix = wizardData.environment === 'live' ? 'api' : 'sandbox';
         var typePrefix = wizardData.type === 'bulk' ? 'bulk' : (wizardData.type === 'campaign' ? 'campaigns' : 'integrations');
         var connId = wizardData.environment === 'live' ? 'prod-' + Math.floor(Math.random() * 1000).toString().padStart(3, '0') : 'test-' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
