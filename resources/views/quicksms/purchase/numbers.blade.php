@@ -425,6 +425,13 @@
 @endpush
 
 @section('content')
+<div class="page-titles">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="#">Purchase</a></li>
+        <li class="breadcrumb-item active"><a href="javascript:void(0)">Numbers</a></li>
+    </ol>
+</div>
 <div class="container-fluid purchase-numbers-container">
     @php
         $currentUserRole = 'admin';
