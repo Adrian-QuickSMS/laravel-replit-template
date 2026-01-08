@@ -153,6 +153,15 @@
 
 .form-wizard .tab-content .tab-pane {
     padding: 0;
+    overflow: visible !important;
+}
+
+#integrationPartnerSection {
+    margin-top: 1rem;
+    display: none;
+}
+#integrationPartnerSection.show {
+    display: block !important;
 }
 
 .selectable-tile {
@@ -411,7 +420,7 @@
                                         </div>
                                         <div class="invalid-feedback d-block" id="apiTypeError" style="display: none;">Please select an API type.</div>
                                         
-                                        <div id="integrationPartnerSection" style="display: none;">
+                                        <div id="integrationPartnerSection">
                                             <hr class="my-4">
                                             <h6 class="mb-3">Select Integration Partner</h6>
                                             <div class="row g-3">
@@ -987,6 +996,7 @@ $(document).ready(function() {
     }
     
     window.selectApiType = function(type) {
+        console.log('[API Wizard] selectApiType called with:', type);
         wizardData.type = type;
         wizardData.integrationName = null;
         
@@ -995,9 +1005,10 @@ $(document).ready(function() {
         $('#apiTypeError').hide();
         
         if (type === 'integration') {
-            $('#integrationPartnerSection').slideDown();
+            console.log('[API Wizard] Showing integration partner section');
+            $('#integrationPartnerSection').addClass('show');
         } else {
-            $('#integrationPartnerSection').slideUp();
+            $('#integrationPartnerSection').removeClass('show');
             $('.partner-tile').removeClass('selected');
         }
         revalidateStep(1);
