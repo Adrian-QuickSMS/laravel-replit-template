@@ -611,6 +611,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="confirmModalWarning" class="alert mb-3" style="background-color: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #856404; display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="confirmModalWarningText"></span>
+                </div>
                 <p id="confirmModalMessage">Are you sure you want to proceed?</p>
             </div>
             <div class="modal-footer">
@@ -1175,15 +1179,53 @@ $(document).ready(function() {
         renderTable();
     });
     
-    function showConfirmModal(title, message, confirmText, confirmClass, onConfirm) {
+    function showConfirmModal(title, message, confirmText, confirmClass, onConfirm, warningText) {
         $('#confirmModalLabel').text(title);
         $('#confirmModalMessage').text(message);
         $('#confirmModalBtn').text(confirmText).removeClass('btn-danger btn-warning btn-primary btn-success').addClass(confirmClass);
+        
+        if (warningText) {
+            $('#confirmModalWarningText').text(warningText);
+            $('#confirmModalWarning').show();
+        } else {
+            $('#confirmModalWarning').hide();
+        }
+        
         $('#confirmModalBtn').off('click').on('click', function() {
             $('#confirmModal').modal('hide');
             onConfirm();
         });
         $('#confirmModal').modal('show');
+    }
+    
+    function getRecentUsageWarning(conn) {
+        if (!conn.lastUsed) return null;
+        
+        var lastUsedDate = new Date(conn.lastUsed);
+        var now = new Date();
+        var diffMs = now - lastUsedDate;
+        var diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        var threshold = 24;
+        
+        if (diffHours < threshold) {
+            if (diffHours < 1) {
+                return 'This API connection was used less than an hour ago.';
+            } else if (diffHours === 1) {
+                return 'This API connection was used 1 hour ago.';
+            } else {
+                return 'This API connection was used ' + diffHours + ' hours ago.';
+            }
+        } else if (diffDays <= 7) {
+            if (diffDays === 1) {
+                return 'This API connection was used 1 day ago.';
+            } else {
+                return 'This API connection was used ' + diffDays + ' days ago.';
+            }
+        }
+        
+        return null;
     }
     
     function getConnectionById(id) {
@@ -1287,6 +1329,7 @@ $(document).ready(function() {
     
     window.regenerateKey = function(id) {
         var conn = getConnectionById(id);
+        var warning = getRecentUsageWarning(conn);
         showConfirmModal(
             'Regenerate API Key',
             'Are you sure you want to regenerate the API key for "' + conn.name + '"? The current key will be invalidated immediately and any applications using it will stop working.',
@@ -1294,17 +1337,29 @@ $(document).ready(function() {
             'btn-warning',
             function() {
                 alert('API Key regenerated for: ' + conn.name + '\n\nTODO: Implement API call');
-            }
+            },
+            warning
         );
     };
     
     window.changePassword = function(id) {
         var conn = getConnectionById(id);
-        alert('Change Password for: ' + conn.name + '\n\nTODO: Implement password change modal');
+        var warning = getRecentUsageWarning(conn);
+        showConfirmModal(
+            'Change Password',
+            'Are you sure you want to change the password for "' + conn.name + '"? Any applications using the current credentials will need to be updated.',
+            'Change Password',
+            'btn-warning',
+            function() {
+                alert('Password changed for: ' + conn.name + '\n\nTODO: Implement password change');
+            },
+            warning
+        );
     };
     
     window.suspendConnection = function(id) {
         var conn = getConnectionById(id);
+        var warning = getRecentUsageWarning(conn);
         showConfirmModal(
             'Suspend API Connection',
             'Are you sure you want to suspend "' + conn.name + '"? All API requests using this connection will be rejected.',
@@ -1312,7 +1367,8 @@ $(document).ready(function() {
             'btn-warning',
             function() {
                 alert('API suspended: ' + conn.name + '\n\nTODO: Implement API call');
-            }
+            },
+            warning
         );
     };
     
@@ -1325,7 +1381,8 @@ $(document).ready(function() {
             'btn-success',
             function() {
                 alert('API reactivated: ' + conn.name + '\n\nTODO: Implement API call');
-            }
+            },
+            null
         );
     };
     
@@ -1338,12 +1395,14 @@ $(document).ready(function() {
             'btn-primary',
             function() {
                 alert('Converted to Live: ' + conn.name + '\n\nTODO: Implement API call');
-            }
+            },
+            null
         );
     };
     
     window.archiveConnection = function(id) {
         var conn = getConnectionById(id);
+        var warning = getRecentUsageWarning(conn);
         showConfirmModal(
             'Archive API Connection',
             'Are you sure you want to archive "' + conn.name + '"? The connection will be hidden from the main list but can be restored later.',
@@ -1351,7 +1410,8 @@ $(document).ready(function() {
             'btn-danger',
             function() {
                 alert('API archived: ' + conn.name + '\n\nTODO: Implement API call');
-            }
+            },
+            warning
         );
     };
     
