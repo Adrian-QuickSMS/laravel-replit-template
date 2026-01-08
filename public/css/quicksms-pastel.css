@@ -295,16 +295,16 @@
    SharedImageEditor Pastel Styling
    =========================================== */
 
-/* Dropzone pastel grey background */
+/* Dropzone pastel grey background - Fillow neutral grey */
 .sie-dropzone {
-    background: rgba(111, 66, 193, 0.06) !important;
-    border-color: rgba(111, 66, 193, 0.25) !important;
+    background: #f8f9fa !important;
+    border-color: #dee2e6 !important;
     transition: all 0.2s ease;
 }
 
 .sie-dropzone:hover {
-    background: rgba(111, 66, 193, 0.1) !important;
-    border-color: rgba(111, 66, 193, 0.4) !important;
+    background: #e9ecef !important;
+    border-color: #ced4da !important;
 }
 
 /* Source toggle pills - pastel purple */
