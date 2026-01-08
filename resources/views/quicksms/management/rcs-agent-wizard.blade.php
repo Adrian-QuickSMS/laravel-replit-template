@@ -1167,29 +1167,27 @@ $(document).ready(function() {
         // Mark step as validated (user has left it at least once)
         markStepValidated(currentStepIndex);
         
-        if (stepDirection === 'forward') {
-            // If on the Review step (step 7, index 7), handle final submission
-            if (currentStepIndex === 7) {
-                return handleFinalSubmission();
-            }
-            
-            var isValid = validateStep(currentStepIndex);
-            if (isValid) {
-                markStepCompleted(currentStepIndex);
-            } else {
-                unmarkStepCompleted(currentStepIndex);
-            }
-            return isValid;
+        // Check validity and update step indicators (but don't block navigation)
+        var isValid = checkStepValidity(currentStepIndex);
+        if (isValid) {
+            markStepCompleted(currentStepIndex);
         } else {
-            // When going backward, also check if step is valid for visual indicator
-            var isValid = checkStepValidity(currentStepIndex);
-            if (isValid) {
-                markStepCompleted(currentStepIndex);
-            } else {
-                unmarkStepCompleted(currentStepIndex);
-            }
+            unmarkStepCompleted(currentStepIndex);
         }
+        
+        // Always allow navigation - users can skip steps freely
         return true;
+    });
+    
+    // Handle Submit button click on Review step (step 8)
+    $(document).on('click', '.sw-btn-next', function(e) {
+        var currentStep = $('#rcsAgentWizard').smartWizard('getStepIndex');
+        if (currentStep === 7) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleFinalSubmission();
+            return false;
+        }
     });
     
     // Handle final submission with validation summary
