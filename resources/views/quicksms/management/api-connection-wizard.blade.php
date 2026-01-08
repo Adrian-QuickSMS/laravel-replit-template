@@ -935,19 +935,13 @@ $(document).ready(function() {
         }
     });
     
-    $('#apiConnectionWizard').on('stepContent', function(e, anchorObject, stepIndex, stepDirection) {
-        if (stepIndex === 5 && stepDirection === 'forward' && !connectionCreated) {
-            if (validateStep(4)) {
-                createConnection();
-            }
-        }
-    });
-    
     $('.sw-btn-next').on('click', function(e) {
         var currentStep = $('#apiConnectionWizard').smartWizard('getStepIndex');
         if (currentStep === 5 && !connectionCreated) {
             e.preventDefault();
+            e.stopPropagation();
             createConnection();
+            return false;
         }
     });
     
@@ -1319,11 +1313,16 @@ $(document).ready(function() {
         }
         
         // All valid - proceed with connection creation
-        var envPrefix = wizardData.environment === 'live' ? 'api' : 'sandbox';
-        var typePrefix = wizardData.type === 'bulk' ? 'bulk' : (wizardData.type === 'campaign' ? 'campaigns' : 'integrations');
-        var connId = wizardData.environment === 'live' ? 'prod-' + Math.floor(Math.random() * 1000).toString().padStart(3, '0') : 'test-' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        // Generate unique subdomain: format is {account}-{random}.api.quicksms.com
+        var accountSlug = wizardData.subAccount ? wizardData.subAccount.toLowerCase().replace(/[^a-z0-9]/g, '') : 'acct';
+        var randomSuffix = generateRandomString(6);
+        var envSuffix = wizardData.environment === 'live' ? '' : '-sandbox';
+        var uniqueSubdomain = accountSlug + '-' + randomSuffix + envSuffix;
         
-        var baseUrl = 'https://' + envPrefix + '.quicksms.io/v1/' + typePrefix + '/' + connId;
+        var baseUrl = 'https://' + uniqueSubdomain + '.api.quicksms.com';
+        
+        // Generate connection ID for internal tracking
+        var connectionId = 'conn_' + generateRandomString(16);
         
         $('#createdBaseUrl').text(baseUrl);
         
@@ -1332,16 +1331,52 @@ $(document).ready(function() {
             $('#createdApiKey').text(apiKey);
             $('#createdApiKeyRow').show();
             $('#createdUsernameRow, #createdPasswordRow').hide();
+            
+            // Log credential creation for backend integration
+            console.log('[API Connection] Created with API Key:', {
+                connectionId: connectionId,
+                baseUrl: baseUrl,
+                apiKey: apiKey.substring(0, 15) + '...',
+                environment: wizardData.environment,
+                subAccount: wizardData.subAccount
+            });
         } else {
-            var username = 'api_user_' + Math.floor(Math.random() * 10000);
-            var password = generatePassword();
+            var username = 'api_' + accountSlug + '_' + generateRandomString(4);
+            var password = generateSecurePassword();
             $('#createdUsername').text(username);
             $('#createdPassword').text(password);
             $('#createdUsernameRow, #createdPasswordRow').show();
             $('#createdApiKeyRow').hide();
+            
+            // Log credential creation for backend integration
+            console.log('[API Connection] Created with Basic Auth:', {
+                connectionId: connectionId,
+                baseUrl: baseUrl,
+                username: username,
+                environment: wizardData.environment,
+                subAccount: wizardData.subAccount
+            });
         }
         
-        console.log('[AUDIT] API Connection created:', wizardData.name, 'Type:', wizardData.type, 'at:', new Date().toISOString());
+        // Store connection data (TODO: Send to backend API)
+        var connectionData = {
+            id: connectionId,
+            name: wizardData.name,
+            description: wizardData.description,
+            subAccount: wizardData.subAccount,
+            environment: wizardData.environment,
+            type: wizardData.type,
+            integrationName: wizardData.integrationName,
+            authType: wizardData.authType,
+            baseUrl: baseUrl,
+            ipAllowList: wizardData.ipAllowList,
+            allowedIps: wizardData.allowedIps,
+            dlrUrl: wizardData.dlrUrl,
+            inboundUrl: wizardData.inboundUrl,
+            createdAt: new Date().toISOString()
+        };
+        
+        console.log('[AUDIT] API Connection created:', connectionData);
         
         localStorage.removeItem('apiConnectionWizardDraft');
         
@@ -1349,6 +1384,15 @@ $(document).ready(function() {
         $('#reviewSection').hide();
         $('#completionSection').show();
         $('.toolbar-bottom').hide();
+    }
+    
+    function generateRandomString(length) {
+        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        var result = '';
+        for (var i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
     
     function generateApiKey() {
@@ -1361,13 +1405,28 @@ $(document).ready(function() {
         return prefix + key;
     }
     
-    function generatePassword() {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    function generateSecurePassword() {
+        // Generate password with: min 12 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        var numbers = '0123456789';
+        var special = '!@#$%^&*';
+        var all = uppercase + lowercase + numbers + special;
+        
+        // Ensure at least one of each required type
         var password = '';
-        for (var i = 0; i < 16; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+        password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+        password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        password += special.charAt(Math.floor(Math.random() * special.length));
+        
+        // Fill remaining with random characters (total 16 chars)
+        for (var i = 0; i < 12; i++) {
+            password += all.charAt(Math.floor(Math.random() * all.length));
         }
-        return password;
+        
+        // Shuffle the password
+        return password.split('').sort(function() { return 0.5 - Math.random(); }).join('');
     }
     
     window.copyCredential = function(elementId) {
