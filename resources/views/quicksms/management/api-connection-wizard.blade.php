@@ -658,6 +658,38 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="resumeDraftModal" tabindex="-1" aria-labelledby="resumeDraftModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="resumeDraftModalLabel">
+                    <i class="fas fa-file-alt text-primary me-2"></i>Resume Draft?
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">You have an unsaved draft from a previous session. Would you like to continue where you left off?</p>
+                <div class="d-flex align-items-center p-3 rounded" style="background-color: rgba(136, 108, 192, 0.1);">
+                    <div class="me-3">
+                        <i class="fas fa-clock text-primary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold" id="draftApiName">Draft Connection</div>
+                        <div class="small text-muted">Last saved: <span id="draftTimestamp">-</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" id="discardDraftBtn">
+                    <i class="fas fa-trash-alt me-1"></i> Discard & Start Fresh
+                </button>
+                <button type="button" class="btn btn-primary" id="resumeDraftBtn">
+                    <i class="fas fa-play me-1"></i> Continue Draft
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -766,20 +798,7 @@ $(document).ready(function() {
     }
     
     var savedDraft = localStorage.getItem('apiConnectionWizardDraft');
-    if (savedDraft) {
-        try {
-            var draft = JSON.parse(savedDraft);
-            if (confirm('You have a saved draft. Would you like to resume?')) {
-                wizardData = draft.data || wizardData;
-                skippedSteps = draft.skippedSteps || [];
-                loadDraftToForm();
-            } else {
-                localStorage.removeItem('apiConnectionWizardDraft');
-            }
-        } catch(e) {
-            localStorage.removeItem('apiConnectionWizardDraft');
-        }
-    }
+    var pendingDraft = null;
     
     $('#apiConnectionWizard').smartWizard({
         selected: 0,
@@ -1172,6 +1191,37 @@ $(document).ready(function() {
             }, 1500);
         });
     };
+    
+    $('#resumeDraftBtn').on('click', function() {
+        if (pendingDraft) {
+            wizardData = pendingDraft.data || wizardData;
+            skippedSteps = pendingDraft.skippedSteps || [];
+            loadDraftToForm();
+        }
+        $('#resumeDraftModal').modal('hide');
+    });
+    
+    $('#discardDraftBtn').on('click', function() {
+        localStorage.removeItem('apiConnectionWizardDraft');
+        pendingDraft = null;
+        $('#resumeDraftModal').modal('hide');
+    });
+    
+    if (savedDraft) {
+        try {
+            pendingDraft = JSON.parse(savedDraft);
+            if (pendingDraft && pendingDraft.data) {
+                $('#draftApiName').text(pendingDraft.data.name || 'Untitled Connection');
+                if (pendingDraft.timestamp) {
+                    var draftDate = new Date(pendingDraft.timestamp);
+                    $('#draftTimestamp').text(draftDate.toLocaleString());
+                }
+                $('#resumeDraftModal').modal('show');
+            }
+        } catch(e) {
+            localStorage.removeItem('apiConnectionWizardDraft');
+        }
+    }
 });
 </script>
 @endpush
