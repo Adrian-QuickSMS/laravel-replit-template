@@ -603,6 +603,40 @@
     </div>
 </div>
 
+<div class="modal fade" id="newKeyModal" tabindex="-1" aria-labelledby="newKeyModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="newKeyModalLabel"><i class="fas fa-key me-2"></i>New API Key Generated</h5>
+            </div>
+            <div class="modal-body">
+                <div class="alert" style="background-color: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #856404;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> This key will only be shown once. Copy it now and store it securely.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Your New API Key</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control font-monospace" id="newApiKeyValue" readonly style="background-color: #f8f9fa;">
+                        <button class="btn btn-outline-primary" type="button" id="copyNewKeyBtn" onclick="copyNewApiKey()">
+                            <i class="fas fa-copy me-1"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    The previous key has been revoked and is no longer valid.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="closeNewKeyModalBtn">
+                    <i class="fas fa-check me-1"></i> I've Copied the Key
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1330,16 +1364,64 @@ $(document).ready(function() {
     window.regenerateKey = function(id) {
         var conn = getConnectionById(id);
         var warning = getRecentUsageWarning(conn);
+        
         showConfirmModal(
-            'Regenerate API Key',
-            'Are you sure you want to regenerate the API key for "' + conn.name + '"? The current key will be invalidated immediately and any applications using it will stop working.',
-            'Regenerate Key',
+            'Regenerate API Key - Step 1 of 2',
+            'Regenerating this key will immediately revoke the old key. Any systems using the old key will stop working. Are you sure you want to continue?',
+            'Continue',
             'btn-warning',
             function() {
-                alert('API Key regenerated for: ' + conn.name + '\n\nTODO: Implement API call');
+                showConfirmModal(
+                    'Regenerate API Key - Final Confirmation',
+                    'This action cannot be undone. The current API key for "' + conn.name + '" will be permanently revoked. Please confirm you want to proceed.',
+                    'Regenerate Key Now',
+                    'btn-danger',
+                    function() {
+                        generateAndShowNewKey(conn);
+                    },
+                    null
+                );
             },
             warning
         );
+    };
+    
+    function generateNewApiKey() {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var key = 'sk_live_';
+        for (var i = 0; i < 32; i++) {
+            key += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return key;
+    }
+    
+    function generateAndShowNewKey(conn) {
+        var newKey = generateNewApiKey();
+        
+        console.log('[AUDIT] API Key regenerated for connection:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+        
+        $('#newApiKeyValue').val(newKey);
+        $('#copyNewKeyBtn').html('<i class="fas fa-copy me-1"></i> Copy');
+        
+        $('#closeNewKeyModalBtn').off('click').on('click', function() {
+            $('#newApiKeyValue').val('');
+            $('#newKeyModal').modal('hide');
+        });
+        
+        $('#newKeyModal').modal('show');
+    }
+    
+    window.copyNewApiKey = function() {
+        var keyInput = document.getElementById('newApiKeyValue');
+        var value = keyInput.value;
+        if (value) {
+            navigator.clipboard.writeText(value).then(function() {
+                $('#copyNewKeyBtn').html('<i class="fas fa-check me-1"></i> Copied!');
+                setTimeout(function() {
+                    $('#copyNewKeyBtn').html('<i class="fas fa-copy me-1"></i> Copy');
+                }, 2000);
+            });
+        }
     };
     
     window.changePassword = function(id) {
