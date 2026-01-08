@@ -431,9 +431,12 @@
                                                     <small class="text-muted">Button label</small>
                                                 </div>
                                                 <div class="col-lg-6">
-                                                    <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
-                                                    <small class="text-muted">Must start with https://</small>
-                                                    <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">https://</span>
+                                                        <input type="text" class="form-control" id="businessWebsite" placeholder="www.example.com">
+                                                    </div>
+                                                    <small class="text-muted">Enter domain without https://</small>
+                                                    <div class="invalid-feedback">Please enter a valid URL</div>
                                                 </div>
                                                 <div class="col-lg-3">
                                                     <small class="text-muted fst-italic" id="websiteRequiredNote">Required if phone/email not displayed</small>
@@ -449,16 +452,22 @@
                                         <div class="row">
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Privacy Policy URL <span class="text-danger">*</span></label>
-                                                <input type="url" class="form-control" id="privacyUrl" placeholder="https://www.example.com/privacy">
+                                                <div class="input-group">
+                                                    <span class="input-group-text">https://</span>
+                                                    <input type="text" class="form-control" id="privacyUrl" placeholder="www.example.com/privacy">
+                                                </div>
                                                 <small class="text-muted">Link to your privacy policy page</small>
-                                                <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
+                                                <div class="invalid-feedback">Please enter a valid URL</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Terms of Service URL <span class="text-danger">*</span></label>
-                                                <input type="url" class="form-control" id="termsUrl" placeholder="https://www.example.com/terms">
+                                                <div class="input-group">
+                                                    <span class="input-group-text">https://</span>
+                                                    <input type="text" class="form-control" id="termsUrl" placeholder="www.example.com/terms">
+                                                </div>
                                                 <small class="text-muted">Link to your terms of service page</small>
-                                                <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
+                                                <div class="invalid-feedback">Please enter a valid URL</div>
                                             </div>
                                         </div>
                                     </div>
@@ -702,7 +711,10 @@
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Company Website <span class="text-danger">*</span></label>
-                                                <input type="url" class="form-control" id="companyWebsite" placeholder="https://www.yourcompany.com">
+                                                <div class="input-group">
+                                                    <span class="input-group-text">https://</span>
+                                                    <input type="text" class="form-control" id="companyWebsite" placeholder="www.yourcompany.com">
+                                                </div>
                                                 <small class="text-muted">Your main company website</small>
                                                 <div class="invalid-feedback">Please enter a valid company website URL</div>
                                             </div>
