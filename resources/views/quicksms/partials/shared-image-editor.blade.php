@@ -328,31 +328,35 @@
         }
     });
     
-    // Tab switching functionality
+    // Source toggle (Upload/URL) functionality
     var showUrlTab = component.dataset.showUrlTab === 'true';
     if (showUrlTab) {
-        var tabNav = document.getElementById(editorId + 'TabNav');
+        var sourceUploadRadio = document.getElementById(editorId + 'SourceUpload');
+        var sourceUrlRadio = document.getElementById(editorId + 'SourceUrl');
+        var uploadContent = document.getElementById(editorId + 'UploadContent');
+        var urlContent = document.getElementById(editorId + 'UrlContent');
         var urlInput = document.getElementById(editorId + 'UrlInput');
         var urlConfirmBtn = document.getElementById(editorId + 'UrlConfirmBtn');
         
-        if (tabNav) {
-            var tabBtns = tabNav.querySelectorAll('.sie-tab-btn');
-            var tabContents = uploadPrompt.querySelectorAll('.sie-tab-content');
-            
-            tabBtns.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var tabName = this.dataset.tab;
-                    
-                    tabBtns.forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    
-                    tabContents.forEach(function(content) {
-                        content.classList.remove('active');
-                        if (content.dataset.tabContent === tabName) {
-                            content.classList.add('active');
-                        }
-                    });
-                });
+        function switchToTab(tabName) {
+            if (tabName === 'upload') {
+                uploadContent.classList.add('active');
+                urlContent.classList.remove('active');
+            } else {
+                uploadContent.classList.remove('active');
+                urlContent.classList.add('active');
+            }
+        }
+        
+        if (sourceUploadRadio) {
+            sourceUploadRadio.addEventListener('change', function() {
+                if (this.checked) switchToTab('upload');
+            });
+        }
+        
+        if (sourceUrlRadio) {
+            sourceUrlRadio.addEventListener('change', function() {
+                if (this.checked) switchToTab('url');
             });
         }
         
