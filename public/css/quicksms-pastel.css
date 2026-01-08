@@ -330,15 +330,15 @@
    RCS Wizard Step States
    =========================================== */
 
-/* Not Visited - white background, default border, default text */
+/* Not Visited - white background, purple accent border */
 .form-wizard .nav-wizard li.step-not-visited .nav-link span {
     background: #fff;
-    color: #6c757d;
-    border: 2px solid #dee2e6;
+    color: #886CC0;
+    border: 2px solid rgba(136, 108, 192, 0.4);
 }
 
 .form-wizard .nav-wizard li.step-not-visited .nav-link:after {
-    background: #dee2e6;
+    background: rgba(136, 108, 192, 0.3);
 }
 
 /* Visited but Incomplete - pastel red background, red number text */

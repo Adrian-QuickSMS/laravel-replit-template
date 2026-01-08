@@ -1135,9 +1135,10 @@ $(document).ready(function() {
         },
         anchor: {
             enableNavigation: true,
-            enableDoneState: true,
-            markPreviousStepsAsDone: true,
-            markAllPreviousStepsAsDone: true,
+            enableAllAnchors: true,
+            enableDoneState: false,
+            markPreviousStepsAsDone: false,
+            markAllPreviousStepsAsDone: false,
             removeDoneStepOnNavigateBack: false,
             enableDoneStateNavigation: true
         },
