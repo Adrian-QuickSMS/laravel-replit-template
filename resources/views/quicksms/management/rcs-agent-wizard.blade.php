@@ -778,10 +778,47 @@
                                             </div>
                                             
                                             <div class="col-lg-12 mb-3">
-                                                <label class="text-label form-label">Registered Address <span class="text-danger">*</span></label>
-                                                <textarea class="form-control" id="registeredAddress" rows="3" placeholder="Enter your full registered business address..."></textarea>
-                                                <small class="text-muted">Your official registered business address</small>
-                                                <div class="invalid-feedback">Please enter your registered address</div>
+                                                <label class="text-label form-label">Address Line 1 <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="addressLine1" placeholder="e.g., 123 Business Street">
+                                                <div class="invalid-feedback">Please enter address line 1</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="text-label form-label">Address Line 2</label>
+                                                <input type="text" class="form-control" id="addressLine2" placeholder="e.g., Suite 100 (optional)">
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">City/Town <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="addressCity" placeholder="e.g., London">
+                                                <div class="invalid-feedback">Please enter city/town</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">Post Code <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="addressPostCode" placeholder="e.g., SW1A 1AA">
+                                                <div class="invalid-feedback">Please enter post code</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">Country <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="addressCountry">
+                                                    <option value="">Select country...</option>
+                                                    <option value="United Kingdom" selected>United Kingdom</option>
+                                                    <option value="Ireland">Ireland</option>
+                                                    <option value="France">France</option>
+                                                    <option value="Germany">Germany</option>
+                                                    <option value="Spain">Spain</option>
+                                                    <option value="Italy">Italy</option>
+                                                    <option value="Netherlands">Netherlands</option>
+                                                    <option value="Belgium">Belgium</option>
+                                                    <option value="Switzerland">Switzerland</option>
+                                                    <option value="United States">United States</option>
+                                                    <option value="Canada">Canada</option>
+                                                    <option value="Australia">Australia</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select a country</div>
                                             </div>
                                         </div>
                                         
@@ -1027,7 +1064,11 @@ $(document).ready(function() {
         companyWebsite: '',
         companySector: '',
         otherSector: '',
-        registeredAddress: '',
+        addressLine1: '',
+        addressLine2: '',
+        addressCity: '',
+        addressPostCode: '',
+        addressCountry: 'United Kingdom',
         approverName: '',
         approverJobTitle: '',
         approverEmail: '',
@@ -1167,8 +1208,20 @@ $(document).ready(function() {
                 $('#otherSector').addClass('is-invalid');
                 isValid = false;
             }
-            if (!wizardData.registeredAddress.trim()) {
-                $('#registeredAddress').addClass('is-invalid');
+            if (!wizardData.addressLine1.trim()) {
+                $('#addressLine1').addClass('is-invalid');
+                isValid = false;
+            }
+            if (!wizardData.addressCity.trim()) {
+                $('#addressCity').addClass('is-invalid');
+                isValid = false;
+            }
+            if (!wizardData.addressPostCode.trim()) {
+                $('#addressPostCode').addClass('is-invalid');
+                isValid = false;
+            }
+            if (!wizardData.addressCountry) {
+                $('#addressCountry').addClass('is-invalid');
                 isValid = false;
             }
             if (!wizardData.approverName.trim()) {
@@ -1469,8 +1522,10 @@ $(document).ready(function() {
         } else if (stepNumber === 4) {
             // Company Details
             var sectorValid = wizardData.companySector && (wizardData.companySector !== 'other' || wizardData.otherSector.trim());
+            var addressValid = wizardData.addressLine1.trim() && wizardData.addressCity.trim() && 
+                              wizardData.addressPostCode.trim() && wizardData.addressCountry;
             return wizardData.companyName.trim() && wizardData.companyNumber.trim() && 
-                   sectorValid && wizardData.registeredAddress.trim() && 
+                   sectorValid && addressValid && 
                    wizardData.approverName.trim() && wizardData.approverJobTitle.trim() && 
                    wizardData.approverEmail.trim();
         } else if (stepNumber === 5) {
@@ -1774,8 +1829,14 @@ $(document).ready(function() {
         triggerAutosave();
     });
     
-    $('#companyName, #companyNumber, #companyWebsite, #registeredAddress, #approverName, #approverJobTitle, #approverEmail, #otherSector').on('input', function() {
+    $('#companyName, #companyNumber, #companyWebsite, #addressLine1, #addressLine2, #addressCity, #addressPostCode, #approverName, #approverJobTitle, #approverEmail, #otherSector').on('input', function() {
         wizardData[this.id] = this.value;
+        revalidateStep(4); // Step 5: Company Details
+        triggerAutosave();
+    });
+    
+    $('#addressCountry').on('change', function() {
+        wizardData.addressCountry = this.value;
         revalidateStep(4); // Step 5: Company Details
         triggerAutosave();
     });
