@@ -764,6 +764,13 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-tasks me-2"></i>Capabilities & Restrictions</h6>
+                    <div id="drawerCapabilities"></div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-project-diagram me-2"></i>Dependencies</h6>
                     <div id="drawerDependencies">
                         <p class="text-muted small mb-0">No dependencies configured.</p>
@@ -2187,6 +2194,9 @@ $(document).ready(function() {
         }
         $('#drawerLastUsed').text(lastUsedText);
         
+        var capabilitiesHtml = getCapabilitiesHtml(conn.type, conn.integrationName);
+        $('#drawerCapabilities').html(capabilitiesHtml);
+        
         if (conn.dependencies && conn.dependencies.length > 0) {
             var depHtml = '<ul class="list-unstyled mb-0 small">';
             conn.dependencies.forEach(function(dep) {
@@ -2218,6 +2228,78 @@ $(document).ready(function() {
             });
         }
     };
+    
+    function getCapabilitiesHtml(type, integrationName) {
+        var html = '';
+        
+        if (type === 'bulk') {
+            html = '<div class="small">' +
+                '<div class="mb-2 text-muted"><strong>Bulk API</strong> - High-volume messaging with restrictions</div>' +
+                '<div class="mb-3">' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Send individual messages</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Send batch messages (up to 10,000)</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Receive delivery reports</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Receive inbound messages</div>' +
+                '</div>' +
+                '<div class="border-top pt-2">' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>Cannot use message templates</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>Cannot access Contact Book</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>Cannot reference opt-out lists</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No personalisation placeholders</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No campaign scheduling or logic</div>' +
+                '</div>' +
+                '</div>';
+        } else if (type === 'campaign') {
+            html = '<div class="small">' +
+                '<div class="mb-2 text-muted"><strong>Campaign API</strong> - Full campaign management capabilities</div>' +
+                '<div class="mb-3">' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Use message templates</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Manage contacts and lists</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Enforce opt-out list compliance</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Personalisation placeholders</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Schedule campaigns</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Campaign analytics & reporting</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>A/B testing support</div>' +
+                '</div>' +
+                '<div class="border-top pt-2">' +
+                '<div class="text-warning mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Rate limited to 1,000 msgs/min</div>' +
+                '<div class="text-warning mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Requires valid opt-out list</div>' +
+                '</div>' +
+                '</div>';
+        } else if (type === 'integration') {
+            var partnerInfo = getIntegrationPartnerInfo(integrationName);
+            html = '<div class="small">' +
+                '<div class="mb-2 text-muted"><strong>Integration API</strong> - ' + (integrationName || 'Third-party system') + '</div>' +
+                '<div class="mb-3">' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Bi-directional data sync</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Automated triggers</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Event webhooks</div>' +
+                partnerInfo +
+                '</div>' +
+                '<div class="border-top pt-2">' +
+                '<div class="text-info mb-1"><i class="fas fa-info-circle me-2"></i>Follows integration partner specifications</div>' +
+                '</div>' +
+                '</div>';
+        } else {
+            html = '<p class="text-muted small mb-0">No capability information available.</p>';
+        }
+        
+        return html;
+    }
+    
+    function getIntegrationPartnerInfo(partnerName) {
+        var info = {
+            'SystmOne': '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Patient appointment reminders</div>' +
+                        '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Prescription notifications</div>',
+            'Rio': '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Mental health appointment alerts</div>' +
+                   '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Care plan updates</div>',
+            'EMIS': '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>GP practice notifications</div>' +
+                    '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Test result alerts</div>',
+            'Accurx': '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Video consultation invites</div>' +
+                      '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Patient messaging</div>'
+        };
+        return info[partnerName] || '';
+    }
     
     window.regenerateKey = function(id) {
         var conn = getConnectionById(id);
