@@ -65,33 +65,36 @@
 .sie-editor-wrapper {
     padding: 1rem;
 }
-.sie-tab-nav {
+.sie-source-toggle {
     display: flex;
+    justify-content: center;
     margin-bottom: 1rem;
-    border-radius: 6px;
+}
+.sie-source-toggle .btn-group {
+    border-radius: 20px;
     overflow: hidden;
-    border: 1px solid #e9ecef;
 }
-.sie-tab-btn {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border: none;
-    background: #fff;
-    cursor: pointer;
-    font-size: 0.875rem;
+.sie-source-toggle .btn-check + .btn {
+    border-radius: 20px;
+    padding: 0.4rem 1.25rem;
+    font-size: 0.8rem;
     font-weight: 500;
+    border: 1px solid #dee2e6;
+    background: #fff;
     color: #6c757d;
-    transition: all 0.2s ease;
 }
-.sie-tab-btn:first-child {
-    border-right: 1px solid #e9ecef;
+.sie-source-toggle .btn-check:checked + .btn {
+    background: var(--primary, #886CC0);
+    border-color: var(--primary, #886CC0);
+    color: #fff;
 }
-.sie-tab-btn.active {
-    background: rgba(136, 108, 192, 0.15);
-    color: #886CC0;
+.sie-source-toggle .btn-check + .btn:first-of-type {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
-.sie-tab-btn:hover:not(.active) {
-    background: #f8f9fa;
+.sie-source-toggle .btn-check + .btn:last-of-type {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
 }
 .sie-tab-content {
     display: none;
@@ -99,17 +102,11 @@
 .sie-tab-content.active {
     display: block;
 }
-.sie-url-input-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.sie-url-section {
+    padding: 1rem;
 }
-.sie-url-input-group .form-control {
-    flex: 1;
-}
-.sie-url-input-group .btn-confirm-url {
-    padding: 0.5rem 1rem;
-    min-width: 40px;
+.sie-url-section .input-group {
+    max-width: 100%;
 }
 .sie-url-hint {
     font-size: 0.75rem;
