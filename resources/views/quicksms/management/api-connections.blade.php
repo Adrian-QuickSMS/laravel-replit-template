@@ -186,11 +186,6 @@
     max-width: 300px;
     min-width: 200px;
 }
-.filters-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
 .action-menu-btn {
     background: transparent;
     border: none;
@@ -235,6 +230,60 @@
     font-size: 0.85rem;
     color: #6c757d;
 }
+.multiselect-dropdown {
+    position: relative;
+}
+.multiselect-dropdown .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 100%;
+}
+.multiselect-dropdown .form-check {
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+}
+.multiselect-dropdown .form-check:hover {
+    background: #f8f9fa;
+}
+.multiselect-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    background: #fff;
+}
+.multiselect-toggle .selected-count {
+    background: #6f42c1;
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.75rem;
+    margin-left: 0.5rem;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-right: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.filter-chip .chip-label {
+    margin-right: 0.25rem;
+    color: #6c757d;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 0.7rem;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+}
 </style>
 @endpush
 
@@ -259,14 +308,130 @@
                     <span class="input-group-text bg-transparent border-end-0">
                         <i class="fas fa-search text-muted"></i>
                     </span>
-                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search API connections...">
+                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search by API name...">
                 </div>
             </div>
-            <div class="filters-group">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="showArchivedToggle">
-                    <label class="form-check-label" for="showArchivedToggle">Show Archived</label>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                    <i class="fas fa-filter me-1"></i> Filters
+                </button>
+            </div>
+        </div>
+        
+        <div class="collapse" id="filtersPanel">
+            <div class="card card-body border-0 rounded-0" style="background-color: #f0ebf8; border-bottom: 1px solid #e9ecef !important;">
+                <div class="row g-3 align-items-end">
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label small fw-bold">Type</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="types">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Types</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="bulk" id="typeBulk"><label class="form-check-label small" for="typeBulk">Bulk API</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="campaign" id="typeCampaign"><label class="form-check-label small" for="typeCampaign">Campaign API</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="integration" id="typeIntegration"><label class="form-check-label small" for="typeIntegration">Integration</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label small fw-bold">Environment</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="environments">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Environments</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="test" id="envTest"><label class="form-check-label small" for="envTest">Test</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="envLive"><label class="form-check-label small" for="envLive">Live</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label small fw-bold">Status</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Statuses</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Live</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label small fw-bold">Sub-Account</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Sub-Accounts</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAccMain"><label class="form-check-label small" for="subAccMain">Main Account</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing" id="subAccMarketing"><label class="form-check-label small" for="subAccMarketing">Marketing</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Development" id="subAccDev"><label class="form-check-label small" for="subAccDev">Development</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label small fw-bold">Auth Type</label>
+                        <div class="dropdown multiselect-dropdown" data-filter="authTypes">
+                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                <span class="dropdown-label">All Auth Types</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                </div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="API Key" id="authApiKey"><label class="form-check-label small" for="authApiKey">API Key</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Basic Auth" id="authBasic"><label class="form-check-label small" for="authBasic">Basic Authentication</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="OAuth" id="authOAuth"><label class="form-check-label small" for="authOAuth">OAuth (future)</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="showArchivedToggle">
+                            <label class="form-check-label small" for="showArchivedToggle">Show Archived</label>
+                        </div>
+                    </div>
                 </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
+                            <i class="fas fa-check me-1"></i> Apply Filters
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                            <i class="fas fa-undo me-1"></i> Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="px-3 pt-3" id="activeFiltersContainer" style="display: none;">
+            <div class="d-flex flex-wrap align-items-center">
+                <span class="small text-muted me-2">Active filters:</span>
+                <div id="activeFiltersChips"></div>
+                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                    Clear all
+                </button>
             </div>
         </div>
         
@@ -434,8 +599,26 @@ $(document).ready(function() {
     ];
     
     var currentSort = { column: 'name', direction: 'asc' };
-    var showArchived = false;
-    var searchTerm = '';
+    
+    var appliedFilters = {
+        search: '',
+        types: [],
+        environments: [],
+        statuses: [],
+        subAccounts: [],
+        authTypes: [],
+        showArchived: false
+    };
+    
+    var pendingFilters = {
+        search: '',
+        types: [],
+        environments: [],
+        statuses: [],
+        subAccounts: [],
+        authTypes: [],
+        showArchived: false
+    };
     
     function getTypeBadgeClass(type) {
         switch(type) {
@@ -488,16 +671,135 @@ $(document).ready(function() {
         });
     }
     
+    function updateDropdownLabel(filterName) {
+        var $dropdown = $('[data-filter="' + filterName + '"]');
+        var checked = $dropdown.find('input:checked');
+        var $label = $dropdown.find('.dropdown-label');
+        var defaultLabels = {
+            'types': 'All Types',
+            'environments': 'All Environments',
+            'statuses': 'All Statuses',
+            'subAccounts': 'All Sub-Accounts',
+            'authTypes': 'All Auth Types'
+        };
+        
+        if (checked.length === 0) {
+            $label.html(defaultLabels[filterName]);
+        } else if (checked.length === 1) {
+            $label.html(checked.first().next('label').text());
+        } else {
+            $label.html(defaultLabels[filterName].replace('All ', '') + ' <span class="badge bg-primary rounded-pill ms-1">' + checked.length + '</span>');
+        }
+    }
+    
+    function getPendingFilterValues(filterName) {
+        var values = [];
+        $('[data-filter="' + filterName + '"] input:checked').each(function() {
+            values.push($(this).val());
+        });
+        return values;
+    }
+    
+    function applyFilters() {
+        appliedFilters.search = $('#searchInput').val().trim();
+        appliedFilters.types = getPendingFilterValues('types');
+        appliedFilters.environments = getPendingFilterValues('environments');
+        appliedFilters.statuses = getPendingFilterValues('statuses');
+        appliedFilters.subAccounts = getPendingFilterValues('subAccounts');
+        appliedFilters.authTypes = getPendingFilterValues('authTypes');
+        appliedFilters.showArchived = $('#showArchivedToggle').is(':checked');
+        
+        renderActiveFilters();
+        renderTable();
+    }
+    
+    function resetFilters() {
+        $('#searchInput').val('');
+        $('#showArchivedToggle').prop('checked', false);
+        
+        $('.multiselect-dropdown input[type="checkbox"]').prop('checked', false);
+        
+        $('.multiselect-dropdown').each(function() {
+            var filterName = $(this).data('filter');
+            updateDropdownLabel(filterName);
+        });
+        
+        appliedFilters = {
+            search: '',
+            types: [],
+            environments: [],
+            statuses: [],
+            subAccounts: [],
+            authTypes: [],
+            showArchived: false
+        };
+        
+        renderActiveFilters();
+        renderTable();
+    }
+    
+    function renderActiveFilters() {
+        var $container = $('#activeFiltersContainer');
+        var $chips = $('#activeFiltersChips');
+        $chips.empty();
+        
+        var hasFilters = false;
+        
+        if (appliedFilters.search) {
+            hasFilters = true;
+            $chips.append('<span class="filter-chip"><span class="chip-label">Search:</span>' + appliedFilters.search + '<span class="remove-chip" data-filter="search"><i class="fas fa-times"></i></span></span>');
+        }
+        
+        appliedFilters.types.forEach(function(val) {
+            hasFilters = true;
+            $chips.append('<span class="filter-chip"><span class="chip-label">Type:</span>' + getTypeLabel(val) + '<span class="remove-chip" data-filter="types" data-value="' + val + '"><i class="fas fa-times"></i></span></span>');
+        });
+        
+        appliedFilters.environments.forEach(function(val) {
+            hasFilters = true;
+            var label = val === 'live' ? 'Live' : 'Test';
+            $chips.append('<span class="filter-chip"><span class="chip-label">Environment:</span>' + label + '<span class="remove-chip" data-filter="environments" data-value="' + val + '"><i class="fas fa-times"></i></span></span>');
+        });
+        
+        appliedFilters.statuses.forEach(function(val) {
+            hasFilters = true;
+            var label = val === 'live' ? 'Live' : 'Suspended';
+            $chips.append('<span class="filter-chip"><span class="chip-label">Status:</span>' + label + '<span class="remove-chip" data-filter="statuses" data-value="' + val + '"><i class="fas fa-times"></i></span></span>');
+        });
+        
+        appliedFilters.subAccounts.forEach(function(val) {
+            hasFilters = true;
+            $chips.append('<span class="filter-chip"><span class="chip-label">Sub-Account:</span>' + val + '<span class="remove-chip" data-filter="subAccounts" data-value="' + val + '"><i class="fas fa-times"></i></span></span>');
+        });
+        
+        appliedFilters.authTypes.forEach(function(val) {
+            hasFilters = true;
+            $chips.append('<span class="filter-chip"><span class="chip-label">Auth:</span>' + val + '<span class="remove-chip" data-filter="authTypes" data-value="' + val + '"><i class="fas fa-times"></i></span></span>');
+        });
+        
+        if (appliedFilters.showArchived) {
+            hasFilters = true;
+            $chips.append('<span class="filter-chip">Show Archived<span class="remove-chip" data-filter="showArchived"><i class="fas fa-times"></i></span></span>');
+        }
+        
+        $container.toggle(hasFilters);
+    }
+    
     function renderTable() {
         var filtered = apiConnections.filter(function(conn) {
-            if (!showArchived && conn.archived) return false;
-            if (searchTerm) {
-                var search = searchTerm.toLowerCase();
-                return conn.name.toLowerCase().includes(search) ||
-                       (conn.description && conn.description.toLowerCase().includes(search)) ||
-                       conn.subAccount.toLowerCase().includes(search) ||
-                       conn.baseUrl.toLowerCase().includes(search);
+            if (!appliedFilters.showArchived && conn.archived) return false;
+            
+            if (appliedFilters.search) {
+                var search = appliedFilters.search.toLowerCase();
+                if (!conn.name.toLowerCase().includes(search)) return false;
             }
+            
+            if (appliedFilters.types.length > 0 && !appliedFilters.types.includes(conn.type)) return false;
+            if (appliedFilters.environments.length > 0 && !appliedFilters.environments.includes(conn.environment)) return false;
+            if (appliedFilters.statuses.length > 0 && !appliedFilters.statuses.includes(conn.status)) return false;
+            if (appliedFilters.subAccounts.length > 0 && !appliedFilters.subAccounts.includes(conn.subAccount)) return false;
+            if (appliedFilters.authTypes.length > 0 && !appliedFilters.authTypes.includes(conn.authType)) return false;
+            
             return true;
         });
         
@@ -587,7 +889,7 @@ $(document).ready(function() {
         
         $('#apiConnectionsBody').html(html);
         $('#showingCount').text(filtered.length);
-        $('#totalCount').text(showArchived ? apiConnections.length : apiConnections.filter(c => !c.archived).length);
+        $('#totalCount').text(appliedFilters.showArchived ? apiConnections.length : apiConnections.filter(c => !c.archived).length);
         
         $('[data-bs-toggle="tooltip"]').tooltip();
         
@@ -608,13 +910,55 @@ $(document).ready(function() {
         renderTable();
     });
     
-    $('#showArchivedToggle').on('change', function() {
-        showArchived = $(this).is(':checked');
-        renderTable();
+    $('.multiselect-dropdown').on('change', 'input[type="checkbox"]', function() {
+        var filterName = $(this).closest('.multiselect-dropdown').data('filter');
+        updateDropdownLabel(filterName);
     });
     
-    $('#searchInput').on('input', function() {
-        searchTerm = $(this).val();
+    $('.multiselect-dropdown').on('click', '.select-all-btn', function(e) {
+        e.preventDefault();
+        $(this).closest('.dropdown-menu').find('input[type="checkbox"]').prop('checked', true);
+        var filterName = $(this).closest('.multiselect-dropdown').data('filter');
+        updateDropdownLabel(filterName);
+    });
+    
+    $('.multiselect-dropdown').on('click', '.clear-all-btn', function(e) {
+        e.preventDefault();
+        $(this).closest('.dropdown-menu').find('input[type="checkbox"]').prop('checked', false);
+        var filterName = $(this).closest('.multiselect-dropdown').data('filter');
+        updateDropdownLabel(filterName);
+    });
+    
+    $('#btnApplyFilters').on('click', function() {
+        applyFilters();
+    });
+    
+    $('#btnResetFilters').on('click', function() {
+        resetFilters();
+    });
+    
+    $('#btnClearAllFilters').on('click', function() {
+        resetFilters();
+    });
+    
+    $(document).on('click', '.remove-chip', function() {
+        var filterType = $(this).data('filter');
+        var value = $(this).data('value');
+        
+        if (filterType === 'search') {
+            $('#searchInput').val('');
+            appliedFilters.search = '';
+        } else if (filterType === 'showArchived') {
+            $('#showArchivedToggle').prop('checked', false);
+            appliedFilters.showArchived = false;
+        } else {
+            $('[data-filter="' + filterType + '"] input[value="' + value + '"]').prop('checked', false);
+            updateDropdownLabel(filterType);
+            var idx = appliedFilters[filterType].indexOf(value);
+            if (idx > -1) appliedFilters[filterType].splice(idx, 1);
+        }
+        
+        renderActiveFilters();
         renderTable();
     });
     
