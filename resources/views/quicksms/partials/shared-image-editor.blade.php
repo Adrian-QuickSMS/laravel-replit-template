@@ -133,17 +133,21 @@
         
         <div class="sie-upload-prompt" id="{{ $editorId }}UploadPrompt">
             @if($showUrlTab)
-            <div class="sie-tab-nav" id="{{ $editorId }}TabNav">
-                <button type="button" class="sie-tab-btn active" data-tab="upload">
-                    <i class="fas fa-upload me-1"></i>Upload
-                </button>
-                <button type="button" class="sie-tab-btn" data-tab="url">
-                    <i class="fas fa-link me-1"></i>URL
-                </button>
+            <div class="sie-source-toggle pt-3">
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUpload" value="upload" checked>
+                    <label class="btn" for="{{ $editorId }}SourceUpload">
+                        <i class="fas fa-upload me-1"></i>Upload
+                    </label>
+                    <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUrl" value="url">
+                    <label class="btn" for="{{ $editorId }}SourceUrl">
+                        <i class="fas fa-link me-1"></i>URL
+                    </label>
+                </div>
             </div>
             @endif
             
-            <div class="sie-tab-content active" data-tab-content="upload">
+            <div class="sie-tab-content active" data-tab-content="upload" id="{{ $editorId }}UploadContent">
                 <div class="text-center p-4">
                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                     <p class="mb-1">Drag & drop an image here</p>
@@ -158,15 +162,15 @@
             </div>
             
             @if($showUrlTab)
-            <div class="sie-tab-content" data-tab-content="url">
-                <div class="p-3">
-                    <div class="sie-url-input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-globe text-muted"></i></span>
+            <div class="sie-tab-content" data-tab-content="url" id="{{ $editorId }}UrlContent">
+                <div class="sie-url-section">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-globe text-muted"></i></span>
                         <input type="url" 
-                               class="form-control border-start-0" 
+                               class="form-control" 
                                id="{{ $editorId }}UrlInput" 
                                placeholder="https://example.com/image.jpg">
-                        <button type="button" class="btn btn-outline-primary btn-confirm-url" id="{{ $editorId }}UrlConfirmBtn">
+                        <button type="button" class="btn btn-outline-primary" id="{{ $editorId }}UrlConfirmBtn">
                             <i class="fas fa-check"></i>
                         </button>
                     </div>
