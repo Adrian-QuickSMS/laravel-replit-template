@@ -508,8 +508,6 @@
                     <th data-sort="environment">Environment <i class="fas fa-sort sort-icon"></i></th>
                     <th data-sort="authType">Auth Type <i class="fas fa-sort sort-icon"></i></th>
                     <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="baseUrl">Dedicated Base URL <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="ipAllowList">IP Allow List <i class="fas fa-sort sort-icon"></i></th>
                     <th data-sort="createdDate">Created Date <i class="fas fa-sort sort-icon"></i></th>
                     <th data-sort="lastUsed">Last Used <i class="fas fa-sort sort-icon"></i></th>
                     <th>Actions</th>
@@ -1023,10 +1021,6 @@ $(document).ready(function() {
         return status === 'live' ? 'badge-live-status' : 'badge-suspended';
     }
     
-    function getIpAllowBadgeClass(enabled) {
-        return enabled ? 'badge-on' : 'badge-off';
-    }
-    
     function formatDate(dateStr) {
         var date = new Date(dateStr);
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1220,16 +1214,6 @@ $(document).ready(function() {
             
             html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + 
                     (conn.status === 'live' ? 'Live' : 'Suspended') + '</span></td>';
-            
-            html += '<td>';
-            html += '<span class="base-url-cell">' + conn.baseUrl + '</span>';
-            html += '<button class="copy-btn ms-1" onclick="copyToClipboard(\'' + conn.baseUrl + '\', this)" title="Copy URL">';
-            html += '<i class="fas fa-copy"></i>';
-            html += '</button>';
-            html += '</td>';
-            
-            html += '<td><span class="badge rounded-pill ' + getIpAllowBadgeClass(conn.ipAllowList) + '">' + 
-                    (conn.ipAllowList ? 'On' : 'Off') + '</span></td>';
             
             html += '<td>' + formatDate(conn.createdDate) + '</td>';
             
