@@ -214,6 +214,18 @@
         frame.className = 'sie-crop-frame';
         if (this.options.frameShape === 'circle') {
             frame.classList.add('sie-crop-frame--circle');
+            
+            var squareOutline = document.createElement('div');
+            squareOutline.className = 'sie-square-outline';
+            squareOutline.style.position = 'absolute';
+            squareOutline.style.top = '0';
+            squareOutline.style.left = '0';
+            squareOutline.style.right = '0';
+            squareOutline.style.bottom = '0';
+            squareOutline.style.border = '2px dashed rgba(255, 255, 255, 0.7)';
+            squareOutline.style.borderRadius = '4px';
+            squareOutline.style.pointerEvents = 'none';
+            frame.appendChild(squareOutline);
         }
         frame.style.width = this.options.frameWidth + 'px';
         frame.style.height = this.options.frameHeight + 'px';
