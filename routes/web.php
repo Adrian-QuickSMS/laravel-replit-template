@@ -36,6 +36,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/management/sms-sender-id', 'smsSenderIdRegistration')->name('management.sms-sender-id');
     Route::get('/management/templates', 'templates')->name('management.templates');
     Route::get('/management/api-connections', 'apiConnections')->name('management.api-connections');
+    Route::get('/management/api-connections/create', 'apiConnectionCreate')->name('management.api-connections.create');
     Route::get('/management/email-to-sms', 'emailToSms')->name('management.email-to-sms');
     Route::get('/management/numbers', 'numbers')->name('management.numbers');
     

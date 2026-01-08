@@ -1659,6 +1659,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function apiConnectionCreate()
+    {
+        return view('quicksms.management.api-connection-wizard', [
+            'page_title' => 'Create API Connection'
+        ]);
+    }
+
     public function emailToSms()
     {
         return view('quicksms.placeholder', [
