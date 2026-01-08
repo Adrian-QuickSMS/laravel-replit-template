@@ -1299,7 +1299,11 @@ $(document).ready(function() {
     }
     
     function createConnection() {
+        console.log('[API Wizard] createConnection called');
         saveFormData();
+        
+        // Debug: Log current wizard data
+        console.log('[API Wizard] Current wizardData:', JSON.stringify(wizardData, null, 2));
         
         // Validate all steps before creating connection
         var stepNames = [
@@ -1316,6 +1320,7 @@ $(document).ready(function() {
         // Check each step (0-4, step 5 is Review)
         for (var i = 0; i <= 4; i++) {
             var isValid = checkStepValidity(i);
+            console.log('[API Wizard] Step', i, 'validity:', isValid);
             
             if (!isValid) {
                 allValid = false;
@@ -1329,7 +1334,10 @@ $(document).ready(function() {
             }
         }
         
+        console.log('[API Wizard] All steps valid:', allValid);
+        
         if (!allValid) {
+            console.log('[API Wizard] Showing validation summary for:', incompleteSteps);
             showSubmissionValidationSummary(incompleteSteps);
             return false;
         }
@@ -1403,9 +1411,11 @@ $(document).ready(function() {
         localStorage.removeItem('apiConnectionWizardDraft');
         
         connectionCreated = true;
+        console.log('[API Wizard] Showing completion section...');
         $('#reviewSection').hide();
-        $('#completionSection').show();
+        $('#completionSection').attr('style', 'display: block !important');
         $('.toolbar-bottom').hide();
+        console.log('[API Wizard] Connection creation complete!');
     }
     
     function generateRandomString(length) {
