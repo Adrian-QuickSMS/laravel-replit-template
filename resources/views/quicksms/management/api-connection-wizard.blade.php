@@ -947,11 +947,13 @@ $(document).ready(function() {
         }
     });
     
-    $('.sw-btn-next').on('click', function(e) {
+    $(document).on('click', '.sw-btn-next', function(e) {
         var currentStep = $('#apiConnectionWizard').smartWizard('getStepIndex');
+        console.log('[API Wizard] Next button clicked, currentStep:', currentStep, 'connectionCreated:', connectionCreated);
         if (currentStep === 5 && !connectionCreated) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('[API Wizard] Calling createConnection...');
             createConnection();
             return false;
         }
