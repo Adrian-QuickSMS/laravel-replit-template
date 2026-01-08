@@ -542,7 +542,7 @@
                                             <p class="text-muted small">When enabled, API requests will only be accepted from specified IP addresses.</p>
                                         </div>
                                         
-                                        <div id="ipRestrictionFields" class="d-none">
+                                        <div id="ipRestrictionFields">
                                             <div class="mb-3">
                                                 <label class="form-label">Allowed IP Addresses</label>
                                                 <div class="input-group mb-2">
@@ -1057,7 +1057,7 @@ $(document).ready(function() {
         
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
         if (wizardData.ipAllowList) {
-            $('#ipRestrictionFields').attr('style', 'display: block !important');
+            $('#ipRestrictionFields').addClass('show');
             renderIpAddresses();
         }
         
@@ -1135,10 +1135,10 @@ $(document).ready(function() {
         var fields = document.getElementById('ipRestrictionFields');
         if (isChecked) {
             console.log('[API Wizard] Showing ipRestrictionFields');
-            fields.classList.remove('d-none');
+            fields.classList.add('show');
         } else {
             console.log('[API Wizard] Hiding ipRestrictionFields');
-            fields.classList.add('d-none');
+            fields.classList.remove('show');
         }
         wizardData.ipAllowList = isChecked;
         saveDraft();
