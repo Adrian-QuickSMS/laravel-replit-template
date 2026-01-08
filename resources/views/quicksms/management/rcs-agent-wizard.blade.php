@@ -713,11 +713,6 @@
                                             <strong>Step 5: Company & Approver Details</strong> - Provide your company registration and approver information.
                                         </div>
                                         
-                                        <div class="alert" style="background-color: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #5a4a7a;">
-                                            <i class="fas fa-magic me-2"></i>
-                                            <strong>Auto-populated:</strong> Company and Approver details are automatically pulled from your Account > Details settings. You can update them here if needed for this registration.
-                                        </div>
-                                        
                                         <div class="alert alert-warning mb-4">
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Important:</strong> Incorrect or inconsistent information may delay approval.
