@@ -1131,6 +1131,11 @@ $(document).ready(function() {
         markStepValidated(currentStepIndex);
         
         if (stepDirection === 'forward') {
+            // If on the Review step (step 7, index 7), handle final submission
+            if (currentStepIndex === 7) {
+                return handleFinalSubmission();
+            }
+            
             var isValid = validateStep(currentStepIndex);
             if (isValid) {
                 markStepCompleted(currentStepIndex);
@@ -1149,6 +1154,148 @@ $(document).ready(function() {
         }
         return true;
     });
+    
+    // Handle final submission with validation summary
+    function handleFinalSubmission() {
+        var stepNames = [
+            'Agent Basics',
+            'Branding Assets',
+            'Handset + Compliance',
+            'Agent Type',
+            'Messaging Behaviour',
+            'Company Details',
+            'Test Numbers'
+        ];
+        
+        var incompleteSteps = [];
+        var allValid = true;
+        
+        // Check each step (0-6, step 7 is Review which has no required fields)
+        for (var i = 0; i <= 6; i++) {
+            var isValid = checkStepValidity(i);
+            
+            if (!isValid) {
+                allValid = false;
+                
+                // Only mark as validated (red) if it was visited
+                if (wizardData.visitedSteps.indexOf(i) > -1) {
+                    markStepValidated(i);
+                    unmarkStepCompleted(i);
+                    incompleteSteps.push({
+                        step: i + 1,
+                        name: stepNames[i],
+                        visited: true
+                    });
+                } else {
+                    // Not visited - still incomplete but stays white
+                    incompleteSteps.push({
+                        step: i + 1,
+                        name: stepNames[i],
+                        visited: false
+                    });
+                }
+            }
+        }
+        
+        updateStepIndicators();
+        
+        if (!allValid) {
+            showSubmissionValidationSummary(incompleteSteps);
+            return false;
+        }
+        
+        // All valid - proceed with submission
+        submitWizard();
+        return false; // Prevent default navigation, we handle it in submitWizard
+    }
+    
+    // Show validation summary modal
+    function showSubmissionValidationSummary(incompleteSteps) {
+        var visitedIncomplete = incompleteSteps.filter(function(s) { return s.visited; });
+        var notVisited = incompleteSteps.filter(function(s) { return !s.visited; });
+        
+        var summaryHtml = '<div class="submission-validation-summary">';
+        
+        if (visitedIncomplete.length > 0) {
+            summaryHtml += '<div class="mb-3">';
+            summaryHtml += '<h6 class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Incomplete Steps (Please Fix)</h6>';
+            summaryHtml += '<ul class="list-unstyled mb-0">';
+            visitedIncomplete.forEach(function(s) {
+                summaryHtml += '<li class="py-1"><span class="badge bg-danger me-2">Step ' + s.step + '</span>' + s.name + '</li>';
+            });
+            summaryHtml += '</ul></div>';
+        }
+        
+        if (notVisited.length > 0) {
+            summaryHtml += '<div class="mb-3">';
+            summaryHtml += '<h6 class="text-muted"><i class="fas fa-info-circle me-2"></i>Steps Not Yet Visited</h6>';
+            summaryHtml += '<ul class="list-unstyled mb-0">';
+            notVisited.forEach(function(s) {
+                summaryHtml += '<li class="py-1 text-muted"><span class="badge bg-secondary me-2">Step ' + s.step + '</span>' + s.name + '</li>';
+            });
+            summaryHtml += '</ul></div>';
+        }
+        
+        summaryHtml += '</div>';
+        
+        // Show in existing modal or create alert
+        if ($('#validationSummaryModal').length) {
+            $('#validationSummaryModal .modal-body').html(summaryHtml);
+            $('#validationSummaryModal').modal('show');
+        } else {
+            // Create a simple modal dynamically
+            var modalHtml = '<div class="modal fade" id="validationSummaryModal" tabindex="-1">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered">';
+            modalHtml += '<div class="modal-content">';
+            modalHtml += '<div class="modal-header bg-light">';
+            modalHtml += '<h5 class="modal-title"><i class="fas fa-clipboard-check me-2 text-primary"></i>Submission Blocked</h5>';
+            modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
+            modalHtml += '</div>';
+            modalHtml += '<div class="modal-body">' + summaryHtml + '</div>';
+            modalHtml += '<div class="modal-footer">';
+            modalHtml += '<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK, I\'ll Fix These</button>';
+            modalHtml += '</div></div></div></div>';
+            
+            $('body').append(modalHtml);
+            $('#validationSummaryModal').modal('show');
+        }
+    }
+    
+    // Submit wizard (placeholder for actual submission logic)
+    function submitWizard() {
+        // TODO: Implement actual submission to backend
+        console.log('Wizard submission:', wizardData);
+        
+        // Show success message for now
+        var successHtml = '<div class="text-center py-4">';
+        successHtml += '<i class="fas fa-check-circle text-success fa-4x mb-3"></i>';
+        successHtml += '<h4>Agent Submitted Successfully!</h4>';
+        successHtml += '<p class="text-muted">Your RCS Agent registration has been submitted for review.</p>';
+        successHtml += '<p class="text-muted">You will receive an email notification once the review is complete.</p>';
+        successHtml += '</div>';
+        
+        if ($('#validationSummaryModal').length) {
+            $('#validationSummaryModal .modal-title').html('<i class="fas fa-check-circle me-2 text-success"></i>Submission Complete');
+            $('#validationSummaryModal .modal-body').html(successHtml);
+            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>');
+            $('#validationSummaryModal').modal('show');
+        } else {
+            var modalHtml = '<div class="modal fade" id="validationSummaryModal" tabindex="-1">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered">';
+            modalHtml += '<div class="modal-content">';
+            modalHtml += '<div class="modal-header bg-light">';
+            modalHtml += '<h5 class="modal-title"><i class="fas fa-check-circle me-2 text-success"></i>Submission Complete</h5>';
+            modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
+            modalHtml += '</div>';
+            modalHtml += '<div class="modal-body">' + successHtml + '</div>';
+            modalHtml += '<div class="modal-footer">';
+            modalHtml += '<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>';
+            modalHtml += '</div></div></div></div>';
+            
+            $('body').append(modalHtml);
+            $('#validationSummaryModal').modal('show');
+        }
+    }
     
     // Mark a step as visited (user entered it)
     function markStepVisited(stepIndex) {
