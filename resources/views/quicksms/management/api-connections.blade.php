@@ -360,36 +360,28 @@
             <li class="breadcrumb-item active"><a href="javascript:void(0)">API Connections</a></li>
         </ol>
     </div>
-</div>
-<div class="container-fluid">
-    <div class="api-connections-header">
-        <div>
-            <h2>API Connections</h2>
-            <p>Manage your API keys and integrations for accessing QuickSMS services.</p>
-        </div>
-        <div>
-            <a href="{{ route('management.api-connections.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Create API Connection
-            </a>
-        </div>
-    </div>
     
-    <div class="api-table-container">
-        <div class="search-filter-bar">
-            <div class="search-box">
-                <div class="input-group">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">API Connections</h5>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                    <i class="fas fa-filter me-1"></i> Filters
+                </button>
+                <a href="{{ route('management.api-connections.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>Create API Connection
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="input-group" style="max-width: 350px;">
                     <span class="input-group-text bg-transparent border-end-0">
                         <i class="fas fa-search text-muted"></i>
                     </span>
                     <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search by API name...">
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                    <i class="fas fa-filter me-1"></i> Filters
-                </button>
-            </div>
-        </div>
         
         <div class="collapse" id="filtersPanel">
             <div class="card card-body border-0 rounded-0" style="background-color: #f0ebf8; border-bottom: 1px solid #e9ecef !important;">
@@ -498,17 +490,18 @@
             </div>
         </div>
         
-        <div class="px-3 pt-3" id="activeFiltersContainer" style="display: none;">
-            <div class="d-flex flex-wrap align-items-center">
-                <span class="small text-muted me-2">Active filters:</span>
-                <div id="activeFiltersChips"></div>
-                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
-                    Clear all
-                </button>
+            <div class="mb-3" id="activeFiltersContainer" style="display: none;">
+                <div class="d-flex flex-wrap align-items-center">
+                    <span class="small text-muted me-2">Active filters:</span>
+                    <div id="activeFiltersChips"></div>
+                    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                        Clear all
+                    </button>
+                </div>
             </div>
-        </div>
-        
-        <table class="api-table" id="apiConnectionsTable">
+            
+            <div class="table-responsive">
+                <table class="table table-hover" id="apiConnectionsTable">
             <thead>
                 <tr>
                     <th data-sort="name">API Name <i class="fas fa-sort sort-icon"></i></th>
@@ -522,13 +515,15 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="apiConnectionsBody">
-            </tbody>
-        </table>
+                    <tbody id="apiConnectionsBody">
+                    </tbody>
+                </table>
+            </div>
         
-        <div class="table-footer">
-            <div class="pagination-info">
-                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> connections
+            <div class="table-footer mt-3">
+                <div class="pagination-info">
+                    Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> connections
+                </div>
             </div>
         </div>
     </div>

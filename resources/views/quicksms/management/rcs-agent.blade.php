@@ -616,79 +616,98 @@
         </div>
     </div>
     @else
-    <div class="rcs-agents-header">
-        <div>
-            <h2>RCS Agent Library</h2>
-            <p>View, manage, and track all RCS Agents for your account</p>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">RCS Agent Library</h5>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                    <i class="fas fa-filter me-1"></i> Filters
+                </button>
+                @if($canCreate)
+                <button class="btn btn-primary btn-sm" id="createAgentBtn">
+                    <i class="fas fa-plus me-1"></i>Create RCS Agent
+                </button>
+                @endif
+            </div>
         </div>
-        @if($canCreate)
-        <button class="btn btn-primary" id="createAgentBtn">
-            <i class="fas fa-plus me-2"></i>Create RCS Agent
-        </button>
-        @endif
-    </div>
-
-    <div class="agents-table-container" id="agentsTableContainer">
-        <div class="search-filter-bar">
-            <div class="search-box">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="fas fa-search text-muted"></i>
-                    </span>
-                    <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search agents...">
+        <div class="card-body" id="agentsTableContainer">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search agents...">
+                    </div>
                 </div>
             </div>
-            <div class="filters-group">
-                <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
-                    <option value="">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="submitted">Submitted</option>
-                    <option value="in-review">In Review</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                </select>
-                <select class="form-select form-select-sm" id="billingFilter" style="width: auto;">
-                    <option value="">All Billing Types</option>
-                    <option value="conversational">Conversational</option>
-                    <option value="non-conversational">Non-conversational</option>
-                </select>
-                <select class="form-select form-select-sm" id="useCaseFilter" style="width: auto;">
-                    <option value="">All Use Cases</option>
-                    <option value="otp">OTP</option>
-                    <option value="transactional">Transactional</option>
-                    <option value="promotional">Promotional</option>
-                    <option value="multi-use">Multi-use</option>
-                </select>
+            
+            <div class="collapse mb-3" id="filtersPanel">
+                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <label class="form-label small fw-bold">Status</label>
+                            <select class="form-select form-select-sm" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="draft">Draft</option>
+                                <option value="submitted">Submitted</option>
+                                <option value="in-review">In Review</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <label class="form-label small fw-bold">Billing Type</label>
+                            <select class="form-select form-select-sm" id="billingFilter">
+                                <option value="">All Billing Types</option>
+                                <option value="conversational">Conversational</option>
+                                <option value="non-conversational">Non-conversational</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <label class="form-label small fw-bold">Use Case</label>
+                            <select class="form-select form-select-sm" id="useCaseFilter">
+                                <option value="">All Use Cases</option>
+                                <option value="otp">OTP</option>
+                                <option value="transactional">Transactional</option>
+                                <option value="promotional">Promotional</option>
+                                <option value="multi-use">Multi-use</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <table class="agents-table" id="agentsTable">
-            <thead>
-                <tr>
-                    <th data-sort="name" onclick="sortTable('name')">Agent Name <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="billing" onclick="sortTable('billing')">Billing Category <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="useCase" onclick="sortTable('useCase')">Use Case <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="created" onclick="sortTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
-                    <th data-sort="updated" onclick="sortTable('updated')">Last Updated <i class="fas fa-sort sort-icon"></i></th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="agentsTableBody">
-            </tbody>
-        </table>
-
-        <div class="pagination-bar">
-            <div class="pagination-info">
-                Showing <span id="showingStart">1</span>-<span id="showingEnd">10</span> of <span id="totalCount">0</span> agents
+            <div class="table-responsive">
+                <table class="table table-hover" id="agentsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="name" onclick="sortTable('name')">Agent Name <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="billing" onclick="sortTable('billing')">Billing Category <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="useCase" onclick="sortTable('useCase')">Use Case <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="created" onclick="sortTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="updated" onclick="sortTable('updated')">Last Updated <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agentsTableBody">
+                    </tbody>
+                </table>
             </div>
-            <div class="pagination-controls">
-                <button class="btn btn-outline-secondary btn-sm" id="prevPageBtn" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" id="nextPageBtn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="pagination-info small text-muted">
+                    Showing <span id="showingStart">1</span>-<span id="showingEnd">10</span> of <span id="totalCount">0</span> agents
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn btn-outline-secondary btn-sm" id="prevPageBtn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="nextPageBtn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

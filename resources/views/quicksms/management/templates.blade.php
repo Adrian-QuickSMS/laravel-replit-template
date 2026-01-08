@@ -616,16 +616,6 @@
     </div>
 </div>
 <div class="container-fluid">
-    <div class="templates-header">
-        <div>
-            <h2>Message Templates</h2>
-            <p>Create and manage reusable SMS and RCS message templates</p>
-        </div>
-        <button class="btn btn-primary" id="createTemplateBtn">
-            <i class="fas fa-plus me-2"></i>Create Template
-        </button>
-    </div>
-
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-state-icon">
             <i class="fas fa-file-alt"></i>
@@ -637,15 +627,10 @@
         </button>
     </div>
 
-    <div id="templatesTableContainer" class="templates-table-container">
-        <div class="search-filter-bar">
-            <div class="search-box">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control" id="templateSearch" placeholder="Search by name or ID...">
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-3">
+    <div class="card" id="templatesTableContainer">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-0">Message Templates</h5>
+            <div class="d-flex align-items-center gap-2">
                 <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" id="showArchivedToggle">
                     <label class="form-check-label small" for="showArchivedToggle">Show Archived</label>
@@ -653,11 +638,23 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                     <i class="fas fa-filter me-1"></i>Filters
                 </button>
+                <button class="btn btn-primary btn-sm" id="createTemplateBtn">
+                    <i class="fas fa-plus me-1"></i>Create Template
+                </button>
             </div>
         </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="templateSearch" placeholder="Search by name or ID...">
+                    </div>
+                </div>
+            </div>
 
-        <div class="collapse" id="filtersPanel">
-            <div class="filters-panel">
+            <div class="collapse mb-3" id="filtersPanel">
+                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
                 <div class="row g-3 align-items-end">
                     <div class="col-6 col-md-3 col-lg-2">
                         <label class="form-label small fw-bold">Channel</label>
@@ -744,27 +741,28 @@
             </div>
         </div>
 
-        <div class="active-filters" id="activeFilters"></div>
+            <div class="active-filters mb-3" id="activeFilters"></div>
 
-        <div class="table-responsive">
-            <table class="templates-table">
-                <thead>
-                    <tr>
-                        <th data-sort="name" onclick="sortTable('name')">Template Name <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="templateId" onclick="sortTable('templateId')">Template ID <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="version" onclick="sortTable('version')">Version <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
-                        <th>Content Preview</th>
-                        <th data-sort="accessScope" onclick="sortTable('accessScope')">Access Scope <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="lastUpdated" onclick="sortTable('lastUpdated')">Last Updated <i class="fas fa-sort sort-icon"></i></th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="templatesBody">
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th data-sort="name" onclick="sortTable('name')">Template Name <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="templateId" onclick="sortTable('templateId')">Template ID <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="version" onclick="sortTable('version')">Version <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Content Preview</th>
+                            <th data-sort="accessScope" onclick="sortTable('accessScope')">Access Scope <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="lastUpdated" onclick="sortTable('lastUpdated')">Last Updated <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="templatesBody">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
