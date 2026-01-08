@@ -1640,13 +1640,26 @@ $(document).ready(function() {
     window.suspendConnection = function(id) {
         var conn = getConnectionById(id);
         var warning = getRecentUsageWarning(conn);
+        
         showConfirmModal(
-            'Suspend API Connection',
-            'Are you sure you want to suspend "' + conn.name + '"? All API requests using this connection will be rejected.',
-            'Suspend API',
+            'Suspend API Connection - Step 1 of 2',
+            'Suspending "' + conn.name + '" will immediately block all API traffic. Any systems using this connection will stop working.',
+            'Continue',
             'btn-warning',
             function() {
-                alert('API suspended: ' + conn.name + '\n\nTODO: Implement API call');
+                showConfirmModal(
+                    'Suspend API Connection - Final Confirmation',
+                    'Please confirm you want to suspend "' + conn.name + '". All API requests will be rejected immediately.',
+                    'Suspend Now',
+                    'btn-danger',
+                    function() {
+                        conn.status = 'suspended';
+                        console.log('[AUDIT] API Connection suspended:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        renderTable();
+                        showSuccessToast('API Connection "' + conn.name + '" has been suspended.');
+                    },
+                    null
+                );
             },
             warning
         );
@@ -1654,13 +1667,26 @@ $(document).ready(function() {
     
     window.reactivateConnection = function(id) {
         var conn = getConnectionById(id);
+        
         showConfirmModal(
-            'Reactivate API Connection',
-            'Are you sure you want to reactivate "' + conn.name + '"? The API will immediately start accepting requests again.',
-            'Reactivate API',
-            'btn-success',
+            'Reactivate API Connection - Step 1 of 2',
+            'Reactivating "' + conn.name + '" will restore API access. The connection will immediately start accepting requests again.',
+            'Continue',
+            'btn-primary',
             function() {
-                alert('API reactivated: ' + conn.name + '\n\nTODO: Implement API call');
+                showConfirmModal(
+                    'Reactivate API Connection - Final Confirmation',
+                    'Please confirm you want to reactivate "' + conn.name + '". API traffic will be allowed immediately.',
+                    'Reactivate Now',
+                    'btn-success',
+                    function() {
+                        conn.status = 'live';
+                        console.log('[AUDIT] API Connection reactivated:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        renderTable();
+                        showSuccessToast('API Connection "' + conn.name + '" has been reactivated.');
+                    },
+                    null
+                );
             },
             null
         );
