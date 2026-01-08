@@ -461,7 +461,7 @@
                                             <strong>Step 3: Authentication</strong> - Choose how this API connection will authenticate requests.
                                         </div>
                                         
-                                        <div class="alert alert-info mb-4">
+                                        <div class="alert alert-pastel-primary mb-4">
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Note:</strong> Authentication method cannot be changed after creation.
                                         </div>
