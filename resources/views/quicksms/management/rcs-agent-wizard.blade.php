@@ -691,6 +691,11 @@
                                             <strong>Step 5: Company & Approver Details</strong> - Provide your company registration and approver information.
                                         </div>
                                         
+                                        <div class="alert" style="background-color: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #5a4a7a;">
+                                            <i class="fas fa-magic me-2"></i>
+                                            <strong>Auto-populated:</strong> Company and Approver details are automatically pulled from your Account > Details settings. You can update them here if needed for this registration.
+                                        </div>
+                                        
                                         <div class="alert alert-warning mb-4">
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Important:</strong> Incorrect or inconsistent information may delay approval.
@@ -699,6 +704,13 @@
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-building me-2 text-primary"></i>Company Information</h6>
                                         
                                         <div class="row">
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">Company Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="companyName" placeholder="e.g., Acme Ltd">
+                                                <small class="text-muted">Your registered company name</small>
+                                                <div class="invalid-feedback">Please enter your company name</div>
+                                            </div>
+                                            
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Company Number <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" id="companyNumber" placeholder="e.g., 12345678">
@@ -714,6 +726,33 @@
                                                 </div>
                                                 <small class="text-muted">Your main company website</small>
                                                 <div class="invalid-feedback">Please enter a valid company website URL</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">Sector <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="companySector">
+                                                    <option value="">Select sector...</option>
+                                                    <option value="it-telecoms">IT and Telecoms</option>
+                                                    <option value="government">Government</option>
+                                                    <option value="health">Health</option>
+                                                    <option value="logistics">Logistics</option>
+                                                    <option value="travel-transport">Travel and Transport</option>
+                                                    <option value="finance">Finance</option>
+                                                    <option value="retail-hospitality">Retail and Hospitality</option>
+                                                    <option value="media-leisure">Media and Leisure</option>
+                                                    <option value="utilities">Utilities</option>
+                                                    <option value="marketing-advertising">Marketing/Advertising Agency</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                                <small class="text-muted">Your business sector</small>
+                                                <div class="invalid-feedback">Please select a sector</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3" id="otherSectorContainer" style="display: none;">
+                                                <label class="text-label form-label">Other Sector <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="otherSector" placeholder="Specify your sector...">
+                                                <small class="text-muted">Please specify your sector</small>
+                                                <div class="invalid-feedback">Please specify your sector</div>
                                             </div>
                                             
                                             <div class="col-lg-12 mb-3">
@@ -957,8 +996,11 @@ $(document).ready(function() {
         optOutAvailable: '',
         useCaseOverview: '',
         testNumbers: [],
+        companyName: '',
         companyNumber: '',
         companyWebsite: '',
+        companySector: '',
+        otherSector: '',
         registeredAddress: '',
         approverName: '',
         approverJobTitle: '',
@@ -1079,12 +1121,24 @@ $(document).ready(function() {
                 isValid = false;
             }
         } else if (stepNumber === 4) {
+            if (!wizardData.companyName.trim()) {
+                $('#companyName').addClass('is-invalid');
+                isValid = false;
+            }
             if (!wizardData.companyNumber.trim()) {
                 $('#companyNumber').addClass('is-invalid');
                 isValid = false;
             }
             if (!wizardData.companyWebsite.trim()) {
                 $('#companyWebsite').addClass('is-invalid');
+                isValid = false;
+            }
+            if (!wizardData.companySector) {
+                $('#companySector').addClass('is-invalid');
+                isValid = false;
+            }
+            if (wizardData.companySector === 'other' && !wizardData.otherSector.trim()) {
+                $('#otherSector').addClass('is-invalid');
                 isValid = false;
             }
             if (!wizardData.registeredAddress.trim()) {
@@ -1379,7 +1433,9 @@ $(document).ready(function() {
                    wizardData.userConsent && wizardData.optOutAvailable;
         } else if (stepNumber === 4) {
             // Company Details
-            return wizardData.companyNumber.trim() && wizardData.registeredAddress.trim() && 
+            var sectorValid = wizardData.companySector && (wizardData.companySector !== 'other' || wizardData.otherSector.trim());
+            return wizardData.companyName.trim() && wizardData.companyNumber.trim() && 
+                   sectorValid && wizardData.registeredAddress.trim() && 
                    wizardData.approverName.trim() && wizardData.approverJobTitle.trim() && 
                    wizardData.approverEmail.trim();
         } else if (stepNumber === 5) {
@@ -1683,8 +1739,21 @@ $(document).ready(function() {
         triggerAutosave();
     });
     
-    $('#companyNumber, #companyWebsite, #registeredAddress, #approverName, #approverJobTitle, #approverEmail').on('input', function() {
+    $('#companyName, #companyNumber, #companyWebsite, #registeredAddress, #approverName, #approverJobTitle, #approverEmail, #otherSector').on('input', function() {
         wizardData[this.id] = this.value;
+        revalidateStep(4); // Step 5: Company Details
+        triggerAutosave();
+    });
+    
+    $('#companySector').on('change', function() {
+        wizardData.companySector = this.value;
+        if (this.value === 'other') {
+            $('#otherSectorContainer').slideDown();
+        } else {
+            $('#otherSectorContainer').slideUp();
+            wizardData.otherSector = '';
+            $('#otherSector').val('');
+        }
         revalidateStep(4); // Step 5: Company Details
         triggerAutosave();
     });
