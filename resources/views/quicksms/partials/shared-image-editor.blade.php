@@ -105,8 +105,11 @@
             <div class="sie-tab-content{{ $showUrlTab ? '' : ' active' }}" data-tab-content="upload" id="{{ $editorId }}UploadContent">
                 <div class="border border-dashed rounded p-3 text-center bg-light" id="{{ $editorId }}Dropzone">
                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                    <p class="mb-1 small">Drag & drop or <a href="#" id="{{ $editorId }}BrowseBtn">browse</a></p>
-                    <small class="text-muted">JPEG, PNG, GIF only. Max {{ number_format($maxSize / 1024 / 1024, 0) }} MB</small>
+                    <p class="mb-1 small">Drag & drop or</p>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
+                        <i class="fas fa-folder-open me-1"></i>Browse files
+                    </button>
+                    <small class="text-muted d-block mt-2">JPEG, PNG, GIF only. Max {{ number_format($maxSize / 1024 / 1024, 0) }} MB</small>
                 </div>
             </div>
             
@@ -332,9 +335,8 @@
         }
     }
     
-    // Handle browse link click
-    browseBtn.addEventListener('click', function(e) {
-        e.preventDefault();
+    // Handle browse button click
+    browseBtn.addEventListener('click', function() {
         fileInput.click();
     });
     
