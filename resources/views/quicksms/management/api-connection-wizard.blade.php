@@ -576,16 +576,22 @@
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Delivery Reports Webhook URL</label>
-                                            <input type="url" class="form-control" id="dlrUrl" placeholder="https://your-domain.com/webhooks/dlr">
-                                            <small class="text-muted">We'll POST delivery status updates to this URL. Must be HTTPS.</small>
-                                            <div class="invalid-feedback">URL must start with https://</div>
+                                            <div class="input-group">
+                                                <span class="input-group-text">https://</span>
+                                                <input type="text" class="form-control" id="dlrUrl" placeholder="your-domain.com/webhooks/dlr">
+                                            </div>
+                                            <small class="text-muted">We'll POST delivery status updates to this URL.</small>
+                                            <div class="invalid-feedback" id="dlrUrlError" style="display: none;">Please enter a valid URL path</div>
                                         </div>
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Inbound Messages Webhook URL</label>
-                                            <input type="url" class="form-control" id="inboundUrl" placeholder="https://your-domain.com/webhooks/inbound">
-                                            <small class="text-muted">We'll POST inbound messages to this URL. Must be HTTPS.</small>
-                                            <div class="invalid-feedback">URL must start with https://</div>
+                                            <div class="input-group">
+                                                <span class="input-group-text">https://</span>
+                                                <input type="text" class="form-control" id="inboundUrl" placeholder="your-domain.com/webhooks/inbound">
+                                            </div>
+                                            <small class="text-muted">We'll POST inbound messages to this URL.</small>
+                                            <div class="invalid-feedback" id="inboundUrlError" style="display: none;">Please enter a valid URL path</div>
                                         </div>
                                     </div>
                                 </div>
@@ -795,9 +801,7 @@ $(document).ready(function() {
             if (!wizardData.ipAllowList) return true;
             return wizardData.allowedIps.length > 0;
         } else if (stepIndex === 4) {
-            var dlrValid = !wizardData.dlrUrl || wizardData.dlrUrl.startsWith('https://');
-            var inboundValid = !wizardData.inboundUrl || wizardData.inboundUrl.startsWith('https://');
-            return dlrValid && inboundValid;
+            return true;
         }
         return true;
     }
@@ -995,25 +999,6 @@ $(document).ready(function() {
             }
         }
         
-        if (stepIndex === 4) {
-            var dlrUrl = $('#dlrUrl').val().trim();
-            var inboundUrl = $('#inboundUrl').val().trim();
-            
-            if (dlrUrl && !dlrUrl.startsWith('https://')) {
-                $('#dlrUrl').addClass('is-invalid');
-                isValid = false;
-            } else {
-                $('#dlrUrl').removeClass('is-invalid');
-            }
-            
-            if (inboundUrl && !inboundUrl.startsWith('https://')) {
-                $('#inboundUrl').addClass('is-invalid');
-                isValid = false;
-            } else {
-                $('#inboundUrl').removeClass('is-invalid');
-            }
-        }
-        
         return isValid;
     }
     
@@ -1023,8 +1008,11 @@ $(document).ready(function() {
         wizardData.subAccount = $('#subAccount').val();
         wizardData.environment = $('#environment').val();
         wizardData.ipAllowList = $('#enableIpRestriction').is(':checked');
-        wizardData.dlrUrl = $('#dlrUrl').val().trim();
-        wizardData.inboundUrl = $('#inboundUrl').val().trim();
+        
+        var dlrPath = $('#dlrUrl').val().trim();
+        var inboundPath = $('#inboundUrl').val().trim();
+        wizardData.dlrUrl = dlrPath ? 'https://' + dlrPath : '';
+        wizardData.inboundUrl = inboundPath ? 'https://' + inboundPath : '';
     }
     
     function loadDraftToForm() {
@@ -1051,8 +1039,10 @@ $(document).ready(function() {
             renderIpAddresses();
         }
         
-        $('#dlrUrl').val(wizardData.dlrUrl);
-        $('#inboundUrl').val(wizardData.inboundUrl);
+        var dlrPath = wizardData.dlrUrl ? wizardData.dlrUrl.replace('https://', '') : '';
+        var inboundPath = wizardData.inboundUrl ? wizardData.inboundUrl.replace('https://', '') : '';
+        $('#dlrUrl').val(dlrPath);
+        $('#inboundUrl').val(inboundPath);
         
         updateStepIndicators();
     }
