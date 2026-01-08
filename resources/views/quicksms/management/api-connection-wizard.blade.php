@@ -44,8 +44,7 @@
     background: #fff;
     color: var(--primary, #886CC0);
     position: relative;
-    z-index: 2;
-    box-shadow: 0 0 0 4px #fff;
+    z-index: 1;
 }
 .form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
@@ -543,7 +542,7 @@
                                             <p class="text-muted small">When enabled, API requests will only be accepted from specified IP addresses.</p>
                                         </div>
                                         
-                                        <div id="ipRestrictionFields">
+                                        <div id="ipRestrictionFields" class="d-none">
                                             <div class="mb-3">
                                                 <label class="form-label">Allowed IP Addresses</label>
                                                 <div class="input-group mb-2">
@@ -1127,13 +1126,13 @@ $(document).ready(function() {
     window.toggleIpRestriction = function(checkbox) {
         var isChecked = checkbox.checked;
         console.log('[API Wizard] IP Restriction toggle changed:', isChecked);
-        var $fields = $('#ipRestrictionFields');
+        var fields = document.getElementById('ipRestrictionFields');
         if (isChecked) {
             console.log('[API Wizard] Showing ipRestrictionFields');
-            $fields.attr('style', 'display: block !important');
+            fields.classList.remove('d-none');
         } else {
             console.log('[API Wizard] Hiding ipRestrictionFields');
-            $fields.attr('style', 'display: none !important');
+            fields.classList.add('d-none');
         }
         wizardData.ipAllowList = isChecked;
         saveDraft();
