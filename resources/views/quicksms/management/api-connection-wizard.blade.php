@@ -940,6 +940,11 @@ $(document).ready(function() {
             $nextBtn.text('Next');
         }
         
+        // Sync IP restriction visibility when entering step 4 (Security Settings)
+        if (stepIndex === 3) {
+            syncIpRestrictionVisibility();
+        }
+        
         if (connectionCreated) {
             $('.toolbar-bottom').hide();
         }
@@ -1056,8 +1061,8 @@ $(document).ready(function() {
         }
         
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
+        syncIpRestrictionVisibility();
         if (wizardData.ipAllowList) {
-            $('#ipRestrictionFields').css('display', 'block');
             renderIpAddresses();
         }
         
@@ -1129,19 +1134,25 @@ $(document).ready(function() {
         $('#apiConnectionWizard').smartWizard('next');
     };
     
+    function syncIpRestrictionVisibility() {
+        var fields = document.getElementById('ipRestrictionFields');
+        if (fields) {
+            if (wizardData.ipAllowList) {
+                fields.style.display = 'block';
+            } else {
+                fields.style.display = 'none';
+            }
+            console.log('[API Wizard] syncIpRestrictionVisibility:', wizardData.ipAllowList);
+        }
+    }
+    
     window.toggleIpRestriction = function(checkbox) {
         var isChecked = checkbox.checked;
         console.log('[API Wizard] IP Restriction toggle changed:', isChecked);
-        var fields = document.getElementById('ipRestrictionFields');
-        if (isChecked) {
-            console.log('[API Wizard] Showing ipRestrictionFields');
-            fields.style.display = 'block';
-        } else {
-            console.log('[API Wizard] Hiding ipRestrictionFields');
-            fields.style.display = 'none';
-        }
         wizardData.ipAllowList = isChecked;
+        syncIpRestrictionVisibility();
         saveDraft();
+        setTimeout(syncIpRestrictionVisibility, 50);
         revalidateStep(3);
     };
     
