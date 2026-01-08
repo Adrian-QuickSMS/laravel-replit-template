@@ -1177,27 +1177,19 @@ $(document).ready(function() {
             if (!isValid) {
                 allValid = false;
                 
-                // Only mark as validated (red) if it was visited
-                if (wizardData.visitedSteps.indexOf(i) > -1) {
-                    markStepValidated(i);
-                    unmarkStepCompleted(i);
-                    incompleteSteps.push({
-                        step: i + 1,
-                        name: stepNames[i],
-                        visited: true
-                    });
-                } else {
-                    // Not visited - still incomplete but stays white
-                    incompleteSteps.push({
-                        step: i + 1,
-                        name: stepNames[i],
-                        visited: false
-                    });
-                }
+                // Check if step was already validated (user left it at least once)
+                // Do NOT auto-validate steps just because submission failed
+                var wasValidated = wizardData.validatedSteps.indexOf(i) > -1;
+                
+                incompleteSteps.push({
+                    step: i + 1,
+                    name: stepNames[i],
+                    visited: wasValidated // Only show as "visited" if user actually left the step
+                });
             }
         }
         
-        updateStepIndicators();
+        // Do NOT call updateStepIndicators() here - stepper state should not change due to submission
         
         if (!allValid) {
             showSubmissionValidationSummary(incompleteSteps);
