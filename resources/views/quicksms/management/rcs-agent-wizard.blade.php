@@ -883,7 +883,7 @@
                                         
                                         <div class="alert mt-4" style="background-color: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #5a4a7a; font-size: 0.85rem;">
                                             <i class="fas fa-info-circle me-2"></i>
-                                            <strong>Note:</strong> Test numbers are optional but recommended before submitting for approval. Numbers are stored internally in 447 format.
+                                            <strong>Note:</strong> Test numbers are optional but recommended before submitting for approval.
                                         </div>
                                     </div>
                                 </div>
