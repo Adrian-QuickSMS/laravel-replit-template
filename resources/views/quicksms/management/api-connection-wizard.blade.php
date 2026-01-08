@@ -44,7 +44,8 @@
     background: #fff;
     color: var(--primary, #886CC0);
     position: relative;
-    z-index: 1;
+    z-index: 2;
+    box-shadow: 0 0 0 4px #fff;
 }
 .form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
