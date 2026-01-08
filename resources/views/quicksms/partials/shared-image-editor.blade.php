@@ -45,73 +45,14 @@
 @once
 @push('styles')
 <style>
-.sie-upload-zone {
-    border: 2px dashed #dee2e6;
-    border-radius: 8px;
-    background: #fafbfc;
-    transition: all 0.2s ease;
-}
-.sie-upload-zone.sie-dragover {
-    border-color: #886CC0;
-    background: rgba(136, 108, 192, 0.05);
-}
-.sie-upload-prompt {
-    min-height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
 .sie-editor-wrapper {
     padding: 1rem;
-}
-.sie-source-toggle {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-}
-.sie-source-toggle .btn-group {
-    border-radius: 20px;
-    overflow: hidden;
-}
-.sie-source-toggle .btn-check + .btn {
-    border-radius: 20px;
-    padding: 0.4rem 1.25rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    border: 1px solid #dee2e6;
-    background: #fff;
-    color: #6c757d;
-}
-.sie-source-toggle .btn-check:checked + .btn {
-    background: var(--primary, #886CC0);
-    border-color: var(--primary, #886CC0);
-    color: #fff;
-}
-.sie-source-toggle .btn-check + .btn:first-of-type {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-.sie-source-toggle .btn-check + .btn:last-of-type {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }
 .sie-tab-content {
     display: none;
 }
 .sie-tab-content.active {
     display: block;
-}
-.sie-url-section {
-    padding: 1rem;
-}
-.sie-url-section .input-group {
-    max-width: 100%;
-}
-.sie-url-hint {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 0.5rem;
 }
 </style>
 @endpush
@@ -124,60 +65,54 @@
     <p class="text-muted small mb-2">{{ $helpText }}</p>
     @endif
     
-    <div class="sie-upload-zone mb-3" id="{{ $editorId }}UploadZone">
+    <div class="border rounded p-3 mb-3" id="{{ $editorId }}UploadZone">
         <input type="file" 
                class="d-none" 
                id="{{ $editorId }}FileInput" 
                accept="{{ $accept }}"
                data-max-size="{{ $maxSize }}">
         
-        <div class="sie-upload-prompt" id="{{ $editorId }}UploadPrompt">
+        <div id="{{ $editorId }}UploadPrompt">
             @if($showUrlTab)
-            <div class="sie-source-toggle pt-3">
-                <div class="btn-group" role="group">
-                    <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUpload" value="upload" checked>
-                    <label class="btn" for="{{ $editorId }}SourceUpload">
-                        <i class="fas fa-upload me-1"></i>Upload
-                    </label>
-                    <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUrl" value="url">
-                    <label class="btn" for="{{ $editorId }}SourceUrl">
-                        <i class="fas fa-link me-1"></i>URL
-                    </label>
-                </div>
+            <div class="btn-group btn-group-sm w-100 mb-3" role="group">
+                <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUrl" value="url" checked>
+                <label class="btn btn-outline-secondary" for="{{ $editorId }}SourceUrl">
+                    <i class="fas fa-link me-1"></i>URL
+                </label>
+                <input type="radio" class="btn-check" name="{{ $editorId }}Source" id="{{ $editorId }}SourceUpload" value="upload">
+                <label class="btn btn-outline-secondary" for="{{ $editorId }}SourceUpload">
+                    <i class="fas fa-upload me-1"></i>Upload
+                </label>
             </div>
             @endif
             
-            <div class="sie-tab-content active" data-tab-content="upload" id="{{ $editorId }}UploadContent">
-                <div class="text-center p-4">
-                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                    <p class="mb-1">Drag & drop an image here</p>
-                    <p class="small text-muted mb-2">or</p>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}BrowseBtn">
-                        <i class="fas fa-folder-open me-1"></i>Browse Files
+            @if($showUrlTab)
+            <div class="sie-tab-content active" data-tab-content="url" id="{{ $editorId }}UrlContent">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                    <input type="url" 
+                           class="form-control" 
+                           id="{{ $editorId }}UrlInput" 
+                           placeholder="https://example.com/image.jpg">
+                    <button type="button" class="btn btn-outline-primary" id="{{ $editorId }}UrlConfirmBtn">
+                        <i class="fas fa-check"></i>
                     </button>
-                    <p class="small text-muted mt-2 mb-0">
-                        PNG or JPEG, max {{ number_format($maxSize / 1024 / 1024, 0) }}MB
-                    </p>
+                </div>
+                <small class="text-muted d-block mt-1">Enter a publicly accessible image URL (JPEG, PNG, GIF)</small>
+            </div>
+            @endif
+            
+            <div class="sie-tab-content{{ $showUrlTab ? '' : ' active' }}" data-tab-content="upload" id="{{ $editorId }}UploadContent">
+                <div class="border border-dashed rounded p-3 text-center bg-light" id="{{ $editorId }}Dropzone">
+                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                    <p class="mb-1 small">Drag & drop or <a href="#" id="{{ $editorId }}BrowseBtn">browse</a></p>
+                    <small class="text-muted">JPEG, PNG, GIF only. Max {{ number_format($maxSize / 1024 / 1024, 0) }} MB</small>
                 </div>
             </div>
             
-            @if($showUrlTab)
-            <div class="sie-tab-content" data-tab-content="url" id="{{ $editorId }}UrlContent">
-                <div class="sie-url-section">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="fas fa-globe text-muted"></i></span>
-                        <input type="url" 
-                               class="form-control" 
-                               id="{{ $editorId }}UrlInput" 
-                               placeholder="https://example.com/image.jpg">
-                        <button type="button" class="btn btn-outline-primary" id="{{ $editorId }}UrlConfirmBtn">
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </div>
-                    <p class="sie-url-hint">Enter a publicly accessible image URL (JPEG, PNG, GIF)</p>
-                </div>
+            <div id="{{ $editorId }}MediaError" class="alert alert-danger py-2 px-3 mt-2 d-none small">
+                <i class="fas fa-exclamation-circle me-1"></i><span id="{{ $editorId }}ErrorText"></span>
             </div>
-            @endif
         </div>
         
         <div class="sie-editor-wrapper d-none" id="{{ $editorId }}EditorWrapper">
@@ -185,7 +120,7 @@
             
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <button type="button" class="btn btn-sm btn-outline-danger" id="{{ $editorId }}RemoveBtn">
-                    <i class="fas fa-trash me-1"></i>Remove
+                    <i class="fas fa-trash-alt me-1"></i>Remove
                 </button>
                 <button type="button" class="btn btn-sm btn-outline-primary" id="{{ $editorId }}ChangeBtn">
                     <i class="fas fa-exchange-alt me-1"></i>Change Image
@@ -253,8 +188,8 @@
         
         if (!file) return;
         
-        if (!file.type.match(/^image\/(png|jpeg)$/)) {
-            showError('Please upload a PNG or JPEG image.');
+        if (!file.type.match(/^image\/(png|jpeg|gif)$/)) {
+            showError('Please upload a JPEG, PNG, or GIF image.');
             return;
         }
         
@@ -276,10 +211,6 @@
             }
         });
     }
-    
-    browseBtn.addEventListener('click', function() {
-        fileInput.click();
-    });
     
     changeBtn.addEventListener('click', function() {
         fileInput.click();
@@ -306,22 +237,24 @@
         }
     });
     
-    uploadZone.addEventListener('dragover', function(e) {
+    var dropzone = document.getElementById(editorId + 'Dropzone') || uploadZone;
+    
+    dropzone.addEventListener('dragover', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        this.classList.add('sie-dragover');
+        this.classList.add('border-primary');
     });
     
-    uploadZone.addEventListener('dragleave', function(e) {
+    dropzone.addEventListener('dragleave', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        this.classList.remove('sie-dragover');
+        this.classList.remove('border-primary');
     });
     
-    uploadZone.addEventListener('drop', function(e) {
+    dropzone.addEventListener('drop', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        this.classList.remove('sie-dragover');
+        this.classList.remove('border-primary');
         
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleFile(e.dataTransfer.files[0]);
@@ -341,10 +274,10 @@
         function switchToTab(tabName) {
             if (tabName === 'upload') {
                 uploadContent.classList.add('active');
-                urlContent.classList.remove('active');
+                if (urlContent) urlContent.classList.remove('active');
             } else {
-                uploadContent.classList.remove('active');
-                urlContent.classList.add('active');
+                if (uploadContent) uploadContent.classList.remove('active');
+                if (urlContent) urlContent.classList.add('active');
             }
         }
         
@@ -398,6 +331,12 @@
             });
         }
     }
+    
+    // Handle browse link click
+    browseBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        fileInput.click();
+    });
     
     window[editorId + 'GetCropData'] = function() {
         return cropData;
