@@ -373,49 +373,71 @@
                                         </div>
                                         
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Handset Contact Details</h6>
-                                        <p class="text-muted small mb-3">These details will be shown to message recipients on their device.</p>
+                                        <p class="text-muted small mb-3">These details will be shown to message recipients on their device. At least one contact method must be displayed.</p>
                                         
-                                        <div class="row">
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <label class="text-label form-label mb-0">Phone Number <span class="text-danger">*</span></label>
-                                                    <div class="form-check form-switch mb-0">
+                                        <!-- Phone Number Row -->
+                                        <div class="mb-4">
+                                            <label class="text-label form-label">Phone Number</label>
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-lg-3">
+                                                    <input type="text" class="form-control" id="phoneLabel" value="Call" placeholder="Label e.g. Support Line">
+                                                    <small class="text-muted">Button label</small>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">+44</span>
+                                                        <input type="tel" class="form-control" id="supportPhone" placeholder="20 1234 5678">
+                                                    </div>
+                                                    <small class="text-muted">UK numbers only. Leading 0 will be stripped automatically.</small>
+                                                    <div class="invalid-feedback">Please enter a valid UK phone number</div>
+                                                </div>
+                                                <div class="col-lg-3">
+                                                    <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="showPhoneToggle" checked>
-                                                        <label class="form-check-label small text-muted" for="showPhoneToggle">Display on handset</label>
+                                                        <label class="form-check-label small" for="showPhoneToggle">Display on handset</label>
                                                     </div>
                                                 </div>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">+44</span>
-                                                    <input type="tel" class="form-control" id="supportPhone" placeholder="20 1234 5678">
-                                                </div>
-                                                <small class="text-muted">UK numbers only. Leading 0 will be stripped automatically.</small>
-                                                <div class="invalid-feedback">Please enter a valid UK phone number</div>
                                             </div>
-                                            
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <label class="text-label form-label mb-0">Website URL <span class="text-danger">*</span></label>
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" id="showWebsiteToggle" checked>
-                                                        <label class="form-check-label small text-muted" for="showWebsiteToggle">Display on handset</label>
-                                                    </div>
+                                        </div>
+                                        
+                                        <!-- Email Address Row -->
+                                        <div class="mb-4">
+                                            <label class="text-label form-label">Email Address</label>
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-lg-3">
+                                                    <input type="text" class="form-control" id="emailLabel" value="Email" placeholder="Label e.g. Customer Care">
+                                                    <small class="text-muted">Button label</small>
                                                 </div>
-                                                <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
-                                                <small class="text-muted">Must start with https://</small>
-                                                <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
-                                            </div>
-                                            
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <label class="text-label form-label mb-0">Email Address <span class="text-danger">*</span></label>
-                                                    <div class="form-check form-switch mb-0">
+                                                <div class="col-lg-6">
+                                                    <input type="email" class="form-control" id="supportEmail" placeholder="support@example.com">
+                                                    <small class="text-muted">Contact email for customer inquiries</small>
+                                                    <div class="invalid-feedback">Please enter a valid email address</div>
+                                                </div>
+                                                <div class="col-lg-3">
+                                                    <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="showEmailToggle" checked>
-                                                        <label class="form-check-label small text-muted" for="showEmailToggle">Display on handset</label>
+                                                        <label class="form-check-label small" for="showEmailToggle">Display on handset</label>
                                                     </div>
                                                 </div>
-                                                <input type="email" class="form-control" id="supportEmail" placeholder="support@example.com">
-                                                <small class="text-muted">Contact email for customer inquiries</small>
-                                                <div class="invalid-feedback">Please enter a valid email address</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Website URL Row (no toggle - required if others not displayed) -->
+                                        <div class="mb-4">
+                                            <label class="text-label form-label">Website URL <span class="text-danger" id="websiteRequired">*</span></label>
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-lg-3">
+                                                    <input type="text" class="form-control" id="websiteLabel" value="Website" placeholder="Label e.g. Visit Us">
+                                                    <small class="text-muted">Button label</small>
+                                                </div>
+                                                <div class="col-lg-6">
+                                                    <input type="url" class="form-control" id="businessWebsite" placeholder="https://www.example.com">
+                                                    <small class="text-muted">Must start with https://</small>
+                                                    <div class="invalid-feedback">Please enter a valid HTTPS URL</div>
+                                                </div>
+                                                <div class="col-lg-3">
+                                                    <small class="text-muted fst-italic" id="websiteRequiredNote">Required if phone/email not displayed</small>
+                                                </div>
                                             </div>
                                         </div>
                                         
@@ -891,8 +913,10 @@ $(document).ready(function() {
         termsUrl: '',
         supportEmail: '',
         supportPhone: '',
+        phoneLabel: 'Call',
+        emailLabel: 'Email',
+        websiteLabel: 'Website',
         showPhone: true,
-        showWebsite: true,
         showEmail: true,
         campaignFrequency: '',
         monthlyVolume: '',
@@ -956,18 +980,30 @@ $(document).ready(function() {
                 isValid = false;
             }
         } else if (stepNumber === 2) {
-            if (!wizardData.supportPhone.trim()) {
+            // Check if at least one contact method is displayed
+            var phoneDisplayed = wizardData.showPhone && wizardData.supportPhone.trim();
+            var emailDisplayed = wizardData.showEmail && wizardData.supportEmail.trim();
+            var websiteProvided = wizardData.website.trim();
+            
+            // If phone toggle is on, phone number is required
+            if (wizardData.showPhone && !wizardData.supportPhone.trim()) {
                 $('#supportPhone').addClass('is-invalid');
                 isValid = false;
             }
-            if (!wizardData.website.trim()) {
-                $('#businessWebsite').addClass('is-invalid');
-                isValid = false;
-            }
-            if (!wizardData.supportEmail.trim()) {
+            
+            // If email toggle is on, email is required
+            if (wizardData.showEmail && !wizardData.supportEmail.trim()) {
                 $('#supportEmail').addClass('is-invalid');
                 isValid = false;
             }
+            
+            // Website is required if neither phone nor email is displayed
+            if (!phoneDisplayed && !emailDisplayed && !websiteProvided) {
+                $('#businessWebsite').addClass('is-invalid');
+                isValid = false;
+            }
+            
+            // Compliance URLs are always required
             if (!wizardData.privacyUrl.trim()) {
                 $('#privacyUrl').addClass('is-invalid');
                 isValid = false;
@@ -1202,10 +1238,32 @@ $(document).ready(function() {
         triggerAutosave();
     });
     
-    $('#showPhoneToggle, #showWebsiteToggle, #showEmailToggle').on('change', function() {
+    // Label fields
+    $('#phoneLabel, #emailLabel, #websiteLabel').on('input', function() {
+        wizardData[this.id] = this.value;
+        triggerAutosave();
+    });
+    
+    // Update website required status based on phone/email toggles
+    function updateWebsiteRequired() {
+        var phoneDisplayed = $('#showPhoneToggle').is(':checked') && $('#supportPhone').val().trim();
+        var emailDisplayed = $('#showEmailToggle').is(':checked') && $('#supportEmail').val().trim();
+        var isRequired = !phoneDisplayed && !emailDisplayed;
+        
+        $('#websiteRequired').toggle(isRequired);
+        $('#websiteRequiredNote').text(isRequired ? 'Required - no other contact displayed' : 'Optional - other contacts are displayed');
+    }
+    
+    $('#showPhoneToggle, #showEmailToggle').on('change', function() {
         var key = this.id.replace('Toggle', '').replace('show', 'show');
         wizardData[key] = this.checked;
+        updateWebsiteRequired();
         triggerAutosave();
+    });
+    
+    // Also update when phone/email values change
+    $('#supportPhone, #supportEmail').on('input', function() {
+        updateWebsiteRequired();
     });
     
     $('.billing-tile').on('click', function() {
