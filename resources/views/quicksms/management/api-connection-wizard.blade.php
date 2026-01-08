@@ -537,7 +537,7 @@
                                         
                                         <div class="mb-4">
                                             <div class="form-check form-switch mb-3">
-                                                <input class="form-check-input" type="checkbox" id="enableIpRestriction">
+                                                <input class="form-check-input" type="checkbox" id="enableIpRestriction" onchange="toggleIpRestriction(this)">
                                                 <label class="form-check-label fw-medium" for="enableIpRestriction">Enable IP Address Restriction</label>
                                             </div>
                                             <p class="text-muted small">When enabled, API requests will only be accepted from specified IP addresses.</p>
@@ -1106,20 +1106,21 @@ $(document).ready(function() {
         $('#apiConnectionWizard').smartWizard('next');
     };
     
-    $(document).on('change', '#enableIpRestriction', function() {
-        console.log('[API Wizard] IP Restriction toggle changed:', $(this).is(':checked'));
+    window.toggleIpRestriction = function(checkbox) {
+        var isChecked = checkbox.checked;
+        console.log('[API Wizard] IP Restriction toggle changed:', isChecked);
         var $fields = $('#ipRestrictionFields');
-        if ($(this).is(':checked')) {
+        if (isChecked) {
             console.log('[API Wizard] Showing ipRestrictionFields');
             $fields.attr('style', 'display: block !important');
         } else {
             console.log('[API Wizard] Hiding ipRestrictionFields');
             $fields.attr('style', 'display: none !important');
         }
-        wizardData.ipAllowList = $(this).is(':checked');
+        wizardData.ipAllowList = isChecked;
         saveDraft();
         revalidateStep(3);
-    });
+    };
     
     function renderIpAddresses() {
         var html = '';
