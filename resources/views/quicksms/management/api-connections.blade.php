@@ -848,21 +848,21 @@
                                             <div class="integration-tile" data-type="bulk" onclick="selectApiType('bulk')">
                                                 <div class="tile-icon bg-pastel-primary"><i class="fas fa-paper-plane"></i></div>
                                                 <div class="tile-name">Bulk API</div>
-                                                <div class="tile-desc">High-volume messaging</div>
+                                                <div class="tile-desc">Transport-only. No platform intelligence.</div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="integration-tile" data-type="campaign" onclick="selectApiType('campaign')">
                                                 <div class="tile-icon bg-pastel-warning"><i class="fas fa-bullhorn"></i></div>
                                                 <div class="tile-name">Campaign API</div>
-                                                <div class="tile-desc">Scheduled campaigns</div>
+                                                <div class="tile-desc">Full platform-aware messaging.</div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="integration-tile" data-type="integration" onclick="selectApiType('integration')">
                                                 <div class="tile-icon bg-pastel-info"><i class="fas fa-plug"></i></div>
                                                 <div class="tile-name">Integration</div>
-                                                <div class="tile-desc">Third-party systems</div>
+                                                <div class="tile-desc">QuickSMS-managed connectors.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -2234,7 +2234,8 @@ $(document).ready(function() {
         
         if (type === 'bulk') {
             html = '<div class="small">' +
-                '<div class="mb-2 text-muted"><strong>Bulk API</strong> - High-volume messaging with restrictions</div>' +
+                '<div class="mb-2"><strong>Bulk API</strong></div>' +
+                '<p class="text-muted mb-2">Transport-only message submission. This API sends raw messages directly to the network with no platform intelligence. Designed for customers who handle compliance and logic externally.</p>' +
                 '<div class="mb-3">' +
                 '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Send individual messages</div>' +
                 '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Send batch messages (up to 10,000)</div>' +
@@ -2242,42 +2243,46 @@ $(document).ready(function() {
                 '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Receive inbound messages</div>' +
                 '</div>' +
                 '<div class="border-top pt-2">' +
-                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>Cannot use message templates</div>' +
-                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>Cannot access Contact Book</div>' +
-                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>Cannot reference opt-out lists</div>' +
+                '<div class="fw-medium text-muted mb-2">Platform features not available:</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No template support</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No Contact Book access</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No opt-out list enforcement</div>' +
                 '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No personalisation placeholders</div>' +
-                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No campaign scheduling or logic</div>' +
+                '<div class="text-danger mb-1"><i class="fas fa-times-circle me-2"></i>No campaign logic or scheduling</div>' +
                 '</div>' +
                 '</div>';
         } else if (type === 'campaign') {
             html = '<div class="small">' +
-                '<div class="mb-2 text-muted"><strong>Campaign API</strong> - Full campaign management capabilities</div>' +
+                '<div class="mb-2"><strong>Campaign API</strong></div>' +
+                '<p class="text-muted mb-2">Full platform-aware messaging. This API behaves as if sending messages via the QuickSMS portal, with all platform governance enforced automatically.</p>' +
                 '<div class="mb-3">' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Use message templates</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Manage contacts and lists</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Enforce opt-out list compliance</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Message templates</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Contacts and lists</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Opt-out list compliance (enforced)</div>' +
                 '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Personalisation placeholders</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Schedule campaigns</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Campaign analytics & reporting</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>A/B testing support</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Campaign scheduling</div>' +
+                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Analytics and reporting</div>' +
                 '</div>' +
                 '<div class="border-top pt-2">' +
-                '<div class="text-warning mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Rate limited to 1,000 msgs/min</div>' +
-                '<div class="text-warning mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Requires valid opt-out list</div>' +
+                '<div class="fw-medium text-muted mb-2">Platform governance:</div>' +
+                '<div class="text-info mb-1"><i class="fas fa-shield-alt me-2"></i>All compliance rules enforced</div>' +
+                '<div class="text-info mb-1"><i class="fas fa-shield-alt me-2"></i>Opt-out validation required</div>' +
+                '<div class="text-info mb-1"><i class="fas fa-shield-alt me-2"></i>Rate limiting applied</div>' +
                 '</div>' +
                 '</div>';
         } else if (type === 'integration') {
             var partnerInfo = getIntegrationPartnerInfo(integrationName);
             html = '<div class="small">' +
-                '<div class="mb-2 text-muted"><strong>Integration API</strong> - ' + (integrationName || 'Third-party system') + '</div>' +
+                '<div class="mb-2"><strong>Integration API</strong>' + (integrationName ? ' — ' + integrationName : '') + '</div>' +
+                '<p class="text-muted mb-2">QuickSMS-managed integration with third-party systems. This API is opinionated, versioned, and maintained by QuickSMS. Users configure but do not design these integrations.</p>' +
                 '<div class="mb-3">' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Bi-directional data sync</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Automated triggers</div>' +
-                '<div class="text-success mb-1"><i class="fas fa-check-circle me-2"></i>Event webhooks</div>' +
                 partnerInfo +
                 '</div>' +
                 '<div class="border-top pt-2">' +
-                '<div class="text-info mb-1"><i class="fas fa-info-circle me-2"></i>Follows integration partner specifications</div>' +
+                '<div class="fw-medium text-muted mb-2">Integration characteristics:</div>' +
+                '<div class="text-info mb-1"><i class="fas fa-cog me-2"></i>Managed by QuickSMS</div>' +
+                '<div class="text-info mb-1"><i class="fas fa-code-branch me-2"></i>Versioned API</div>' +
+                '<div class="text-info mb-1"><i class="fas fa-sync-alt me-2"></i>Partner-specific payloads</div>' +
                 '</div>' +
                 '</div>';
         } else {
