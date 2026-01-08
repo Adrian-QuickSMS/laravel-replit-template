@@ -931,7 +931,9 @@ $(document).ready(function() {
         approverJobTitle: '',
         approverEmail: '',
         logoValid: false,
-        heroValid: false
+        heroValid: false,
+        visitedSteps: [0], // Step 0 is visited by default (initial step)
+        completedSteps: []
     };
     
     var autosaveTimeout = null;
@@ -1125,12 +1127,72 @@ $(document).ready(function() {
     
     $('#rcsAgentWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         if (stepDirection === 'forward') {
-            return validateStep(currentStepIndex);
+            var isValid = validateStep(currentStepIndex);
+            if (isValid) {
+                markStepCompleted(currentStepIndex);
+            } else {
+                unmarkStepCompleted(currentStepIndex);
+            }
+            return isValid;
         }
         return true;
     });
     
+    // Mark a step as visited
+    function markStepVisited(stepIndex) {
+        if (wizardData.visitedSteps.indexOf(stepIndex) === -1) {
+            wizardData.visitedSteps.push(stepIndex);
+            updateStepIndicators();
+            triggerAutosave();
+        }
+    }
+    
+    // Mark a step as completed
+    function markStepCompleted(stepIndex) {
+        if (wizardData.completedSteps.indexOf(stepIndex) === -1) {
+            wizardData.completedSteps.push(stepIndex);
+            updateStepIndicators();
+        }
+    }
+    
+    // Remove step from completed list
+    function unmarkStepCompleted(stepIndex) {
+        var idx = wizardData.completedSteps.indexOf(stepIndex);
+        if (idx > -1) {
+            wizardData.completedSteps.splice(idx, 1);
+            updateStepIndicators();
+        }
+    }
+    
+    // Get step state: 'not-visited', 'visited-incomplete', 'completed'
+    function getStepState(stepIndex) {
+        var isVisited = wizardData.visitedSteps.indexOf(stepIndex) > -1;
+        var isCompleted = wizardData.completedSteps.indexOf(stepIndex) > -1;
+        
+        if (isCompleted) return 'completed';
+        if (isVisited) return 'visited-incomplete';
+        return 'not-visited';
+    }
+    
+    // Update visual indicators for all steps
+    function updateStepIndicators() {
+        $('#rcsAgentWizard .nav-wizard li').each(function(index) {
+            var $step = $(this);
+            var state = getStepState(index);
+            
+            $step.removeClass('step-not-visited step-visited-incomplete step-completed');
+            $step.addClass('step-' + state);
+            
+            // Update the nav-link with state class
+            $step.find('.nav-link').removeClass('step-not-visited step-visited-incomplete step-completed');
+            $step.find('.nav-link').addClass('step-' + state);
+        });
+    }
+    
     $('#rcsAgentWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
+        // Mark step as visited when entering
+        markStepVisited(stepIndex);
+        
         if (stepIndex === 7) {
             populateReviewStep();
         }
@@ -1142,6 +1204,9 @@ $(document).ready(function() {
             $toolbar.find('.sw-btn-next').text('Next');
         }
     });
+    
+    // Initialize step indicators on page load
+    updateStepIndicators();
     
     $('#agentName').on('input', function() {
         wizardData.name = this.value;

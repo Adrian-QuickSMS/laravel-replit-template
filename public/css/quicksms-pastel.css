@@ -325,3 +325,51 @@
     border-color: #886CC0;
     color: #fff;
 }
+
+/* ===========================================
+   RCS Wizard Step States
+   =========================================== */
+
+/* Not Visited - default grey, no additional indicator */
+.form-wizard .nav-wizard li.step-not-visited .nav-link span {
+    background: #e9ecef;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.form-wizard .nav-wizard li.step-not-visited .nav-link:after {
+    background: #dee2e6;
+}
+
+/* Visited but Incomplete - light amber/warning indicator */
+.form-wizard .nav-wizard li.step-visited-incomplete .nav-link span {
+    background: #fff3cd;
+    color: #856404;
+    border: 2px solid #ffc107;
+}
+
+.form-wizard .nav-wizard li.step-visited-incomplete .nav-link:after {
+    background: #ffc107;
+}
+
+/* Completed - green success indicator */
+.form-wizard .nav-wizard li.step-completed .nav-link span {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.form-wizard .nav-wizard li.step-completed .nav-link:after {
+    background: #28a745;
+}
+
+/* Active step overrides (current step) */
+.form-wizard .nav-wizard li .nav-link.active span {
+    background: #886CC0 !important;
+    color: #fff !important;
+    border-color: #886CC0 !important;
+}
+
+.form-wizard .nav-wizard li .nav-link.active:after {
+    background: #886CC0 !important;
+}
