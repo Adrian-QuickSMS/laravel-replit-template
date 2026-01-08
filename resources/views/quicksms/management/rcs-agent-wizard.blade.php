@@ -5,26 +5,115 @@
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
 <style>
-.sw-theme-default .nav-link::after {
-    background: #886CC0 !important;
+/* Fillow Form Wizard Stepper Styles */
+.form-wizard {
+    border: 0;
 }
-.sw-theme-default .nav-link.active {
-    color: #886CC0 !important;
+.form-wizard .nav-wizard {
+    box-shadow: none !important;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
 }
-.sw-theme-default .nav-link.done {
-    color: #886CC0 !important;
+.form-wizard .nav-wizard li {
+    flex: 1;
+    max-width: 150px;
 }
-.sw-theme-default .nav-link.done::after {
-    background: #886CC0 !important;
-}
-.sw-theme-default .nav-link span {
-    background: #e9ecef;
+.form-wizard .nav-wizard li .nav-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
     color: #6c757d;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
 }
-.sw-theme-default .nav-link.active span,
-.sw-theme-default .nav-link.done span {
-    background: #886CC0;
+.form-wizard .nav-wizard li .nav-link span {
+    border-radius: 3.125rem;
+    width: 3rem;
+    height: 3rem;
+    border: 0.125rem solid var(--primary, #886CC0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    font-weight: 500;
+    background: #fff;
+    color: var(--primary, #886CC0);
+    position: relative;
+    z-index: 1;
+}
+.form-wizard .nav-wizard li .nav-link:after {
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    height: 0.1875rem;
+    background: #e9ecef;
+    content: "";
+    z-index: 0;
+    width: 100%;
+}
+.form-wizard .nav-wizard li:last-child .nav-link:after {
+    content: none;
+}
+.form-wizard .nav-wizard li .nav-link.active span,
+.form-wizard .nav-wizard li .nav-link.done span {
+    background: var(--primary, #886CC0);
     color: #fff;
+    border-color: var(--primary, #886CC0);
+}
+.form-wizard .nav-wizard li .nav-link.active:after,
+.form-wizard .nav-wizard li .nav-link.done:after {
+    background: var(--primary, #886CC0) !important;
+}
+.form-wizard .nav-wizard li .nav-link small {
+    display: none;
+}
+
+/* Toolbar Button Styles */
+.form-wizard .toolbar-bottom {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+.form-wizard .sw-btn-prev,
+.form-wizard .sw-btn-next {
+    background-color: var(--primary, #886CC0) !important;
+    border: 0 !important;
+    padding: 0.75rem 1.5rem !important;
+    color: #fff !important;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.form-wizard .sw-btn-prev {
+    background-color: #6c757d !important;
+}
+.form-wizard .sw-btn-prev:hover {
+    background-color: #5a6268 !important;
+}
+.form-wizard .sw-btn-next:hover {
+    background-color: #7559b3 !important;
+}
+.form-wizard .sw-btn-prev:disabled,
+.form-wizard .sw-btn-next:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Tab Content */
+.form-wizard .tab-content .tab-pane {
+    padding: 0;
 }
 .selectable-tile {
     border: 2px solid #e9ecef;
@@ -177,7 +266,7 @@
                     </span>
                 </div>
                 <div class="card-body">
-                    <div id="rcsAgentWizard" class="sw sw-theme-default sw-justified">
+                    <div id="rcsAgentWizard" class="form-wizard">
                         <ul class="nav nav-wizard">
                             <li class="nav-item"><a class="nav-link" href="#step-1"><span>1</span><small>Basics</small></a></li>
                             <li class="nav-item"><a class="nav-link" href="#step-2"><span>2</span><small>Branding</small></a></li>
@@ -991,8 +1080,8 @@ $(document).ready(function() {
             keyNavigation: false
         },
         lang: {
-            next: 'Next <i class="fas fa-arrow-right ms-1"></i>',
-            previous: '<i class="fas fa-arrow-left me-1"></i> Back'
+            next: 'Next',
+            previous: 'Previous'
         }
     });
     
@@ -1010,9 +1099,9 @@ $(document).ready(function() {
         
         var $toolbar = $(this).find('.toolbar');
         if (stepIndex === 7) {
-            $toolbar.find('.sw-btn-next').text('Submit for Review').prepend('<i class="fas fa-paper-plane me-1"></i>');
+            $toolbar.find('.sw-btn-next').text('Submit');
         } else {
-            $toolbar.find('.sw-btn-next').html('Next <i class="fas fa-arrow-right ms-1"></i>');
+            $toolbar.find('.sw-btn-next').text('Next');
         }
     });
     
