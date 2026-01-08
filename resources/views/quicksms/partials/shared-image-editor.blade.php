@@ -166,7 +166,20 @@
         
         @if(!$inputOnly)
         <div class="sie-editor-wrapper d-none" id="{{ $editorId }}EditorWrapper">
-            <div id="{{ $editorId }}Container"></div>
+            <div class="d-flex gap-3 align-items-start">
+                <div class="flex-grow-1">
+                    <div id="{{ $editorId }}Container"></div>
+                </div>
+                @if($preset === 'agent-logo')
+                <div class="sie-output-preview" id="{{ $editorId }}OutputPreview">
+                    <label class="form-label small text-muted mb-2">Output Preview (222×222)</label>
+                    <div class="sie-output-frame" style="width: 111px; height: 111px; border: 2px solid var(--primary); border-radius: 4px; overflow: hidden; background: #f8f9fa;">
+                        <canvas id="{{ $editorId }}OutputCanvas" width="111" height="111" style="width: 111px; height: 111px;"></canvas>
+                    </div>
+                    <small class="text-muted d-block mt-1">Square image for Google</small>
+                </div>
+                @endif
+            </div>
             
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <button type="button" class="btn btn-sm btn-outline-danger" id="{{ $editorId }}RemoveBtn">
@@ -222,9 +235,22 @@
     
     function notifyLoadSuccess(data) {
         cropData = null;
+        setTimeout(function() { updateOutputPreview(); }, 100);
         if (typeof window['on' + editorId + 'LoadSuccess'] === 'function') {
             window['on' + editorId + 'LoadSuccess'](data);
         }
+    }
+    
+    var outputCanvas = document.getElementById(editorId + 'OutputCanvas');
+    
+    function updateOutputPreview() {
+        if (!outputCanvas || !editor) return;
+        var croppedCanvas = editor.GenerateCroppedImage();
+        if (!croppedCanvas) return;
+        
+        var ctx = outputCanvas.getContext('2d');
+        ctx.clearRect(0, 0, 111, 111);
+        ctx.drawImage(croppedCanvas, 0, 0, 111, 111);
     }
     
     function initEditor() {
@@ -237,6 +263,7 @@
             preset: preset,
             onChange: function(data) {
                 cropData = data;
+                updateOutputPreview();
                 if (typeof window['on' + editorId + 'Change'] === 'function') {
                     window['on' + editorId + 'Change'](data);
                 }
