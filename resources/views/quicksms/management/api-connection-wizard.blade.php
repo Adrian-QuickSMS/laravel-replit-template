@@ -1107,13 +1107,17 @@ $(document).ready(function() {
         $('#apiConnectionWizard').smartWizard('next');
     };
     
-    $('#enableIpRestriction').on('change', function() {
+    $(document).on('change', '#enableIpRestriction', function() {
+        console.log('[API Wizard] IP Restriction toggle changed:', $(this).is(':checked'));
         if ($(this).is(':checked')) {
+            console.log('[API Wizard] Adding show class to ipRestrictionFields');
             $('#ipRestrictionFields').addClass('show');
         } else {
+            console.log('[API Wizard] Removing show class from ipRestrictionFields');
             $('#ipRestrictionFields').removeClass('show');
         }
-        saveFormData();
+        wizardData.ipAllowList = $(this).is(':checked');
+        saveDraft();
         revalidateStep(3);
     });
     
