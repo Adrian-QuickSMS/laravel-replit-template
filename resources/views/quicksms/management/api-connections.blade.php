@@ -603,6 +603,77 @@
     </div>
 </div>
 
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel"><i class="fas fa-lock me-2"></i>Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="changePasswordWarning" class="alert mb-3" style="background-color: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #856404; display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="changePasswordWarningText"></span>
+                </div>
+                
+                <p class="text-muted small mb-3">Changing the password for: <strong id="changePasswordConnName"></strong></p>
+                
+                <form id="changePasswordForm" novalidate>
+                    <input type="hidden" id="changePasswordConnId">
+                    
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('currentPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="currentPasswordError">Please enter your current password.</div>
+                    </div>
+                    
+                    <hr class="my-3">
+                    
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('newPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="newPasswordError">Please enter a new password.</div>
+                        <div class="form-text small mt-2">
+                            <div id="pwdRuleLength" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i> At least 12 characters</div>
+                            <div id="pwdRuleUpper" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i> At least one uppercase letter</div>
+                            <div id="pwdRuleLower" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i> At least one lowercase letter</div>
+                            <div id="pwdRuleNumber" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i> At least one number</div>
+                            <div id="pwdRuleSpecial" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i> At least one special character (!@#$%^&*)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('confirmPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="confirmPasswordError">Passwords do not match.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="savePasswordBtn" onclick="savePassword()">
+                    <i class="fas fa-save me-1"></i> Save Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="newKeyModal" tabindex="-1" aria-labelledby="newKeyModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1427,17 +1498,144 @@ $(document).ready(function() {
     window.changePassword = function(id) {
         var conn = getConnectionById(id);
         var warning = getRecentUsageWarning(conn);
-        showConfirmModal(
-            'Change Password',
-            'Are you sure you want to change the password for "' + conn.name + '"? Any applications using the current credentials will need to be updated.',
-            'Change Password',
-            'btn-warning',
-            function() {
-                alert('Password changed for: ' + conn.name + '\n\nTODO: Implement password change');
-            },
-            warning
-        );
+        
+        $('#changePasswordForm')[0].reset();
+        $('#changePasswordForm .is-invalid').removeClass('is-invalid');
+        resetPasswordRules();
+        
+        $('#changePasswordConnId').val(conn.id);
+        $('#changePasswordConnName').text(conn.name);
+        
+        if (warning) {
+            $('#changePasswordWarningText').text(warning);
+            $('#changePasswordWarning').show();
+        } else {
+            $('#changePasswordWarning').hide();
+        }
+        
+        $('#changePasswordModal').modal('show');
     };
+    
+    window.togglePasswordVisibility = function(fieldId, btn) {
+        var input = document.getElementById(fieldId);
+        var icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    };
+    
+    function resetPasswordRules() {
+        $('#pwdRuleLength, #pwdRuleUpper, #pwdRuleLower, #pwdRuleNumber, #pwdRuleSpecial')
+            .removeClass('text-success text-danger')
+            .addClass('text-muted')
+            .find('i').removeClass('fa-check fa-times').addClass('fa-circle');
+    }
+    
+    function validatePasswordRules(password) {
+        var rules = {
+            length: password.length >= 12,
+            upper: /[A-Z]/.test(password),
+            lower: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*]/.test(password)
+        };
+        
+        updateRuleDisplay('pwdRuleLength', rules.length);
+        updateRuleDisplay('pwdRuleUpper', rules.upper);
+        updateRuleDisplay('pwdRuleLower', rules.lower);
+        updateRuleDisplay('pwdRuleNumber', rules.number);
+        updateRuleDisplay('pwdRuleSpecial', rules.special);
+        
+        return rules.length && rules.upper && rules.lower && rules.number && rules.special;
+    }
+    
+    function updateRuleDisplay(ruleId, passed) {
+        var $rule = $('#' + ruleId);
+        var $icon = $rule.find('i');
+        
+        $rule.removeClass('text-muted text-success text-danger');
+        $icon.removeClass('fa-circle fa-check fa-times');
+        
+        if (passed) {
+            $rule.addClass('text-success');
+            $icon.addClass('fa-check');
+        } else {
+            $rule.addClass('text-danger');
+            $icon.addClass('fa-times');
+        }
+    }
+    
+    $('#newPassword').on('input', function() {
+        validatePasswordRules($(this).val());
+    });
+    
+    window.savePassword = function() {
+        var currentPwd = $('#currentPassword').val().trim();
+        var newPwd = $('#newPassword').val();
+        var confirmPwd = $('#confirmPassword').val();
+        var connId = $('#changePasswordConnId').val();
+        var conn = getConnectionById(parseInt(connId));
+        
+        var isValid = true;
+        
+        $('#currentPassword, #newPassword, #confirmPassword').removeClass('is-invalid');
+        
+        if (!currentPwd) {
+            $('#currentPassword').addClass('is-invalid');
+            $('#currentPasswordError').text('Please enter your current password.');
+            isValid = false;
+        }
+        
+        if (!newPwd) {
+            $('#newPassword').addClass('is-invalid');
+            $('#newPasswordError').text('Please enter a new password.');
+            isValid = false;
+        } else if (!validatePasswordRules(newPwd)) {
+            $('#newPassword').addClass('is-invalid');
+            $('#newPasswordError').text('Password does not meet all requirements.');
+            isValid = false;
+        }
+        
+        if (newPwd !== confirmPwd) {
+            $('#confirmPassword').addClass('is-invalid');
+            $('#confirmPasswordError').text('Passwords do not match.');
+            isValid = false;
+        }
+        
+        if (newPwd === currentPwd && currentPwd) {
+            $('#newPassword').addClass('is-invalid');
+            $('#newPasswordError').text('New password must be different from current password.');
+            isValid = false;
+        }
+        
+        if (!isValid) return;
+        
+        console.log('[AUDIT] Password changed for connection:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+        
+        $('#changePasswordModal').modal('hide');
+        
+        showSuccessToast('Password changed successfully for "' + conn.name + '".');
+    };
+    
+    function showSuccessToast(message) {
+        var toastHtml = '<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">' +
+            '<div class="toast show align-items-center text-white bg-success border-0" role="alert">' +
+            '<div class="d-flex">' +
+            '<div class="toast-body"><i class="fas fa-check-circle me-2"></i>' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+            '</div></div></div>';
+        
+        var $toast = $(toastHtml).appendTo('body');
+        setTimeout(function() {
+            $toast.fadeOut(function() { $toast.remove(); });
+        }, 3000);
+    }
     
     window.suspendConnection = function(id) {
         var conn = getConnectionById(id);
