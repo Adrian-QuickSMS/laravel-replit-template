@@ -1753,13 +1753,25 @@ $(document).ready(function() {
     window.archiveConnection = function(id) {
         var conn = getConnectionById(id);
         var warning = getRecentUsageWarning(conn);
+        
         showConfirmModal(
-            'Archive API Connection',
-            'Are you sure you want to archive "' + conn.name + '"? The connection will be hidden from the main list but can be restored later.',
-            'Archive API',
-            'btn-danger',
+            'Archive API Connection - Step 1 of 2',
+            'You are about to archive "' + conn.name + '". Archived connections cannot be used or modified, but are retained for audit purposes.',
+            'Continue',
+            'btn-warning',
             function() {
-                alert('API archived: ' + conn.name + '\n\nTODO: Implement API call');
+                showConfirmModalWithDetails(
+                    'Archive API Connection - Final Confirmation',
+                    'Please confirm you want to archive "' + conn.name + '".\n\nArchived connections:\n• Cannot accept API requests\n• Cannot be modified\n• Hidden from default view\n• Retained for audit trail\n\nYou can view archived connections using the "Show Archived" toggle.',
+                    'Archive Now',
+                    'btn-danger',
+                    function() {
+                        conn.archived = true;
+                        console.log('[AUDIT] API Connection archived:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        renderTable();
+                        showSuccessToast('API Connection "' + conn.name + '" has been archived. Use "Show Archived" to view it.');
+                    }
+                );
             },
             warning
         );
