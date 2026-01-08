@@ -1,0 +1,155 @@
+There are THREE bugs in the API Connections Wizard that need to be fixed. All bugs are in the file:
+resources/views/quicksms/management/api-connection-wizard.blade.php
+
+Please fix all three issues below:
+
+---
+
+BUG #1: IP Restriction Toggle Not Showing Fields Immediately
+
+LOCATION: Lines 1136-1142
+
+CURRENT BEHAVIOR:
+- On Step 4 (Security), when I toggle "Enable IP Restriction" ON, nothing appears
+- If I navigate to Step 5 and then back to Step 4, the IP input fields suddenly appear
+
+ROOT CAUSE:
+The toggle function removes/adds the Bootstrap class 'd-none', but the CSS has a direct 'display: none' rule on #ipRestrictionFields (line 168) which overrides the class. The CSS expects the '.show' class (line 170-172) to be added/removed instead.
+
+FIX REQUIRED:
+Change lines 1138 and 1141:
+
+FROM:
+    if (isChecked) {
+        console.log('[API Wizard] Showing ipRestrictionFields');
+        fields.classList.remove('d-none');
+    } else {
+        console.log('[API Wizard] Hiding ipRestrictionFields');
+        fields.classList.add('d-none');
+    }
+
+TO:
+    if (isChecked) {
+        console.log('[API Wizard] Showing ipRestrictionFields');
+        fields.classList.add('show');
+    } else {
+        console.log('[API Wizard] Hiding ipRestrictionFields');
+        fields.classList.remove('show');
+    }
+
+---
+
+BUG #2: "Create Connection" Button Does Nothing
+
+LOCATION: Lines 929-964
+
+CURRENT BEHAVIOR:
+- On Step 6 (Review), clicking "Create Connection" button does nothing
+- No validation modal appears, no connection is created
+
+ROOT CAUSE:
+The code uses a DELEGATED mousedown event handler attached to document (lines 949-964), but SmartWizard attaches a DIRECT click handler to the button element. JavaScript fires direct handlers BEFORE delegated handlers, so SmartWizard's handler runs first, sees there's no Step 7, does nothing, and the delegated handler fires too late to prevent it.
+
+FIX REQUIRED:
+Replace the current implementation with a direct event handler attached inside the showStep event.
+
+STEP 1: MODIFY the showStep event handler (starting at line 929). Replace lines 929-946 with:
+
+    $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
+        updateStepIndicators();
+        
+        var $nextBtn = $('.toolbar-bottom .sw-btn-next');
+        
+        if (stepIndex === 5) {
+            populateReview();
+            $nextBtn.text('Create Connection');
+            $nextBtn.prop('disabled', false).removeClass('disabled').css('pointer-events', 'auto');
+            
+            // Remove any previous handlers to avoid duplicates
+            $nextBtn.off('click.createConnection');
+            
+            // Attach DIRECT handler (fires BEFORE SmartWizard's handler)
+            $nextBtn.on('click.createConnection', function(e) {
+                if (!connectionCreated) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    console.log('[API Wizard] Calling createConnection...');
+                    try {
+                        createConnection();
+                    } catch (err) {
+                        console.error('[API Wizard] Error in createConnection:', err);
+                        alert('Error creating connection: ' + err.message);
+                    }
+                    return false;
+                }
+            });
+        } else {
+            $nextBtn.text('Next');
+            // Remove the custom handler when not on review step
+            $nextBtn.off('click.createConnection');
+        }
+        
+        if (connectionCreated) {
+            $('.toolbar-bottom').hide();
+        }
+    });
+
+STEP 2: DELETE the old delegated mousedown handler (lines 948-964):
+
+DELETE these lines completely:
+    // Use mousedown instead of click to run before SmartWizard's handlers
+    $(document).on('mousedown', '.sw-btn-next', function(e) {
+        var currentStep = $('#apiConnectionWizard').smartWizard('getStepIndex');
+        console.log('[API Wizard] Next button mousedown, currentStep:', currentStep, 'connectionCreated:', connectionCreated);
+        if (currentStep === 5 && !connectionCreated) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            console.log('[API Wizard] Calling createConnection...');
+            try {
+                createConnection();
+            } catch (err) {
+                console.error('[API Wizard] Error in createConnection:', err);
+                alert('Error creating connection: ' + err.message);
+            }
+            return false;
+        }
+    });
+
+---
+
+BUG #3: Grey Line Shows Through Red Incomplete Step Circle
+
+LOCATION: Line 47
+
+CURRENT BEHAVIOR:
+When a step is marked as incomplete (red circle), a grey horizontal line appears to go through the circle, making it look messy.
+
+ROOT CAUSE:
+The step circle has z-index: 1 (line 47) and the connecting line has z-index: 0 (line 56). When the incomplete step uses a semi-transparent background (rgba(220, 53, 69, 0.15) on line 94), the grey line shows through because the z-index difference is too small.
+
+FIX REQUIRED:
+Change line 47 from:
+    z-index: 1;
+
+TO:
+    z-index: 10;
+
+This ensures the step circle is always rendered on top of the connecting line.
+
+---
+
+TESTING CHECKLIST:
+After making these changes, please verify:
+
+1. ✓ IP Restriction toggle immediately shows/hides IP input fields on Step 4
+2. ✓ "Create Connection" button on Step 6 shows validation modal when steps are incomplete
+3. ✓ "Create Connection" button creates connection when all steps are valid
+4. ✓ Incomplete step circles (red) have no grey line showing through them
+5. ✓ All other wizard functionality still works (navigation, draft saving, etc.)
+
+IMPORTANT:
+- Do NOT change any other functionality
+- Do NOT modify the overall design or layout
+- Do NOT add new features
+- ONLY fix these three specific bugs

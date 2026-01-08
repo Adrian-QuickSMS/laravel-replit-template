@@ -44,7 +44,7 @@
     background: #fff;
     color: var(--primary, #886CC0);
     position: relative;
-    z-index: 1;
+    z-index: 10;
 }
 .form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
@@ -968,7 +968,14 @@ $(document).ready(function() {
         
         // Sync IP restriction visibility when entering step 4 (Security Settings)
         if (stepIndex === 3) {
-            syncIpRestrictionVisibility();
+            var ipFields = document.getElementById('ipRestrictionFields');
+            if (ipFields) {
+                if (wizardData.ipAllowList) {
+                    ipFields.classList.add('show');
+                } else {
+                    ipFields.classList.remove('show');
+                }
+            }
         }
         
         if (connectionCreated) {
@@ -1069,7 +1076,14 @@ $(document).ready(function() {
         }
         
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
-        syncIpRestrictionVisibility();
+        var ipFields = document.getElementById('ipRestrictionFields');
+        if (ipFields) {
+            if (wizardData.ipAllowList) {
+                ipFields.classList.add('show');
+            } else {
+                ipFields.classList.remove('show');
+            }
+        }
         if (wizardData.ipAllowList) {
             renderIpAddresses();
         }
@@ -1142,25 +1156,19 @@ $(document).ready(function() {
         $('#apiConnectionWizard').smartWizard('next');
     };
     
-    function syncIpRestrictionVisibility() {
-        var fields = document.getElementById('ipRestrictionFields');
-        if (fields) {
-            if (wizardData.ipAllowList) {
-                fields.style.display = 'block';
-            } else {
-                fields.style.display = 'none';
-            }
-            console.log('[API Wizard] syncIpRestrictionVisibility:', wizardData.ipAllowList);
-        }
-    }
-    
     window.toggleIpRestriction = function(checkbox) {
         var isChecked = checkbox.checked;
         console.log('[API Wizard] IP Restriction toggle changed:', isChecked);
+        var fields = document.getElementById('ipRestrictionFields');
+        if (isChecked) {
+            console.log('[API Wizard] Showing ipRestrictionFields');
+            fields.classList.add('show');
+        } else {
+            console.log('[API Wizard] Hiding ipRestrictionFields');
+            fields.classList.remove('show');
+        }
         wizardData.ipAllowList = isChecked;
-        syncIpRestrictionVisibility();
         saveDraft();
-        setTimeout(syncIpRestrictionVisibility, 50);
         revalidateStep(3);
     };
     
