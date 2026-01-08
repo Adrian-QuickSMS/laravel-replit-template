@@ -803,18 +803,18 @@
                                         </div>
                                         
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Test Numbers</h6>
-                                        <p class="text-muted small mb-3">Add up to 20 phone numbers for testing. Numbers must be in international format (e.g., +447700900123).</p>
+                                        <p class="text-muted small mb-3">Add up to 20 phone numbers for testing. You can enter numbers in any format (e.g., 07700900123, 447700900123, or +447700900123).</p>
                                         
                                         <div class="row">
                                             <div class="col-lg-12 mb-3">
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" id="testNumberInput" placeholder="+447700900123">
+                                                    <input type="text" class="form-control" id="testNumberInput" placeholder="07700900123">
                                                     <button class="btn btn-primary" type="button" id="addTestNumberBtn">
                                                         <i class="fas fa-plus me-1"></i> Add
                                                     </button>
                                                 </div>
-                                                <div class="invalid-feedback" id="testNumberError" style="display: none;">Invalid format. Use international format (e.g., +447700900123)</div>
-                                                <small class="text-muted">Enter phone number in international format starting with +</small>
+                                                <div class="invalid-feedback" id="testNumberError" style="display: none;">Invalid UK mobile number format</div>
+                                                <small class="text-muted">Enter UK mobile number (07xx, 447xx, or +447xx format)</small>
                                             </div>
                                         </div>
                                         
@@ -827,9 +827,9 @@
                                             </button>
                                         </div>
                                         
-                                        <div class="alert alert-light border mt-4" style="font-size: 0.85rem;">
-                                            <i class="fas fa-info-circle text-primary me-2"></i>
-                                            <strong>Note:</strong> Test numbers are optional but recommended before submitting for approval.
+                                        <div class="alert mt-4" style="background-color: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #5a4a7a; font-size: 0.85rem;">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Note:</strong> Test numbers are optional but recommended before submitting for approval. Numbers are stored internally in 447 format.
                                         </div>
                                     </div>
                                 </div>
@@ -1769,13 +1769,33 @@ $(document).ready(function() {
         $('#clearAllTestNumbers').toggle(wizardData.testNumbers.length > 0);
     }
     
+    function normalizeUKNumber(number) {
+        var cleaned = number.replace(/[\s\-\(\)]/g, '');
+        
+        if (cleaned.startsWith('+44')) {
+            cleaned = '44' + cleaned.substring(3);
+        }
+        
+        if (cleaned.startsWith('07')) {
+            cleaned = '44' + cleaned.substring(1);
+        }
+        
+        if (/^44[0-9]{10}$/.test(cleaned)) {
+            return cleaned;
+        }
+        
+        return null;
+    }
+    
     $('#addTestNumberBtn').on('click', function() {
         var input = $('#testNumberInput');
         var number = input.val().trim();
         
         if (!number) return;
         
-        if (!/^\+[0-9]{10,15}$/.test(number)) {
+        var normalized = normalizeUKNumber(number);
+        
+        if (!normalized) {
             $('#testNumberError').show();
             input.addClass('is-invalid');
             return;
@@ -1785,11 +1805,11 @@ $(document).ready(function() {
             return;
         }
         
-        if (wizardData.testNumbers.includes(number)) {
+        if (wizardData.testNumbers.includes(normalized)) {
             return;
         }
         
-        wizardData.testNumbers.push(number);
+        wizardData.testNumbers.push(normalized);
         input.val('').removeClass('is-invalid');
         $('#testNumberError').hide();
         renderTestNumbers();
