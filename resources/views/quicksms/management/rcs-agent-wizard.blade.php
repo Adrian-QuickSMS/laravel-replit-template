@@ -933,6 +933,7 @@ $(document).ready(function() {
         logoValid: false,
         heroValid: false,
         visitedSteps: [0], // Step 0 is visited by default (initial step)
+        validatedSteps: [], // Steps that have been validated (user left at least once)
         completedSteps: []
     };
     
@@ -1126,6 +1127,9 @@ $(document).ready(function() {
     });
     
     $('#rcsAgentWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
+        // Mark step as validated (user has left it at least once)
+        markStepValidated(currentStepIndex);
+        
         if (stepDirection === 'forward') {
             var isValid = validateStep(currentStepIndex);
             if (isValid) {
@@ -1134,14 +1138,30 @@ $(document).ready(function() {
                 unmarkStepCompleted(currentStepIndex);
             }
             return isValid;
+        } else {
+            // When going backward, also check if step is valid for visual indicator
+            var isValid = checkStepValidity(currentStepIndex);
+            if (isValid) {
+                markStepCompleted(currentStepIndex);
+            } else {
+                unmarkStepCompleted(currentStepIndex);
+            }
         }
         return true;
     });
     
-    // Mark a step as visited
+    // Mark a step as visited (user entered it)
     function markStepVisited(stepIndex) {
         if (wizardData.visitedSteps.indexOf(stepIndex) === -1) {
             wizardData.visitedSteps.push(stepIndex);
+            triggerAutosave();
+        }
+    }
+    
+    // Mark a step as validated (user left it at least once)
+    function markStepValidated(stepIndex) {
+        if (wizardData.validatedSteps.indexOf(stepIndex) === -1) {
+            wizardData.validatedSteps.push(stepIndex);
             updateStepIndicators();
             triggerAutosave();
         }
@@ -1164,13 +1184,47 @@ $(document).ready(function() {
         }
     }
     
+    // Check step validity without showing error indicators (for visual state only)
+    function checkStepValidity(stepNumber) {
+        if (stepNumber === 0) {
+            return wizardData.name.trim() && wizardData.name.length <= 25 && 
+                   wizardData.description.trim() && wizardData.description.length <= 100;
+        } else if (stepNumber === 1) {
+            return wizardData.logoDataUrl && wizardData.logoValid && 
+                   wizardData.heroDataUrl && wizardData.heroValid;
+        } else if (stepNumber === 2) {
+            var phoneDisplayed = wizardData.showPhone && wizardData.supportPhone.trim();
+            var emailDisplayed = wizardData.showEmail && wizardData.supportEmail.trim();
+            var websiteProvided = wizardData.website.trim();
+            var hasContact = phoneDisplayed || emailDisplayed || websiteProvided;
+            var phoneValid = !wizardData.showPhone || wizardData.supportPhone.trim();
+            var emailValid = !wizardData.showEmail || wizardData.supportEmail.trim();
+            return hasContact && phoneValid && emailValid && 
+                   wizardData.privacyUrl.trim() && wizardData.termsUrl.trim();
+        } else if (stepNumber === 3) {
+            return wizardData.billing && wizardData.useCase && 
+                   wizardData.useCaseOverview.trim() && wizardData.useCaseOverview.length <= 500;
+        } else if (stepNumber === 4) {
+            return wizardData.campaignFrequency && wizardData.optInDescription.trim() && 
+                   wizardData.optOutDescription.trim() && wizardData.monthlyVolume;
+        } else if (stepNumber === 5) {
+            return wizardData.companyNumber.trim() && wizardData.registeredAddress.trim() && 
+                   wizardData.approverName.trim() && wizardData.approverJobTitle.trim() && 
+                   wizardData.approverEmail.trim();
+        } else if (stepNumber === 6) {
+            return true; // Test numbers step - no required fields
+        }
+        return true;
+    }
+    
     // Get step state: 'not-visited', 'visited-incomplete', 'completed'
     function getStepState(stepIndex) {
-        var isVisited = wizardData.visitedSteps.indexOf(stepIndex) > -1;
+        var isValidated = wizardData.validatedSteps.indexOf(stepIndex) > -1;
         var isCompleted = wizardData.completedSteps.indexOf(stepIndex) > -1;
         
         if (isCompleted) return 'completed';
-        if (isVisited) return 'visited-incomplete';
+        // Only show incomplete (red) if user has left the step at least once AND it's invalid
+        if (isValidated) return 'visited-incomplete';
         return 'not-visited';
     }
     
