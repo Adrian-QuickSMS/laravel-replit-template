@@ -79,10 +79,19 @@
 .sie-tab-content.active {
     display: block;
 }
+/* Override SmartWizard's overflow:hidden on tab-content - this clips editor controls */
+.sw > .tab-content,
+.sw > .tab-content > .tab-pane {
+    overflow: visible !important;
+}
 /* Ensure parent containers don't clip editor content */
 .form-wizard .tab-pane .sie-component,
-.form-wizard .tab-pane [id$="UploadZone"] {
+.form-wizard .tab-pane [id$="UploadZone"],
+.form-wizard .sie-editor-wrapper,
+.form-wizard .sie-editor-container,
+[id$="UploadZone"] {
     overflow: visible !important;
+    height: auto !important;
 }
 </style>
 @endpush
