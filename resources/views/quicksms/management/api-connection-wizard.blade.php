@@ -1008,6 +1008,24 @@ $(document).ready(function() {
         wizardData.environment = $('#environment').val();
         wizardData.ipAllowList = $('#enableIpRestriction').is(':checked');
         
+        // Capture type from selected tile (Step 2)
+        var $selectedType = $('.selectable-tile.selected[data-type]');
+        if ($selectedType.length) {
+            wizardData.type = $selectedType.data('type');
+        }
+        
+        // Capture partner integration if selected
+        var $selectedPartner = $('.partner-tile.selected[data-partner]');
+        if ($selectedPartner.length) {
+            wizardData.integrationName = $selectedPartner.data('partner');
+        }
+        
+        // Capture authType from selected tile (Step 3)
+        var $selectedAuth = $('.selectable-tile.selected[data-auth]');
+        if ($selectedAuth.length) {
+            wizardData.authType = $selectedAuth.data('auth');
+        }
+        
         var dlrPath = $('#dlrUrl').val().trim();
         var inboundPath = $('#inboundUrl').val().trim();
         wizardData.dlrUrl = dlrPath ? 'https://' + dlrPath : '';
