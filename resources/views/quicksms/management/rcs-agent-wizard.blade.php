@@ -272,10 +272,9 @@
                             <li class="nav-item"><a class="nav-link" href="#step-2"><span>2</span><small>Branding</small></a></li>
                             <li class="nav-item"><a class="nav-link" href="#step-3"><span>3</span><small>Handset</small></a></li>
                             <li class="nav-item"><a class="nav-link" href="#step-4"><span>4</span><small>Agent Type</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-5"><span>5</span><small>Messaging</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-6"><span>6</span><small>Company</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-7"><span>7</span><small>Test Numbers</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-8"><span>8</span><small>Review</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-5"><span>5</span><small>Company</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-6"><span>6</span><small>Test Numbers</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-7"><span>7</span><small>Review</small></a></li>
                         </ul>
                         
                         <div class="tab-content">
@@ -474,12 +473,12 @@
                                 </div>
                             </div>
                             
-                            <!-- Step 4: Agent Type -->
+                            <!-- Step 4: Agent Type & Messaging -->
                             <div id="step-4" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-10 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 4: Agent Type</strong> - Select billing category, use case, and provide a use case description.
+                                            <strong>Step 4: Agent Type & Messaging</strong> - Select billing category, use case, and define your messaging patterns.
                                         </div>
                                         
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-credit-card me-2 text-primary"></i>Billing Category <span class="text-danger">*</span></h6>
@@ -607,7 +606,7 @@
                                         <div class="row">
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">Use Case Overview</label>
-                                                <textarea class="form-control" id="useCaseOverview" rows="4" maxlength="1000" placeholder="Include example message types, target audience, and business purpose..."></textarea>
+                                                <textarea class="form-control" id="useCaseOverview" rows="3" maxlength="1000" placeholder="Include example message types, target audience, and business purpose..."></textarea>
                                                 <div class="d-flex justify-content-between">
                                                     <small class="text-muted">Detailed explanation of your messaging use case</small>
                                                     <small class="text-muted"><span id="useCaseCharCount">0</span>/1000</small>
@@ -615,16 +614,12 @@
                                                 <div class="invalid-feedback">Please provide a use case overview</div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Step 5: Messaging Behaviour -->
-                            <div id="step-5" class="tab-pane" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-lg-8 mx-auto">
-                                        <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 5: Messaging Behaviour</strong> - Define your messaging patterns and compliance measures.
+                                        
+                                        <hr class="my-4">
+                                        
+                                        <div class="alert" style="background-color: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #5a4a7a;">
+                                            <i class="fas fa-mobile-alt me-2"></i>
+                                            <strong>UK Mobile Networks Requirement:</strong> The following information is requested on behalf of the UK Mobile Networks to ensure compliance with RCS messaging standards.
                                         </div>
                                         
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-cog me-2 text-primary"></i>Messaging Patterns</h6>
@@ -662,36 +657,38 @@
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-check-circle me-2 text-primary"></i>Consent & Opt-out</h6>
                                         
                                         <div class="row">
-                                            <div class="col-lg-12 mb-3">
-                                                <label class="text-label form-label">Opt-in / Legitimate Interest Description <span class="text-danger">*</span></label>
-                                                <textarea class="form-control" id="optInDescription" rows="3" maxlength="500" placeholder="Describe how users opt-in to receive messages..."></textarea>
-                                                <div class="d-flex justify-content-between">
-                                                    <small class="text-muted">Explain your legal basis for sending messages</small>
-                                                    <small class="text-muted"><span id="optInCharCount">0</span>/500</small>
-                                                </div>
-                                                <div class="invalid-feedback">Please describe your opt-in basis</div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">User Consent Obtained <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="userConsent">
+                                                    <option value="">Select...</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                                <small class="text-muted">Do you have user consent or legitimate interest?</small>
+                                                <div class="invalid-feedback">Please select an option</div>
                                             </div>
                                             
-                                            <div class="col-lg-12 mb-3">
-                                                <label class="text-label form-label">Opt-out Mechanism Description <span class="text-danger">*</span></label>
-                                                <textarea class="form-control" id="optOutDescription" rows="3" maxlength="500" placeholder="Describe how users can opt-out of receiving messages..."></textarea>
-                                                <div class="d-flex justify-content-between">
-                                                    <small class="text-muted">Explain how recipients can stop receiving messages</small>
-                                                    <small class="text-muted"><span id="optOutCharCount">0</span>/500</small>
-                                                </div>
-                                                <div class="invalid-feedback">Please describe your opt-out mechanism</div>
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="text-label form-label">Opt-out Mechanism Available <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="optOutAvailable">
+                                                    <option value="">Select...</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                                <small class="text-muted">Can recipients opt-out of receiving messages?</small>
+                                                <div class="invalid-feedback">Please select an option</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Step 6: Company & Approver Details -->
-                            <div id="step-6" class="tab-pane" role="tabpanel">
+                            <!-- Step 5: Company & Approver Details -->
+                            <div id="step-5" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-10 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 6: Company & Approver Details</strong> - Provide your company registration and approver information.
+                                            <strong>Step 5: Company & Approver Details</strong> - Provide your company registration and approver information.
                                         </div>
                                         
                                         <div class="alert alert-warning mb-4">
@@ -758,12 +755,12 @@
                                 </div>
                             </div>
                             
-                            <!-- Step 7: Test Numbers -->
-                            <div id="step-7" class="tab-pane" role="tabpanel">
+                            <!-- Step 6: Test Numbers -->
+                            <div id="step-6" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 7: Test Numbers</strong> - Add phone numbers for testing your RCS Agent before going live.
+                                            <strong>Step 6: Test Numbers</strong> - Add phone numbers for testing your RCS Agent before going live.
                                         </div>
                                         
                                         <h6 class="fw-semibold mb-3"><i class="fas fa-mobile-alt me-2 text-primary"></i>Test Numbers</h6>
@@ -799,12 +796,12 @@
                                 </div>
                             </div>
                             
-                            <!-- Step 8: Review & Submit -->
-                            <div id="step-8" class="tab-pane" role="tabpanel">
+                            <!-- Step 7: Review & Submit -->
+                            <div id="step-7" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-10 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 8: Review & Submit</strong> - Please review all information before submitting for approval.
+                                            <strong>Step 7: Review & Submit</strong> - Please review all information before submitting for approval.
                                         </div>
                                         
                                         <div class="row">
@@ -956,8 +953,8 @@ $(document).ready(function() {
         showEmail: true,
         campaignFrequency: '',
         monthlyVolume: '',
-        optInDescription: '',
-        optOutDescription: '',
+        userConsent: '',
+        optOutAvailable: '',
         useCaseOverview: '',
         testNumbers: [],
         companyNumber: '',
@@ -1052,6 +1049,7 @@ $(document).ready(function() {
                 isValid = false;
             }
         } else if (stepNumber === 3) {
+            // Agent Type & Messaging (merged step)
             if (!wizardData.billing) {
                 $('#billingError').show();
                 isValid = false;
@@ -1064,7 +1062,6 @@ $(document).ready(function() {
                 $('#useCaseOverview').addClass('is-invalid');
                 isValid = false;
             }
-        } else if (stepNumber === 4) {
             if (!wizardData.campaignFrequency) {
                 $('#campaignFrequency').addClass('is-invalid');
                 isValid = false;
@@ -1073,15 +1070,15 @@ $(document).ready(function() {
                 $('#monthlyVolume').addClass('is-invalid');
                 isValid = false;
             }
-            if (!wizardData.optInDescription.trim()) {
-                $('#optInDescription').addClass('is-invalid');
+            if (!wizardData.userConsent) {
+                $('#userConsent').addClass('is-invalid');
                 isValid = false;
             }
-            if (!wizardData.optOutDescription.trim()) {
-                $('#optOutDescription').addClass('is-invalid');
+            if (!wizardData.optOutAvailable) {
+                $('#optOutAvailable').addClass('is-invalid');
                 isValid = false;
             }
-        } else if (stepNumber === 5) {
+        } else if (stepNumber === 4) {
             if (!wizardData.companyNumber.trim()) {
                 $('#companyNumber').addClass('is-invalid');
                 isValid = false;
@@ -1179,10 +1176,10 @@ $(document).ready(function() {
         return true;
     });
     
-    // Handle Submit button click on Review step (step 8)
+    // Handle Submit button click on Review step (step 7)
     $(document).on('click', '.sw-btn-next', function(e) {
         var currentStep = $('#rcsAgentWizard').smartWizard('getStepIndex');
-        if (currentStep === 7) {
+        if (currentStep === 6) {
             e.preventDefault();
             e.stopPropagation();
             handleFinalSubmission();
@@ -1196,8 +1193,7 @@ $(document).ready(function() {
             'Agent Basics',
             'Branding Assets',
             'Handset + Compliance',
-            'Agent Type',
-            'Messaging Behaviour',
+            'Agent Type & Messaging',
             'Company Details',
             'Test Numbers'
         ];
@@ -1205,8 +1201,8 @@ $(document).ready(function() {
         var incompleteSteps = [];
         var allValid = true;
         
-        // Check each step (0-6, step 7 is Review which has no required fields)
-        for (var i = 0; i <= 6; i++) {
+        // Check each step (0-5, step 6 is Review which has no required fields)
+        for (var i = 0; i <= 5; i++) {
             var isValid = checkStepValidity(i);
             
             if (!isValid) {
@@ -1376,16 +1372,17 @@ $(document).ready(function() {
             return hasContact && phoneValid && emailValid && 
                    wizardData.privacyUrl.trim() && wizardData.termsUrl.trim();
         } else if (stepNumber === 3) {
+            // Agent Type & Messaging (merged step)
             return wizardData.billing && wizardData.useCase && 
-                   wizardData.useCaseOverview.trim() && wizardData.useCaseOverview.length <= 500;
+                   wizardData.useCaseOverview.trim() && wizardData.useCaseOverview.length <= 1000 &&
+                   wizardData.campaignFrequency && wizardData.monthlyVolume &&
+                   wizardData.userConsent && wizardData.optOutAvailable;
         } else if (stepNumber === 4) {
-            return wizardData.campaignFrequency && wizardData.optInDescription.trim() && 
-                   wizardData.optOutDescription.trim() && wizardData.monthlyVolume;
-        } else if (stepNumber === 5) {
+            // Company Details
             return wizardData.companyNumber.trim() && wizardData.registeredAddress.trim() && 
                    wizardData.approverName.trim() && wizardData.approverJobTitle.trim() && 
                    wizardData.approverEmail.trim();
-        } else if (stepNumber === 6) {
+        } else if (stepNumber === 5) {
             return true; // Test numbers step - no required fields
         }
         return true;
@@ -1441,12 +1438,12 @@ $(document).ready(function() {
         // Mark step as visited when entering
         markStepVisited(stepIndex);
         
-        if (stepIndex === 7) {
+        if (stepIndex === 6) {
             populateReviewStep();
         }
         
         var $toolbar = $(this).find('.toolbar');
-        if (stepIndex === 7) {
+        if (stepIndex === 6) {
             $toolbar.find('.sw-btn-next').text('Submit');
         } else {
             $toolbar.find('.sw-btn-next').text('Next');
@@ -1676,27 +1673,19 @@ $(document).ready(function() {
     
     $('#campaignFrequency, #monthlyVolume').on('change', function() {
         wizardData[this.id] = this.value;
-        revalidateStep(4); // Step 5: Messaging Behaviour
+        revalidateStep(3); // Step 4: Agent Type & Messaging
         triggerAutosave();
     });
     
-    $('#optInDescription').on('input', function() {
-        wizardData.optInDescription = this.value;
-        $('#optInCharCount').text(this.value.length);
-        revalidateStep(4); // Step 5: Messaging Behaviour
-        triggerAutosave();
-    });
-    
-    $('#optOutDescription').on('input', function() {
-        wizardData.optOutDescription = this.value;
-        $('#optOutCharCount').text(this.value.length);
-        revalidateStep(4); // Step 5: Messaging Behaviour
+    $('#userConsent, #optOutAvailable').on('change', function() {
+        wizardData[this.id] = this.value;
+        revalidateStep(3); // Step 4: Agent Type & Messaging
         triggerAutosave();
     });
     
     $('#companyNumber, #companyWebsite, #registeredAddress, #approverName, #approverJobTitle, #approverEmail').on('input', function() {
         wizardData[this.id] = this.value;
-        revalidateStep(5); // Step 6: Company Details
+        revalidateStep(4); // Step 5: Company Details
         triggerAutosave();
     });
     
