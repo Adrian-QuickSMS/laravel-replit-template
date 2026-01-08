@@ -158,14 +158,6 @@
 
 #integrationPartnerSection {
     margin-top: 1rem;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-}
-#integrationPartnerSection.show {
-    max-height: 500px;
-    opacity: 1;
 }
 
 .selectable-tile {
@@ -450,7 +442,7 @@
                                         </div>
                                         <div class="invalid-feedback d-block" id="apiTypeError" style="display: none;">Please select an API type.</div>
                                         
-                                        <div id="integrationPartnerSection">
+                                        <div id="integrationPartnerSection" style="display: none;">
                                             <hr class="my-4">
                                             <h6 class="mb-3">Select Integration Partner</h6>
                                             <div class="row g-3">
@@ -1075,9 +1067,9 @@ $(document).ready(function() {
         
         if (type === 'integration') {
             console.log('[API Wizard] Showing integration partner section');
-            $('#integrationPartnerSection').addClass('show');
+            $('#integrationPartnerSection').slideDown(200);
         } else {
-            $('#integrationPartnerSection').removeClass('show');
+            $('#integrationPartnerSection').slideUp(200);
             $('.partner-tile').removeClass('selected');
         }
         revalidateStep(1);
