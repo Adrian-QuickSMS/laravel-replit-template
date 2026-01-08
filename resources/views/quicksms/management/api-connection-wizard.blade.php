@@ -96,7 +96,7 @@
     border-color: #dc3545 !important;
 }
 .form-wizard .nav-wizard li .nav-link.step-visited-incomplete:after {
-    background: rgba(220, 53, 69, 0.3) !important;
+    background: #e9ecef !important;
 }
 .form-wizard .nav-wizard li .nav-link.step-completed span {
     background: var(--primary, #886CC0) !important;
