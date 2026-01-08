@@ -244,6 +244,28 @@
     background: rgba(136, 108, 192, 0.15);
     color: #886CC0;
 }
+.review-thumbnail {
+    cursor: pointer;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    object-fit: cover;
+}
+.review-thumbnail:hover {
+    border-color: #886CC0;
+    box-shadow: 0 2px 8px rgba(136, 108, 192, 0.3);
+    transform: scale(1.05);
+}
+.review-thumbnail-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.review-thumbnail-hero {
+    width: 80px;
+    height: 24px;
+    border-radius: 4px;
+}
 </style>
 @endpush
 
@@ -864,11 +886,15 @@
                                                     </div>
                                                     <div class="review-row">
                                                         <span class="review-label">Logo</span>
-                                                        <span class="review-value" id="reviewLogo">-</span>
+                                                        <span class="review-value" id="reviewLogo">
+                                                            <span class="text-muted">-</span>
+                                                        </span>
                                                     </div>
                                                     <div class="review-row">
                                                         <span class="review-label">Hero Image</span>
-                                                        <span class="review-value" id="reviewHero">-</span>
+                                                        <span class="review-value" id="reviewHero">
+                                                            <span class="text-muted">-</span>
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 
@@ -1167,8 +1193,17 @@ $(document).ready(function() {
         $('#reviewDescription').text(wizardData.description || '-');
         $('#reviewColor').text(wizardData.brandColor);
         $('#reviewColorPreview').css('background-color', wizardData.brandColor);
-        $('#reviewLogo').html(wizardData.logoValid ? '<span class="badge bg-success">Uploaded</span>' : '<span class="badge bg-secondary">Not uploaded</span>');
-        $('#reviewHero').html(wizardData.heroValid ? '<span class="badge bg-success">Uploaded</span>' : '<span class="badge bg-secondary">Not uploaded</span>');
+        if (wizardData.logoValid && wizardData.logoDataUrl) {
+            $('#reviewLogo').html('<img src="' + wizardData.logoDataUrl + '" class="review-thumbnail review-thumbnail-logo" data-image-type="logo" alt="Logo" title="Click to enlarge">');
+        } else {
+            $('#reviewLogo').html('<span class="text-muted">Not uploaded</span>');
+        }
+        
+        if (wizardData.heroValid && wizardData.heroDataUrl) {
+            $('#reviewHero').html('<img src="' + wizardData.heroDataUrl + '" class="review-thumbnail review-thumbnail-hero" data-image-type="hero" alt="Hero Image" title="Click to enlarge">');
+        } else {
+            $('#reviewHero').html('<span class="text-muted">Not uploaded</span>');
+        }
         $('#reviewPhone').text(wizardData.supportPhone ? '+44 ' + wizardData.supportPhone : '-');
         $('#reviewWebsite').text(wizardData.website || '-');
         $('#reviewEmail').text(wizardData.supportEmail || '-');
@@ -1834,6 +1869,41 @@ $(document).ready(function() {
         wizardData.testNumbers = [];
         renderTestNumbers();
         triggerAutosave();
+    });
+    
+    $(document).on('click', '.review-thumbnail', function() {
+        var imageType = $(this).data('image-type');
+        var imageSrc = $(this).attr('src');
+        var title = imageType === 'logo' ? 'Agent Logo' : 'Hero Image';
+        
+        if (!$('#reviewImageModal').length) {
+            var modalHtml = '<div class="modal fade" id="reviewImageModal" tabindex="-1">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered">';
+            modalHtml += '<div class="modal-content">';
+            modalHtml += '<div class="modal-header">';
+            modalHtml += '<h5 class="modal-title"><i class="fas fa-image me-2 text-primary"></i><span id="reviewImageModalTitle"></span></h5>';
+            modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
+            modalHtml += '</div>';
+            modalHtml += '<div class="modal-body text-center p-4">';
+            modalHtml += '<img id="reviewImageModalImg" src="" alt="" style="max-width: 100%; max-height: 400px; border-radius: 8px;">';
+            modalHtml += '</div>';
+            modalHtml += '<div class="modal-footer justify-content-center">';
+            modalHtml += '<small class="text-muted">This is the cropped image that will be submitted for approval</small>';
+            modalHtml += '</div>';
+            modalHtml += '</div></div></div>';
+            $('body').append(modalHtml);
+        }
+        
+        $('#reviewImageModalTitle').text(title);
+        $('#reviewImageModalImg').attr('src', imageSrc).attr('alt', title);
+        
+        if (imageType === 'logo') {
+            $('#reviewImageModalImg').css({'border-radius': '50%', 'max-width': '222px', 'max-height': '222px'});
+        } else {
+            $('#reviewImageModalImg').css({'border-radius': '8px', 'max-width': '100%', 'max-height': '400px'});
+        }
+        
+        $('#reviewImageModal').modal('show');
     });
 });
 </script>
