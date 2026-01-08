@@ -211,6 +211,32 @@
 }
 
 .bg-pastel-primary { background: rgba(136, 108, 192, 0.15); color: #886CC0; }
+
+.ip-address-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    border-radius: 1rem;
+    padding: 0.35rem 0.75rem;
+    margin: 0.25rem;
+    font-size: 0.875rem;
+    font-family: monospace;
+}
+.ip-address-badge .remove-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    padding: 0 0 0 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.ip-address-badge .remove-btn:hover {
+    color: #a71d2a;
+}
+.ip-addresses-container {
+    min-height: 40px;
+}
 .bg-pastel-warning { background: rgba(255, 193, 7, 0.15); color: #d39e00; }
 .bg-pastel-info { background: rgba(23, 162, 184, 0.15); color: #117a8b; }
 .bg-pastel-success { background: rgba(40, 167, 69, 0.15); color: #28a745; }
@@ -517,8 +543,23 @@
                                         <div id="ipRestrictionFields" style="display: none;">
                                             <div class="mb-3">
                                                 <label class="form-label">Allowed IP Addresses</label>
-                                                <textarea class="form-control" id="allowedIps" rows="4" placeholder="Enter IP addresses, one per line&#10;e.g., 192.168.1.1&#10;10.0.0.0/24"></textarea>
+                                                <div class="input-group mb-2">
+                                                    <input type="text" class="form-control" id="ipAddressInput" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
+                                                    <button class="btn btn-primary" type="button" id="addIpAddressBtn">
+                                                        <i class="fas fa-plus me-1"></i> Add
+                                                    </button>
+                                                </div>
+                                                <div class="invalid-feedback" id="ipAddressError" style="display: none;">Invalid IP address or CIDR format</div>
                                                 <small class="text-muted">Supports IPv4, IPv6, and CIDR notation.</small>
+                                            </div>
+                                            
+                                            <div id="ipAddressesList" class="ip-addresses-container mb-3"></div>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted"><span id="ipAddressCount">0</span> IP addresses added</small>
+                                                <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllIps" style="display: none;">
+                                                    <i class="fas fa-trash-alt me-1"></i> Clear All
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -982,14 +1023,6 @@ $(document).ready(function() {
         wizardData.subAccount = $('#subAccount').val();
         wizardData.environment = $('#environment').val();
         wizardData.ipAllowList = $('#enableIpRestriction').is(':checked');
-        
-        if (wizardData.ipAllowList) {
-            var ipText = $('#allowedIps').val().trim();
-            wizardData.allowedIps = ipText ? ipText.split('\n').map(function(ip) { return ip.trim(); }).filter(function(ip) { return ip; }) : [];
-        } else {
-            wizardData.allowedIps = [];
-        }
-        
         wizardData.dlrUrl = $('#dlrUrl').val().trim();
         wizardData.inboundUrl = $('#inboundUrl').val().trim();
     }
@@ -1015,7 +1048,7 @@ $(document).ready(function() {
         $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
         if (wizardData.ipAllowList) {
             $('#ipRestrictionFields').show();
-            $('#allowedIps').val(wizardData.allowedIps.join('\n'));
+            renderIpAddresses();
         }
         
         $('#dlrUrl').val(wizardData.dlrUrl);
@@ -1090,8 +1123,79 @@ $(document).ready(function() {
         revalidateStep(3);
     });
     
-    $('#allowedIps').on('input', function() {
-        saveFormData();
+    function renderIpAddresses() {
+        var html = '';
+        wizardData.allowedIps.forEach(function(ip, index) {
+            html += '<span class="ip-address-badge">' + ip + 
+                    '<button class="remove-btn" data-index="' + index + '"><i class="fas fa-times"></i></button></span>';
+        });
+        $('#ipAddressesList').html(html);
+        $('#ipAddressCount').text(wizardData.allowedIps.length);
+        $('#clearAllIps').toggle(wizardData.allowedIps.length > 0);
+    }
+    
+    function isValidIpAddress(ip) {
+        var ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
+        var ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}(\/\d{1,3})?$/;
+        var ipv6ShortPattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}(\/\d{1,3})?$/;
+        
+        if (ipv4Pattern.test(ip)) {
+            var parts = ip.split('/')[0].split('.');
+            return parts.every(function(part) {
+                var num = parseInt(part, 10);
+                return num >= 0 && num <= 255;
+            });
+        }
+        
+        return ipv6Pattern.test(ip) || ipv6ShortPattern.test(ip);
+    }
+    
+    $('#addIpAddressBtn').on('click', function() {
+        var input = $('#ipAddressInput');
+        var value = input.val().trim();
+        
+        if (!value) {
+            $('#ipAddressError').text('Please enter an IP address').show();
+            return;
+        }
+        
+        if (!isValidIpAddress(value)) {
+            $('#ipAddressError').text('Invalid IP address or CIDR format').show();
+            return;
+        }
+        
+        if (wizardData.allowedIps.includes(value)) {
+            $('#ipAddressError').text('This IP address is already added').show();
+            return;
+        }
+        
+        wizardData.allowedIps.push(value);
+        input.val('');
+        $('#ipAddressError').hide();
+        renderIpAddresses();
+        saveDraft();
+        revalidateStep(3);
+    });
+    
+    $('#ipAddressInput').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#addIpAddressBtn').click();
+        }
+    });
+    
+    $(document).on('click', '#ipAddressesList .remove-btn', function() {
+        var index = $(this).data('index');
+        wizardData.allowedIps.splice(index, 1);
+        renderIpAddresses();
+        saveDraft();
+        revalidateStep(3);
+    });
+    
+    $('#clearAllIps').on('click', function() {
+        wizardData.allowedIps = [];
+        renderIpAddresses();
+        saveDraft();
         revalidateStep(3);
     });
     
