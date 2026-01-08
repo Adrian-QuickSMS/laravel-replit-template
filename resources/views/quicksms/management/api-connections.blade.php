@@ -463,6 +463,146 @@
     </div>
 </div>
 
+<div class="offcanvas offcanvas-end" tabindex="-1" id="viewDetailsDrawer" style="width: 480px;">
+    <div class="offcanvas-header border-bottom py-3">
+        <h6 class="offcanvas-title text-muted mb-0"><i class="fas fa-plug me-2"></i>API Connection Details</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="bg-gradient-primary text-white p-4" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
+            <h4 id="drawerApiName" class="mb-3 fw-semibold">-</h4>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                <span id="drawerTypeBadge" class="badge bg-white text-dark">-</span>
+                <span id="drawerEnvBadge" class="badge bg-white bg-opacity-25">-</span>
+                <span id="drawerStatusBadge" class="badge bg-white bg-opacity-25">-</span>
+            </div>
+            <div class="small opacity-75 mt-2" id="drawerDescription">-</div>
+        </div>
+
+        <div class="p-4">
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Connection Information</h6>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">API Name</div>
+                        <div class="col-7 small fw-medium" id="drawerApiNameDetail">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Sub-Account</div>
+                        <div class="col-7 small" id="drawerSubAccount">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Type</div>
+                        <div class="col-7 small" id="drawerType">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Environment</div>
+                        <div class="col-7 small" id="drawerEnvironment">-</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-5 text-muted small">Status</div>
+                        <div class="col-7 small" id="drawerStatus">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-key me-2"></i>Authentication</h6>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Auth Method</div>
+                        <div class="col-7 small" id="drawerAuthType">-</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-5 text-muted small">Credentials</div>
+                        <div class="col-7 small">
+                            <code class="text-muted" id="drawerCredentials">••••••••••••••••</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-link me-2"></i>Endpoints</h6>
+                    <div class="row mb-2">
+                        <div class="col-12 text-muted small mb-1">Dedicated Base URL</div>
+                        <div class="col-12">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm bg-light" id="drawerBaseUrl" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyDrawerField('drawerBaseUrl')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2 mt-3">
+                        <div class="col-12 text-muted small mb-1">Delivery Report URL (Webhook)</div>
+                        <div class="col-12">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm bg-light" id="drawerDlrUrl" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyDrawerField('drawerDlrUrl')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-muted small mb-1">Inbound Message URL (Webhook)</div>
+                        <div class="col-12">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm bg-light" id="drawerInboundUrl" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyDrawerField('drawerInboundUrl')" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-shield-alt me-2"></i>Security</h6>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">IP Allow List</div>
+                        <div class="col-7 small" id="drawerIpAllowStatus">-</div>
+                    </div>
+                    <div class="row" id="drawerIpListRow" style="display: none;">
+                        <div class="col-12 text-muted small mb-1">Allowed IPs</div>
+                        <div class="col-12">
+                            <div class="bg-light rounded p-2 small" id="drawerIpList">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-clock me-2"></i>Activity</h6>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Created</div>
+                        <div class="col-7 small" id="drawerCreatedDate">-</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-5 text-muted small">Last Used</div>
+                        <div class="col-7 small" id="drawerLastUsed">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-3"><i class="fas fa-project-diagram me-2"></i>Dependencies</h6>
+                    <div id="drawerDependencies">
+                        <p class="text-muted small mb-0">No dependencies configured.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -497,10 +637,17 @@ $(document).ready(function() {
             authType: 'API Key',
             status: 'live',
             baseUrl: 'https://api.quicksms.io/v1/bulk/prod-001',
+            dlrUrl: 'https://yourserver.com/webhooks/dlr',
+            inboundUrl: 'https://yourserver.com/webhooks/inbound',
             ipAllowList: true,
+            allowedIps: ['192.168.1.100', '10.0.0.50', '203.0.113.25'],
             createdDate: '2024-08-15',
             lastUsed: '2025-01-08 14:32:45',
-            archived: false
+            archived: false,
+            dependencies: [
+                { type: 'Template', name: 'Welcome SMS', count: 3 },
+                { type: 'Automation', name: 'New Customer Flow', count: 1 }
+            ]
         },
         {
             id: 2,
@@ -513,10 +660,14 @@ $(document).ready(function() {
             authType: 'API Key',
             status: 'live',
             baseUrl: 'https://sandbox.quicksms.io/v1/bulk/test-001',
+            dlrUrl: '',
+            inboundUrl: '',
             ipAllowList: false,
+            allowedIps: [],
             createdDate: '2024-09-20',
             lastUsed: '2025-01-07 09:15:22',
-            archived: false
+            archived: false,
+            dependencies: []
         },
         {
             id: 3,
@@ -529,10 +680,16 @@ $(document).ready(function() {
             authType: 'Basic Auth',
             status: 'live',
             baseUrl: 'https://api.quicksms.io/v1/campaigns/mkt-001',
+            dlrUrl: 'https://marketing.example.com/api/dlr',
+            inboundUrl: 'https://marketing.example.com/api/inbound',
             ipAllowList: true,
+            allowedIps: ['10.10.10.1'],
             createdDate: '2024-06-10',
             lastUsed: '2025-01-08 11:45:18',
-            archived: false
+            archived: false,
+            dependencies: [
+                { type: 'Campaign', name: 'Weekly Newsletter', count: 5 }
+            ]
         },
         {
             id: 4,
@@ -545,10 +702,14 @@ $(document).ready(function() {
             authType: 'API Key',
             status: 'suspended',
             baseUrl: 'https://sandbox.quicksms.io/v1/campaigns/test-002',
+            dlrUrl: '',
+            inboundUrl: '',
             ipAllowList: false,
+            allowedIps: [],
             createdDate: '2024-10-05',
             lastUsed: '2024-12-15 16:30:00',
-            archived: false
+            archived: false,
+            dependencies: []
         },
         {
             id: 5,
@@ -561,10 +722,16 @@ $(document).ready(function() {
             authType: 'OAuth',
             status: 'live',
             baseUrl: 'https://api.quicksms.io/v1/integrations/sf-001',
+            dlrUrl: '',
+            inboundUrl: '',
             ipAllowList: true,
+            allowedIps: ['52.88.0.0/16'],
             createdDate: '2024-03-22',
             lastUsed: '2025-01-08 15:01:33',
-            archived: false
+            archived: false,
+            dependencies: [
+                { type: 'Contact Sync', name: 'SF Contacts', count: 1 }
+            ]
         },
         {
             id: 6,
@@ -577,10 +744,14 @@ $(document).ready(function() {
             authType: 'API Key',
             status: 'live',
             baseUrl: 'https://sandbox.quicksms.io/v1/integrations/hs-test',
+            dlrUrl: '',
+            inboundUrl: '',
             ipAllowList: false,
+            allowedIps: [],
             createdDate: '2024-11-18',
             lastUsed: '2025-01-06 10:22:14',
-            archived: false
+            archived: false,
+            dependencies: []
         },
         {
             id: 7,
@@ -593,10 +764,14 @@ $(document).ready(function() {
             authType: 'API Key',
             status: 'suspended',
             baseUrl: 'https://api.quicksms.io/v1/bulk/legacy-001',
+            dlrUrl: '',
+            inboundUrl: '',
             ipAllowList: true,
+            allowedIps: ['192.168.1.1'],
             createdDate: '2023-05-10',
             lastUsed: '2024-06-30 08:00:00',
-            archived: true
+            archived: true,
+            dependencies: []
         },
         {
             id: 8,
@@ -609,10 +784,14 @@ $(document).ready(function() {
             authType: 'Basic Auth',
             status: 'suspended',
             baseUrl: 'https://sandbox.quicksms.io/v1/campaigns/old-001',
+            dlrUrl: '',
+            inboundUrl: '',
             ipAllowList: false,
+            allowedIps: [],
             createdDate: '2023-08-15',
             lastUsed: '2024-01-20 12:00:00',
-            archived: true
+            archived: true,
+            dependencies: []
         }
     ];
     
@@ -1017,7 +1196,93 @@ $(document).ready(function() {
     
     window.viewConnection = function(id) {
         var conn = getConnectionById(id);
-        alert('View Details for: ' + conn.name + '\n\nTODO: Implement view drawer/modal');
+        if (!conn) return;
+        
+        $('#drawerApiName').text(conn.name);
+        $('#drawerDescription').text(conn.description || 'No description provided');
+        
+        var typeLabel = getTypeLabel(conn.type);
+        $('#drawerTypeBadge').text(typeLabel);
+        
+        var envLabel = conn.environment === 'live' ? 'Live' : 'Test';
+        $('#drawerEnvBadge').text(envLabel);
+        
+        var statusLabel = conn.status === 'live' ? 'Active' : 'Suspended';
+        $('#drawerStatusBadge').text(statusLabel);
+        
+        $('#drawerApiNameDetail').text(conn.name);
+        $('#drawerSubAccount').text(conn.subAccount);
+        $('#drawerType').text(typeLabel);
+        $('#drawerEnvironment').text(envLabel);
+        $('#drawerStatus').html('<span class="badge ' + getStatusBadgeClass(conn.status) + '">' + (conn.status === 'live' ? 'Live' : 'Suspended') + '</span>');
+        
+        $('#drawerAuthType').text(conn.authType);
+        var maskedCred = conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••';
+        $('#drawerCredentials').text(maskedCred);
+        
+        $('#drawerBaseUrl').val(conn.baseUrl);
+        $('#drawerDlrUrl').val(conn.dlrUrl || 'Not configured');
+        $('#drawerInboundUrl').val(conn.inboundUrl || 'Not configured');
+        
+        if (conn.ipAllowList) {
+            $('#drawerIpAllowStatus').html('<span class="badge badge-on">On</span>');
+            $('#drawerIpListRow').show();
+            var ipHtml = (conn.allowedIps && conn.allowedIps.length > 0) 
+                ? conn.allowedIps.map(function(ip) { return '<code class="me-2">' + ip + '</code>'; }).join('')
+                : '<span class="text-muted">No IPs configured</span>';
+            $('#drawerIpList').html(ipHtml);
+        } else {
+            $('#drawerIpAllowStatus').html('<span class="badge badge-off">Off</span>');
+            $('#drawerIpListRow').hide();
+        }
+        
+        $('#drawerCreatedDate').text(formatDate(conn.createdDate));
+        
+        var lastUsedDate = new Date(conn.lastUsed);
+        var now = new Date();
+        var diffSeconds = Math.floor((now - lastUsedDate) / 1000);
+        var lastUsedText = formatDateTime(conn.lastUsed);
+        if (diffSeconds < 60) {
+            lastUsedText += ' (' + diffSeconds + ' seconds ago)';
+        } else if (diffSeconds < 3600) {
+            lastUsedText += ' (' + Math.floor(diffSeconds / 60) + ' minutes ago)';
+        } else if (diffSeconds < 86400) {
+            lastUsedText += ' (' + Math.floor(diffSeconds / 3600) + ' hours ago)';
+        } else {
+            lastUsedText += ' (' + Math.floor(diffSeconds / 86400) + ' days ago)';
+        }
+        $('#drawerLastUsed').text(lastUsedText);
+        
+        if (conn.dependencies && conn.dependencies.length > 0) {
+            var depHtml = '<ul class="list-unstyled mb-0 small">';
+            conn.dependencies.forEach(function(dep) {
+                depHtml += '<li class="mb-1"><i class="fas fa-link text-muted me-2"></i><strong>' + dep.type + ':</strong> ' + dep.name;
+                if (dep.count > 1) depHtml += ' <span class="text-muted">(' + dep.count + ' uses)</span>';
+                depHtml += '</li>';
+            });
+            depHtml += '</ul>';
+            $('#drawerDependencies').html(depHtml);
+        } else {
+            $('#drawerDependencies').html('<p class="text-muted small mb-0">No dependencies configured.</p>');
+        }
+        
+        var drawer = new bootstrap.Offcanvas(document.getElementById('viewDetailsDrawer'));
+        drawer.show();
+    };
+    
+    window.copyDrawerField = function(fieldId) {
+        var input = document.getElementById(fieldId);
+        var value = input.value;
+        if (value && value !== 'Not configured') {
+            navigator.clipboard.writeText(value).then(function() {
+                var btn = $(input).siblings('button');
+                var originalHtml = btn.html();
+                btn.html('<i class="fas fa-check text-success"></i>');
+                setTimeout(function() {
+                    btn.html(originalHtml);
+                }, 1500);
+            });
+        }
     };
     
     window.regenerateKey = function(id) {
