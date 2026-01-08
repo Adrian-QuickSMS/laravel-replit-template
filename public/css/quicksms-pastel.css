@@ -373,3 +373,33 @@
 .form-wizard .nav-wizard li .nav-link.active:after {
     background: #886CC0 !important;
 }
+
+/* ===========================================
+   Tile Learn More Button
+   =========================================== */
+
+.btn-tile-learn-more {
+    background: #fff;
+    border: 1px solid #886CC0;
+    color: #886CC0;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-tile-learn-more:hover {
+    background: rgba(136, 108, 192, 0.1);
+    border-color: #886CC0;
+    color: #6f42c1;
+}
+
+.btn-tile-learn-more:focus {
+    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.25);
+}
+
+.selectable-tile .tile-footer {
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    margin-top: 0.5rem;
+    text-align: center;
+}

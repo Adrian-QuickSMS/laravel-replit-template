@@ -478,6 +478,23 @@
                                         
                                         <div class="row mb-4">
                                             <div class="col-md-6 mb-3">
+                                                <div class="selectable-tile billing-tile selected" data-billing="non-conversational">
+                                                    <div class="tile-header">
+                                                        <div class="tile-icon bg-pastel-secondary"><i class="fas fa-paper-plane"></i></div>
+                                                        <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                                    </div>
+                                                    <div class="tile-body">
+                                                        <h6 class="tile-title">Non-conversational</h6>
+                                                        <p class="tile-desc">One-way notifications and alerts only</p>
+                                                    </div>
+                                                    <div class="tile-footer">
+                                                        <button type="button" class="btn btn-sm btn-tile-learn-more" data-tile-info="non-conversational">
+                                                            <i class="fas fa-info-circle me-1"></i>Learn More
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
                                                 <div class="selectable-tile billing-tile" data-billing="conversational">
                                                     <div class="tile-header">
                                                         <div class="tile-icon bg-pastel-primary"><i class="fas fa-comments"></i></div>
@@ -488,22 +505,9 @@
                                                         <p class="tile-desc">Two-way messaging with customer interactions</p>
                                                     </div>
                                                     <div class="tile-footer">
-                                                        <span class="tile-info"><i class="fas fa-info-circle me-1"></i>Session-based billing</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <div class="selectable-tile billing-tile" data-billing="non-conversational">
-                                                    <div class="tile-header">
-                                                        <div class="tile-icon bg-pastel-secondary"><i class="fas fa-paper-plane"></i></div>
-                                                        <div class="tile-check"><i class="fas fa-check-circle"></i></div>
-                                                    </div>
-                                                    <div class="tile-body">
-                                                        <h6 class="tile-title">Non-conversational</h6>
-                                                        <p class="tile-desc">One-way notifications and alerts only</p>
-                                                    </div>
-                                                    <div class="tile-footer">
-                                                        <span class="tile-info"><i class="fas fa-info-circle me-1"></i>Per-message billing</span>
+                                                        <button type="button" class="btn btn-sm btn-tile-learn-more" data-tile-info="conversational">
+                                                            <i class="fas fa-info-circle me-1"></i>Learn More
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -526,6 +530,11 @@
                                                         <h6 class="tile-title">OTP</h6>
                                                         <p class="tile-desc">Verification codes</p>
                                                     </div>
+                                                    <div class="tile-footer">
+                                                        <button type="button" class="btn btn-sm btn-tile-learn-more" data-tile-info="otp">
+                                                            <i class="fas fa-info-circle me-1"></i>Learn More
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="col-md-6 col-lg-3 mb-3">
@@ -537,6 +546,11 @@
                                                     <div class="tile-body">
                                                         <h6 class="tile-title">Transactional</h6>
                                                         <p class="tile-desc">Order updates, alerts</p>
+                                                    </div>
+                                                    <div class="tile-footer">
+                                                        <button type="button" class="btn btn-sm btn-tile-learn-more" data-tile-info="transactional">
+                                                            <i class="fas fa-info-circle me-1"></i>Learn More
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -550,6 +564,11 @@
                                                         <h6 class="tile-title">Promotional</h6>
                                                         <p class="tile-desc">Marketing, offers</p>
                                                     </div>
+                                                    <div class="tile-footer">
+                                                        <button type="button" class="btn btn-sm btn-tile-learn-more" data-tile-info="promotional">
+                                                            <i class="fas fa-info-circle me-1"></i>Learn More
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="col-md-6 col-lg-3 mb-3">
@@ -561,6 +580,11 @@
                                                     <div class="tile-body">
                                                         <h6 class="tile-title">Multi-use</h6>
                                                         <p class="tile-desc">Multiple use cases</p>
+                                                    </div>
+                                                    <div class="tile-footer">
+                                                        <button type="button" class="btn btn-sm btn-tile-learn-more" data-tile-info="multi-use">
+                                                            <i class="fas fa-info-circle me-1"></i>Learn More
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -901,7 +925,7 @@ $(document).ready(function() {
         id: null,
         name: '',
         description: '',
-        billing: '',
+        billing: 'non-conversational',
         useCase: '',
         logoDataUrl: null,
         logoCropMetadata: null,
@@ -1552,7 +1576,66 @@ $(document).ready(function() {
         updateWebsiteRequired();
     });
     
-    $('.billing-tile').on('click', function() {
+    // Tile info descriptions for Learn More modals
+    var tileDescriptions = {
+        'non-conversational': {
+            title: 'Non-conversational',
+            description: 'For agents who send messages without expecting frequent replies.'
+        },
+        'conversational': {
+            title: 'Conversational',
+            description: 'For agents that support multi-turn conversations with users. To be cost-effective, a conversation should include at least three outbound messages within a 24-hour period, a user must reply.'
+        },
+        'otp': {
+            title: 'OTP',
+            description: 'One-time passwords required to securely authenticate an account or confirm a transaction.'
+        },
+        'transactional': {
+            title: 'Transactional',
+            description: 'Notifications, updates, or alerts that share information directly relevant to a customer\'s existing services or products, such as alerts for suspicious account activities, purchase confirmations, and shipping notifications.'
+        },
+        'promotional': {
+            title: 'Promotional',
+            description: 'Sales, marketing, and promotional messages to new or existing customers, with the goal of increasing awareness, engagement, and sales.'
+        },
+        'multi-use': {
+            title: 'Multi-use',
+            description: 'Conversations that combine transactional and promotional messages, such as sending an account notification followed by a discount offer or upgrading to a new product or service.'
+        }
+    };
+    
+    // Learn More button handler - show popover modal
+    $(document).on('click', '.btn-tile-learn-more', function(e) {
+        e.stopPropagation(); // Prevent tile selection
+        
+        var infoKey = $(this).data('tile-info');
+        var info = tileDescriptions[infoKey];
+        
+        if (!info) return;
+        
+        // Create or update modal
+        if (!$('#tileInfoModal').length) {
+            var modalHtml = '<div class="modal fade" id="tileInfoModal" tabindex="-1">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered modal-sm">';
+            modalHtml += '<div class="modal-content">';
+            modalHtml += '<div class="modal-header bg-light py-2">';
+            modalHtml += '<h6 class="modal-title" id="tileInfoModalTitle"></h6>';
+            modalHtml += '<button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal"></button>';
+            modalHtml += '</div>';
+            modalHtml += '<div class="modal-body" id="tileInfoModalBody"></div>';
+            modalHtml += '</div></div></div>';
+            $('body').append(modalHtml);
+        }
+        
+        $('#tileInfoModalTitle').text(info.title);
+        $('#tileInfoModalBody').html('<p class="mb-0">' + info.description + '</p>');
+        $('#tileInfoModal').modal('show');
+    });
+    
+    $('.billing-tile').on('click', function(e) {
+        // Don't trigger if clicking on Learn More button
+        if ($(e.target).closest('.btn-tile-learn-more').length) return;
+        
         $('.billing-tile').removeClass('selected');
         $(this).addClass('selected');
         wizardData.billing = $(this).data('billing');
@@ -1561,7 +1644,10 @@ $(document).ready(function() {
         triggerAutosave();
     });
     
-    $('.usecase-tile').on('click', function() {
+    $('.usecase-tile').on('click', function(e) {
+        // Don't trigger if clicking on Learn More button
+        if ($(e.target).closest('.btn-tile-learn-more').length) return;
+        
         $('.usecase-tile').removeClass('selected');
         $(this).addClass('selected');
         wizardData.useCase = $(this).data('usecase');
