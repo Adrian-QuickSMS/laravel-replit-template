@@ -955,6 +955,11 @@ $(document).ready(function() {
             renderIpAddresses();
         }
         
+        // Restore Integration Partner section visibility when entering Step 2
+        if (stepIndex === 1 && wizardData.type === 'integration') {
+            $('#integrationPartnerSection').removeAttr('style').show();
+        }
+        
         if (connectionCreated) {
             $('.toolbar-bottom').hide();
         }
