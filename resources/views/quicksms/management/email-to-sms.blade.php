@@ -503,14 +503,7 @@
                         </div>
                         
                         <div class="tab-pane fade" id="contact-lists" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <p class="text-muted mb-0">Map email addresses to Contact Book Lists. When an email is received, SMS is sent to all recipients in the linked Contact List.</p>
-                                </div>
-                                <button type="button" class="btn btn-primary" id="btnCreateContactListMapping">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </button>
-                            </div>
+                            <p class="text-muted mb-3">Map email addresses to Contact Book Lists. When an email is received, SMS is sent to all recipients in the linked Contact List.</p>
                             
                             <div class="collapse mb-3" id="clFiltersPanel">
                                 <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
@@ -564,7 +557,7 @@
                                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
                                         <i class="fas fa-filter me-1"></i> Filters
                                     </button>
-                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createContactListMappingModal">
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnCreateContactListMapping">
                                         <i class="fas fa-plus me-1"></i> Create
                                     </button>
                                 </div>
