@@ -1,0 +1,1236 @@
+@extends('layouts.quicksms')
+
+@section('title', 'Email-to-SMS')
+
+@push('styles')
+<style>
+.email-sms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.email-sms-header h2 {
+    margin: 0;
+    font-weight: 600;
+}
+.email-sms-header p {
+    margin: 0;
+    color: #6c757d;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+}
+.email-address-display {
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+}
+.email-sms-table {
+    width: 100%;
+    margin: 0;
+}
+.email-sms-table th {
+    font-weight: 600;
+    background: #f8f9fa;
+    white-space: nowrap;
+}
+.email-sms-table td {
+    vertical-align: middle;
+}
+.email-sms-table tbody tr {
+    cursor: pointer;
+}
+.email-sms-table tbody tr:hover {
+    background-color: rgba(136, 108, 192, 0.05);
+}
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(136, 108, 192, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+.empty-state-icon i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+.empty-state h4 {
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+.empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.multiselect-dropdown .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 100%;
+}
+.multiselect-dropdown .form-check {
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+}
+.multiselect-dropdown .form-check:hover {
+    background: #f8f9fa;
+}
+.drawer {
+    position: fixed;
+    top: 0;
+    right: -500px;
+    width: 500px;
+    max-width: 100vw;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+    z-index: 1050;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+.drawer.open {
+    right: 0;
+}
+.drawer-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+.drawer-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #343a40;
+}
+.drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+.drawer-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+.drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 1040;
+    display: none;
+}
+.drawer-backdrop.show {
+    display: block;
+}
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.detail-row:last-child {
+    border-bottom: none;
+}
+.detail-label {
+    font-weight: 500;
+    color: #6c757d;
+}
+.detail-value {
+    text-align: right;
+}
+.detail-value code {
+    background: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+}
+.copy-btn {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem;
+    margin-left: 0.5rem;
+}
+.copy-btn:hover {
+    color: var(--primary);
+}
+.reporting-group-card {
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+.reporting-group-card:hover {
+    border-color: #886CC0;
+    box-shadow: 0 2px 8px rgba(136, 108, 192, 0.1);
+}
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+.date-preset-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.date-preset-btn:hover {
+    background: #f8f9fa;
+    border-color: #886CC0;
+}
+.date-preset-btn.active {
+    background: #886CC0;
+    color: #fff;
+    border-color: #886CC0;
+}
+</style>
+@endpush
+
+@section('content')
+<div class="container-fluid">
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('management') }}">Management</a></li>
+            <li class="breadcrumb-item active">Email-to-SMS</li>
+        </ol>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <h4 class="card-title mb-1">Email-to-SMS</h4>
+                        <p class="mb-0 text-muted small">Configure email addresses to trigger SMS messages to your Contact Lists.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                            <i class="fas fa-filter me-1"></i> Filters
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnCreateAddress">
+                            <i class="fas fa-plus me-1"></i> Create Address
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="emailSmsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button" role="tab">
+                                <i class="fas fa-at me-1"></i> Email-to-SMS Addresses
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="reporting-groups-tab" data-bs-toggle="tab" data-bs-target="#reporting-groups" type="button" role="tab">
+                                <i class="fas fa-layer-group me-1"></i> Reporting Groups
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content pt-3" id="emailSmsTabContent">
+                        <div class="tab-pane fade show active" id="addresses" role="tabpanel">
+                            <div class="collapse mb-3" id="filtersPanel">
+                                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                                    <div class="row g-3 align-items-start">
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label small fw-bold">Date Created</label>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                                                <span class="text-muted small">to</span>
+                                                <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="7days">Last 7 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="thismonth">This Month</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="lastmonth">Last Month</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label class="form-label small fw-bold">Sub Account</label>
+                                            <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
+                                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                    <span class="dropdown-label">All Sub Accounts</span>
+                                                </button>
+                                                <div class="dropdown-menu w-100 p-2">
+                                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                    </div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Account</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label class="form-label small fw-bold">Status</label>
+                                            <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                    <span class="dropdown-label">All Statuses</span>
+                                                </button>
+                                                <div class="dropdown-menu w-100 p-2">
+                                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                    </div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Active" id="statusActive"><label class="form-check-label small" for="statusActive">Active</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label class="form-label small fw-bold">Reporting Group</label>
+                                            <div class="dropdown multiselect-dropdown" data-filter="reportingGroups">
+                                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                    <span class="dropdown-label">All Groups</span>
+                                                </button>
+                                                <div class="dropdown-menu w-100 p-2">
+                                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                    </div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Default" id="rgDefault"><label class="form-check-label small" for="rgDefault">Default</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Appointments" id="rgAppointments"><label class="form-check-label small" for="rgAppointments">Appointments</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Reminders" id="rgReminders"><label class="form-check-label small" for="rgReminders">Reminders</label></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-3 align-items-end mt-2">
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <label class="form-label small fw-bold">Search</label>
+                                            <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="Search by name or email...">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mt-3">
+                                        <div class="col-12 d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
+                                                <i class="fas fa-check me-1"></i> Apply Filters
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                                                <i class="fas fa-undo me-1"></i> Reset Filters
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3" id="activeFiltersContainer" style="display: none;">
+                                <div class="d-flex flex-wrap align-items-center">
+                                    <span class="small text-muted me-2">Active filters:</span>
+                                    <div id="activeFiltersChips"></div>
+                                    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
+                                        Clear all
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name, email address, or Contact List...">
+                                </div>
+                            </div>
+                            
+                            <div class="table-container" id="addressesTableContainer">
+                                <div class="table-responsive">
+                                    <table class="table email-sms-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email-to-SMS Address</th>
+                                                <th>Contact List</th>
+                                                <th>Template</th>
+                                                <th>Reporting Group</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="addressesTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="empty-state" id="emptyStateAddresses" style="display: none;">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-at"></i>
+                                </div>
+                                <h4>No Email-to-SMS Addresses</h4>
+                                <p>Create your first Email-to-SMS address to start sending SMS messages via email.</p>
+                                <button class="btn btn-primary" id="btnCreateAddressEmpty">
+                                    <i class="fas fa-plus me-1"></i> Create Address
+                                </button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> addresses
+                                </div>
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0" id="addressesPagination">
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="reporting-groups" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <p class="text-muted mb-0">Reporting Groups help you organize and filter Email-to-SMS activity in reports.</p>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" id="btnCreateReportingGroup">
+                                    <i class="fas fa-plus me-1"></i> Create Reporting Group
+                                </button>
+                            </div>
+                            
+                            <div class="row" id="reportingGroupsContainer">
+                            </div>
+                            
+                            <div class="empty-state" id="emptyStateReportingGroups" style="display: none;">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <h4>No Reporting Groups</h4>
+                                <p>Create Reporting Groups to organize your Email-to-SMS addresses for easier reporting and filtering.</p>
+                                <button class="btn btn-primary" id="btnCreateReportingGroupEmpty">
+                                    <i class="fas fa-plus me-1"></i> Create Reporting Group
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="detailsDrawer">
+    <div class="drawer-header">
+        <h5 id="drawerTitle">Email-to-SMS Address Details</h5>
+        <button type="button" class="btn-close" id="closeDrawerBtn"></button>
+    </div>
+    <div class="drawer-body">
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge badge-live-status" id="drawerStatus">Active</span>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Actions
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" id="actionEdit"><i class="fas fa-edit me-2"></i> Edit</a></li>
+                        <li><a class="dropdown-item" href="#" id="actionSuspend"><i class="fas fa-pause me-2"></i> Suspend</a></li>
+                        <li><a class="dropdown-item" href="#" id="actionViewHistory"><i class="fas fa-history me-2"></i> View History</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" id="actionDelete"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Configuration</h6>
+            <div class="detail-row">
+                <span class="detail-label">Name</span>
+                <span class="detail-value" id="drawerName">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email-to-SMS Address</span>
+                <span class="detail-value">
+                    <code id="drawerEmailAddress">-</code>
+                    <button class="copy-btn" onclick="copyToClipboard('drawerEmailAddress')"><i class="fas fa-copy"></i></button>
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Description</span>
+                <span class="detail-value" id="drawerDescription">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Messaging Settings</h6>
+            <div class="detail-row">
+                <span class="detail-label">Contact List</span>
+                <span class="detail-value" id="drawerContactList">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Template</span>
+                <span class="detail-value" id="drawerTemplate">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">SenderID</span>
+                <span class="detail-value" id="drawerSenderId">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Opt-Out Compliance</span>
+                <span class="detail-value" id="drawerOptOut">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Organization</h6>
+            <div class="detail-row">
+                <span class="detail-label">Sub Account</span>
+                <span class="detail-value" id="drawerSubAccount">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Reporting Group</span>
+                <span class="detail-value" id="drawerReportingGroup">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Security</h6>
+            <div class="detail-row">
+                <span class="detail-label">Allowed Senders</span>
+                <span class="detail-value" id="drawerAllowedSenders">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Daily Limit</span>
+                <span class="detail-value" id="drawerDailyLimit">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Activity</h6>
+            <div class="detail-row">
+                <span class="detail-label">Created</span>
+                <span class="detail-value" id="drawerCreated">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Last Used</span>
+                <span class="detail-value" id="drawerLastUsed">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Messages Sent</span>
+                <span class="detail-value" id="drawerMessagesSent">-</span>
+            </div>
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" id="btnEditFromDrawer">
+                <i class="fas fa-edit me-1"></i> Edit Configuration
+            </button>
+            <a href="#" class="btn btn-outline-primary" id="btnViewInMessageLog">
+                <i class="fas fa-external-link-alt me-1"></i> Message Log
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createAddressModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Email-to-SMS Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="createName" placeholder="e.g., Appointment Reminders">
+                        <div class="form-text">A descriptive name to identify this Email-to-SMS address.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="createDescription" rows="2" placeholder="Optional description..."></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Sub Account <span class="text-danger">*</span></label>
+                        <select class="form-select" id="createSubAccount">
+                            <option value="">Select sub account...</option>
+                            <option value="main">Main Account</option>
+                            <option value="marketing">Marketing Team</option>
+                            <option value="support">Support Team</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Reporting Group</label>
+                        <select class="form-select" id="createReportingGroup">
+                            <option value="">Select reporting group...</option>
+                            <option value="default">Default</option>
+                            <option value="appointments">Appointments</option>
+                            <option value="reminders">Reminders</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12">
+                        <hr class="my-2">
+                        <h6 class="mb-3">Messaging Configuration</h6>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Contact List <span class="text-danger">*</span></label>
+                        <select class="form-select" id="createContactList">
+                            <option value="">Select Contact List...</option>
+                            <option value="patients">NHS Patients</option>
+                            <option value="appointments">Appointment List</option>
+                            <option value="newsletter">Newsletter Subscribers</option>
+                        </select>
+                        <div class="form-text">The Contact List that will receive SMS messages.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Template</label>
+                        <select class="form-select" id="createTemplate">
+                            <option value="">Use email body as message</option>
+                            <option value="apt-reminder">Appointment Reminder</option>
+                            <option value="general-notify">General Notification</option>
+                        </select>
+                        <div class="form-text">Optional template to format the SMS message.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                        <select class="form-select" id="createSenderId">
+                            <option value="">Select SenderID...</option>
+                            <option value="QuickSMS">QuickSMS</option>
+                            <option value="ALERTS">ALERTS</option>
+                            <option value="INFO">INFO</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Opt-Out List</label>
+                        <select class="form-select" id="createOptOutList">
+                            <option value="">No opt-out list</option>
+                            <option value="global">Global Opt-Out</option>
+                            <option value="marketing">Marketing Opt-Out</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12">
+                        <hr class="my-2">
+                        <h6 class="mb-3">Security Settings</h6>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label class="form-label">Allowed Sender Emails</label>
+                        <textarea class="form-control" id="createAllowedSenders" rows="3" placeholder="Enter allowed email addresses, one per line..."></textarea>
+                        <div class="form-text">Leave empty to allow all senders. Restrict to specific email addresses for security.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Daily Message Limit</label>
+                        <input type="number" class="form-control" id="createDailyLimit" placeholder="e.g., 1000" min="0">
+                        <div class="form-text">Maximum messages per day. Leave empty for no limit.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSaveAddress">
+                    <i class="fas fa-check me-1"></i> Create Address
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createReportingGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Reporting Group</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Group Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="rgName" placeholder="e.g., Patient Communications">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="rgDescription" rows="2" placeholder="Optional description..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Color</label>
+                    <div class="d-flex gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorPrimary" value="primary" checked>
+                            <label class="form-check-label" for="rgColorPrimary"><span class="badge badge-bulk">Primary</span></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorSuccess" value="success">
+                            <label class="form-check-label" for="rgColorSuccess"><span class="badge badge-live-status">Success</span></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorWarning" value="warning">
+                            <label class="form-check-label" for="rgColorWarning"><span class="badge badge-campaign">Warning</span></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorInfo" value="info">
+                            <label class="form-check-label" for="rgColorInfo"><span class="badge badge-test">Info</span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSaveReportingGroup">
+                    <i class="fas fa-check me-1"></i> Create Group
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="suspendModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Suspend Email-to-SMS Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to suspend <strong id="suspendAddressName"></strong>?</p>
+                <p class="text-muted small">While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmSuspend">
+                    <i class="fas fa-pause me-1"></i> Suspend
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Email-to-SMS Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteAddressName"></strong>?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone. All configuration and history for this address will be permanently deleted.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    var mockAddresses = [
+        {
+            id: 'addr-001',
+            name: 'Appointment Reminders',
+            emailAddress: 'appointments.12abc@sms.quicksms.io',
+            description: 'Automated appointment reminder notifications',
+            contactList: 'NHS Patients',
+            contactListId: 'patients',
+            template: 'Appointment Reminder',
+            templateId: 'apt-reminder',
+            senderId: 'NHS Trust',
+            optOut: 'Global Opt-Out',
+            subAccount: 'Main Account',
+            reportingGroup: 'Appointments',
+            allowedSenders: ['admin@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
+            dailyLimit: 5000,
+            status: 'Active',
+            created: '2024-11-15',
+            lastUsed: '2025-01-09 08:45',
+            messagesSent: 12847
+        },
+        {
+            id: 'addr-002',
+            name: 'Prescription Ready',
+            emailAddress: 'prescriptions.45def@sms.quicksms.io',
+            description: 'Notify patients when prescriptions are ready',
+            contactList: 'Pharmacy Patients',
+            contactListId: 'pharmacy',
+            template: null,
+            templateId: null,
+            senderId: 'Pharmacy',
+            optOut: 'Marketing Opt-Out',
+            subAccount: 'Marketing Team',
+            reportingGroup: 'Reminders',
+            allowedSenders: [],
+            dailyLimit: 2000,
+            status: 'Active',
+            created: '2024-12-01',
+            lastUsed: '2025-01-08 16:20',
+            messagesSent: 3421
+        },
+        {
+            id: 'addr-003',
+            name: 'Test Notifications',
+            emailAddress: 'test.78ghi@sms.quicksms.io',
+            description: 'Test address for development',
+            contactList: 'Test List',
+            contactListId: 'test',
+            template: 'General Notification',
+            templateId: 'general-notify',
+            senderId: 'QuickSMS',
+            optOut: null,
+            subAccount: 'Support Team',
+            reportingGroup: 'Default',
+            allowedSenders: ['developer@company.com'],
+            dailyLimit: 100,
+            status: 'Suspended',
+            created: '2025-01-02',
+            lastUsed: '2025-01-05 11:30',
+            messagesSent: 156
+        }
+    ];
+    
+    var mockReportingGroups = [
+        { id: 'rg-001', name: 'Default', description: 'Default reporting group', color: 'primary', addressCount: 1 },
+        { id: 'rg-002', name: 'Appointments', description: 'Appointment-related messages', color: 'success', addressCount: 1 },
+        { id: 'rg-003', name: 'Reminders', description: 'General reminder messages', color: 'warning', addressCount: 1 }
+    ];
+    
+    var selectedAddress = null;
+    var appliedFilters = {};
+    
+    function renderAddressesTable(addresses) {
+        var tbody = $('#addressesTableBody');
+        tbody.empty();
+        
+        if (addresses.length === 0) {
+            $('#addressesTableContainer').hide();
+            $('#emptyStateAddresses').show();
+            return;
+        }
+        
+        $('#addressesTableContainer').show();
+        $('#emptyStateAddresses').hide();
+        
+        addresses.forEach(function(addr) {
+            var statusBadge = addr.status === 'Active' 
+                ? '<span class="badge badge-live-status">Active</span>'
+                : '<span class="badge badge-suspended">Suspended</span>';
+            
+            var templateDisplay = addr.template || '<span class="text-muted">Email body</span>';
+            
+            var row = '<tr data-id="' + addr.id + '">' +
+                '<td><strong>' + addr.name + '</strong></td>' +
+                '<td><code class="email-address-display">' + addr.emailAddress + '</code></td>' +
+                '<td>' + addr.contactList + '</td>' +
+                '<td>' + templateDisplay + '</td>' +
+                '<td><span class="badge badge-bulk">' + addr.reportingGroup + '</span></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + addr.created + '</td>' +
+                '<td class="text-end">' +
+                    '<div class="dropdown">' +
+                        '<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                            '<i class="fas fa-ellipsis-v"></i>' +
+                        '</button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item view-details" href="#" data-id="' + addr.id + '"><i class="fas fa-eye me-2"></i> View Details</a></li>' +
+                            '<li><a class="dropdown-item edit-address" href="#" data-id="' + addr.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            (addr.status === 'Active' 
+                                ? '<li><a class="dropdown-item suspend-address" href="#" data-id="' + addr.id + '"><i class="fas fa-pause me-2"></i> Suspend</a></li>'
+                                : '<li><a class="dropdown-item reactivate-address" href="#" data-id="' + addr.id + '"><i class="fas fa-play me-2"></i> Reactivate</a></li>') +
+                            '<li><hr class="dropdown-divider"></li>' +
+                            '<li><a class="dropdown-item text-danger delete-address" href="#" data-id="' + addr.id + '"><i class="fas fa-trash me-2"></i> Delete</a></li>' +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+            
+            tbody.append(row);
+        });
+        
+        $('#showingCount').text(addresses.length);
+        $('#totalCount').text(addresses.length);
+    }
+    
+    function renderReportingGroups(groups) {
+        var container = $('#reportingGroupsContainer');
+        container.empty();
+        
+        if (groups.length === 0) {
+            container.hide();
+            $('#emptyStateReportingGroups').show();
+            return;
+        }
+        
+        container.show();
+        $('#emptyStateReportingGroups').hide();
+        
+        var colorMap = {
+            'primary': 'badge-bulk',
+            'success': 'badge-live-status',
+            'warning': 'badge-campaign',
+            'info': 'badge-test'
+        };
+        
+        groups.forEach(function(group) {
+            var badgeClass = colorMap[group.color] || 'badge-bulk';
+            var card = '<div class="col-md-6 col-lg-4">' +
+                '<div class="reporting-group-card">' +
+                    '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                        '<h6 class="mb-0">' + group.name + '</h6>' +
+                        '<span class="badge ' + badgeClass + '">' + group.addressCount + ' addresses</span>' +
+                    '</div>' +
+                    '<p class="text-muted small mb-3">' + (group.description || 'No description') + '</p>' +
+                    '<div class="d-flex gap-2">' +
+                        '<button class="btn btn-outline-primary btn-sm edit-rg" data-id="' + group.id + '"><i class="fas fa-edit me-1"></i> Edit</button>' +
+                        '<button class="btn btn-outline-danger btn-sm delete-rg" data-id="' + group.id + '"><i class="fas fa-trash me-1"></i> Delete</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+            
+            container.append(card);
+        });
+    }
+    
+    function openDetailsDrawer(address) {
+        selectedAddress = address;
+        
+        $('#drawerName').text(address.name);
+        $('#drawerEmailAddress').text(address.emailAddress);
+        $('#drawerDescription').text(address.description || '-');
+        $('#drawerContactList').text(address.contactList);
+        $('#drawerTemplate').text(address.template || 'Using email body');
+        $('#drawerSenderId').text(address.senderId);
+        $('#drawerOptOut').text(address.optOut || 'None configured');
+        $('#drawerSubAccount').text(address.subAccount);
+        $('#drawerReportingGroup').text(address.reportingGroup);
+        $('#drawerAllowedSenders').text(address.allowedSenders.length > 0 ? address.allowedSenders.join(', ') : 'All senders allowed');
+        $('#drawerDailyLimit').text(address.dailyLimit ? address.dailyLimit.toLocaleString() + ' messages/day' : 'No limit');
+        $('#drawerCreated').text(address.created);
+        $('#drawerLastUsed').text(address.lastUsed || 'Never');
+        $('#drawerMessagesSent').text(address.messagesSent.toLocaleString());
+        
+        if (address.status === 'Active') {
+            $('#drawerStatus').removeClass('badge-suspended').addClass('badge-live-status').text('Active');
+            $('#actionSuspend').html('<i class="fas fa-pause me-2"></i> Suspend');
+        } else {
+            $('#drawerStatus').removeClass('badge-live-status').addClass('badge-suspended').text('Suspended');
+            $('#actionSuspend').html('<i class="fas fa-play me-2"></i> Reactivate');
+        }
+        
+        $('#drawerBackdrop').addClass('show');
+        $('#detailsDrawer').addClass('open');
+    }
+    
+    function closeDetailsDrawer() {
+        $('#drawerBackdrop').removeClass('show');
+        $('#detailsDrawer').removeClass('open');
+        selectedAddress = null;
+    }
+    
+    function applyFilters() {
+        var chips = [];
+        var filtered = mockAddresses.slice();
+        
+        $('.multiselect-dropdown').each(function() {
+            var filterName = $(this).data('filter');
+            var selected = $(this).find('input:checked').map(function() {
+                return $(this).val();
+            }).get();
+            
+            if (selected.length > 0) {
+                appliedFilters[filterName] = selected;
+                selected.forEach(function(val) {
+                    chips.push({ filter: filterName, value: val });
+                });
+            }
+        });
+        
+        var search = $('#filterSearch').val().trim();
+        if (search) {
+            appliedFilters.search = search;
+            chips.push({ filter: 'search', value: 'Search: ' + search });
+        }
+        
+        if (chips.length > 0) {
+            var chipsHtml = '';
+            chips.forEach(function(chip) {
+                chipsHtml += '<span class="filter-chip">' + chip.value + 
+                    '<span class="remove-chip" data-filter="' + chip.filter + '" data-value="' + chip.value + '">&times;</span></span>';
+            });
+            $('#activeFiltersChips').html(chipsHtml);
+            $('#activeFiltersContainer').show();
+        } else {
+            $('#activeFiltersContainer').hide();
+        }
+        
+        renderAddressesTable(filtered);
+    }
+    
+    function resetFilters() {
+        $('.multiselect-dropdown input').prop('checked', false);
+        $('.multiselect-dropdown .dropdown-label').each(function() {
+            var defaultText = 'All ' + $(this).closest('.multiselect-dropdown').data('filter');
+            $(this).text(defaultText.charAt(0).toUpperCase() + defaultText.slice(1));
+        });
+        $('#filterSearch').val('');
+        $('#filterDateFrom').val('');
+        $('#filterDateTo').val('');
+        $('.date-preset-btn').removeClass('active');
+        appliedFilters = {};
+        $('#activeFiltersContainer').hide();
+        renderAddressesTable(mockAddresses);
+    }
+    
+    $('#btnCreateAddress, #btnCreateAddressEmpty').on('click', function() {
+        $('#createAddressModal').modal('show');
+    });
+    
+    $('#btnCreateReportingGroup, #btnCreateReportingGroupEmpty').on('click', function() {
+        $('#createReportingGroupModal').modal('show');
+    });
+    
+    $(document).on('click', '#addressesTableBody tr', function(e) {
+        if ($(e.target).closest('.dropdown').length) return;
+        var id = $(this).data('id');
+        var address = mockAddresses.find(function(a) { return a.id === id; });
+        if (address) openDetailsDrawer(address);
+    });
+    
+    $(document).on('click', '.view-details', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var address = mockAddresses.find(function(a) { return a.id === id; });
+        if (address) openDetailsDrawer(address);
+    });
+    
+    $(document).on('click', '.suspend-address', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var address = mockAddresses.find(function(a) { return a.id === id; });
+        if (address) {
+            $('#suspendAddressName').text(address.name);
+            $('#suspendModal').data('id', id).modal('show');
+        }
+    });
+    
+    $(document).on('click', '.delete-address', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var address = mockAddresses.find(function(a) { return a.id === id; });
+        if (address) {
+            $('#deleteAddressName').text(address.name);
+            $('#deleteModal').data('id', id).modal('show');
+        }
+    });
+    
+    $('#closeDrawerBtn, #drawerBackdrop').on('click', closeDetailsDrawer);
+    
+    $('#btnApplyFilters').on('click', applyFilters);
+    $('#btnResetFilters').on('click', resetFilters);
+    $('#btnClearAllFilters').on('click', resetFilters);
+    
+    $(document).on('click', '.remove-chip', function() {
+        var filter = $(this).data('filter');
+        var value = $(this).data('value');
+        $(this).parent().remove();
+        if ($('#activeFiltersChips .filter-chip').length === 0) {
+            $('#activeFiltersContainer').hide();
+        }
+    });
+    
+    var quickSearchTimeout;
+    $('#quickSearchInput').on('input', function() {
+        var query = $(this).val().toLowerCase().trim();
+        clearTimeout(quickSearchTimeout);
+        quickSearchTimeout = setTimeout(function() {
+            if (query.length === 0) {
+                renderAddressesTable(mockAddresses);
+                return;
+            }
+            var filtered = mockAddresses.filter(function(addr) {
+                return addr.name.toLowerCase().includes(query) ||
+                       addr.emailAddress.toLowerCase().includes(query) ||
+                       addr.contactList.toLowerCase().includes(query);
+            });
+            renderAddressesTable(filtered);
+        }, 300);
+    });
+    
+    $('.date-preset-btn').on('click', function() {
+        $('.date-preset-btn').removeClass('active');
+        $(this).addClass('active');
+    });
+    
+    $('.select-all-btn').on('click', function(e) {
+        e.preventDefault();
+        $(this).closest('.dropdown-menu').find('input[type="checkbox"]').prop('checked', true);
+    });
+    
+    $('.clear-all-btn').on('click', function(e) {
+        e.preventDefault();
+        $(this).closest('.dropdown-menu').find('input[type="checkbox"]').prop('checked', false);
+    });
+    
+    $('#btnSaveAddress').on('click', function() {
+        var name = $('#createName').val().trim();
+        var subAccount = $('#createSubAccount').val();
+        var contactList = $('#createContactList').val();
+        var senderId = $('#createSenderId').val();
+        
+        if (!name || !subAccount || !contactList || !senderId) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        var newAddress = {
+            id: 'addr-' + Date.now(),
+            name: name,
+            emailAddress: name.toLowerCase().replace(/\s+/g, '-') + '.' + Math.random().toString(36).substr(2, 5) + '@sms.quicksms.io',
+            description: $('#createDescription').val().trim(),
+            contactList: $('#createContactList option:selected').text(),
+            contactListId: contactList,
+            template: $('#createTemplate option:selected').text() || null,
+            templateId: $('#createTemplate').val() || null,
+            senderId: senderId,
+            optOut: $('#createOptOutList option:selected').text() || null,
+            subAccount: $('#createSubAccount option:selected').text(),
+            reportingGroup: $('#createReportingGroup option:selected').text() || 'Default',
+            allowedSenders: $('#createAllowedSenders').val().split('\n').filter(function(s) { return s.trim(); }),
+            dailyLimit: parseInt($('#createDailyLimit').val()) || null,
+            status: 'Active',
+            created: new Date().toISOString().split('T')[0],
+            lastUsed: null,
+            messagesSent: 0
+        };
+        
+        mockAddresses.unshift(newAddress);
+        renderAddressesTable(mockAddresses);
+        $('#createAddressModal').modal('hide');
+        
+        $('#createName, #createDescription, #createAllowedSenders, #createDailyLimit').val('');
+        $('#createSubAccount, #createContactList, #createTemplate, #createSenderId, #createOptOutList, #createReportingGroup').val('');
+    });
+    
+    $('#btnSaveReportingGroup').on('click', function() {
+        var name = $('#rgName').val().trim();
+        if (!name) {
+            alert('Please enter a group name.');
+            return;
+        }
+        
+        var newGroup = {
+            id: 'rg-' + Date.now(),
+            name: name,
+            description: $('#rgDescription').val().trim(),
+            color: $('input[name="rgColor"]:checked').val(),
+            addressCount: 0
+        };
+        
+        mockReportingGroups.push(newGroup);
+        renderReportingGroups(mockReportingGroups);
+        $('#createReportingGroupModal').modal('hide');
+        
+        $('#rgName, #rgDescription').val('');
+        $('#rgColorPrimary').prop('checked', true);
+    });
+    
+    $('#btnConfirmSuspend').on('click', function() {
+        var id = $('#suspendModal').data('id');
+        var address = mockAddresses.find(function(a) { return a.id === id; });
+        if (address) {
+            address.status = address.status === 'Active' ? 'Suspended' : 'Active';
+            renderAddressesTable(mockAddresses);
+            if (selectedAddress && selectedAddress.id === id) {
+                openDetailsDrawer(address);
+            }
+        }
+        $('#suspendModal').modal('hide');
+    });
+    
+    $('#btnConfirmDelete').on('click', function() {
+        var id = $('#deleteModal').data('id');
+        mockAddresses = mockAddresses.filter(function(a) { return a.id !== id; });
+        renderAddressesTable(mockAddresses);
+        closeDetailsDrawer();
+        $('#deleteModal').modal('hide');
+    });
+    
+    $('#actionSuspend').on('click', function(e) {
+        e.preventDefault();
+        if (selectedAddress) {
+            $('#suspendAddressName').text(selectedAddress.name);
+            $('#suspendModal').data('id', selectedAddress.id).modal('show');
+        }
+    });
+    
+    $('#actionDelete').on('click', function(e) {
+        e.preventDefault();
+        if (selectedAddress) {
+            $('#deleteAddressName').text(selectedAddress.name);
+            $('#deleteModal').data('id', selectedAddress.id).modal('show');
+        }
+    });
+    
+    renderAddressesTable(mockAddresses);
+    renderReportingGroups(mockReportingGroups);
+});
+
+function copyToClipboard(elementId) {
+    var text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = document.querySelector('[onclick="copyToClipboard(\'' + elementId + '\')"]');
+        var originalIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+        setTimeout(function() {
+            btn.innerHTML = originalIcon;
+        }, 1500);
+    });
+}
+</script>
+@endpush

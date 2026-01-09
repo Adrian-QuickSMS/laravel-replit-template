@@ -1668,10 +1668,8 @@ class QuickSMSController extends Controller
 
     public function emailToSms()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Email-to-SMS',
-            'purpose' => 'Configure email-to-SMS gateway settings.',
-            'sub_modules' => []
+        return view('quicksms.management.email-to-sms', [
+            'page_title' => 'Email-to-SMS'
         ]);
     }
 

@@ -200,34 +200,6 @@
     color: #6c757d;
     margin-top: 0.15rem;
 }
-.badge-bulk {
-    background: rgba(48, 101, 208, 0.15);
-    color: #3065D0;
-}
-.badge-campaign {
-    background: rgba(136, 108, 192, 0.15);
-    color: #886CC0;
-}
-.badge-integration {
-    background: rgba(255, 191, 0, 0.15);
-    color: #cc9900;
-}
-.badge-test {
-    background: rgba(108, 117, 125, 0.15);
-    color: #6c757d;
-}
-.badge-live-env {
-    background: rgba(28, 187, 140, 0.15);
-    color: #1cbb8c;
-}
-.badge-live-status {
-    background: rgba(28, 187, 140, 0.15);
-    color: #1cbb8c;
-}
-.badge-suspended {
-    background: rgba(220, 53, 69, 0.15);
-    color: #dc3545;
-}
 .badge-on {
     background: rgba(28, 187, 140, 0.15);
     color: #1cbb8c;

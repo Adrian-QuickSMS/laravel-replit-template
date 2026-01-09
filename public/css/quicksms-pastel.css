@@ -403,3 +403,50 @@
     margin-top: 0.5rem;
     text-align: center;
 }
+
+/* ===========================================
+   Semantic Badge Classes
+   Used for API Connections, Email-to-SMS, etc.
+   =========================================== */
+
+/* Bulk API - Blue */
+.badge-bulk {
+    background: rgba(48, 101, 208, 0.15);
+    color: #3065d0;
+}
+
+/* Campaign - Purple */
+.badge-campaign {
+    background: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+}
+
+/* Test Environment - Gray */
+.badge-test {
+    background: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+}
+
+/* Live Environment - Green */
+.badge-live-env {
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
+}
+
+/* Active/Live Status - Green */
+.badge-live-status {
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
+}
+
+/* Suspended Status - Red */
+.badge-suspended {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+/* Integration - Teal */
+.badge-integration {
+    background: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
