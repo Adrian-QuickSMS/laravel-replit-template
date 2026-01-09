@@ -65,7 +65,11 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **RCS Asset Management:** Server-side image processing for RCS media using Intervention Image, including SSRF protection, dedicated storage, and an interactive crop editor.
 - **MessageLog Model:** Defines message structure with encrypted content and role-based access.
 - **Development Environment:** Utilizes PostgreSQL database with Neon backend for persistence.
-- **CSS Architecture:** Module-specific CSS overrides Fillow styles with unique prefixes.
+- **CSS Architecture:** Module-specific CSS uses inline `@push('styles')` for page-specific layouts; shared badge classes (.badge-bulk, .badge-campaign, .badge-test, .badge-live-status, .badge-suspended, etc.) are centralized in `public/css/quicksms-pastel.css`.
+- **Email-to-SMS Module:** Tabbed interface for managing email addresses that trigger SMS to Contact Lists. Features:
+  - Email-to-SMS Addresses tab: Table with filter bar (debounced search, multi-select dropdowns, date presets, Apply/Reset Filters, filter chips), Create Address modal, View Details drawer, Suspend/Delete modals
+  - Reporting Groups tab: Card-based layout for organizing email addresses into groups with Create/Edit/Delete functionality
+  - Integrates with Contact Lists, Templates, Opt-Out Lists, Sender IDs, and Reporting
 - **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, enforced for features like Purchase, RCS Agent Registration, and delete actions.
 
 ## External Dependencies
