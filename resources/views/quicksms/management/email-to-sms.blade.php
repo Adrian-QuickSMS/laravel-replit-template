@@ -966,34 +966,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info small mb-3" style="background-color: rgba(48, 101, 208, 0.1); border: none;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Reporting Groups are for billing and reporting attribution only. Each Email-to-SMS Address can only belong to one Reporting Group.
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Group Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="rgName" placeholder="e.g., Patient Communications">
+                    <div class="invalid-feedback">Group name is required.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Description</label>
                     <textarea class="form-control" id="rgDescription" rows="2" placeholder="Optional description..."></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Color</label>
-                    <div class="d-flex gap-2">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorPrimary" value="primary" checked>
-                            <label class="form-check-label" for="rgColorPrimary"><span class="badge badge-bulk">Primary</span></label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorSuccess" value="success">
-                            <label class="form-check-label" for="rgColorSuccess"><span class="badge badge-live-status">Success</span></label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorWarning" value="warning">
-                            <label class="form-check-label" for="rgColorWarning"><span class="badge badge-campaign">Warning</span></label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="rgColor" id="rgColorInfo" value="info">
-                            <label class="form-check-label" for="rgColorInfo"><span class="badge badge-test">Info</span></label>
-                        </div>
-                    </div>
+                    <label class="form-label">Assign Email-to-SMS Address <span class="text-danger">*</span></label>
+                    <select class="form-select" id="rgAssignAddress">
+                        <option value="">Select an address...</option>
+                    </select>
+                    <div class="invalid-feedback" id="rgAddressError">Please select an Email-to-SMS Address.</div>
+                    <div class="form-text">Select an Email-to-SMS Address to assign to this Reporting Group.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1569,18 +1561,99 @@ $(document).ready(function() {
         $('#createSubAccount, #createContactList, #createTemplate, #createSenderId, #createOptOutList, #createReportingGroup').val('');
     });
     
+    function getLinkedAddressNames() {
+        var linkedNames = [];
+        mockReportingGroups.forEach(function(group) {
+            if (group.linkedAddresses && group.linkedAddresses.length > 0) {
+                group.linkedAddresses.forEach(function(addrName) {
+                    linkedNames.push(addrName);
+                });
+            }
+        });
+        return linkedNames;
+    }
+    
+    function findGroupByAddressName(addressName) {
+        return mockReportingGroups.find(function(g) {
+            return g.linkedAddresses && g.linkedAddresses.indexOf(addressName) !== -1;
+        });
+    }
+    
+    function populateAddressDropdown() {
+        var $dropdown = $('#rgAssignAddress');
+        $dropdown.empty().append('<option value="">Select an address...</option>');
+        
+        var linkedNames = getLinkedAddressNames();
+        
+        mockAddresses.forEach(function(addr) {
+            var isLinked = linkedNames.indexOf(addr.name) !== -1;
+            var optionText = addr.name + (isLinked ? ' (already linked)' : '');
+            $dropdown.append('<option value="' + addr.id + '" data-name="' + addr.name + '" data-linked="' + isLinked + '">' + optionText + '</option>');
+        });
+    }
+    
+    $('#createReportingGroupModal').on('show.bs.modal', function() {
+        $('#rgName').val('').removeClass('is-invalid');
+        $('#rgDescription').val('');
+        $('#rgAssignAddress').removeClass('is-invalid');
+        $('#rgAddressError').text('Please select an Email-to-SMS Address.');
+        
+        populateAddressDropdown();
+    });
+    
+    $('#rgAssignAddress').on('change', function() {
+        var $selected = $(this).find('option:selected');
+        var isLinked = $selected.data('linked');
+        var addressName = $selected.data('name');
+        
+        if (isLinked) {
+            $(this).addClass('is-invalid');
+            var linkedGroup = findGroupByAddressName(addressName);
+            var groupName = linkedGroup ? linkedGroup.name : 'another group';
+            $('#rgAddressError').text('"' + addressName + '" is already assigned to "' + groupName + '". Each address can only belong to one Reporting Group.');
+        } else {
+            $(this).removeClass('is-invalid');
+            $('#rgAddressError').text('Please select an Email-to-SMS Address.');
+        }
+    });
+    
     $('#btnSaveReportingGroup').on('click', function() {
+        var isValid = true;
+        
         var name = $('#rgName').val().trim();
         if (!name) {
-            alert('Please enter a group name.');
-            return;
+            $('#rgName').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#rgName').removeClass('is-invalid');
         }
+        
+        var $selectedAddress = $('#rgAssignAddress option:selected');
+        var addressId = $('#rgAssignAddress').val();
+        var addressName = $selectedAddress.data('name');
+        var isLinked = $selectedAddress.data('linked');
+        
+        if (!addressId) {
+            $('#rgAssignAddress').addClass('is-invalid');
+            $('#rgAddressError').text('Please select an Email-to-SMS Address.');
+            isValid = false;
+        } else if (isLinked) {
+            $('#rgAssignAddress').addClass('is-invalid');
+            var linkedGroup = findGroupByAddressName(addressName);
+            var groupName = linkedGroup ? linkedGroup.name : 'another group';
+            $('#rgAddressError').text('"' + addressName + '" is already assigned to "' + groupName + '". Each address can only belong to one Reporting Group.');
+            isValid = false;
+        } else {
+            $('#rgAssignAddress').removeClass('is-invalid');
+        }
+        
+        if (!isValid) return;
         
         var newGroup = {
             id: 'rg-' + Date.now(),
             name: name,
             description: $('#rgDescription').val().trim(),
-            linkedAddresses: [],
+            linkedAddresses: [addressName],
             messagesSent: 0,
             lastActivity: '-',
             created: new Date().toISOString().split('T')[0],
@@ -1590,9 +1663,6 @@ $(document).ready(function() {
         mockReportingGroups.push(newGroup);
         renderReportingGroups(mockReportingGroups);
         $('#createReportingGroupModal').modal('hide');
-        
-        $('#rgName, #rgDescription').val('');
-        $('#rgColorPrimary').prop('checked', true);
     });
     
     // Reporting Groups filter/search handlers
