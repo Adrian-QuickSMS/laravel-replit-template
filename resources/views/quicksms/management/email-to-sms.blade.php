@@ -1223,6 +1223,7 @@
                                 <div class="col-12">
                                     <label class="form-label fw-semibold">Filter Content (Signature Removal)</label>
                                     <textarea class="form-control" id="stdCreateSignatureFilter" rows="3" placeholder="e.g., --\n.*\nSent from.*"></textarea>
+                                    <div class="invalid-feedback" id="stdSignatureFilterError">Invalid regex pattern</div>
                                     <small class="text-muted">Remove matching content from inbound emails (e.g., signatures). Regex supported. One pattern per line.</small>
                                 </div>
                             </div>
@@ -1347,6 +1348,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
     var EMAIL_DOMAIN = '@sms.quicksms.io';
@@ -2638,12 +2640,17 @@ $(document).ready(function() {
         $('.std-action-unarchive').off('click').on('click', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            var item = findStandardSmsById(id);
-            if (item) {
-                item.archived = false;
-                item.lastUpdated = new Date().toISOString().split('T')[0];
-                refreshStandardSmsTable();
-            }
+            
+            EmailToSmsService.unarchiveEmailToSmsSetup(id).then(function(response) {
+                if (response.success) {
+                    loadStandardSmsTable();
+                } else {
+                    alert('Error: ' + (response.error || 'Failed to unarchive'));
+                }
+            }).catch(function(err) {
+                console.error('Unarchive error:', err);
+                alert('An error occurred. Please try again.');
+            });
         });
     }
     
@@ -2734,33 +2741,46 @@ $(document).ready(function() {
     
     $('#btnConfirmStdArchive').on('click', function() {
         if (stdArchiveTargetId) {
-            var item = findStandardSmsById(stdArchiveTargetId);
-            if (item) {
-                item.archived = true;
-                item.lastUpdated = new Date().toISOString().split('T')[0];
-                refreshStandardSmsTable();
-            }
-            stdArchiveTargetId = null;
+            var $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Archiving...');
+            
+            EmailToSmsService.archiveEmailToSmsSetup(stdArchiveTargetId).then(function(response) {
+                if (response.success) {
+                    loadStandardSmsTable();
+                } else {
+                    alert('Error: ' + (response.error || 'Failed to archive'));
+                }
+            }).catch(function(err) {
+                console.error('Archive error:', err);
+                alert('An error occurred. Please try again.');
+            }).finally(function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-archive me-1"></i> Archive');
+                stdArchiveTargetId = null;
+                bootstrap.Modal.getInstance(document.getElementById('stdArchiveModal')).hide();
+            });
         }
-        bootstrap.Modal.getInstance(document.getElementById('stdArchiveModal')).hide();
     });
     
     // Show Archived Toggle
     $('#stdShowArchived').on('change', function() {
         stdShowArchived = $(this).is(':checked');
-        refreshStandardSmsTable();
+        loadStandardSmsTable();
     });
     
+    var stdSearchDebounce;
     $('#stdQuickSearchInput').on('input', function() {
-        refreshStandardSmsTable();
+        clearTimeout(stdSearchDebounce);
+        stdSearchDebounce = setTimeout(function() {
+            loadStandardSmsTable();
+        }, 300);
     });
     
     $('#btnCreateStandardSms, #btnCreateStandardSmsEmpty').on('click', function() {
         openCreateStandardSmsModal();
     });
     
-    // Initialize Standard Email-to-SMS table
-    renderStandardSmsTable(mockStandardSms);
+    // Initialize Standard Email-to-SMS table from service
+    loadStandardSmsTable();
     
     // Mock account setting for dynamic SenderID
     var accountSettings = {
@@ -2872,7 +2892,7 @@ $(document).ready(function() {
         
         if (!email) return;
         
-        var validation = isValidEmail(email);
+        var validation = EmailToSmsService.validateEmail(email);
         if (!validation.valid) {
             errorEl.text('Invalid email format. Use email@domain.com or *@domain.com for wildcards.').show();
             input.addClass('is-invalid');
@@ -3001,7 +3021,7 @@ $(document).ready(function() {
         // Validate delivery email if reports enabled
         if ($('#stdCreateDeliveryReports').is(':checked')) {
             var deliveryEmail = $('#stdCreateDeliveryEmail').val().trim();
-            var emailValidation = isValidEmail(deliveryEmail);
+            var emailValidation = EmailToSmsService.validateEmail(deliveryEmail);
             if (!deliveryEmail || !emailValidation.valid || emailValidation.isWildcard) {
                 $('#stdCreateDeliveryEmail').addClass('is-invalid');
                 isValid = false;
@@ -3010,53 +3030,79 @@ $(document).ready(function() {
             }
         }
         
+        // Validate content filter regex
+        var contentFilter = $('#stdCreateSignatureFilter').val().trim();
+        var regexValidation = EmailToSmsService.validateContentFilterRegex(contentFilter);
+        if (!regexValidation.valid) {
+            $('#stdCreateSignatureFilter').addClass('is-invalid');
+            $('#stdSignatureFilterError').text(regexValidation.error).show();
+            isValid = false;
+        } else {
+            $('#stdCreateSignatureFilter').removeClass('is-invalid');
+            $('#stdSignatureFilterError').hide();
+        }
+        
         if (!isValid) {
             return;
         }
         
-        // Get subaccount name
-        var subaccountName = $('#stdCreateSubaccount option:selected').text();
-        
-        // Collect form data
-        var formData = {
+        // Build payload for service layer
+        var payload = {
             name: name,
             description: $('#stdCreateDescription').val().trim(),
-            subaccount: subaccount,
-            subaccountName: subaccountName,
-            allowedSenders: stdAllowedEmails.slice(),
-            senderId: senderId,
-            subjectAsSenderId: $('#stdCreateSubjectAsSenderId').is(':checked'),
-            multipleSms: $('#stdCreateMultipleSms').is(':checked'),
-            deliveryReports: $('#stdCreateDeliveryReports').is(':checked'),
-            deliveryEmail: $('#stdCreateDeliveryEmail').val().trim(),
-            signatureFilter: $('#stdCreateSignatureFilter').val().trim(),
-            lastUpdated: new Date().toISOString().split('T')[0]
+            subaccountId: subaccount,
+            allowedEmails: stdAllowedEmails.slice(),
+            senderIdTemplateId: senderId,
+            subjectOverridesSenderId: $('#stdCreateSubjectAsSenderId').is(':checked'),
+            multipleSmsEnabled: $('#stdCreateMultipleSms').is(':checked'),
+            deliveryReportsEnabled: $('#stdCreateDeliveryReports').is(':checked'),
+            deliveryReportsEmail: $('#stdCreateDeliveryEmail').val().trim(),
+            contentFilterRegex: contentFilter
         };
         
+        // Disable save button during request
+        var $saveBtn = $('#btnSaveStandardSms');
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+        
+        var savePromise;
         if (stdEditingId) {
-            // Edit mode - update existing item
-            var item = findStandardSmsById(stdEditingId);
-            if (item) {
-                Object.assign(item, formData);
-                console.log('Updated Standard Email-to-SMS:', item);
-            }
+            savePromise = EmailToSmsService.updateEmailToSmsSetup(stdEditingId, payload);
         } else {
-            // Create mode - add new item
-            formData.id = 'std-' + Date.now();
-            formData.created = new Date().toISOString().split('T')[0];
-            formData.archived = false;
-            mockStandardSms.unshift(formData);
-            console.log('Created Standard Email-to-SMS:', formData);
+            savePromise = EmailToSmsService.createEmailToSmsSetup(payload);
         }
         
-        // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('createStandardSmsModal')).hide();
-        
-        // Refresh table
-        refreshStandardSmsTable();
-        
-        // TODO: Backend integration - save the Standard Email-to-SMS setup
+        savePromise.then(function(response) {
+            if (response.success) {
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('createStandardSmsModal')).hide();
+                
+                // Reload table from service
+                loadStandardSmsTable();
+            } else {
+                alert('Error: ' + (response.error || 'Failed to save setup'));
+            }
+        }).catch(function(err) {
+            console.error('Save error:', err);
+            alert('An error occurred while saving. Please try again.');
+        }).finally(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> Save');
+        });
     });
+    
+    // Load table data from service
+    function loadStandardSmsTable() {
+        var options = {
+            includeArchived: stdShowArchived,
+            search: $('#stdQuickSearchInput').val()
+        };
+        
+        EmailToSmsService.listEmailToSmsSetups(options).then(function(response) {
+            if (response.success) {
+                mockStandardSms = response.data;
+                renderStandardSmsTable(mockStandardSms);
+            }
+        });
+    }
     
     // Email Parsing Test Logic
     function validateSenderIdFormat(senderId) {
