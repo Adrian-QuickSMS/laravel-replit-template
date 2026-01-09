@@ -740,7 +740,7 @@
                                                 
                                                 <hr class="my-4">
                                                 
-                                                <div class="mb-0">
+                                                <div class="mb-4">
                                                     <h6 class="mb-3"><i class="fas fa-flask me-2 text-primary"></i>Resolution Preview</h6>
                                                     <div class="form-text mb-3">See how SenderID will be resolved for different email subjects based on current settings.</div>
                                                     
@@ -761,6 +761,63 @@
                                                     <div class="alert mt-3 mb-0" id="resolutionRuleAlert" style="background-color: rgba(111, 66, 193, 0.08); border: none;">
                                                         <i class="fas fa-info-circle me-2 text-primary"></i>
                                                         <span id="resolutionRuleText">Current rule: Subject extraction mode</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <hr class="my-4">
+                                                
+                                                <div class="mb-0">
+                                                    <h6 class="mb-3"><i class="fas fa-vial me-2 text-primary"></i>Email Parsing Test</h6>
+                                                    <div class="form-text mb-3">Test how an inbound email will be parsed for SMS delivery.</div>
+                                                    
+                                                    <div class="row g-3 mb-3">
+                                                        <div class="col-12">
+                                                            <label class="form-label small fw-bold">Email Subject (SenderID Source)</label>
+                                                            <input type="text" class="form-control" id="testEmailSubject" placeholder="e.g., NHSTrust">
+                                                            <div class="form-text">SenderID rules: 3-11 alphanumeric characters only. Whitespace will be trimmed.</div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label small fw-bold">Email Body (SMS Content Source)</label>
+                                                            <textarea class="form-control" id="testEmailBody" rows="3" placeholder="e.g., Your appointment is confirmed for Monday at 10:00 AM."></textarea>
+                                                            <div class="form-text">Plain text will be extracted. HTML content is converted to plain text.</div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnTestParsing">
+                                                                <i class="fas fa-play me-1"></i> Test Parsing
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div id="parsingResultContainer" style="display: none;">
+                                                        <div class="alert mb-3" id="parsingResultAlert">
+                                                        </div>
+                                                        
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-bordered mb-0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td class="table-light fw-bold" style="width: 30%;">Extracted SenderID</td>
+                                                                        <td id="parsedSenderId">-</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="table-light fw-bold">SenderID Valid</td>
+                                                                        <td id="parsedSenderIdValid">-</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="table-light fw-bold">SMS Content</td>
+                                                                        <td id="parsedContent">-</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="table-light fw-bold">Character Count</td>
+                                                                        <td id="parsedCharCount">-</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td class="table-light fw-bold">Delivery Status</td>
+                                                                        <td id="parsedDeliveryStatus">-</td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2427,6 +2484,166 @@ $(document).ready(function() {
     });
     
     updateResolutionPreview();
+    
+    // Email Parsing Test Logic
+    function validateSenderIdFormat(senderId) {
+        if (!senderId || senderId.trim() === '') {
+            return { valid: false, reason: 'SenderID is required. Email subject cannot be empty.' };
+        }
+        
+        var trimmed = senderId.trim();
+        var alphanumeric = trimmed.replace(/[^a-zA-Z0-9]/g, '');
+        
+        if (alphanumeric.length === 0) {
+            return { valid: false, reason: 'SenderID must contain at least one alphanumeric character.' };
+        }
+        
+        if (alphanumeric.length < 3) {
+            return { valid: false, reason: 'SenderID must be at least 3 characters after removing non-alphanumeric characters.' };
+        }
+        
+        if (alphanumeric.length > 11) {
+            alphanumeric = alphanumeric.substring(0, 11);
+        }
+        
+        return { valid: true, senderId: alphanumeric, reason: 'Valid SenderID extracted.' };
+    }
+    
+    function extractPlainTextFromBody(body) {
+        if (!body || body.trim() === '') {
+            return { valid: false, content: '', reason: 'Message body is empty. SMS content is required.' };
+        }
+        
+        var content = body.trim();
+        
+        // Check if body contains HTML and extract plain text
+        if (/<[^>]+>/.test(content)) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            content = tempDiv.textContent || tempDiv.innerText || '';
+            content = content.trim();
+        }
+        
+        // Apply signature removal patterns from config
+        var signaturePatterns = $('#configSignatureRemoval').val();
+        if (signaturePatterns) {
+            var patterns = signaturePatterns.split('\n').filter(function(p) { return p.trim() !== ''; });
+            patterns.forEach(function(pattern) {
+                try {
+                    var regex = new RegExp(pattern, 'gm');
+                    content = content.replace(regex, '');
+                } catch (e) {
+                    // Invalid regex, skip
+                }
+            });
+            content = content.trim();
+        }
+        
+        if (content === '') {
+            return { valid: false, content: '', reason: 'Message body is empty after processing.' };
+        }
+        
+        return { valid: true, content: content, reason: 'Content extracted successfully.' };
+    }
+    
+    function parseEmailForSms(subject, body) {
+        var result = {
+            senderIdExtraction: null,
+            contentExtraction: null,
+            deliveryStatus: 'rejected',
+            rejectionReason: null
+        };
+        
+        // Check configuration settings
+        var fixedSenderId = $('#configFixedSenderId').is(':checked');
+        var selectedSenderId = $('#configSenderIdSelector').val();
+        var subjectAsSenderId = $('#configSubjectAsSenderId').is(':checked');
+        
+        // Step 1: Resolve SenderID
+        if (fixedSenderId && selectedSenderId) {
+            result.senderIdExtraction = { 
+                valid: true, 
+                senderId: selectedSenderId, 
+                reason: 'Using fixed SenderID from configuration.' 
+            };
+        } else if (subjectAsSenderId || !fixedSenderId) {
+            result.senderIdExtraction = validateSenderIdFormat(subject);
+        } else {
+            result.senderIdExtraction = { 
+                valid: false, 
+                senderId: null, 
+                reason: 'Fixed SenderID enabled but no SenderID selected.' 
+            };
+        }
+        
+        // Step 2: Extract content
+        result.contentExtraction = extractPlainTextFromBody(body);
+        
+        // Step 3: Determine delivery status
+        if (!result.senderIdExtraction.valid) {
+            result.deliveryStatus = 'rejected';
+            result.rejectionReason = 'Invalid SenderID: ' + result.senderIdExtraction.reason;
+        } else if (!result.contentExtraction.valid) {
+            result.deliveryStatus = 'rejected';
+            result.rejectionReason = 'Invalid content: ' + result.contentExtraction.reason;
+        } else {
+            result.deliveryStatus = 'accepted';
+            result.rejectionReason = null;
+        }
+        
+        return result;
+    }
+    
+    $('#btnTestParsing').on('click', function() {
+        var subject = $('#testEmailSubject').val();
+        var body = $('#testEmailBody').val();
+        
+        var result = parseEmailForSms(subject, body);
+        
+        // Display results
+        $('#parsingResultContainer').show();
+        
+        // SenderID
+        if (result.senderIdExtraction.valid) {
+            $('#parsedSenderId').html('<code>' + result.senderIdExtraction.senderId + '</code> <small class="text-muted">(' + result.senderIdExtraction.reason + ')</small>');
+            $('#parsedSenderIdValid').html('<span class="badge badge-live-status">Valid</span>');
+        } else {
+            $('#parsedSenderId').html('<em class="text-muted">-</em>');
+            $('#parsedSenderIdValid').html('<span class="badge badge-suspended">Invalid</span> <small class="text-danger">' + result.senderIdExtraction.reason + '</small>');
+        }
+        
+        // Content
+        if (result.contentExtraction.valid) {
+            var content = result.contentExtraction.content;
+            var displayContent = content.length > 160 ? content.substring(0, 160) + '...' : content;
+            $('#parsedContent').html('<span class="font-monospace small">' + displayContent.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+            $('#parsedCharCount').html(content.length + ' characters' + (content.length > 160 ? ' <small class="text-muted">(multipart SMS)</small>' : ''));
+        } else {
+            $('#parsedContent').html('<em class="text-muted">-</em>');
+            $('#parsedCharCount').html('<em class="text-muted">-</em>');
+        }
+        
+        // Delivery Status
+        if (result.deliveryStatus === 'accepted') {
+            $('#parsedDeliveryStatus').html('<span class="badge badge-live-status">Will be Delivered</span>');
+            $('#parsingResultAlert').removeClass('alert-danger').addClass('alert-success');
+            $('#parsingResultAlert').html('<i class="fas fa-check-circle me-2"></i><strong>Email will be processed.</strong> SMS will be sent to the linked Contact List.');
+        } else {
+            $('#parsedDeliveryStatus').html('<span class="badge badge-suspended">Rejected</span>');
+            $('#parsingResultAlert').removeClass('alert-success').addClass('alert-danger');
+            $('#parsingResultAlert').html('<i class="fas fa-times-circle me-2"></i><strong>Email will be rejected.</strong> ' + result.rejectionReason + '<br><small class="text-muted mt-1 d-block">Sender will be notified of the rejection via email.</small>');
+        }
+        
+        // Scroll to results
+        $('html, body').animate({
+            scrollTop: $('#parsingResultContainer').offset().top - 100
+        }, 300);
+    });
+    
+    // Clear parsing results when inputs change
+    $('#testEmailSubject, #testEmailBody').on('input', function() {
+        // Don't hide results, just indicate they may be stale
+    });
 });
 
 function copyToClipboard(elementId) {
