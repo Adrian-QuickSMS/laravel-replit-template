@@ -1802,15 +1802,10 @@ $(document).ready(function() {
         console.log('[API Mock] Calling:', endpoint, 'with data:', data);
         // Simulate network delay
         setTimeout(function() {
-            // Simulate 95% success rate for testing
-            if (Math.random() > 0.05) {
-                console.log('[API Mock] Success response for:', endpoint);
-                successCallback({ success: true, message: 'Operation completed successfully' });
-            } else {
-                console.log('[API Mock] Error response for:', endpoint);
-                errorCallback({ success: false, message: 'Failed to complete operation. Please try again.' });
-            }
-        }, 500);
+            // Always succeed for now - enable random failures when backend is ready
+            console.log('[API Mock] Success response for:', endpoint);
+            successCallback({ success: true, message: 'Operation completed successfully' });
+        }, 300);
     }
     
     window.suspendConnection = function(id) {
