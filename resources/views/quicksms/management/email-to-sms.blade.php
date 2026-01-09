@@ -665,18 +665,18 @@
                             <form id="configurationForm">
                                 <div class="row">
                                     <div class="col-lg-8">
-                                        <div class="card border-0 shadow-sm mb-4">
-                                            <div class="card-header bg-transparent border-bottom">
+                                        <div class="card border-0 shadow-sm mb-3">
+                                            <div class="card-header bg-transparent border-bottom py-2">
                                                 <h6 class="mb-0"><i class="fas fa-envelope me-2 text-primary"></i>Email Settings</h6>
                                             </div>
-                                            <div class="card-body">
-                                                <div class="mb-4">
+                                            <div class="card-body py-3">
+                                                <div class="mb-3">
                                                     <label class="form-label">Originating Email Addresses</label>
-                                                    <textarea class="form-control" id="configOriginatingEmails" rows="3" placeholder="Enter allowed email addresses, one per line or comma-separated..."></textarea>
+                                                    <textarea class="form-control" id="configOriginatingEmails" rows="2" placeholder="Enter allowed email addresses, one per line or comma-separated..."></textarea>
                                                     <div class="form-text">Only emails from these addresses will trigger SMS messages. Leave empty to allow all.</div>
                                                 </div>
                                                 
-                                                <div class="row g-4">
+                                                <div class="row g-3">
                                                     <div class="col-md-6">
                                                         <div class="form-check form-switch">
                                                             <input class="form-check-input" type="checkbox" id="configEmailViaMailClient" checked>
@@ -684,7 +684,7 @@
                                                                 Email-to-SMS via Mail Client
                                                             </label>
                                                         </div>
-                                                        <div class="form-text">Allow sending SMS via standard email clients (Outlook, Gmail, etc.)</div>
+                                                        <div class="form-text small">Allow sending SMS via standard email clients (Outlook, Gmail, etc.)</div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-check form-switch">
@@ -694,7 +694,7 @@
                                                                 <span class="badge bg-secondary ms-1">Coming Soon</span>
                                                             </label>
                                                         </div>
-                                                        <div class="form-text">Parse attached files to extract recipients and messages.</div>
+                                                        <div class="form-text small">Parse attached files to extract recipients and messages.</div>
                                                     </div>
                                                 </div>
                                             </div>
