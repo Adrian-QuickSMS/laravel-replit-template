@@ -597,12 +597,13 @@
                                     <table class="table email-sms-table mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Email-to-SMS Address</th>
-                                                <th>Linked Contact List</th>
-                                                <th>Recipients</th>
-                                                <th>Allowed Senders</th>
-                                                <th>Last Used</th>
+                                                <th>Name</th>
+                                                <th>Subaccount</th>
+                                                <th>Allowed Sender Emails</th>
+                                                <th>Target Lists</th>
+                                                <th>Opt-out Lists</th>
                                                 <th>Created</th>
+                                                <th>Last Updated</th>
                                                 <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
@@ -1675,68 +1676,93 @@ $(document).ready(function() {
     var mockContactListMappings = [
         {
             id: 'clm-001',
-            emailAddress: 'patients.abc123@sms.quicksms.io',
-            contactListName: 'NHS Patients',
-            contactListId: 'cl-001',
-            recipientsCount: 4521,
-            allowedSenders: ['admin@nhstrust.nhs.uk', 'appointments@nhstrust.nhs.uk'],
-            lastUsed: '2025-01-09 08:45',
+            name: 'NHS Patient Notifications',
+            description: 'Automated notifications to NHS patients',
+            subaccountId: 'main',
+            subaccountName: 'Main Account',
+            allowedSenders: ['admin@nhstrust.nhs.uk', 'appointments@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
+            targetLists: ['NHS Patients', 'Appointment List'],
+            optOutLists: ['Global Opt-Out'],
             created: '2024-10-15',
+            lastUpdated: '2025-01-09',
             status: 'Active'
         },
         {
             id: 'clm-002',
-            emailAddress: 'pharmacy.def456@sms.quicksms.io',
-            contactListName: 'Pharmacy Patients',
-            contactListId: 'cl-002',
-            recipientsCount: 1892,
+            name: 'Pharmacy Reminders',
+            description: 'Prescription ready and refill reminders',
+            subaccountId: 'support',
+            subaccountName: 'Support Team',
             allowedSenders: ['pharmacy@clinic.com'],
-            lastUsed: '2025-01-08 16:20',
+            targetLists: ['Pharmacy Patients'],
+            optOutLists: [],
             created: '2024-11-01',
+            lastUpdated: '2025-01-08',
             status: 'Active'
         },
         {
             id: 'clm-003',
-            emailAddress: 'appointments.ghi789@sms.quicksms.io',
-            contactListName: 'Appointment List',
-            contactListId: 'cl-003',
-            recipientsCount: 3267,
+            name: 'Appointment Confirmations',
+            description: 'Automated appointment confirmation messages',
+            subaccountId: 'main',
+            subaccountName: 'Main Account',
             allowedSenders: [],
-            lastUsed: '2025-01-07 14:30',
+            targetLists: ['Appointment List', 'NHS Patients', 'Pharmacy Patients'],
+            optOutLists: ['Marketing Opt-Out', 'SMS Opt-Out'],
             created: '2024-11-20',
+            lastUpdated: '2025-01-07',
             status: 'Active'
         },
         {
             id: 'clm-004',
-            emailAddress: 'newsletter.jkl012@sms.quicksms.io',
-            contactListName: 'Newsletter Subscribers',
-            contactListId: 'cl-004',
-            recipientsCount: 8934,
+            name: 'Newsletter Distribution',
+            description: 'Weekly newsletter SMS notifications',
+            subaccountId: 'marketing',
+            subaccountName: 'Marketing Team',
             allowedSenders: ['marketing@company.com', 'newsletter@company.com'],
-            lastUsed: '2024-12-20 10:00',
+            targetLists: ['Newsletter Subscribers'],
+            optOutLists: ['Marketing Opt-Out'],
             created: '2024-08-05',
+            lastUpdated: '2024-12-20',
             status: 'Archived'
         },
         {
             id: 'clm-005',
-            emailAddress: 'alerts.mno345@sms.quicksms.io',
-            contactListName: 'Emergency Contacts',
-            contactListId: 'cl-005',
-            recipientsCount: 156,
-            allowedSenders: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io'],
-            lastUsed: '2025-01-09 11:22',
+            name: 'Emergency Alerts',
+            description: 'Critical emergency notifications',
+            subaccountId: 'main',
+            subaccountName: 'Main Account',
+            allowedSenders: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io', 'emergency@quicksms.io'],
+            targetLists: ['Emergency Contacts'],
+            optOutLists: [],
             created: '2024-12-01',
+            lastUpdated: '2025-01-09',
             status: 'Active'
         },
         {
             id: 'clm-006',
-            emailAddress: 'reminders.pqr678@sms.quicksms.io',
-            contactListName: 'NHS Patients',
-            contactListId: 'cl-001',
-            recipientsCount: 4521,
+            name: 'Daily Reminders',
+            description: 'Daily reminder messages for patients',
+            subaccountId: 'support',
+            subaccountName: 'Support Team',
             allowedSenders: ['reminders@nhstrust.nhs.uk'],
-            lastUsed: '2025-01-06 09:15',
+            targetLists: ['NHS Patients', 'Active Patients'],
+            optOutLists: ['Global Opt-Out'],
             created: '2024-12-15',
+            lastUpdated: '2025-01-06',
+            status: 'Active'
+        },
+        {
+            id: 'clm-007',
+            name: 'Billing Notifications',
+            description: 'Invoice and payment reminder notifications',
+            subaccountId: 'marketing',
+            subaccountName: 'Marketing Team',
+            allowedSenders: ['billing@company.com', '*@finance.company.com'],
+            targetLists: ['Newsletter Subscribers', 'Recent Orders'],
+            optOutLists: [],
+            created: '2025-01-02',
+            lastUpdated: '2025-01-05',
             status: 'Active'
         }
     ];
@@ -1939,35 +1965,63 @@ $(document).ready(function() {
         $('#emptyStateContactLists').hide();
         
         mappings.forEach(function(mapping) {
-            var allowedDisplay = mapping.allowedSenders.length > 0 
-                ? mapping.allowedSenders.slice(0, 2).map(function(s) { return '<span class="text-muted small me-1">' + s + '</span>'; }).join('') + (mapping.allowedSenders.length > 2 ? '<span class="text-muted small">+' + (mapping.allowedSenders.length - 2) + ' more</span>' : '')
-                : '<span class="text-muted small">All senders allowed</span>';
+            // Allowed Sender Emails - truncate with "+X more"
+            var allowedDisplay = '';
+            if (mapping.allowedSenders.length === 0) {
+                allowedDisplay = '<span class="text-muted small">All senders</span>';
+            } else if (mapping.allowedSenders.length === 1) {
+                allowedDisplay = '<span class="small">' + escapeHtml(mapping.allowedSenders[0]) + '</span>';
+            } else {
+                allowedDisplay = '<span class="small">' + escapeHtml(mapping.allowedSenders[0]) + '</span>' +
+                    '<span class="text-muted small ms-1">+' + (mapping.allowedSenders.length - 1) + ' more</span>';
+            }
             
-            var statusClass = mapping.status === 'Active' ? '' : 'text-muted';
+            // Target Lists - show first 1-2 + "+X more"
+            var targetDisplay = '';
+            if (mapping.targetLists.length === 0) {
+                targetDisplay = '<span class="text-muted small">None</span>';
+            } else if (mapping.targetLists.length === 1) {
+                targetDisplay = '<span class="small">' + escapeHtml(mapping.targetLists[0]) + '</span>';
+            } else if (mapping.targetLists.length === 2) {
+                targetDisplay = '<span class="small">' + escapeHtml(mapping.targetLists[0]) + ', ' + escapeHtml(mapping.targetLists[1]) + '</span>';
+            } else {
+                targetDisplay = '<span class="small">' + escapeHtml(mapping.targetLists[0]) + ', ' + escapeHtml(mapping.targetLists[1]) + '</span>' +
+                    '<span class="text-muted small ms-1">+' + (mapping.targetLists.length - 2) + ' more</span>';
+            }
+            
+            // Opt-out Lists - show "NO" or list names
+            var optOutDisplay = '';
+            if (mapping.optOutLists.length === 0) {
+                optOutDisplay = '<span class="text-muted small">NO</span>';
+            } else if (mapping.optOutLists.length === 1) {
+                optOutDisplay = '<span class="small">' + escapeHtml(mapping.optOutLists[0]) + '</span>';
+            } else {
+                optOutDisplay = '<span class="small">' + escapeHtml(mapping.optOutLists[0]) + '</span>' +
+                    '<span class="text-muted small ms-1">+' + (mapping.optOutLists.length - 1) + ' more</span>';
+            }
+            
+            var statusClass = mapping.status === 'Active' ? '' : 'table-secondary';
+            var archivedBadge = mapping.status === 'Archived' ? ' <span class="badge bg-secondary ms-1">Archived</span>' : '';
             
             var row = '<tr data-id="' + mapping.id + '" class="' + statusClass + '">' +
-                '<td>' +
-                    '<code class="email-address-display">' + mapping.emailAddress + '</code>' +
-                    '<button class="btn btn-link btn-sm p-0 ms-2 copy-email" data-email="' + mapping.emailAddress + '" title="Copy to clipboard">' +
-                        '<i class="fas fa-copy text-muted"></i>' +
-                    '</button>' +
-                '</td>' +
-                '<td>' + mapping.contactListName + '</td>' +
-                '<td>' + mapping.recipientsCount.toLocaleString() + '</td>' +
+                '<td><span class="fw-medium">' + escapeHtml(mapping.name) + '</span>' + archivedBadge + '</td>' +
+                '<td>' + escapeHtml(mapping.subaccountName) + '</td>' +
                 '<td>' + allowedDisplay + '</td>' +
-                '<td>' + mapping.lastUsed + '</td>' +
+                '<td>' + targetDisplay + '</td>' +
+                '<td>' + optOutDisplay + '</td>' +
                 '<td>' + mapping.created + '</td>' +
+                '<td>' + mapping.lastUpdated + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item view-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
-                            '<li><a class="dropdown-item edit-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            '<li><a class="dropdown-item clm-action-view" href="#" data-id="' + mapping.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
+                            '<li><a class="dropdown-item clm-action-edit" href="#" data-id="' + mapping.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
                             (mapping.status === 'Active' 
-                                ? '<li><a class="dropdown-item archive-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>'
-                                : '<li><a class="dropdown-item unarchive-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-undo me-2"></i> Unarchive</a></li>') +
+                                ? '<li><a class="dropdown-item clm-action-archive" href="#" data-id="' + mapping.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>'
+                                : '<li><a class="dropdown-item clm-action-unarchive" href="#" data-id="' + mapping.id + '"><i class="fas fa-undo me-2"></i> Unarchive</a></li>') +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
@@ -1978,6 +2032,72 @@ $(document).ready(function() {
         
         $('#clShowingCount').text(mappings.length);
         $('#clTotalCount').text(mockContactListMappings.length);
+        
+        // Bind action handlers
+        $('.clm-action-view').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            openClmViewDrawer(id);
+        });
+        
+        $('.clm-action-edit').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            openClmEditModal(id);
+        });
+        
+        $('.clm-action-archive').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            openClmArchiveModal(id);
+        });
+        
+        $('.clm-action-unarchive').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var mapping = mockContactListMappings.find(function(m) { return m.id === id; });
+            if (mapping) {
+                mapping.status = 'Active';
+                renderContactListMappings(mockContactListMappings);
+            }
+        });
+    }
+    
+    function findClmById(id) {
+        return mockContactListMappings.find(function(m) { return m.id === id; });
+    }
+    
+    function openClmViewDrawer(id) {
+        var item = findClmById(id);
+        if (!item) return;
+        
+        // TODO: Implement view drawer for Contact List Mapping
+        console.log('View Contact List Mapping:', item);
+        alert('View details for: ' + item.name + '\n\nFull implementation pending.');
+    }
+    
+    function openClmEditModal(id) {
+        var item = findClmById(id);
+        if (!item) return;
+        
+        // TODO: Implement edit modal for Contact List Mapping
+        console.log('Edit Contact List Mapping:', item);
+        alert('Edit functionality for: ' + item.name + '\n\nFull implementation pending.');
+    }
+    
+    var clmArchiveTargetId = null;
+    
+    function openClmArchiveModal(id) {
+        var item = findClmById(id);
+        if (!item) return;
+        
+        clmArchiveTargetId = id;
+        // Simple confirmation for now
+        if (confirm('Are you sure you want to archive "' + item.name + '"?\n\nArchived setups will no longer process incoming emails.')) {
+            item.status = 'Archived';
+            renderContactListMappings(mockContactListMappings);
+        }
+        clmArchiveTargetId = null;
     }
     
     function filterContactListMappings() {
@@ -1987,8 +2107,14 @@ $(document).ready(function() {
         var searchTerm = ($('#clQuickSearchInput').val() || '').toLowerCase().trim();
         if (searchTerm) {
             filtered = filtered.filter(function(m) {
-                return m.emailAddress.toLowerCase().indexOf(searchTerm) !== -1 ||
-                       m.contactListName.toLowerCase().indexOf(searchTerm) !== -1;
+                return m.name.toLowerCase().indexOf(searchTerm) !== -1 ||
+                       m.subaccountName.toLowerCase().indexOf(searchTerm) !== -1 ||
+                       m.targetLists.some(function(list) {
+                           return list.toLowerCase().indexOf(searchTerm) !== -1;
+                       }) ||
+                       m.allowedSenders.some(function(email) {
+                           return email.toLowerCase().indexOf(searchTerm) !== -1;
+                       });
             });
             chips.push({ filter: 'search', value: 'Search: ' + searchTerm });
         }
@@ -1996,7 +2122,7 @@ $(document).ready(function() {
         var contactListFilter = $('#clFilterContactList').val();
         if (contactListFilter) {
             filtered = filtered.filter(function(m) {
-                return m.contactListName === contactListFilter;
+                return m.targetLists.indexOf(contactListFilter) !== -1;
             });
             chips.push({ filter: 'contactlist', value: 'List: ' + contactListFilter });
         }
