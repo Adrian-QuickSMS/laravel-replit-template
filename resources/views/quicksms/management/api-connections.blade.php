@@ -1308,6 +1308,23 @@ $(document).ready(function() {
         updateDropdownLabel(filterName);
     });
     
+    // Search input - filter as user types (with debounce)
+    var searchTimeout;
+    $('#searchInput').on('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            applyFilters();
+        }, 300);
+    });
+    
+    // Also trigger on Enter key for immediate search
+    $('#searchInput').on('keypress', function(e) {
+        if (e.which === 13) {
+            clearTimeout(searchTimeout);
+            applyFilters();
+        }
+    });
+    
     $('#btnApplyFilters').on('click', function() {
         applyFilters();
     });
