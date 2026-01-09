@@ -1322,6 +1322,218 @@
     </div>
 </div>
 
+<div class="modal fade" id="createContactListMappingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold"><i class="fas fa-link me-2 text-primary"></i>Create Email-to-SMS – Contact List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container" style="max-width: 800px;">
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-info-circle me-2 text-primary"></i>General</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="clmCreateName" placeholder="e.g., NHS Patient Notifications">
+                                    <div class="invalid-feedback">Name is required.</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Description</label>
+                                    <input type="text" class="form-control" id="clmCreateDescription" placeholder="Optional description...">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Subaccount <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="clmCreateSubaccount">
+                                        <option value="">Select subaccount...</option>
+                                        <option value="main">Main Account</option>
+                                        <option value="marketing">Marketing Team</option>
+                                        <option value="support">Support Team</option>
+                                    </select>
+                                    <div class="invalid-feedback">Subaccount is required.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-envelope-open-text me-2 text-primary"></i>Email Settings (Sender Allowlist)</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Allowed Sender Emails</label>
+                                <p class="text-muted small mb-2">Only emails from these addresses will trigger SMS. Leave empty to allow all senders. Supports wildcard domains (e.g., *@company.com).</p>
+                                <div class="input-group mb-2">
+                                    <input type="email" class="form-control" id="clmCreateEmailInput" placeholder="email@example.com or *@domain.com">
+                                    <button class="btn btn-primary" type="button" id="clmAddEmailBtn">
+                                        <i class="fas fa-plus me-1"></i> Add
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="clmEmailError" style="display: none;">Invalid email format.</div>
+                                <div id="clmEmailTagsContainer" class="email-tags-container"></div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted"><span id="clmEmailCount">0</span> email(s) added</small>
+                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clmClearAllEmails" style="display: none;">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear All
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="clmWildcardWarning" class="alert alert-warning d-none" style="font-size: 0.85rem;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> Wildcard domains are less secure and may result in unintended messages being sent.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-address-book me-2 text-primary"></i>Contact Book (Recipient Targeting)</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Select Contact List(s) <span class="text-danger">*</span></label>
+                                    <p class="text-muted small mb-2">Recipients from selected lists will receive SMS when an email is received.</p>
+                                    <div class="dropdown multiselect-dropdown w-100" id="clmContactListsDropdown">
+                                        <button class="btn dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">Select list(s)...</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 300px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none clm-select-all-lists">Select All</a>
+                                                <a href="#" class="small text-decoration-none clm-clear-all-lists">Clear</a>
+                                            </div>
+                                            <div class="small text-muted mb-1 fw-bold">Static Lists</div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="static-nhs-patients" id="clmList1"><label class="form-check-label small" for="clmList1">NHS Patients (1,245)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="static-pharmacy" id="clmList2"><label class="form-check-label small" for="clmList2">Pharmacy Patients (892)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="static-appointments" id="clmList3"><label class="form-check-label small" for="clmList3">Appointment List (2,156)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="static-newsletter" id="clmList4"><label class="form-check-label small" for="clmList4">Newsletter Subscribers (5,678)</label></div>
+                                            <div class="dropdown-divider"></div>
+                                            <div class="small text-muted mb-1 fw-bold">Dynamic Lists</div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="dynamic-active-patients" id="clmList5"><label class="form-check-label small" for="clmList5"><i class="fas fa-sync-alt me-1 text-info"></i>Active Patients (var)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="dynamic-recent-orders" id="clmList6"><label class="form-check-label small" for="clmList6"><i class="fas fa-sync-alt me-1 text-info"></i>Recent Orders (var)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="dynamic-birthdays" id="clmList7"><label class="form-check-label small" for="clmList7"><i class="fas fa-sync-alt me-1 text-info"></i>Upcoming Birthdays (var)</label></div>
+                                        </div>
+                                    </div>
+                                    <div class="invalid-feedback">At least one Contact List is required.</div>
+                                    <div id="clmSelectedListsDisplay" class="mt-2"></div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Opt-out List(s)</label>
+                                    <p class="text-muted small mb-2">Contacts in selected opt-out lists will not receive SMS.</p>
+                                    <div class="dropdown multiselect-dropdown w-100" id="clmOptOutDropdown">
+                                        <button class="btn dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                            <span class="dropdown-label">No opt-out list</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none clm-select-all-optouts">Select All</a>
+                                                <a href="#" class="small text-decoration-none clm-clear-all-optouts">Clear</a>
+                                            </div>
+                                            <div class="form-check"><input class="form-check-input clm-optout-cb" type="checkbox" value="no" id="clmOptNo" checked><label class="form-check-label small" for="clmOptNo">No opt-out list</label></div>
+                                            <div class="dropdown-divider"></div>
+                                            <div class="form-check"><input class="form-check-input clm-optout-cb" type="checkbox" value="global-optout" id="clmOpt1"><label class="form-check-label small" for="clmOpt1">Global Opt-Out (543)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-optout-cb" type="checkbox" value="marketing-optout" id="clmOpt2"><label class="form-check-label small" for="clmOpt2">Marketing Opt-Out (1,892)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-optout-cb" type="checkbox" value="sms-optout" id="clmOpt3"><label class="form-check-label small" for="clmOpt3">SMS Opt-Out (267)</label></div>
+                                            <div class="form-check"><input class="form-check-input clm-optout-cb" type="checkbox" value="dnc-list" id="clmOpt4"><label class="form-check-label small" for="clmOpt4">Do Not Contact (89)</label></div>
+                                        </div>
+                                    </div>
+                                    <div id="clmSelectedOptOutsDisplay" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-sms me-2 text-primary"></i>Message Settings</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">SenderID <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="clmCreateSenderId">
+                                        <option value="">Select SenderID...</option>
+                                        <option value="QuickSMS">QuickSMS</option>
+                                        <option value="ALERTS">ALERTS</option>
+                                        <option value="NHS">NHS</option>
+                                        <option value="INFO">INFO</option>
+                                        <option value="Pharmacy">Pharmacy</option>
+                                    </select>
+                                    <small class="text-muted">Only approved/live SenderIDs are shown.</small>
+                                    <div class="invalid-feedback">SenderID is required.</div>
+                                </div>
+                                
+                                <div class="col-md-6" id="clmSubjectAsSenderIdGroup" style="display: none;">
+                                    <label class="form-label fw-semibold">Subject as SenderID</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="clmCreateSubjectAsSenderId">
+                                        <label class="form-check-label" for="clmCreateSubjectAsSenderId">
+                                            Extract SenderID from email subject
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">When enabled, the SenderID is extracted from the email subject line.</small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Enable Multiple SMS</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="clmCreateMultipleSms">
+                                        <label class="form-check-label" for="clmCreateMultipleSms">
+                                            Allow multipart SMS messages
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Messages over 160 characters will be sent as multiple parts.</small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Send Delivery Reports</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="clmCreateDeliveryReports">
+                                        <label class="form-check-label" for="clmCreateDeliveryReports">
+                                            Enable delivery report notifications
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6" id="clmDeliveryEmailGroup" style="display: none;">
+                                    <label class="form-label fw-semibold">Delivery Reports Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="clmCreateDeliveryEmail" placeholder="reports@yourcompany.com">
+                                    <div class="invalid-feedback">Valid email address required for delivery reports.</div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Filter Content (Signature Removal)</label>
+                                    <textarea class="form-control" id="clmCreateSignatureFilter" rows="3" placeholder="e.g., --\n.*\nSent from.*"></textarea>
+                                    <div class="invalid-feedback" id="clmSignatureFilterError">Invalid regex pattern</div>
+                                    <small class="text-muted">Remove matching content from inbound emails (e.g., signatures). Regex supported. One pattern per line.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="btnSaveContactListMapping">
+                    <i class="fas fa-check me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="stdArchiveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -2377,8 +2589,393 @@ $(document).ready(function() {
         }
     });
     
-    $('#btnCreateMapping, #btnCreateMappingEmpty').on('click', function() {
-        window.location.href = '{{ route("management.email-to-sms.create-mapping") }}';
+    // Contact List Mapping Create Modal Logic
+    var clmAllowedEmails = [];
+    var clmSelectedLists = [];
+    var clmSelectedOptOuts = [];
+    var clmEditingId = null;
+    
+    // Mock account setting for dynamic SenderID
+    var clmAccountSettings = {
+        dynamic_senderid_allowed: true
+    };
+    
+    function openCreateContactListMappingModal() {
+        clmEditingId = null;
+        
+        // Update modal title
+        $('#createContactListMappingModal .modal-title').html('<i class="fas fa-link me-2 text-primary"></i>Create Email-to-SMS – Contact List');
+        $('#btnSaveContactListMapping').html('<i class="fas fa-check me-1"></i> Save');
+        
+        // Reset form
+        clmAllowedEmails = [];
+        clmSelectedLists = [];
+        clmSelectedOptOuts = [];
+        
+        $('#clmCreateName').val('').removeClass('is-invalid');
+        $('#clmCreateDescription').val('');
+        $('#clmCreateSubaccount').val('').removeClass('is-invalid');
+        $('#clmCreateEmailInput').val('').removeClass('is-invalid');
+        $('#clmEmailError').hide();
+        $('#clmEmailTagsContainer').empty();
+        $('#clmEmailCount').text('0');
+        $('#clmClearAllEmails').hide();
+        $('#clmWildcardWarning').addClass('d-none');
+        
+        // Reset Contact Lists multi-select
+        $('.clm-contact-list-cb').prop('checked', false);
+        $('#clmContactListsDropdown .dropdown-label').text('Select list(s)...');
+        $('#clmContactListsDropdown button').removeClass('is-invalid');
+        $('#clmSelectedListsDisplay').empty();
+        
+        // Reset Opt-out multi-select
+        $('.clm-optout-cb').prop('checked', false);
+        $('#clmOptNo').prop('checked', true);
+        $('#clmOptOutDropdown .dropdown-label').text('No opt-out list');
+        $('#clmSelectedOptOutsDisplay').empty();
+        
+        $('#clmCreateSenderId').val('').removeClass('is-invalid');
+        $('#clmCreateSubjectAsSenderId').prop('checked', false);
+        $('#clmCreateMultipleSms').prop('checked', false);
+        $('#clmCreateDeliveryReports').prop('checked', false);
+        $('#clmCreateDeliveryEmail').val('').removeClass('is-invalid');
+        $('#clmDeliveryEmailGroup').hide();
+        $('#clmCreateSignatureFilter').val('').removeClass('is-invalid');
+        $('#clmSignatureFilterError').hide();
+        
+        // Show/hide Subject as SenderID based on account setting
+        if (clmAccountSettings.dynamic_senderid_allowed) {
+            $('#clmSubjectAsSenderIdGroup').show();
+        } else {
+            $('#clmSubjectAsSenderIdGroup').hide();
+        }
+        
+        var modal = new bootstrap.Modal(document.getElementById('createContactListMappingModal'));
+        modal.show();
+    }
+    
+    $('#btnCreateContactListMapping').on('click', function() {
+        openCreateContactListMappingModal();
+    });
+    
+    // Email chip input for Contact List modal
+    function clmAddAllowedEmail() {
+        var input = $('#clmCreateEmailInput');
+        var email = input.val().trim().toLowerCase();
+        var errorEl = $('#clmEmailError');
+        
+        if (!email) return;
+        
+        var validation = EmailToSmsService.validateEmail(email);
+        if (!validation.valid) {
+            errorEl.text('Invalid email format. Use email@domain.com or *@domain.com for wildcards.').show();
+            input.addClass('is-invalid');
+            return;
+        }
+        
+        if (clmAllowedEmails.includes(email)) {
+            errorEl.text('This email has already been added.').show();
+            input.addClass('is-invalid');
+            return;
+        }
+        
+        errorEl.hide();
+        input.removeClass('is-invalid');
+        
+        clmAllowedEmails.push(email);
+        input.val('');
+        clmRenderEmailTags();
+        clmUpdateWildcardWarning();
+    }
+    
+    function clmRemoveAllowedEmail(email) {
+        var index = clmAllowedEmails.indexOf(email);
+        if (index > -1) {
+            clmAllowedEmails.splice(index, 1);
+            clmRenderEmailTags();
+            clmUpdateWildcardWarning();
+        }
+    }
+    
+    function clmRenderEmailTags() {
+        var container = $('#clmEmailTagsContainer');
+        container.empty();
+        
+        clmAllowedEmails.forEach(function(email) {
+            var isWildcard = email.startsWith('*@');
+            var tag = $('<span class="email-tag' + (isWildcard ? ' email-tag-wildcard' : '') + '">' +
+                        '<span class="email-text">' + escapeHtml(email) + '</span>' +
+                        '<span class="remove-email" data-email="' + escapeHtml(email) + '">&times;</span>' +
+                        '</span>');
+            container.append(tag);
+        });
+        
+        $('#clmEmailCount').text(clmAllowedEmails.length);
+        
+        if (clmAllowedEmails.length > 0) {
+            $('#clmClearAllEmails').show();
+        } else {
+            $('#clmClearAllEmails').hide();
+        }
+    }
+    
+    function clmClearAllEmails() {
+        clmAllowedEmails = [];
+        clmRenderEmailTags();
+        clmUpdateWildcardWarning();
+    }
+    
+    function clmUpdateWildcardWarning() {
+        var hasWildcard = clmAllowedEmails.some(function(email) {
+            return email.startsWith('*@');
+        });
+        
+        if (hasWildcard) {
+            $('#clmWildcardWarning').removeClass('d-none');
+        } else {
+            $('#clmWildcardWarning').addClass('d-none');
+        }
+    }
+    
+    $('#clmAddEmailBtn').on('click', clmAddAllowedEmail);
+    
+    $('#clmCreateEmailInput').on('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clmAddAllowedEmail();
+        }
+    });
+    
+    $('#clmClearAllEmails').on('click', clmClearAllEmails);
+    
+    $(document).on('click', '#clmEmailTagsContainer .remove-email', function() {
+        var email = $(this).data('email');
+        clmRemoveAllowedEmail(email);
+    });
+    
+    // Contact Lists multi-select handlers
+    $('.clm-contact-list-cb').on('change', function() {
+        clmUpdateSelectedLists();
+    });
+    
+    $('.clm-select-all-lists').on('click', function(e) {
+        e.preventDefault();
+        $('.clm-contact-list-cb').prop('checked', true);
+        clmUpdateSelectedLists();
+    });
+    
+    $('.clm-clear-all-lists').on('click', function(e) {
+        e.preventDefault();
+        $('.clm-contact-list-cb').prop('checked', false);
+        clmUpdateSelectedLists();
+    });
+    
+    function clmUpdateSelectedLists() {
+        clmSelectedLists = [];
+        $('.clm-contact-list-cb:checked').each(function() {
+            clmSelectedLists.push({
+                value: $(this).val(),
+                label: $(this).next('label').text()
+            });
+        });
+        
+        if (clmSelectedLists.length === 0) {
+            $('#clmContactListsDropdown .dropdown-label').text('Select list(s)...');
+        } else if (clmSelectedLists.length === 1) {
+            $('#clmContactListsDropdown .dropdown-label').text(clmSelectedLists[0].label);
+        } else {
+            $('#clmContactListsDropdown .dropdown-label').text(clmSelectedLists.length + ' lists selected');
+        }
+        
+        // Render selected tags
+        var display = $('#clmSelectedListsDisplay');
+        display.empty();
+        clmSelectedLists.forEach(function(list) {
+            display.append('<span class="badge bg-primary-light text-primary me-1 mb-1">' + escapeHtml(list.label) + '</span>');
+        });
+        
+        // Remove validation error
+        if (clmSelectedLists.length > 0) {
+            $('#clmContactListsDropdown button').removeClass('is-invalid');
+        }
+    }
+    
+    // Opt-out multi-select handlers
+    $('.clm-optout-cb').on('change', function() {
+        var clickedValue = $(this).val();
+        
+        // If "No" is selected, uncheck all others
+        if (clickedValue === 'no' && $(this).is(':checked')) {
+            $('.clm-optout-cb').not(this).prop('checked', false);
+        } else if ($(this).is(':checked')) {
+            // If any other is selected, uncheck "No"
+            $('#clmOptNo').prop('checked', false);
+        }
+        
+        // If nothing is selected, default to "No"
+        if ($('.clm-optout-cb:checked').length === 0) {
+            $('#clmOptNo').prop('checked', true);
+        }
+        
+        clmUpdateSelectedOptOuts();
+    });
+    
+    $('.clm-select-all-optouts').on('click', function(e) {
+        e.preventDefault();
+        $('#clmOptNo').prop('checked', false);
+        $('.clm-optout-cb').not('#clmOptNo').prop('checked', true);
+        clmUpdateSelectedOptOuts();
+    });
+    
+    $('.clm-clear-all-optouts').on('click', function(e) {
+        e.preventDefault();
+        $('.clm-optout-cb').prop('checked', false);
+        $('#clmOptNo').prop('checked', true);
+        clmUpdateSelectedOptOuts();
+    });
+    
+    function clmUpdateSelectedOptOuts() {
+        clmSelectedOptOuts = [];
+        $('.clm-optout-cb:checked').not('#clmOptNo').each(function() {
+            clmSelectedOptOuts.push({
+                value: $(this).val(),
+                label: $(this).next('label').text()
+            });
+        });
+        
+        if ($('#clmOptNo').is(':checked') || clmSelectedOptOuts.length === 0) {
+            $('#clmOptOutDropdown .dropdown-label').text('No opt-out list');
+        } else if (clmSelectedOptOuts.length === 1) {
+            $('#clmOptOutDropdown .dropdown-label').text(clmSelectedOptOuts[0].label);
+        } else {
+            $('#clmOptOutDropdown .dropdown-label').text(clmSelectedOptOuts.length + ' lists selected');
+        }
+        
+        // Render selected tags
+        var display = $('#clmSelectedOptOutsDisplay');
+        display.empty();
+        clmSelectedOptOuts.forEach(function(list) {
+            display.append('<span class="badge bg-warning-light text-warning me-1 mb-1">' + escapeHtml(list.label) + '</span>');
+        });
+    }
+    
+    // Toggle delivery reports email field
+    $('#clmCreateDeliveryReports').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#clmDeliveryEmailGroup').slideDown(200);
+        } else {
+            $('#clmDeliveryEmailGroup').slideUp(200);
+            $('#clmCreateDeliveryEmail').val('').removeClass('is-invalid');
+        }
+    });
+    
+    // Save Contact List Mapping
+    $('#btnSaveContactListMapping').on('click', function() {
+        var isValid = true;
+        
+        // Validate name
+        var name = $('#clmCreateName').val().trim();
+        if (!name) {
+            $('#clmCreateName').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#clmCreateName').removeClass('is-invalid');
+        }
+        
+        // Validate subaccount
+        var subaccount = $('#clmCreateSubaccount').val();
+        if (!subaccount) {
+            $('#clmCreateSubaccount').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#clmCreateSubaccount').removeClass('is-invalid');
+        }
+        
+        // Validate Contact Lists selection
+        if (clmSelectedLists.length === 0) {
+            $('#clmContactListsDropdown button').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#clmContactListsDropdown button').removeClass('is-invalid');
+        }
+        
+        // Validate SenderID
+        var senderId = $('#clmCreateSenderId').val();
+        if (!senderId) {
+            $('#clmCreateSenderId').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#clmCreateSenderId').removeClass('is-invalid');
+        }
+        
+        // Validate delivery email if reports enabled
+        if ($('#clmCreateDeliveryReports').is(':checked')) {
+            var deliveryEmail = $('#clmCreateDeliveryEmail').val().trim();
+            var emailValidation = EmailToSmsService.validateEmail(deliveryEmail);
+            if (!deliveryEmail || !emailValidation.valid || emailValidation.isWildcard) {
+                $('#clmCreateDeliveryEmail').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#clmCreateDeliveryEmail').removeClass('is-invalid');
+            }
+        }
+        
+        // Validate content filter regex
+        var contentFilter = $('#clmCreateSignatureFilter').val().trim();
+        var regexValidation = EmailToSmsService.validateContentFilterRegex(contentFilter);
+        if (!regexValidation.valid) {
+            $('#clmCreateSignatureFilter').addClass('is-invalid');
+            $('#clmSignatureFilterError').text(regexValidation.error).show();
+            isValid = false;
+        } else {
+            $('#clmCreateSignatureFilter').removeClass('is-invalid');
+            $('#clmSignatureFilterError').hide();
+        }
+        
+        if (!isValid) {
+            return;
+        }
+        
+        // Build payload
+        var subaccountName = $('#clmCreateSubaccount option:selected').text();
+        var listNames = clmSelectedLists.map(function(l) { return l.label; });
+        var optOutNames = clmSelectedOptOuts.map(function(o) { return o.label; });
+        
+        var newMapping = {
+            id: 'clm-' + Date.now(),
+            name: name,
+            description: $('#clmCreateDescription').val().trim(),
+            subaccountId: subaccount,
+            subaccountName: subaccountName,
+            emailAddress: name.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).substring(2, 6) + '@sms.quicksms.io',
+            allowedSenders: clmAllowedEmails.slice(),
+            contactLists: clmSelectedLists.map(function(l) { return l.value; }),
+            contactListNames: listNames,
+            optOutLists: clmSelectedOptOuts.map(function(o) { return o.value; }),
+            optOutListNames: optOutNames,
+            senderId: senderId,
+            subjectAsSenderId: $('#clmCreateSubjectAsSenderId').is(':checked'),
+            multipleSms: $('#clmCreateMultipleSms').is(':checked'),
+            deliveryReports: $('#clmCreateDeliveryReports').is(':checked'),
+            deliveryEmail: $('#clmCreateDeliveryEmail').val().trim(),
+            signatureFilter: contentFilter,
+            recipientCount: Math.floor(Math.random() * 5000) + 100,
+            status: 'Active',
+            created: new Date().toISOString().split('T')[0],
+            lastUsed: null
+        };
+        
+        // Add to mock data
+        mockContactListMappings.unshift(newMapping);
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('createContactListMappingModal')).hide();
+        
+        // Refresh table
+        renderContactListMappings(mockContactListMappings);
+        
+        // TODO: Backend integration
+        console.log('Created Contact List Mapping:', newMapping);
     });
     
     (function() {
