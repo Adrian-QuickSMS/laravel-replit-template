@@ -733,7 +733,11 @@
                         </div>
                         
                         <div class="tab-pane fade" id="configuration" role="tabpanel">
-                            <div class="d-flex justify-content-end mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="stdShowArchived">
+                                    <label class="form-check-label text-muted small" for="stdShowArchived">Show archived</label>
+                                </div>
                                 <button class="btn btn-primary" id="btnCreateStandardSms">
                                     <i class="fas fa-plus me-1"></i> Create
                                 </button>
@@ -1233,6 +1237,108 @@
                 </button>
                 <button type="button" class="btn btn-primary" id="btnSaveStandardSms">
                     <i class="fas fa-check me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="drawer-backdrop" id="stdDrawerBackdrop"></div>
+<div class="drawer" id="stdDetailsDrawer">
+    <div class="drawer-header">
+        <h5>Standard Email-to-SMS Details</h5>
+        <button type="button" class="btn-close" id="stdCloseDrawerBtn"></button>
+    </div>
+    <div class="drawer-body">
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">General</h6>
+            <div class="detail-row">
+                <span class="detail-label">Name</span>
+                <span class="detail-value" id="stdDrawerName">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Description</span>
+                <span class="detail-value" id="stdDrawerDescription">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Subaccount</span>
+                <span class="detail-value" id="stdDrawerSubaccount">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Email Settings</h6>
+            <div class="detail-row">
+                <span class="detail-label">Allowed Sender Emails</span>
+                <span class="detail-value" id="stdDrawerAllowedEmails">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Message Settings</h6>
+            <div class="detail-row">
+                <span class="detail-label">SenderID</span>
+                <span class="detail-value" id="stdDrawerSenderId">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Subject as SenderID</span>
+                <span class="detail-value" id="stdDrawerSubjectAsSenderId">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Multiple SMS</span>
+                <span class="detail-value" id="stdDrawerMultipleSms">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Delivery Reports</span>
+                <span class="detail-value" id="stdDrawerDeliveryReports">-</span>
+            </div>
+            <div class="detail-row" id="stdDrawerDeliveryEmailRow" style="display: none;">
+                <span class="detail-label">Delivery Email</span>
+                <span class="detail-value" id="stdDrawerDeliveryEmail">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Signature Filter</span>
+                <span class="detail-value" id="stdDrawerSignatureFilter">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Dates</h6>
+            <div class="detail-row">
+                <span class="detail-label">Created</span>
+                <span class="detail-value" id="stdDrawerCreated">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Last Updated</span>
+                <span class="detail-value" id="stdDrawerLastUpdated">-</span>
+            </div>
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <button type="button" class="btn btn-outline-secondary" id="stdDrawerEditBtn">
+            <i class="fas fa-edit me-1"></i> Edit
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="stdArchiveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Archive Standard Email-to-SMS</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to archive <strong id="stdArchiveName"></strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Archived setups will no longer process incoming emails. You can view archived items by enabling "Show archived" in the table.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmStdArchive">
+                    <i class="fas fa-archive me-1"></i> Archive
                 </button>
             </div>
         </div>
@@ -2301,52 +2407,126 @@ $(document).ready(function() {
         {
             id: 'std-001',
             name: 'General Notifications',
-            subaccount: 'Main Account',
+            description: 'General purpose notification emails converted to SMS',
+            subaccount: 'main',
+            subaccountName: 'Main Account',
             allowedSenders: ['admin@company.com', 'system@company.com', 'notifications@company.com'],
+            senderId: 'QuickSMS',
+            subjectAsSenderId: false,
+            multipleSms: true,
+            deliveryReports: true,
+            deliveryEmail: 'reports@company.com',
+            signatureFilter: '--\n.*\nSent from my iPhone',
             created: '2024-10-20',
-            lastUpdated: '2025-01-09'
+            lastUpdated: '2025-01-09',
+            archived: false
         },
         {
             id: 'std-002',
             name: 'Urgent Alerts',
-            subaccount: 'Marketing Team',
+            description: 'High priority alerts requiring immediate attention',
+            subaccount: 'marketing',
+            subaccountName: 'Marketing Team',
             allowedSenders: ['alerts@marketing.com'],
+            senderId: 'ALERTS',
+            subjectAsSenderId: false,
+            multipleSms: false,
+            deliveryReports: false,
+            deliveryEmail: '',
+            signatureFilter: '',
             created: '2024-11-05',
-            lastUpdated: '2025-01-08'
+            lastUpdated: '2025-01-08',
+            archived: false
         },
         {
             id: 'std-003',
             name: 'Patient Communications',
-            subaccount: 'Support Team',
+            description: 'NHS Trust patient communication system',
+            subaccount: 'support',
+            subaccountName: 'Support Team',
             allowedSenders: ['*@nhstrust.nhs.uk'],
+            senderId: 'NHS',
+            subjectAsSenderId: true,
+            multipleSms: true,
+            deliveryReports: true,
+            deliveryEmail: 'nhs-reports@support.com',
+            signatureFilter: 'Kind regards,\n.*',
             created: '2024-11-18',
-            lastUpdated: '2025-01-07'
+            lastUpdated: '2025-01-07',
+            archived: false
         },
         {
             id: 'std-004',
             name: 'Appointment Reminders',
-            subaccount: 'Main Account',
+            description: 'Clinic appointment reminder system',
+            subaccount: 'main',
+            subaccountName: 'Main Account',
             allowedSenders: ['bookings@clinic.com', 'reception@clinic.com'],
+            senderId: 'Pharmacy',
+            subjectAsSenderId: false,
+            multipleSms: false,
+            deliveryReports: false,
+            deliveryEmail: '',
+            signatureFilter: '',
             created: '2024-12-01',
-            lastUpdated: '2025-01-06'
+            lastUpdated: '2025-01-06',
+            archived: false
         },
         {
             id: 'std-005',
             name: 'Delivery Updates',
-            subaccount: 'Marketing Team',
+            description: 'Shipping and delivery notification emails',
+            subaccount: 'marketing',
+            subaccountName: 'Marketing Team',
             allowedSenders: [],
+            senderId: 'INFO',
+            subjectAsSenderId: false,
+            multipleSms: true,
+            deliveryReports: false,
+            deliveryEmail: '',
+            signatureFilter: '',
             created: '2024-12-10',
-            lastUpdated: '2025-01-05'
+            lastUpdated: '2025-01-05',
+            archived: false
         },
         {
             id: 'std-006',
             name: 'Internal Testing',
-            subaccount: 'Support Team',
+            description: 'Development and QA testing setup',
+            subaccount: 'support',
+            subaccountName: 'Support Team',
             allowedSenders: ['dev@quicksms.io', 'qa@quicksms.io', 'test@quicksms.io', 'staging@quicksms.io'],
+            senderId: 'QuickSMS',
+            subjectAsSenderId: false,
+            multipleSms: true,
+            deliveryReports: true,
+            deliveryEmail: 'dev-team@quicksms.io',
+            signatureFilter: '',
             created: '2024-12-15',
-            lastUpdated: '2025-01-04'
+            lastUpdated: '2025-01-04',
+            archived: false
+        },
+        {
+            id: 'std-007',
+            name: 'Legacy Alerts',
+            description: 'Old alerting system - archived',
+            subaccount: 'main',
+            subaccountName: 'Main Account',
+            allowedSenders: ['old-system@company.com'],
+            senderId: 'ALERTS',
+            subjectAsSenderId: false,
+            multipleSms: false,
+            deliveryReports: false,
+            deliveryEmail: '',
+            signatureFilter: '',
+            created: '2024-06-01',
+            lastUpdated: '2024-09-15',
+            archived: true
         }
     ];
+    
+    var stdShowArchived = false;
+    var stdEditingId = null;
     
     function formatAllowedSenders(senders) {
         if (!senders || senders.length === 0) {
@@ -2368,27 +2548,49 @@ $(document).ready(function() {
         return html;
     }
     
+    function getFilteredStandardSms() {
+        return mockStandardSms.filter(function(item) {
+            if (!stdShowArchived && item.archived) {
+                return false;
+            }
+            return true;
+        });
+    }
+    
+    function findStandardSmsById(id) {
+        return mockStandardSms.find(function(item) { return item.id === id; });
+    }
+    
     function renderStandardSmsTable(items) {
         var tbody = $('#standardSmsTableBody');
         tbody.empty();
         
-        if (items.length === 0) {
+        // Apply archived filter
+        var filteredItems = items.filter(function(item) {
+            if (!stdShowArchived && item.archived) {
+                return false;
+            }
+            return true;
+        });
+        
+        if (filteredItems.length === 0) {
             $('#standardSmsTableContainer').hide();
             $('#emptyStateStandardSms').show();
             $('#stdShowingCount').text(0);
-            $('#stdTotalCount').text(0);
+            $('#stdTotalCount').text(getFilteredStandardSms().length);
             return;
         }
         
         $('#standardSmsTableContainer').show();
         $('#emptyStateStandardSms').hide();
         
-        items.forEach(function(item) {
+        filteredItems.forEach(function(item) {
             var allowedSendersHtml = formatAllowedSenders(item.allowedSenders);
+            var archivedBadge = item.archived ? ' <span class="badge bg-secondary">Archived</span>' : '';
             
-            var row = '<tr data-id="' + item.id + '">' +
-                '<td><span class="email-sms-name">' + item.name + '</span></td>' +
-                '<td>' + item.subaccount + '</td>' +
+            var row = '<tr data-id="' + item.id + '"' + (item.archived ? ' class="table-secondary"' : '') + '>' +
+                '<td><span class="email-sms-name">' + item.name + '</span>' + archivedBadge + '</td>' +
+                '<td>' + item.subaccountName + '</td>' +
                 '<td>' + allowedSendersHtml + '</td>' +
                 '<td>' + item.created + '</td>' +
                 '<td>' + item.lastUpdated + '</td>' +
@@ -2400,7 +2602,9 @@ $(document).ready(function() {
                         '<ul class="dropdown-menu dropdown-menu-end">' +
                             '<li><a class="dropdown-item std-action-view" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
                             '<li><a class="dropdown-item std-action-edit" href="#" data-id="' + item.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
-                            '<li><a class="dropdown-item std-action-archive" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>' +
+                            (item.archived 
+                                ? '<li><a class="dropdown-item std-action-unarchive" href="#" data-id="' + item.id + '"><i class="fas fa-box-open me-2"></i> Unarchive</a></li>'
+                                : '<li><a class="dropdown-item std-action-archive" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>') +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
@@ -2409,53 +2613,146 @@ $(document).ready(function() {
             tbody.append(row);
         });
         
-        $('#stdShowingCount').text(items.length);
-        $('#stdTotalCount').text(mockStandardSms.length);
+        $('#stdShowingCount').text(filteredItems.length);
+        $('#stdTotalCount').text(getFilteredStandardSms().length);
         
         // Bind action handlers
         $('.std-action-view').off('click').on('click', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            // TODO: Open view drawer/modal
-            console.log('View Standard Email-to-SMS:', id);
-            alert('View functionality coming soon for: ' + id);
+            openStdViewDrawer(id);
         });
         
         $('.std-action-edit').off('click').on('click', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            // TODO: Open edit modal
-            console.log('Edit Standard Email-to-SMS:', id);
-            alert('Edit functionality coming soon for: ' + id);
+            openStdEditModal(id);
         });
         
         $('.std-action-archive').off('click').on('click', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            // TODO: Show archive confirmation
-            console.log('Archive Standard Email-to-SMS:', id);
-            if (confirm('Are you sure you want to archive this Standard Email-to-SMS setup?')) {
-                alert('Archive functionality coming soon for: ' + id);
+            openStdArchiveModal(id);
+        });
+        
+        $('.std-action-unarchive').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var item = findStandardSmsById(id);
+            if (item) {
+                item.archived = false;
+                item.lastUpdated = new Date().toISOString().split('T')[0];
+                refreshStandardSmsTable();
             }
         });
     }
     
-    $('#stdQuickSearchInput').on('input', function() {
-        var searchTerm = $(this).val().toLowerCase().trim();
+    function refreshStandardSmsTable() {
+        var searchTerm = $('#stdQuickSearchInput').val().toLowerCase().trim();
         if (!searchTerm) {
             renderStandardSmsTable(mockStandardSms);
-            return;
+        } else {
+            var filtered = mockStandardSms.filter(function(item) {
+                return item.name.toLowerCase().indexOf(searchTerm) !== -1 ||
+                       item.subaccountName.toLowerCase().indexOf(searchTerm) !== -1 ||
+                       item.allowedSenders.some(function(email) {
+                           return email.toLowerCase().indexOf(searchTerm) !== -1;
+                       });
+            });
+            renderStandardSmsTable(filtered);
+        }
+    }
+    
+    // View Drawer Functions
+    function openStdViewDrawer(id) {
+        var item = findStandardSmsById(id);
+        if (!item) return;
+        
+        $('#stdDrawerName').text(item.name);
+        $('#stdDrawerDescription').text(item.description || '-');
+        $('#stdDrawerSubaccount').text(item.subaccountName);
+        
+        if (item.allowedSenders && item.allowedSenders.length > 0) {
+            $('#stdDrawerAllowedEmails').html(item.allowedSenders.map(function(e) {
+                return '<span class="d-block">' + e + '</span>';
+            }).join(''));
+        } else {
+            $('#stdDrawerAllowedEmails').html('<span class="text-muted">All senders allowed</span>');
         }
         
-        var filtered = mockStandardSms.filter(function(item) {
-            return item.name.toLowerCase().indexOf(searchTerm) !== -1 ||
-                   item.subaccount.toLowerCase().indexOf(searchTerm) !== -1 ||
-                   item.allowedSenders.some(function(email) {
-                       return email.toLowerCase().indexOf(searchTerm) !== -1;
-                   });
-        });
+        $('#stdDrawerSenderId').text(item.senderId);
+        $('#stdDrawerSubjectAsSenderId').text(item.subjectAsSenderId ? 'Enabled' : 'Disabled');
+        $('#stdDrawerMultipleSms').text(item.multipleSms ? 'Enabled' : 'Disabled');
+        $('#stdDrawerDeliveryReports').text(item.deliveryReports ? 'Enabled' : 'Disabled');
         
-        renderStandardSmsTable(filtered);
+        if (item.deliveryReports && item.deliveryEmail) {
+            $('#stdDrawerDeliveryEmailRow').show();
+            $('#stdDrawerDeliveryEmail').text(item.deliveryEmail);
+        } else {
+            $('#stdDrawerDeliveryEmailRow').hide();
+        }
+        
+        $('#stdDrawerSignatureFilter').text(item.signatureFilter || '-');
+        $('#stdDrawerCreated').text(item.created);
+        $('#stdDrawerLastUpdated').text(item.lastUpdated);
+        
+        // Store ID for edit button
+        $('#stdDrawerEditBtn').data('id', id);
+        
+        // Open drawer
+        $('#stdDetailsDrawer').addClass('open');
+        $('#stdDrawerBackdrop').addClass('show');
+    }
+    
+    function closeStdDrawer() {
+        $('#stdDetailsDrawer').removeClass('open');
+        $('#stdDrawerBackdrop').removeClass('show');
+    }
+    
+    $('#stdCloseDrawerBtn').on('click', closeStdDrawer);
+    $('#stdDrawerBackdrop').on('click', closeStdDrawer);
+    
+    $('#stdDrawerEditBtn').on('click', function() {
+        var id = $(this).data('id');
+        closeStdDrawer();
+        openStdEditModal(id);
+    });
+    
+    // Archive Modal Functions
+    var stdArchiveTargetId = null;
+    
+    function openStdArchiveModal(id) {
+        var item = findStandardSmsById(id);
+        if (!item) return;
+        
+        stdArchiveTargetId = id;
+        $('#stdArchiveName').text(item.name);
+        
+        var modal = new bootstrap.Modal(document.getElementById('stdArchiveModal'));
+        modal.show();
+    }
+    
+    $('#btnConfirmStdArchive').on('click', function() {
+        if (stdArchiveTargetId) {
+            var item = findStandardSmsById(stdArchiveTargetId);
+            if (item) {
+                item.archived = true;
+                item.lastUpdated = new Date().toISOString().split('T')[0];
+                refreshStandardSmsTable();
+            }
+            stdArchiveTargetId = null;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('stdArchiveModal')).hide();
+    });
+    
+    // Show Archived Toggle
+    $('#stdShowArchived').on('change', function() {
+        stdShowArchived = $(this).is(':checked');
+        refreshStandardSmsTable();
+    });
+    
+    $('#stdQuickSearchInput').on('input', function() {
+        refreshStandardSmsTable();
     });
     
     $('#btnCreateStandardSms, #btnCreateStandardSmsEmpty').on('click', function() {
@@ -2470,10 +2767,16 @@ $(document).ready(function() {
         dynamic_senderid_allowed: true
     };
     
-    // Standard Email-to-SMS Create Modal Logic
+    // Standard Email-to-SMS Create/Edit Modal Logic
     var stdAllowedEmails = [];
     
     function openCreateStandardSmsModal() {
+        stdEditingId = null;
+        
+        // Update modal title
+        $('#createStandardSmsModal .modal-title').html('<i class="fas fa-envelope me-2 text-primary"></i>Create Standard Email-to-SMS');
+        $('#btnSaveStandardSms').html('<i class="fas fa-check me-1"></i> Save');
+        
         // Reset form
         stdAllowedEmails = [];
         $('#stdCreateName').val('').removeClass('is-invalid');
@@ -2492,6 +2795,53 @@ $(document).ready(function() {
         $('#stdCreateDeliveryEmail').val('').removeClass('is-invalid');
         $('#stdDeliveryEmailGroup').hide();
         $('#stdCreateSignatureFilter').val('');
+        
+        // Show/hide Subject as SenderID based on account setting
+        if (accountSettings.dynamic_senderid_allowed) {
+            $('#stdSubjectAsSenderIdGroup').show();
+        } else {
+            $('#stdSubjectAsSenderIdGroup').hide();
+        }
+        
+        // Open modal
+        var modal = new bootstrap.Modal(document.getElementById('createStandardSmsModal'));
+        modal.show();
+    }
+    
+    function openStdEditModal(id) {
+        var item = findStandardSmsById(id);
+        if (!item) return;
+        
+        stdEditingId = id;
+        
+        // Update modal title
+        $('#createStandardSmsModal .modal-title').html('<i class="fas fa-edit me-2 text-primary"></i>Edit Standard Email-to-SMS');
+        $('#btnSaveStandardSms').html('<i class="fas fa-check me-1"></i> Update');
+        
+        // Populate form with existing data
+        $('#stdCreateName').val(item.name).removeClass('is-invalid');
+        $('#stdCreateDescription').val(item.description || '');
+        $('#stdCreateSubaccount').val(item.subaccount).removeClass('is-invalid');
+        
+        // Populate allowed emails
+        stdAllowedEmails = item.allowedSenders ? item.allowedSenders.slice() : [];
+        renderEmailTags();
+        updateWildcardWarning();
+        
+        $('#stdCreateSenderId').val(item.senderId).removeClass('is-invalid');
+        $('#stdCreateSubjectAsSenderId').prop('checked', item.subjectAsSenderId);
+        $('#stdCreateMultipleSms').prop('checked', item.multipleSms);
+        $('#stdCreateDeliveryReports').prop('checked', item.deliveryReports);
+        
+        if (item.deliveryReports) {
+            $('#stdDeliveryEmailGroup').show();
+            $('#stdCreateDeliveryEmail').val(item.deliveryEmail || '').removeClass('is-invalid');
+        } else {
+            $('#stdDeliveryEmailGroup').hide();
+            $('#stdCreateDeliveryEmail').val('').removeClass('is-invalid');
+        }
+        
+        $('#stdCreateSignatureFilter').val(item.signatureFilter || '');
         
         // Show/hide Subject as SenderID based on account setting
         if (accountSettings.dynamic_senderid_allowed) {
@@ -2664,30 +3014,48 @@ $(document).ready(function() {
             return;
         }
         
+        // Get subaccount name
+        var subaccountName = $('#stdCreateSubaccount option:selected').text();
+        
         // Collect form data
         var formData = {
             name: name,
             description: $('#stdCreateDescription').val().trim(),
             subaccount: subaccount,
-            allowedEmails: stdAllowedEmails,
+            subaccountName: subaccountName,
+            allowedSenders: stdAllowedEmails.slice(),
             senderId: senderId,
             subjectAsSenderId: $('#stdCreateSubjectAsSenderId').is(':checked'),
             multipleSms: $('#stdCreateMultipleSms').is(':checked'),
             deliveryReports: $('#stdCreateDeliveryReports').is(':checked'),
             deliveryEmail: $('#stdCreateDeliveryEmail').val().trim(),
-            signatureFilter: $('#stdCreateSignatureFilter').val().trim()
+            signatureFilter: $('#stdCreateSignatureFilter').val().trim(),
+            lastUpdated: new Date().toISOString().split('T')[0]
         };
         
-        // TODO: Backend integration - save the Standard Email-to-SMS setup
-        console.log('Saving Standard Email-to-SMS:', formData);
+        if (stdEditingId) {
+            // Edit mode - update existing item
+            var item = findStandardSmsById(stdEditingId);
+            if (item) {
+                Object.assign(item, formData);
+                console.log('Updated Standard Email-to-SMS:', item);
+            }
+        } else {
+            // Create mode - add new item
+            formData.id = 'std-' + Date.now();
+            formData.created = new Date().toISOString().split('T')[0];
+            formData.archived = false;
+            mockStandardSms.unshift(formData);
+            console.log('Created Standard Email-to-SMS:', formData);
+        }
         
         // Close modal
         bootstrap.Modal.getInstance(document.getElementById('createStandardSmsModal')).hide();
         
-        // Show success message (mock)
-        alert('Standard Email-to-SMS setup "' + name + '" created successfully!');
+        // Refresh table
+        refreshStandardSmsTable();
         
-        // TODO: Refresh the table with new data from backend
+        // TODO: Backend integration - save the Standard Email-to-SMS setup
     });
     
     // Email Parsing Test Logic
