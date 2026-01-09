@@ -2038,7 +2038,7 @@ $(document).ready(function() {
                     'Convert to Live - Final Confirmation',
                     detailedMessage,
                     'Convert to Live Now',
-                    'btn-warning',
+                    'btn-primary',
                     function() {
                         // Optimistic update - store previous values
                         var previousEnvironment = conn.environment;
