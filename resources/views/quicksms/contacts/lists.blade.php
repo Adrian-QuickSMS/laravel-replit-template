@@ -93,7 +93,7 @@
                                                     <div class="list-icon-static me-2">
                                                         <i class="fas fa-list"></i>
                                                     </div>
-                                                    <strong style="color: #000;">{{ $list['name'] }}</strong>
+                                                    <span>{{ $list['name'] }}</span>
                                                 </div>
                                             </td>
                                             <td style="color: #000;">{{ $list['description'] }}</td>
@@ -166,7 +166,7 @@
                                                         <i class="fas fa-magic"></i>
                                                     </div>
                                                     <div>
-                                                        <strong style="color: #000;">{{ $list['name'] }}</strong>
+                                                        <span>{{ $list['name'] }}</span>
                                                         <div class="small" style="color: #000;">{{ $list['description'] }}</div>
                                                     </div>
                                                 </div>

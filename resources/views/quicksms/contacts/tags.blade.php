@@ -116,7 +116,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <span class="badge me-2" style="background-color: {{ $tag['color'] }}; width: 12px; height: 12px; padding: 0; border-radius: 50%;"></span>
-                                            <strong style="color: #000;">{{ $tag['name'] }}</strong>
+                                            <span>{{ $tag['name'] }}</span>
                                         </div>
                                     </td>
                                     <td>

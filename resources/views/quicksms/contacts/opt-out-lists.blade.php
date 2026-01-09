@@ -99,7 +99,7 @@
                                                         <i class="fas {{ $list['is_master'] ? 'fa-shield-alt' : 'fa-ban' }}"></i>
                                                     </div>
                                                     <div>
-                                                        <strong style="color: #000;">{{ $list['name'] }}</strong>
+                                                        <span>{{ $list['name'] }}</span>
                                                         @if($list['is_master'])
                                                         <span class="badge badge-pastel-danger ms-2">Master</span>
                                                         @endif
