@@ -1090,9 +1090,9 @@ $(document).ready(function() {
         
         if (type === 'integration') {
             console.log('[API Wizard] Showing integration partner section');
-            document.getElementById('integrationPartnerSection').style.display = 'block';
+            $('#integrationPartnerSection').show();
         } else {
-            document.getElementById('integrationPartnerSection').style.display = 'none';
+            $('#integrationPartnerSection').hide();
             $('.partner-tile').removeClass('selected');
         }
         revalidateStep(1);
