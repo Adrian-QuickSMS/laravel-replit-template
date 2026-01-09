@@ -1,0 +1,70 @@
+EMAIL-TO-SMS UI CONSISTENCY REFACTOR
+
+Context:
+This is a UI refactor for the Email-to-SMS module.
+DO NOT introduce new layouts, colours, buttons, or behaviours.
+All styling, spacing, typography, and component behaviour must follow the existing Fillow template.
+Use Message Logs and API Connections as the reference standard.
+
+────────────────────────
+A) Filter & Search Bar Placement (All Email-to-SMS Tabs)
+────────────────────────
+Requirement:
+- Search bar must always be positioned on the LEFT side of the toolbar.
+- Filter button(s) must always be positioned on the RIGHT side of the toolbar.
+- This placement must be consistent across ALL Email-to-SMS tabs.
+
+Constraints:
+- Do not change filter behaviour or logic.
+- Do not introduce additional controls or rearrange other toolbar elements.
+
+Acceptance:
+- Toolbar layout visually matches Message Logs exactly.
+- Search and filter positioning is consistent on every tab.
+
+────────────────────────
+B) Button Cleanup
+────────────────────────
+Requirement:
+- Remove the “+ Create Address” button entirely.
+- Do NOT replace it with any alternative CTA.
+
+Acceptance:
+- No “Create Address” or equivalent button exists anywhere in the Email-to-SMS module.
+
+────────────────────────
+C) Tab Order & Naming (Hard Requirement)
+────────────────────────
+Tabs must appear in the following order ONLY:
+
+1. Email-to-SMS Address  
+   - Rename tab label to: “Overview”
+
+2. Standard Email-to-SMS  
+   - Rename tab label to: “Email-to-SMS – Standard”
+
+3. Email-to-SMS – Contact List  
+   - Do NOT rename
+
+4. Reporting Groups  
+   - Do NOT rename
+
+Constraints:
+- Do not add or remove tabs.
+- Only rename exactly as specified.
+- Do not alter tab styling or interaction patterns.
+
+Acceptance:
+- Tab order and labels exactly match the list above.
+
+────────────────────────
+D) Create Reporting Group CTA
+────────────────────────
+Requirement:
+- Rename the button “+ Create Reporting Group” to:
+  → “+ Create”
+- Button colour, size, and position must remain unchanged.
+- Must use the existing Fillow primary CTA styling.
+
+Acceptance:
+- CTA reads “+ Create” and visually matches other primary CTAs across the platform.

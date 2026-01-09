@@ -53,14 +53,14 @@
     border-radius: 0.25rem;
     font-size: 0.85rem;
 }
-#configuration textarea.form-control {
+#standard textarea.form-control {
     min-height: auto;
     height: auto;
 }
-#configuration .card-body {
+#standard .card-body {
     padding: 1rem;
 }
-#configuration .card-header {
+#standard .card-header {
     padding: 0.75rem 1rem;
 }
 .email-sms-table {
@@ -333,22 +333,22 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <div class="card-header">
                     <div>
                         <h4 class="card-title mb-1">Email-to-SMS</h4>
                         <p class="mb-0 text-muted small">Configure email addresses to trigger SMS messages to your Contact Lists.</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-primary" id="btnCreateAddress">
-                            <i class="fas fa-plus me-1"></i> Create Address
-                        </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" id="emailSmsTab" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button" role="tab">
-                                <i class="fas fa-at me-1"></i> Email-to-SMS Addresses
+                                <i class="fas fa-at me-1"></i> Overview
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="standard-tab" data-bs-toggle="tab" data-bs-target="#standard" type="button" role="tab">
+                                <i class="fas fa-envelope-open-text me-1"></i> Email-to-SMS – Standard
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -359,11 +359,6 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="reporting-groups-tab" data-bs-toggle="tab" data-bs-target="#reporting-groups" type="button" role="tab">
                                 <i class="fas fa-layer-group me-1"></i> Reporting Groups
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="configuration-tab" data-bs-toggle="tab" data-bs-target="#configuration" type="button" role="tab">
-                                <i class="fas fa-envelope-open-text me-1"></i> Standard Email-to-SMS
                             </button>
                         </li>
                     </ul>
@@ -458,15 +453,13 @@
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                                        <i class="fas fa-filter me-1"></i> Filters
-                                    </button>
-                                    <div class="input-group" style="width: 280px;">
-                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                        <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
-                                    </div>
+                                <div class="input-group" style="width: 280px;">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
                                 </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                </button>
                             </div>
                             
                             <div class="table-container" id="addressesTableContainer">
@@ -564,9 +557,6 @@
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
-                                        <i class="fas fa-filter me-1"></i> Filters
-                                    </button>
                                     <div class="input-group" style="width: 280px;">
                                         <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                                         <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Quick search by name...">
@@ -576,6 +566,9 @@
                                         <label class="form-check-label small text-muted" for="clShowArchived">Show archived</label>
                                     </div>
                                 </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                </button>
                             </div>
                             
                             <div class="table-container" id="contactListsTableContainer">
@@ -627,7 +620,7 @@
                                     <p class="text-muted mb-0">Reporting Groups are for reporting and billing attribution only. They do not control recipients or content.</p>
                                 </div>
                                 <button type="button" class="btn btn-primary" id="btnCreateReportingGroup">
-                                    <i class="fas fa-plus me-1"></i> Create Reporting Group
+                                    <i class="fas fa-plus me-1"></i> Create
                                 </button>
                             </div>
                             
@@ -670,15 +663,13 @@
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#rgFiltersPanel">
-                                        <i class="fas fa-filter me-1"></i> Filters
-                                    </button>
-                                    <div class="input-group" style="width: 280px;">
-                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                        <input type="text" class="form-control" id="rgQuickSearchInput" placeholder="Quick search by group name...">
-                                    </div>
+                                <div class="input-group" style="width: 280px;">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="rgQuickSearchInput" placeholder="Quick search by group name...">
                                 </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#rgFiltersPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                </button>
                             </div>
                             
                             <div class="table-container" id="reportingGroupsTableContainer">
@@ -708,7 +699,7 @@
                                 <h4>No Reporting Groups</h4>
                                 <p>Create Reporting Groups to organize your Email-to-SMS addresses for easier reporting and filtering.</p>
                                 <button class="btn btn-primary" id="btnCreateReportingGroupEmpty">
-                                    <i class="fas fa-plus me-1"></i> Create Reporting Group
+                                    <i class="fas fa-plus me-1"></i> Create
                                 </button>
                             </div>
                             
@@ -719,7 +710,7 @@
                             </div>
                         </div>
                         
-                        <div class="tab-pane fade" id="configuration" role="tabpanel">
+                        <div class="tab-pane fade" id="standard" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
                                     <p class="text-muted mb-0">Create Standard Email-to-SMS setups to send messages directly from email without mapping to Contact Lists.</p>
@@ -770,9 +761,6 @@
                             
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
-                                        <i class="fas fa-filter me-1"></i> Filters
-                                    </button>
                                     <div class="input-group" style="width: 280px;">
                                         <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                                         <input type="text" class="form-control" id="stdQuickSearchInput" placeholder="Quick search by name...">
@@ -782,6 +770,9 @@
                                         <label class="form-check-label small text-muted" for="stdShowArchived">Show archived</label>
                                     </div>
                                 </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                </button>
                             </div>
                             
                             <div class="table-container" id="standardSmsTableContainer">

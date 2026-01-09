@@ -1,0 +1,83 @@
+EMAIL-TO-SMS UI CONSISTENCY FIX
+
+Context:
+This is a UI refactor for the Email-to-SMS module.
+Do NOT introduce new layouts, colours, buttons, or behaviours.
+Follow existing Fillow template patterns exactly (same as Message Logs, API Connections).
+
+────────────────────────
+A) Filter & Search Bar Placement (All Email-to-SMS Tabs)
+────────────────────────
+Requirement:
+- Search bar must always appear on the LEFT side of the toolbar.
+- Filter button(s) must always appear on the RIGHT side of the toolbar.
+- This placement must be consistent across all Email-to-SMS tabs.
+
+Clear All behaviour:
+- “Clear all” must:
+  - Reset all filters to their default state
+  - NOT automatically re-run the query
+  - Require the user to press “Apply Filters” to refresh results
+- Behaviour must match Message Logs filter logic exactly.
+
+Acceptance:
+- Toolbar layout matches Message Logs.
+- Clear All has predictable, non-destructive behaviour.
+
+────────────────────────
+B) Button Cleanup
+────────────────────────
+Requirement:
+- Remove the “+ Create Address” button entirely.
+- Do NOT replace it with an alternative CTA.
+
+Acceptance:
+- No “Create Address” button exists anywhere in Email-to-SMS UI.
+
+────────────────────────
+C) Tab Naming & Order (Important)
+────────────────────────
+Tabs must appear in the following order ONLY:
+
+1. Email-to-SMS Address  
+   - Renamed label: “Overview”
+
+2. Standard Email-to-SMS  
+   - Renamed label: “Email-to-SMS – Standard”
+
+3. Email-to-SMS – Contact List  
+   - Do NOT rename
+
+4. Reporting Groups  
+   - Do NOT rename
+
+Constraints:
+- Do not add or remove tabs.
+- Only rename exactly as specified.
+
+Acceptance:
+- Tab order and naming exactly match the list above.
+
+────────────────────────
+D) Create Reporting Group CTA
+────────────────────────
+Requirement:
+- “+ Create Reporting Group” button text must be changed to:
+  → “+ Create”
+- Button styling must remain unchanged (primary Fillow CTA).
+
+Acceptance:
+- CTA label reads “+ Create” only.
+If you want next, I can:
+
+Produce a QA acceptance checklist
+
+Or generate a single master Email-to-SMS refactor prompt so Replit stops drifting across tabs
+
+
+
+
+
+
+
+
