@@ -135,6 +135,72 @@
     margin-left: auto;
     margin-right: auto;
 }
+.email-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 38px;
+    padding: 0.5rem 0;
+}
+.email-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #f0ebf8;
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    border-radius: 2rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    color: #2c2c2c;
+}
+.email-tag.wildcard-tag {
+    background: #fff3cd;
+    border-color: rgba(255, 193, 7, 0.5);
+}
+.email-tag .remove-email {
+    margin-left: 0.5rem;
+    color: #886CC0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.email-tag .remove-email:hover {
+    color: #dc3545;
+}
+.create-modal-section {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.create-modal-section-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+.create-modal-section-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #343a40;
+    font-size: 0.95rem;
+}
+.create-modal-section-body {
+    padding: 1.25rem;
+}
+#createStandardSmsModal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    background: #fff;
+    padding: 1rem 1.5rem;
+}
+#createStandardSmsModal .modal-body {
+    background: #f8f9fa;
+    padding: 2rem;
+    overflow-y: auto;
+}
+#createStandardSmsModal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    background: #fff;
+    padding: 1rem 1.5rem;
+}
 .multiselect-dropdown .dropdown-menu {
     max-height: 200px;
     overflow-y: auto;
@@ -1016,6 +1082,158 @@
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="btnConfirmDelete">
                     <i class="fas fa-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createStandardSmsModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold"><i class="fas fa-envelope me-2 text-primary"></i>Create Standard Email-to-SMS</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container" style="max-width: 800px;">
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-info-circle me-2 text-primary"></i>General</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="stdCreateName" placeholder="e.g., Appointment Reminders">
+                                    <div class="invalid-feedback">Name is required.</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Description</label>
+                                    <input type="text" class="form-control" id="stdCreateDescription" placeholder="Optional description...">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Subaccount <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="stdCreateSubaccount">
+                                        <option value="">Select subaccount...</option>
+                                        <option value="main">Main Account</option>
+                                        <option value="marketing">Marketing Team</option>
+                                        <option value="support">Support Team</option>
+                                    </select>
+                                    <div class="invalid-feedback">Subaccount is required.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-envelope-open-text me-2 text-primary"></i>Email Settings (Sender Allowlist)</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Allowed Sender Emails</label>
+                                <p class="text-muted small mb-2">Only emails from these addresses will trigger SMS. Leave empty to allow all senders. Supports wildcard domains (e.g., *@company.com).</p>
+                                <div class="input-group mb-2">
+                                    <input type="email" class="form-control" id="stdCreateEmailInput" placeholder="email@example.com or *@domain.com">
+                                    <button class="btn btn-primary" type="button" id="stdAddEmailBtn">
+                                        <i class="fas fa-plus me-1"></i> Add
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="stdEmailError" style="display: none;">Invalid email format.</div>
+                                <div id="stdEmailTagsContainer" class="email-tags-container"></div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted"><span id="stdEmailCount">0</span> email(s) added</small>
+                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="stdClearAllEmails" style="display: none;">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear All
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="stdWildcardWarning" class="alert alert-warning d-none" style="font-size: 0.85rem;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> Wildcard domains are less secure and may result in unintended messages being sent.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="create-modal-section">
+                        <div class="create-modal-section-header">
+                            <h6><i class="fas fa-sms me-2 text-primary"></i>Message Settings</h6>
+                        </div>
+                        <div class="create-modal-section-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">SenderID <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="stdCreateSenderId">
+                                        <option value="">Select SenderID...</option>
+                                        <option value="QuickSMS">QuickSMS</option>
+                                        <option value="ALERTS">ALERTS</option>
+                                        <option value="NHS">NHS</option>
+                                        <option value="INFO">INFO</option>
+                                        <option value="Pharmacy">Pharmacy</option>
+                                    </select>
+                                    <small class="text-muted">Only approved/live SenderIDs are shown.</small>
+                                    <div class="invalid-feedback">SenderID is required.</div>
+                                </div>
+                                
+                                <div class="col-md-6" id="stdSubjectAsSenderIdGroup" style="display: none;">
+                                    <label class="form-label fw-semibold">Subject as SenderID</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="stdCreateSubjectAsSenderId">
+                                        <label class="form-check-label" for="stdCreateSubjectAsSenderId">
+                                            Extract SenderID from email subject
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">When enabled, the SenderID is extracted from the email subject line.</small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Enable Multiple SMS</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="stdCreateMultipleSms">
+                                        <label class="form-check-label" for="stdCreateMultipleSms">
+                                            Allow multipart SMS messages
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Messages over 160 characters will be sent as multiple parts.</small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Send Delivery Reports</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="stdCreateDeliveryReports">
+                                        <label class="form-check-label" for="stdCreateDeliveryReports">
+                                            Enable delivery report notifications
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6" id="stdDeliveryEmailGroup" style="display: none;">
+                                    <label class="form-label fw-semibold">Delivery Reports Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="stdCreateDeliveryEmail" placeholder="reports@yourcompany.com">
+                                    <small class="text-muted">Email address to receive delivery status reports.</small>
+                                    <div class="invalid-feedback">Valid email is required for delivery reports.</div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Filter Content (Signature Removal)</label>
+                                    <textarea class="form-control" id="stdCreateSignatureFilter" rows="3" placeholder="e.g., --\n.*\nSent from.*"></textarea>
+                                    <small class="text-muted">Remove matching content from inbound emails (e.g., signatures). Regex supported. One pattern per line.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="btnSaveStandardSms">
+                    <i class="fas fa-check me-1"></i> Save
                 </button>
             </div>
         </div>
@@ -2185,12 +2403,236 @@ $(document).ready(function() {
     });
     
     $('#btnCreateStandardSms, #btnCreateStandardSmsEmpty').on('click', function() {
-        // TODO: Open create modal or navigate to create page
-        alert('Create Standard Email-to-SMS functionality coming soon.');
+        openCreateStandardSmsModal();
     });
     
     // Initialize Standard Email-to-SMS table
     renderStandardSmsTable(mockStandardSms);
+    
+    // Mock account setting for dynamic SenderID
+    var accountSettings = {
+        dynamic_senderid_allowed: true
+    };
+    
+    // Standard Email-to-SMS Create Modal Logic
+    var stdAllowedEmails = [];
+    
+    function openCreateStandardSmsModal() {
+        // Reset form
+        stdAllowedEmails = [];
+        $('#stdCreateName').val('').removeClass('is-invalid');
+        $('#stdCreateDescription').val('');
+        $('#stdCreateSubaccount').val('').removeClass('is-invalid');
+        $('#stdCreateEmailInput').val('').removeClass('is-invalid');
+        $('#stdEmailError').hide();
+        $('#stdEmailTagsContainer').empty();
+        $('#stdEmailCount').text('0');
+        $('#stdClearAllEmails').hide();
+        $('#stdWildcardWarning').addClass('d-none');
+        $('#stdCreateSenderId').val('').removeClass('is-invalid');
+        $('#stdCreateSubjectAsSenderId').prop('checked', false);
+        $('#stdCreateMultipleSms').prop('checked', false);
+        $('#stdCreateDeliveryReports').prop('checked', false);
+        $('#stdCreateDeliveryEmail').val('').removeClass('is-invalid');
+        $('#stdDeliveryEmailGroup').hide();
+        $('#stdCreateSignatureFilter').val('');
+        
+        // Show/hide Subject as SenderID based on account setting
+        if (accountSettings.dynamic_senderid_allowed) {
+            $('#stdSubjectAsSenderIdGroup').show();
+        } else {
+            $('#stdSubjectAsSenderIdGroup').hide();
+        }
+        
+        // Open modal
+        var modal = new bootstrap.Modal(document.getElementById('createStandardSmsModal'));
+        modal.show();
+    }
+    
+    function isValidEmail(email) {
+        // Allow wildcard format *@domain.com
+        if (/^\*@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/.test(email)) {
+            return { valid: true, isWildcard: true };
+        }
+        // Standard email validation
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return { valid: emailRegex.test(email), isWildcard: false };
+    }
+    
+    function addAllowedEmail() {
+        var input = $('#stdCreateEmailInput');
+        var email = input.val().trim().toLowerCase();
+        var errorEl = $('#stdEmailError');
+        
+        if (!email) return;
+        
+        var validation = isValidEmail(email);
+        if (!validation.valid) {
+            errorEl.text('Invalid email format. Use email@domain.com or *@domain.com for wildcards.').show();
+            input.addClass('is-invalid');
+            return;
+        }
+        
+        if (stdAllowedEmails.includes(email)) {
+            errorEl.text('This email has already been added.').show();
+            input.addClass('is-invalid');
+            return;
+        }
+        
+        errorEl.hide();
+        input.removeClass('is-invalid');
+        
+        stdAllowedEmails.push(email);
+        input.val('');
+        renderEmailTags();
+        
+        // Show wildcard warning if any wildcard
+        updateWildcardWarning();
+    }
+    
+    function removeAllowedEmail(email) {
+        var index = stdAllowedEmails.indexOf(email);
+        if (index > -1) {
+            stdAllowedEmails.splice(index, 1);
+            renderEmailTags();
+            updateWildcardWarning();
+        }
+    }
+    
+    function clearAllEmails() {
+        stdAllowedEmails = [];
+        renderEmailTags();
+        updateWildcardWarning();
+    }
+    
+    function renderEmailTags() {
+        var container = $('#stdEmailTagsContainer');
+        container.empty();
+        
+        stdAllowedEmails.forEach(function(email) {
+            var isWildcard = email.startsWith('*@');
+            var tag = $('<span class="email-tag' + (isWildcard ? ' wildcard-tag' : '') + '">' +
+                '<i class="fas fa-' + (isWildcard ? 'asterisk' : 'envelope') + ' me-2 text-muted"></i>' +
+                escapeHtml(email) +
+                '<span class="remove-email"><i class="fas fa-times"></i></span>' +
+                '</span>');
+            tag.find('.remove-email').on('click', function() {
+                removeAllowedEmail(email);
+            });
+            container.append(tag);
+        });
+        
+        $('#stdEmailCount').text(stdAllowedEmails.length);
+        $('#stdClearAllEmails').toggle(stdAllowedEmails.length > 0);
+    }
+    
+    function updateWildcardWarning() {
+        var hasWildcard = stdAllowedEmails.some(function(email) {
+            return email.startsWith('*@');
+        });
+        $('#stdWildcardWarning').toggleClass('d-none', !hasWildcard);
+    }
+    
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Event handlers for email chip input
+    $('#stdAddEmailBtn').on('click', addAllowedEmail);
+    
+    $('#stdCreateEmailInput').on('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addAllowedEmail();
+        }
+    });
+    
+    $('#stdClearAllEmails').on('click', clearAllEmails);
+    
+    // Toggle delivery reports email field
+    $('#stdCreateDeliveryReports').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#stdDeliveryEmailGroup').slideDown(200);
+        } else {
+            $('#stdDeliveryEmailGroup').slideUp(200);
+            $('#stdCreateDeliveryEmail').val('').removeClass('is-invalid');
+        }
+    });
+    
+    // Save Standard Email-to-SMS
+    $('#btnSaveStandardSms').on('click', function() {
+        var isValid = true;
+        
+        // Validate name
+        var name = $('#stdCreateName').val().trim();
+        if (!name) {
+            $('#stdCreateName').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#stdCreateName').removeClass('is-invalid');
+        }
+        
+        // Validate subaccount
+        var subaccount = $('#stdCreateSubaccount').val();
+        if (!subaccount) {
+            $('#stdCreateSubaccount').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#stdCreateSubaccount').removeClass('is-invalid');
+        }
+        
+        // Validate SenderID
+        var senderId = $('#stdCreateSenderId').val();
+        if (!senderId) {
+            $('#stdCreateSenderId').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#stdCreateSenderId').removeClass('is-invalid');
+        }
+        
+        // Validate delivery email if reports enabled
+        if ($('#stdCreateDeliveryReports').is(':checked')) {
+            var deliveryEmail = $('#stdCreateDeliveryEmail').val().trim();
+            var emailValidation = isValidEmail(deliveryEmail);
+            if (!deliveryEmail || !emailValidation.valid || emailValidation.isWildcard) {
+                $('#stdCreateDeliveryEmail').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#stdCreateDeliveryEmail').removeClass('is-invalid');
+            }
+        }
+        
+        if (!isValid) {
+            return;
+        }
+        
+        // Collect form data
+        var formData = {
+            name: name,
+            description: $('#stdCreateDescription').val().trim(),
+            subaccount: subaccount,
+            allowedEmails: stdAllowedEmails,
+            senderId: senderId,
+            subjectAsSenderId: $('#stdCreateSubjectAsSenderId').is(':checked'),
+            multipleSms: $('#stdCreateMultipleSms').is(':checked'),
+            deliveryReports: $('#stdCreateDeliveryReports').is(':checked'),
+            deliveryEmail: $('#stdCreateDeliveryEmail').val().trim(),
+            signatureFilter: $('#stdCreateSignatureFilter').val().trim()
+        };
+        
+        // TODO: Backend integration - save the Standard Email-to-SMS setup
+        console.log('Saving Standard Email-to-SMS:', formData);
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('createStandardSmsModal')).hide();
+        
+        // Show success message (mock)
+        alert('Standard Email-to-SMS setup "' + name + '" created successfully!');
+        
+        // TODO: Refresh the table with new data from backend
+    });
     
     // Email Parsing Test Logic
     function validateSenderIdFormat(senderId) {
