@@ -1768,99 +1768,46 @@ $(document).ready(function() {
         }
     ];
     
-    var mockContactListMappings = [
-        {
-            id: 'clm-001',
-            name: 'NHS Patient Notifications',
-            description: 'Automated notifications to NHS patients',
-            subaccountId: 'main',
-            subaccountName: 'Main Account',
-            allowedSenders: ['admin@nhstrust.nhs.uk', 'appointments@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
-            targetLists: ['NHS Patients', 'Appointment List'],
-            optOutLists: ['Global Opt-Out'],
-            created: '2024-10-15',
-            lastUpdated: '2025-01-09',
-            status: 'Active'
-        },
-        {
-            id: 'clm-002',
-            name: 'Pharmacy Reminders',
-            description: 'Prescription ready and refill reminders',
-            subaccountId: 'support',
-            subaccountName: 'Support Team',
-            allowedSenders: ['pharmacy@clinic.com'],
-            targetLists: ['Pharmacy Patients'],
-            optOutLists: [],
-            created: '2024-11-01',
-            lastUpdated: '2025-01-08',
-            status: 'Active'
-        },
-        {
-            id: 'clm-003',
-            name: 'Appointment Confirmations',
-            description: 'Automated appointment confirmation messages',
-            subaccountId: 'main',
-            subaccountName: 'Main Account',
-            allowedSenders: [],
-            targetLists: ['Appointment List', 'NHS Patients', 'Pharmacy Patients'],
-            optOutLists: ['Marketing Opt-Out', 'SMS Opt-Out'],
-            created: '2024-11-20',
-            lastUpdated: '2025-01-07',
-            status: 'Active'
-        },
-        {
-            id: 'clm-004',
-            name: 'Newsletter Distribution',
-            description: 'Weekly newsletter SMS notifications',
-            subaccountId: 'marketing',
-            subaccountName: 'Marketing Team',
-            allowedSenders: ['marketing@company.com', 'newsletter@company.com'],
-            targetLists: ['Newsletter Subscribers'],
-            optOutLists: ['Marketing Opt-Out'],
-            created: '2024-08-05',
-            lastUpdated: '2024-12-20',
-            status: 'Archived'
-        },
-        {
-            id: 'clm-005',
-            name: 'Emergency Alerts',
-            description: 'Critical emergency notifications',
-            subaccountId: 'main',
-            subaccountName: 'Main Account',
-            allowedSenders: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io', 'emergency@quicksms.io'],
-            targetLists: ['Emergency Contacts'],
-            optOutLists: [],
-            created: '2024-12-01',
-            lastUpdated: '2025-01-09',
-            status: 'Active'
-        },
-        {
-            id: 'clm-006',
-            name: 'Daily Reminders',
-            description: 'Daily reminder messages for patients',
-            subaccountId: 'support',
-            subaccountName: 'Support Team',
-            allowedSenders: ['reminders@nhstrust.nhs.uk'],
-            targetLists: ['NHS Patients', 'Active Patients'],
-            optOutLists: ['Global Opt-Out'],
-            created: '2024-12-15',
-            lastUpdated: '2025-01-06',
-            status: 'Active'
-        },
-        {
-            id: 'clm-007',
-            name: 'Billing Notifications',
-            description: 'Invoice and payment reminder notifications',
-            subaccountId: 'marketing',
-            subaccountName: 'Marketing Team',
-            allowedSenders: ['billing@company.com', '*@finance.company.com'],
-            targetLists: ['Newsletter Subscribers', 'Recent Orders'],
-            optOutLists: [],
-            created: '2025-01-02',
-            lastUpdated: '2025-01-05',
-            status: 'Active'
-        }
-    ];
+    // Contact List setups - populated from service layer
+    var contactListSetups = [];
+    var contactListSetupsLoading = false;
+    
+    /**
+     * Load Contact List setups from service
+     */
+    function loadContactListSetups(options) {
+        options = options || {};
+        contactListSetupsLoading = true;
+        
+        return EmailToSmsService.listEmailToSmsContactListSetups({
+            includeArchived: options.includeArchived || $('#clShowArchived').is(':checked'),
+            search: options.search || ''
+        }).then(function(response) {
+            contactListSetupsLoading = false;
+            if (response.success) {
+                contactListSetups = response.data.map(function(item) {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        description: item.description,
+                        subaccountId: item.subaccountId,
+                        subaccountName: item.subaccountName,
+                        allowedSenders: item.allowedSenderEmails || [],
+                        targetLists: item.targetLists || item.contactBookListNames || [],
+                        optOutLists: item.optOutLists || item.optOutListNames || [],
+                        created: item.created,
+                        lastUpdated: item.lastUpdated,
+                        status: item.status === 'active' ? 'Active' : 'Archived'
+                    };
+                });
+            }
+            return contactListSetups;
+        }).catch(function(error) {
+            contactListSetupsLoading = false;
+            console.error('Failed to load contact list setups:', error);
+            return [];
+        });
+    }
     
     var rgAppliedFilters = {};
     var clAppliedFilters = {};
@@ -2126,7 +2073,7 @@ $(document).ready(function() {
         });
         
         $('#clShowingCount').text(mappings.length);
-        $('#clTotalCount').text(mockContactListMappings.length);
+        $('#clTotalCount').text(contactListSetups.length);
         
         // Bind action handlers
         $('.clm-action-view').off('click').on('click', function(e) {
@@ -2150,16 +2097,18 @@ $(document).ready(function() {
         $('.clm-action-unarchive').off('click').on('click', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            var mapping = mockContactListMappings.find(function(m) { return m.id === id; });
-            if (mapping) {
-                mapping.status = 'Active';
-                renderContactListMappings(mockContactListMappings);
-            }
+            EmailToSmsService.unarchiveEmailToSmsContactListSetup(id).then(function(response) {
+                if (response.success) {
+                    loadContactListSetups().then(function(data) {
+                        filterContactListMappings();
+                    });
+                }
+            });
         });
     }
     
     function findClmById(id) {
-        return mockContactListMappings.find(function(m) { return m.id === id; });
+        return contactListSetups.find(function(m) { return m.id === id; });
     }
     
     var clmEditingId = null;
@@ -2328,18 +2277,26 @@ $(document).ready(function() {
     function confirmClmArchive() {
         if (!clmArchiveTargetId) return;
         
-        var item = findClmById(clmArchiveTargetId);
-        if (item) {
-            item.status = 'Archived';
-            filterContactListMappings();
-        }
-        
-        bootstrap.Modal.getInstance(document.getElementById('clmArchiveModal')).hide();
-        clmArchiveTargetId = null;
+        EmailToSmsService.archiveEmailToSmsContactListSetup(clmArchiveTargetId).then(function(response) {
+            if (response.success) {
+                loadContactListSetups().then(function() {
+                    filterContactListMappings();
+                });
+            } else {
+                alert('Error: ' + (response.error || 'Failed to archive setup'));
+            }
+            bootstrap.Modal.getInstance(document.getElementById('clmArchiveModal')).hide();
+            clmArchiveTargetId = null;
+        }).catch(function(error) {
+            console.error('Archive failed:', error);
+            alert('Error archiving setup. Please try again.');
+            bootstrap.Modal.getInstance(document.getElementById('clmArchiveModal')).hide();
+            clmArchiveTargetId = null;
+        });
     }
     
     function filterContactListMappings() {
-        var filtered = mockContactListMappings.slice();
+        var filtered = contactListSetups.slice();
         var chips = [];
         
         var showArchived = $('#clShowArchived').is(':checked');
@@ -2415,7 +2372,9 @@ $(document).ready(function() {
         $('.cl-date-preset').removeClass('active');
         clAppliedFilters = {};
         $('#clActiveFiltersContainer').hide();
-        renderContactListMappings(mockContactListMappings);
+        loadContactListSetups().then(function() {
+            filterContactListMappings();
+        });
     }
     
     function openDetailsDrawer(address) {
@@ -2958,21 +2917,25 @@ $(document).ready(function() {
     $(document).on('click', '.archive-mapping', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var mapping = mockContactListMappings.find(function(m) { return m.id === id; });
-        if (mapping) {
-            mapping.status = 'Archived';
-            renderContactListMappings(mockContactListMappings);
-        }
+        EmailToSmsService.archiveEmailToSmsContactListSetup(id).then(function(response) {
+            if (response.success) {
+                loadContactListSetups().then(function() {
+                    filterContactListMappings();
+                });
+            }
+        });
     });
     
     $(document).on('click', '.unarchive-mapping', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var mapping = mockContactListMappings.find(function(m) { return m.id === id; });
-        if (mapping) {
-            mapping.status = 'Active';
-            renderContactListMappings(mockContactListMappings);
-        }
+        EmailToSmsService.unarchiveEmailToSmsContactListSetup(id).then(function(response) {
+            if (response.success) {
+                loadContactListSetups().then(function() {
+                    filterContactListMappings();
+                });
+            }
+        });
     });
     
     // Contact List Mapping Create Modal Logic
@@ -3321,52 +3284,59 @@ $(document).ready(function() {
             return;
         }
         
-        // Build payload
-        var subaccountName = $('#clmCreateSubaccount option:selected').text();
+        // Build payload for service layer
         var listNames = clmSelectedLists.map(function(l) { return l.label; });
+        var listIds = clmSelectedLists.map(function(l) { return l.value; });
         var optOutNames = clmSelectedOptOuts.filter(function(o) { return o.value !== 'NO'; }).map(function(o) { return o.label; });
+        var optOutIds = clmSelectedOptOuts.filter(function(o) { return o.value !== 'NO'; }).map(function(o) { return o.value; });
         
+        var payload = {
+            name: name,
+            description: $('#clmCreateDescription').val().trim(),
+            subaccountId: subaccount,
+            allowedSenderEmails: clmAllowedEmails.slice(),
+            contactBookListIds: listIds,
+            contactBookListNames: listNames,
+            optOutMode: optOutIds.length === 0 ? 'NONE' : 'SELECTED',
+            optOutListIds: optOutIds,
+            optOutListNames: optOutNames,
+            senderIdTemplateId: $('#clmCreateSenderId').val(),
+            senderId: $('#clmCreateSenderId option:selected').text(),
+            subjectOverridesSenderId: $('#clmCreateSubjectAsSenderId').is(':checked'),
+            multipleSmsEnabled: $('#clmCreateMultipleSms').is(':checked'),
+            deliveryReportsEnabled: $('#clmCreateDeliveryReports').is(':checked'),
+            deliveryReportsEmail: $('#clmCreateDeliveryEmail').val().trim(),
+            contentFilter: contentFilter
+        };
+        
+        var savePromise;
         if (clmEditingId) {
-            // Edit mode: update existing record
-            var existingMapping = findClmById(clmEditingId);
-            if (existingMapping) {
-                existingMapping.name = name;
-                existingMapping.description = $('#clmCreateDescription').val().trim();
-                existingMapping.subaccountId = subaccount;
-                existingMapping.subaccountName = subaccountName;
-                existingMapping.allowedSenders = clmAllowedEmails.slice();
-                existingMapping.targetLists = listNames;
-                existingMapping.optOutLists = optOutNames;
-                existingMapping.lastUpdated = new Date().toISOString().split('T')[0];
-                
-                console.log('Updated Contact List Mapping:', existingMapping);
-            }
-            clmEditingId = null;
+            // Edit mode: update existing record via service
+            savePromise = EmailToSmsService.updateEmailToSmsContactListSetup(clmEditingId, payload);
         } else {
-            // Create mode: add new record
-            var newMapping = {
-                id: 'clm-' + Date.now(),
-                name: name,
-                description: $('#clmCreateDescription').val().trim(),
-                subaccountId: subaccount,
-                subaccountName: subaccountName,
-                allowedSenders: clmAllowedEmails.slice(),
-                targetLists: listNames,
-                optOutLists: optOutNames,
-                created: new Date().toISOString().split('T')[0],
-                lastUpdated: new Date().toISOString().split('T')[0],
-                status: 'Active'
-            };
-            
-            mockContactListMappings.unshift(newMapping);
-            console.log('Created Contact List Mapping:', newMapping);
+            // Create mode: add new record via service
+            savePromise = EmailToSmsService.createEmailToSmsContactListSetup(payload);
         }
         
-        // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('createContactListMappingModal')).hide();
-        
-        // Refresh table
-        filterContactListMappings();
+        savePromise.then(function(response) {
+            if (response.success) {
+                console.log(clmEditingId ? 'Updated' : 'Created', 'Contact List Mapping:', response.data);
+                clmEditingId = null;
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('createContactListMappingModal')).hide();
+                
+                // Refresh table from service
+                loadContactListSetups().then(function() {
+                    filterContactListMappings();
+                });
+            } else {
+                alert('Error: ' + (response.error || 'Failed to save setup'));
+            }
+        }).catch(function(error) {
+            console.error('Save failed:', error);
+            alert('Error saving setup. Please try again.');
+        });
     });
     
     (function() {
@@ -3376,19 +3346,9 @@ $(document).ready(function() {
         }
         
         if (urlParams.get('created') === '1') {
-            var newMappingStr = sessionStorage.getItem('newMapping');
-            if (newMappingStr) {
-                try {
-                    var newMapping = JSON.parse(newMappingStr);
-                    mockContactListMappings.unshift(newMapping);
-                    renderContactListMappings(mockContactListMappings);
-                    sessionStorage.removeItem('newMapping');
-                    
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                } catch (e) {
-                    console.error('Failed to parse new mapping', e);
-                }
-            }
+            sessionStorage.removeItem('newMapping');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            // Data will be reloaded from service
         }
     })();
     

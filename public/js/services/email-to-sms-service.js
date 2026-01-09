@@ -567,9 +567,651 @@ var EmailToSmsService = (function() {
         return { valid: emailRegex.test(email), isWildcard: false };
     }
     
+    // =========================================================================
+    // CONTACT LIST SETUPS - Email-to-SMS Contact List Module
+    // =========================================================================
+    
+    var contactListConfig = {
+        endpoints: {
+            list: '/contact-list-setups',
+            create: '/contact-list-setups',
+            update: '/contact-list-setups/{id}',
+            archive: '/contact-list-setups/{id}/archive',
+            contactBooks: '/contact-books',
+            optOutLists: '/opt-out-lists',
+            smsTemplates: '/sms-templates/approved',
+            accountFlags: '/account/flags'
+        }
+    };
+    
+    // Mock Contact List Setups
+    var mockContactListSetups = [
+        {
+            id: 'cls-001',
+            name: 'NHS Patient Notifications',
+            description: 'Automated notifications to NHS patients',
+            subaccountId: 'main',
+            subaccountName: 'Main Account',
+            allowedSenderEmails: ['admin@nhstrust.nhs.uk', 'appointments@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
+            contactBookListIds: ['cb-001', 'cb-003'],
+            contactBookListNames: ['NHS Patients', 'Appointment List'],
+            optOutMode: 'SELECTED',
+            optOutListIds: ['opt-001'],
+            optOutListNames: ['Global Opt-Out'],
+            senderIdTemplateId: 'tpl-nhs-003',
+            senderId: 'NHS',
+            subjectOverridesSenderId: false,
+            multipleSmsEnabled: true,
+            deliveryReportsEnabled: true,
+            deliveryReportsEmail: 'nhs-reports@nhstrust.nhs.uk',
+            contentFilter: '',
+            status: 'active',
+            createdAt: '2024-10-15T09:00:00Z',
+            updatedAt: '2025-01-09T10:30:00Z'
+        },
+        {
+            id: 'cls-002',
+            name: 'Pharmacy Reminders',
+            description: 'Prescription ready and refill reminders',
+            subaccountId: 'support',
+            subaccountName: 'Support Team',
+            allowedSenderEmails: ['pharmacy@clinic.com'],
+            contactBookListIds: ['cb-002'],
+            contactBookListNames: ['Pharmacy Patients'],
+            optOutMode: 'NONE',
+            optOutListIds: [],
+            optOutListNames: [],
+            senderIdTemplateId: 'tpl-pharmacy-004',
+            senderId: 'Pharmacy',
+            subjectOverridesSenderId: false,
+            multipleSmsEnabled: false,
+            deliveryReportsEnabled: false,
+            deliveryReportsEmail: '',
+            contentFilter: '',
+            status: 'active',
+            createdAt: '2024-11-01T14:00:00Z',
+            updatedAt: '2025-01-08T16:20:00Z'
+        },
+        {
+            id: 'cls-003',
+            name: 'Appointment Confirmations',
+            description: 'Automated appointment confirmation messages',
+            subaccountId: 'main',
+            subaccountName: 'Main Account',
+            allowedSenderEmails: [],
+            contactBookListIds: ['cb-003', 'cb-001', 'cb-002'],
+            contactBookListNames: ['Appointment List', 'NHS Patients', 'Pharmacy Patients'],
+            optOutMode: 'SELECTED',
+            optOutListIds: ['opt-002', 'opt-003'],
+            optOutListNames: ['Marketing Opt-Out', 'SMS Opt-Out'],
+            senderIdTemplateId: 'tpl-quicksms-001',
+            senderId: 'QuickSMS',
+            subjectOverridesSenderId: true,
+            multipleSmsEnabled: true,
+            deliveryReportsEnabled: true,
+            deliveryReportsEmail: 'appointments@company.com',
+            contentFilter: '--\n.*\nSent from.*',
+            status: 'active',
+            createdAt: '2024-11-20T10:00:00Z',
+            updatedAt: '2025-01-07T11:30:00Z'
+        },
+        {
+            id: 'cls-004',
+            name: 'Newsletter Distribution',
+            description: 'Weekly newsletter SMS notifications',
+            subaccountId: 'marketing',
+            subaccountName: 'Marketing Team',
+            allowedSenderEmails: ['marketing@company.com', 'newsletter@company.com'],
+            contactBookListIds: ['cb-004'],
+            contactBookListNames: ['Newsletter Subscribers'],
+            optOutMode: 'SELECTED',
+            optOutListIds: ['opt-002'],
+            optOutListNames: ['Marketing Opt-Out'],
+            senderIdTemplateId: 'tpl-info-005',
+            senderId: 'INFO',
+            subjectOverridesSenderId: false,
+            multipleSmsEnabled: true,
+            deliveryReportsEnabled: false,
+            deliveryReportsEmail: '',
+            contentFilter: '',
+            status: 'archived',
+            createdAt: '2024-08-05T08:00:00Z',
+            updatedAt: '2024-12-20T10:00:00Z'
+        },
+        {
+            id: 'cls-005',
+            name: 'Emergency Alerts',
+            description: 'Critical emergency notifications',
+            subaccountId: 'main',
+            subaccountName: 'Main Account',
+            allowedSenderEmails: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io', 'emergency@quicksms.io'],
+            contactBookListIds: ['cb-005'],
+            contactBookListNames: ['Emergency Contacts'],
+            optOutMode: 'NONE',
+            optOutListIds: [],
+            optOutListNames: [],
+            senderIdTemplateId: 'tpl-alerts-002',
+            senderId: 'ALERTS',
+            subjectOverridesSenderId: false,
+            multipleSmsEnabled: false,
+            deliveryReportsEnabled: true,
+            deliveryReportsEmail: 'alerts@quicksms.io',
+            contentFilter: '',
+            status: 'active',
+            createdAt: '2024-12-01T12:00:00Z',
+            updatedAt: '2025-01-09T09:15:00Z'
+        },
+        {
+            id: 'cls-006',
+            name: 'Daily Reminders',
+            description: 'Daily reminder messages for patients',
+            subaccountId: 'support',
+            subaccountName: 'Support Team',
+            allowedSenderEmails: ['reminders@nhstrust.nhs.uk'],
+            contactBookListIds: ['cb-001', 'cb-006'],
+            contactBookListNames: ['NHS Patients', 'Active Patients'],
+            optOutMode: 'SELECTED',
+            optOutListIds: ['opt-001'],
+            optOutListNames: ['Global Opt-Out'],
+            senderIdTemplateId: 'tpl-nhs-003',
+            senderId: 'NHS',
+            subjectOverridesSenderId: false,
+            multipleSmsEnabled: true,
+            deliveryReportsEnabled: false,
+            deliveryReportsEmail: '',
+            contentFilter: 'Kind regards,\n.*',
+            status: 'active',
+            createdAt: '2024-12-15T09:00:00Z',
+            updatedAt: '2025-01-06T14:00:00Z'
+        },
+        {
+            id: 'cls-007',
+            name: 'Billing Notifications',
+            description: 'Invoice and payment reminder notifications',
+            subaccountId: 'marketing',
+            subaccountName: 'Marketing Team',
+            allowedSenderEmails: ['billing@company.com', '*@finance.company.com'],
+            contactBookListIds: ['cb-004', 'cb-007'],
+            contactBookListNames: ['Newsletter Subscribers', 'Recent Orders'],
+            optOutMode: 'NONE',
+            optOutListIds: [],
+            optOutListNames: [],
+            senderIdTemplateId: 'tpl-info-005',
+            senderId: 'INFO',
+            subjectOverridesSenderId: true,
+            multipleSmsEnabled: true,
+            deliveryReportsEnabled: true,
+            deliveryReportsEmail: 'billing-reports@company.com',
+            contentFilter: '',
+            status: 'active',
+            createdAt: '2025-01-02T10:00:00Z',
+            updatedAt: '2025-01-05T15:00:00Z'
+        }
+    ];
+    
+    // Mock Contact Book Lists (Static + Dynamic)
+    var mockContactBookLists = {
+        main: [
+            { id: 'cb-001', name: 'NHS Patients', type: 'static', recipientCount: 4521, status: 'active' },
+            { id: 'cb-003', name: 'Appointment List', type: 'static', recipientCount: 3267, status: 'active' },
+            { id: 'cb-005', name: 'Emergency Contacts', type: 'static', recipientCount: 156, status: 'active' },
+            { id: 'dyn-001', name: 'Active Subscribers', type: 'dynamic', recipientCount: 2890, status: 'active', criteria: 'last_activity < 30 days' },
+            { id: 'dyn-002', name: 'New Patients (30 days)', type: 'dynamic', recipientCount: 342, status: 'active', criteria: 'created_at > 30 days ago' }
+        ],
+        marketing: [
+            { id: 'cb-004', name: 'Newsletter Subscribers', type: 'static', recipientCount: 8934, status: 'active' },
+            { id: 'cb-007', name: 'Recent Orders', type: 'static', recipientCount: 1456, status: 'active' },
+            { id: 'dyn-003', name: 'High Value Customers', type: 'dynamic', recipientCount: 567, status: 'active', criteria: 'total_spend > 500' },
+            { id: 'dyn-004', name: 'Inactive Users', type: 'dynamic', recipientCount: 1234, status: 'active', criteria: 'last_activity > 90 days' }
+        ],
+        support: [
+            { id: 'cb-002', name: 'Pharmacy Patients', type: 'static', recipientCount: 1892, status: 'active' },
+            { id: 'cb-006', name: 'Active Patients', type: 'static', recipientCount: 2145, status: 'active' },
+            { id: 'dyn-005', name: 'Pending Follow-ups', type: 'dynamic', recipientCount: 89, status: 'active', criteria: 'follow_up_date <= today' }
+        ]
+    };
+    
+    // Mock Opt-Out Lists
+    var mockOptOutLists = {
+        main: [
+            { id: 'opt-001', name: 'Global Opt-Out', description: 'Master opt-out list for all communications', recipientCount: 1245 },
+            { id: 'opt-002', name: 'Marketing Opt-Out', description: 'Users who opted out of marketing messages', recipientCount: 3456 },
+            { id: 'opt-003', name: 'SMS Opt-Out', description: 'Users who prefer no SMS', recipientCount: 892 }
+        ],
+        marketing: [
+            { id: 'opt-002', name: 'Marketing Opt-Out', description: 'Users who opted out of marketing messages', recipientCount: 3456 },
+            { id: 'opt-004', name: 'Promotional Opt-Out', description: 'No promotional content', recipientCount: 567 }
+        ],
+        support: [
+            { id: 'opt-001', name: 'Global Opt-Out', description: 'Master opt-out list for all communications', recipientCount: 1245 },
+            { id: 'opt-005', name: 'Healthcare Opt-Out', description: 'Healthcare communication opt-outs', recipientCount: 234 }
+        ]
+    };
+    
+    // Mock Approved SMS Templates (for SenderID selection)
+    var mockApprovedSmsTemplates = {
+        main: [
+            { id: 'tpl-quicksms-001', senderId: 'QuickSMS', name: 'Default Sender', status: 'live', version: 'v1.2' },
+            { id: 'tpl-nhs-003', senderId: 'NHS', name: 'NHS Trust Sender', status: 'live', version: 'v2.0' },
+            { id: 'tpl-alerts-002', senderId: 'ALERTS', name: 'Alert Notifications', status: 'live', version: 'v1.0' }
+        ],
+        marketing: [
+            { id: 'tpl-info-005', senderId: 'INFO', name: 'Info Messages', status: 'live', version: 'v1.1' },
+            { id: 'tpl-promo-006', senderId: 'PROMO', name: 'Promotional', status: 'live', version: 'v1.0' }
+        ],
+        support: [
+            { id: 'tpl-pharmacy-004', senderId: 'Pharmacy', name: 'Pharmacy Sender', status: 'live', version: 'v1.3' },
+            { id: 'tpl-nhs-003', senderId: 'NHS', name: 'NHS Trust Sender', status: 'live', version: 'v2.0' }
+        ]
+    };
+    
+    // Mock Account Flags
+    var mockAccountFlags = {
+        dynamic_senderid_allowed: true,
+        wildcard_email_allowed: true,
+        max_contact_lists_per_setup: 10,
+        max_allowed_sender_emails: 20,
+        delivery_reports_enabled: true
+    };
+    
+    /**
+     * Transform Contact List setup to frontend format
+     */
+    function _transformContactListSetup(apiData) {
+        return {
+            id: apiData.id,
+            name: apiData.name,
+            description: apiData.description,
+            subaccountId: apiData.subaccountId,
+            subaccountName: apiData.subaccountName,
+            allowedSenderEmails: apiData.allowedSenderEmails || [],
+            contactBookListIds: apiData.contactBookListIds || [],
+            contactBookListNames: apiData.contactBookListNames || [],
+            optOutMode: apiData.optOutMode,
+            optOutListIds: apiData.optOutListIds || [],
+            optOutListNames: apiData.optOutListNames || [],
+            senderIdTemplateId: apiData.senderIdTemplateId,
+            senderId: apiData.senderId,
+            subjectOverridesSenderId: apiData.subjectOverridesSenderId,
+            multipleSmsEnabled: apiData.multipleSmsEnabled,
+            deliveryReportsEnabled: apiData.deliveryReportsEnabled,
+            deliveryReportsEmail: apiData.deliveryReportsEmail,
+            contentFilter: apiData.contentFilter,
+            status: apiData.status,
+            createdAt: apiData.createdAt,
+            updatedAt: apiData.updatedAt,
+            // Display-friendly fields
+            created: apiData.createdAt ? apiData.createdAt.split('T')[0] : '',
+            lastUpdated: apiData.updatedAt ? apiData.updatedAt.split('T')[0] : '',
+            targetLists: apiData.contactBookListNames || [],
+            optOutLists: apiData.optOutListNames || []
+        };
+    }
+    
+    /**
+     * List all Email-to-SMS Contact List setups
+     * @param {object} options - Filter options (includeArchived, search, subaccountId)
+     * @returns {Promise<object>}
+     */
+    function listEmailToSmsContactListSetups(options) {
+        options = options || {};
+        
+        if (config.useMockData) {
+            return simulateDelay(150).then(function() {
+                var results = mockContactListSetups.map(_transformContactListSetup);
+                
+                if (!options.includeArchived) {
+                    results = results.filter(function(item) {
+                        return item.status !== 'archived';
+                    });
+                }
+                
+                if (options.subaccountId) {
+                    results = results.filter(function(item) {
+                        return item.subaccountId === options.subaccountId;
+                    });
+                }
+                
+                if (options.search) {
+                    var searchTerm = options.search.toLowerCase();
+                    results = results.filter(function(item) {
+                        return item.name.toLowerCase().indexOf(searchTerm) !== -1 ||
+                               item.subaccountName.toLowerCase().indexOf(searchTerm) !== -1 ||
+                               item.targetLists.some(function(list) {
+                                   return list.toLowerCase().indexOf(searchTerm) !== -1;
+                               }) ||
+                               item.allowedSenderEmails.some(function(email) {
+                                   return email.toLowerCase().indexOf(searchTerm) !== -1;
+                               });
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: results,
+                    total: results.length
+                };
+            });
+        }
+        
+        var queryParams = new URLSearchParams(options).toString();
+        var endpoint = contactListConfig.endpoints.list + (queryParams ? '?' + queryParams : '');
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get a single Contact List setup by ID
+     * @param {string} id - Setup ID
+     * @returns {Promise<object>}
+     */
+    function getEmailToSmsContactListSetup(id) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var setup = mockContactListSetups.find(function(s) { return s.id === id; });
+                if (!setup) {
+                    return { success: false, error: 'Setup not found' };
+                }
+                return { success: true, data: _transformContactListSetup(setup) };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.update.replace('{id}', id);
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Create a new Contact List setup
+     * @param {object} payload - Setup data
+     * @returns {Promise<object>}
+     */
+    function createEmailToSmsContactListSetup(payload) {
+        if (config.useMockData) {
+            return simulateDelay(300).then(function() {
+                var now = new Date().toISOString();
+                var subaccount = mockSubaccounts.find(function(s) { return s.id === payload.subaccountId; });
+                var template = mockApprovedSmsTemplates[payload.subaccountId] ? 
+                    mockApprovedSmsTemplates[payload.subaccountId].find(function(t) { return t.id === payload.senderIdTemplateId; }) : null;
+                
+                var newSetup = {
+                    id: 'cls-' + Date.now(),
+                    name: payload.name,
+                    description: payload.description || '',
+                    subaccountId: payload.subaccountId,
+                    subaccountName: subaccount ? subaccount.name : 'Unknown',
+                    allowedSenderEmails: payload.allowedSenderEmails || [],
+                    contactBookListIds: payload.contactBookListIds || [],
+                    contactBookListNames: payload.contactBookListNames || [],
+                    optOutMode: payload.optOutMode || 'NONE',
+                    optOutListIds: payload.optOutListIds || [],
+                    optOutListNames: payload.optOutListNames || [],
+                    senderIdTemplateId: payload.senderIdTemplateId,
+                    senderId: template ? template.senderId : payload.senderId || 'QuickSMS',
+                    subjectOverridesSenderId: payload.subjectOverridesSenderId || false,
+                    multipleSmsEnabled: payload.multipleSmsEnabled || false,
+                    deliveryReportsEnabled: payload.deliveryReportsEnabled || false,
+                    deliveryReportsEmail: payload.deliveryReportsEmail || '',
+                    contentFilter: payload.contentFilter || '',
+                    status: 'active',
+                    createdAt: now,
+                    updatedAt: now
+                };
+                
+                mockContactListSetups.unshift(newSetup);
+                
+                return {
+                    success: true,
+                    data: _transformContactListSetup(newSetup),
+                    message: 'Contact List setup created successfully'
+                };
+            });
+        }
+        
+        return _makeRequest('POST', contactListConfig.endpoints.create, payload);
+    }
+    
+    /**
+     * Update an existing Contact List setup
+     * @param {string} id - Setup ID
+     * @param {object} payload - Updated data
+     * @returns {Promise<object>}
+     */
+    function updateEmailToSmsContactListSetup(id, payload) {
+        if (config.useMockData) {
+            return simulateDelay(300).then(function() {
+                var index = mockContactListSetups.findIndex(function(s) { return s.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Setup not found' };
+                }
+                
+                var subaccount = mockSubaccounts.find(function(s) { return s.id === payload.subaccountId; });
+                var template = mockApprovedSmsTemplates[payload.subaccountId] ? 
+                    mockApprovedSmsTemplates[payload.subaccountId].find(function(t) { return t.id === payload.senderIdTemplateId; }) : null;
+                
+                mockContactListSetups[index] = Object.assign({}, mockContactListSetups[index], {
+                    name: payload.name,
+                    description: payload.description || '',
+                    subaccountId: payload.subaccountId,
+                    subaccountName: subaccount ? subaccount.name : mockContactListSetups[index].subaccountName,
+                    allowedSenderEmails: payload.allowedSenderEmails || [],
+                    contactBookListIds: payload.contactBookListIds || [],
+                    contactBookListNames: payload.contactBookListNames || [],
+                    optOutMode: payload.optOutMode || 'NONE',
+                    optOutListIds: payload.optOutListIds || [],
+                    optOutListNames: payload.optOutListNames || [],
+                    senderIdTemplateId: payload.senderIdTemplateId,
+                    senderId: template ? template.senderId : mockContactListSetups[index].senderId,
+                    subjectOverridesSenderId: payload.subjectOverridesSenderId || false,
+                    multipleSmsEnabled: payload.multipleSmsEnabled || false,
+                    deliveryReportsEnabled: payload.deliveryReportsEnabled || false,
+                    deliveryReportsEmail: payload.deliveryReportsEmail || '',
+                    contentFilter: payload.contentFilter || '',
+                    updatedAt: new Date().toISOString()
+                });
+                
+                return {
+                    success: true,
+                    data: _transformContactListSetup(mockContactListSetups[index]),
+                    message: 'Contact List setup updated successfully'
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.update.replace('{id}', id);
+        return _makeRequest('PUT', endpoint, payload);
+    }
+    
+    /**
+     * Archive a Contact List setup
+     * @param {string} id - Setup ID
+     * @returns {Promise<object>}
+     */
+    function archiveEmailToSmsContactListSetup(id) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockContactListSetups.findIndex(function(s) { return s.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Setup not found' };
+                }
+                
+                mockContactListSetups[index].status = 'archived';
+                mockContactListSetups[index].updatedAt = new Date().toISOString();
+                
+                return {
+                    success: true,
+                    data: _transformContactListSetup(mockContactListSetups[index]),
+                    message: 'Contact List setup archived successfully'
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.archive.replace('{id}', id);
+        return _makeRequest('POST', endpoint);
+    }
+    
+    /**
+     * Unarchive a Contact List setup
+     * @param {string} id - Setup ID
+     * @returns {Promise<object>}
+     */
+    function unarchiveEmailToSmsContactListSetup(id) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockContactListSetups.findIndex(function(s) { return s.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Setup not found' };
+                }
+                
+                mockContactListSetups[index].status = 'active';
+                mockContactListSetups[index].updatedAt = new Date().toISOString();
+                
+                return {
+                    success: true,
+                    data: _transformContactListSetup(mockContactListSetups[index]),
+                    message: 'Contact List setup unarchived successfully'
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.archive.replace('{id}', id) + '/unarchive';
+        return _makeRequest('POST', endpoint);
+    }
+    
+    /**
+     * Get Contact Book lists (static + dynamic) for a subaccount
+     * @param {string} subaccountId - Subaccount ID (optional, returns all if not provided)
+     * @returns {Promise<object>}
+     */
+    function getContactBookListsAndDynamicLists(subaccountId) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var lists = [];
+                
+                if (subaccountId && mockContactBookLists[subaccountId]) {
+                    lists = mockContactBookLists[subaccountId];
+                } else {
+                    // Return all lists across all subaccounts
+                    Object.keys(mockContactBookLists).forEach(function(key) {
+                        lists = lists.concat(mockContactBookLists[key]);
+                    });
+                    // Remove duplicates by ID
+                    lists = lists.filter(function(item, index, self) {
+                        return index === self.findIndex(function(t) { return t.id === item.id; });
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: {
+                        static: lists.filter(function(l) { return l.type === 'static'; }),
+                        dynamic: lists.filter(function(l) { return l.type === 'dynamic'; }),
+                        all: lists
+                    },
+                    total: lists.length
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.contactBooks;
+        if (subaccountId) {
+            endpoint += '?subaccountId=' + encodeURIComponent(subaccountId);
+        }
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get Opt-out lists for a subaccount
+     * @param {string} subaccountId - Subaccount ID (optional)
+     * @returns {Promise<object>}
+     */
+    function getOptOutLists(subaccountId) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var lists = [];
+                
+                if (subaccountId && mockOptOutLists[subaccountId]) {
+                    lists = mockOptOutLists[subaccountId];
+                } else {
+                    Object.keys(mockOptOutLists).forEach(function(key) {
+                        lists = lists.concat(mockOptOutLists[key]);
+                    });
+                    lists = lists.filter(function(item, index, self) {
+                        return index === self.findIndex(function(t) { return t.id === item.id; });
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: lists,
+                    total: lists.length
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.optOutLists;
+        if (subaccountId) {
+            endpoint += '?subaccountId=' + encodeURIComponent(subaccountId);
+        }
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get approved SMS templates for SenderID selection
+     * @param {string} subaccountId - Subaccount ID (optional)
+     * @returns {Promise<object>}
+     */
+    function getApprovedSmsTemplates(subaccountId) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var templates = [];
+                
+                if (subaccountId && mockApprovedSmsTemplates[subaccountId]) {
+                    templates = mockApprovedSmsTemplates[subaccountId];
+                } else {
+                    Object.keys(mockApprovedSmsTemplates).forEach(function(key) {
+                        templates = templates.concat(mockApprovedSmsTemplates[key]);
+                    });
+                    templates = templates.filter(function(item, index, self) {
+                        return index === self.findIndex(function(t) { return t.id === item.id; });
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: templates.filter(function(t) { return t.status === 'live'; }),
+                    total: templates.length
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.smsTemplates;
+        if (subaccountId) {
+            endpoint += '?subaccountId=' + encodeURIComponent(subaccountId);
+        }
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get account-level feature flags
+     * @returns {Promise<object>}
+     */
+    function getAccountFlags() {
+        if (config.useMockData) {
+            return simulateDelay(50).then(function() {
+                return {
+                    success: true,
+                    data: mockAccountFlags
+                };
+            });
+        }
+        
+        return _makeRequest('GET', contactListConfig.endpoints.accountFlags);
+    }
+    
     // Public API
     return {
         config: config,
+        
+        // Standard Email-to-SMS (existing)
         listEmailToSmsSetups: listEmailToSmsSetups,
         createEmailToSmsSetup: createEmailToSmsSetup,
         updateEmailToSmsSetup: updateEmailToSmsSetup,
@@ -578,6 +1220,20 @@ var EmailToSmsService = (function() {
         getEmailToSmsSetup: getEmailToSmsSetup,
         getTemplatesForSenderIdDropdown: getTemplatesForSenderIdDropdown,
         getSubaccounts: getSubaccounts,
+        
+        // Contact List Email-to-SMS (new)
+        listEmailToSmsContactListSetups: listEmailToSmsContactListSetups,
+        getEmailToSmsContactListSetup: getEmailToSmsContactListSetup,
+        createEmailToSmsContactListSetup: createEmailToSmsContactListSetup,
+        updateEmailToSmsContactListSetup: updateEmailToSmsContactListSetup,
+        archiveEmailToSmsContactListSetup: archiveEmailToSmsContactListSetup,
+        unarchiveEmailToSmsContactListSetup: unarchiveEmailToSmsContactListSetup,
+        getContactBookListsAndDynamicLists: getContactBookListsAndDynamicLists,
+        getOptOutLists: getOptOutLists,
+        getApprovedSmsTemplates: getApprovedSmsTemplates,
+        getAccountFlags: getAccountFlags,
+        
+        // Utilities
         validateContentFilterRegex: validateContentFilterRegex,
         validateEmail: validateEmail
     };
