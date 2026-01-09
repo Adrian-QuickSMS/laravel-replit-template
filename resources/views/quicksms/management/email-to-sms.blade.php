@@ -730,12 +730,13 @@
                                                 
                                                 <div class="mb-3" id="subjectAsSenderIdWrapper">
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="configSubjectAsSenderId">
+                                                        <input class="form-check-input" type="checkbox" id="configSubjectAsSenderId" checked>
                                                         <label class="form-check-label" for="configSubjectAsSenderId">
                                                             Subject as SenderID
                                                         </label>
+                                                        <span class="badge bg-info ms-2">Default for Contact List mappings</span>
                                                     </div>
-                                                    <div class="form-text">Use the email subject line as the SenderID (max 11 characters, alphanumeric only).</div>
+                                                    <div class="form-text">Use the email subject line as the SenderID (max 11 characters, alphanumeric only). <strong>Required for list-based Email-to-SMS delivery.</strong></div>
                                                 </div>
                                                 
                                                 <hr class="my-4">
@@ -871,11 +872,11 @@
                                             <div class="card-body">
                                                 <h6 class="mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Configuration Tips</h6>
                                                 <ul class="small text-muted mb-0">
-                                                    <li class="mb-2">Use <strong>Fixed SenderID</strong> for consistent branding across all messages.</li>
-                                                    <li class="mb-2"><strong>Subject as SenderID</strong> allows dynamic sender names but must follow the 11-character alphanumeric limit.</li>
+                                                    <li class="mb-2"><strong class="text-primary">List-based defaults:</strong> SenderID from email subject, content from email body. Keep "Subject as SenderID" enabled for this flow.</li>
+                                                    <li class="mb-2">Use <strong>Fixed SenderID</strong> to override subject extraction and use a consistent SenderID for all messages.</li>
+                                                    <li class="mb-2"><strong>Subject as SenderID</strong> extracts the SenderID from the email subject (max 11 alphanumeric chars). <em>Disabling this without a Fixed SenderID will reject all emails.</em></li>
                                                     <li class="mb-2">Enable <strong>Multipart SMS</strong> for longer messages, but note this may increase costs.</li>
                                                     <li class="mb-2">Use <strong>Signature Removal</strong> patterns to clean up email content before SMS conversion.</li>
-                                                    <li class="mb-2">Restrict <strong>Originating Emails</strong> for security to prevent unauthorized SMS sending.</li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -2370,7 +2371,7 @@ $(document).ready(function() {
         $('#configFixedSenderId').prop('checked', false);
         $('#senderIdSelectorWrapper').hide();
         $('#configSenderIdSelector').val('').removeClass('is-invalid');
-        $('#configSubjectAsSenderId').prop('checked', false);
+        $('#configSubjectAsSenderId').prop('checked', true);
         $('#configDeliveryReceipts').prop('checked', false);
         $('#alternateReceiptsEmailWrapper').hide();
         $('#configAlternateReceiptsEmail').val('');
