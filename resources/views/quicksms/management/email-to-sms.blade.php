@@ -388,7 +388,7 @@
                             <div class="mb-3">
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name, email address, or Contact List...">
+                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
                                 </div>
                             </div>
                             
@@ -398,9 +398,8 @@
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
-                                                <th>Email-to-SMS Address</th>
-                                                <th>Contact List</th>
-                                                <th>Template</th>
+                                                <th>Originating Emails</th>
+                                                <th>Type</th>
                                                 <th>Reporting Group</th>
                                                 <th>Status</th>
                                                 <th>Created</th>
@@ -935,11 +934,15 @@
                 <span class="detail-value" id="drawerName">-</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">Email-to-SMS Address</span>
+                <span class="detail-label">Primary Email Address</span>
                 <span class="detail-value">
-                    <code id="drawerEmailAddress">-</code>
-                    <button class="copy-btn" onclick="copyToClipboard('drawerEmailAddress')"><i class="fas fa-copy"></i></button>
+                    <code id="drawerPrimaryEmail">-</code>
+                    <button class="copy-btn" id="copyPrimaryEmailBtn"><i class="fas fa-copy"></i></button>
                 </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Type</span>
+                <span class="detail-value" id="drawerType">-</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Description</span>
@@ -947,16 +950,13 @@
             </div>
         </div>
         
+        <div class="mb-4" id="drawerAdditionalEmailsSection" style="display: none;">
+            <h6 class="text-muted mb-3">Additional Originating Emails</h6>
+            <div id="drawerAdditionalEmails">-</div>
+        </div>
+        
         <div class="mb-4">
             <h6 class="text-muted mb-3">Messaging Settings</h6>
-            <div class="detail-row">
-                <span class="detail-label">Contact List</span>
-                <span class="detail-value" id="drawerContactList">-</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Template</span>
-                <span class="detail-value" id="drawerTemplate">-</span>
-            </div>
             <div class="detail-row">
                 <span class="detail-label">SenderID</span>
                 <span class="detail-value" id="drawerSenderId">-</span>
@@ -1062,23 +1062,13 @@
                     </div>
                     
                     <div class="col-md-6">
-                        <label class="form-label">Contact List <span class="text-danger">*</span></label>
-                        <select class="form-select" id="createContactList">
-                            <option value="">Select Contact List...</option>
-                            <option value="patients">NHS Patients</option>
-                            <option value="appointments">Appointment List</option>
-                            <option value="newsletter">Newsletter Subscribers</option>
+                        <label class="form-label">Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="createType">
+                            <option value="">Select Type...</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Contact List">Contact List</option>
                         </select>
-                        <div class="form-text">The Contact List that will receive SMS messages.</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Template</label>
-                        <select class="form-select" id="createTemplate">
-                            <option value="">Use email body as message</option>
-                            <option value="apt-reminder">Appointment Reminder</option>
-                            <option value="general-notify">General Notification</option>
-                        </select>
-                        <div class="form-text">Optional template to format the SMS message.</div>
+                        <div class="form-text">Standard setup or Contact List-based delivery.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">SenderID <span class="text-danger">*</span></label>
@@ -1214,16 +1204,15 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    var EMAIL_DOMAIN = '@sms.quicksms.io';
+    
     var mockAddresses = [
         {
             id: 'addr-001',
             name: 'Appointment Reminders',
-            emailAddress: 'appointments.12abc@sms.quicksms.io',
+            originatingEmails: ['appointments.12abc' + EMAIL_DOMAIN, 'appts.nhs' + EMAIL_DOMAIN],
             description: 'Automated appointment reminder notifications',
-            contactList: 'NHS Patients',
-            contactListId: 'patients',
-            template: 'Appointment Reminder',
-            templateId: 'apt-reminder',
+            type: 'Contact List',
             senderId: 'NHS Trust',
             optOut: 'Global Opt-Out',
             subAccount: 'Main Account',
@@ -1238,12 +1227,9 @@ $(document).ready(function() {
         {
             id: 'addr-002',
             name: 'Prescription Ready',
-            emailAddress: 'prescriptions.45def@sms.quicksms.io',
+            originatingEmails: ['prescriptions.45def' + EMAIL_DOMAIN],
             description: 'Notify patients when prescriptions are ready',
-            contactList: 'Pharmacy Patients',
-            contactListId: 'pharmacy',
-            template: null,
-            templateId: null,
+            type: 'Standard',
             senderId: 'Pharmacy',
             optOut: 'Marketing Opt-Out',
             subAccount: 'Marketing Team',
@@ -1258,12 +1244,9 @@ $(document).ready(function() {
         {
             id: 'addr-003',
             name: 'Test Notifications',
-            emailAddress: 'test.78ghi@sms.quicksms.io',
+            originatingEmails: ['test.78ghi' + EMAIL_DOMAIN, 'test.dev' + EMAIL_DOMAIN, 'test.qa' + EMAIL_DOMAIN],
             description: 'Test address for development',
-            contactList: 'Test List',
-            contactListId: 'test',
-            template: 'General Notification',
-            templateId: 'general-notify',
+            type: 'Standard',
             senderId: 'QuickSMS',
             optOut: null,
             subAccount: 'Support Team',
@@ -1423,13 +1406,17 @@ $(document).ready(function() {
                 ? '<span class="badge badge-live-status">Active</span>'
                 : '<span class="badge badge-suspended">Suspended</span>';
             
-            var templateDisplay = addr.template || '<span class="text-muted">Email body</span>';
+            var emailsDisplay = addr.originatingEmails.slice(0, 2).map(function(email) {
+                return '<code class="email-address-display d-block mb-1">' + email + '</code>';
+            }).join('');
+            if (addr.originatingEmails.length > 2) {
+                emailsDisplay += '<span class="text-muted small">+' + (addr.originatingEmails.length - 2) + ' more</span>';
+            }
             
             var row = '<tr data-id="' + addr.id + '">' +
                 '<td><strong>' + addr.name + '</strong></td>' +
-                '<td><code class="email-address-display">' + addr.emailAddress + '</code></td>' +
-                '<td>' + addr.contactList + '</td>' +
-                '<td>' + templateDisplay + '</td>' +
+                '<td>' + emailsDisplay + '</td>' +
+                '<td>' + addr.type + '</td>' +
                 '<td>' + addr.reportingGroup + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + addr.created + '</td>' +
@@ -1705,10 +1692,27 @@ $(document).ready(function() {
         selectedAddress = address;
         
         $('#drawerName').text(address.name);
-        $('#drawerEmailAddress').text(address.emailAddress);
+        
+        var primaryEmail = address.originatingEmails[0] || '-';
+        $('#drawerPrimaryEmail').text(primaryEmail);
+        $('#copyPrimaryEmailBtn').off('click').on('click', function() {
+            copyEmailWithFeedback(primaryEmail, $(this));
+        });
+        
+        $('#drawerType').text(address.type);
         $('#drawerDescription').text(address.description || '-');
-        $('#drawerContactList').text(address.contactList);
-        $('#drawerTemplate').text(address.template || 'Using email body');
+        
+        if (address.originatingEmails.length > 1) {
+            var additionalEmails = address.originatingEmails.slice(1);
+            var emailsHtml = additionalEmails.map(function(email, idx) {
+                return '<div class="detail-row"><span class="detail-value"><code>' + email + '</code><button class="copy-btn copy-additional-email" data-email="' + email + '"><i class="fas fa-copy"></i></button></span></div>';
+            }).join('');
+            $('#drawerAdditionalEmails').html(emailsHtml);
+            $('#drawerAdditionalEmailsSection').show();
+        } else {
+            $('#drawerAdditionalEmailsSection').hide();
+        }
+        
         $('#drawerSenderId').text(address.senderId);
         $('#drawerOptOut').text(address.optOut || 'None configured');
         $('#drawerSubAccount').text(address.subAccount);
@@ -1730,6 +1734,21 @@ $(document).ready(function() {
         $('#drawerBackdrop').addClass('show');
         $('#detailsDrawer').addClass('open');
     }
+    
+    function copyEmailWithFeedback(email, $btn) {
+        navigator.clipboard.writeText(email).then(function() {
+            var originalIcon = $btn.html();
+            $btn.html('<i class="fas fa-check text-success"></i>');
+            setTimeout(function() {
+                $btn.html(originalIcon);
+            }, 1500);
+        });
+    }
+    
+    $(document).on('click', '.copy-additional-email', function() {
+        var email = $(this).data('email');
+        copyEmailWithFeedback(email, $(this));
+    });
     
     function closeDetailsDrawer() {
         $('#drawerBackdrop').removeClass('show');
@@ -1858,9 +1877,10 @@ $(document).ready(function() {
                 return;
             }
             var filtered = mockAddresses.filter(function(addr) {
-                return addr.name.toLowerCase().includes(query) ||
-                       addr.emailAddress.toLowerCase().includes(query) ||
-                       addr.contactList.toLowerCase().includes(query);
+                var emailMatch = addr.originatingEmails.some(function(email) {
+                    return email.toLowerCase().includes(query);
+                });
+                return addr.name.toLowerCase().includes(query) || emailMatch;
             });
             renderAddressesTable(filtered);
         }, 300);
@@ -1884,23 +1904,22 @@ $(document).ready(function() {
     $('#btnSaveAddress').on('click', function() {
         var name = $('#createName').val().trim();
         var subAccount = $('#createSubAccount').val();
-        var contactList = $('#createContactList').val();
+        var setupType = $('#createType').val();
         var senderId = $('#createSenderId').val();
         
-        if (!name || !subAccount || !contactList || !senderId) {
+        if (!name || !subAccount || !setupType || !senderId) {
             alert('Please fill in all required fields.');
             return;
         }
         
+        var generatedEmail = name.toLowerCase().replace(/\s+/g, '-') + '.' + Math.random().toString(36).substr(2, 5) + EMAIL_DOMAIN;
+        
         var newAddress = {
             id: 'addr-' + Date.now(),
             name: name,
-            emailAddress: name.toLowerCase().replace(/\s+/g, '-') + '.' + Math.random().toString(36).substr(2, 5) + '@sms.quicksms.io',
+            originatingEmails: [generatedEmail],
             description: $('#createDescription').val().trim(),
-            contactList: $('#createContactList option:selected').text(),
-            contactListId: contactList,
-            template: $('#createTemplate option:selected').text() || null,
-            templateId: $('#createTemplate').val() || null,
+            type: setupType,
             senderId: senderId,
             optOut: $('#createOptOutList option:selected').text() || null,
             subAccount: $('#createSubAccount option:selected').text(),
@@ -1918,7 +1937,7 @@ $(document).ready(function() {
         $('#createAddressModal').modal('hide');
         
         $('#createName, #createDescription, #createAllowedSenders, #createDailyLimit').val('');
-        $('#createSubAccount, #createContactList, #createTemplate, #createSenderId, #createOptOutList, #createReportingGroup').val('');
+        $('#createSubAccount, #createType, #createSenderId, #createOptOutList, #createReportingGroup').val('');
     });
     
     function getLinkedAddressNames() {
@@ -2628,15 +2647,23 @@ $(document).ready(function() {
     });
 });
 
-function copyToClipboard(elementId) {
-    var text = document.getElementById(elementId).textContent;
+function copyToClipboard(textOrElementId) {
+    var text;
+    var element = document.getElementById(textOrElementId);
+    if (element) {
+        text = element.textContent;
+    } else {
+        text = textOrElementId;
+    }
     navigator.clipboard.writeText(text).then(function() {
-        var btn = document.querySelector('[onclick="copyToClipboard(\'' + elementId + '\')"]');
-        var originalIcon = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check text-success"></i>';
-        setTimeout(function() {
-            btn.innerHTML = originalIcon;
-        }, 1500);
+        var btn = document.querySelector('[onclick="copyToClipboard(\'' + textOrElementId.replace(/'/g, "\\'") + '\')"]');
+        if (btn) {
+            var originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+            setTimeout(function() {
+                btn.innerHTML = originalIcon;
+            }, 1500);
+        }
     });
 }
 </script>
