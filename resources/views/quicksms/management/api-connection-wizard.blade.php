@@ -1088,14 +1088,27 @@ $(document).ready(function() {
         $('.selectable-tile[data-type="' + type + '"]').addClass('selected');
         $('#apiTypeError').hide();
         
+        var $section = $('#integrationPartnerSection');
+        
         if (type === 'integration') {
             console.log('[API Wizard] Showing integration partner section');
-            $('#integrationPartnerSection').show();
+            console.log('[API Wizard] Element exists:', $section.length > 0);
+            console.log('[API Wizard] Current display:', $section.css('display'));
+            
+            $section.css('display', 'block');
+            $section.show();
+            $section.removeClass('d-none');
+            
+            console.log('[API Wizard] After show - display:', $section.css('display'));
         } else {
-            $('#integrationPartnerSection').hide();
+            $section.css('display', 'none');
+            $section.hide();
+            $section.addClass('d-none');
             $('.partner-tile').removeClass('selected');
         }
+        
         revalidateStep(1);
+        saveDraft();
     };
     
     window.selectPartner = function(partner) {
