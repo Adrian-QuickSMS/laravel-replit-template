@@ -1194,8 +1194,8 @@
     </div>
 </div>
 
-<div class="drawer-overlay" id="clmDrawerOverlay"></div>
-<div class="details-drawer" id="clmDetailsDrawer">
+<div class="drawer-backdrop" id="clmDrawerBackdrop"></div>
+<div class="drawer" id="clmDetailsDrawer">
     <div class="drawer-header">
         <h5 class="drawer-title" id="clmDrawerTitle">Contact List Setup Details</h5>
         <button type="button" class="drawer-close" id="clmDrawerCloseBtn">
@@ -2024,7 +2024,7 @@ $(document).ready(function() {
         $('#clmDrawerCreated').text(item.created);
         $('#clmDrawerLastUpdated').text(item.lastUpdated);
         
-        $('#clmDrawerOverlay').addClass('active');
+        $('#clmDrawerBackdrop').addClass('show');
         $('#clmDetailsDrawer').addClass('open');
         
         $('#clmDrawerEditBtn').off('click').on('click', function() {
@@ -2034,7 +2034,7 @@ $(document).ready(function() {
     }
     
     function closeClmDrawer() {
-        $('#clmDrawerOverlay').removeClass('active');
+        $('#clmDrawerBackdrop').removeClass('show');
         $('#clmDetailsDrawer').removeClass('open');
     }
     
@@ -2718,7 +2718,7 @@ $(document).ready(function() {
     $('#clShowArchived').on('change', filterContactListMappings);
     
     // CLM Drawer close handlers
-    $('#clmDrawerCloseBtn, #clmDrawerOverlay').on('click', closeClmDrawer);
+    $('#clmDrawerCloseBtn, #clmDrawerBackdrop').on('click', closeClmDrawer);
     
     // CLM Archive confirm handler
     $('#clmArchiveConfirmBtn').on('click', confirmClmArchive);
