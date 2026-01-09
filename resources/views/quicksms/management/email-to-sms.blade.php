@@ -56,25 +56,32 @@
 .email-sms-table {
     width: 100%;
     margin: 0;
+    border-collapse: collapse;
 }
 .email-sms-table th {
     font-weight: 600;
-    background: #f8f9fa;
+    color: #495057;
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    text-align: left;
     white-space: nowrap;
+    border: none;
+    background: transparent;
 }
 .email-sms-table td {
     vertical-align: middle;
+    padding: 0.75rem 1rem;
+    border: none;
 }
 .email-sms-table tbody tr {
     cursor: pointer;
 }
-.email-sms-table tbody tr:hover {
-    background-color: rgba(136, 108, 192, 0.05);
+.email-sms-table tbody tr:hover td {
+    background-color: rgba(136, 108, 192, 0.03);
 }
 .table-container {
     background: #fff;
     border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
     overflow: hidden;
 }
 .empty-state {
