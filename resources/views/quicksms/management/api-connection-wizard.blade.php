@@ -525,7 +525,7 @@
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 4: Security Controls</strong> <span class="badge bg-secondary ms-2">Optional</span>
+                                            <strong>Step 4: Security Controls</strong> <span class="badge bg-pastel-primary ms-2">Optional</span>
                                             <p class="mb-0 mt-2 small">Restrict API access to specific IP addresses. You can skip this step if you don't need IP restrictions.</p>
                                         </div>
                                         
