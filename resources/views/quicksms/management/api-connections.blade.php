@@ -1860,6 +1860,12 @@ $(document).ready(function() {
     window.reactivateConnection = function(id) {
         var conn = getConnectionById(id);
         
+        // Block if already Live
+        if (conn.status === 'live') {
+            showErrorToast('This connection is already active.');
+            return;
+        }
+        
         showConfirmModal(
             'Reactivate API Connection - Step 1 of 2',
             'Reactivating "' + conn.name + '" will restore API access. The connection will immediately start accepting requests again.',
