@@ -1341,6 +1341,8 @@ $(document).ready(function() {
         renderTable();
     });
     
+    var pendingConfirmCallback = null;
+    
     function showConfirmModal(title, message, confirmText, confirmClass, onConfirm, warningText) {
         $('#confirmModalLabel').text(title);
         $('#confirmModalMessage').text(message);
@@ -1354,11 +1356,22 @@ $(document).ready(function() {
         }
         
         $('#confirmModalBtn').off('click').on('click', function() {
+            pendingConfirmCallback = onConfirm;
             $('#confirmModal').modal('hide');
-            onConfirm();
         });
+        
         $('#confirmModal').modal('show');
     }
+    
+    $('#confirmModal').on('hidden.bs.modal', function() {
+        if (pendingConfirmCallback) {
+            var callback = pendingConfirmCallback;
+            pendingConfirmCallback = null;
+            setTimeout(function() {
+                callback();
+            }, 100);
+        }
+    });
     
     function getRecentUsageWarning(conn) {
         if (!conn.lastUsed) return null;
@@ -1770,6 +1783,36 @@ $(document).ready(function() {
         }, 3000);
     }
     
+    function showErrorToast(message) {
+        var toastHtml = '<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">' +
+            '<div class="toast show align-items-center text-white bg-danger border-0" role="alert">' +
+            '<div class="d-flex">' +
+            '<div class="toast-body"><i class="fas fa-exclamation-circle me-2"></i>' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+            '</div></div></div>';
+        
+        var $toast = $(toastHtml).appendTo('body');
+        setTimeout(function() {
+            $toast.fadeOut(function() { $toast.remove(); });
+        }, 5000);
+    }
+    
+    // TODO: Replace with actual backend API call when endpoint is available
+    function mockApiCall(endpoint, data, successCallback, errorCallback) {
+        console.log('[API Mock] Calling:', endpoint, 'with data:', data);
+        // Simulate network delay
+        setTimeout(function() {
+            // Simulate 95% success rate for testing
+            if (Math.random() > 0.05) {
+                console.log('[API Mock] Success response for:', endpoint);
+                successCallback({ success: true, message: 'Operation completed successfully' });
+            } else {
+                console.log('[API Mock] Error response for:', endpoint);
+                errorCallback({ success: false, message: 'Failed to complete operation. Please try again.' });
+            }
+        }, 500);
+    }
+    
     window.suspendConnection = function(id) {
         var conn = getConnectionById(id);
         var warning = getRecentUsageWarning(conn);
@@ -1786,10 +1829,26 @@ $(document).ready(function() {
                     'Suspend Now',
                     'btn-danger',
                     function() {
+                        // Optimistic update
+                        var previousStatus = conn.status;
                         conn.status = 'suspended';
-                        console.log('[AUDIT] API Connection suspended:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
                         renderTable();
-                        showSuccessToast('API Connection "' + conn.name + '" has been suspended.');
+                        
+                        // TODO: Replace mockApiCall with actual API call
+                        mockApiCall(
+                            '/api/connections/' + id + '/suspend',
+                            { id: id },
+                            function(response) {
+                                console.log('[AUDIT] API Connection suspended:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                                showSuccessToast('API Connection "' + conn.name + '" has been suspended.');
+                            },
+                            function(error) {
+                                // Rollback on failure
+                                conn.status = previousStatus;
+                                renderTable();
+                                showErrorToast('Failed to suspend "' + conn.name + '". Please try again.');
+                            }
+                        );
                     },
                     null
                 );
@@ -1813,10 +1872,26 @@ $(document).ready(function() {
                     'Reactivate Now',
                     'btn-success',
                     function() {
+                        // Optimistic update
+                        var previousStatus = conn.status;
                         conn.status = 'live';
-                        console.log('[AUDIT] API Connection reactivated:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
                         renderTable();
-                        showSuccessToast('API Connection "' + conn.name + '" has been reactivated.');
+                        
+                        // TODO: Replace mockApiCall with actual API call
+                        mockApiCall(
+                            '/api/connections/' + id + '/reactivate',
+                            { id: id },
+                            function(response) {
+                                console.log('[AUDIT] API Connection reactivated:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                                showSuccessToast('API Connection "' + conn.name + '" has been reactivated.');
+                            },
+                            function(error) {
+                                // Rollback on failure
+                                conn.status = previousStatus;
+                                renderTable();
+                                showErrorToast('Failed to reactivate "' + conn.name + '". Please try again.');
+                            }
+                        );
                     },
                     null
                 );
