@@ -1590,7 +1590,7 @@ $(document).ready(function() {
             'Regenerate API Key - Step 1 of 2',
             'Regenerating this key will immediately revoke the old key. Any systems using the old key will stop working. Are you sure you want to continue?',
             'Continue',
-            'btn-warning',
+            'btn-primary',
             function() {
                 showConfirmModal(
                     'Regenerate API Key - Final Confirmation',
