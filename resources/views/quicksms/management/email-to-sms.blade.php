@@ -587,7 +587,11 @@
                                     </button>
                                     <div class="input-group" style="width: 280px;">
                                         <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                        <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Quick search by address...">
+                                        <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Quick search by name...">
+                                    </div>
+                                    <div class="form-check form-switch ms-3">
+                                        <input class="form-check-input" type="checkbox" id="clShowArchived">
+                                        <label class="form-check-label small text-muted" for="clShowArchived">Show archived</label>
                                     </div>
                                 </div>
                             </div>
@@ -1320,6 +1324,97 @@
         <button type="button" class="btn btn-outline-secondary" id="stdDrawerEditBtn">
             <i class="fas fa-edit me-1"></i> Edit
         </button>
+    </div>
+</div>
+
+<div class="drawer-overlay" id="clmDrawerOverlay"></div>
+<div class="details-drawer" id="clmDetailsDrawer">
+    <div class="drawer-header">
+        <h5 class="drawer-title" id="clmDrawerTitle">Contact List Setup Details</h5>
+        <button type="button" class="drawer-close" id="clmDrawerCloseBtn">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body">
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">General</h6>
+            <div class="detail-row">
+                <span class="detail-label">Name</span>
+                <span class="detail-value" id="clmDrawerName">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Description</span>
+                <span class="detail-value" id="clmDrawerDescription">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Subaccount</span>
+                <span class="detail-value" id="clmDrawerSubaccount">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value" id="clmDrawerStatus">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Email Settings</h6>
+            <div class="detail-row">
+                <span class="detail-label">Allowed Sender Emails</span>
+                <span class="detail-value" id="clmDrawerAllowedSenders">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Contact Book</h6>
+            <div class="detail-row">
+                <span class="detail-label">Target Lists</span>
+                <span class="detail-value" id="clmDrawerTargetLists">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Opt-out Lists</span>
+                <span class="detail-value" id="clmDrawerOptOutLists">-</span>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="text-muted mb-3">Dates</h6>
+            <div class="detail-row">
+                <span class="detail-label">Created</span>
+                <span class="detail-value" id="clmDrawerCreated">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Last Updated</span>
+                <span class="detail-value" id="clmDrawerLastUpdated">-</span>
+            </div>
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <button type="button" class="btn btn-outline-secondary" id="clmDrawerEditBtn">
+            <i class="fas fa-edit me-1"></i> Edit
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="clmArchiveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-semibold">
+                    <i class="fas fa-archive me-2 text-warning"></i>Archive Setup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to archive <strong id="clmArchiveName"></strong>?</p>
+                <p class="text-muted small mt-2 mb-0">Archived setups will no longer process incoming emails. You can view archived setups by enabling "Show archived" and unarchive them at any time.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="clmArchiveConfirmBtn">
+                    <i class="fas fa-archive me-1"></i> Archive
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -2067,22 +2162,155 @@ $(document).ready(function() {
         return mockContactListMappings.find(function(m) { return m.id === id; });
     }
     
+    var clmEditingId = null;
+    
     function openClmViewDrawer(id) {
         var item = findClmById(id);
         if (!item) return;
         
-        // TODO: Implement view drawer for Contact List Mapping
-        console.log('View Contact List Mapping:', item);
-        alert('View details for: ' + item.name + '\n\nFull implementation pending.');
+        $('#clmDrawerTitle').text(item.name);
+        $('#clmDrawerName').text(item.name);
+        $('#clmDrawerDescription').text(item.description || '-');
+        $('#clmDrawerSubaccount').text(item.subaccountName);
+        
+        var statusHtml = item.status === 'Active' 
+            ? '<span class="badge badge-live-status">Active</span>'
+            : '<span class="badge bg-secondary">Archived</span>';
+        $('#clmDrawerStatus').html(statusHtml);
+        
+        if (item.allowedSenders.length === 0) {
+            $('#clmDrawerAllowedSenders').html('<span class="text-muted">All senders allowed</span>');
+        } else {
+            var sendersHtml = item.allowedSenders.map(function(email) {
+                return '<code class="d-block mb-1">' + escapeHtml(email) + '</code>';
+            }).join('');
+            $('#clmDrawerAllowedSenders').html(sendersHtml);
+        }
+        
+        if (item.targetLists.length === 0) {
+            $('#clmDrawerTargetLists').html('<span class="text-muted">None</span>');
+        } else {
+            var listsHtml = item.targetLists.map(function(list) {
+                return '<span class="badge bg-light text-dark me-1 mb-1">' + escapeHtml(list) + '</span>';
+            }).join('');
+            $('#clmDrawerTargetLists').html(listsHtml);
+        }
+        
+        if (item.optOutLists.length === 0) {
+            $('#clmDrawerOptOutLists').html('<span class="text-muted">NO</span>');
+        } else {
+            var optOutHtml = item.optOutLists.map(function(list) {
+                return '<span class="badge bg-light text-dark me-1 mb-1">' + escapeHtml(list) + '</span>';
+            }).join('');
+            $('#clmDrawerOptOutLists').html(optOutHtml);
+        }
+        
+        $('#clmDrawerCreated').text(item.created);
+        $('#clmDrawerLastUpdated').text(item.lastUpdated);
+        
+        $('#clmDrawerOverlay').addClass('active');
+        $('#clmDetailsDrawer').addClass('open');
+        
+        $('#clmDrawerEditBtn').off('click').on('click', function() {
+            closeClmDrawer();
+            openClmEditModal(id);
+        });
+    }
+    
+    function closeClmDrawer() {
+        $('#clmDrawerOverlay').removeClass('active');
+        $('#clmDetailsDrawer').removeClass('open');
     }
     
     function openClmEditModal(id) {
         var item = findClmById(id);
         if (!item) return;
         
-        // TODO: Implement edit modal for Contact List Mapping
-        console.log('Edit Contact List Mapping:', item);
-        alert('Edit functionality for: ' + item.name + '\n\nFull implementation pending.');
+        clmEditingId = id;
+        
+        $('#createContactListMappingModal .modal-title').html('<i class="fas fa-edit me-2 text-primary"></i>Edit Email-to-SMS – Contact List');
+        
+        $('#clmCreateName').val(item.name);
+        $('#clmCreateDescription').val(item.description || '');
+        $('#clmCreateSubaccount').val(item.subaccountId);
+        
+        clmAllowedEmails = item.allowedSenders.slice();
+        renderClmEmailTags();
+        
+        // Build clmSelectedLists array from targetLists names
+        clmSelectedLists = item.targetLists.map(function(name) {
+            return { value: name.toLowerCase().replace(/\s+/g, '-'), label: name };
+        });
+        
+        // Update checkboxes for Contact Lists
+        $('.clm-contact-list-cb').each(function() {
+            var label = $(this).data('label');
+            if (item.targetLists.indexOf(label) !== -1) {
+                $(this).prop('checked', true);
+            } else {
+                $(this).prop('checked', false);
+            }
+        });
+        updateClmContactListsSelection();
+        
+        // Build clmSelectedOptOuts array from optOutLists names
+        if (item.optOutLists.length === 0) {
+            clmSelectedOptOuts = [];
+            $('.clm-optout-cb').prop('checked', false);
+            $('#clmOptNo').prop('checked', true);
+        } else {
+            clmSelectedOptOuts = item.optOutLists.map(function(name) {
+                return { value: name.toLowerCase().replace(/\s+/g, '-'), label: name };
+            });
+            $('#clmOptNo').prop('checked', false);
+            $('.clm-optout-cb').each(function() {
+                var label = $(this).data('label');
+                if (item.optOutLists.indexOf(label) !== -1) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            });
+        }
+        updateClmOptOutSelection();
+        
+        var modal = new bootstrap.Modal(document.getElementById('createContactListMappingModal'));
+        modal.show();
+    }
+    
+    function updateClmContactListsSelection() {
+        // Update display based on current selections
+        if (clmSelectedLists.length === 0) {
+            $('#clmContactListsDropdown .dropdown-label').text('Select list(s)...');
+        } else if (clmSelectedLists.length === 1) {
+            $('#clmContactListsDropdown .dropdown-label').text(clmSelectedLists[0].label);
+        } else {
+            $('#clmContactListsDropdown .dropdown-label').text(clmSelectedLists.length + ' lists selected');
+        }
+        $('#clmContactListsDropdown button').removeClass('is-invalid');
+        
+        var display = $('#clmSelectedListsDisplay');
+        display.empty();
+        clmSelectedLists.forEach(function(list) {
+            display.append('<span class="badge bg-light text-dark me-1 mb-1">' + escapeHtml(list.label) + '</span>');
+        });
+    }
+    
+    function updateClmOptOutSelection() {
+        // Update display based on current selections
+        if ($('#clmOptNo').is(':checked') || clmSelectedOptOuts.length === 0) {
+            $('#clmOptOutDropdown .dropdown-label').text('No opt-out list');
+        } else if (clmSelectedOptOuts.length === 1) {
+            $('#clmOptOutDropdown .dropdown-label').text(clmSelectedOptOuts[0].label);
+        } else {
+            $('#clmOptOutDropdown .dropdown-label').text(clmSelectedOptOuts.length + ' lists selected');
+        }
+        
+        var display = $('#clmSelectedOptOutsDisplay');
+        display.empty();
+        clmSelectedOptOuts.forEach(function(list) {
+            display.append('<span class="badge bg-light text-dark me-1 mb-1">' + escapeHtml(list.label) + '</span>');
+        });
     }
     
     var clmArchiveTargetId = null;
@@ -2092,17 +2320,34 @@ $(document).ready(function() {
         if (!item) return;
         
         clmArchiveTargetId = id;
-        // Simple confirmation for now
-        if (confirm('Are you sure you want to archive "' + item.name + '"?\n\nArchived setups will no longer process incoming emails.')) {
+        $('#clmArchiveName').text(item.name);
+        var modal = new bootstrap.Modal(document.getElementById('clmArchiveModal'));
+        modal.show();
+    }
+    
+    function confirmClmArchive() {
+        if (!clmArchiveTargetId) return;
+        
+        var item = findClmById(clmArchiveTargetId);
+        if (item) {
             item.status = 'Archived';
-            renderContactListMappings(mockContactListMappings);
+            filterContactListMappings();
         }
+        
+        bootstrap.Modal.getInstance(document.getElementById('clmArchiveModal')).hide();
         clmArchiveTargetId = null;
     }
     
     function filterContactListMappings() {
         var filtered = mockContactListMappings.slice();
         var chips = [];
+        
+        var showArchived = $('#clShowArchived').is(':checked');
+        if (!showArchived) {
+            filtered = filtered.filter(function(m) {
+                return m.status === 'Active';
+            });
+        }
         
         var searchTerm = ($('#clQuickSearchInput').val() || '').toLowerCase().trim();
         if (searchTerm) {
@@ -2636,12 +2881,27 @@ $(document).ready(function() {
     
     renderAddressesTable(mockAddresses);
     renderReportingGroups(mockReportingGroups);
-    renderContactListMappings(mockContactListMappings);
+    filterContactListMappings();
     
     // Contact Lists tab handlers
     $('#btnApplyClFilters').on('click', filterContactListMappings);
     $('#btnResetClFilters').on('click', resetClFilters);
     $('#btnClearClFilters').on('click', resetClFilters);
+    
+    // Show archived toggle
+    $('#clShowArchived').on('change', filterContactListMappings);
+    
+    // CLM Drawer close handlers
+    $('#clmDrawerCloseBtn, #clmDrawerOverlay').on('click', closeClmDrawer);
+    
+    // CLM Archive confirm handler
+    $('#clmArchiveConfirmBtn').on('click', confirmClmArchive);
+    
+    // Reset modal to create mode when closed
+    $('#createContactListMappingModal').on('hidden.bs.modal', function() {
+        clmEditingId = null;
+        $('#createContactListMappingModal .modal-title').html('<i class="fas fa-link me-2 text-primary"></i>Create Email-to-SMS – Contact List');
+    });
     
     var clQuickSearchTimeout;
     $('#clQuickSearchInput').on('input', function() {
@@ -2719,7 +2979,6 @@ $(document).ready(function() {
     var clmAllowedEmails = [];
     var clmSelectedLists = [];
     var clmSelectedOptOuts = [];
-    var clmEditingId = null;
     
     // Mock account setting for dynamic SenderID
     var clmAccountSettings = {
@@ -3065,43 +3324,49 @@ $(document).ready(function() {
         // Build payload
         var subaccountName = $('#clmCreateSubaccount option:selected').text();
         var listNames = clmSelectedLists.map(function(l) { return l.label; });
-        var optOutNames = clmSelectedOptOuts.map(function(o) { return o.label; });
+        var optOutNames = clmSelectedOptOuts.filter(function(o) { return o.value !== 'NO'; }).map(function(o) { return o.label; });
         
-        var newMapping = {
-            id: 'clm-' + Date.now(),
-            name: name,
-            description: $('#clmCreateDescription').val().trim(),
-            subaccountId: subaccount,
-            subaccountName: subaccountName,
-            emailAddress: name.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).substring(2, 6) + '@sms.quicksms.io',
-            allowedSenders: clmAllowedEmails.slice(),
-            contactLists: clmSelectedLists.map(function(l) { return l.value; }),
-            contactListNames: listNames,
-            optOutLists: clmSelectedOptOuts.map(function(o) { return o.value; }),
-            optOutListNames: optOutNames,
-            senderId: senderId,
-            subjectAsSenderId: $('#clmCreateSubjectAsSenderId').is(':checked'),
-            multipleSms: $('#clmCreateMultipleSms').is(':checked'),
-            deliveryReports: $('#clmCreateDeliveryReports').is(':checked'),
-            deliveryEmail: $('#clmCreateDeliveryEmail').val().trim(),
-            signatureFilter: contentFilter,
-            recipientCount: Math.floor(Math.random() * 5000) + 100,
-            status: 'Active',
-            created: new Date().toISOString().split('T')[0],
-            lastUsed: null
-        };
-        
-        // Add to mock data
-        mockContactListMappings.unshift(newMapping);
+        if (clmEditingId) {
+            // Edit mode: update existing record
+            var existingMapping = findClmById(clmEditingId);
+            if (existingMapping) {
+                existingMapping.name = name;
+                existingMapping.description = $('#clmCreateDescription').val().trim();
+                existingMapping.subaccountId = subaccount;
+                existingMapping.subaccountName = subaccountName;
+                existingMapping.allowedSenders = clmAllowedEmails.slice();
+                existingMapping.targetLists = listNames;
+                existingMapping.optOutLists = optOutNames;
+                existingMapping.lastUpdated = new Date().toISOString().split('T')[0];
+                
+                console.log('Updated Contact List Mapping:', existingMapping);
+            }
+            clmEditingId = null;
+        } else {
+            // Create mode: add new record
+            var newMapping = {
+                id: 'clm-' + Date.now(),
+                name: name,
+                description: $('#clmCreateDescription').val().trim(),
+                subaccountId: subaccount,
+                subaccountName: subaccountName,
+                allowedSenders: clmAllowedEmails.slice(),
+                targetLists: listNames,
+                optOutLists: optOutNames,
+                created: new Date().toISOString().split('T')[0],
+                lastUpdated: new Date().toISOString().split('T')[0],
+                status: 'Active'
+            };
+            
+            mockContactListMappings.unshift(newMapping);
+            console.log('Created Contact List Mapping:', newMapping);
+        }
         
         // Close modal
         bootstrap.Modal.getInstance(document.getElementById('createContactListMappingModal')).hide();
         
         // Refresh table
-        renderContactListMappings(mockContactListMappings);
-        
-        // TODO: Backend integration
-        console.log('Created Contact List Mapping:', newMapping);
+        filterContactListMappings();
     });
     
     (function() {
