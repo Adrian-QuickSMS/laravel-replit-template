@@ -546,6 +546,32 @@
                                                     </div>
                                                     <div class="form-text">Use the email subject line as the SenderID (max 11 characters, alphanumeric only).</div>
                                                 </div>
+                                                
+                                                <hr class="my-4">
+                                                
+                                                <div class="mb-0">
+                                                    <h6 class="mb-3"><i class="fas fa-flask me-2 text-primary"></i>Resolution Preview</h6>
+                                                    <div class="form-text mb-3">See how SenderID will be resolved for different email subjects based on current settings.</div>
+                                                    
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered mb-0" id="resolutionPreviewTable">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th style="width: 40%;">Email Subject</th>
+                                                                    <th style="width: 30%;">Resolved SenderID</th>
+                                                                    <th style="width: 30%;">Result</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="resolutionPreviewBody">
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    
+                                                    <div class="alert mt-3 mb-0" id="resolutionRuleAlert" style="background-color: rgba(111, 66, 193, 0.08); border: none;">
+                                                        <i class="fas fa-info-circle me-2 text-primary"></i>
+                                                        <span id="resolutionRuleText">Current rule: Subject extraction mode</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         
@@ -1522,7 +1548,112 @@ $(document).ready(function() {
         $('#configConflictWarning').addClass('d-none');
         
         logAuditEvent('CONFIG_RESET', { resetBy: 'user' });
+        updateResolutionPreview();
     });
+    
+    // Resolution Preview Logic
+    var mockSubjects = [
+        { subject: 'ALERTS', description: 'Valid alphanumeric (6 chars)' },
+        { subject: 'NHS2024', description: 'Valid alphanumeric (7 chars)' },
+        { subject: 'Reminder: Your appointment', description: 'Contains spaces and special chars' },
+        { subject: 'AB', description: 'Too short (2 chars)' },
+        { subject: 'ABCDEFGHIJKL', description: 'Too long (12 chars)' },
+        { subject: '', description: 'Empty subject' }
+    ];
+    
+    function extractSenderIdFromSubject(subject) {
+        if (!subject || subject.trim() === '') {
+            return { valid: false, senderId: null, reason: 'Empty subject' };
+        }
+        
+        var cleaned = subject.replace(/[^a-zA-Z0-9]/g, '');
+        
+        if (cleaned.length < 3) {
+            return { valid: false, senderId: null, reason: 'Too short after cleaning' };
+        }
+        
+        if (cleaned.length > 11) {
+            cleaned = cleaned.substring(0, 11);
+        }
+        
+        if (/^[a-zA-Z0-9]{3,11}$/.test(cleaned)) {
+            return { valid: true, senderId: cleaned, reason: 'Extracted from subject' };
+        }
+        
+        return { valid: false, senderId: null, reason: 'Invalid format' };
+    }
+    
+    function updateResolutionPreview() {
+        var fixedSenderId = $('#configFixedSenderId').is(':checked');
+        var selectedSenderId = $('#configSenderIdSelector').val();
+        var subjectAsSenderId = $('#configSubjectAsSenderId').is(':checked');
+        
+        var tbody = $('#resolutionPreviewBody');
+        tbody.empty();
+        
+        var ruleText = '';
+        
+        if (fixedSenderId) {
+            ruleText = '<strong>Fixed SenderID Mode:</strong> All emails use "' + (selectedSenderId || '<em>not selected</em>') + '" regardless of subject.';
+        } else if (subjectAsSenderId) {
+            ruleText = '<strong>Subject Extraction Mode:</strong> SenderID extracted from email subject. Invalid subjects will be rejected.';
+        } else {
+            ruleText = '<strong>Default Mode:</strong> No SenderID resolution configured. Emails will be rejected.';
+        }
+        
+        $('#resolutionRuleText').html(ruleText);
+        
+        mockSubjects.forEach(function(mock) {
+            var resolvedSenderId = '';
+            var resultHtml = '';
+            
+            if (fixedSenderId) {
+                if (selectedSenderId) {
+                    resolvedSenderId = selectedSenderId;
+                    resultHtml = '<span class="badge badge-live-status">Accepted</span>';
+                } else {
+                    resolvedSenderId = '<em class="text-muted">Not configured</em>';
+                    resultHtml = '<span class="badge badge-suspended">Rejected</span>';
+                }
+            } else if (subjectAsSenderId) {
+                var extraction = extractSenderIdFromSubject(mock.subject);
+                if (extraction.valid) {
+                    resolvedSenderId = extraction.senderId;
+                    resultHtml = '<span class="badge badge-live-status">Accepted</span>';
+                } else {
+                    resolvedSenderId = '<em class="text-muted">' + extraction.reason + '</em>';
+                    resultHtml = '<span class="badge badge-suspended">Rejected</span>';
+                }
+            } else {
+                resolvedSenderId = '<em class="text-muted">No extraction</em>';
+                resultHtml = '<span class="badge badge-suspended">Rejected</span>';
+            }
+            
+            var subjectDisplay = mock.subject ? '<code>' + mock.subject + '</code>' : '<em class="text-muted">(empty)</em>';
+            
+            var row = '<tr>' +
+                '<td>' + subjectDisplay + '<br><small class="text-muted">' + mock.description + '</small></td>' +
+                '<td>' + resolvedSenderId + '</td>' +
+                '<td>' + resultHtml + '</td>' +
+            '</tr>';
+            
+            tbody.append(row);
+        });
+    }
+    
+    $('#configFixedSenderId').on('change', function() {
+        updateResolutionPreview();
+    });
+    
+    $('#configSubjectAsSenderId').on('change', function() {
+        updateResolutionPreview();
+    });
+    
+    $('#configSenderIdSelector').on('change', function() {
+        updateResolutionPreview();
+    });
+    
+    updateResolutionPreview();
 });
 
 function copyToClipboard(elementId) {

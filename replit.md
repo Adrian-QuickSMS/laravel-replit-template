@@ -76,6 +76,11 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - Content Processing: Signature Removal patterns (regex support)
     - Conflict warning banner when Fixed SenderID=ON and Subject as SenderID=ON
     - SenderID validation (3-11 alphanumeric characters)
+    - Resolution Preview: Interactive table showing SenderID resolution outcomes for mock subjects
+    - SenderID Resolution Priority Rules:
+      1. Fixed SenderID=ON → Always use selected SenderID, ignore subject
+      2. Fixed SenderID=OFF + Subject as SenderID=ON → Extract alphanumeric from subject
+      3. Extraction fails (empty/short/invalid) → Reject email and notify sender
     - Audit log placeholder hooks for backend integration
   - Integrates with Contact Lists, Templates, Opt-Out Lists, Sender IDs, and Reporting
 - **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, enforced for features like Purchase, RCS Agent Registration, and delete actions.
