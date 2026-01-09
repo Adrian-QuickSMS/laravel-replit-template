@@ -430,14 +430,85 @@
                         <div class="tab-pane fade" id="reporting-groups" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <p class="text-muted mb-0">Reporting Groups help you organize and filter Email-to-SMS activity in reports.</p>
+                                    <p class="text-muted mb-0">Reporting Groups are for reporting and billing attribution only. They do not control recipients or content.</p>
                                 </div>
-                                <button type="button" class="btn btn-primary btn-sm" id="btnCreateReportingGroup">
+                                <button type="button" class="btn btn-primary" id="btnCreateReportingGroup">
                                     <i class="fas fa-plus me-1"></i> Create Reporting Group
                                 </button>
                             </div>
                             
-                            <div class="row" id="reportingGroupsContainer">
+                            <div class="collapse mb-3" id="rgFiltersPanel">
+                                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                                    <div class="row g-3 align-items-start">
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label small fw-bold">Date Created</label>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <input type="date" class="form-control form-control-sm" id="rgFilterDateFrom">
+                                                <span class="text-muted small">to</span>
+                                                <input type="date" class="form-control form-control-sm" id="rgFilterDateTo">
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn rg-date-preset" data-preset="7days">Last 7 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn rg-date-preset" data-preset="30days">Last 30 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn rg-date-preset" data-preset="thismonth">This Month</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <label class="form-label small fw-bold">Status</label>
+                                            <select class="form-select form-select-sm" id="rgFilterStatus">
+                                                <option value="">All Statuses</option>
+                                                <option value="Active">Active</option>
+                                                <option value="Archived">Archived</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <label class="form-label small fw-bold">Search</label>
+                                            <input type="text" class="form-control form-control-sm" id="rgFilterSearch" placeholder="Search group name...">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end gap-2 mt-3">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetRgFilters">Reset Filters</button>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyRgFilters">Apply Filters</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3" id="rgActiveFiltersContainer" style="display: none;">
+                                <div id="rgActiveFiltersChips"></div>
+                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearRgFilters">Clear All</button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#rgFiltersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="rgQuickSearchInput" placeholder="Quick search by group name...">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container" id="reportingGroupsTableContainer">
+                                <div class="table-responsive">
+                                    <table class="table email-sms-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Group Name</th>
+                                                <th>Description</th>
+                                                <th>Linked Addresses</th>
+                                                <th>Messages Sent</th>
+                                                <th>Last Activity</th>
+                                                <th>Created</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportingGroupsTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             
                             <div class="empty-state" id="emptyStateReportingGroups" style="display: none;">
@@ -449,6 +520,12 @@
                                 <button class="btn btn-primary" id="btnCreateReportingGroupEmpty">
                                     <i class="fas fa-plus me-1"></i> Create Reporting Group
                                 </button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    Showing <span id="rgShowingCount">0</span> of <span id="rgTotalCount">0</span> groups
+                                </div>
                             </div>
                         </div>
                         
@@ -1042,10 +1119,59 @@ $(document).ready(function() {
     ];
     
     var mockReportingGroups = [
-        { id: 'rg-001', name: 'Default', description: 'Default reporting group', color: 'primary', addressCount: 1 },
-        { id: 'rg-002', name: 'Appointments', description: 'Appointment-related messages', color: 'success', addressCount: 1 },
-        { id: 'rg-003', name: 'Reminders', description: 'General reminder messages', color: 'warning', addressCount: 1 }
+        { 
+            id: 'rg-001', 
+            name: 'Default', 
+            description: 'Default reporting group for uncategorized messages', 
+            linkedAddresses: ['Test Notifications'],
+            messagesSent: 156,
+            lastActivity: '2025-01-05 11:30',
+            created: '2024-10-01',
+            status: 'Active'
+        },
+        { 
+            id: 'rg-002', 
+            name: 'Appointments', 
+            description: 'All appointment-related SMS communications', 
+            linkedAddresses: ['Appointment Reminders'],
+            messagesSent: 12847,
+            lastActivity: '2025-01-09 08:45',
+            created: '2024-11-10',
+            status: 'Active'
+        },
+        { 
+            id: 'rg-003', 
+            name: 'Reminders', 
+            description: 'General reminder and notification messages', 
+            linkedAddresses: ['Prescription Ready'],
+            messagesSent: 3421,
+            lastActivity: '2025-01-08 16:20',
+            created: '2024-11-25',
+            status: 'Active'
+        },
+        { 
+            id: 'rg-004', 
+            name: 'Marketing Campaigns', 
+            description: 'Promotional and marketing SMS campaigns', 
+            linkedAddresses: [],
+            messagesSent: 45892,
+            lastActivity: '2024-12-20 14:00',
+            created: '2024-08-15',
+            status: 'Archived'
+        },
+        { 
+            id: 'rg-005', 
+            name: 'Urgent Alerts', 
+            description: 'High-priority urgent notifications', 
+            linkedAddresses: ['Emergency Alerts', 'System Notifications'],
+            messagesSent: 892,
+            lastActivity: '2025-01-07 09:15',
+            created: '2024-12-01',
+            status: 'Active'
+        }
     ];
+    
+    var rgAppliedFilters = {};
     
     var selectedAddress = null;
     var appliedFilters = {};
@@ -1104,43 +1230,123 @@ $(document).ready(function() {
     }
     
     function renderReportingGroups(groups) {
-        var container = $('#reportingGroupsContainer');
-        container.empty();
+        var tbody = $('#reportingGroupsTableBody');
+        tbody.empty();
         
         if (groups.length === 0) {
-            container.hide();
+            $('#reportingGroupsTableContainer').hide();
             $('#emptyStateReportingGroups').show();
+            $('#rgShowingCount').text(0);
+            $('#rgTotalCount').text(0);
             return;
         }
         
-        container.show();
+        $('#reportingGroupsTableContainer').show();
         $('#emptyStateReportingGroups').hide();
         
-        var colorMap = {
-            'primary': 'badge-bulk',
-            'success': 'badge-live-status',
-            'warning': 'badge-campaign',
-            'info': 'badge-test'
-        };
-        
         groups.forEach(function(group) {
-            var badgeClass = colorMap[group.color] || 'badge-bulk';
-            var card = '<div class="col-md-6 col-lg-4">' +
-                '<div class="reporting-group-card">' +
-                    '<div class="d-flex justify-content-between align-items-start mb-2">' +
-                        '<h6 class="mb-0">' + group.name + '</h6>' +
-                        '<span class="badge ' + badgeClass + '">' + group.addressCount + ' addresses</span>' +
-                    '</div>' +
-                    '<p class="text-muted small mb-3">' + (group.description || 'No description') + '</p>' +
-                    '<div class="d-flex gap-2">' +
-                        '<button class="btn btn-outline-primary btn-sm edit-rg" data-id="' + group.id + '"><i class="fas fa-edit me-1"></i> Edit</button>' +
-                        '<button class="btn btn-outline-danger btn-sm delete-rg" data-id="' + group.id + '"><i class="fas fa-trash me-1"></i> Delete</button>' +
-                    '</div>' +
-                '</div>' +
-            '</div>';
+            var statusBadge = group.status === 'Active' 
+                ? '<span class="badge badge-live-status">Active</span>'
+                : '<span class="badge badge-test">Archived</span>';
             
-            container.append(card);
+            var linkedDisplay = group.linkedAddresses.length > 0 
+                ? group.linkedAddresses.map(function(addr) { return '<span class="badge badge-bulk me-1">' + addr + '</span>'; }).join('')
+                : '<span class="text-muted">None</span>';
+            
+            var row = '<tr data-id="' + group.id + '">' +
+                '<td><strong>' + group.name + '</strong></td>' +
+                '<td class="text-muted small">' + (group.description || '-') + '</td>' +
+                '<td>' + linkedDisplay + '</td>' +
+                '<td>' + group.messagesSent.toLocaleString() + '</td>' +
+                '<td>' + group.lastActivity + '</td>' +
+                '<td>' + group.created + '</td>' +
+                '<td class="text-end">' +
+                    '<div class="dropdown">' +
+                        '<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                            '<i class="fas fa-ellipsis-v"></i>' +
+                        '</button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item edit-rg" href="#" data-id="' + group.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            (group.status === 'Active' 
+                                ? '<li><a class="dropdown-item archive-rg" href="#" data-id="' + group.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>'
+                                : '<li><a class="dropdown-item unarchive-rg" href="#" data-id="' + group.id + '"><i class="fas fa-undo me-2"></i> Unarchive</a></li>') +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+            
+            tbody.append(row);
         });
+        
+        $('#rgShowingCount').text(groups.length);
+        $('#rgTotalCount').text(mockReportingGroups.length);
+    }
+    
+    function filterReportingGroups() {
+        var filtered = mockReportingGroups.slice();
+        var chips = [];
+        
+        var searchTerm = ($('#rgQuickSearchInput').val() || $('#rgFilterSearch').val() || '').toLowerCase().trim();
+        if (searchTerm) {
+            filtered = filtered.filter(function(g) {
+                return g.name.toLowerCase().indexOf(searchTerm) !== -1;
+            });
+            chips.push({ filter: 'search', value: 'Search: ' + searchTerm });
+        }
+        
+        var statusFilter = $('#rgFilterStatus').val();
+        if (statusFilter) {
+            filtered = filtered.filter(function(g) {
+                return g.status === statusFilter;
+            });
+            chips.push({ filter: 'status', value: 'Status: ' + statusFilter });
+        }
+        
+        var dateFrom = $('#rgFilterDateFrom').val();
+        var dateTo = $('#rgFilterDateTo').val();
+        if (dateFrom || dateTo) {
+            filtered = filtered.filter(function(g) {
+                var groupDate = g.created;
+                if (dateFrom && groupDate < dateFrom) return false;
+                if (dateTo && groupDate > dateTo) return false;
+                return true;
+            });
+            var dateLabel = '';
+            if (dateFrom && dateTo) {
+                dateLabel = 'Date: ' + dateFrom + ' to ' + dateTo;
+            } else if (dateFrom) {
+                dateLabel = 'Date: From ' + dateFrom;
+            } else {
+                dateLabel = 'Date: To ' + dateTo;
+            }
+            chips.push({ filter: 'date', value: dateLabel });
+        }
+        
+        if (chips.length > 0) {
+            var chipsHtml = '';
+            chips.forEach(function(chip) {
+                chipsHtml += '<span class="filter-chip">' + chip.value + 
+                    '<span class="remove-chip rg-remove-chip" data-filter="' + chip.filter + '">&times;</span></span>';
+            });
+            $('#rgActiveFiltersChips').html(chipsHtml);
+            $('#rgActiveFiltersContainer').show();
+        } else {
+            $('#rgActiveFiltersContainer').hide();
+        }
+        
+        renderReportingGroups(filtered);
+    }
+    
+    function resetRgFilters() {
+        $('#rgQuickSearchInput').val('');
+        $('#rgFilterSearch').val('');
+        $('#rgFilterStatus').val('');
+        $('#rgFilterDateFrom').val('');
+        $('#rgFilterDateTo').val('');
+        $('.rg-date-preset').removeClass('active');
+        rgAppliedFilters = {};
+        $('#rgActiveFiltersContainer').hide();
+        renderReportingGroups(mockReportingGroups);
     }
     
     function openDetailsDrawer(address) {
@@ -1374,8 +1580,11 @@ $(document).ready(function() {
             id: 'rg-' + Date.now(),
             name: name,
             description: $('#rgDescription').val().trim(),
-            color: $('input[name="rgColor"]:checked').val(),
-            addressCount: 0
+            linkedAddresses: [],
+            messagesSent: 0,
+            lastActivity: '-',
+            created: new Date().toISOString().split('T')[0],
+            status: 'Active'
         };
         
         mockReportingGroups.push(newGroup);
@@ -1384,6 +1593,80 @@ $(document).ready(function() {
         
         $('#rgName, #rgDescription').val('');
         $('#rgColorPrimary').prop('checked', true);
+    });
+    
+    // Reporting Groups filter/search handlers
+    $('#btnApplyRgFilters').on('click', filterReportingGroups);
+    $('#btnResetRgFilters').on('click', resetRgFilters);
+    $('#btnClearRgFilters').on('click', resetRgFilters);
+    
+    var rgQuickSearchTimeout;
+    $('#rgQuickSearchInput').on('input', function() {
+        clearTimeout(rgQuickSearchTimeout);
+        rgQuickSearchTimeout = setTimeout(filterReportingGroups, 300);
+    });
+    
+    $('#rgFilterSearch').on('input', function() {
+        clearTimeout(rgQuickSearchTimeout);
+        rgQuickSearchTimeout = setTimeout(filterReportingGroups, 300);
+    });
+    
+    $(document).on('click', '.rg-remove-chip', function() {
+        var filter = $(this).data('filter');
+        if (filter === 'search') {
+            $('#rgQuickSearchInput').val('');
+            $('#rgFilterSearch').val('');
+        } else if (filter === 'status') {
+            $('#rgFilterStatus').val('');
+        } else if (filter === 'date') {
+            $('#rgFilterDateFrom').val('');
+            $('#rgFilterDateTo').val('');
+            $('.rg-date-preset').removeClass('active');
+        }
+        filterReportingGroups();
+    });
+    
+    $('.rg-date-preset').on('click', function() {
+        $('.rg-date-preset').removeClass('active');
+        $(this).addClass('active');
+        
+        var preset = $(this).data('preset');
+        var today = new Date();
+        var fromDate, toDate;
+        
+        toDate = today.toISOString().split('T')[0];
+        
+        if (preset === '7days') {
+            fromDate = new Date(today.setDate(today.getDate() - 7)).toISOString().split('T')[0];
+        } else if (preset === '30days') {
+            fromDate = new Date(today.setDate(today.getDate() - 30)).toISOString().split('T')[0];
+        } else if (preset === 'thismonth') {
+            fromDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        }
+        
+        $('#rgFilterDateFrom').val(fromDate);
+        $('#rgFilterDateTo').val(new Date().toISOString().split('T')[0]);
+        filterReportingGroups();
+    });
+    
+    $(document).on('click', '.archive-rg', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var group = mockReportingGroups.find(function(g) { return g.id === id; });
+        if (group) {
+            group.status = 'Archived';
+            renderReportingGroups(mockReportingGroups);
+        }
+    });
+    
+    $(document).on('click', '.unarchive-rg', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var group = mockReportingGroups.find(function(g) { return g.id === id; });
+        if (group) {
+            group.status = 'Active';
+            renderReportingGroups(mockReportingGroups);
+        }
     });
     
     $('#btnConfirmSuspend').on('click', function() {
