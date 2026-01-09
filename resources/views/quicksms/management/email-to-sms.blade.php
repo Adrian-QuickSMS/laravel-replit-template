@@ -371,7 +371,7 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="contact-lists-tab" data-bs-toggle="tab" data-bs-target="#contact-lists" type="button" role="tab">
-                                <i class="fas fa-link me-1"></i> Contact Lists
+                                <i class="fas fa-link me-1"></i> Email-to-SMS – Contact List
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -532,10 +532,10 @@
                         <div class="tab-pane fade" id="contact-lists" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <p class="text-muted mb-0">Mappings between Email-to-SMS Addresses and Contact Book Lists. When an email is received, SMS is sent to the linked Contact List.</p>
+                                    <p class="text-muted mb-0">Map email addresses to Contact Book Lists. When an email is received, SMS is sent to all recipients in the linked Contact List.</p>
                                 </div>
-                                <button type="button" class="btn btn-primary" id="btnCreateMapping">
-                                    <i class="fas fa-plus me-1"></i> Create Mapping
+                                <button type="button" class="btn btn-primary" id="btnCreateContactListMapping">
+                                    <i class="fas fa-plus me-1"></i> Create
                                 </button>
                             </div>
                             
