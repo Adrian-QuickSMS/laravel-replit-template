@@ -339,9 +339,6 @@
                         <p class="mb-0 text-muted small">Configure email addresses to trigger SMS messages to your Contact Lists.</p>
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                            <i class="fas fa-filter me-1"></i> Filters
-                        </button>
                         <button type="button" class="btn btn-primary" id="btnCreateAddress">
                             <i class="fas fa-plus me-1"></i> Create Address
                         </button>
@@ -455,20 +452,20 @@
                                 </div>
                             </div>
                             
-                            <div class="mb-3" id="activeFiltersContainer" style="display: none;">
-                                <div class="d-flex flex-wrap align-items-center">
-                                    <span class="small text-muted me-2">Active filters:</span>
-                                    <div id="activeFiltersChips"></div>
-                                    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters">
-                                        Clear all
-                                    </button>
-                                </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3" id="activeFiltersContainer" style="display: none;">
+                                <div id="activeFiltersChips"></div>
+                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearAllFilters">Clear All</button>
                             </div>
                             
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
+                                    </div>
                                 </div>
                             </div>
                             
@@ -724,19 +721,66 @@
                         
                         <div class="tab-pane fade" id="configuration" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="stdShowArchived">
-                                    <label class="form-check-label text-muted small" for="stdShowArchived">Show archived</label>
+                                <div>
+                                    <p class="text-muted mb-0">Create Standard Email-to-SMS setups to send messages directly from email without mapping to Contact Lists.</p>
                                 </div>
                                 <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary">
                                     <i class="fas fa-plus me-1"></i> Create
                                 </a>
                             </div>
                             
-                            <div class="search-container mb-3">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                                    <input type="text" class="form-control border-start-0" id="stdQuickSearchInput" placeholder="Quick search by name or email address...">
+                            <div class="collapse mb-3" id="stdFiltersPanel">
+                                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                                    <div class="row g-3 align-items-start">
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label small fw-bold">Date Created</label>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <input type="date" class="form-control form-control-sm" id="stdFilterDateFrom">
+                                                <span class="text-muted small">to</span>
+                                                <input type="date" class="form-control form-control-sm" id="stdFilterDateTo">
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn std-date-preset" data-preset="7days">Last 7 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn std-date-preset" data-preset="30days">Last 30 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn std-date-preset" data-preset="thismonth">This Month</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <label class="form-label small fw-bold">Subaccount</label>
+                                            <select class="form-select form-select-sm" id="stdFilterSubaccount">
+                                                <option value="">All Subaccounts</option>
+                                                <option value="main">Main Account</option>
+                                                <option value="marketing">Marketing Team</option>
+                                                <option value="support">Support Team</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end gap-2 mt-3">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetStdFilters">Reset Filters</button>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyStdFilters">Apply Filters</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3" id="stdActiveFiltersContainer" style="display: none;">
+                                <div id="stdActiveFiltersChips"></div>
+                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearStdFilters">Clear All</button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="stdQuickSearchInput" placeholder="Quick search by name...">
+                                    </div>
+                                    <div class="form-check form-switch ms-3">
+                                        <input class="form-check-input" type="checkbox" id="stdShowArchived">
+                                        <label class="form-check-label small text-muted" for="stdShowArchived">Show archived</label>
+                                    </div>
                                 </div>
                             </div>
                             
