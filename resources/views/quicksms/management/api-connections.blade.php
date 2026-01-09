@@ -1903,6 +1903,12 @@ $(document).ready(function() {
     window.convertToLive = function(id) {
         var conn = getConnectionById(id);
         
+        // Block if already Live
+        if (conn.environment === 'live') {
+            showErrorToast('This connection is already in the Live environment.');
+            return;
+        }
+        
         showConfirmModal(
             'Convert to Live Environment - Step 1 of 2',
             'You are about to convert "' + conn.name + '" from a Test (sandbox) environment to a Live (production) environment.',
@@ -1921,15 +1927,34 @@ $(document).ready(function() {
                     'Convert to Live Now',
                     'btn-warning',
                     function() {
+                        // Optimistic update - store previous values
+                        var previousEnvironment = conn.environment;
+                        var previousBaseUrl = conn.baseUrl;
+                        
                         conn.environment = 'live';
                         
-                        if (conn.baseUrl.includes('sandbox')) {
-                            conn.baseUrl = conn.baseUrl.replace('sandbox.', 'api.').replace('/test-', '/prod-');
+                        if (conn.baseUrl.includes('-sandbox')) {
+                            conn.baseUrl = conn.baseUrl.replace('-sandbox', '');
                         }
                         
-                        console.log('[AUDIT] API Connection converted to Live:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
                         renderTable();
-                        showSuccessToast('API Connection "' + conn.name + '" has been converted to Live environment.');
+                        
+                        // TODO: Replace mockApiCall with actual API call
+                        mockApiCall(
+                            '/api/connections/' + id + '/convert-to-live',
+                            { id: id },
+                            function(response) {
+                                console.log('[AUDIT] API Connection converted to Live:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                                showSuccessToast('API Connection "' + conn.name + '" has been converted to Live environment.');
+                            },
+                            function(error) {
+                                // Rollback on failure
+                                conn.environment = previousEnvironment;
+                                conn.baseUrl = previousBaseUrl;
+                                renderTable();
+                                showErrorToast('Failed to convert "' + conn.name + '" to Live. Please try again.');
+                            }
+                        );
                     }
                 );
             },
@@ -1952,8 +1977,8 @@ $(document).ready(function() {
         $('#confirmModalWarning').hide();
         $('#confirmModalBtn').text(confirmText).removeClass('btn-danger btn-warning btn-primary btn-success').addClass(confirmClass);
         $('#confirmModalBtn').off('click').on('click', function() {
+            pendingConfirmCallback = onConfirm;
             $('#confirmModal').modal('hide');
-            onConfirm();
         });
         $('#confirmModal').modal('show');
     }
