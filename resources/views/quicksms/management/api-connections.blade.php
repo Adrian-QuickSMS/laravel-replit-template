@@ -750,8 +750,8 @@
 <div class="modal fade" id="newKeyModal" tabindex="-1" aria-labelledby="newKeyModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="newKeyModalLabel"><i class="fas fa-key me-2"></i>New API Key Generated</h5>
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title" id="newKeyModalLabel"><i class="fas fa-key me-2 text-primary"></i>New API Key Generated</h5>
             </div>
             <div class="modal-body">
                 <div class="alert" style="background-color: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); color: #856404;">
