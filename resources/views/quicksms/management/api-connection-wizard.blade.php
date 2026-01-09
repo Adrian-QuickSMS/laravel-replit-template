@@ -158,7 +158,6 @@
 
 #integrationPartnerSection {
     margin-top: 1rem;
-    display: none;
 }
 
 
@@ -444,7 +443,7 @@
                                         </div>
                                         <div class="invalid-feedback d-block" id="apiTypeError" style="display: none;">Please select an API type.</div>
                                         
-                                        <div id="integrationPartnerSection">
+                                        <div id="integrationPartnerSection" style="display: none;">
                                             <hr class="my-4">
                                             <h6 class="mb-3">Select Integration Partner</h6>
                                             <div class="row g-3">
