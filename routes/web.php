@@ -39,6 +39,8 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/management/api-connections/create', 'apiConnectionCreate')->name('management.api-connections.create');
     Route::get('/management/email-to-sms', 'emailToSms')->name('management.email-to-sms');
     Route::get('/management/email-to-sms/create-mapping', 'emailToSmsCreateMapping')->name('management.email-to-sms.create-mapping');
+    Route::get('/management/email-to-sms/standard/create', 'emailToSmsStandardCreate')->name('management.email-to-sms.standard.create');
+    Route::get('/management/email-to-sms/standard/{id}/edit', 'emailToSmsStandardEdit')->name('management.email-to-sms.standard.edit');
     Route::get('/management/numbers', 'numbers')->name('management.numbers');
     
     Route::get('/account', 'account')->name('account');

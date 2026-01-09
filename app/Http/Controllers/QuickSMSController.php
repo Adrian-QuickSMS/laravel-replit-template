@@ -1680,6 +1680,21 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function emailToSmsStandardCreate()
+    {
+        return view('quicksms.management.standard-email-to-sms-form', [
+            'page_title' => 'Create Standard Email-to-SMS'
+        ]);
+    }
+
+    public function emailToSmsStandardEdit($id)
+    {
+        return view('quicksms.management.standard-email-to-sms-form', [
+            'page_title' => 'Edit Standard Email-to-SMS',
+            'id' => $id
+        ]);
+    }
+
     public function numbers()
     {
         return view('quicksms.placeholder', [
