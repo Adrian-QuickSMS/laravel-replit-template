@@ -558,7 +558,8 @@
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 5: Webhook Configuration</strong> - Configure callback URLs for delivery reports and inbound messages.
+                                            <strong>Step 5: Webhook Configuration</strong> <span class="badge bg-pastel-primary ms-2">Optional</span>
+                                            <p class="mb-0 mt-2 small">Configure callback URLs for delivery reports and inbound messages. You can skip this step and configure webhooks later.</p>
                                         </div>
                                         
                                         <div class="mb-3">
