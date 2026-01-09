@@ -164,12 +164,6 @@
     display: block !important;
 }
 
-#ipRestrictionFields {
-    display: none;
-}
-#ipRestrictionFields.show {
-    display: block !important;
-}
 
 .selectable-tile {
     border: 2px solid #e9ecef;
@@ -531,38 +525,30 @@
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 4: Security Controls</strong> - Configure additional security settings.
+                                            <strong>Step 4: Security Controls</strong> <span class="badge bg-secondary ms-2">Optional</span>
+                                            <p class="mb-0 mt-2 small">Restrict API access to specific IP addresses. You can skip this step if you don't need IP restrictions.</p>
                                         </div>
                                         
-                                        <div class="mb-4">
-                                            <div class="form-check form-switch mb-3">
-                                                <input class="form-check-input" type="checkbox" id="enableIpRestriction" onchange="toggleIpRestriction(this)">
-                                                <label class="form-check-label fw-medium" for="enableIpRestriction">Enable IP Address Restriction</label>
-                                            </div>
-                                            <p class="text-muted small">When enabled, API requests will only be accepted from specified IP addresses.</p>
-                                        </div>
-                                        
-                                        <div id="ipRestrictionFields">
-                                            <div class="mb-3">
-                                                <label class="form-label">Allowed IP Addresses</label>
-                                                <div class="input-group mb-2">
-                                                    <input type="text" class="form-control" id="ipAddressInput" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
-                                                    <button class="btn btn-primary" type="button" id="addIpAddressBtn">
-                                                        <i class="fas fa-plus me-1"></i> Add
-                                                    </button>
-                                                </div>
-                                                <div class="invalid-feedback" id="ipAddressError" style="display: none;">Invalid IP address or CIDR format</div>
-                                                <small class="text-muted">Supports IPv4, IPv6, and CIDR notation.</small>
-                                            </div>
-                                            
-                                            <div id="ipAddressesList" class="ip-addresses-container mb-3"></div>
-                                            
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <small class="text-muted"><span id="ipAddressCount">0</span> IP addresses added</small>
-                                                <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllIps" style="display: none;">
-                                                    <i class="fas fa-trash-alt me-1"></i> Clear All
+                                        <div class="mb-3">
+                                            <label class="form-label fw-medium">Allowed IP Addresses</label>
+                                            <p class="text-muted small mb-2">Add IP addresses that are allowed to make API requests. Leave empty to allow all IPs.</p>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control" id="ipAddressInput" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
+                                                <button class="btn btn-primary" type="button" id="addIpAddressBtn">
+                                                    <i class="fas fa-plus me-1"></i> Add
                                                 </button>
                                             </div>
+                                            <div class="invalid-feedback" id="ipAddressError" style="display: none;">Invalid IP address or CIDR format</div>
+                                            <small class="text-muted">Supports IPv4, IPv6, and CIDR notation.</small>
+                                        </div>
+                                        
+                                        <div id="ipAddressesList" class="ip-addresses-container mb-3"></div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted"><span id="ipAddressCount">0</span> IP addresses added</small>
+                                            <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllIps" style="display: none;">
+                                                <i class="fas fa-trash-alt me-1"></i> Clear All
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -966,16 +952,9 @@ $(document).ready(function() {
             $nextBtn.off('click.createConnection');
         }
         
-        // Sync IP restriction visibility when entering step 4 (Security Settings)
+        // Render IP addresses when entering step 4 (Security Settings)
         if (stepIndex === 3) {
-            var ipFields = document.getElementById('ipRestrictionFields');
-            if (ipFields) {
-                if (wizardData.ipAllowList) {
-                    ipFields.classList.add('show');
-                } else {
-                    ipFields.classList.remove('show');
-                }
-            }
+            renderIpAddresses();
         }
         
         if (connectionCreated) {
@@ -1031,7 +1010,7 @@ $(document).ready(function() {
         wizardData.description = $('#apiDescription').val().trim();
         wizardData.subAccount = $('#subAccount').val();
         wizardData.environment = $('#environment').val();
-        wizardData.ipAllowList = $('#enableIpRestriction').is(':checked');
+        wizardData.ipAllowList = wizardData.allowedIps.length > 0;
         
         // Capture type from selected tile (Step 2)
         var $selectedType = $('.selectable-tile.selected[data-type]');
@@ -1075,18 +1054,7 @@ $(document).ready(function() {
             selectAuthType(wizardData.authType);
         }
         
-        $('#enableIpRestriction').prop('checked', wizardData.ipAllowList);
-        var ipFields = document.getElementById('ipRestrictionFields');
-        if (ipFields) {
-            if (wizardData.ipAllowList) {
-                ipFields.classList.add('show');
-            } else {
-                ipFields.classList.remove('show');
-            }
-        }
-        if (wizardData.ipAllowList) {
-            renderIpAddresses();
-        }
+        renderIpAddresses();
         
         var dlrPath = wizardData.dlrUrl ? wizardData.dlrUrl.replace('https://', '') : '';
         var inboundPath = wizardData.inboundUrl ? wizardData.inboundUrl.replace('https://', '') : '';
@@ -1154,22 +1122,6 @@ $(document).ready(function() {
         updateStepIndicators();
         saveDraft();
         $('#apiConnectionWizard').smartWizard('next');
-    };
-    
-    window.toggleIpRestriction = function(checkbox) {
-        var isChecked = checkbox.checked;
-        console.log('[API Wizard] IP Restriction toggle changed:', isChecked);
-        var fields = document.getElementById('ipRestrictionFields');
-        if (isChecked) {
-            console.log('[API Wizard] Showing ipRestrictionFields');
-            fields.classList.add('show');
-        } else {
-            console.log('[API Wizard] Hiding ipRestrictionFields');
-            fields.classList.remove('show');
-        }
-        wizardData.ipAllowList = isChecked;
-        saveDraft();
-        revalidateStep(3);
     };
     
     function renderIpAddresses() {
