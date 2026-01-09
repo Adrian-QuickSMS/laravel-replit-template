@@ -751,13 +751,12 @@
                                     <table class="email-sms-table">
                                         <thead>
                                             <tr>
-                                                <th>Name</th>
-                                                <th>Email Address</th>
-                                                <th>SenderID</th>
-                                                <th>Reporting Group</th>
-                                                <th>Status</th>
-                                                <th>Created</th>
-                                                <th>Actions</th>
+                                                <th style="width: 20%;">Name</th>
+                                                <th style="width: 15%;">Subaccount</th>
+                                                <th style="width: 30%;">Allowed Sender Emails</th>
+                                                <th style="width: 12%;">Created</th>
+                                                <th style="width: 12%;">Last Updated</th>
+                                                <th class="text-end" style="width: 11%;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="standardSmsTableBody">
@@ -2302,37 +2301,72 @@ $(document).ready(function() {
         {
             id: 'std-001',
             name: 'General Notifications',
-            emailAddress: 'general.notif' + EMAIL_DOMAIN,
-            senderId: 'QuickSMS',
-            reportingGroup: 'Default',
-            status: 'Active',
+            subaccount: 'Main Account',
+            allowedSenders: ['admin@company.com', 'system@company.com', 'notifications@company.com'],
             created: '2024-10-20',
-            lastUsed: '2025-01-09 10:15',
-            messagesSent: 4521
+            lastUpdated: '2025-01-09'
         },
         {
             id: 'std-002',
             name: 'Urgent Alerts',
-            emailAddress: 'urgent.alerts' + EMAIL_DOMAIN,
-            senderId: 'ALERTS',
-            reportingGroup: 'Alerts',
-            status: 'Active',
+            subaccount: 'Marketing Team',
+            allowedSenders: ['alerts@marketing.com'],
             created: '2024-11-05',
-            lastUsed: '2025-01-08 16:42',
-            messagesSent: 892
+            lastUpdated: '2025-01-08'
         },
         {
             id: 'std-003',
-            name: 'Test Setup',
-            emailAddress: 'test.setup' + EMAIL_DOMAIN,
-            senderId: 'TEST',
-            reportingGroup: 'Default',
-            status: 'Suspended',
+            name: 'Patient Communications',
+            subaccount: 'Support Team',
+            allowedSenders: ['*@nhstrust.nhs.uk'],
+            created: '2024-11-18',
+            lastUpdated: '2025-01-07'
+        },
+        {
+            id: 'std-004',
+            name: 'Appointment Reminders',
+            subaccount: 'Main Account',
+            allowedSenders: ['bookings@clinic.com', 'reception@clinic.com'],
+            created: '2024-12-01',
+            lastUpdated: '2025-01-06'
+        },
+        {
+            id: 'std-005',
+            name: 'Delivery Updates',
+            subaccount: 'Marketing Team',
+            allowedSenders: [],
+            created: '2024-12-10',
+            lastUpdated: '2025-01-05'
+        },
+        {
+            id: 'std-006',
+            name: 'Internal Testing',
+            subaccount: 'Support Team',
+            allowedSenders: ['dev@quicksms.io', 'qa@quicksms.io', 'test@quicksms.io', 'staging@quicksms.io'],
             created: '2024-12-15',
-            lastUsed: '2024-12-20 09:00',
-            messagesSent: 45
+            lastUpdated: '2025-01-04'
         }
     ];
+    
+    function formatAllowedSenders(senders) {
+        if (!senders || senders.length === 0) {
+            return '<span class="text-muted">All senders allowed</span>';
+        }
+        
+        var maxDisplay = 2;
+        var displayed = senders.slice(0, maxDisplay);
+        var remaining = senders.length - maxDisplay;
+        
+        var html = displayed.map(function(email) {
+            return '<span class="d-block text-truncate" style="max-width: 250px;" title="' + email + '">' + email + '</span>';
+        }).join('');
+        
+        if (remaining > 0) {
+            html += '<span class="text-muted small">+' + remaining + ' more</span>';
+        }
+        
+        return html;
+    }
     
     function renderStandardSmsTable(items) {
         var tbody = $('#standardSmsTableBody');
@@ -2350,30 +2384,23 @@ $(document).ready(function() {
         $('#emptyStateStandardSms').hide();
         
         items.forEach(function(item) {
-            var statusBadge = item.status === 'Active' 
-                ? '<span class="badge badge-live-status">Active</span>'
-                : '<span class="badge badge-suspended">Suspended</span>';
+            var allowedSendersHtml = formatAllowedSenders(item.allowedSenders);
             
             var row = '<tr data-id="' + item.id + '">' +
                 '<td><span class="email-sms-name">' + item.name + '</span></td>' +
-                '<td><code class="email-address-display">' + item.emailAddress + '</code></td>' +
-                '<td>' + item.senderId + '</td>' +
-                '<td>' + item.reportingGroup + '</td>' +
-                '<td>' + statusBadge + '</td>' +
+                '<td>' + item.subaccount + '</td>' +
+                '<td>' + allowedSendersHtml + '</td>' +
                 '<td>' + item.created + '</td>' +
+                '<td>' + item.lastUpdated + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i> View Details</a></li>' +
-                            '<li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
-                            (item.status === 'Active' 
-                                ? '<li><a class="dropdown-item" href="#"><i class="fas fa-pause me-2"></i> Suspend</a></li>'
-                                : '<li><a class="dropdown-item" href="#"><i class="fas fa-play me-2"></i> Reactivate</a></li>') +
-                            '<li><hr class="dropdown-divider"></li>' +
-                            '<li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i> Delete</a></li>' +
+                            '<li><a class="dropdown-item std-action-view" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
+                            '<li><a class="dropdown-item std-action-edit" href="#" data-id="' + item.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            '<li><a class="dropdown-item std-action-archive" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>' +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
@@ -2384,6 +2411,33 @@ $(document).ready(function() {
         
         $('#stdShowingCount').text(items.length);
         $('#stdTotalCount').text(mockStandardSms.length);
+        
+        // Bind action handlers
+        $('.std-action-view').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            // TODO: Open view drawer/modal
+            console.log('View Standard Email-to-SMS:', id);
+            alert('View functionality coming soon for: ' + id);
+        });
+        
+        $('.std-action-edit').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            // TODO: Open edit modal
+            console.log('Edit Standard Email-to-SMS:', id);
+            alert('Edit functionality coming soon for: ' + id);
+        });
+        
+        $('.std-action-archive').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            // TODO: Show archive confirmation
+            console.log('Archive Standard Email-to-SMS:', id);
+            if (confirm('Are you sure you want to archive this Standard Email-to-SMS setup?')) {
+                alert('Archive functionality coming soon for: ' + id);
+            }
+        });
     }
     
     $('#stdQuickSearchInput').on('input', function() {
@@ -2395,8 +2449,10 @@ $(document).ready(function() {
         
         var filtered = mockStandardSms.filter(function(item) {
             return item.name.toLowerCase().indexOf(searchTerm) !== -1 ||
-                   item.emailAddress.toLowerCase().indexOf(searchTerm) !== -1 ||
-                   item.senderId.toLowerCase().indexOf(searchTerm) !== -1;
+                   item.subaccount.toLowerCase().indexOf(searchTerm) !== -1 ||
+                   item.allowedSenders.some(function(email) {
+                       return email.toLowerCase().indexOf(searchTerm) !== -1;
+                   });
         });
         
         renderStandardSmsTable(filtered);
