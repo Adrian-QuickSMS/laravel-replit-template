@@ -53,6 +53,16 @@
     border-radius: 0.25rem;
     font-size: 0.85rem;
 }
+#configuration textarea.form-control {
+    min-height: auto;
+    height: auto;
+}
+#configuration .card-body {
+    padding: 1rem;
+}
+#configuration .card-header {
+    padding: 0.75rem 1rem;
+}
 .email-sms-table {
     width: 100%;
     margin: 0;
