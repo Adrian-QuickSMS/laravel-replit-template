@@ -859,6 +859,7 @@ $(document).ready(function() {
         selected: 0,
         theme: 'default',
         autoAdjustHeight: true,
+        contentCache: true,
         transition: {
             animation: 'fade',
             speed: '200'
