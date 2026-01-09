@@ -56,29 +56,45 @@
 #downloadAreaTable {
     width: 100%;
     border-collapse: collapse;
+    margin: 0;
 }
 #downloadAreaTable thead th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-    padding: 12px 15px;
-    font-weight: 600;
-    color: #495057;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef !important;
+    padding: 0.75rem 0.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    color: #495057 !important;
     white-space: nowrap;
+    text-transform: none !important;
+    letter-spacing: normal !important;
     position: sticky;
     top: 0;
     z-index: 10;
 }
+#downloadAreaTable thead th:hover {
+    background: #e9ecef !important;
+}
 #downloadAreaTable tbody tr {
     cursor: pointer;
     transition: background-color 0.15s ease;
-    border-bottom: 1px solid #e9ecef;
 }
-#downloadAreaTable tbody tr:hover {
-    background-color: rgba(136, 108, 192, 0.08) !important;
+#downloadAreaTable tbody tr:hover td {
+    background-color: #f8f9fa !important;
 }
 #downloadAreaTable tbody td {
-    padding: 12px 15px;
+    padding: 0.75rem 0.5rem;
     vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.85rem;
+    color: #495057;
+}
+#downloadAreaTable tbody tr:last-child td {
+    border-bottom: none;
+}
+#downloadAreaTable tbody td:first-child {
+    font-weight: 500;
+    color: #343a40;
 }
 .filter-chip {
     display: inline-flex;

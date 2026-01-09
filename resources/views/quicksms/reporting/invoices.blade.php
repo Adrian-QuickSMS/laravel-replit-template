@@ -80,29 +80,45 @@
 #invoicesTable {
     width: 100%;
     border-collapse: collapse;
+    margin: 0;
 }
 #invoicesTable thead th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-    padding: 12px 15px;
-    font-weight: 600;
-    color: #495057;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef !important;
+    padding: 0.75rem 0.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    color: #495057 !important;
     white-space: nowrap;
+    text-transform: none !important;
+    letter-spacing: normal !important;
     position: sticky;
     top: 0;
     z-index: 10;
 }
+#invoicesTable thead th:hover {
+    background: #e9ecef !important;
+}
 #invoicesTable tbody tr {
     cursor: pointer;
     transition: background-color 0.15s ease;
-    border-bottom: 1px solid #e9ecef;
 }
-#invoicesTable tbody tr:hover {
-    background-color: rgba(136, 108, 192, 0.08) !important;
+#invoicesTable tbody tr:hover td {
+    background-color: #f8f9fa !important;
 }
 #invoicesTable tbody td {
-    padding: 12px 15px;
+    padding: 0.75rem 0.5rem;
     vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.85rem;
+    color: #495057;
+}
+#invoicesTable tbody tr:last-child td {
+    border-bottom: none;
+}
+#invoicesTable tbody td:first-child {
+    font-weight: 500;
+    color: #343a40;
 }
 .filter-chip {
     display: inline-flex;
