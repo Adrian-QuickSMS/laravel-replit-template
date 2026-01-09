@@ -58,26 +58,34 @@
     margin: 0;
     border-collapse: collapse;
 }
-.email-sms-table th {
+.email-sms-table thead th {
     font-weight: 600;
     color: #495057;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     padding: 0.75rem 1rem;
     text-align: left;
     white-space: nowrap;
     border: none;
-    background: transparent;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
 }
-.email-sms-table td {
+.email-sms-table tbody td {
     vertical-align: middle;
     padding: 0.75rem 1rem;
     border: none;
+    font-size: 0.85rem;
+    color: #495057;
+    font-weight: 400;
 }
 .email-sms-table tbody tr {
     cursor: pointer;
 }
 .email-sms-table tbody tr:hover td {
-    background-color: rgba(136, 108, 192, 0.03);
+    background-color: #f8f9fa;
+}
+.email-sms-name {
+    font-weight: 500;
+    color: #343a40;
 }
 .table-container {
     background: #fff;
@@ -1421,7 +1429,7 @@ $(document).ready(function() {
             }
             
             var row = '<tr data-id="' + addr.id + '">' +
-                '<td><strong>' + addr.name + '</strong></td>' +
+                '<td><span class="email-sms-name">' + addr.name + '</span></td>' +
                 '<td>' + emailsDisplay + '</td>' +
                 '<td>' + addr.type + '</td>' +
                 '<td>' + addr.reportingGroup + '</td>' +
@@ -1477,7 +1485,7 @@ $(document).ready(function() {
                 : '<span class="text-muted">None</span>';
             
             var row = '<tr data-id="' + group.id + '">' +
-                '<td><strong>' + group.name + '</strong></td>' +
+                '<td><span class="email-sms-name">' + group.name + '</span></td>' +
                 '<td class="text-muted small">' + (group.description || '-') + '</td>' +
                 '<td>' + linkedDisplay + '</td>' +
                 '<td>' + group.messagesSent.toLocaleString() + '</td>' +
