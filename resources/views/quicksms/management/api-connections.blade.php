@@ -531,24 +531,24 @@
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="viewDetailsDrawer" style="width: 480px;">
     <div class="offcanvas-header border-bottom py-3">
-        <h6 class="offcanvas-title text-muted mb-0"><i class="fas fa-plug me-2"></i>API Connection Details</h6>
+        <h6 class="offcanvas-title mb-0"><i class="fas fa-plug me-2 text-primary"></i>API Connection Details</h6>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body p-0">
-        <div class="bg-gradient-primary text-white p-4" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
-            <h4 id="drawerApiName" class="mb-3 fw-semibold">-</h4>
+        <div class="p-4 border-bottom">
+            <h5 id="drawerApiName" class="mb-3 fw-semibold">-</h5>
             <div class="d-flex flex-wrap gap-2 mb-2">
-                <span id="drawerTypeBadge" class="badge bg-white text-dark">-</span>
-                <span id="drawerEnvBadge" class="badge bg-white bg-opacity-25">-</span>
-                <span id="drawerStatusBadge" class="badge bg-white bg-opacity-25">-</span>
+                <span id="drawerTypeBadge" class="badge rounded-pill">-</span>
+                <span id="drawerEnvBadge" class="badge rounded-pill">-</span>
+                <span id="drawerStatusBadge" class="badge rounded-pill">-</span>
             </div>
-            <div class="small opacity-75 mt-2" id="drawerDescription">-</div>
+            <div class="small text-muted mt-2" id="drawerDescription">-</div>
         </div>
 
         <div class="p-4">
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Connection Information</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Connection Information</h6>
                     <div class="row mb-2">
                         <div class="col-5 text-muted small">API Name</div>
                         <div class="col-7 small fw-medium" id="drawerApiNameDetail">-</div>
@@ -574,7 +574,7 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-key me-2"></i>Authentication</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-key me-2 text-primary"></i>Authentication</h6>
                     <div class="row mb-2">
                         <div class="col-5 text-muted small">Auth Method</div>
                         <div class="col-7 small" id="drawerAuthType">-</div>
@@ -590,13 +590,13 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-link me-2"></i>Endpoints</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-link me-2 text-primary"></i>Endpoints</h6>
                     <div class="row mb-2">
                         <div class="col-12 text-muted small mb-1">Dedicated Base URL</div>
                         <div class="col-12">
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control form-control-sm bg-light" id="drawerBaseUrl" readonly>
-                                <button class="btn btn-outline-secondary" type="button" onclick="copyDrawerField('drawerBaseUrl')" title="Copy">
+                            <div class="d-flex align-items-center">
+                                <code class="small flex-grow-1 text-break" id="drawerBaseUrl">-</code>
+                                <button class="btn btn-sm btn-link text-muted p-0 ms-2" type="button" onclick="copyDrawerField('drawerBaseUrl')" title="Copy">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
@@ -605,9 +605,9 @@
                     <div class="row mb-2 mt-3">
                         <div class="col-12 text-muted small mb-1">Delivery Report URL (Webhook)</div>
                         <div class="col-12">
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control form-control-sm bg-light" id="drawerDlrUrl" readonly>
-                                <button class="btn btn-outline-secondary" type="button" onclick="copyDrawerField('drawerDlrUrl')" title="Copy">
+                            <div class="d-flex align-items-center">
+                                <code class="small flex-grow-1 text-break" id="drawerDlrUrl">-</code>
+                                <button class="btn btn-sm btn-link text-muted p-0 ms-2" type="button" onclick="copyDrawerField('drawerDlrUrl')" title="Copy">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
@@ -616,9 +616,9 @@
                     <div class="row mt-3">
                         <div class="col-12 text-muted small mb-1">Inbound Message URL (Webhook)</div>
                         <div class="col-12">
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control form-control-sm bg-light" id="drawerInboundUrl" readonly>
-                                <button class="btn btn-outline-secondary" type="button" onclick="copyDrawerField('drawerInboundUrl')" title="Copy">
+                            <div class="d-flex align-items-center">
+                                <code class="small flex-grow-1 text-break" id="drawerInboundUrl">-</code>
+                                <button class="btn btn-sm btn-link text-muted p-0 ms-2" type="button" onclick="copyDrawerField('drawerInboundUrl')" title="Copy">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
@@ -629,7 +629,7 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-shield-alt me-2"></i>Security</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>Security</h6>
                     <div class="row mb-2">
                         <div class="col-5 text-muted small">IP Allow List</div>
                         <div class="col-7 small" id="drawerIpAllowStatus">-</div>
@@ -637,7 +637,7 @@
                     <div class="row" id="drawerIpListRow" style="display: none;">
                         <div class="col-12 text-muted small mb-1">Allowed IPs</div>
                         <div class="col-12">
-                            <div class="bg-light rounded p-2 small" id="drawerIpList">-</div>
+                            <div class="small" id="drawerIpList">-</div>
                         </div>
                     </div>
                 </div>
@@ -645,7 +645,7 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-clock me-2"></i>Activity</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-clock me-2 text-primary"></i>Activity</h6>
                     <div class="row mb-2">
                         <div class="col-5 text-muted small">Created</div>
                         <div class="col-7 small" id="drawerCreatedDate">-</div>
@@ -659,14 +659,14 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-tasks me-2"></i>Capabilities & Restrictions</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-tasks me-2 text-primary"></i>Capabilities & Restrictions</h6>
                     <div id="drawerCapabilities"></div>
                 </div>
             </div>
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-project-diagram me-2"></i>Dependencies</h6>
+                    <h6 class="card-title mb-3"><i class="fas fa-project-diagram me-2 text-primary"></i>Dependencies</h6>
                     <div id="drawerDependencies">
                         <p class="text-muted small mb-0">No dependencies configured.</p>
                     </div>
@@ -1414,38 +1414,41 @@ $(document).ready(function() {
         $('#drawerApiName').text(conn.name);
         $('#drawerDescription').text(conn.description || 'No description provided');
         
+        // Set header badges with pastel styling matching table
         var typeLabel = getTypeLabel(conn.type);
-        $('#drawerTypeBadge').text(typeLabel);
+        $('#drawerTypeBadge').removeClass().addClass('badge rounded-pill ' + getTypeBadgeClass(conn.type)).text(typeLabel);
         
         var envLabel = conn.environment === 'live' ? 'Live' : 'Test';
-        $('#drawerEnvBadge').text(envLabel);
+        $('#drawerEnvBadge').removeClass().addClass('badge rounded-pill ' + getEnvironmentBadgeClass(conn.environment)).text(envLabel);
         
-        var statusLabel = conn.status === 'live' ? 'Active' : 'Suspended';
-        $('#drawerStatusBadge').text(statusLabel);
+        var statusLabel = conn.status === 'live' ? 'Live' : 'Suspended';
+        $('#drawerStatusBadge').removeClass().addClass('badge rounded-pill ' + getStatusBadgeClass(conn.status)).text(statusLabel);
         
         $('#drawerApiNameDetail').text(conn.name);
         $('#drawerSubAccount').text(conn.subAccount);
         $('#drawerType').text(typeLabel);
         $('#drawerEnvironment').text(envLabel);
-        $('#drawerStatus').html('<span class="badge ' + getStatusBadgeClass(conn.status) + '">' + (conn.status === 'live' ? 'Live' : 'Suspended') + '</span>');
+        $('#drawerStatus').html('<span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + (conn.status === 'live' ? 'Live' : 'Suspended') + '</span>');
         
         $('#drawerAuthType').text(conn.authType);
         var maskedCred = conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••';
         $('#drawerCredentials').text(maskedCred);
         
-        $('#drawerBaseUrl').val(conn.baseUrl);
-        $('#drawerDlrUrl').val(conn.dlrUrl || 'Not configured');
-        $('#drawerInboundUrl').val(conn.inboundUrl || 'Not configured');
+        // URL fields now use <code> elements instead of inputs
+        $('#drawerBaseUrl').text(conn.baseUrl);
+        $('#drawerDlrUrl').text(conn.dlrUrl || 'Not configured');
+        $('#drawerInboundUrl').text(conn.inboundUrl || 'Not configured');
         
         if (conn.ipAllowList) {
-            $('#drawerIpAllowStatus').html('<span class="badge badge-on">On</span>');
+            $('#drawerIpAllowStatus').html('<span class="badge rounded-pill badge-on">Enabled</span>');
             $('#drawerIpListRow').show();
+            // Use neutral styling for IPs (not red)
             var ipHtml = (conn.allowedIps && conn.allowedIps.length > 0) 
-                ? conn.allowedIps.map(function(ip) { return '<code class="me-2">' + ip + '</code>'; }).join('')
+                ? conn.allowedIps.map(function(ip) { return '<span class="badge rounded-pill badge-bulk me-1 mb-1">' + ip + '</span>'; }).join('')
                 : '<span class="text-muted">No IPs configured</span>';
             $('#drawerIpList').html(ipHtml);
         } else {
-            $('#drawerIpAllowStatus').html('<span class="badge badge-off">Off</span>');
+            $('#drawerIpAllowStatus').html('<span class="badge rounded-pill badge-off">Disabled</span>');
             $('#drawerIpListRow').hide();
         }
         
@@ -1487,11 +1490,12 @@ $(document).ready(function() {
     };
     
     window.copyDrawerField = function(fieldId) {
-        var input = document.getElementById(fieldId);
-        var value = input.value;
-        if (value && value !== 'Not configured') {
+        var element = document.getElementById(fieldId);
+        // Support both input elements and code/text elements
+        var value = element.value !== undefined ? element.value : element.textContent;
+        if (value && value !== 'Not configured' && value !== '-') {
             navigator.clipboard.writeText(value).then(function() {
-                var btn = $(input).siblings('button');
+                var btn = $(element).parent().find('button');
                 var originalHtml = btn.html();
                 btn.html('<i class="fas fa-check text-success"></i>');
                 setTimeout(function() {
