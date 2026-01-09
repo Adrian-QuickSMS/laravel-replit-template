@@ -1928,7 +1928,7 @@ $(document).ready(function() {
             'Suspend API Connection - Step 1 of 2',
             'Suspending "' + conn.name + '" will immediately block all API traffic. Any systems using this connection will stop working.',
             'Continue',
-            'btn-warning',
+            'btn-primary',
             function() {
                 showConfirmModal(
                     'Suspend API Connection - Final Confirmation',
@@ -2104,7 +2104,7 @@ $(document).ready(function() {
             'Archive API Connection - Step 1 of 2',
             'You are about to archive "' + conn.name + '". Archived connections cannot be used or modified, but are retained for audit purposes.',
             'Continue',
-            'btn-warning',
+            'btn-primary',
             function() {
                 showConfirmModalWithDetails(
                     'Archive API Connection - Final Confirmation',
