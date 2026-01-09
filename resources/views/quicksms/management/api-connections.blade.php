@@ -1603,6 +1603,9 @@ $(document).ready(function() {
         );
     };
     
+    // MOCK ONLY: This function simulates key generation for UI testing.
+    // SECURITY: In production, keys MUST be generated server-side and returned via API response.
+    // This client-side mock will be removed when backend endpoint is integrated.
     function generateNewApiKey() {
         var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var key = 'sk_live_';
@@ -1613,19 +1616,45 @@ $(document).ready(function() {
     }
     
     function generateAndShowNewKey(conn) {
-        var newKey = generateNewApiKey();
-        
-        console.log('[AUDIT] API Key regenerated for connection:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
-        
-        $('#newApiKeyValue').val(newKey);
-        $('#copyNewKeyBtn').html('<i class="fas fa-copy me-1"></i> Copy');
-        
-        $('#closeNewKeyModalBtn').off('click').on('click', function() {
-            $('#newApiKeyValue').val('');
-            $('#newKeyModal').modal('hide');
-        });
-        
-        $('#newKeyModal').modal('show');
+        // TODO: Replace with actual backend API call to generate new key
+        // In production, the new key should be returned from the backend
+        mockApiCall(
+            '/api/connections/' + conn.id + '/regenerate-key',
+            { id: conn.id },
+            function(response) {
+                // Generate new key (mock - in production, key comes from backend response)
+                var newKey = generateNewApiKey();
+                
+                // Update connection state to reflect key regeneration
+                conn.keyRegeneratedAt = new Date().toISOString();
+                conn.lastUsed = new Date().toISOString();
+                
+                console.log('[AUDIT] API Key regenerated for connection:', conn.name, 'ID:', conn.id, 'at:', conn.keyRegeneratedAt);
+                
+                // Re-render table to show updated state
+                renderTable();
+                
+                // Populate modal with new key
+                $('#newApiKeyValue').val(newKey);
+                $('#copyNewKeyBtn').html('<i class="fas fa-copy me-1"></i> Copy');
+                
+                // Set up close button to clear key from memory
+                $('#closeNewKeyModalBtn').off('click').on('click', function() {
+                    // Clear key from DOM for security
+                    $('#newApiKeyValue').val('');
+                    $('#newKeyModal').modal('hide');
+                    showSuccessToast('API Key for "' + conn.name + '" has been regenerated. The old key is now revoked.');
+                });
+                
+                // Wait for any previous modal transitions to complete
+                setTimeout(function() {
+                    $('#newKeyModal').modal('show');
+                }, 150);
+            },
+            function(error) {
+                showErrorToast('Failed to regenerate API key. Please try again.');
+            }
+        );
     }
     
     window.copyNewApiKey = function() {
