@@ -18,6 +18,16 @@
     margin: 0;
     color: #6c757d;
 }
+.action-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+.action-menu-btn:hover {
+    color: var(--primary);
+}
 .filter-chip {
     display: inline-flex;
     align-items: center;
@@ -352,13 +362,6 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="row g-3 align-items-end mt-2">
-                                        <div class="col-6 col-md-4 col-lg-3">
-                                            <label class="form-label small fw-bold">Search</label>
-                                            <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="Search by name or email...">
-                                        </div>
-                                    </div>
-                                    
                                     <div class="row mt-3">
                                         <div class="col-12 d-flex justify-content-end gap-2">
                                             <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
@@ -469,10 +472,6 @@
                                                 <option value="Emergency Contacts">Emergency Contacts</option>
                                             </select>
                                         </div>
-                                        <div class="col-6 col-md-4 col-lg-3">
-                                            <label class="form-label small fw-bold">Search</label>
-                                            <input type="text" class="form-control form-control-sm" id="clFilterSearch" placeholder="Search by address...">
-                                        </div>
                                     </div>
                                     
                                     <div class="d-flex justify-content-end gap-2 mt-3">
@@ -574,10 +573,6 @@
                                                 <option value="Active">Active</option>
                                                 <option value="Archived">Archived</option>
                                             </select>
-                                        </div>
-                                        <div class="col-6 col-md-4 col-lg-3">
-                                            <label class="form-label small fw-bold">Search</label>
-                                            <input type="text" class="form-control form-control-sm" id="rgFilterSearch" placeholder="Search group name...">
                                         </div>
                                     </div>
                                     
@@ -1435,12 +1430,12 @@ $(document).ready(function() {
                 '<td><code class="email-address-display">' + addr.emailAddress + '</code></td>' +
                 '<td>' + addr.contactList + '</td>' +
                 '<td>' + templateDisplay + '</td>' +
-                '<td><span class="badge badge-bulk">' + addr.reportingGroup + '</span></td>' +
+                '<td>' + addr.reportingGroup + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + addr.created + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
@@ -1484,7 +1479,7 @@ $(document).ready(function() {
                 : '<span class="badge badge-test">Archived</span>';
             
             var linkedDisplay = group.linkedAddresses.length > 0 
-                ? group.linkedAddresses.map(function(addr) { return '<span class="badge badge-bulk me-1">' + addr + '</span>'; }).join('')
+                ? group.linkedAddresses.map(function(addr) { return '<span class="text-muted small me-1">' + addr + '</span>'; }).join('')
                 : '<span class="text-muted">None</span>';
             
             var row = '<tr data-id="' + group.id + '">' +
@@ -1496,7 +1491,7 @@ $(document).ready(function() {
                 '<td>' + group.created + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
@@ -1520,7 +1515,7 @@ $(document).ready(function() {
         var filtered = mockReportingGroups.slice();
         var chips = [];
         
-        var searchTerm = ($('#rgQuickSearchInput').val() || $('#rgFilterSearch').val() || '').toLowerCase().trim();
+        var searchTerm = ($('#rgQuickSearchInput').val() || '').toLowerCase().trim();
         if (searchTerm) {
             filtered = filtered.filter(function(g) {
                 return g.name.toLowerCase().indexOf(searchTerm) !== -1;
@@ -1573,7 +1568,6 @@ $(document).ready(function() {
     
     function resetRgFilters() {
         $('#rgQuickSearchInput').val('');
-        $('#rgFilterSearch').val('');
         $('#rgFilterStatus').val('');
         $('#rgFilterDateFrom').val('');
         $('#rgFilterDateTo').val('');
@@ -1600,7 +1594,7 @@ $(document).ready(function() {
         
         mappings.forEach(function(mapping) {
             var allowedDisplay = mapping.allowedSenders.length > 0 
-                ? mapping.allowedSenders.slice(0, 2).map(function(s) { return '<span class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">' + s + '</span>'; }).join('') + (mapping.allowedSenders.length > 2 ? '<span class="text-muted small">+' + (mapping.allowedSenders.length - 2) + ' more</span>' : '')
+                ? mapping.allowedSenders.slice(0, 2).map(function(s) { return '<span class="text-muted small me-1">' + s + '</span>'; }).join('') + (mapping.allowedSenders.length > 2 ? '<span class="text-muted small">+' + (mapping.allowedSenders.length - 2) + ' more</span>' : '')
                 : '<span class="text-muted small">All senders allowed</span>';
             
             var statusClass = mapping.status === 'Active' ? '' : 'text-muted';
@@ -1612,14 +1606,14 @@ $(document).ready(function() {
                         '<i class="fas fa-copy text-muted"></i>' +
                     '</button>' +
                 '</td>' +
-                '<td><span class="badge badge-bulk">' + mapping.contactListName + '</span></td>' +
+                '<td>' + mapping.contactListName + '</td>' +
                 '<td>' + mapping.recipientsCount.toLocaleString() + '</td>' +
                 '<td>' + allowedDisplay + '</td>' +
                 '<td>' + mapping.lastUsed + '</td>' +
                 '<td>' + mapping.created + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
@@ -1644,7 +1638,7 @@ $(document).ready(function() {
         var filtered = mockContactListMappings.slice();
         var chips = [];
         
-        var searchTerm = ($('#clQuickSearchInput').val() || $('#clFilterSearch').val() || '').toLowerCase().trim();
+        var searchTerm = ($('#clQuickSearchInput').val() || '').toLowerCase().trim();
         if (searchTerm) {
             filtered = filtered.filter(function(m) {
                 return m.emailAddress.toLowerCase().indexOf(searchTerm) !== -1 ||
@@ -1698,7 +1692,6 @@ $(document).ready(function() {
     
     function resetClFilters() {
         $('#clQuickSearchInput').val('');
-        $('#clFilterSearch').val('');
         $('#clFilterContactList').val('');
         $('#clFilterDateFrom').val('');
         $('#clFilterDateTo').val('');
@@ -1762,7 +1755,7 @@ $(document).ready(function() {
             }
         });
         
-        var search = $('#filterSearch').val().trim();
+        var search = $('#quickSearchInput').val().trim();
         if (search) {
             appliedFilters.search = search;
             chips.push({ filter: 'search', value: 'Search: ' + search });
@@ -1789,7 +1782,7 @@ $(document).ready(function() {
             var defaultText = 'All ' + $(this).closest('.multiselect-dropdown').data('filter');
             $(this).text(defaultText.charAt(0).toUpperCase() + defaultText.slice(1));
         });
-        $('#filterSearch').val('');
+        $('#quickSearchInput').val('');
         $('#filterDateFrom').val('');
         $('#filterDateTo').val('');
         $('.date-preset-btn').removeClass('active');
@@ -2043,16 +2036,10 @@ $(document).ready(function() {
         rgQuickSearchTimeout = setTimeout(filterReportingGroups, 300);
     });
     
-    $('#rgFilterSearch').on('input', function() {
-        clearTimeout(rgQuickSearchTimeout);
-        rgQuickSearchTimeout = setTimeout(filterReportingGroups, 300);
-    });
-    
     $(document).on('click', '.rg-remove-chip', function() {
         var filter = $(this).data('filter');
         if (filter === 'search') {
             $('#rgQuickSearchInput').val('');
-            $('#rgFilterSearch').val('');
         } else if (filter === 'status') {
             $('#rgFilterStatus').val('');
         } else if (filter === 'date') {
@@ -2158,16 +2145,10 @@ $(document).ready(function() {
         clQuickSearchTimeout = setTimeout(filterContactListMappings, 300);
     });
     
-    $('#clFilterSearch').on('input', function() {
-        clearTimeout(clQuickSearchTimeout);
-        clQuickSearchTimeout = setTimeout(filterContactListMappings, 300);
-    });
-    
     $(document).on('click', '.cl-remove-chip', function() {
         var filter = $(this).data('filter');
         if (filter === 'search') {
             $('#clQuickSearchInput').val('');
-            $('#clFilterSearch').val('');
         } else if (filter === 'contactlist') {
             $('#clFilterContactList').val('');
         } else if (filter === 'date') {
