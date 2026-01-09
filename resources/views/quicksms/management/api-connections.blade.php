@@ -1616,14 +1616,24 @@ $(document).ready(function() {
     }
     
     function generateAndShowNewKey(conn) {
-        // TODO: Replace with actual backend API call to generate new key
-        // In production, the new key should be returned from the backend
-        mockApiCall(
-            '/api/connections/' + conn.id + '/regenerate-key',
+        // In production, the new key is returned from the backend response
+        apiCall(
+            '/connections/' + conn.id + '/regenerate-key',
             { id: conn.id },
             function(response) {
-                // Generate new key (mock - in production, key comes from backend response)
-                var newKey = generateNewApiKey();
+                // Use key from backend if available, otherwise use mock generator
+                var newKey;
+                if (response.newKey) {
+                    // Production: key comes from backend
+                    newKey = response.newKey;
+                } else if (API_CONFIG.USE_MOCK_API) {
+                    // Mock mode: generate client-side for UI testing
+                    newKey = generateNewApiKey();
+                } else {
+                    // Real API returned no key - this is an error condition
+                    showErrorToast('Server did not return a new API key. Please contact support.');
+                    return;
+                }
                 
                 // Update connection state to reflect key regeneration
                 conn.keyRegeneratedAt = new Date().toISOString();
@@ -1652,7 +1662,8 @@ $(document).ready(function() {
                 }, 150);
             },
             function(error) {
-                showErrorToast('Failed to regenerate API key. Please try again.');
+                var message = (error && error.message) ? error.message : 'Failed to regenerate API key. Please try again.';
+                showErrorToast(message);
             }
         );
     }
@@ -1826,15 +1837,83 @@ $(document).ready(function() {
         }, 5000);
     }
     
-    // TODO: Replace with actual backend API call when endpoint is available
+    // =========================================================================
+    // API SERVICE LAYER - Backend Integration
+    // =========================================================================
+    // To switch to real backend:
+    // 1. Set USE_MOCK_API to false
+    // 2. Ensure API_BASE_URL points to your backend
+    // 3. Add CSRF token handling if required
+    // =========================================================================
+    
+    var API_CONFIG = {
+        USE_MOCK_API: true,  // Set to false when backend is ready
+        API_BASE_URL: '/api/v1',
+        MOCK_DELAY_MS: 300,
+        ENDPOINTS: {
+            SUSPEND: '/connections/{id}/suspend',
+            REACTIVATE: '/connections/{id}/reactivate',
+            CONVERT_TO_LIVE: '/connections/{id}/convert-to-live',
+            REGENERATE_KEY: '/connections/{id}/regenerate-key',
+            ARCHIVE: '/connections/{id}/archive'
+        }
+    };
+    
+    function apiCall(endpoint, data, successCallback, errorCallback) {
+        if (API_CONFIG.USE_MOCK_API) {
+            mockApiCall(endpoint, data, successCallback, errorCallback);
+        } else {
+            realApiCall(endpoint, data, successCallback, errorCallback);
+        }
+    }
+    
+    // TODO: Implement when backend is ready
+    function realApiCall(endpoint, data, successCallback, errorCallback) {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        
+        $.ajax({
+            url: API_CONFIG.API_BASE_URL + endpoint,
+            method: 'POST',
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
+            },
+            success: function(response) {
+                console.log('[API] Success:', endpoint, response);
+                successCallback(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('[API] Error:', endpoint, status, error);
+                var errorMessage = 'An unexpected error occurred.';
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    errorMessage = response.message || errorMessage;
+                } catch (e) {}
+                errorCallback({ success: false, message: errorMessage });
+            }
+        });
+    }
+    
+    // Mock implementation for UI testing
     function mockApiCall(endpoint, data, successCallback, errorCallback) {
         console.log('[API Mock] Calling:', endpoint, 'with data:', data);
-        // Simulate network delay
+        
         setTimeout(function() {
-            // Always succeed for now - enable random failures when backend is ready
+            // Simulate successful response
             console.log('[API Mock] Success response for:', endpoint);
-            successCallback({ success: true, message: 'Operation completed successfully' });
-        }, 300);
+            
+            // Mock response data based on endpoint
+            var mockResponse = { success: true, message: 'Operation completed successfully' };
+            
+            // Add specific mock data for certain endpoints
+            if (endpoint.includes('/regenerate-key')) {
+                // In production, the new key would come from the backend
+                mockResponse.newKey = null; // Placeholder - actual key generated client-side for mock
+            }
+            
+            successCallback(mockResponse);
+        }, API_CONFIG.MOCK_DELAY_MS);
     }
     
     window.suspendConnection = function(id) {
@@ -1858,9 +1937,8 @@ $(document).ready(function() {
                         conn.status = 'suspended';
                         renderTable();
                         
-                        // TODO: Replace mockApiCall with actual API call
-                        mockApiCall(
-                            '/api/connections/' + id + '/suspend',
+                        apiCall(
+                            '/connections/' + id + '/suspend',
                             { id: id },
                             function(response) {
                                 console.log('[AUDIT] API Connection suspended:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
@@ -1870,7 +1948,8 @@ $(document).ready(function() {
                                 // Rollback on failure
                                 conn.status = previousStatus;
                                 renderTable();
-                                showErrorToast('Failed to suspend "' + conn.name + '". Please try again.');
+                                var message = (error && error.message) ? error.message : 'Failed to suspend "' + conn.name + '". Please try again.';
+                                showErrorToast(message);
                             }
                         );
                     },
@@ -1907,9 +1986,8 @@ $(document).ready(function() {
                         conn.status = 'live';
                         renderTable();
                         
-                        // TODO: Replace mockApiCall with actual API call
-                        mockApiCall(
-                            '/api/connections/' + id + '/reactivate',
+                        apiCall(
+                            '/connections/' + id + '/reactivate',
                             { id: id },
                             function(response) {
                                 console.log('[AUDIT] API Connection reactivated:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
@@ -1919,7 +1997,8 @@ $(document).ready(function() {
                                 // Rollback on failure
                                 conn.status = previousStatus;
                                 renderTable();
-                                showErrorToast('Failed to reactivate "' + conn.name + '". Please try again.');
+                                var message = (error && error.message) ? error.message : 'Failed to reactivate "' + conn.name + '". Please try again.';
+                                showErrorToast(message);
                             }
                         );
                     },
@@ -1969,9 +2048,8 @@ $(document).ready(function() {
                         
                         renderTable();
                         
-                        // TODO: Replace mockApiCall with actual API call
-                        mockApiCall(
-                            '/api/connections/' + id + '/convert-to-live',
+                        apiCall(
+                            '/connections/' + id + '/convert-to-live',
                             { id: id },
                             function(response) {
                                 console.log('[AUDIT] API Connection converted to Live:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
@@ -1982,7 +2060,8 @@ $(document).ready(function() {
                                 conn.environment = previousEnvironment;
                                 conn.baseUrl = previousBaseUrl;
                                 renderTable();
-                                showErrorToast('Failed to convert "' + conn.name + '" to Live. Please try again.');
+                                var message = (error && error.message) ? error.message : 'Failed to convert "' + conn.name + '" to Live. Please try again.';
+                                showErrorToast(message);
                             }
                         );
                     }
