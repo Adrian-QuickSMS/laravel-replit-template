@@ -1983,7 +1983,7 @@ $(document).ready(function() {
                     'Reactivate API Connection - Final Confirmation',
                     'Please confirm you want to reactivate "' + conn.name + '". API traffic will be allowed immediately.',
                     'Reactivate Now',
-                    'btn-success',
+                    'btn-primary',
                     function() {
                         // Optimistic update
                         var previousStatus = conn.status;
