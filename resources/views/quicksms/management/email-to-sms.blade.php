@@ -447,15 +447,13 @@
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-3" id="activeFiltersContainer" style="display: none;">
-                                <div id="activeFiltersChips"></div>
-                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearAllFilters">Clear All</button>
-                            </div>
-                            
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="input-group" style="width: 280px;">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
+                                    </div>
+                                    <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                 </div>
                                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                                     <i class="fas fa-filter me-1"></i> Filters
@@ -550,25 +548,26 @@
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-3" id="clActiveFiltersContainer" style="display: none;">
-                                <div id="clActiveFiltersChips"></div>
-                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearClFilters">Clear All</button>
-                            </div>
-                            
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="input-group" style="width: 280px;">
                                         <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                                         <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Quick search by name...">
                                     </div>
-                                    <div class="form-check form-switch ms-3">
+                                    <div class="form-check form-switch ms-2">
                                         <input class="form-check-input" type="checkbox" id="clShowArchived">
                                         <label class="form-check-label small text-muted" for="clShowArchived">Show archived</label>
                                     </div>
+                                    <div id="clActiveFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                 </div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
-                                    <i class="fas fa-filter me-1"></i> Filters
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createContactListMappingModal">
+                                        <i class="fas fa-plus me-1"></i> Create
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="table-container" id="contactListsTableContainer">
@@ -615,14 +614,7 @@
                         </div>
                         
                         <div class="tab-pane fade" id="reporting-groups" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <p class="text-muted mb-0">Reporting Groups are for reporting and billing attribution only. They do not control recipients or content.</p>
-                                </div>
-                                <button type="button" class="btn btn-primary" id="btnCreateReportingGroup">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </button>
-                            </div>
+                            <p class="text-muted mb-3">Reporting Groups are for reporting and billing attribution only. They do not control recipients or content.</p>
                             
                             <div class="collapse mb-3" id="rgFiltersPanel">
                                 <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
@@ -657,19 +649,22 @@
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-3" id="rgActiveFiltersContainer" style="display: none;">
-                                <div id="rgActiveFiltersChips"></div>
-                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearRgFilters">Clear All</button>
-                            </div>
-                            
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="input-group" style="width: 280px;">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="rgQuickSearchInput" placeholder="Quick search by group name...">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="rgQuickSearchInput" placeholder="Quick search by group name...">
+                                    </div>
+                                    <div id="rgActiveFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                 </div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#rgFiltersPanel">
-                                    <i class="fas fa-filter me-1"></i> Filters
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#rgFiltersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnCreateReportingGroup">
+                                        <i class="fas fa-plus me-1"></i> Create
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="table-container" id="reportingGroupsTableContainer">
@@ -711,14 +706,7 @@
                         </div>
                         
                         <div class="tab-pane fade" id="standard" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <p class="text-muted mb-0">Create Standard Email-to-SMS setups to send messages directly from email without mapping to Contact Lists.</p>
-                                </div>
-                                <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </a>
-                            </div>
+                            <p class="text-muted mb-3">Create Standard Email-to-SMS setups to send messages directly from email without mapping to Contact Lists.</p>
                             
                             <div class="collapse mb-3" id="stdFiltersPanel">
                                 <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
@@ -754,25 +742,26 @@
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-3" id="stdActiveFiltersContainer" style="display: none;">
-                                <div id="stdActiveFiltersChips"></div>
-                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearStdFilters">Clear All</button>
-                            </div>
-                            
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="input-group" style="width: 280px;">
                                         <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                                         <input type="text" class="form-control" id="stdQuickSearchInput" placeholder="Quick search by name...">
                                     </div>
-                                    <div class="form-check form-switch ms-3">
+                                    <div class="form-check form-switch ms-2">
                                         <input class="form-check-input" type="checkbox" id="stdShowArchived">
                                         <label class="form-check-label small text-muted" for="stdShowArchived">Show archived</label>
                                     </div>
+                                    <div id="stdActiveFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                 </div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
-                                    <i class="fas fa-filter me-1"></i> Filters
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus me-1"></i> Create
+                                    </a>
+                                </div>
                             </div>
                             
                             <div class="table-container" id="standardSmsTableContainer">
