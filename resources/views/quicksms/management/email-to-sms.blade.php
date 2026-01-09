@@ -73,9 +73,13 @@
     vertical-align: middle;
     padding: 0.75rem 1rem;
     border: none;
+    border-bottom: 1px solid #f1f3f5;
     font-size: 0.85rem;
     color: #495057;
     font-weight: 400;
+}
+.email-sms-table tbody tr:last-child td {
+    border-bottom: none;
 }
 .email-sms-table tbody tr {
     cursor: pointer;
