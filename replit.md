@@ -68,7 +68,11 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **CSS Architecture:** Module-specific CSS uses inline `@push('styles')` for page-specific layouts; shared badge classes (.badge-bulk, .badge-campaign, .badge-test, .badge-live-status, .badge-suspended, etc.) are centralized in `public/css/quicksms-pastel.css`.
 - **Email-to-SMS Module:** Tabbed interface for managing email addresses that trigger SMS to Contact Lists. Core behavior: when an email is sent to a generated QuickSMS email address, SMS is sent to the mapped Contact Book List. SenderID is taken from email subject, message content from email body. Features:
   - Email-to-SMS Addresses tab: Table with filter bar (debounced search, multi-select dropdowns, date presets, Apply/Reset Filters, filter chips), Create Address modal, View Details drawer, Suspend/Delete modals
-  - Contact Lists tab (Mapping Library): Manages mappings between Email-to-SMS Addresses and existing Contact Book Lists. Table columns: Email-to-SMS Address (copyable), Linked Contact List, Recipients Count, Allowed Sender Emails, Last Used, Created, Actions (View/Edit/Archive). Features filter bar with date range, Contact List dropdown, and search; 300ms debounced search; filter chips.
+  - Contact Lists tab (Mapping Library): Manages mappings between Email-to-SMS Addresses and existing Contact Book Lists. Table columns: Email-to-SMS Address (copyable), Linked Contact List, Recipients Count, Allowed Sender Emails, Last Used, Created, Actions (View/Edit/Archive). Features filter bar with date range, Contact List dropdown, and search; 300ms debounced search; filter chips. Create Mapping wizard (4-step full-screen Fillow wizard):
+    1. Select Contact Book List (searchable dropdown with name + recipient count)
+    2. Allowed Sender Emails (optional whitelist)
+    3. Email Address Generation (auto-generates unique address: listname-XXXX@sms.quicksms.com)
+    4. Confirmation (read-only summary showing SenderID from EMAIL SUBJECT, SMS content from EMAIL BODY)
   - Reporting Groups tab: Table-based library for organizing email addresses into groups (reporting/billing attribution only). Features filter bar with date range, status, and search; columns for Group Name, Description, Linked Addresses, Messages Sent, Last Activity, Created, and Actions (Edit/Archive)
   - Configuration tab: Global settings panel with:
     - Email Settings: Originating Email Addresses (multi-line), Email-to-SMS via Mail Client toggle, Email-to-SMS from Attachments toggle (future/disabled)

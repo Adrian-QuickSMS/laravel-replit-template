@@ -1673,6 +1673,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function emailToSmsCreateMapping()
+    {
+        return view('quicksms.management.email-to-sms-mapping-wizard', [
+            'page_title' => 'Create Email-to-SMS Mapping'
+        ]);
+    }
+
     public function numbers()
     {
         return view('quicksms.placeholder', [

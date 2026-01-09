@@ -2173,9 +2173,31 @@ $(document).ready(function() {
     });
     
     $('#btnCreateMapping, #btnCreateMappingEmpty').on('click', function() {
-        // TODO: Open create mapping modal
-        alert('Create Mapping modal - TODO');
+        window.location.href = '{{ route("management.email-to-sms.create-mapping") }}';
     });
+    
+    (function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'contact-lists') {
+            $('#contact-lists-tab').tab('show');
+        }
+        
+        if (urlParams.get('created') === '1') {
+            var newMappingStr = sessionStorage.getItem('newMapping');
+            if (newMappingStr) {
+                try {
+                    var newMapping = JSON.parse(newMappingStr);
+                    mockContactListMappings.unshift(newMapping);
+                    renderContactListMappings(mockContactListMappings);
+                    sessionStorage.removeItem('newMapping');
+                    
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {
+                    console.error('Failed to parse new mapping', e);
+                }
+            }
+        }
+    })();
     
     // Configuration tab handlers
     function checkConfigConflict() {
