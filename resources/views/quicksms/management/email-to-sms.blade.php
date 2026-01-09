@@ -269,6 +269,11 @@
                                 <i class="fas fa-layer-group me-1"></i> Reporting Groups
                             </button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="configuration-tab" data-bs-toggle="tab" data-bs-target="#configuration" type="button" role="tab">
+                                <i class="fas fa-cog me-1"></i> Configuration
+                            </button>
+                        </li>
                     </ul>
                     
                     <div class="tab-content pt-3" id="emailSmsTabContent">
@@ -445,6 +450,181 @@
                                     <i class="fas fa-plus me-1"></i> Create Reporting Group
                                 </button>
                             </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="configuration" role="tabpanel">
+                            <div class="alert alert-warning d-none" id="configConflictWarning" style="background-color: rgba(255, 191, 0, 0.15); border: none; color: #856404;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Configuration Conflict:</strong> Both "Fixed SenderID" and "Subject as SenderID" are enabled. When Fixed SenderID is ON, the subject line will not be used as the SenderID.
+                            </div>
+                            
+                            <form id="configurationForm">
+                                <div class="row">
+                                    <div class="col-lg-8">
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-transparent border-bottom">
+                                                <h6 class="mb-0"><i class="fas fa-envelope me-2 text-primary"></i>Email Settings</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-4">
+                                                    <label class="form-label">Originating Email Addresses</label>
+                                                    <textarea class="form-control" id="configOriginatingEmails" rows="3" placeholder="Enter allowed email addresses, one per line or comma-separated..."></textarea>
+                                                    <div class="form-text">Only emails from these addresses will trigger SMS messages. Leave empty to allow all.</div>
+                                                </div>
+                                                
+                                                <div class="row g-4">
+                                                    <div class="col-md-6">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="configEmailViaMailClient" checked>
+                                                            <label class="form-check-label" for="configEmailViaMailClient">
+                                                                Email-to-SMS via Mail Client
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-text">Allow sending SMS via standard email clients (Outlook, Gmail, etc.)</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" id="configEmailFromAttachments" disabled>
+                                                            <label class="form-check-label text-muted" for="configEmailFromAttachments">
+                                                                Email-to-SMS from Attachments
+                                                                <span class="badge bg-secondary ms-1">Coming Soon</span>
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-text">Parse attached files to extract recipients and messages.</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-transparent border-bottom">
+                                                <h6 class="mb-0"><i class="fas fa-sms me-2 text-primary"></i>Message Settings</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-4">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="configMultipartSms">
+                                                        <label class="form-check-label" for="configMultipartSms">
+                                                            Multipart SMS Enabled
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-text">Allow messages longer than 160 characters to be sent as multiple SMS parts.</div>
+                                                </div>
+                                                
+                                                <hr class="my-4">
+                                                
+                                                <div class="mb-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="configFixedSenderId">
+                                                        <label class="form-check-label" for="configFixedSenderId">
+                                                            Fixed SenderID
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-text">Use a specific SenderID for all messages instead of email subject.</div>
+                                                </div>
+                                                
+                                                <div class="mb-4 ps-4" id="senderIdSelectorWrapper" style="display: none;">
+                                                    <label class="form-label">SenderID</label>
+                                                    <select class="form-select" id="configSenderIdSelector">
+                                                        <option value="">Select SenderID...</option>
+                                                        <option value="QuickSMS">QuickSMS</option>
+                                                        <option value="ALERTS">ALERTS</option>
+                                                        <option value="INFO">INFO</option>
+                                                        <option value="NOTIFY">NOTIFY</option>
+                                                        <option value="NHSTrust">NHSTrust</option>
+                                                    </select>
+                                                    <div class="form-text">Select a registered SenderID to use for all messages.</div>
+                                                    <div class="invalid-feedback" id="senderIdError">SenderID must be 3-11 alphanumeric characters.</div>
+                                                </div>
+                                                
+                                                <div class="mb-3" id="subjectAsSenderIdWrapper">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="configSubjectAsSenderId">
+                                                        <label class="form-check-label" for="configSubjectAsSenderId">
+                                                            Subject as SenderID
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-text">Use the email subject line as the SenderID (max 11 characters, alphanumeric only).</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-transparent border-bottom">
+                                                <h6 class="mb-0"><i class="fas fa-bell me-2 text-primary"></i>Delivery Receipts</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="configDeliveryReceipts">
+                                                        <label class="form-check-label" for="configDeliveryReceipts">
+                                                            Delivery Receipts to Email
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-text">Receive delivery status notifications via email.</div>
+                                                </div>
+                                                
+                                                <div class="mb-3" id="alternateReceiptsEmailWrapper" style="display: none;">
+                                                    <label class="form-label">Alternate Receipts Email</label>
+                                                    <input type="email" class="form-control" id="configAlternateReceiptsEmail" placeholder="e.g., reports@yourcompany.com">
+                                                    <div class="form-text">Optional. Send delivery receipts to a different email address than the sender.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-transparent border-bottom">
+                                                <h6 class="mb-0"><i class="fas fa-broom me-2 text-primary"></i>Content Processing</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Signature Removal Patterns</label>
+                                                    <textarea class="form-control font-monospace" id="configSignatureRemoval" rows="4" placeholder="Enter patterns to remove from emails (one per line, regex supported)..."></textarea>
+                                                    <div class="form-text">
+                                                        Remove email signatures or unwanted content before sending. Supports regex patterns.<br>
+                                                        <strong>Examples:</strong><br>
+                                                        <code>^--\s*$</code> - Standard email signature delimiter<br>
+                                                        <code>^Sent from my iPhone$</code> - Mobile signature<br>
+                                                        <code>^Kind regards,[\s\S]*$</code> - Remove everything after "Kind regards,"
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-lg-4">
+                                        <div class="card border-0 shadow-sm bg-light">
+                                            <div class="card-body">
+                                                <h6 class="mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Configuration Tips</h6>
+                                                <ul class="small text-muted mb-0">
+                                                    <li class="mb-2">Use <strong>Fixed SenderID</strong> for consistent branding across all messages.</li>
+                                                    <li class="mb-2"><strong>Subject as SenderID</strong> allows dynamic sender names but must follow the 11-character alphanumeric limit.</li>
+                                                    <li class="mb-2">Enable <strong>Multipart SMS</strong> for longer messages, but note this may increase costs.</li>
+                                                    <li class="mb-2">Use <strong>Signature Removal</strong> patterns to clean up email content before SMS conversion.</li>
+                                                    <li class="mb-2">Restrict <strong>Originating Emails</strong> for security to prevent unauthorized SMS sending.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card border-0 shadow-sm mt-3">
+                                            <div class="card-body">
+                                                <h6 class="mb-3"><i class="fas fa-history me-2 text-primary"></i>Last Updated</h6>
+                                                <p class="small text-muted mb-1">Modified by <strong>John Smith</strong></p>
+                                                <p class="small text-muted mb-0">2025-01-08 at 14:32</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary" id="btnResetConfig">
+                                        <i class="fas fa-undo me-1"></i> Reset to Defaults
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="btnSaveConfig">
+                                        <i class="fas fa-save me-1"></i> Save Configuration
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -1219,6 +1399,130 @@ $(document).ready(function() {
     
     renderAddressesTable(mockAddresses);
     renderReportingGroups(mockReportingGroups);
+    
+    // Configuration tab handlers
+    function checkConfigConflict() {
+        var fixedSenderId = $('#configFixedSenderId').is(':checked');
+        var subjectAsSenderId = $('#configSubjectAsSenderId').is(':checked');
+        
+        if (fixedSenderId && subjectAsSenderId) {
+            $('#configConflictWarning').removeClass('d-none');
+        } else {
+            $('#configConflictWarning').addClass('d-none');
+        }
+    }
+    
+    function validateSenderId(value) {
+        if (!value) return false;
+        if (value.length < 3 || value.length > 11) return false;
+        return /^[a-zA-Z0-9]+$/.test(value);
+    }
+    
+    function logAuditEvent(action, details) {
+        // TODO: Backend integration - log audit event
+        console.log('[AUDIT]', new Date().toISOString(), action, details);
+    }
+    
+    $('#configFixedSenderId').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        if (isChecked) {
+            $('#senderIdSelectorWrapper').slideDown();
+        } else {
+            $('#senderIdSelectorWrapper').slideUp();
+            $('#configSenderIdSelector').removeClass('is-invalid');
+        }
+        checkConfigConflict();
+    });
+    
+    $('#configSubjectAsSenderId').on('change', function() {
+        checkConfigConflict();
+    });
+    
+    $('#configDeliveryReceipts').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        if (isChecked) {
+            $('#alternateReceiptsEmailWrapper').slideDown();
+        } else {
+            $('#alternateReceiptsEmailWrapper').slideUp();
+        }
+    });
+    
+    $('#configSenderIdSelector').on('change', function() {
+        var value = $(this).val();
+        if (value && !validateSenderId(value)) {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    $('#btnSaveConfig').on('click', function(e) {
+        e.preventDefault();
+        
+        var fixedSenderId = $('#configFixedSenderId').is(':checked');
+        var selectedSenderId = $('#configSenderIdSelector').val();
+        
+        if (fixedSenderId && !selectedSenderId) {
+            $('#configSenderIdSelector').addClass('is-invalid');
+            $('#configSenderIdSelector').focus();
+            return;
+        }
+        
+        if (fixedSenderId && selectedSenderId && !validateSenderId(selectedSenderId)) {
+            $('#configSenderIdSelector').addClass('is-invalid');
+            return;
+        }
+        
+        var configData = {
+            originatingEmails: $('#configOriginatingEmails').val(),
+            emailViaMailClient: $('#configEmailViaMailClient').is(':checked'),
+            emailFromAttachments: $('#configEmailFromAttachments').is(':checked'),
+            multipartSms: $('#configMultipartSms').is(':checked'),
+            fixedSenderId: fixedSenderId,
+            senderId: selectedSenderId,
+            subjectAsSenderId: $('#configSubjectAsSenderId').is(':checked'),
+            deliveryReceipts: $('#configDeliveryReceipts').is(':checked'),
+            alternateReceiptsEmail: $('#configAlternateReceiptsEmail').val(),
+            signatureRemoval: $('#configSignatureRemoval').val()
+        };
+        
+        logAuditEvent('CONFIG_UPDATE', configData);
+        
+        // TODO: Backend integration - save configuration
+        console.log('Saving configuration:', configData);
+        
+        var btn = $(this);
+        var originalHtml = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+        btn.prop('disabled', true);
+        
+        setTimeout(function() {
+            btn.html('<i class="fas fa-check me-1"></i> Saved!');
+            setTimeout(function() {
+                btn.html(originalHtml);
+                btn.prop('disabled', false);
+            }, 1500);
+        }, 800);
+    });
+    
+    $('#btnResetConfig').on('click', function() {
+        if (!confirm('Reset all configuration settings to defaults?')) return;
+        
+        $('#configOriginatingEmails').val('');
+        $('#configEmailViaMailClient').prop('checked', true);
+        $('#configMultipartSms').prop('checked', false);
+        $('#configFixedSenderId').prop('checked', false);
+        $('#senderIdSelectorWrapper').hide();
+        $('#configSenderIdSelector').val('').removeClass('is-invalid');
+        $('#configSubjectAsSenderId').prop('checked', false);
+        $('#configDeliveryReceipts').prop('checked', false);
+        $('#alternateReceiptsEmailWrapper').hide();
+        $('#configAlternateReceiptsEmail').val('');
+        $('#configSignatureRemoval').val('');
+        $('#configConflictWarning').addClass('d-none');
+        
+        logAuditEvent('CONFIG_RESET', { resetBy: 'user' });
+    });
 });
 
 function copyToClipboard(elementId) {

@@ -69,6 +69,14 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Email-to-SMS Module:** Tabbed interface for managing email addresses that trigger SMS to Contact Lists. Features:
   - Email-to-SMS Addresses tab: Table with filter bar (debounced search, multi-select dropdowns, date presets, Apply/Reset Filters, filter chips), Create Address modal, View Details drawer, Suspend/Delete modals
   - Reporting Groups tab: Card-based layout for organizing email addresses into groups with Create/Edit/Delete functionality
+  - Configuration tab: Global settings panel with:
+    - Email Settings: Originating Email Addresses (multi-line), Email-to-SMS via Mail Client toggle, Email-to-SMS from Attachments toggle (future/disabled)
+    - Message Settings: Multipart SMS toggle, Fixed SenderID toggle with SenderID dropdown (conditional visibility), Subject as SenderID toggle
+    - Delivery Receipts: Toggle with conditional Alternate Receipts Email input
+    - Content Processing: Signature Removal patterns (regex support)
+    - Conflict warning banner when Fixed SenderID=ON and Subject as SenderID=ON
+    - SenderID validation (3-11 alphanumeric characters)
+    - Audit log placeholder hooks for backend integration
   - Integrates with Contact Lists, Templates, Opt-Out Lists, Sender IDs, and Reporting
 - **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, enforced for features like Purchase, RCS Agent Registration, and delete actions.
 
