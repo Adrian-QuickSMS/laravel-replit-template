@@ -160,9 +160,6 @@
     margin-top: 1rem;
     display: none;
 }
-#integrationPartnerSection.show {
-    display: block !important;
-}
 
 
 .selectable-tile {
@@ -1093,9 +1090,9 @@ $(document).ready(function() {
         
         if (type === 'integration') {
             console.log('[API Wizard] Showing integration partner section');
-            $('#integrationPartnerSection').addClass('show');
+            document.getElementById('integrationPartnerSection').style.display = 'block';
         } else {
-            $('#integrationPartnerSection').removeClass('show');
+            document.getElementById('integrationPartnerSection').style.display = 'none';
             $('.partner-tile').removeClass('selected');
         }
         revalidateStep(1);
