@@ -315,7 +315,7 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="configuration-tab" data-bs-toggle="tab" data-bs-target="#configuration" type="button" role="tab">
-                                <i class="fas fa-cog me-1"></i> Configuration
+                                <i class="fas fa-envelope-open-text me-1"></i> Standard Email-to-SMS
                             </button>
                         </li>
                     </ul>
@@ -667,262 +667,55 @@
                         </div>
                         
                         <div class="tab-pane fade" id="configuration" role="tabpanel">
-                            <div class="alert alert-warning d-none" id="configConflictWarning" style="background-color: rgba(255, 191, 0, 0.15); border: none; color: #856404;">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <strong>Configuration Conflict:</strong> Both "Fixed SenderID" and "Subject as SenderID" are enabled. When Fixed SenderID is ON, the subject line will not be used as the SenderID.
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-primary" id="btnCreateStandardSms">
+                                    <i class="fas fa-plus me-1"></i> Create
+                                </button>
                             </div>
                             
-                            <form id="configurationForm">
-                                <div class="row">
-                                    <div class="col-lg-8">
-                                        <div class="card border-0 shadow-sm mb-3">
-                                            <div class="card-header bg-transparent border-bottom py-2">
-                                                <h6 class="mb-0"><i class="fas fa-envelope me-2 text-primary"></i>Email Settings</h6>
-                                            </div>
-                                            <div class="card-body py-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Originating Email Addresses</label>
-                                                    <textarea class="form-control" id="configOriginatingEmails" rows="2" placeholder="Enter allowed email addresses, one per line or comma-separated..."></textarea>
-                                                    <div class="form-text">Only emails from these addresses will trigger SMS messages. Leave empty to allow all.</div>
-                                                </div>
-                                                
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <div class="form-check form-switch">
-                                                            <input class="form-check-input" type="checkbox" id="configEmailViaMailClient" checked>
-                                                            <label class="form-check-label" for="configEmailViaMailClient">
-                                                                Email-to-SMS via Mail Client
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-text small">Allow sending SMS via standard email clients (Outlook, Gmail, etc.)</div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-check form-switch">
-                                                            <input class="form-check-input" type="checkbox" id="configEmailFromAttachments" disabled>
-                                                            <label class="form-check-label text-muted" for="configEmailFromAttachments">
-                                                                Email-to-SMS from Attachments
-                                                                <span class="badge bg-secondary ms-1">Coming Soon</span>
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-text small">Parse attached files to extract recipients and messages.</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card border-0 shadow-sm mb-4">
-                                            <div class="card-header bg-transparent border-bottom">
-                                                <h6 class="mb-0"><i class="fas fa-sms me-2 text-primary"></i>Message Settings</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="mb-4">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="configMultipartSms">
-                                                        <label class="form-check-label" for="configMultipartSms">
-                                                            Multipart SMS Enabled
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-text">Allow messages longer than 160 characters to be sent as multiple SMS parts.</div>
-                                                </div>
-                                                
-                                                <hr class="my-4">
-                                                
-                                                <div class="mb-3">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="configFixedSenderId">
-                                                        <label class="form-check-label" for="configFixedSenderId">
-                                                            Fixed SenderID
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-text">Use a specific SenderID for all messages instead of email subject.</div>
-                                                </div>
-                                                
-                                                <div class="mb-4 ps-4" id="senderIdSelectorWrapper" style="display: none;">
-                                                    <label class="form-label">SenderID</label>
-                                                    <select class="form-select" id="configSenderIdSelector">
-                                                        <option value="">Select SenderID...</option>
-                                                        <option value="QuickSMS">QuickSMS</option>
-                                                        <option value="ALERTS">ALERTS</option>
-                                                        <option value="INFO">INFO</option>
-                                                        <option value="NOTIFY">NOTIFY</option>
-                                                        <option value="NHSTrust">NHSTrust</option>
-                                                    </select>
-                                                    <div class="form-text">Select a registered SenderID to use for all messages.</div>
-                                                    <div class="invalid-feedback" id="senderIdError">SenderID must be 3-11 alphanumeric characters.</div>
-                                                </div>
-                                                
-                                                <div class="mb-3" id="subjectAsSenderIdWrapper">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="configSubjectAsSenderId" checked>
-                                                        <label class="form-check-label" for="configSubjectAsSenderId">
-                                                            Subject as SenderID
-                                                        </label>
-                                                        <span class="badge bg-info ms-2">Default for Contact List mappings</span>
-                                                    </div>
-                                                    <div class="form-text">Use the email subject line as the SenderID (max 11 characters, alphanumeric only). <strong>Required for list-based Email-to-SMS delivery.</strong></div>
-                                                </div>
-                                                
-                                                <hr class="my-4">
-                                                
-                                                <div class="mb-4">
-                                                    <h6 class="mb-3"><i class="fas fa-flask me-2 text-primary"></i>Resolution Preview</h6>
-                                                    <div class="form-text mb-3">See how SenderID will be resolved for different email subjects based on current settings.</div>
-                                                    
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-bordered mb-0" id="resolutionPreviewTable">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th style="width: 40%;">Email Subject</th>
-                                                                    <th style="width: 30%;">Resolved SenderID</th>
-                                                                    <th style="width: 30%;">Result</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="resolutionPreviewBody">
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    
-                                                    <div class="alert mt-3 mb-0" id="resolutionRuleAlert" style="background-color: rgba(111, 66, 193, 0.08); border: none;">
-                                                        <i class="fas fa-info-circle me-2 text-primary"></i>
-                                                        <span id="resolutionRuleText">Current rule: Subject extraction mode</span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <hr class="my-4">
-                                                
-                                                <div class="mb-0">
-                                                    <h6 class="mb-3"><i class="fas fa-vial me-2 text-primary"></i>Email Parsing Test</h6>
-                                                    <div class="form-text mb-3">Test how an inbound email will be parsed for SMS delivery.</div>
-                                                    
-                                                    <div class="row g-3 mb-3">
-                                                        <div class="col-12">
-                                                            <label class="form-label small fw-bold">Email Subject (SenderID Source)</label>
-                                                            <input type="text" class="form-control" id="testEmailSubject" placeholder="e.g., NHSTrust">
-                                                            <div class="form-text">SenderID rules: 3-11 alphanumeric characters only. Whitespace will be trimmed.</div>
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <label class="form-label small fw-bold">Email Body (SMS Content Source)</label>
-                                                            <textarea class="form-control" id="testEmailBody" rows="3" placeholder="e.g., Your appointment is confirmed for Monday at 10:00 AM."></textarea>
-                                                            <div class="form-text">Plain text will be extracted. HTML content is converted to plain text.</div>
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnTestParsing">
-                                                                <i class="fas fa-play me-1"></i> Test Parsing
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div id="parsingResultContainer" style="display: none;">
-                                                        <div class="alert mb-3" id="parsingResultAlert">
-                                                        </div>
-                                                        
-                                                        <div class="table-responsive">
-                                                            <table class="table table-sm table-bordered mb-0">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td class="table-light fw-bold" style="width: 30%;">Extracted SenderID</td>
-                                                                        <td id="parsedSenderId">-</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="table-light fw-bold">SenderID Valid</td>
-                                                                        <td id="parsedSenderIdValid">-</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="table-light fw-bold">SMS Content</td>
-                                                                        <td id="parsedContent">-</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="table-light fw-bold">Character Count</td>
-                                                                        <td id="parsedCharCount">-</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="table-light fw-bold">Delivery Status</td>
-                                                                        <td id="parsedDeliveryStatus">-</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card border-0 shadow-sm mb-4">
-                                            <div class="card-header bg-transparent border-bottom">
-                                                <h6 class="mb-0"><i class="fas fa-bell me-2 text-primary"></i>Delivery Receipts</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="mb-3">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="configDeliveryReceipts">
-                                                        <label class="form-check-label" for="configDeliveryReceipts">
-                                                            Delivery Receipts to Email
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-text">Receive delivery status notifications via email.</div>
-                                                </div>
-                                                
-                                                <div class="mb-3" id="alternateReceiptsEmailWrapper" style="display: none;">
-                                                    <label class="form-label">Alternate Receipts Email</label>
-                                                    <input type="email" class="form-control" id="configAlternateReceiptsEmail" placeholder="e.g., reports@yourcompany.com">
-                                                    <div class="form-text">Optional. Send delivery receipts to a different email address than the sender.</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card border-0 shadow-sm mb-4">
-                                            <div class="card-header bg-transparent border-bottom">
-                                                <h6 class="mb-0"><i class="fas fa-broom me-2 text-primary"></i>Content Processing</h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Signature Removal Patterns</label>
-                                                    <textarea class="form-control font-monospace" id="configSignatureRemoval" rows="4" placeholder="Enter patterns to remove from emails (one per line, regex supported)..."></textarea>
-                                                    <div class="form-text">
-                                                        Remove email signatures or unwanted content before sending. Supports regex patterns.<br>
-                                                        <strong>Examples:</strong><br>
-                                                        <code>^--\s*$</code> - Standard email signature delimiter<br>
-                                                        <code>^Sent from my iPhone$</code> - Mobile signature<br>
-                                                        <code>^Kind regards,[\s\S]*$</code> - Remove everything after "Kind regards,"
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-lg-4">
-                                        <div class="card border-0 shadow-sm bg-light">
-                                            <div class="card-body">
-                                                <h6 class="mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Configuration Tips</h6>
-                                                <ul class="small text-muted mb-0">
-                                                    <li class="mb-2"><strong class="text-primary">List-based defaults:</strong> SenderID from email subject, content from email body. Keep "Subject as SenderID" enabled for this flow.</li>
-                                                    <li class="mb-2">Use <strong>Fixed SenderID</strong> to override subject extraction and use a consistent SenderID for all messages.</li>
-                                                    <li class="mb-2"><strong>Subject as SenderID</strong> extracts the SenderID from the email subject (max 11 alphanumeric chars). <em>Disabling this without a Fixed SenderID will reject all emails.</em></li>
-                                                    <li class="mb-2">Enable <strong>Multipart SMS</strong> for longer messages, but note this may increase costs.</li>
-                                                    <li class="mb-2">Use <strong>Signature Removal</strong> patterns to clean up email content before SMS conversion.</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card border-0 shadow-sm mt-3">
-                                            <div class="card-body">
-                                                <h6 class="mb-3"><i class="fas fa-history me-2 text-primary"></i>Last Updated</h6>
-                                                <p class="small text-muted mb-1">Modified by <strong>John Smith</strong></p>
-                                                <p class="small text-muted mb-0">2025-01-08 at 14:32</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="search-container mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" class="form-control border-start-0" id="stdQuickSearchInput" placeholder="Quick search by name or email address...">
                                 </div>
-                                
-                                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-                                    <button type="button" class="btn btn-outline-secondary" id="btnResetConfig">
-                                        <i class="fas fa-undo me-1"></i> Reset to Defaults
-                                    </button>
-                                    <button type="submit" class="btn btn-primary" id="btnSaveConfig">
-                                        <i class="fas fa-save me-1"></i> Save Configuration
-                                    </button>
+                            </div>
+                            
+                            <div class="table-container" id="standardSmsTableContainer">
+                                <div class="table-responsive">
+                                    <table class="email-sms-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email Address</th>
+                                                <th>SenderID</th>
+                                                <th>Reporting Group</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="standardSmsTableBody">
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </form>
+                            </div>
+                            
+                            <div class="empty-state" id="emptyStateStandardSms" style="display: none;">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-envelope-open-text"></i>
+                                </div>
+                                <h4>No Standard Email-to-SMS Setups</h4>
+                                <p>Create a Standard Email-to-SMS setup to send messages directly from email without mapping to Contact Lists.</p>
+                                <button class="btn btn-primary" id="btnCreateStandardSmsEmpty">
+                                    <i class="fas fa-plus me-1"></i> Create Standard Email-to-SMS
+                                </button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    Showing <span id="stdShowingCount">0</span> of <span id="stdTotalCount">0</span> setups
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2286,234 +2079,118 @@ $(document).ready(function() {
         }
     })();
     
-    // Configuration tab handlers
-    function checkConfigConflict() {
-        var fixedSenderId = $('#configFixedSenderId').is(':checked');
-        var subjectAsSenderId = $('#configSubjectAsSenderId').is(':checked');
-        
-        if (fixedSenderId && subjectAsSenderId) {
-            $('#configConflictWarning').removeClass('d-none');
-        } else {
-            $('#configConflictWarning').addClass('d-none');
+    // Standard Email-to-SMS tab handlers
+    var mockStandardSms = [
+        {
+            id: 'std-001',
+            name: 'General Notifications',
+            emailAddress: 'general.notif' + EMAIL_DOMAIN,
+            senderId: 'QuickSMS',
+            reportingGroup: 'Default',
+            status: 'Active',
+            created: '2024-10-20',
+            lastUsed: '2025-01-09 10:15',
+            messagesSent: 4521
+        },
+        {
+            id: 'std-002',
+            name: 'Urgent Alerts',
+            emailAddress: 'urgent.alerts' + EMAIL_DOMAIN,
+            senderId: 'ALERTS',
+            reportingGroup: 'Alerts',
+            status: 'Active',
+            created: '2024-11-05',
+            lastUsed: '2025-01-08 16:42',
+            messagesSent: 892
+        },
+        {
+            id: 'std-003',
+            name: 'Test Setup',
+            emailAddress: 'test.setup' + EMAIL_DOMAIN,
+            senderId: 'TEST',
+            reportingGroup: 'Default',
+            status: 'Suspended',
+            created: '2024-12-15',
+            lastUsed: '2024-12-20 09:00',
+            messagesSent: 45
         }
-    }
-    
-    function validateSenderId(value) {
-        if (!value) return false;
-        if (value.length < 3 || value.length > 11) return false;
-        return /^[a-zA-Z0-9]+$/.test(value);
-    }
-    
-    function logAuditEvent(action, details) {
-        // TODO: Backend integration - log audit event
-        console.log('[AUDIT]', new Date().toISOString(), action, details);
-    }
-    
-    $('#configFixedSenderId').on('change', function() {
-        var isChecked = $(this).is(':checked');
-        if (isChecked) {
-            $('#senderIdSelectorWrapper').slideDown();
-        } else {
-            $('#senderIdSelectorWrapper').slideUp();
-            $('#configSenderIdSelector').removeClass('is-invalid');
-        }
-        checkConfigConflict();
-    });
-    
-    $('#configSubjectAsSenderId').on('change', function() {
-        checkConfigConflict();
-    });
-    
-    $('#configDeliveryReceipts').on('change', function() {
-        var isChecked = $(this).is(':checked');
-        if (isChecked) {
-            $('#alternateReceiptsEmailWrapper').slideDown();
-        } else {
-            $('#alternateReceiptsEmailWrapper').slideUp();
-        }
-    });
-    
-    $('#configSenderIdSelector').on('change', function() {
-        var value = $(this).val();
-        if (value && !validateSenderId(value)) {
-            $(this).addClass('is-invalid');
-        } else {
-            $(this).removeClass('is-invalid');
-        }
-    });
-    
-    $('#btnSaveConfig').on('click', function(e) {
-        e.preventDefault();
-        
-        var fixedSenderId = $('#configFixedSenderId').is(':checked');
-        var selectedSenderId = $('#configSenderIdSelector').val();
-        
-        if (fixedSenderId && !selectedSenderId) {
-            $('#configSenderIdSelector').addClass('is-invalid');
-            $('#configSenderIdSelector').focus();
-            return;
-        }
-        
-        if (fixedSenderId && selectedSenderId && !validateSenderId(selectedSenderId)) {
-            $('#configSenderIdSelector').addClass('is-invalid');
-            return;
-        }
-        
-        var configData = {
-            originatingEmails: $('#configOriginatingEmails').val(),
-            emailViaMailClient: $('#configEmailViaMailClient').is(':checked'),
-            emailFromAttachments: $('#configEmailFromAttachments').is(':checked'),
-            multipartSms: $('#configMultipartSms').is(':checked'),
-            fixedSenderId: fixedSenderId,
-            senderId: selectedSenderId,
-            subjectAsSenderId: $('#configSubjectAsSenderId').is(':checked'),
-            deliveryReceipts: $('#configDeliveryReceipts').is(':checked'),
-            alternateReceiptsEmail: $('#configAlternateReceiptsEmail').val(),
-            signatureRemoval: $('#configSignatureRemoval').val()
-        };
-        
-        logAuditEvent('CONFIG_UPDATE', configData);
-        
-        // TODO: Backend integration - save configuration
-        console.log('Saving configuration:', configData);
-        
-        var btn = $(this);
-        var originalHtml = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
-        btn.prop('disabled', true);
-        
-        setTimeout(function() {
-            btn.html('<i class="fas fa-check me-1"></i> Saved!');
-            setTimeout(function() {
-                btn.html(originalHtml);
-                btn.prop('disabled', false);
-            }, 1500);
-        }, 800);
-    });
-    
-    $('#btnResetConfig').on('click', function() {
-        if (!confirm('Reset all configuration settings to defaults?')) return;
-        
-        $('#configOriginatingEmails').val('');
-        $('#configEmailViaMailClient').prop('checked', true);
-        $('#configMultipartSms').prop('checked', false);
-        $('#configFixedSenderId').prop('checked', false);
-        $('#senderIdSelectorWrapper').hide();
-        $('#configSenderIdSelector').val('').removeClass('is-invalid');
-        $('#configSubjectAsSenderId').prop('checked', true);
-        $('#configDeliveryReceipts').prop('checked', false);
-        $('#alternateReceiptsEmailWrapper').hide();
-        $('#configAlternateReceiptsEmail').val('');
-        $('#configSignatureRemoval').val('');
-        $('#configConflictWarning').addClass('d-none');
-        
-        logAuditEvent('CONFIG_RESET', { resetBy: 'user' });
-        updateResolutionPreview();
-    });
-    
-    // Resolution Preview Logic
-    var mockSubjects = [
-        { subject: 'ALERTS', description: 'Valid alphanumeric (6 chars)' },
-        { subject: 'NHS2024', description: 'Valid alphanumeric (7 chars)' },
-        { subject: 'Reminder: Your appointment', description: 'Contains spaces and special chars' },
-        { subject: 'AB', description: 'Too short (2 chars)' },
-        { subject: 'ABCDEFGHIJKL', description: 'Too long (12 chars)' },
-        { subject: '', description: 'Empty subject' }
     ];
     
-    function extractSenderIdFromSubject(subject) {
-        if (!subject || subject.trim() === '') {
-            return { valid: false, senderId: null, reason: 'Empty subject' };
-        }
-        
-        var cleaned = subject.replace(/[^a-zA-Z0-9]/g, '');
-        
-        if (cleaned.length < 3) {
-            return { valid: false, senderId: null, reason: 'Too short after cleaning' };
-        }
-        
-        if (cleaned.length > 11) {
-            cleaned = cleaned.substring(0, 11);
-        }
-        
-        if (/^[a-zA-Z0-9]{3,11}$/.test(cleaned)) {
-            return { valid: true, senderId: cleaned, reason: 'Extracted from subject' };
-        }
-        
-        return { valid: false, senderId: null, reason: 'Invalid format' };
-    }
-    
-    function updateResolutionPreview() {
-        var fixedSenderId = $('#configFixedSenderId').is(':checked');
-        var selectedSenderId = $('#configSenderIdSelector').val();
-        var subjectAsSenderId = $('#configSubjectAsSenderId').is(':checked');
-        
-        var tbody = $('#resolutionPreviewBody');
+    function renderStandardSmsTable(items) {
+        var tbody = $('#standardSmsTableBody');
         tbody.empty();
         
-        var ruleText = '';
-        
-        if (fixedSenderId) {
-            ruleText = '<strong>Fixed SenderID Mode:</strong> All emails use "' + (selectedSenderId || '<em>not selected</em>') + '" regardless of subject.';
-        } else if (subjectAsSenderId) {
-            ruleText = '<strong>Subject Extraction Mode:</strong> SenderID extracted from email subject. Invalid subjects will be rejected.';
-        } else {
-            ruleText = '<strong>Default Mode:</strong> No SenderID resolution configured. Emails will be rejected.';
+        if (items.length === 0) {
+            $('#standardSmsTableContainer').hide();
+            $('#emptyStateStandardSms').show();
+            $('#stdShowingCount').text(0);
+            $('#stdTotalCount').text(0);
+            return;
         }
         
-        $('#resolutionRuleText').html(ruleText);
+        $('#standardSmsTableContainer').show();
+        $('#emptyStateStandardSms').hide();
         
-        mockSubjects.forEach(function(mock) {
-            var resolvedSenderId = '';
-            var resultHtml = '';
+        items.forEach(function(item) {
+            var statusBadge = item.status === 'Active' 
+                ? '<span class="badge badge-live-status">Active</span>'
+                : '<span class="badge badge-suspended">Suspended</span>';
             
-            if (fixedSenderId) {
-                if (selectedSenderId) {
-                    resolvedSenderId = selectedSenderId;
-                    resultHtml = '<span class="badge badge-live-status">Accepted</span>';
-                } else {
-                    resolvedSenderId = '<em class="text-muted">Not configured</em>';
-                    resultHtml = '<span class="badge badge-suspended">Rejected</span>';
-                }
-            } else if (subjectAsSenderId) {
-                var extraction = extractSenderIdFromSubject(mock.subject);
-                if (extraction.valid) {
-                    resolvedSenderId = extraction.senderId;
-                    resultHtml = '<span class="badge badge-live-status">Accepted</span>';
-                } else {
-                    resolvedSenderId = '<em class="text-muted">' + extraction.reason + '</em>';
-                    resultHtml = '<span class="badge badge-suspended">Rejected</span>';
-                }
-            } else {
-                resolvedSenderId = '<em class="text-muted">No extraction</em>';
-                resultHtml = '<span class="badge badge-suspended">Rejected</span>';
-            }
-            
-            var subjectDisplay = mock.subject ? '<code>' + mock.subject + '</code>' : '<em class="text-muted">(empty)</em>';
-            
-            var row = '<tr>' +
-                '<td>' + subjectDisplay + '<br><small class="text-muted">' + mock.description + '</small></td>' +
-                '<td>' + resolvedSenderId + '</td>' +
-                '<td>' + resultHtml + '</td>' +
+            var row = '<tr data-id="' + item.id + '">' +
+                '<td><span class="email-sms-name">' + item.name + '</span></td>' +
+                '<td><code class="email-address-display">' + item.emailAddress + '</code></td>' +
+                '<td>' + item.senderId + '</td>' +
+                '<td>' + item.reportingGroup + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + item.created + '</td>' +
+                '<td class="text-end">' +
+                    '<div class="dropdown">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                            '<i class="fas fa-ellipsis-v"></i>' +
+                        '</button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i> View Details</a></li>' +
+                            '<li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            (item.status === 'Active' 
+                                ? '<li><a class="dropdown-item" href="#"><i class="fas fa-pause me-2"></i> Suspend</a></li>'
+                                : '<li><a class="dropdown-item" href="#"><i class="fas fa-play me-2"></i> Reactivate</a></li>') +
+                            '<li><hr class="dropdown-divider"></li>' +
+                            '<li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i> Delete</a></li>' +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
             '</tr>';
             
             tbody.append(row);
         });
+        
+        $('#stdShowingCount').text(items.length);
+        $('#stdTotalCount').text(mockStandardSms.length);
     }
     
-    $('#configFixedSenderId').on('change', function() {
-        updateResolutionPreview();
+    $('#stdQuickSearchInput').on('input', function() {
+        var searchTerm = $(this).val().toLowerCase().trim();
+        if (!searchTerm) {
+            renderStandardSmsTable(mockStandardSms);
+            return;
+        }
+        
+        var filtered = mockStandardSms.filter(function(item) {
+            return item.name.toLowerCase().indexOf(searchTerm) !== -1 ||
+                   item.emailAddress.toLowerCase().indexOf(searchTerm) !== -1 ||
+                   item.senderId.toLowerCase().indexOf(searchTerm) !== -1;
+        });
+        
+        renderStandardSmsTable(filtered);
     });
     
-    $('#configSubjectAsSenderId').on('change', function() {
-        updateResolutionPreview();
+    $('#btnCreateStandardSms, #btnCreateStandardSmsEmpty').on('click', function() {
+        // TODO: Open create modal or navigate to create page
+        alert('Create Standard Email-to-SMS functionality coming soon.');
     });
     
-    $('#configSenderIdSelector').on('change', function() {
-        updateResolutionPreview();
-    });
-    
-    updateResolutionPreview();
+    // Initialize Standard Email-to-SMS table
+    renderStandardSmsTable(mockStandardSms);
     
     // Email Parsing Test Logic
     function validateSenderIdFormat(senderId) {
