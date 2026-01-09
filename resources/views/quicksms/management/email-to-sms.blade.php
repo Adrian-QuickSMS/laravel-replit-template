@@ -1518,7 +1518,7 @@
                                             <div class="form-check"><input class="form-check-input clm-contact-list-cb" type="checkbox" value="dynamic-birthdays" id="clmList7"><label class="form-check-label small" for="clmList7"><i class="fas fa-sync-alt me-1 text-info"></i>Upcoming Birthdays (var)</label></div>
                                         </div>
                                     </div>
-                                    <div class="invalid-feedback">At least one Contact List is required.</div>
+                                    <div class="invalid-feedback" id="clmContactListsError">At least one Contact List is required.</div>
                                     <div id="clmSelectedListsDisplay" class="mt-2"></div>
                                 </div>
                                 
@@ -1603,7 +1603,7 @@
                                 <div class="col-md-6" id="clmDeliveryEmailGroup" style="display: none;">
                                     <label class="form-label fw-semibold">Delivery Reports Email <span class="text-danger">*</span></label>
                                     <input type="email" class="form-control" id="clmCreateDeliveryEmail" placeholder="reports@yourcompany.com">
-                                    <div class="invalid-feedback">Valid email address required for delivery reports.</div>
+                                    <div class="invalid-feedback" id="clmDeliveryEmailError">Valid email address required for delivery reports.</div>
                                 </div>
                                 
                                 <div class="col-12">
@@ -2974,6 +2974,7 @@ $(document).ready(function() {
         $('.clm-contact-list-cb').prop('checked', false);
         $('#clmContactListsDropdown .dropdown-label').text('Select list(s)...');
         $('#clmContactListsDropdown button').removeClass('is-invalid');
+        $('#clmContactListsError').hide();
         $('#clmSelectedListsDisplay').empty();
         
         // Reset Opt-out multi-select
@@ -2987,6 +2988,7 @@ $(document).ready(function() {
         $('#clmCreateMultipleSms').prop('checked', false);
         $('#clmCreateDeliveryReports').prop('checked', false);
         $('#clmCreateDeliveryEmail').val('').removeClass('is-invalid');
+        $('#clmDeliveryEmailError').hide();
         $('#clmDeliveryEmailGroup').hide();
         $('#clmCreateSignatureFilter').val('').removeClass('is-invalid');
         $('#clmSignatureFilterError').hide();
@@ -3220,6 +3222,7 @@ $(document).ready(function() {
     // Save Contact List Mapping
     $('#btnSaveContactListMapping').on('click', function() {
         var isValid = true;
+        var hasWildcard = false;
         
         // Validate name
         var name = $('#clmCreateName').val().trim();
@@ -3239,12 +3242,40 @@ $(document).ready(function() {
             $('#clmCreateSubaccount').removeClass('is-invalid');
         }
         
-        // Validate Contact Lists selection
+        // Validate Contact Lists selection (must select >=1)
         if (clmSelectedLists.length === 0) {
             $('#clmContactListsDropdown button').addClass('is-invalid');
+            $('#clmContactListsError').text('Please select at least one Contact Book list.').show();
             isValid = false;
         } else {
             $('#clmContactListsDropdown button').removeClass('is-invalid');
+            $('#clmContactListsError').hide();
+        }
+        
+        // Validate allowed sender emails for invalid entries and check for wildcards
+        var hasInvalidEmail = false;
+        clmAllowedEmails.forEach(function(email) {
+            var validation = EmailToSmsService.validateEmail(email);
+            if (!validation.valid) {
+                hasInvalidEmail = true;
+            }
+            if (validation.isWildcard) {
+                hasWildcard = true;
+            }
+        });
+        
+        if (hasInvalidEmail) {
+            $('#clmEmailError').text('One or more allowed sender emails are invalid. Please remove and re-add them.').show();
+            isValid = false;
+        } else {
+            $('#clmEmailError').hide();
+        }
+        
+        // Show wildcard warning (non-blocking)
+        if (hasWildcard) {
+            $('#clmWildcardWarning').removeClass('d-none');
+        } else {
+            $('#clmWildcardWarning').addClass('d-none');
         }
         
         // Validate SenderID
@@ -3262,10 +3293,15 @@ $(document).ready(function() {
             var emailValidation = EmailToSmsService.validateEmail(deliveryEmail);
             if (!deliveryEmail || !emailValidation.valid || emailValidation.isWildcard) {
                 $('#clmCreateDeliveryEmail').addClass('is-invalid');
+                $('#clmDeliveryEmailError').text(deliveryEmail ? 'Please enter a valid email address (wildcards not allowed).' : 'Delivery reports email is required.').show();
                 isValid = false;
             } else {
                 $('#clmCreateDeliveryEmail').removeClass('is-invalid');
+                $('#clmDeliveryEmailError').hide();
             }
+        } else {
+            $('#clmCreateDeliveryEmail').removeClass('is-invalid');
+            $('#clmDeliveryEmailError').hide();
         }
         
         // Validate content filter regex
