@@ -265,6 +265,11 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="contact-lists-tab" data-bs-toggle="tab" data-bs-target="#contact-lists" type="button" role="tab">
+                                <i class="fas fa-link me-1"></i> Contact Lists
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link" id="reporting-groups-tab" data-bs-toggle="tab" data-bs-target="#reporting-groups" type="button" role="tab">
                                 <i class="fas fa-layer-group me-1"></i> Reporting Groups
                             </button>
@@ -422,6 +427,115 @@
                                 </div>
                                 <nav>
                                     <ul class="pagination pagination-sm mb-0" id="addressesPagination">
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="contact-lists" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <p class="text-muted mb-0">Mappings between Email-to-SMS Addresses and Contact Book Lists. When an email is received, SMS is sent to the linked Contact List.</p>
+                                </div>
+                                <button type="button" class="btn btn-primary" id="btnCreateMapping">
+                                    <i class="fas fa-plus me-1"></i> Create Mapping
+                                </button>
+                            </div>
+                            
+                            <div class="collapse mb-3" id="clFiltersPanel">
+                                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                                    <div class="row g-3 align-items-start">
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label small fw-bold">Date Created</label>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <input type="date" class="form-control form-control-sm" id="clFilterDateFrom">
+                                                <span class="text-muted small">to</span>
+                                                <input type="date" class="form-control form-control-sm" id="clFilterDateTo">
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn cl-date-preset" data-preset="7days">Last 7 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn cl-date-preset" data-preset="30days">Last 30 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn cl-date-preset" data-preset="thismonth">This Month</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <label class="form-label small fw-bold">Contact List</label>
+                                            <select class="form-select form-select-sm" id="clFilterContactList">
+                                                <option value="">All Contact Lists</option>
+                                                <option value="NHS Patients">NHS Patients</option>
+                                                <option value="Pharmacy Patients">Pharmacy Patients</option>
+                                                <option value="Appointment List">Appointment List</option>
+                                                <option value="Newsletter Subscribers">Newsletter Subscribers</option>
+                                                <option value="Emergency Contacts">Emergency Contacts</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <label class="form-label small fw-bold">Search</label>
+                                            <input type="text" class="form-control form-control-sm" id="clFilterSearch" placeholder="Search by address...">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end gap-2 mt-3">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetClFilters">Reset Filters</button>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyClFilters">Apply Filters</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3" id="clActiveFiltersContainer" style="display: none;">
+                                <div id="clActiveFiltersChips"></div>
+                                <button type="button" class="btn btn-link btn-sm text-danger" id="btnClearClFilters">Clear All</button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
+                                        <i class="fas fa-filter me-1"></i> Filters
+                                    </button>
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Quick search by address...">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container" id="contactListsTableContainer">
+                                <div class="table-responsive">
+                                    <table class="table email-sms-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Email-to-SMS Address</th>
+                                                <th>Linked Contact List</th>
+                                                <th>Recipients</th>
+                                                <th>Allowed Senders</th>
+                                                <th>Last Used</th>
+                                                <th>Created</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="contactListsTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="empty-state" id="emptyStateContactLists" style="display: none;">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <h4>No Contact List Mappings</h4>
+                                <p>Create a mapping to link an Email-to-SMS Address to a Contact Book List.</p>
+                                <button class="btn btn-primary" id="btnCreateMappingEmpty">
+                                    <i class="fas fa-plus me-1"></i> Create Mapping
+                                </button>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    Showing <span id="clShowingCount">0</span> of <span id="clTotalCount">0</span> mappings
+                                </div>
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0" id="contactListsPagination">
                                     </ul>
                                 </nav>
                             </div>
@@ -1163,7 +1277,77 @@ $(document).ready(function() {
         }
     ];
     
+    var mockContactListMappings = [
+        {
+            id: 'clm-001',
+            emailAddress: 'patients.abc123@sms.quicksms.io',
+            contactListName: 'NHS Patients',
+            contactListId: 'cl-001',
+            recipientsCount: 4521,
+            allowedSenders: ['admin@nhstrust.nhs.uk', 'appointments@nhstrust.nhs.uk'],
+            lastUsed: '2025-01-09 08:45',
+            created: '2024-10-15',
+            status: 'Active'
+        },
+        {
+            id: 'clm-002',
+            emailAddress: 'pharmacy.def456@sms.quicksms.io',
+            contactListName: 'Pharmacy Patients',
+            contactListId: 'cl-002',
+            recipientsCount: 1892,
+            allowedSenders: ['pharmacy@clinic.com'],
+            lastUsed: '2025-01-08 16:20',
+            created: '2024-11-01',
+            status: 'Active'
+        },
+        {
+            id: 'clm-003',
+            emailAddress: 'appointments.ghi789@sms.quicksms.io',
+            contactListName: 'Appointment List',
+            contactListId: 'cl-003',
+            recipientsCount: 3267,
+            allowedSenders: [],
+            lastUsed: '2025-01-07 14:30',
+            created: '2024-11-20',
+            status: 'Active'
+        },
+        {
+            id: 'clm-004',
+            emailAddress: 'newsletter.jkl012@sms.quicksms.io',
+            contactListName: 'Newsletter Subscribers',
+            contactListId: 'cl-004',
+            recipientsCount: 8934,
+            allowedSenders: ['marketing@company.com', 'newsletter@company.com'],
+            lastUsed: '2024-12-20 10:00',
+            created: '2024-08-05',
+            status: 'Archived'
+        },
+        {
+            id: 'clm-005',
+            emailAddress: 'alerts.mno345@sms.quicksms.io',
+            contactListName: 'Emergency Contacts',
+            contactListId: 'cl-005',
+            recipientsCount: 156,
+            allowedSenders: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io'],
+            lastUsed: '2025-01-09 11:22',
+            created: '2024-12-01',
+            status: 'Active'
+        },
+        {
+            id: 'clm-006',
+            emailAddress: 'reminders.pqr678@sms.quicksms.io',
+            contactListName: 'NHS Patients',
+            contactListId: 'cl-001',
+            recipientsCount: 4521,
+            allowedSenders: ['reminders@nhstrust.nhs.uk'],
+            lastUsed: '2025-01-06 09:15',
+            created: '2024-12-15',
+            status: 'Active'
+        }
+    ];
+    
     var rgAppliedFilters = {};
+    var clAppliedFilters = {};
     
     var selectedAddress = null;
     var appliedFilters = {};
@@ -1339,6 +1523,131 @@ $(document).ready(function() {
         rgAppliedFilters = {};
         $('#rgActiveFiltersContainer').hide();
         renderReportingGroups(mockReportingGroups);
+    }
+    
+    function renderContactListMappings(mappings) {
+        var tbody = $('#contactListsTableBody');
+        tbody.empty();
+        
+        if (mappings.length === 0) {
+            $('#contactListsTableContainer').hide();
+            $('#emptyStateContactLists').show();
+            $('#clShowingCount').text(0);
+            $('#clTotalCount').text(0);
+            return;
+        }
+        
+        $('#contactListsTableContainer').show();
+        $('#emptyStateContactLists').hide();
+        
+        mappings.forEach(function(mapping) {
+            var allowedDisplay = mapping.allowedSenders.length > 0 
+                ? mapping.allowedSenders.slice(0, 2).map(function(s) { return '<span class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">' + s + '</span>'; }).join('') + (mapping.allowedSenders.length > 2 ? '<span class="text-muted small">+' + (mapping.allowedSenders.length - 2) + ' more</span>' : '')
+                : '<span class="text-muted small">All senders allowed</span>';
+            
+            var statusClass = mapping.status === 'Active' ? '' : 'text-muted';
+            
+            var row = '<tr data-id="' + mapping.id + '" class="' + statusClass + '">' +
+                '<td>' +
+                    '<code class="email-address-display">' + mapping.emailAddress + '</code>' +
+                    '<button class="btn btn-link btn-sm p-0 ms-2 copy-email" data-email="' + mapping.emailAddress + '" title="Copy to clipboard">' +
+                        '<i class="fas fa-copy text-muted"></i>' +
+                    '</button>' +
+                '</td>' +
+                '<td><span class="badge badge-bulk">' + mapping.contactListName + '</span></td>' +
+                '<td>' + mapping.recipientsCount.toLocaleString() + '</td>' +
+                '<td>' + allowedDisplay + '</td>' +
+                '<td>' + mapping.lastUsed + '</td>' +
+                '<td>' + mapping.created + '</td>' +
+                '<td class="text-end">' +
+                    '<div class="dropdown">' +
+                        '<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                            '<i class="fas fa-ellipsis-v"></i>' +
+                        '</button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item view-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
+                            '<li><a class="dropdown-item edit-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            (mapping.status === 'Active' 
+                                ? '<li><a class="dropdown-item archive-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>'
+                                : '<li><a class="dropdown-item unarchive-mapping" href="#" data-id="' + mapping.id + '"><i class="fas fa-undo me-2"></i> Unarchive</a></li>') +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+            
+            tbody.append(row);
+        });
+        
+        $('#clShowingCount').text(mappings.length);
+        $('#clTotalCount').text(mockContactListMappings.length);
+    }
+    
+    function filterContactListMappings() {
+        var filtered = mockContactListMappings.slice();
+        var chips = [];
+        
+        var searchTerm = ($('#clQuickSearchInput').val() || $('#clFilterSearch').val() || '').toLowerCase().trim();
+        if (searchTerm) {
+            filtered = filtered.filter(function(m) {
+                return m.emailAddress.toLowerCase().indexOf(searchTerm) !== -1 ||
+                       m.contactListName.toLowerCase().indexOf(searchTerm) !== -1;
+            });
+            chips.push({ filter: 'search', value: 'Search: ' + searchTerm });
+        }
+        
+        var contactListFilter = $('#clFilterContactList').val();
+        if (contactListFilter) {
+            filtered = filtered.filter(function(m) {
+                return m.contactListName === contactListFilter;
+            });
+            chips.push({ filter: 'contactlist', value: 'List: ' + contactListFilter });
+        }
+        
+        var dateFrom = $('#clFilterDateFrom').val();
+        var dateTo = $('#clFilterDateTo').val();
+        if (dateFrom || dateTo) {
+            filtered = filtered.filter(function(m) {
+                var mappingDate = m.created;
+                if (dateFrom && mappingDate < dateFrom) return false;
+                if (dateTo && mappingDate > dateTo) return false;
+                return true;
+            });
+            var dateLabel = '';
+            if (dateFrom && dateTo) {
+                dateLabel = 'Date: ' + dateFrom + ' to ' + dateTo;
+            } else if (dateFrom) {
+                dateLabel = 'Date: From ' + dateFrom;
+            } else {
+                dateLabel = 'Date: To ' + dateTo;
+            }
+            chips.push({ filter: 'date', value: dateLabel });
+        }
+        
+        if (chips.length > 0) {
+            var chipsHtml = '';
+            chips.forEach(function(chip) {
+                chipsHtml += '<span class="filter-chip">' + chip.value + 
+                    '<span class="remove-chip cl-remove-chip" data-filter="' + chip.filter + '">&times;</span></span>';
+            });
+            $('#clActiveFiltersChips').html(chipsHtml);
+            $('#clActiveFiltersContainer').show();
+        } else {
+            $('#clActiveFiltersContainer').hide();
+        }
+        
+        renderContactListMappings(filtered);
+    }
+    
+    function resetClFilters() {
+        $('#clQuickSearchInput').val('');
+        $('#clFilterSearch').val('');
+        $('#clFilterContactList').val('');
+        $('#clFilterDateFrom').val('');
+        $('#clFilterDateTo').val('');
+        $('.cl-date-preset').removeClass('active');
+        clAppliedFilters = {};
+        $('#clActiveFiltersContainer').hide();
+        renderContactListMappings(mockContactListMappings);
     }
     
     function openDetailsDrawer(address) {
@@ -1778,6 +2087,95 @@ $(document).ready(function() {
     
     renderAddressesTable(mockAddresses);
     renderReportingGroups(mockReportingGroups);
+    renderContactListMappings(mockContactListMappings);
+    
+    // Contact Lists tab handlers
+    $('#btnApplyClFilters').on('click', filterContactListMappings);
+    $('#btnResetClFilters').on('click', resetClFilters);
+    $('#btnClearClFilters').on('click', resetClFilters);
+    
+    var clQuickSearchTimeout;
+    $('#clQuickSearchInput').on('input', function() {
+        clearTimeout(clQuickSearchTimeout);
+        clQuickSearchTimeout = setTimeout(filterContactListMappings, 300);
+    });
+    
+    $('#clFilterSearch').on('input', function() {
+        clearTimeout(clQuickSearchTimeout);
+        clQuickSearchTimeout = setTimeout(filterContactListMappings, 300);
+    });
+    
+    $(document).on('click', '.cl-remove-chip', function() {
+        var filter = $(this).data('filter');
+        if (filter === 'search') {
+            $('#clQuickSearchInput').val('');
+            $('#clFilterSearch').val('');
+        } else if (filter === 'contactlist') {
+            $('#clFilterContactList').val('');
+        } else if (filter === 'date') {
+            $('#clFilterDateFrom').val('');
+            $('#clFilterDateTo').val('');
+            $('.cl-date-preset').removeClass('active');
+        }
+        filterContactListMappings();
+    });
+    
+    $('.cl-date-preset').on('click', function() {
+        $('.cl-date-preset').removeClass('active');
+        $(this).addClass('active');
+        
+        var preset = $(this).data('preset');
+        var today = new Date();
+        var fromDate, toDate;
+        
+        toDate = today.toISOString().split('T')[0];
+        
+        if (preset === '7days') {
+            fromDate = new Date(today.setDate(today.getDate() - 7)).toISOString().split('T')[0];
+        } else if (preset === '30days') {
+            fromDate = new Date(today.setDate(today.getDate() - 30)).toISOString().split('T')[0];
+        } else if (preset === 'thismonth') {
+            fromDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        }
+        
+        $('#clFilterDateFrom').val(fromDate);
+        $('#clFilterDateTo').val(new Date().toISOString().split('T')[0]);
+        filterContactListMappings();
+    });
+    
+    $(document).on('click', '.copy-email', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var email = $(this).data('email');
+        navigator.clipboard.writeText(email).then(function() {
+            // TODO: Show toast notification
+        });
+    });
+    
+    $(document).on('click', '.archive-mapping', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var mapping = mockContactListMappings.find(function(m) { return m.id === id; });
+        if (mapping) {
+            mapping.status = 'Archived';
+            renderContactListMappings(mockContactListMappings);
+        }
+    });
+    
+    $(document).on('click', '.unarchive-mapping', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var mapping = mockContactListMappings.find(function(m) { return m.id === id; });
+        if (mapping) {
+            mapping.status = 'Active';
+            renderContactListMappings(mockContactListMappings);
+        }
+    });
+    
+    $('#btnCreateMapping, #btnCreateMappingEmpty').on('click', function() {
+        // TODO: Open create mapping modal
+        alert('Create Mapping modal - TODO');
+    });
     
     // Configuration tab handlers
     function checkConfigConflict() {
