@@ -633,56 +633,92 @@
                                             <strong>Step 4: Message Settings</strong> – Configure how incoming emails are processed into SMS messages.
                                         </div>
                                         
-                                        <div class="row">
-                                            <div class="col-lg-6 mb-3">
-                                                <label class="form-label">SenderID <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="senderId">
-                                                    <option value="">Select SenderID...</option>
-                                                    <option value="QuickSMS">QuickSMS</option>
-                                                    <option value="NHSTrust">NHSTrust</option>
-                                                    <option value="Pharmacy">Pharmacy</option>
-                                                    <option value="Clinic">Clinic</option>
-                                                </select>
-                                                <small class="text-muted">The SenderID that will appear on SMS messages.</small>
-                                                <div class="invalid-feedback">Please select a SenderID.</div>
+                                        {{-- SenderID Section --}}
+                                        <div class="mb-4">
+                                            <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="senderId">
+                                                <option value="">Select SenderID...</option>
+                                                <option value="QuickSMS">QuickSMS</option>
+                                                <option value="NHSTrust">NHSTrust</option>
+                                                <option value="Pharmacy">Pharmacy</option>
+                                                <option value="Clinic">Clinic</option>
+                                                <option value="Appointments">Appointments</option>
+                                                <option value="Reminders">Reminders</option>
+                                            </select>
+                                            <small class="text-muted">The approved SenderID that will appear on SMS messages.</small>
+                                            <div class="invalid-feedback">Please select a SenderID.</div>
+                                        </div>
+                                        
+                                        {{-- Dynamic SenderID Toggle (visible if account flag allows) --}}
+                                        <div class="mb-4" id="dynamicSenderIdSection">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="subjectAsSenderId">
+                                                <label class="form-check-label" for="subjectAsSenderId">
+                                                    <strong>Use Email Subject as SenderID</strong>
+                                                </label>
                                             </div>
+                                            <small class="text-muted">Override the selected SenderID with content from the email subject line. Subject must be 3-11 alphanumeric characters.</small>
                                             
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="form-check form-switch mt-4">
-                                                    <input class="form-check-input" type="checkbox" id="subjectAsSenderId">
-                                                    <label class="form-check-label" for="subjectAsSenderId">Use Email Subject as SenderID</label>
-                                                </div>
-                                                <small class="text-muted">Override SenderID with email subject line content.</small>
+                                            <div class="alert alert-pastel-warning small mt-2 d-none" id="dynamicSenderIdWarning">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                <strong>Warning:</strong> When enabled, the SenderID dropdown above becomes a fallback. Invalid subjects will use the fallback SenderID.
                                             </div>
                                         </div>
                                         
                                         <hr class="my-3">
                                         
-                                        <div class="row">
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="multipleSms" checked>
-                                                    <label class="form-check-label" for="multipleSms">Allow Multiple SMS</label>
-                                                </div>
-                                                <small class="text-muted">Allow messages longer than 160 characters to be split.</small>
+                                        {{-- Multiple SMS Toggle --}}
+                                        <div class="mb-4">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="multipleSms" checked>
+                                                <label class="form-check-label" for="multipleSms">
+                                                    <strong>Enable Multiple SMS</strong>
+                                                </label>
                                             </div>
+                                            <small class="text-muted">Allow messages longer than 160 characters to be split into multiple SMS segments. If disabled, messages will be truncated.</small>
+                                        </div>
+                                        
+                                        {{-- Delivery Reports Toggle with Email Input --}}
+                                        <div class="mb-4">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="deliveryReports" checked>
+                                                <label class="form-check-label" for="deliveryReports">
+                                                    <strong>Send Delivery Reports</strong>
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Receive delivery status notifications for sent messages.</small>
                                             
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="deliveryReports" checked>
-                                                    <label class="form-check-label" for="deliveryReports">Delivery Reports</label>
-                                                </div>
-                                                <small class="text-muted">Receive delivery status notifications.</small>
+                                            <div class="mt-2" id="deliveryReportsEmailSection">
+                                                <label class="form-label">Delivery Report Email</label>
+                                                <input type="email" class="form-control" id="deliveryReportEmail" placeholder="reports@yourcompany.com">
+                                                <small class="text-muted">Email address to receive delivery status reports.</small>
+                                                <div class="invalid-feedback">Please enter a valid email address.</div>
                                             </div>
                                         </div>
                                         
-                                        <div class="row">
-                                            <div class="col-lg-6 mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="contentFilter" checked>
-                                                    <label class="form-check-label" for="contentFilter">Content Filter</label>
-                                                </div>
-                                                <small class="text-muted">Apply content filtering and signature removal.</small>
+                                        <hr class="my-3">
+                                        
+                                        {{-- Content Filter Textarea --}}
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <strong>Filter Content</strong> <span class="badge bg-light text-dark">Optional</span>
+                                            </label>
+                                            <textarea class="form-control" id="contentFilter" rows="4" placeholder="Enter regex patterns to remove from email content (one per line)&#10;&#10;Example:&#10;^--[\s\S]*$&#10;Sent from my iPhone&#10;\[image:.*?\]"></textarea>
+                                            <small class="text-muted">
+                                                Enter regex patterns (one per line) to filter out signatures, footers, or unwanted content from emails before converting to SMS.
+                                            </small>
+                                            
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTestFilter">
+                                                    <i class="fas fa-vial me-1"></i> Test Patterns
+                                                </button>
+                                                <button type="button" class="btn btn-link btn-sm" id="btnAddCommonPatterns">
+                                                    <i class="fas fa-plus me-1"></i> Add Common Patterns
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="alert alert-pastel-primary small mt-2 d-none" id="filterTestResult">
+                                                <strong>Test Result:</strong> <span id="filterTestOutput"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -799,7 +835,12 @@ $(document).ready(function() {
         subjectAsSenderId: false,
         multipleSms: true,
         deliveryReports: true,
-        contentFilter: true
+        deliveryReportEmail: '',
+        contentFilterPatterns: ''
+    };
+    
+    var accountFlags = {
+        dynamic_senderid_allowed: true
     };
     
     var currentStep = 0;
@@ -876,8 +917,14 @@ $(document).ready(function() {
         
         var settings = [];
         if (wizardData.multipleSms) settings.push('Multiple SMS');
-        if (wizardData.deliveryReports) settings.push('Delivery Reports');
-        if (wizardData.contentFilter) settings.push('Content Filter');
+        if (wizardData.deliveryReports) {
+            var reportStr = 'Delivery Reports';
+            if (wizardData.deliveryReportEmail) {
+                reportStr += ' (' + wizardData.deliveryReportEmail + ')';
+            }
+            settings.push(reportStr);
+        }
+        if (wizardData.contentFilterPatterns.trim()) settings.push('Content Filter Active');
         if (wizardData.subjectAsSenderId) settings.push('Subject as SenderID');
         $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'Default');
     }
@@ -1142,21 +1189,93 @@ $(document).ready(function() {
         updateNextButtonState();
     });
     
-    $('#subjectAsSenderId').on('change', function() {
-        wizardData.subjectAsSenderId = $(this).is(':checked');
-    });
-    
     $('#multipleSms').on('change', function() {
         wizardData.multipleSms = $(this).is(':checked');
     });
     
     $('#deliveryReports').on('change', function() {
         wizardData.deliveryReports = $(this).is(':checked');
+        if (wizardData.deliveryReports) {
+            $('#deliveryReportsEmailSection').slideDown();
+        } else {
+            $('#deliveryReportsEmailSection').slideUp();
+            wizardData.deliveryReportEmail = '';
+            $('#deliveryReportEmail').val('').removeClass('is-invalid');
+        }
     });
     
-    $('#contentFilter').on('change', function() {
-        wizardData.contentFilter = $(this).is(':checked');
+    $('#deliveryReportEmail').on('input', function() {
+        var email = $(this).val().trim();
+        wizardData.deliveryReportEmail = email;
+        
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
     });
+    
+    $('#contentFilter').on('input', function() {
+        wizardData.contentFilterPatterns = $(this).val();
+    });
+    
+    $('#subjectAsSenderId').on('change', function() {
+        wizardData.subjectAsSenderId = $(this).is(':checked');
+        if (wizardData.subjectAsSenderId) {
+            $('#dynamicSenderIdWarning').removeClass('d-none');
+        } else {
+            $('#dynamicSenderIdWarning').addClass('d-none');
+        }
+    });
+    
+    $('#btnTestFilter').on('click', function() {
+        var patterns = wizardData.contentFilterPatterns.split('\n').filter(p => p.trim());
+        if (patterns.length === 0) {
+            $('#filterTestResult').removeClass('d-none');
+            $('#filterTestOutput').text('No patterns defined. Add patterns to test.');
+            return;
+        }
+        
+        var testContent = "Hello, this is a test message.\n\n--\nSent from my iPhone\nJohn Smith\nEmail: john@example.com";
+        var result = testContent;
+        
+        patterns.forEach(function(pattern) {
+            try {
+                var regex = new RegExp(pattern, 'gim');
+                result = result.replace(regex, '');
+            } catch (e) {
+                result = '[Invalid regex: ' + pattern + ']';
+            }
+        });
+        
+        $('#filterTestResult').removeClass('d-none');
+        $('#filterTestOutput').html('<br><strong>Before:</strong><pre class="mb-1 small bg-light p-2">' + testContent.replace(/</g, '&lt;') + '</pre><strong>After:</strong><pre class="mb-0 small bg-light p-2">' + result.trim().replace(/</g, '&lt;') + '</pre>');
+    });
+    
+    $('#btnAddCommonPatterns').on('click', function() {
+        var commonPatterns = [
+            '^--[\\s\\S]*$',
+            'Sent from my iPhone',
+            'Sent from my Android',
+            '\\[image:.*?\\]',
+            'Get Outlook for iOS',
+            'Confidentiality Notice:.*'
+        ];
+        
+        var current = $('#contentFilter').val();
+        var existing = current.split('\n').filter(p => p.trim());
+        var toAdd = commonPatterns.filter(p => !existing.includes(p));
+        
+        if (toAdd.length > 0) {
+            var newValue = current ? current + '\n' + toAdd.join('\n') : toAdd.join('\n');
+            $('#contentFilter').val(newValue);
+            wizardData.contentFilterPatterns = newValue;
+        }
+    });
+    
+    if (!accountFlags.dynamic_senderid_allowed) {
+        $('#dynamicSenderIdSection').hide();
+    }
     
     $('#searchContactList').on('input', function() {
         var term = $(this).val().toLowerCase();
@@ -1250,7 +1369,8 @@ $(document).ready(function() {
                 subjectAsSenderId: wizardData.subjectAsSenderId,
                 multipleSms: wizardData.multipleSms,
                 deliveryReports: wizardData.deliveryReports,
-                contentFilter: wizardData.contentFilter,
+                deliveryReportEmail: wizardData.deliveryReportEmail,
+                contentFilterPatterns: wizardData.contentFilterPatterns,
                 status: 'active'
             };
             
@@ -1296,7 +1416,8 @@ $(document).ready(function() {
             subjectAsSenderId: wizardData.subjectAsSenderId,
             multipleSms: wizardData.multipleSms,
             deliveryReports: wizardData.deliveryReports,
-            contentFilter: wizardData.contentFilter,
+            deliveryReportEmail: wizardData.deliveryReportEmail,
+            contentFilterPatterns: wizardData.contentFilterPatterns,
             status: 'draft'
         };
         
