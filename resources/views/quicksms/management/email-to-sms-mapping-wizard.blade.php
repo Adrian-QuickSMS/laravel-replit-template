@@ -699,38 +699,31 @@
                             <div id="step-review" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-10 mx-auto">
-                                        <div class="alert alert-pastel-primary mb-4">
+                                        <div class="alert alert-pastel-primary mb-3">
                                             <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
                                         </div>
                                         
-                                        {{-- Generated Email Address - Prominent Display --}}
-                                        <div class="card mb-4 border-success">
-                                            <div class="card-header py-2 bg-success text-white">
-                                                <h6 class="mb-0"><i class="fas fa-envelope me-2"></i>Your Generated Email Address</h6>
-                                            </div>
-                                            <div class="card-body text-center py-4">
-                                                <code class="d-block fs-5 mb-3" id="generatedEmailDisplay" style="font-size: 1.25rem !important;">Generating...</code>
-                                                <button class="btn btn-outline-success" id="btnCopyEmail">
-                                                    <i class="fas fa-copy me-2"></i> Copy to Clipboard
-                                                </button>
-                                                <p class="text-muted small mt-3 mb-0">
-                                                    Send emails to this address to trigger SMS messages to your selected recipients.
-                                                </p>
-                                            </div>
+                                        {{-- Generated Email Address - Compact Display --}}
+                                        <div class="bg-success bg-opacity-10 border border-success rounded p-3 mb-3 text-center">
+                                            <div class="small text-success fw-medium mb-1"><i class="fas fa-envelope me-1"></i> Your Generated Email Address</div>
+                                            <code class="d-block fs-5 mb-2" id="generatedEmailDisplay">Generating...</code>
+                                            <button class="btn btn-outline-success btn-sm" id="btnCopyEmail">
+                                                <i class="fas fa-copy me-1"></i> Copy
+                                            </button>
                                         </div>
                                         
                                         <div class="row">
-                                            {{-- Left Column: Configuration Summary --}}
-                                            <div class="col-lg-7">
+                                            {{-- Left Column: All Summary Tables --}}
+                                            <div class="col-lg-8">
                                                 <div class="card mb-3">
-                                                    <div class="card-header py-2">
-                                                        <h6 class="mb-0"><i class="fas fa-cog me-2"></i>Configuration Summary</h6>
-                                                    </div>
                                                     <div class="card-body p-0">
                                                         <table class="table table-sm mb-0" style="font-size: 13px;">
+                                                            <thead class="table-light">
+                                                                <tr><th colspan="2"><i class="fas fa-cog me-2"></i>Configuration</th></tr>
+                                                            </thead>
                                                             <tbody>
                                                                 <tr>
-                                                                    <td class="text-muted" style="width: 40%;">Mapping Name</td>
+                                                                    <td class="text-muted" style="width: 35%;">Mapping Name</td>
                                                                     <td class="fw-medium" id="summaryName">-</td>
                                                                 </tr>
                                                                 <tr>
@@ -741,52 +734,38 @@
                                                                     <td class="text-muted">Sub-Account</td>
                                                                     <td id="summarySubAccount">-</td>
                                                                 </tr>
-                                                                <tr class="table-light">
-                                                                    <td class="text-muted">Email-to-SMS Address</td>
-                                                                    <td class="fw-medium text-primary" id="summaryEmail">-</td>
+                                                                <tr>
+                                                                    <td class="text-muted">Email Address</td>
+                                                                    <td class="text-primary" id="summaryEmail">-</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="text-muted">Allowed Senders</td>
                                                                     <td id="summarySenders">-</td>
                                                                 </tr>
                                                             </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="card mb-3">
-                                                    <div class="card-header py-2">
-                                                        <h6 class="mb-0"><i class="fas fa-users me-2"></i>Recipients</h6>
-                                                    </div>
-                                                    <div class="card-body p-0">
-                                                        <table class="table table-sm mb-0" style="font-size: 13px;">
+                                                            <thead class="table-light">
+                                                                <tr><th colspan="2"><i class="fas fa-users me-2"></i>Recipients</th></tr>
+                                                            </thead>
                                                             <tbody>
                                                                 <tr>
-                                                                    <td class="text-muted" style="width: 40%;">Selected From</td>
+                                                                    <td class="text-muted">Selected From</td>
                                                                     <td id="summaryContactList">-</td>
                                                                 </tr>
                                                                 <tr class="table-success">
-                                                                    <td class="text-muted">Total Recipients (Deduped)</td>
+                                                                    <td class="text-muted">Total Recipients</td>
                                                                     <td class="fw-bold" id="summaryRecipients">-</td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td class="text-muted">Opt-out Lists Applied</td>
+                                                                    <td class="text-muted">Opt-out Lists</td>
                                                                     <td id="summaryOptOut">-</td>
                                                                 </tr>
                                                             </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="card mb-3">
-                                                    <div class="card-header py-2">
-                                                        <h6 class="mb-0"><i class="fas fa-sms me-2"></i>Message Settings</h6>
-                                                    </div>
-                                                    <div class="card-body p-0">
-                                                        <table class="table table-sm mb-0" style="font-size: 13px;">
+                                                            <thead class="table-light">
+                                                                <tr><th colspan="2"><i class="fas fa-sms me-2"></i>Message Settings</th></tr>
+                                                            </thead>
                                                             <tbody>
                                                                 <tr>
-                                                                    <td class="text-muted" style="width: 40%;">SenderID</td>
+                                                                    <td class="text-muted">SenderID</td>
                                                                     <td class="fw-medium" id="summarySenderId">-</td>
                                                                 </tr>
                                                                 <tr>
@@ -804,33 +783,32 @@
                                             </div>
                                             
                                             {{-- Right Column: How It Works + Actions --}}
-                                            <div class="col-lg-5">
+                                            <div class="col-lg-4">
                                                 <div class="card mb-3 border-primary">
                                                     <div class="card-header py-2 bg-primary text-white">
-                                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>How It Works</h6>
+                                                        <h6 class="mb-0 small"><i class="fas fa-info-circle me-1"></i>How It Works</h6>
                                                     </div>
-                                                    <div class="card-body" style="font-size: 13px;">
+                                                    <div class="card-body py-2 px-3" style="font-size: 12px;">
                                                         <ol class="mb-0 ps-3">
-                                                            <li class="mb-2">Email sent to <strong id="summaryEmailInline">-</strong></li>
-                                                            <li class="mb-2"><strong>SenderID</strong> extracted from email subject (if enabled)</li>
-                                                            <li class="mb-2"><strong>SMS content</strong> extracted from email body</li>
-                                                            <li class="mb-2">Content filters applied (signatures removed)</li>
-                                                            <li class="mb-0">SMS sent to <strong id="summaryRecipientCountInline">0</strong> recipients</li>
+                                                            <li class="mb-1">Email to <strong id="summaryEmailInline" class="text-break">-</strong></li>
+                                                            <li class="mb-1">SenderID from subject</li>
+                                                            <li class="mb-1">SMS from email body</li>
+                                                            <li class="mb-0">Sent to <strong id="summaryRecipientCountInline">0</strong> recipients</li>
                                                         </ol>
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="alert alert-pastel-warning small">
+                                                <div class="alert alert-pastel-warning small py-2 mb-3">
                                                     <i class="fas fa-exclamation-triangle me-1"></i>
-                                                    <strong>Note:</strong> Once created, the email address cannot be changed. You can edit other settings later.
+                                                    Email address cannot be changed after creation.
                                                 </div>
                                                 
                                                 <div class="d-grid gap-2">
-                                                    <button type="button" class="btn btn-primary btn-lg" id="btnCreateMapping">
-                                                        <i class="fas fa-check-circle me-2"></i> Create Mapping
+                                                    <button type="button" class="btn btn-primary" id="btnCreateMapping">
+                                                        <i class="fas fa-check-circle me-1"></i> Create Mapping
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-secondary" id="btnSaveDraftReview">
-                                                        <i class="fas fa-save me-2"></i> Save as Draft
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSaveDraftReview">
+                                                        <i class="fas fa-save me-1"></i> Save as Draft
                                                     </button>
                                                 </div>
                                             </div>
