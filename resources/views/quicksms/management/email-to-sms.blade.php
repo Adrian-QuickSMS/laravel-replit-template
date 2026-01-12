@@ -751,9 +751,9 @@
                                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
                                         <i class="fas fa-filter me-1"></i> Filters
                                     </button>
-                                    <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary btn-sm">
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createStandardModal">
                                         <i class="fas fa-plus me-1"></i> Create
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                             
@@ -782,9 +782,9 @@
                                 </div>
                                 <h4>No Standard Email-to-SMS Setups</h4>
                                 <p>Create a Standard Email-to-SMS setup to send messages directly from email without mapping to Contact Lists.</p>
-                                <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStandardModal">
                                     <i class="fas fa-plus me-1"></i> Create Standard Email-to-SMS
-                                </a>
+                                </button>
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center mt-3">
@@ -1502,7 +1502,402 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="createStandardModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header py-3" style="background: var(--primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-envelope me-2"></i>Create Standard Email-to-SMS</h5>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="std-wizard-autosave small" id="stdWizardAutosave">
+                        <i class="fas fa-cloud me-1"></i><span id="stdWizardAutosaveText">Draft saved</span>
+                    </span>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="container" style="max-width: 900px;">
+                    <div id="stdWizard" class="std-wizard">
+                        <ul class="nav std-wizard-nav" id="stdWizardNav">
+                            <li class="std-wizard-step">
+                                <a href="#stdStep1" class="std-wizard-link active" data-step="0">
+                                    <span class="std-wizard-number">1</span>
+                                    <span class="std-wizard-label">General</span>
+                                </a>
+                            </li>
+                            <li class="std-wizard-step">
+                                <a href="#stdStep2" class="std-wizard-link" data-step="1">
+                                    <span class="std-wizard-number">2</span>
+                                    <span class="std-wizard-label">Email Settings</span>
+                                </a>
+                            </li>
+                            <li class="std-wizard-step">
+                                <a href="#stdStep3" class="std-wizard-link" data-step="2">
+                                    <span class="std-wizard-number">3</span>
+                                    <span class="std-wizard-label">Message Settings</span>
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <div class="std-wizard-content">
+                            <div id="stdStep1" class="std-wizard-pane active">
+                                <div class="alert alert-pastel-primary mb-4">
+                                    <strong>Step 1: General</strong> - Define the setup name, description, and assign to a subaccount.
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-lg-8">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="stdWizardName" placeholder="e.g., Appointment Reminders" maxlength="50">
+                                            <div class="invalid-feedback">Please enter a name.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Description</label>
+                                            <textarea class="form-control" id="stdWizardDescription" rows="2" placeholder="Brief description of this Email-to-SMS setup..." maxlength="200"></textarea>
+                                            <small class="text-muted"><span id="stdWizardDescCharCount">0</span>/200 characters</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Subaccount <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="stdWizardSubaccount">
+                                                <option value="">Select subaccount...</option>
+                                                <option value="main">Main Account</option>
+                                                <option value="marketing">Marketing Team</option>
+                                                <option value="support">Support Team</option>
+                                            </select>
+                                            <div class="invalid-feedback">Please select a subaccount.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="stdStep2" class="std-wizard-pane">
+                                <div class="alert alert-pastel-primary mb-4">
+                                    <strong>Step 2: Email Settings</strong> - Configure allowed sender emails. <span class="badge bg-pastel-primary">Optional</span>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-lg-10">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Allowed Sender Emails</label>
+                                            <p class="text-muted small mb-2">Only emails from these addresses will trigger SMS. Leave empty to allow all senders. Supports wildcard domains (e.g., *@company.com).</p>
+                                            <div class="input-group mb-2">
+                                                <input type="email" class="form-control" id="stdWizardEmailInput" placeholder="email@example.com or *@domain.com">
+                                                <button class="btn btn-primary" type="button" id="stdWizardAddEmailBtn">
+                                                    <i class="fas fa-plus me-1"></i> Add
+                                                </button>
+                                            </div>
+                                            <div class="invalid-feedback" id="stdWizardEmailError" style="display: none;">Invalid email format.</div>
+                                        </div>
+                                        
+                                        <div id="stdWizardEmailTagsContainer" class="email-tags-container mb-3"></div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted"><span id="stdWizardEmailCount">0</span> email(s) added</small>
+                                            <button type="button" class="btn btn-link btn-sm text-danger p-0" id="stdWizardClearAllEmails" style="display: none;">
+                                                <i class="fas fa-trash-alt me-1"></i> Clear All
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="stdWizardWildcardWarning" class="alert alert-warning d-none mt-3" style="font-size: 0.85rem;">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Warning:</strong> Wildcard domains are less secure and may result in unintended messages being sent.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="stdStep3" class="std-wizard-pane">
+                                <div class="alert alert-pastel-primary mb-4">
+                                    <strong>Step 3: Message Settings</strong> - Configure SenderID, delivery options, and content processing.
+                                </div>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">SenderID <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="stdWizardSenderId">
+                                            <option value="">Select SenderID...</option>
+                                            <option value="QuickSMS">QuickSMS</option>
+                                            <option value="ALERTS">ALERTS</option>
+                                            <option value="NHS">NHS</option>
+                                            <option value="INFO">INFO</option>
+                                            <option value="Pharmacy">Pharmacy</option>
+                                        </select>
+                                        <small class="text-muted">Only approved/live SenderIDs are shown.</small>
+                                        <div class="invalid-feedback">Please select a SenderID.</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Subject as SenderID</label>
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" id="stdWizardSubjectAsSenderId">
+                                            <label class="form-check-label" for="stdWizardSubjectAsSenderId">
+                                                Extract SenderID from email subject
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Overrides selected SenderID with subject line content.</small>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Enable Multiple SMS</label>
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" id="stdWizardMultipleSms">
+                                            <label class="form-check-label" for="stdWizardMultipleSms">
+                                                Allow multipart SMS messages
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Messages over 160 characters sent as multiple parts.</small>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Delivery Reports</label>
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" id="stdWizardDeliveryReports">
+                                            <label class="form-check-label" for="stdWizardDeliveryReports">
+                                                Enable delivery report notifications
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6" id="stdWizardDeliveryEmailGroup" style="display: none;">
+                                        <label class="form-label fw-semibold">Delivery Reports Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="stdWizardDeliveryEmail" placeholder="reports@yourcompany.com">
+                                        <small class="text-muted">Receive delivery status notifications.</small>
+                                        <div class="invalid-feedback" id="stdWizardDeliveryEmailError">Valid email required.</div>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Content Filter (Signature Removal)</label>
+                                        <textarea class="form-control" id="stdWizardSignatureFilter" rows="2" placeholder="e.g., --\n.*\nSent from.*"></textarea>
+                                        <div class="invalid-feedback" id="stdWizardSignatureFilterError">Invalid regex pattern</div>
+                                        <small class="text-muted">Remove matching content from emails. Regex supported, one pattern per line.</small>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <h5 class="mb-3"><i class="fas fa-check-circle me-2 text-primary"></i>Review Configuration</h5>
+                                
+                                <div class="std-wizard-review">
+                                    <div class="std-wizard-review-section">
+                                        <h6><i class="fas fa-info-circle me-2"></i>General</h6>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Name</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewName">-</span>
+                                        </div>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Description</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewDescription">-</span>
+                                        </div>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Subaccount</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewSubaccount">-</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="std-wizard-review-section">
+                                        <h6><i class="fas fa-envelope me-2"></i>Email Settings</h6>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Allowed Senders</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewAllowedSenders">All senders allowed</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="std-wizard-review-section">
+                                        <h6><i class="fas fa-sms me-2"></i>Message Settings</h6>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">SenderID</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewSenderId">-</span>
+                                        </div>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Subject as SenderID</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewSubjectAsSenderId">No</span>
+                                        </div>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Multiple SMS</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewMultipleSms">No</span>
+                                        </div>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Delivery Reports</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewDeliveryReports">No</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="std-wizard-toolbar">
+                            <button type="button" class="btn btn-outline-secondary" id="stdWizardBtnPrev" disabled>
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary" id="stdWizardBtnSaveDraft">
+                                    <i class="fas fa-save me-1"></i> Save as Draft
+                                </button>
+                                <button type="button" class="btn btn-primary" id="stdWizardBtnNext">
+                                    Next <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('styles')
+<style>
+.alert-pastel-primary {
+    background-color: rgba(136, 108, 192, 0.1);
+    border-color: rgba(136, 108, 192, 0.2);
+    color: #5a4a7a;
+}
+.bg-pastel-primary {
+    background-color: rgba(136, 108, 192, 0.2) !important;
+    color: #5a4a7a !important;
+}
+.std-wizard-autosave {
+    opacity: 0.9;
+}
+.std-wizard-autosave.saving {
+    color: #ffc107;
+}
+.std-wizard-autosave.saved {
+    color: #d4edda;
+}
+.std-wizard-nav {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    gap: 0;
+}
+.std-wizard-step {
+    flex: 1;
+    max-width: 180px;
+    position: relative;
+}
+.std-wizard-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #6c757d;
+    padding: 0;
+    cursor: pointer;
+}
+.std-wizard-link:after {
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    height: 3px;
+    background: #e9ecef;
+    content: "";
+    z-index: 0;
+    width: 100%;
+}
+.std-wizard-step:last-child .std-wizard-link:after {
+    content: none;
+}
+.std-wizard-number {
+    width: 3rem;
+    height: 3rem;
+    border: 2px solid var(--primary, #886CC0);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    font-weight: 500;
+    background: #fff;
+    color: var(--primary, #886CC0);
+    position: relative;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+.std-wizard-label {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+}
+.std-wizard-link.active .std-wizard-number,
+.std-wizard-link.completed .std-wizard-number {
+    background: var(--primary, #886CC0);
+    color: #fff;
+    border-color: var(--primary, #886CC0);
+}
+.std-wizard-link.active:after,
+.std-wizard-link.completed:after {
+    background: var(--primary, #886CC0);
+}
+.std-wizard-link.incomplete .std-wizard-number {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+    border-color: #dc3545;
+}
+.std-wizard-link.incomplete:after {
+    background: #e9ecef;
+}
+.std-wizard-content {
+    min-height: 400px;
+}
+.std-wizard-pane {
+    display: none;
+}
+.std-wizard-pane.active {
+    display: block;
+}
+.std-wizard-toolbar {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+.std-wizard-review {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+}
+.std-wizard-review-section {
+    margin-bottom: 1rem;
+}
+.std-wizard-review-section:last-child {
+    margin-bottom: 0;
+}
+.std-wizard-review-section h6 {
+    margin-bottom: 0.75rem;
+    color: #495057;
+    font-weight: 600;
+}
+.std-wizard-review-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.std-wizard-review-row:last-child {
+    border-bottom: none;
+}
+.std-wizard-review-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+.std-wizard-review-value {
+    font-weight: 500;
+    color: #212529;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
@@ -1512,6 +1907,408 @@ $(document).ready(function() {
     
     var overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
     var reportingGroups = EmailToSmsService.getMockReportingGroups();
+    
+    // ========================================
+    // Standard Email-to-SMS Wizard
+    // ========================================
+    var stdWizardCurrentStep = 0;
+    var stdWizardAllowedEmails = [];
+    var stdWizardStepVisited = [true, false, false];
+    var stdWizardSetupCreated = false;
+    
+    function stdWizardGoToStep(stepIndex) {
+        if (stepIndex < 0 || stepIndex > 2) return;
+        
+        stdWizardStepVisited[stepIndex] = true;
+        stdWizardCurrentStep = stepIndex;
+        
+        $('.std-wizard-pane').removeClass('active');
+        $('#stdStep' + (stepIndex + 1)).addClass('active');
+        
+        $('.std-wizard-link').removeClass('active');
+        $('.std-wizard-link[data-step="' + stepIndex + '"]').addClass('active');
+        
+        stdWizardUpdateStepIndicators();
+        stdWizardUpdateButtons();
+        
+        if (stepIndex === 2) {
+            stdWizardPopulateReview();
+        }
+    }
+    
+    function stdWizardCheckStepValidity(stepIndex) {
+        if (stepIndex === 0) {
+            var name = $('#stdWizardName').val().trim();
+            var subaccount = $('#stdWizardSubaccount').val();
+            return name.length > 0 && subaccount.length > 0;
+        } else if (stepIndex === 1) {
+            return true;
+        } else if (stepIndex === 2) {
+            var senderId = $('#stdWizardSenderId').val();
+            if (!senderId) return false;
+            
+            if ($('#stdWizardDeliveryReports').is(':checked')) {
+                var deliveryEmail = $('#stdWizardDeliveryEmail').val().trim();
+                var validation = EmailToSmsService.validateEmail(deliveryEmail);
+                if (!validation.valid || validation.isWildcard) return false;
+            }
+            
+            var contentFilter = $('#stdWizardSignatureFilter').val().trim();
+            var regexValidation = EmailToSmsService.validateContentFilterRegex(contentFilter);
+            if (!regexValidation.valid) return false;
+            
+            return true;
+        }
+        return true;
+    }
+    
+    function stdWizardUpdateStepIndicators() {
+        for (var i = 0; i < 3; i++) {
+            var $link = $('.std-wizard-link[data-step="' + i + '"]');
+            $link.removeClass('completed incomplete');
+            
+            if (i === stdWizardCurrentStep) {
+                continue;
+            }
+            
+            if (stdWizardStepVisited[i]) {
+                if (stdWizardCheckStepValidity(i)) {
+                    $link.addClass('completed');
+                } else {
+                    $link.addClass('incomplete');
+                }
+            }
+        }
+    }
+    
+    function stdWizardUpdateButtons() {
+        $('#stdWizardBtnPrev').prop('disabled', stdWizardCurrentStep === 0);
+        
+        if (stdWizardCurrentStep === 2) {
+            $('#stdWizardBtnNext').html('<i class="fas fa-check me-1"></i> Create Setup');
+        } else {
+            $('#stdWizardBtnNext').html('Next <i class="fas fa-arrow-right ms-1"></i>');
+        }
+    }
+    
+    function stdWizardPopulateReview() {
+        $('#stdWizardReviewName').text($('#stdWizardName').val().trim() || '-');
+        $('#stdWizardReviewDescription').text($('#stdWizardDescription').val().trim() || 'None');
+        $('#stdWizardReviewSubaccount').text($('#stdWizardSubaccount option:selected').text() || '-');
+        
+        if (stdWizardAllowedEmails.length > 0) {
+            $('#stdWizardReviewAllowedSenders').text(stdWizardAllowedEmails.join(', '));
+        } else {
+            $('#stdWizardReviewAllowedSenders').text('All senders allowed');
+        }
+        
+        $('#stdWizardReviewSenderId').text($('#stdWizardSenderId').val() || '-');
+        $('#stdWizardReviewSubjectAsSenderId').text($('#stdWizardSubjectAsSenderId').is(':checked') ? 'Yes' : 'No');
+        $('#stdWizardReviewMultipleSms').text($('#stdWizardMultipleSms').is(':checked') ? 'Yes' : 'No');
+        
+        if ($('#stdWizardDeliveryReports').is(':checked')) {
+            var email = $('#stdWizardDeliveryEmail').val().trim();
+            $('#stdWizardReviewDeliveryReports').text('Yes (' + (email || 'email not set') + ')');
+        } else {
+            $('#stdWizardReviewDeliveryReports').text('No');
+        }
+    }
+    
+    function stdWizardValidateAllSteps() {
+        var isValid = true;
+        
+        var name = $('#stdWizardName').val().trim();
+        if (!name) {
+            $('#stdWizardName').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#stdWizardName').removeClass('is-invalid');
+        }
+        
+        var subaccount = $('#stdWizardSubaccount').val();
+        if (!subaccount) {
+            $('#stdWizardSubaccount').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#stdWizardSubaccount').removeClass('is-invalid');
+        }
+        
+        var senderId = $('#stdWizardSenderId').val();
+        if (!senderId) {
+            $('#stdWizardSenderId').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#stdWizardSenderId').removeClass('is-invalid');
+        }
+        
+        if ($('#stdWizardDeliveryReports').is(':checked')) {
+            var deliveryEmail = $('#stdWizardDeliveryEmail').val().trim();
+            var emailValidation = EmailToSmsService.validateEmail(deliveryEmail);
+            if (!deliveryEmail || !emailValidation.valid || emailValidation.isWildcard) {
+                $('#stdWizardDeliveryEmail').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#stdWizardDeliveryEmail').removeClass('is-invalid');
+            }
+        }
+        
+        var contentFilter = $('#stdWizardSignatureFilter').val().trim();
+        var regexValidation = EmailToSmsService.validateContentFilterRegex(contentFilter);
+        if (!regexValidation.valid) {
+            $('#stdWizardSignatureFilter').addClass('is-invalid');
+            $('#stdWizardSignatureFilterError').text(regexValidation.error);
+            isValid = false;
+        } else {
+            $('#stdWizardSignatureFilter').removeClass('is-invalid');
+        }
+        
+        return isValid;
+    }
+    
+    function stdWizardSaveSetup() {
+        if (stdWizardSetupCreated) return;
+        
+        var $btn = $('#stdWizardBtnNext');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+        
+        var payload = {
+            name: $('#stdWizardName').val().trim(),
+            description: $('#stdWizardDescription').val().trim(),
+            subaccount: $('#stdWizardSubaccount').val(),
+            subaccountName: $('#stdWizardSubaccount option:selected').text(),
+            allowedSenders: stdWizardAllowedEmails.slice(),
+            senderId: $('#stdWizardSenderId').val(),
+            subjectAsSenderId: $('#stdWizardSubjectAsSenderId').is(':checked'),
+            multipleSms: $('#stdWizardMultipleSms').is(':checked'),
+            deliveryReports: $('#stdWizardDeliveryReports').is(':checked'),
+            deliveryEmail: $('#stdWizardDeliveryEmail').val().trim(),
+            signatureFilter: $('#stdWizardSignatureFilter').val().trim()
+        };
+        
+        EmailToSmsService.createStandardEmailToSmsSetup(payload).then(function(response) {
+            if (response.success) {
+                stdWizardSetupCreated = true;
+                showSuccessToast('Standard Email-to-SMS created successfully');
+                bootstrap.Modal.getInstance($('#createStandardModal')[0]).hide();
+                stdWizardReset();
+                loadStandardSetups();
+            } else {
+                showErrorToast(response.error || 'Failed to create setup');
+                $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Create Setup');
+            }
+        }).catch(function(error) {
+            console.error('Save failed:', error);
+            showErrorToast('An error occurred while saving');
+            $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Create Setup');
+        });
+    }
+    
+    function stdWizardReset() {
+        stdWizardCurrentStep = 0;
+        stdWizardAllowedEmails = [];
+        stdWizardStepVisited = [true, false, false];
+        stdWizardSetupCreated = false;
+        
+        $('#stdWizardName').val('').removeClass('is-invalid');
+        $('#stdWizardDescription').val('');
+        $('#stdWizardDescCharCount').text('0');
+        $('#stdWizardSubaccount').val('').removeClass('is-invalid');
+        $('#stdWizardEmailInput').val('');
+        $('#stdWizardEmailTagsContainer').empty();
+        $('#stdWizardEmailCount').text('0');
+        $('#stdWizardClearAllEmails').hide();
+        $('#stdWizardWildcardWarning').addClass('d-none');
+        $('#stdWizardSenderId').val('').removeClass('is-invalid');
+        $('#stdWizardSubjectAsSenderId').prop('checked', false);
+        $('#stdWizardMultipleSms').prop('checked', false);
+        $('#stdWizardDeliveryReports').prop('checked', false);
+        $('#stdWizardDeliveryEmailGroup').hide();
+        $('#stdWizardDeliveryEmail').val('').removeClass('is-invalid');
+        $('#stdWizardSignatureFilter').val('').removeClass('is-invalid');
+        
+        $('.std-wizard-link').removeClass('completed incomplete active');
+        $('.std-wizard-link[data-step="0"]').addClass('active');
+        $('.std-wizard-pane').removeClass('active');
+        $('#stdStep1').addClass('active');
+        
+        stdWizardUpdateButtons();
+    }
+    
+    function stdWizardAddEmail() {
+        var input = $('#stdWizardEmailInput');
+        var email = input.val().trim().toLowerCase();
+        var errorEl = $('#stdWizardEmailError');
+        
+        if (!email) return;
+        
+        var validation = EmailToSmsService.validateEmail(email);
+        if (!validation.valid) {
+            errorEl.text('Invalid email format. Use email@domain.com or *@domain.com for wildcards.').show();
+            input.addClass('is-invalid');
+            return;
+        }
+        
+        if (stdWizardAllowedEmails.includes(email)) {
+            errorEl.text('This email has already been added.').show();
+            input.addClass('is-invalid');
+            return;
+        }
+        
+        errorEl.hide();
+        input.removeClass('is-invalid');
+        
+        stdWizardAllowedEmails.push(email);
+        input.val('');
+        stdWizardRenderEmailTags();
+        stdWizardUpdateWildcardWarning();
+    }
+    
+    function stdWizardRemoveEmail(email) {
+        var index = stdWizardAllowedEmails.indexOf(email);
+        if (index > -1) {
+            stdWizardAllowedEmails.splice(index, 1);
+            stdWizardRenderEmailTags();
+            stdWizardUpdateWildcardWarning();
+        }
+    }
+    
+    function stdWizardRenderEmailTags() {
+        var container = $('#stdWizardEmailTagsContainer');
+        container.empty();
+        
+        stdWizardAllowedEmails.forEach(function(email) {
+            var isWildcard = email.startsWith('*@');
+            var tag = $('<span class="email-tag' + (isWildcard ? ' email-tag-wildcard' : '') + '">' +
+                        '<span class="email-text">' + escapeHtml(email) + '</span>' +
+                        '<span class="remove-email std-wizard-remove-email" data-email="' + escapeHtml(email) + '">&times;</span>' +
+                        '</span>');
+            container.append(tag);
+        });
+        
+        $('#stdWizardEmailCount').text(stdWizardAllowedEmails.length);
+        
+        if (stdWizardAllowedEmails.length > 0) {
+            $('#stdWizardClearAllEmails').show();
+        } else {
+            $('#stdWizardClearAllEmails').hide();
+        }
+    }
+    
+    function stdWizardUpdateWildcardWarning() {
+        var hasWildcard = stdWizardAllowedEmails.some(function(email) {
+            return email.startsWith('*@');
+        });
+        
+        if (hasWildcard) {
+            $('#stdWizardWildcardWarning').removeClass('d-none');
+        } else {
+            $('#stdWizardWildcardWarning').addClass('d-none');
+        }
+    }
+    
+    function stdWizardValidateCurrentStep() {
+        var isValid = true;
+        
+        if (stdWizardCurrentStep === 0) {
+            var name = $('#stdWizardName').val().trim();
+            if (!name) {
+                $('#stdWizardName').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#stdWizardName').removeClass('is-invalid');
+            }
+            
+            var subaccount = $('#stdWizardSubaccount').val();
+            if (!subaccount) {
+                $('#stdWizardSubaccount').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#stdWizardSubaccount').removeClass('is-invalid');
+            }
+        }
+        
+        return isValid;
+    }
+    
+    $('#stdWizardBtnNext').on('click', function() {
+        if (stdWizardCurrentStep < 2) {
+            if (!stdWizardValidateCurrentStep()) {
+                showErrorToast('Please fill in all required fields before proceeding');
+                return;
+            }
+            stdWizardGoToStep(stdWizardCurrentStep + 1);
+        } else {
+            if (!stdWizardValidateAllSteps()) {
+                showErrorToast('Please fill in all required fields');
+                return;
+            }
+            stdWizardSaveSetup();
+        }
+    });
+    
+    $('#stdWizardBtnPrev').on('click', function() {
+        if (stdWizardCurrentStep > 0) {
+            stdWizardGoToStep(stdWizardCurrentStep - 1);
+        }
+    });
+    
+    $('.std-wizard-link').on('click', function(e) {
+        e.preventDefault();
+        var step = parseInt($(this).data('step'));
+        stdWizardGoToStep(step);
+    });
+    
+    $('#stdWizardAddEmailBtn').on('click', stdWizardAddEmail);
+    $('#stdWizardEmailInput').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            stdWizardAddEmail();
+        }
+    });
+    
+    $(document).on('click', '.std-wizard-remove-email', function() {
+        var email = $(this).data('email');
+        stdWizardRemoveEmail(email);
+    });
+    
+    $('#stdWizardClearAllEmails').on('click', function() {
+        stdWizardAllowedEmails = [];
+        stdWizardRenderEmailTags();
+        stdWizardUpdateWildcardWarning();
+    });
+    
+    $('#stdWizardDeliveryReports').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#stdWizardDeliveryEmailGroup').slideDown(200);
+        } else {
+            $('#stdWizardDeliveryEmailGroup').slideUp(200);
+            $('#stdWizardDeliveryEmail').val('').removeClass('is-invalid');
+        }
+    });
+    
+    $('#stdWizardDescription').on('input', function() {
+        var len = $(this).val().length;
+        $('#stdWizardDescCharCount').text(len);
+    });
+    
+    $('#stdWizardBtnSaveDraft').on('click', function() {
+        $('#stdWizardAutosave').addClass('saving');
+        $('#stdWizardAutosaveText').text('Saving draft...');
+        
+        setTimeout(function() {
+            $('#stdWizardAutosave').removeClass('saving').addClass('saved');
+            $('#stdWizardAutosaveText').text('Draft saved');
+            showSuccessToast('Draft saved successfully');
+        }, 800);
+    });
+    
+    $('#createStandardModal').on('hidden.bs.modal', function() {
+        stdWizardReset();
+    });
+    
+    // ========================================
+    // End Standard Email-to-SMS Wizard
+    // ========================================
     
     // Contact List setups - populated from service layer
     var contactListSetups = [];
