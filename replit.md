@@ -68,6 +68,10 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **CSS Architecture:** Module-specific CSS uses inline `@push('styles')` for page-specific layouts; shared badge classes (.badge-bulk, .badge-campaign, .badge-test, .badge-live-status, .badge-suspended, etc.) are centralized in `public/css/quicksms-pastel.css`.
 - **Email-to-SMS Module:** Tabbed interface for managing email addresses that trigger SMS to Contact Lists. Core behavior: when an email is sent to a generated QuickSMS email address, SMS is sent to the mapped Contact Book List. SenderID is taken from email subject, message content from email body. Features:
   - Email-to-SMS Addresses tab: Table with filter bar (debounced search, multi-select dropdowns, date presets, Apply/Reset Filters, filter chips), Create Address modal, View Details drawer, Suspend/Delete modals
+  - Standard tab: Create Standard Email-to-SMS wizard (3-step SmartWizard, matches API Connection wizard pattern):
+    1. Basics (name, description, subaccount selection)
+    2. Sender Allowlist (optional email whitelist with wildcard support)
+    3. Message Settings + Review (SenderID, Subject as SenderID, Multiple SMS, Delivery Reports, Content Filter, review summary)
   - Contact Lists tab (Mapping Library): Manages mappings between Email-to-SMS Addresses and existing Contact Book Lists. Table columns: Email-to-SMS Address (copyable), Linked Contact List, Recipients Count, Allowed Sender Emails, Last Used, Created, Actions (View/Edit/Archive). Features filter bar with date range, Contact List dropdown, and search; 300ms debounced search; filter chips. Create Mapping wizard (4-step full-screen Fillow wizard):
     1. Select Contact Book List (searchable dropdown with name + recipient count)
     2. Allowed Sender Emails (optional whitelist)
