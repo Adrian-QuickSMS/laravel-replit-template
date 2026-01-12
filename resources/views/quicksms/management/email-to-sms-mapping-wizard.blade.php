@@ -1151,8 +1151,18 @@ $(document).ready(function() {
         $('#summaryRecipientCountInline').text(stats.uniqueAfterDedup.toLocaleString());
         $('#summarySenderId').text(wizardData.senderId ? $('#senderId option:selected').text() : '-');
         
-        var optOutText = wizardData.optOutLists.includes('NO') ? 'None applied' : wizardData.optOutLists.length + ' opt-out list(s)';
-        $('#summaryOptOut').text(optOutText);
+        if (wizardData.optOutLists.includes('NO')) {
+            $('#summaryOptOut').html('<span class="text-muted">None applied</span>');
+        } else {
+            var optOutChips = '';
+            var optOutColors = ['badge-pastel-danger', 'badge-pastel-warning', 'badge-pastel-info', 'badge-pastel-secondary'];
+            wizardData.optOutLists.forEach(function(listId, index) {
+                var listName = $('#optOut' + listId).next('label').text().split(' ')[0] || 'List ' + listId;
+                var colorClass = optOutColors[index % optOutColors.length];
+                optOutChips += '<span class="badge ' + colorClass + ' me-1">' + listName + '</span>';
+            });
+            $('#summaryOptOut').html(optOutChips);
+        }
         
         var settings = [];
         if (wizardData.multipleSms) settings.push('Multiple SMS');
