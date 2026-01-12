@@ -123,6 +123,20 @@
     border-color: #886CC0;
     background: rgba(136, 108, 192, 0.05);
 }
+/* Pastel badge styles */
+.badge-pastel-primary { background: rgba(136, 108, 192, 0.15); color: #886CC0; }
+.badge-pastel-success { background: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
+.badge-pastel-info { background: rgba(23, 162, 184, 0.15); color: #17a2b8; }
+.badge-pastel-warning { background: rgba(255, 193, 7, 0.2); color: #b38600; }
+.badge-pastel-danger { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+.badge-pastel-secondary { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
+/* Modal table styling */
+.modal-api-table { width: 100%; margin: 0; }
+.modal-api-table thead th { background: #f8f9fa; padding: 0.5rem; font-weight: 600; font-size: 0.75rem; color: #495057; border-bottom: 1px solid #e9ecef; }
+.modal-api-table tbody td { padding: 0.5rem; vertical-align: middle; border-bottom: 1px solid #f1f3f5; font-size: 0.8rem; }
+.modal-api-table tbody td:nth-child(2) { font-weight: 500; color: #343a40; }
+.modal-api-table tbody tr:last-child td { border-bottom: none; }
+.modal-api-table tbody tr:hover td { background: #f8f9fa; }
 .contact-list-option.selected {
     border-color: #886CC0;
     background: rgba(136, 108, 192, 0.1);
@@ -384,7 +398,8 @@
                                         </div>
                                         
                                         {{-- Sticky Recipient Summary Bar --}}
-                                        <div class="bg-light border rounded p-2 mb-3" style="position: sticky; top: 0; z-index: 10;">
+                                        <div class="card shadow-sm mb-3" style="position: sticky; top: 0; z-index: 10;">
+                                            <div class="card-body py-2 px-3">
                                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="font-size: 13px;">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <i class="fas fa-users text-primary"></i>
@@ -400,6 +415,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </div>
+                                            </div>
                                             </div>
                                         </div>
                                         
@@ -451,19 +467,19 @@
                                                         <hr class="my-1">
                                                         <div class="form-check mb-1">
                                                             <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
-                                                            <label class="form-check-label" for="optOut1">Global Opt-out <span class="badge bg-secondary">2,345</span></label>
+                                                            <label class="form-check-label" for="optOut1">Global Opt-out <span class="badge badge-pastel-danger">2,345</span></label>
                                                         </div>
                                                         <div class="form-check mb-1">
                                                             <input class="form-check-input opt-out-item" type="checkbox" value="2" id="optOut2">
-                                                            <label class="form-check-label" for="optOut2">Marketing <span class="badge bg-secondary">1,234</span></label>
+                                                            <label class="form-check-label" for="optOut2">Marketing <span class="badge badge-pastel-warning">1,234</span></label>
                                                         </div>
                                                         <div class="form-check mb-1">
                                                             <input class="form-check-input opt-out-item" type="checkbox" value="3" id="optOut3">
-                                                            <label class="form-check-label" for="optOut3">NHS DNC <span class="badge bg-secondary">567</span></label>
+                                                            <label class="form-check-label" for="optOut3">NHS DNC <span class="badge badge-pastel-info">567</span></label>
                                                         </div>
                                                         <div class="form-check">
                                                             <input class="form-check-input opt-out-item" type="checkbox" value="4" id="optOut4">
-                                                            <label class="form-check-label" for="optOut4">Temporary <span class="badge bg-secondary">89</span></label>
+                                                            <label class="form-check-label" for="optOut4">Temporary <span class="badge badge-pastel-secondary">89</span></label>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -817,8 +833,8 @@
                         </div>
                         
                         <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
-                                <thead class="table-light sticky-top">
+                            <table class="table modal-api-table mb-0">
+                                <thead class="sticky-top">
                                     <tr>
                                         <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="modalSelectAllContacts"></th>
                                         <th>Name</th>
@@ -827,14 +843,14 @@
                                     </tr>
                                 </thead>
                                 <tbody id="modalContactsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge bg-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge bg-success">Asthma</span></td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
                                     <tr><td><input type="checkbox" class="form-check-input cb-contact" value="3" data-name="Robert Brown"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge bg-warning">Diabetes</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge bg-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td>Emily Davis</td><td>+44 7700***678</td><td><span class="badge bg-success">Asthma</span></td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge badge-pastel-warning">Diabetes</span></td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td>Emily Davis</td><td>+44 7700***678</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
                                     <tr><td><input type="checkbox" class="form-check-input cb-contact" value="7" data-name="David Miller"></td><td>David Miller</td><td>+44 7700***901</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td>Lisa Anderson</td><td>+44 7700***234</td><td><span class="badge bg-warning">Diabetes</span> <span class="badge bg-danger">Hypertension</span></td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td>Lisa Anderson</td><td>+44 7700***234</td><td><span class="badge badge-pastel-warning">Diabetes</span> <span class="badge badge-pastel-danger">Hypertension</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -847,8 +863,8 @@
                             <input type="text" class="form-control modal-list-search" placeholder="Search lists...">
                         </div>
                         <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
-                                <thead class="table-light sticky-top">
+                            <table class="table modal-api-table mb-0">
+                                <thead class="sticky-top">
                                     <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
                                 </thead>
                                 <tbody id="modalListsTable">
@@ -869,8 +885,8 @@
                             <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists...">
                         </div>
                         <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
-                                <thead class="table-light sticky-top">
+                            <table class="table modal-api-table mb-0">
+                                <thead class="sticky-top">
                                     <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
                                 </thead>
                                 <tbody id="modalDynamicListsTable">
@@ -889,16 +905,16 @@
                             <input type="text" class="form-control modal-tag-search" placeholder="Search tags...">
                         </div>
                         <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
-                                <thead class="table-light sticky-top">
+                            <table class="table modal-api-table mb-0">
+                                <thead class="sticky-top">
                                     <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
                                 </thead>
                                 <tbody id="modalTagsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge" style="background-color: #0d6efd;">VIP</span></td><td>456</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge" style="background-color: #198754;">Asthma</span></td><td>1,234</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge" style="background-color: #ffc107;">Diabetes</span></td><td>890</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge" style="background-color: #dc3545;">Hypertension</span></td><td>567</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge" style="background-color: #6f42c1;">Chronic Care</span></td><td>1,023</td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge badge-pastel-info">VIP</span></td><td>456</td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge badge-pastel-success">Asthma</span></td><td>1,234</td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge badge-pastel-warning">Diabetes</span></td><td>890</td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge badge-pastel-danger">Hypertension</span></td><td>567</td></tr>
+                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge badge-pastel-primary">Chronic Care</span></td><td>1,023</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1218,23 +1234,23 @@ $(document).ready(function() {
         var html = '';
         
         wizardData.selectedContacts.forEach(function(contact) {
-            html += '<span class="badge bg-light text-dark me-1 mb-1"><i class="fas fa-user me-1"></i>' + contact.name + 
-                    '<button type="button" class="btn-close btn-close-sm ms-1" data-type="contact" data-id="' + contact.id + '"></button></span>';
+            html += '<span class="badge badge-pastel-secondary me-1 mb-1"><i class="fas fa-user me-1"></i>' + contact.name + 
+                    '<button type="button" class="btn-close btn-close-sm ms-1" style="font-size: 0.5rem;" data-type="contact" data-id="' + contact.id + '"></button></span>';
         });
         
         wizardData.selectedLists.forEach(function(list) {
-            html += '<span class="badge bg-primary me-1 mb-1"><i class="fas fa-list me-1"></i>' + list.name + ' (' + parseInt(list.count).toLocaleString() + ')' +
-                    '<button type="button" class="btn-close btn-close-white btn-close-sm ms-1" data-type="list" data-id="' + list.id + '"></button></span>';
+            html += '<span class="badge badge-pastel-primary me-1 mb-1"><i class="fas fa-list me-1"></i>' + list.name + ' (' + parseInt(list.count).toLocaleString() + ')' +
+                    '<button type="button" class="btn-close btn-close-sm ms-1" style="font-size: 0.5rem;" data-type="list" data-id="' + list.id + '"></button></span>';
         });
         
         wizardData.selectedDynamicLists.forEach(function(list) {
-            html += '<span class="badge bg-info me-1 mb-1"><i class="fas fa-sync-alt me-1"></i>' + list.name + ' (' + parseInt(list.count).toLocaleString() + ')' +
-                    '<button type="button" class="btn-close btn-close-white btn-close-sm ms-1" data-type="dynamic" data-id="' + list.id + '"></button></span>';
+            html += '<span class="badge badge-pastel-info me-1 mb-1"><i class="fas fa-sync-alt me-1"></i>' + list.name + ' (' + parseInt(list.count).toLocaleString() + ')' +
+                    '<button type="button" class="btn-close btn-close-sm ms-1" style="font-size: 0.5rem;" data-type="dynamic" data-id="' + list.id + '"></button></span>';
         });
         
         wizardData.selectedTags.forEach(function(tag) {
-            html += '<span class="badge bg-success me-1 mb-1"><i class="fas fa-tag me-1"></i>' + tag.name + ' (' + parseInt(tag.count).toLocaleString() + ')' +
-                    '<button type="button" class="btn-close btn-close-white btn-close-sm ms-1" data-type="tag" data-id="' + tag.id + '"></button></span>';
+            html += '<span class="badge badge-pastel-success me-1 mb-1"><i class="fas fa-tag me-1"></i>' + tag.name + ' (' + parseInt(tag.count).toLocaleString() + ')' +
+                    '<button type="button" class="btn-close btn-close-sm ms-1" style="font-size: 0.5rem;" data-type="tag" data-id="' + tag.id + '"></button></span>';
         });
         
         if (html === '') {
