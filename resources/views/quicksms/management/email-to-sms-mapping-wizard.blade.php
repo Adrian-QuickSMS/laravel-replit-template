@@ -459,7 +459,7 @@
                                                             </div>
                                                         </div>
                                                         
-                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
                                                             <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
                                                                 <thead class="table-light sticky-top">
                                                                     <tr>
@@ -489,7 +489,7 @@
                                                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                                                             <input type="text" class="form-control" id="cbListSearch" placeholder="Search lists...">
                                                         </div>
-                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
                                                             <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
                                                                 <thead class="table-light sticky-top">
                                                                     <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
@@ -511,7 +511,7 @@
                                                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                                                             <input type="text" class="form-control" id="cbDynamicSearch" placeholder="Search dynamic lists...">
                                                         </div>
-                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
                                                             <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
                                                                 <thead class="table-light sticky-top">
                                                                     <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
@@ -531,7 +531,7 @@
                                                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                                                             <input type="text" class="form-control" id="cbTagSearch" placeholder="Search tags...">
                                                         </div>
-                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
                                                             <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
                                                                 <thead class="table-light sticky-top">
                                                                     <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
@@ -550,45 +550,26 @@
                                             </div>
                                         </div>
                                         
-                                        {{-- Recipient Summary Card --}}
-                                        <div class="card mb-3">
-                                            <div class="card-body p-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <h6 class="mb-0"><i class="fas fa-users me-2"></i>Recipient Summary</h6>
+                                        {{-- Recipient Summary - Compact Horizontal Bar --}}
+                                        <div class="bg-light border rounded p-2 mb-3">
+                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="font-size: 13px;">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="fw-medium"><i class="fas fa-users me-1"></i> Recipient Summary:</span>
+                                                    <span id="recipientChipsInline" class="text-muted">No recipients selected</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span><span class="text-muted">Contacts:</span> <strong id="summaryContactsCount">0</strong></span>
+                                                    <span><span class="text-muted">Lists:</span> <strong id="summaryListsCount">0</strong></span>
+                                                    <span><span class="text-muted">Total:</span> <strong id="summaryTotalCount" class="text-primary">0</strong></span>
+                                                    <span><span class="text-muted">Deduped:</span> <strong id="summaryDedupedCount" class="text-success">0</strong></span>
                                                     <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnClearAllRecipients" style="display: none;">
-                                                        <i class="fas fa-times me-1"></i> Clear All
+                                                        <i class="fas fa-times"></i> Clear
                                                     </button>
                                                 </div>
-                                                
-                                                <div id="recipientChips" class="mb-2">
-                                                    <span class="text-muted small">No recipients selected</span>
-                                                </div>
-                                                
-                                                <div class="border-top pt-2">
-                                                    <div class="row text-center" style="font-size: 13px;">
-                                                        <div class="col-3">
-                                                            <div class="text-muted small">Contacts</div>
-                                                            <strong id="summaryContactsCount">0</strong>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="text-muted small">Lists</div>
-                                                            <strong id="summaryListsCount">0</strong>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="text-muted small">Total</div>
-                                                            <strong id="summaryTotalCount" class="text-primary">0</strong>
-                                                        </div>
-                                                        <div class="col-3">
-                                                            <div class="text-muted small">Deduped</div>
-                                                            <strong id="summaryDedupedCount" class="text-success">0</strong>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="alert alert-pastel-warning small mt-2 mb-0 d-none" id="invalidRecipientsWarning">
-                                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                                    <span id="invalidRecipientsText">0 recipients excluded (no valid mobile)</span>
-                                                </div>
+                                            </div>
+                                            <div class="alert alert-pastel-warning small mt-2 mb-0 d-none" id="invalidRecipientsWarning">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                <span id="invalidRecipientsText">0 recipients excluded (no valid mobile)</span>
                                             </div>
                                         </div>
                                         
@@ -1199,7 +1180,7 @@ $(document).ready(function() {
             html = '<span class="text-muted small">No recipients selected</span>';
         }
         
-        $('#recipientChips').html(html);
+        $('#recipientChipsInline').html(html);
     }
     
     function validateStep(stepIndex) {
@@ -1751,7 +1732,7 @@ $(document).ready(function() {
         });
     });
     
-    $(document).on('click', '#recipientChips .btn-close', function() {
+    $(document).on('click', '#recipientChipsInline .btn-close', function() {
         var type = $(this).data('type');
         var id = $(this).data('id');
         
