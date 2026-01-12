@@ -1170,8 +1170,12 @@ $(document).ready(function() {
         });
         
         var total = contactCount + listCount + dynamicCount + tagCount;
-        var deduped = Math.floor(total * 0.95);
-        var invalid = Math.floor(total * 0.02);
+        // Individual contacts are already unique, so no deduplication needed for them
+        // Only lists/dynamic lists/tags might have overlaps - apply 5% dedup estimate only to list-based counts
+        var listBasedCount = listCount + dynamicCount + tagCount;
+        var listDeduped = listBasedCount > 0 ? Math.floor(listBasedCount * 0.95) : 0;
+        var deduped = contactCount + listDeduped;
+        var invalid = listBasedCount > 0 ? Math.floor(listBasedCount * 0.02) : 0;
         
         return {
             contacts: contactCount,
