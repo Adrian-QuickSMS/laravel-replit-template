@@ -94,6 +94,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
       - Invalid SenderID or empty body → Email rejected with sender notification (mocked)
     - Audit log placeholder hooks for backend integration
   - Integrates with Contact Lists, Templates, Opt-Out Lists, Sender IDs, and Reporting
+  - **Backend Integration Readiness:** All Email-to-SMS actions are backend-ready with isolated service layer (`public/js/services/email-to-sms-service.js`):
+    - Overview tab: `listOverviewAddresses()`, `suspendOverviewAddress()`, `reactivateOverviewAddress()`, `deleteOverviewAddress()`
+    - Contact List tab: `listEmailToSmsContactListSetups()`, `createEmailToSmsContactListSetup()`, `updateEmailToSmsContactListSetup()`, `archiveEmailToSmsContactListSetup()`
+    - Standard tab: `listEmailToSmsSetups()`, `createEmailToSmsSetup()`, `updateEmailToSmsSetup()`, `archiveEmailToSmsSetup()`
+    - Reporting Groups: `listReportingGroups()`, `archiveReportingGroup()`, `unarchiveReportingGroup()`
+    - To connect real backend: Set `EmailToSmsService.config.useMockData = false` and implement endpoints
+    - All handlers include loading states, error handling, and success toasts
 - **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, enforced for features like Purchase, RCS Agent Registration, and delete actions.
 
 ## External Dependencies
