@@ -1617,21 +1617,16 @@
                                 
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">SenderID <span class="text-danger">*</span></label>
+                                        <label class="form-label">SenderID <span class="text-danger">*</span></label>
                                         <select class="form-select" id="stdWizardSenderId">
                                             <option value="">Select SenderID...</option>
-                                            <option value="QuickSMS">QuickSMS</option>
-                                            <option value="ALERTS">ALERTS</option>
-                                            <option value="NHS">NHS</option>
-                                            <option value="INFO">INFO</option>
-                                            <option value="Pharmacy">Pharmacy</option>
                                         </select>
                                         <small class="text-muted">Only approved/live SenderIDs are shown.</small>
                                         <div class="invalid-feedback">Please select a SenderID.</div>
                                     </div>
                                     
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Subject as SenderID</label>
+                                    <div class="col-md-6" id="stdWizardSubjectAsSenderIdGroup">
+                                        <label class="form-label">Subject as SenderID</label>
                                         <div class="form-check form-switch mt-2">
                                             <input class="form-check-input" type="checkbox" id="stdWizardSubjectAsSenderId">
                                             <label class="form-check-label" for="stdWizardSubjectAsSenderId">
@@ -1642,7 +1637,7 @@
                                     </div>
                                     
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Enable Multiple SMS</label>
+                                        <label class="form-label">Enable Multiple SMS</label>
                                         <div class="form-check form-switch mt-2">
                                             <input class="form-check-input" type="checkbox" id="stdWizardMultipleSms">
                                             <label class="form-check-label" for="stdWizardMultipleSms">
@@ -1653,7 +1648,7 @@
                                     </div>
                                     
                                     <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Delivery Reports</label>
+                                        <label class="form-label">Send Delivery Reports</label>
                                         <div class="form-check form-switch mt-2">
                                             <input class="form-check-input" type="checkbox" id="stdWizardDeliveryReports">
                                             <label class="form-check-label" for="stdWizardDeliveryReports">
@@ -1663,17 +1658,17 @@
                                     </div>
                                     
                                     <div class="col-md-6" id="stdWizardDeliveryEmailGroup" style="display: none;">
-                                        <label class="form-label fw-semibold">Delivery Reports Email <span class="text-danger">*</span></label>
+                                        <label class="form-label">Delivery Reports Email <span class="text-danger">*</span></label>
                                         <input type="email" class="form-control" id="stdWizardDeliveryEmail" placeholder="reports@yourcompany.com">
                                         <small class="text-muted">Receive delivery status notifications.</small>
                                         <div class="invalid-feedback" id="stdWizardDeliveryEmailError">Valid email required.</div>
                                     </div>
                                     
                                     <div class="col-12">
-                                        <label class="form-label fw-semibold">Content Filter (Signature Removal)</label>
-                                        <textarea class="form-control" id="stdWizardSignatureFilter" rows="2" placeholder="e.g., --\n.*\nSent from.*"></textarea>
-                                        <div class="invalid-feedback" id="stdWizardSignatureFilterError">Invalid regex pattern</div>
-                                        <small class="text-muted">Remove matching content from emails. Regex supported, one pattern per line.</small>
+                                        <label class="form-label">Filter Content (Signature Removal)</label>
+                                        <textarea class="form-control" id="stdWizardSignatureFilter" rows="3" placeholder="e.g., --\n.*\nSent from.*"></textarea>
+                                        <div class="invalid-feedback" id="stdWizardSignatureFilterError">Invalid regex pattern.</div>
+                                        <small class="text-muted">Remove matching content from emails. Regex patterns supported, one pattern per line.</small>
                                     </div>
                                 </div>
                                 
@@ -1712,7 +1707,7 @@
                                             <span class="std-wizard-review-label">SenderID</span>
                                             <span class="std-wizard-review-value" id="stdWizardReviewSenderId">-</span>
                                         </div>
-                                        <div class="std-wizard-review-row">
+                                        <div class="std-wizard-review-row" id="stdWizardReviewSubjectAsSenderIdRow">
                                             <span class="std-wizard-review-label">Subject as SenderID</span>
                                             <span class="std-wizard-review-value" id="stdWizardReviewSubjectAsSenderId">No</span>
                                         </div>
@@ -1723,6 +1718,10 @@
                                         <div class="std-wizard-review-row">
                                             <span class="std-wizard-review-label">Delivery Reports</span>
                                             <span class="std-wizard-review-value" id="stdWizardReviewDeliveryReports">No</span>
+                                        </div>
+                                        <div class="std-wizard-review-row">
+                                            <span class="std-wizard-review-label">Content Filter</span>
+                                            <span class="std-wizard-review-value" id="stdWizardReviewContentFilter">None</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2003,7 +2002,7 @@ $(document).ready(function() {
             $('#stdWizardReviewAllowedSenders').text('All senders allowed');
         }
         
-        $('#stdWizardReviewSenderId').text($('#stdWizardSenderId').val() || '-');
+        $('#stdWizardReviewSenderId').text($('#stdWizardSenderId option:selected').text() || '-');
         $('#stdWizardReviewSubjectAsSenderId').text($('#stdWizardSubjectAsSenderId').is(':checked') ? 'Yes' : 'No');
         $('#stdWizardReviewMultipleSms').text($('#stdWizardMultipleSms').is(':checked') ? 'Yes' : 'No');
         
@@ -2012,6 +2011,14 @@ $(document).ready(function() {
             $('#stdWizardReviewDeliveryReports').text('Yes (' + (email || 'email not set') + ')');
         } else {
             $('#stdWizardReviewDeliveryReports').text('No');
+        }
+        
+        var contentFilter = $('#stdWizardSignatureFilter').val().trim();
+        if (contentFilter) {
+            var lines = contentFilter.split('\n').filter(function(l) { return l.trim(); });
+            $('#stdWizardReviewContentFilter').text(lines.length + ' pattern(s) configured');
+        } else {
+            $('#stdWizardReviewContentFilter').text('None');
         }
     }
     
@@ -2314,6 +2321,54 @@ $(document).ready(function() {
     $('#createStandardModal').on('hidden.bs.modal', function() {
         stdWizardReset();
     });
+    
+    $('#createStandardModal').on('shown.bs.modal', function() {
+        stdWizardPopulateSenderIds();
+        stdWizardCheckAccountFlags();
+    });
+    
+    function stdWizardPopulateSenderIds() {
+        var $dropdown = $('#stdWizardSenderId');
+        $dropdown.html('<option value="">Loading...</option>');
+        
+        EmailToSmsService.getTemplatesForSenderIdDropdown().then(function(response) {
+            $dropdown.empty().append('<option value="">Select SenderID...</option>');
+            
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(template) {
+                    $dropdown.append('<option value="' + template.id + '">' + escapeHtml(template.senderId) + '</option>');
+                });
+            } else {
+                $dropdown.append('<option value="" disabled>No approved SenderIDs available</option>');
+            }
+        }).catch(function() {
+            $dropdown.empty()
+                .append('<option value="">Select SenderID...</option>')
+                .append('<option value="QuickSMS">QuickSMS</option>')
+                .append('<option value="ALERTS">ALERTS</option>')
+                .append('<option value="NHS">NHS</option>')
+                .append('<option value="INFO">INFO</option>')
+                .append('<option value="Pharmacy">Pharmacy</option>');
+        });
+    }
+    
+    function stdWizardCheckAccountFlags() {
+        EmailToSmsService.getAccountFlags().then(function(response) {
+            if (response.success && response.data) {
+                if (response.data.dynamicSenderIdEnabled) {
+                    $('#stdWizardSubjectAsSenderIdGroup').show();
+                    $('#stdWizardReviewSubjectAsSenderIdRow').show();
+                } else {
+                    $('#stdWizardSubjectAsSenderIdGroup').hide();
+                    $('#stdWizardReviewSubjectAsSenderIdRow').hide();
+                    $('#stdWizardSubjectAsSenderId').prop('checked', false);
+                }
+            }
+        }).catch(function() {
+            $('#stdWizardSubjectAsSenderIdGroup').show();
+            $('#stdWizardReviewSubjectAsSenderIdRow').show();
+        });
+    }
     
     // ========================================
     // End Standard Email-to-SMS Wizard
