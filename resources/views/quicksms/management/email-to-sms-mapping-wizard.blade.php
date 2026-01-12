@@ -611,119 +611,70 @@
                                             <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
                                         </div>
                                         
-                                        {{-- Generated Email Address - Compact Display --}}
-                                        <div class="bg-success bg-opacity-10 border border-success rounded p-3 mb-3 text-center">
-                                            <div class="small text-success fw-medium mb-1"><i class="fas fa-envelope me-1"></i> Your Generated Email Address</div>
-                                            <code class="d-block fs-5 mb-2" id="generatedEmailDisplay">Generating...</code>
-                                            <button class="btn btn-outline-success btn-sm" id="btnCopyEmail">
-                                                <i class="fas fa-copy me-1"></i> Copy
-                                            </button>
+                                        <div class="alert alert-pastel-warning small py-2 mb-3">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
                                         </div>
                                         
-                                        <div class="row">
-                                            {{-- Left Column: All Summary Tables --}}
-                                            <div class="col-lg-8">
-                                                <div class="card mb-3">
-                                                    <div class="card-body p-0">
-                                                        <table class="table api-table mb-0">
-                                                            <thead>
-                                                                <tr><th colspan="2"><i class="fas fa-cog me-2"></i>Configuration</th></tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td class="text-muted" style="width: 35%;">Mapping Name</td>
-                                                                    <td id="summaryName">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Description</td>
-                                                                    <td id="summaryDescription">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Sub-Account</td>
-                                                                    <td id="summarySubAccount">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Email Address</td>
-                                                                    <td class="text-primary" id="summaryEmail">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Allowed Senders</td>
-                                                                    <td id="summarySenders">-</td>
-                                                                </tr>
-                                                            </tbody>
-                                                            <thead>
-                                                                <tr><th colspan="2"><i class="fas fa-users me-2"></i>Recipients</th></tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td class="text-muted">Selected From</td>
-                                                                    <td id="summaryContactList">-</td>
-                                                                </tr>
-                                                                <tr style="background-color: rgba(25, 135, 84, 0.1);">
-                                                                    <td class="text-muted">Total Recipients</td>
-                                                                    <td class="fw-bold" id="summaryRecipients">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Opt-out Lists</td>
-                                                                    <td id="summaryOptOut">-</td>
-                                                                </tr>
-                                                            </tbody>
-                                                            <thead>
-                                                                <tr><th colspan="2"><i class="fas fa-sms me-2"></i>Message Settings</th></tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td class="text-muted">SenderID</td>
-                                                                    <td id="summarySenderId">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Settings</td>
-                                                                    <td id="summaryMessageSettings">-</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="text-muted">Content Filters</td>
-                                                                    <td id="summaryContentFilter">-</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            {{-- Right Column: Actions + How It Works (collapsible) --}}
-                                            <div class="col-lg-4">
-                                                <div class="d-grid gap-2 mb-3">
-                                                    <button type="button" class="btn btn-primary" id="btnCreateMapping">
-                                                        <i class="fas fa-check-circle me-1"></i> Create Mapping
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSaveDraftReview">
-                                                        <i class="fas fa-save me-1"></i> Save as Draft
-                                                    </button>
-                                                </div>
-                                                
-                                                <div class="alert alert-pastel-warning small py-2 mb-3">
-                                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                                    Email address cannot be changed after creation.
-                                                </div>
-                                                
-                                                <div class="card mb-3 border-primary">
-                                                    <div class="card-header py-2 bg-primary text-white" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#howItWorksCollapse" aria-expanded="false" aria-controls="howItWorksCollapse">
-                                                        <h6 class="mb-0 small d-flex justify-content-between align-items-center">
-                                                            <span><i class="fas fa-info-circle me-1"></i>How It Works</span>
-                                                            <i class="fas fa-chevron-down small" id="howItWorksIcon"></i>
-                                                        </h6>
-                                                    </div>
-                                                    <div class="collapse" id="howItWorksCollapse">
-                                                        <div class="card-body py-2 px-3" style="font-size: 12px;">
-                                                            <ol class="mb-0 ps-3">
-                                                                <li class="mb-1">Email to <strong id="summaryEmailInline" class="text-break">-</strong></li>
-                                                                <li class="mb-1">SenderID from subject</li>
-                                                                <li class="mb-1">SMS from email body</li>
-                                                                <li class="mb-0">Sent to <strong id="summaryRecipientCountInline">0</strong> recipients</li>
-                                                            </ol>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        <div class="card mb-3">
+                                            <div class="card-body p-0">
+                                                <table class="table api-table mb-0">
+                                                    <thead>
+                                                        <tr><th colspan="2"><i class="fas fa-cog me-2"></i>Configuration</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="text-muted" style="width: 35%;">Mapping Name</td>
+                                                            <td id="summaryName">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">Description</td>
+                                                            <td id="summaryDescription">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">Sub-Account</td>
+                                                            <td id="summarySubAccount">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">Allowed Senders</td>
+                                                            <td id="summarySenders">-</td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <thead>
+                                                        <tr><th colspan="2"><i class="fas fa-users me-2"></i>Recipients</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="text-muted">Selected From</td>
+                                                            <td id="summaryContactList">-</td>
+                                                        </tr>
+                                                        <tr style="background-color: rgba(25, 135, 84, 0.1);">
+                                                            <td class="text-muted">Total Recipients</td>
+                                                            <td class="fw-bold" id="summaryRecipients">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">Opt-out Lists</td>
+                                                            <td id="summaryOptOut">-</td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <thead>
+                                                        <tr><th colspan="2"><i class="fas fa-sms me-2"></i>Message Settings</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="text-muted">SenderID</td>
+                                                            <td id="summarySenderId">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">Settings</td>
+                                                            <td id="summaryMessageSettings">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">Content Filters</td>
+                                                            <td id="summaryContentFilter">-</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -740,6 +691,9 @@
                             </button>
                             <button type="button" class="btn sw-btn-next" id="btnNext">
                                 Next <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btnCreateMapping" style="display: none;">
+                                <i class="fas fa-check-circle me-1"></i> Create Mapping
                             </button>
                         </div>
                     </div>
@@ -1176,16 +1130,12 @@ $(document).ready(function() {
         var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         var random = Math.floor(1000 + Math.random() * 9000);
         wizardData.generatedEmail = slug + '-' + random + '@sms.quicksms.com';
-        $('#generatedEmailDisplay').text(wizardData.generatedEmail);
-        $('#btnCopyEmail').prop('disabled', false);
     }
     
     function updateSummary() {
         $('#summaryName').text(wizardData.name || '-');
         $('#summaryDescription').text(wizardData.description || 'No description');
         $('#summarySubAccount').text(wizardData.subAccount ? $('#subAccount option:selected').text() : '-');
-        $('#summaryEmail').text(wizardData.generatedEmail || '-');
-        $('#summaryEmailInline').text(wizardData.generatedEmail || '-');
         $('#summarySenders').text(wizardData.allowedSenders.length > 0 ? wizardData.allowedSenders.length + ' whitelisted' : 'Any sender allowed');
         
         var recipientParts = [];
@@ -1197,7 +1147,6 @@ $(document).ready(function() {
         
         var stats = calculateRecipientStats();
         $('#summaryRecipients').text(stats.uniqueAfterDedup > 0 ? stats.uniqueAfterDedup.toLocaleString() + ' recipients' : '-');
-        $('#summaryRecipientCountInline').text(stats.uniqueAfterDedup.toLocaleString());
         $('#summarySenderId').text(wizardData.senderId ? $('#senderId option:selected').text() : '-');
         
         if (wizardData.optOutLists.includes('NO')) {
@@ -1413,9 +1362,11 @@ $(document).ready(function() {
         if (currentStep === totalSteps - 1) {
             $('#btnNext').hide();
             $('#btnSaveDraft').hide();
+            $('#btnCreateMapping').show();
         } else {
             $('#btnNext').show().html('Next <i class="fas fa-arrow-right ms-1"></i>');
             $('#btnSaveDraft').show();
+            $('#btnCreateMapping').hide();
         }
         
         updateNextButtonState();
@@ -1663,16 +1614,6 @@ $(document).ready(function() {
         saveDraft();
     });
     
-    $('#btnCopyEmail').on('click', function() {
-        navigator.clipboard.writeText(wizardData.generatedEmail).then(function() {
-            var btn = $('#btnCopyEmail');
-            btn.html('<i class="fas fa-check me-1"></i> Copied!');
-            setTimeout(function() {
-                btn.html('<i class="fas fa-copy me-1"></i> Copy to Clipboard');
-            }, 2000);
-        });
-    });
-    
     $('#btnNext').on('click', function() {
         if (currentStep === totalSteps - 1) {
             return;
@@ -1807,33 +1748,6 @@ $(document).ready(function() {
             }, 2000);
         }).catch(function() {
             showErrorToast('Failed to copy. Please select and copy manually.');
-        });
-    });
-    
-    $('#howItWorksCollapse').on('show.bs.collapse', function() {
-        $('#howItWorksIcon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-    }).on('hide.bs.collapse', function() {
-        $('#howItWorksIcon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-    });
-    
-    $('#btnSaveDraftReview').on('click', function() {
-        var btn = $(this);
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Saving...');
-        
-        var payload = createMappingPayload('draft');
-        
-        EmailToSmsService.createEmailToSmsContactListSetup(payload).then(function(response) {
-            if (response.success) {
-                showSuccessToast('Draft saved successfully');
-                window.location.href = '{{ route("management.email-to-sms") }}?tab=contact-lists';
-            } else {
-                btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i> Save as Draft');
-                showErrorToast(response.error || 'Failed to save draft');
-            }
-        }).catch(function(err) {
-            console.error('Save draft error:', err);
-            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i> Save as Draft');
-            showErrorToast('An error occurred. Please try again.');
         });
     });
     
