@@ -21,8 +21,14 @@ var EmailToSmsService = (function() {
             list: '/setups',
             create: '/setups',
             update: '/setups/{id}',
+            get: '/setups/{id}',
             archive: '/setups/{id}/archive',
-            templates: '/templates/senderids'
+            unarchive: '/setups/{id}/unarchive',
+            suspend: '/setups/{id}/suspend',
+            reactivate: '/setups/{id}/reactivate',
+            templates: '/templates/senderids',
+            subaccounts: '/subaccounts',
+            accountFlags: '/account/flags'
         }
     };
     
@@ -452,7 +458,69 @@ var EmailToSmsService = (function() {
             });
         }
         
-        var endpoint = config.endpoints.archive.replace('{id}', id) + '/unarchive';
+        var endpoint = config.endpoints.unarchive.replace('{id}', id);
+        return _makeRequest('POST', endpoint);
+    }
+    
+    /**
+     * Suspend an Email-to-SMS setup
+     * @param {string} id - Setup ID
+     * @returns {Promise<object>}
+     */
+    function suspendEmailToSmsSetup(id) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockSetups.findIndex(function(s) { return s.id === id; });
+                if (index === -1) {
+                    return {
+                        success: false,
+                        error: 'Setup not found'
+                    };
+                }
+                
+                mockSetups[index].status = 'suspended';
+                mockSetups[index].updatedAt = new Date().toISOString();
+                
+                return {
+                    success: true,
+                    data: _transformFromApiResponse(mockSetups[index]),
+                    message: 'Setup suspended successfully'
+                };
+            });
+        }
+        
+        var endpoint = config.endpoints.suspend.replace('{id}', id);
+        return _makeRequest('POST', endpoint);
+    }
+    
+    /**
+     * Reactivate a suspended Email-to-SMS setup
+     * @param {string} id - Setup ID
+     * @returns {Promise<object>}
+     */
+    function reactivateEmailToSmsSetup(id) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockSetups.findIndex(function(s) { return s.id === id; });
+                if (index === -1) {
+                    return {
+                        success: false,
+                        error: 'Setup not found'
+                    };
+                }
+                
+                mockSetups[index].status = 'active';
+                mockSetups[index].updatedAt = new Date().toISOString();
+                
+                return {
+                    success: true,
+                    data: _transformFromApiResponse(mockSetups[index]),
+                    message: 'Setup reactivated successfully'
+                };
+            });
+        }
+        
+        var endpoint = config.endpoints.reactivate.replace('{id}', id);
         return _makeRequest('POST', endpoint);
     }
     
@@ -1610,6 +1678,8 @@ var EmailToSmsService = (function() {
         updateEmailToSmsSetup: updateEmailToSmsSetup,
         archiveEmailToSmsSetup: archiveEmailToSmsSetup,
         unarchiveEmailToSmsSetup: unarchiveEmailToSmsSetup,
+        suspendEmailToSmsSetup: suspendEmailToSmsSetup,
+        reactivateEmailToSmsSetup: reactivateEmailToSmsSetup,
         getEmailToSmsSetup: getEmailToSmsSetup,
         getTemplatesForSenderIdDropdown: getTemplatesForSenderIdDropdown,
         getSubaccounts: getSubaccounts,

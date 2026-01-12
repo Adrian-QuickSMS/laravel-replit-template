@@ -4365,8 +4365,19 @@ $(document).ready(function() {
                 statusBadge = '<span class="badge bg-secondary">Archived</span>';
             } else if (item.status === 'draft') {
                 statusBadge = '<span class="badge bg-warning text-dark">Draft</span>';
+            } else if (item.status === 'suspended') {
+                statusBadge = '<span class="badge badge-suspended">Suspended</span>';
             } else {
                 statusBadge = '<span class="badge badge-live-status">Live</span>';
+            }
+            
+            var suspendReactivateAction = '';
+            if (!item.archived) {
+                if (item.status === 'suspended') {
+                    suspendReactivateAction = '<li><a class="dropdown-item std-action-reactivate" href="#" data-id="' + item.id + '"><i class="fas fa-play-circle me-2"></i> Reactivate</a></li>';
+                } else if (item.status === 'active') {
+                    suspendReactivateAction = '<li><a class="dropdown-item std-action-suspend" href="#" data-id="' + item.id + '"><i class="fas fa-pause-circle me-2"></i> Suspend</a></li>';
+                }
             }
             
             var row = '<tr data-id="' + item.id + '"' + (item.archived ? ' class="table-secondary"' : '') + '>' +
@@ -4384,6 +4395,7 @@ $(document).ready(function() {
                         '<ul class="dropdown-menu dropdown-menu-end">' +
                             '<li><a class="dropdown-item std-action-view" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
                             '<li><a class="dropdown-item" href="/management/email-to-sms/standard/' + item.id + '/edit"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            suspendReactivateAction +
                             (item.archived 
                                 ? '<li><a class="dropdown-item std-action-unarchive" href="#" data-id="' + item.id + '"><i class="fas fa-box-open me-2"></i> Unarchive</a></li>'
                                 : '<li><a class="dropdown-item std-action-archive" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>') +
@@ -4418,13 +4430,48 @@ $(document).ready(function() {
             
             EmailToSmsService.unarchiveEmailToSmsSetup(id).then(function(response) {
                 if (response.success) {
+                    showSuccessToast('Setup unarchived successfully');
                     loadStandardSmsTable();
                 } else {
-                    alert('Error: ' + (response.error || 'Failed to unarchive'));
+                    showErrorToast(response.error || 'Failed to unarchive');
                 }
             }).catch(function(err) {
                 console.error('Unarchive error:', err);
-                alert('An error occurred. Please try again.');
+                showErrorToast('An error occurred. Please try again.');
+            });
+        });
+        
+        $('.std-action-suspend').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            
+            EmailToSmsService.suspendEmailToSmsSetup(id).then(function(response) {
+                if (response.success) {
+                    showSuccessToast('Setup suspended successfully');
+                    loadStandardSmsTable();
+                } else {
+                    showErrorToast(response.error || 'Failed to suspend');
+                }
+            }).catch(function(err) {
+                console.error('Suspend error:', err);
+                showErrorToast('An error occurred. Please try again.');
+            });
+        });
+        
+        $('.std-action-reactivate').off('click').on('click', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            
+            EmailToSmsService.reactivateEmailToSmsSetup(id).then(function(response) {
+                if (response.success) {
+                    showSuccessToast('Setup reactivated successfully');
+                    loadStandardSmsTable();
+                } else {
+                    showErrorToast(response.error || 'Failed to reactivate');
+                }
+            }).catch(function(err) {
+                console.error('Reactivate error:', err);
+                showErrorToast('An error occurred. Please try again.');
             });
         });
     }
