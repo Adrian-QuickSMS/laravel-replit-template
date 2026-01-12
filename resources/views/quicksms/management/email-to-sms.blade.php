@@ -1548,26 +1548,26 @@
                                 <div class="row">
                                     <div class="col-lg-8">
                                         <div class="mb-3">
-                                            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                                            <label class="form-label">Name <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" id="stdWizardName" placeholder="e.g., Appointment Reminders" maxlength="50">
-                                            <div class="invalid-feedback">Please enter a name.</div>
+                                            <div class="invalid-feedback" id="stdWizardNameError">Please enter a name.</div>
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label class="form-label fw-semibold">Description</label>
+                                            <label class="form-label">Description</label>
                                             <textarea class="form-control" id="stdWizardDescription" rows="2" placeholder="Brief description of this Email-to-SMS setup..." maxlength="200"></textarea>
                                             <small class="text-muted"><span id="stdWizardDescCharCount">0</span>/200 characters</small>
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label class="form-label fw-semibold">Subaccount <span class="text-danger">*</span></label>
+                                            <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
                                             <select class="form-select" id="stdWizardSubaccount">
-                                                <option value="">Select subaccount...</option>
+                                                <option value="">Select sub-account...</option>
                                                 <option value="main">Main Account</option>
                                                 <option value="marketing">Marketing Team</option>
                                                 <option value="support">Support Team</option>
                                             </select>
-                                            <div class="invalid-feedback">Please select a subaccount.</div>
+                                            <div class="invalid-feedback">Please select a sub-account.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -2211,11 +2211,19 @@ $(document).ready(function() {
         
         if (stdWizardCurrentStep === 0) {
             var name = $('#stdWizardName').val().trim();
+            var $nameInput = $('#stdWizardName');
+            var $nameError = $('#stdWizardNameError');
+            
             if (!name) {
-                $('#stdWizardName').addClass('is-invalid');
+                $nameInput.addClass('is-invalid');
+                $nameError.text('Please enter a name.');
+                isValid = false;
+            } else if (EmailToSmsService.checkNameExists(name)) {
+                $nameInput.addClass('is-invalid');
+                $nameError.text('This name is already in use. Please choose a unique name.');
                 isValid = false;
             } else {
-                $('#stdWizardName').removeClass('is-invalid');
+                $nameInput.removeClass('is-invalid');
             }
             
             var subaccount = $('#stdWizardSubaccount').val();

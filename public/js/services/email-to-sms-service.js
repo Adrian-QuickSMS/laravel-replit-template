@@ -567,6 +567,23 @@ var EmailToSmsService = (function() {
         return { valid: emailRegex.test(email), isWildcard: false };
     }
     
+    /**
+     * Check if a setup name already exists (for uniqueness validation)
+     * @param {string} name - The name to check
+     * @param {string} [excludeId] - Optional ID to exclude (for editing existing setup)
+     * @returns {boolean} - true if name exists, false otherwise
+     */
+    function checkNameExists(name, excludeId) {
+        if (!name) return false;
+        
+        var normalizedName = name.trim().toLowerCase();
+        
+        return mockSetups.some(function(setup) {
+            if (excludeId && setup.id === excludeId) return false;
+            return setup.name.toLowerCase() === normalizedName;
+        });
+    }
+    
     // =========================================================================
     // CONTACT LIST SETUPS - Email-to-SMS Contact List Module
     // =========================================================================
@@ -1625,6 +1642,7 @@ var EmailToSmsService = (function() {
         
         // Utilities
         validateContentFilterRegex: validateContentFilterRegex,
-        validateEmail: validateEmail
+        validateEmail: validateEmail,
+        checkNameExists: checkNameExists
     };
 })();
