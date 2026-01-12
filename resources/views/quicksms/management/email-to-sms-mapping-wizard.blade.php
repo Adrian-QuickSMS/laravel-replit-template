@@ -343,14 +343,14 @@
                                         </div>
                                         
                                         <div class="mb-3">
-                                            <label class="form-label">Allowed Sender Emails (Optional)</label>
+                                            <label class="form-label">Allowed Sender Emails <span class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="newSenderEmail" placeholder="e.g., user@domain.com or *@domain.com">
                                                 <button class="btn btn-outline-primary" type="button" id="btnAddSender">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback" id="emailError"></div>
+                                            <div class="invalid-feedback" id="emailError">At least one sender email address is required.</div>
                                             <small class="text-muted">Restrict who can trigger this mapping. Supports wildcards like *@domain.com</small>
                                         </div>
                                         
@@ -368,9 +368,9 @@
                                             </button>
                                         </div>
                                         
-                                        <div class="alert alert-pastel-primary small mt-3">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            <strong>Tip:</strong> If you leave this empty, any sender can trigger SMS messages to this Contact List.
+                                        <div class="alert alert-danger small mt-3" id="emailRequiredError" style="display: none;">
+                                            <i class="fas fa-exclamation-circle me-2"></i>
+                                            At least one sender email address is required.
                                         </div>
                                     </div>
                                 </div>
@@ -1262,6 +1262,16 @@ $(document).ready(function() {
                     $('#subAccount').removeClass('is-invalid');
                 }
                 break;
+            case 1:
+                if (wizardData.allowedSenders.length === 0) {
+                    $('#emailRequiredError').show();
+                    $('#newSenderEmail').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $('#emailRequiredError').hide();
+                    $('#newSenderEmail').removeClass('is-invalid');
+                }
+                break;
             case 2:
                 var hasRecipients = wizardData.selectedContacts.length > 0 || 
                                    wizardData.selectedLists.length > 0 || 
@@ -1549,6 +1559,7 @@ $(document).ready(function() {
         wizardData.allowedSenders.push(email);
         $('#newSenderEmail').val('').removeClass('is-invalid');
         $('#emailError').hide();
+        $('#emailRequiredError').hide();
         renderSenderEmails();
         saveDraft();
     }

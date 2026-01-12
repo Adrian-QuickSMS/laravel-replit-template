@@ -106,6 +106,57 @@
     border-radius: 0.75rem;
     overflow: hidden;
 }
+.api-table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow-x: auto;
+}
+.api-table {
+    width: 100%;
+    margin: 0;
+}
+.api-table thead th {
+    background: #f8f9fa;
+    padding: 0.75rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    white-space: nowrap;
+}
+.api-table thead th:last-child {
+    position: sticky;
+    right: 0;
+    background: #f8f9fa;
+    z-index: 2;
+}
+.api-table tbody td {
+    padding: 0.75rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.85rem;
+}
+.api-table tbody td:first-child {
+    font-weight: 500;
+    color: #343a40;
+}
+.api-table tbody td:last-child {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    z-index: 1;
+    box-shadow: -2px 0 4px rgba(0,0,0,0.05);
+}
+.api-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.api-table tbody tr:hover td {
+    background: #f8f9fa;
+}
+.api-table tbody tr:hover td:last-child {
+    background: #f8f9fa;
+}
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
@@ -504,8 +555,8 @@
                         
                         <div class="tab-pane fade" id="contact-lists" role="tabpanel">
                             <div class="row g-3">
-                                {{-- Left Column: Table + Controls --}}
-                                <div class="col-lg-8">
+                                {{-- Full Width Table --}}
+                                <div class="col-12">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center gap-2 flex-wrap">
                                             <div class="input-group input-group-sm" style="width: 220px;">
@@ -565,16 +616,16 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="table-container" id="contactListsTableContainer">
+                                    <div class="api-table-container" id="contactListsTableContainer">
                                         <div class="table-responsive">
-                                            <table class="table email-sms-table table-sm mb-0" style="font-size: 13px;">
+                                            <table class="table api-table mb-0">
                                                 <thead>
                                                     <tr>
                                                         <th>Name</th>
                                                         <th>Target Lists</th>
                                                         <th>Senders</th>
                                                         <th>Updated</th>
-                                                        <th class="text-end">Actions</th>
+                                                        <th class="text-center">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="contactListsTableBody">
@@ -605,64 +656,6 @@
                                     </div>
                                 </div>
                                 
-                                {{-- Right Column: Sticky Summary --}}
-                                <div class="col-lg-4">
-                                    <div class="position-lg-sticky" style="top: 80px;">
-                                        <div class="card border-0 shadow-sm mb-3">
-                                            <div class="card-header py-2 bg-primary text-white">
-                                                <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Quick Stats</h6>
-                                            </div>
-                                            <div class="card-body py-2">
-                                                <div class="row g-2 text-center">
-                                                    <div class="col-6">
-                                                        <div class="p-2 rounded" style="background: #f0ebf8;">
-                                                            <div class="fs-4 fw-bold text-primary" id="clStatActive">0</div>
-                                                            <div class="small text-muted">Active</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="p-2 rounded" style="background: #e8f5e9;">
-                                                            <div class="fs-4 fw-bold text-success" id="clStatRecipients">0</div>
-                                                            <div class="small text-muted">Recipients</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="p-2 rounded" style="background: #fff3e0;">
-                                                            <div class="fs-4 fw-bold text-warning" id="clStatDrafts">0</div>
-                                                            <div class="small text-muted">Drafts</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="p-2 rounded" style="background: #fce4ec;">
-                                                            <div class="fs-4 fw-bold text-secondary" id="clStatArchived">0</div>
-                                                            <div class="small text-muted">Archived</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card border-0 shadow-sm">
-                                            <div class="card-header py-2">
-                                                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>How It Works</h6>
-                                            </div>
-                                            <div class="card-body py-2" style="font-size: 13px;">
-                                                <ol class="mb-0 ps-3 small">
-                                                    <li class="mb-1">Email sent to generated address</li>
-                                                    <li class="mb-1">SenderID from email subject</li>
-                                                    <li class="mb-1">SMS content from email body</li>
-                                                    <li class="mb-0">SMS sent to all list recipients</li>
-                                                </ol>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="d-grid mt-3">
-                                            <button type="button" class="btn btn-primary" id="btnCreateContactListMappingSidebar">
-                                                <i class="fas fa-plus me-1"></i> Create Mapping
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         
