@@ -409,8 +409,9 @@
                                                 <div class="d-flex align-items-center gap-3">
                                                     <span>Contacts: <strong id="summaryContactsCount">0</strong></span>
                                                     <span>Lists: <strong id="summaryListsCount">0</strong></span>
-                                                    <span class="text-primary fw-bold">Total: <span id="summaryTotalCount">0</span></span>
-                                                    <span class="text-success fw-bold">Deduped: <span id="summaryDedupedCount">0</span></span>
+                                                    <span class="text-muted">Total: <span id="summaryTotalCount">0</span></span>
+                                                    <span class="text-warning fw-bold">Removed: <span id="summaryDedupedCount">0</span></span>
+                                                    <span class="text-success fw-bold">Unique: <span id="summaryUniqueCount">0</span></span>
                                                     <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnClearAllRecipients" style="display: none;">
                                                         <i class="fas fa-times"></i>
                                                     </button>
@@ -1146,8 +1147,8 @@ $(document).ready(function() {
         $('#summaryContactList').text(recipientParts.length > 0 ? recipientParts.join(', ') : '-');
         
         var stats = calculateRecipientStats();
-        $('#summaryRecipients').text(stats.deduped > 0 ? stats.deduped.toLocaleString() + ' recipients' : '-');
-        $('#summaryRecipientCountInline').text(stats.deduped.toLocaleString());
+        $('#summaryRecipients').text(stats.uniqueAfterDedup > 0 ? stats.uniqueAfterDedup.toLocaleString() + ' recipients' : '-');
+        $('#summaryRecipientCountInline').text(stats.uniqueAfterDedup.toLocaleString());
         $('#summarySenderId').text(wizardData.senderId ? $('#senderId option:selected').text() : '-');
         
         var optOutText = wizardData.optOutLists.includes('NO') ? 'None applied' : wizardData.optOutLists.length + ' opt-out list(s)';
@@ -1189,8 +1190,8 @@ $(document).ready(function() {
         // Individual contacts are already unique, so no deduplication needed for them
         // Only lists/dynamic lists/tags might have overlaps - apply 5% dedup estimate only to list-based counts
         var listBasedCount = listCount + dynamicCount + tagCount;
-        var listDeduped = listBasedCount > 0 ? Math.floor(listBasedCount * 0.95) : 0;
-        var deduped = contactCount + listDeduped;
+        var listDedupedRemoved = listBasedCount > 0 ? Math.floor(listBasedCount * 0.05) : 0;
+        var uniqueAfterDedup = total - listDedupedRemoved;
         var invalid = listBasedCount > 0 ? Math.floor(listBasedCount * 0.02) : 0;
         
         return {
@@ -1199,7 +1200,8 @@ $(document).ready(function() {
             dynamic: dynamicCount,
             tags: tagCount,
             total: total,
-            deduped: deduped,
+            dedupedRemoved: listDedupedRemoved,
+            uniqueAfterDedup: uniqueAfterDedup,
             invalid: invalid
         };
     }
@@ -1210,7 +1212,8 @@ $(document).ready(function() {
         $('#summaryContactsCount').text(wizardData.selectedContacts.length);
         $('#summaryListsCount').text(wizardData.selectedLists.length + wizardData.selectedDynamicLists.length + wizardData.selectedTags.length);
         $('#summaryTotalCount').text(stats.total.toLocaleString());
-        $('#summaryDedupedCount').text(stats.deduped.toLocaleString());
+        $('#summaryDedupedCount').text(stats.dedupedRemoved.toLocaleString());
+        $('#summaryUniqueCount').text(stats.uniqueAfterDedup.toLocaleString());
         
         if (stats.invalid > 0) {
             $('#invalidRecipientsWarning').removeClass('d-none');
