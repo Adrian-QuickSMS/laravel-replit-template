@@ -3789,7 +3789,7 @@ $(document).ready(function() {
     }
     
     $('#btnCreateContactListMapping').on('click', function() {
-        openCreateContactListMappingModal();
+        window.location.href = '{{ route("management.email-to-sms.create-mapping") }}';
     });
     
     // Email chip input for Contact List modal

@@ -246,7 +246,8 @@
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('management.email-to-sms') }}">Email-to-SMS</a></li>
-            <li class="breadcrumb-item active">Create Contact List Mapping</li>
+            <li class="breadcrumb-item"><a href="{{ route('management.email-to-sms') }}?tab=contact-lists">Contact List</a></li>
+            <li class="breadcrumb-item active">Create</li>
         </ol>
     </div>
     
