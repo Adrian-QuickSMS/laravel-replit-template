@@ -663,6 +663,9 @@ var EmailToSmsService = (function() {
             update: '/contact-list-setups/{id}',
             archive: '/contact-list-setups/{id}/archive',
             contactBooks: '/contact-books',
+            contacts: '/contacts',
+            tags: '/tags',
+            contactBookData: '/contact-book-data',
             optOutLists: '/opt-out-lists',
             smsTemplates: '/sms-templates/approved',
             accountFlags: '/account/flags'
@@ -897,6 +900,44 @@ var EmailToSmsService = (function() {
         max_contact_lists_per_setup: 10,
         max_allowed_sender_emails: 20,
         delivery_reports_enabled: true
+    };
+    
+    // Mock Individual Contacts
+    var mockContacts = {
+        main: [
+            { id: 'con-001', name: 'John Smith', mobile: '+447700900001', email: 'john.smith@example.com', status: 'active' },
+            { id: 'con-002', name: 'Sarah Johnson', mobile: '+447700900002', email: 'sarah.j@example.com', status: 'active' },
+            { id: 'con-003', name: 'Michael Brown', mobile: '+447700900003', email: 'michael.b@example.com', status: 'active' },
+            { id: 'con-004', name: 'Emma Wilson', mobile: '+447700900004', email: 'emma.w@example.com', status: 'active' },
+            { id: 'con-005', name: 'James Taylor', mobile: '+447700900005', email: 'james.t@example.com', status: 'active' }
+        ],
+        marketing: [
+            { id: 'con-006', name: 'David Lee', mobile: '+447700900006', email: 'david.lee@example.com', status: 'active' },
+            { id: 'con-007', name: 'Lisa Anderson', mobile: '+447700900007', email: 'lisa.a@example.com', status: 'active' },
+            { id: 'con-008', name: 'Robert Clark', mobile: '+447700900008', email: 'robert.c@example.com', status: 'active' }
+        ],
+        support: [
+            { id: 'con-009', name: 'Jennifer White', mobile: '+447700900009', email: 'jennifer.w@example.com', status: 'active' },
+            { id: 'con-010', name: 'Thomas Martin', mobile: '+447700900010', email: 'thomas.m@example.com', status: 'active' }
+        ]
+    };
+    
+    // Mock Tags
+    var mockTags = {
+        main: [
+            { id: 'tag-001', name: 'VIP', recipientCount: 234, color: '#7c3aed' },
+            { id: 'tag-002', name: 'Priority', recipientCount: 567, color: '#dc2626' },
+            { id: 'tag-003', name: 'New Patient', recipientCount: 189, color: '#16a34a' }
+        ],
+        marketing: [
+            { id: 'tag-004', name: 'Newsletter', recipientCount: 4521, color: '#2563eb' },
+            { id: 'tag-005', name: 'Promotional', recipientCount: 2345, color: '#ea580c' },
+            { id: 'tag-006', name: 'Loyalty', recipientCount: 890, color: '#7c3aed' }
+        ],
+        support: [
+            { id: 'tag-007', name: 'Follow-up', recipientCount: 123, color: '#0891b2' },
+            { id: 'tag-008', name: 'Urgent', recipientCount: 45, color: '#dc2626' }
+        ]
     };
     
     /**
@@ -1290,6 +1331,130 @@ var EmailToSmsService = (function() {
         }
         
         return _makeRequest('GET', contactListConfig.endpoints.accountFlags);
+    }
+    
+    /**
+     * Get all Contact Book data for a subaccount (unified method)
+     * Returns contacts, lists, dynamic lists, tags, and opt-out lists
+     * @param {string} subaccountId - Subaccount ID (optional, returns all if not provided)
+     * @returns {Promise<object>}
+     */
+    function getContactBookData(subaccountId) {
+        if (config.useMockData) {
+            return simulateDelay(150).then(function() {
+                var contacts = [];
+                var lists = [];
+                var tags = [];
+                var optOutLists = [];
+                
+                function collectData(mockObj, targetArr) {
+                    if (subaccountId && mockObj[subaccountId]) {
+                        return mockObj[subaccountId].slice();
+                    }
+                    var all = [];
+                    Object.keys(mockObj).forEach(function(key) {
+                        all = all.concat(mockObj[key]);
+                    });
+                    return all.filter(function(item, index, self) {
+                        return index === self.findIndex(function(t) { return t.id === item.id; });
+                    });
+                }
+                
+                contacts = collectData(mockContacts, contacts);
+                lists = collectData(mockContactBookLists, lists);
+                tags = collectData(mockTags, tags);
+                optOutLists = collectData(mockOptOutLists, optOutLists);
+                
+                return {
+                    success: true,
+                    data: {
+                        contacts: contacts,
+                        lists: lists.filter(function(l) { return l.type === 'static'; }),
+                        dynamicLists: lists.filter(function(l) { return l.type === 'dynamic'; }),
+                        tags: tags,
+                        optOutLists: optOutLists
+                    }
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.contactBookData;
+        if (subaccountId) {
+            endpoint += '?subaccountId=' + encodeURIComponent(subaccountId);
+        }
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get individual contacts for a subaccount
+     * @param {string} subaccountId - Subaccount ID (optional)
+     * @returns {Promise<object>}
+     */
+    function getContacts(subaccountId) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var contacts = [];
+                
+                if (subaccountId && mockContacts[subaccountId]) {
+                    contacts = mockContacts[subaccountId];
+                } else {
+                    Object.keys(mockContacts).forEach(function(key) {
+                        contacts = contacts.concat(mockContacts[key]);
+                    });
+                    contacts = contacts.filter(function(item, index, self) {
+                        return index === self.findIndex(function(t) { return t.id === item.id; });
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: contacts,
+                    total: contacts.length
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.contacts;
+        if (subaccountId) {
+            endpoint += '?subaccountId=' + encodeURIComponent(subaccountId);
+        }
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get tags for a subaccount
+     * @param {string} subaccountId - Subaccount ID (optional)
+     * @returns {Promise<object>}
+     */
+    function getTags(subaccountId) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var tags = [];
+                
+                if (subaccountId && mockTags[subaccountId]) {
+                    tags = mockTags[subaccountId];
+                } else {
+                    Object.keys(mockTags).forEach(function(key) {
+                        tags = tags.concat(mockTags[key]);
+                    });
+                    tags = tags.filter(function(item, index, self) {
+                        return index === self.findIndex(function(t) { return t.id === item.id; });
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: tags,
+                    total: tags.length
+                };
+            });
+        }
+        
+        var endpoint = contactListConfig.endpoints.tags;
+        if (subaccountId) {
+            endpoint += '?subaccountId=' + encodeURIComponent(subaccountId);
+        }
+        return _makeRequest('GET', endpoint);
     }
     
     // =====================================================================
@@ -1692,6 +1857,9 @@ var EmailToSmsService = (function() {
         archiveEmailToSmsContactListSetup: archiveEmailToSmsContactListSetup,
         unarchiveEmailToSmsContactListSetup: unarchiveEmailToSmsContactListSetup,
         getContactBookListsAndDynamicLists: getContactBookListsAndDynamicLists,
+        getContacts: getContacts,
+        getTags: getTags,
+        getContactBookData: getContactBookData,
         getOptOutLists: getOptOutLists,
         getApprovedSmsTemplates: getApprovedSmsTemplates,
         getAccountFlags: getAccountFlags,

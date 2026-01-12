@@ -877,16 +877,15 @@
 <script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
-    var mockContactLists = [
-        { id: 'cl-001', name: 'NHS Patients', count: 4521 },
-        { id: 'cl-002', name: 'Pharmacy Patients', count: 1892 },
-        { id: 'cl-003', name: 'Appointment List', count: 3267 },
-        { id: 'cl-004', name: 'Newsletter Subscribers', count: 8934 },
-        { id: 'cl-005', name: 'Emergency Contacts', count: 156 },
-        { id: 'cl-006', name: 'VIP Customers', count: 342 },
-        { id: 'cl-007', name: 'Staff Members', count: 89 },
-        { id: 'cl-008', name: 'Suppliers', count: 45 }
-    ];
+    var contactBookData = {
+        contacts: [],
+        lists: [],
+        dynamicLists: [],
+        tags: [],
+        optOutLists: []
+    };
+    
+    var senderIdTemplates = [];
     
     var wizardData = {
         name: '',
@@ -911,23 +910,131 @@ $(document).ready(function() {
         dynamic_senderid_allowed: true
     };
     
+    function loadContactBookData(subaccountId) {
+        EmailToSmsService.getContactBookData(subaccountId).then(function(response) {
+            if (response.success) {
+                contactBookData = response.data;
+                renderContactsTab();
+                renderListsTab();
+                renderDynamicListsTab();
+                renderTagsTab();
+                renderOptOutLists();
+            } else {
+                showErrorToast('Failed to load contact book data');
+            }
+        }).catch(function(err) {
+            console.error('Error loading contact book data:', err);
+            showErrorToast('Failed to load contact book data');
+        });
+    }
+    
+    function loadSenderIdTemplates(subaccountId) {
+        EmailToSmsService.getApprovedSmsTemplates(subaccountId).then(function(response) {
+            if (response.success) {
+                senderIdTemplates = response.data;
+                renderSenderIdDropdown();
+            }
+        }).catch(function(err) {
+            console.error('Error loading SenderID templates:', err);
+        });
+    }
+    
+    function loadAccountFlags() {
+        EmailToSmsService.getAccountFlags().then(function(response) {
+            if (response.success) {
+                accountFlags = response.data;
+                updateDynamicSenderIdVisibility();
+            }
+        }).catch(function(err) {
+            console.error('Error loading account flags:', err);
+        });
+    }
+    
+    function renderSenderIdDropdown() {
+        var html = '<option value="">Select SenderID...</option>';
+        senderIdTemplates.forEach(function(tpl) {
+            html += '<option value="' + tpl.id + '">' + tpl.senderId + '</option>';
+        });
+        $('#senderId').html(html);
+    }
+    
+    function updateDynamicSenderIdVisibility() {
+        if (accountFlags.dynamic_senderid_allowed) {
+            $('#dynamicSenderIdGroup').show();
+        } else {
+            $('#dynamicSenderIdGroup').hide();
+            $('#subjectAsSenderId').prop('checked', false);
+            wizardData.subjectAsSenderId = false;
+        }
+    }
+    
+    function renderContactsTab() {
+        var html = '';
+        if (contactBookData.contacts.length === 0) {
+            html = '<div class="text-muted text-center py-3">No contacts available</div>';
+        } else {
+            html = '<div class="form-check mb-2"><input type="checkbox" class="form-check-input" id="cbSelectAllContacts"> <label class="form-check-label small" for="cbSelectAllContacts">Select All</label></div>';
+            contactBookData.contacts.forEach(function(contact) {
+                var isChecked = wizardData.selectedContacts.some(function(c) { return c.id === contact.id; });
+                html += '<div class="form-check"><input type="checkbox" class="form-check-input cb-contact" value="' + contact.id + '" data-name="' + contact.name + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<label class="form-check-label small">' + contact.name + ' <span class="text-muted">(' + contact.mobile + ')</span></label></div>';
+            });
+        }
+        $('#recipientContactsTab').html(html);
+    }
+    
+    function renderListsTab() {
+        var html = '';
+        if (contactBookData.lists.length === 0) {
+            html = '<div class="text-muted text-center py-3">No contact lists available</div>';
+        } else {
+            contactBookData.lists.forEach(function(list) {
+                var isChecked = wizardData.selectedLists.some(function(l) { return l.id === list.id; });
+                html += '<div class="form-check"><input type="checkbox" class="form-check-input cb-list" value="' + list.id + '" data-name="' + list.name + '" data-count="' + list.recipientCount + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<label class="form-check-label small">' + list.name + ' <span class="text-muted">(' + list.recipientCount.toLocaleString() + ')</span></label></div>';
+            });
+        }
+        $('#recipientListsTab').html(html);
+    }
+    
+    function renderDynamicListsTab() {
+        var html = '';
+        if (contactBookData.dynamicLists.length === 0) {
+            html = '<div class="text-muted text-center py-3">No dynamic lists available</div>';
+        } else {
+            contactBookData.dynamicLists.forEach(function(list) {
+                var isChecked = wizardData.selectedDynamicLists.some(function(l) { return l.id === list.id; });
+                html += '<div class="form-check"><input type="checkbox" class="form-check-input cb-dynamic" value="' + list.id + '" data-name="' + list.name + '" data-count="' + list.recipientCount + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<label class="form-check-label small">' + list.name + ' <span class="badge bg-info ms-1">Dynamic</span> <span class="text-muted">(' + list.recipientCount.toLocaleString() + ')</span></label></div>';
+            });
+        }
+        $('#recipientDynamicTab').html(html);
+    }
+    
+    function renderTagsTab() {
+        var html = '';
+        if (contactBookData.tags.length === 0) {
+            html = '<div class="text-muted text-center py-3">No tags available</div>';
+        } else {
+            contactBookData.tags.forEach(function(tag) {
+                var isChecked = wizardData.selectedTags.some(function(t) { return t.id === tag.id; });
+                html += '<div class="form-check"><input type="checkbox" class="form-check-input cb-tag" value="' + tag.id + '" data-name="' + tag.name + '" data-count="' + tag.recipientCount + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<label class="form-check-label small"><span class="badge me-1" style="background-color: ' + (tag.color || '#6c757d') + '">' + tag.name + '</span> <span class="text-muted">(' + tag.recipientCount.toLocaleString() + ')</span></label></div>';
+            });
+        }
+        $('#recipientTagsTab').html(html);
+    }
+    
+    function renderOptOutLists() {
+        var html = '<option value="NO">Do not apply opt-out lists</option>';
+        contactBookData.optOutLists.forEach(function(list) {
+            html += '<option value="' + list.id + '">' + list.name + ' (' + list.recipientCount.toLocaleString() + ')</option>';
+        });
+        $('#optOutList').html(html);
+    }
+    
     var currentStep = 0;
     var totalSteps = 5;
-    
-    function renderContactLists(lists) {
-        var html = '';
-        lists.forEach(function(list) {
-            var isSelected = wizardData.contactListId === list.id;
-            html += '<div class="contact-list-option d-flex justify-content-between align-items-center' + (isSelected ? ' selected' : '') + '" data-id="' + list.id + '" data-name="' + list.name + '" data-count="' + list.count + '">' +
-                '<div>' +
-                    '<div class="list-name">' + list.name + '</div>' +
-                    '<div class="list-count"><i class="fas fa-users me-1"></i> ' + list.count.toLocaleString() + ' recipients</div>' +
-                '</div>' +
-                '<div class="list-check"><i class="fas fa-check-circle"></i></div>' +
-            '</div>';
-        });
-        $('#contactListOptions').html(html);
-    }
     
     function renderSenderEmails() {
         var html = '';
@@ -1234,7 +1341,9 @@ $(document).ready(function() {
         }
     }
     
-    renderContactLists(mockContactLists);
+    loadAccountFlags();
+    loadContactBookData();
+    loadSenderIdTemplates();
     renderSenderEmails();
     goToStep(0);
     
@@ -1255,6 +1364,20 @@ $(document).ready(function() {
     $('#subAccount').on('change', function() {
         wizardData.subAccount = $(this).val();
         $(this).removeClass('is-invalid');
+        
+        wizardData.selectedContacts = [];
+        wizardData.selectedLists = [];
+        wizardData.selectedDynamicLists = [];
+        wizardData.selectedTags = [];
+        wizardData.optOutLists = ['NO'];
+        wizardData.senderId = '';
+        
+        if (wizardData.subAccount) {
+            loadContactBookData(wizardData.subAccount);
+            loadSenderIdTemplates(wizardData.subAccount);
+        }
+        
+        updateRecipientSummary();
         updateNextButtonState();
     });
     
@@ -1354,20 +1477,7 @@ $(document).ready(function() {
     
     $('#searchContactList').on('input', function() {
         var term = $(this).val().toLowerCase();
-        var filtered = mockContactLists.filter(function(list) {
-            return list.name.toLowerCase().indexOf(term) !== -1;
-        });
-        renderContactLists(filtered);
-    });
-    
-    $(document).on('click', '.contact-list-option', function() {
-        $('.contact-list-option').removeClass('selected');
-        $(this).addClass('selected');
-        wizardData.contactListId = $(this).data('id');
-        wizardData.contactListName = $(this).data('name');
-        wizardData.contactListCount = $(this).data('count');
-        $('#contactListError').hide();
-        updateNextButtonState();
+        renderListsTab();
     });
     
     function addSenderEmail() {
