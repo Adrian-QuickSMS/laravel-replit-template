@@ -1057,17 +1057,17 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Suspend Email-to-SMS Address</h5>
+                <h5 class="modal-title" id="suspendModalTitle">Suspend Email-to-SMS Address</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to suspend <strong id="suspendAddressName"></strong>?</p>
-                <p class="text-muted small">While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.</p>
+                <p id="suspendModalMessage">Are you sure you want to suspend <strong id="suspendAddressName"></strong>?</p>
+                <p class="text-muted small" id="suspendModalDescription">While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-warning" id="btnConfirmSuspend">
-                    <i class="fas fa-pause me-1"></i> Suspend
+                    <i class="fas fa-pause me-1" id="suspendModalIcon"></i> <span id="suspendModalAction">Suspend</span>
                 </button>
             </div>
         </div>
@@ -2375,8 +2375,28 @@ $(document).ready(function() {
         var id = $(this).data('id');
         var address = mockAddresses.find(function(a) { return a.id === id; });
         if (address) {
-            $('#suspendAddressName').text(address.name);
-            $('#suspendModal').data('id', id).modal('show');
+            $('#suspendModalTitle').text('Suspend Email-to-SMS Address');
+            $('#suspendModalMessage').html('Are you sure you want to suspend <strong>' + address.name + '</strong>?');
+            $('#suspendModalDescription').text('While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.');
+            $('#suspendModalIcon').removeClass('fa-play').addClass('fa-pause');
+            $('#suspendModalAction').text('Suspend');
+            $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning');
+            $('#suspendModal').data('id', id).data('action', 'suspend').modal('show');
+        }
+    });
+    
+    $(document).on('click', '.reactivate-address', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var address = mockAddresses.find(function(a) { return a.id === id; });
+        if (address) {
+            $('#suspendModalTitle').text('Reactivate Email-to-SMS Address');
+            $('#suspendModalMessage').html('Are you sure you want to reactivate <strong>' + address.name + '</strong>?');
+            $('#suspendModalDescription').text('Once reactivated, emails sent to this address will resume triggering SMS messages.');
+            $('#suspendModalIcon').removeClass('fa-pause').addClass('fa-play');
+            $('#suspendModalAction').text('Reactivate');
+            $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success');
+            $('#suspendModal').data('id', id).data('action', 'reactivate').modal('show');
         }
     });
     
@@ -2652,16 +2672,53 @@ $(document).ready(function() {
     
     $('#btnConfirmSuspend').on('click', function() {
         var id = $('#suspendModal').data('id');
+        var action = $('#suspendModal').data('action');
         var address = mockAddresses.find(function(a) { return a.id === id; });
         if (address) {
-            address.status = address.status === 'Active' ? 'Suspended' : 'Active';
+            var newStatus = (action === 'suspend') ? 'Suspended' : 'Active';
+            address.status = newStatus;
             renderAddressesTable(mockAddresses);
             if (selectedAddress && selectedAddress.id === id) {
+                selectedAddress.status = newStatus;
                 openDetailsDrawer(address);
             }
+            var toastMessage = (action === 'suspend') 
+                ? 'Email-to-SMS address suspended successfully'
+                : 'Email-to-SMS address reactivated successfully';
+            showSuccessToast(toastMessage);
         }
         $('#suspendModal').modal('hide');
     });
+    
+    function showSuccessToast(message) {
+        var toastHtml = '<div class="toast align-items-center text-bg-success border-0 position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert" aria-live="assertive" aria-atomic="true">' +
+            '<div class="d-flex">' +
+                '<div class="toast-body">' +
+                    '<i class="fas fa-check-circle me-2"></i>' + message +
+                '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+            '</div>' +
+        '</div>';
+        var toastEl = $(toastHtml).appendTo('body');
+        var toast = new bootstrap.Toast(toastEl[0], { delay: 3000 });
+        toast.show();
+        toastEl.on('hidden.bs.toast', function() { $(this).remove(); });
+    }
+    
+    function showErrorToast(message) {
+        var toastHtml = '<div class="toast align-items-center text-bg-danger border-0 position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert" aria-live="assertive" aria-atomic="true">' +
+            '<div class="d-flex">' +
+                '<div class="toast-body">' +
+                    '<i class="fas fa-exclamation-circle me-2"></i>' + message +
+                '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+            '</div>' +
+        '</div>';
+        var toastEl = $(toastHtml).appendTo('body');
+        var toast = new bootstrap.Toast(toastEl[0], { delay: 5000 });
+        toast.show();
+        toastEl.on('hidden.bs.toast', function() { $(this).remove(); });
+    }
     
     $('#btnConfirmDelete').on('click', function() {
         var id = $('#deleteModal').data('id');
@@ -2674,8 +2731,24 @@ $(document).ready(function() {
     $('#actionSuspend').on('click', function(e) {
         e.preventDefault();
         if (selectedAddress) {
-            $('#suspendAddressName').text(selectedAddress.name);
-            $('#suspendModal').data('id', selectedAddress.id).modal('show');
+            var isSuspended = selectedAddress.status === 'Suspended';
+            if (isSuspended) {
+                $('#suspendModalTitle').text('Reactivate Email-to-SMS Address');
+                $('#suspendModalMessage').html('Are you sure you want to reactivate <strong>' + selectedAddress.name + '</strong>?');
+                $('#suspendModalDescription').text('Once reactivated, emails sent to this address will resume triggering SMS messages.');
+                $('#suspendModalIcon').removeClass('fa-pause').addClass('fa-play');
+                $('#suspendModalAction').text('Reactivate');
+                $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success');
+                $('#suspendModal').data('id', selectedAddress.id).data('action', 'reactivate').modal('show');
+            } else {
+                $('#suspendModalTitle').text('Suspend Email-to-SMS Address');
+                $('#suspendModalMessage').html('Are you sure you want to suspend <strong>' + selectedAddress.name + '</strong>?');
+                $('#suspendModalDescription').text('While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.');
+                $('#suspendModalIcon').removeClass('fa-play').addClass('fa-pause');
+                $('#suspendModalAction').text('Suspend');
+                $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning');
+                $('#suspendModal').data('id', selectedAddress.id).data('action', 'suspend').modal('show');
+            }
         }
     });
     
