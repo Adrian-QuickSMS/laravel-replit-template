@@ -2381,7 +2381,9 @@ $(document).ready(function() {
             $('#suspendModalIcon').removeClass('fa-play').addClass('fa-pause');
             $('#suspendModalAction').text('Suspend');
             $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning');
-            $('#suspendModal').data('id', id).data('action', 'suspend').modal('show');
+            $('#suspendModal').attr('data-address-id', id).attr('data-action', 'suspend');
+            var modal = new bootstrap.Modal(document.getElementById('suspendModal'));
+            modal.show();
         }
     });
     
@@ -2396,7 +2398,9 @@ $(document).ready(function() {
             $('#suspendModalIcon').removeClass('fa-pause').addClass('fa-play');
             $('#suspendModalAction').text('Reactivate');
             $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success');
-            $('#suspendModal').data('id', id).data('action', 'reactivate').modal('show');
+            $('#suspendModal').attr('data-address-id', id).attr('data-action', 'reactivate');
+            var modal = new bootstrap.Modal(document.getElementById('suspendModal'));
+            modal.show();
         }
     });
     
@@ -2671,8 +2675,8 @@ $(document).ready(function() {
     });
     
     $('#btnConfirmSuspend').on('click', function() {
-        var id = $('#suspendModal').data('id');
-        var action = $('#suspendModal').data('action');
+        var id = $('#suspendModal').attr('data-address-id');
+        var action = $('#suspendModal').attr('data-action');
         var address = mockAddresses.find(function(a) { return a.id === id; });
         if (address) {
             var newStatus = (action === 'suspend') ? 'Suspended' : 'Active';
@@ -2687,7 +2691,7 @@ $(document).ready(function() {
                 : 'Email-to-SMS address reactivated successfully';
             showSuccessToast(toastMessage);
         }
-        $('#suspendModal').modal('hide');
+        bootstrap.Modal.getInstance(document.getElementById('suspendModal')).hide();
     });
     
     function showSuccessToast(message) {
@@ -2739,7 +2743,7 @@ $(document).ready(function() {
                 $('#suspendModalIcon').removeClass('fa-pause').addClass('fa-play');
                 $('#suspendModalAction').text('Reactivate');
                 $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success');
-                $('#suspendModal').data('id', selectedAddress.id).data('action', 'reactivate').modal('show');
+                $('#suspendModal').attr('data-address-id', selectedAddress.id).attr('data-action', 'reactivate');
             } else {
                 $('#suspendModalTitle').text('Suspend Email-to-SMS Address');
                 $('#suspendModalMessage').html('Are you sure you want to suspend <strong>' + selectedAddress.name + '</strong>?');
@@ -2747,8 +2751,10 @@ $(document).ready(function() {
                 $('#suspendModalIcon').removeClass('fa-play').addClass('fa-pause');
                 $('#suspendModalAction').text('Suspend');
                 $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning');
-                $('#suspendModal').data('id', selectedAddress.id).data('action', 'suspend').modal('show');
+                $('#suspendModal').attr('data-address-id', selectedAddress.id).attr('data-action', 'suspend');
             }
+            var modal = new bootstrap.Modal(document.getElementById('suspendModal'));
+            modal.show();
         }
     });
     
