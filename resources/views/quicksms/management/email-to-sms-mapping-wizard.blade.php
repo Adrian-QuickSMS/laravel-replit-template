@@ -684,20 +684,15 @@
                                                 </div>
                                             </div>
                                             
-                                            {{-- Right Column: How It Works + Actions --}}
+                                            {{-- Right Column: Actions + How It Works (collapsible) --}}
                                             <div class="col-lg-4">
-                                                <div class="card mb-3 border-primary">
-                                                    <div class="card-header py-2 bg-primary text-white">
-                                                        <h6 class="mb-0 small"><i class="fas fa-info-circle me-1"></i>How It Works</h6>
-                                                    </div>
-                                                    <div class="card-body py-2 px-3" style="font-size: 12px;">
-                                                        <ol class="mb-0 ps-3">
-                                                            <li class="mb-1">Email to <strong id="summaryEmailInline" class="text-break">-</strong></li>
-                                                            <li class="mb-1">SenderID from subject</li>
-                                                            <li class="mb-1">SMS from email body</li>
-                                                            <li class="mb-0">Sent to <strong id="summaryRecipientCountInline">0</strong> recipients</li>
-                                                        </ol>
-                                                    </div>
+                                                <div class="d-grid gap-2 mb-3">
+                                                    <button type="button" class="btn btn-primary" id="btnCreateMapping">
+                                                        <i class="fas fa-check-circle me-1"></i> Create Mapping
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSaveDraftReview">
+                                                        <i class="fas fa-save me-1"></i> Save as Draft
+                                                    </button>
                                                 </div>
                                                 
                                                 <div class="alert alert-pastel-warning small py-2 mb-3">
@@ -705,13 +700,23 @@
                                                     Email address cannot be changed after creation.
                                                 </div>
                                                 
-                                                <div class="d-grid gap-2">
-                                                    <button type="button" class="btn btn-primary" id="btnCreateMapping">
-                                                        <i class="fas fa-check-circle me-1"></i> Create Mapping
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnSaveDraftReview">
-                                                        <i class="fas fa-save me-1"></i> Save as Draft
-                                                    </button>
+                                                <div class="card mb-3 border-primary">
+                                                    <div class="card-header py-2 bg-primary text-white" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#howItWorksCollapse" aria-expanded="false" aria-controls="howItWorksCollapse">
+                                                        <h6 class="mb-0 small d-flex justify-content-between align-items-center">
+                                                            <span><i class="fas fa-info-circle me-1"></i>How It Works</span>
+                                                            <i class="fas fa-chevron-down small" id="howItWorksIcon"></i>
+                                                        </h6>
+                                                    </div>
+                                                    <div class="collapse" id="howItWorksCollapse">
+                                                        <div class="card-body py-2 px-3" style="font-size: 12px;">
+                                                            <ol class="mb-0 ps-3">
+                                                                <li class="mb-1">Email to <strong id="summaryEmailInline" class="text-break">-</strong></li>
+                                                                <li class="mb-1">SenderID from subject</li>
+                                                                <li class="mb-1">SMS from email body</li>
+                                                                <li class="mb-0">Sent to <strong id="summaryRecipientCountInline">0</strong> recipients</li>
+                                                            </ol>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1797,6 +1802,12 @@ $(document).ready(function() {
         }).catch(function() {
             showErrorToast('Failed to copy. Please select and copy manually.');
         });
+    });
+    
+    $('#howItWorksCollapse').on('show.bs.collapse', function() {
+        $('#howItWorksIcon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    }).on('hide.bs.collapse', function() {
+        $('#howItWorksIcon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
     });
     
     $('#btnSaveDraftReview').on('click', function() {
