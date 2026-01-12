@@ -1581,15 +1581,16 @@
                                 <div class="row">
                                     <div class="col-lg-10">
                                         <div class="mb-3">
-                                            <label class="form-label fw-semibold">Allowed Sender Emails</label>
-                                            <p class="text-muted small mb-2">Only emails from these addresses will trigger SMS. Leave empty to allow all senders. Supports wildcard domains (e.g., *@company.com).</p>
+                                            <label class="form-label fw-medium">Allowed Sender Email(s)</label>
+                                            <p class="text-muted small mb-2">Only emails from these addresses will trigger SMS. Leave empty to allow all senders.</p>
                                             <div class="input-group mb-2">
-                                                <input type="email" class="form-control" id="stdWizardEmailInput" placeholder="email@example.com or *@domain.com">
+                                                <input type="text" class="form-control" id="stdWizardEmailInput" placeholder="user@domain.com or *@domain.com">
                                                 <button class="btn btn-primary" type="button" id="stdWizardAddEmailBtn">
                                                     <i class="fas fa-plus me-1"></i> Add
                                                 </button>
                                             </div>
                                             <div class="invalid-feedback" id="stdWizardEmailError" style="display: none;">Invalid email format.</div>
+                                            <small class="text-muted">Supports single emails (user@domain.com) or wildcard domains (*@domain.com).</small>
                                         </div>
                                         
                                         <div id="stdWizardEmailTagsContainer" class="email-tags-container mb-3"></div>
@@ -1601,9 +1602,9 @@
                                             </button>
                                         </div>
                                         
-                                        <div id="stdWizardWildcardWarning" class="alert alert-warning d-none mt-3" style="font-size: 0.85rem;">
+                                        <div id="stdWizardWildcardWarning" class="alert alert-warning d-none mt-3">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
-                                            <strong>Warning:</strong> Wildcard domains are less secure and may result in unintended messages being sent.
+                                            <strong>Warning:</strong> Wildcard email addresses are less secure and may result in unintended messages being sent.
                                         </div>
                                     </div>
                                 </div>
