@@ -1510,112 +1510,8 @@
 $(document).ready(function() {
     var EMAIL_DOMAIN = '@sms.quicksms.io';
     
-    var mockAddresses = [
-        {
-            id: 'addr-001',
-            name: 'Appointment Reminders',
-            originatingEmails: ['appointments.12abc' + EMAIL_DOMAIN, 'appts.nhs' + EMAIL_DOMAIN],
-            description: 'Automated appointment reminder notifications',
-            type: 'Contact List',
-            senderId: 'NHS Trust',
-            optOut: 'Global Opt-Out',
-            subAccount: 'Main Account',
-            reportingGroup: 'Appointments',
-            allowedSenders: ['admin@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
-            dailyLimit: 5000,
-            status: 'Active',
-            created: '2024-11-15',
-            lastUsed: '2025-01-09 08:45',
-            messagesSent: 12847
-        },
-        {
-            id: 'addr-002',
-            name: 'Prescription Ready',
-            originatingEmails: ['prescriptions.45def' + EMAIL_DOMAIN],
-            description: 'Notify patients when prescriptions are ready',
-            type: 'Standard',
-            senderId: 'Pharmacy',
-            optOut: 'Marketing Opt-Out',
-            subAccount: 'Marketing Team',
-            reportingGroup: 'Reminders',
-            allowedSenders: [],
-            dailyLimit: 2000,
-            status: 'Active',
-            created: '2024-12-01',
-            lastUsed: '2025-01-08 16:20',
-            messagesSent: 3421
-        },
-        {
-            id: 'addr-003',
-            name: 'Test Notifications',
-            originatingEmails: ['test.78ghi' + EMAIL_DOMAIN, 'test.dev' + EMAIL_DOMAIN, 'test.qa' + EMAIL_DOMAIN],
-            description: 'Test address for development',
-            type: 'Standard',
-            senderId: 'QuickSMS',
-            optOut: null,
-            subAccount: 'Support Team',
-            reportingGroup: 'Default',
-            allowedSenders: ['developer@company.com'],
-            dailyLimit: 100,
-            status: 'Suspended',
-            created: '2025-01-02',
-            lastUsed: '2025-01-05 11:30',
-            messagesSent: 156
-        }
-    ];
-    
-    var mockReportingGroups = [
-        { 
-            id: 'rg-001', 
-            name: 'Default', 
-            description: 'Default reporting group for uncategorized messages', 
-            linkedAddresses: ['Test Notifications'],
-            messagesSent: 156,
-            lastActivity: '2025-01-05 11:30',
-            created: '2024-10-01',
-            status: 'Active'
-        },
-        { 
-            id: 'rg-002', 
-            name: 'Appointments', 
-            description: 'All appointment-related SMS communications', 
-            linkedAddresses: ['Appointment Reminders'],
-            messagesSent: 12847,
-            lastActivity: '2025-01-09 08:45',
-            created: '2024-11-10',
-            status: 'Active'
-        },
-        { 
-            id: 'rg-003', 
-            name: 'Reminders', 
-            description: 'General reminder and notification messages', 
-            linkedAddresses: ['Prescription Ready'],
-            messagesSent: 3421,
-            lastActivity: '2025-01-08 16:20',
-            created: '2024-11-25',
-            status: 'Active'
-        },
-        { 
-            id: 'rg-004', 
-            name: 'Marketing Campaigns', 
-            description: 'Promotional and marketing SMS campaigns', 
-            linkedAddresses: [],
-            messagesSent: 45892,
-            lastActivity: '2024-12-20 14:00',
-            created: '2024-08-15',
-            status: 'Archived'
-        },
-        { 
-            id: 'rg-005', 
-            name: 'Urgent Alerts', 
-            description: 'High-priority urgent notifications', 
-            linkedAddresses: ['Emergency Alerts', 'System Notifications'],
-            messagesSent: 892,
-            lastActivity: '2025-01-07 09:15',
-            created: '2024-12-01',
-            status: 'Active'
-        }
-    ];
+    var overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
+    var reportingGroups = EmailToSmsService.getMockReportingGroups();
     
     // Contact List setups - populated from service layer
     var contactListSetups = [];
@@ -1771,11 +1667,11 @@ $(document).ready(function() {
         });
         
         $('#rgShowingCount').text(groups.length);
-        $('#rgTotalCount').text(mockReportingGroups.length);
+        $('#rgTotalCount').text(reportingGroups.length);
     }
     
     function filterReportingGroups() {
-        var filtered = mockReportingGroups.slice();
+        var filtered = reportingGroups.slice();
         var chips = [];
         
         var searchTerm = ($('#rgQuickSearchInput').val() || '').toLowerCase().trim();
@@ -1837,7 +1733,7 @@ $(document).ready(function() {
         $('.rg-date-preset').removeClass('active');
         rgAppliedFilters = {};
         $('#rgActiveFiltersContainer').hide();
-        renderReportingGroups(mockReportingGroups);
+        renderReportingGroups(reportingGroups);
     }
     
     function renderContactListMappings(mappings) {
@@ -2296,7 +2192,7 @@ $(document).ready(function() {
     
     function applyFilters() {
         var chips = [];
-        var filtered = mockAddresses.slice();
+        var filtered = overviewAddresses.slice();
         
         $('.multiselect-dropdown').each(function() {
             var filterName = $(this).data('filter');
@@ -2345,7 +2241,7 @@ $(document).ready(function() {
         $('.date-preset-btn').removeClass('active');
         appliedFilters = {};
         $('#activeFiltersContainer').hide();
-        renderAddressesTable(mockAddresses);
+        renderAddressesTable(overviewAddresses);
     }
     
     $('#btnCreateAddress, #btnCreateAddressEmpty').on('click', function() {
@@ -2359,21 +2255,21 @@ $(document).ready(function() {
     $(document).on('click', '#addressesTableBody tr', function(e) {
         if ($(e.target).closest('.dropdown').length) return;
         var id = $(this).data('id');
-        var address = mockAddresses.find(function(a) { return a.id === id; });
+        var address = overviewAddresses.find(function(a) { return a.id === id; });
         if (address) openDetailsDrawer(address);
     });
     
     $(document).on('click', '.view-details', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var address = mockAddresses.find(function(a) { return a.id === id; });
+        var address = overviewAddresses.find(function(a) { return a.id === id; });
         if (address) openDetailsDrawer(address);
     });
     
     $(document).on('click', '.suspend-address', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var address = mockAddresses.find(function(a) { return a.id === id; });
+        var address = overviewAddresses.find(function(a) { return a.id === id; });
         if (address) {
             $('#suspendModalTitle').text('Suspend Email-to-SMS Address');
             $('#suspendModalMessage').html('Are you sure you want to suspend <strong>' + address.name + '</strong>?');
@@ -2390,7 +2286,7 @@ $(document).ready(function() {
     $(document).on('click', '.reactivate-address', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var address = mockAddresses.find(function(a) { return a.id === id; });
+        var address = overviewAddresses.find(function(a) { return a.id === id; });
         if (address) {
             $('#suspendModalTitle').text('Reactivate Email-to-SMS Address');
             $('#suspendModalMessage').html('Are you sure you want to reactivate <strong>' + address.name + '</strong>?');
@@ -2407,7 +2303,7 @@ $(document).ready(function() {
     $(document).on('click', '.delete-address', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var address = mockAddresses.find(function(a) { return a.id === id; });
+        var address = overviewAddresses.find(function(a) { return a.id === id; });
         if (address) {
             $('#deleteAddressName').text(address.name);
             $('#deleteModal').data('id', id).modal('show');
@@ -2435,10 +2331,10 @@ $(document).ready(function() {
         clearTimeout(quickSearchTimeout);
         quickSearchTimeout = setTimeout(function() {
             if (query.length === 0) {
-                renderAddressesTable(mockAddresses);
+                renderAddressesTable(overviewAddresses);
                 return;
             }
-            var filtered = mockAddresses.filter(function(addr) {
+            var filtered = overviewAddresses.filter(function(addr) {
                 var emailMatch = addr.originatingEmails.some(function(email) {
                     return email.toLowerCase().includes(query);
                 });
@@ -2494,8 +2390,8 @@ $(document).ready(function() {
             messagesSent: 0
         };
         
-        mockAddresses.unshift(newAddress);
-        renderAddressesTable(mockAddresses);
+        overviewAddresses.unshift(newAddress);
+        renderAddressesTable(overviewAddresses);
         $('#createAddressModal').modal('hide');
         
         $('#createName, #createDescription, #createAllowedSenders, #createDailyLimit').val('');
@@ -2504,7 +2400,7 @@ $(document).ready(function() {
     
     function getLinkedAddressNames() {
         var linkedNames = [];
-        mockReportingGroups.forEach(function(group) {
+        reportingGroups.forEach(function(group) {
             if (group.linkedAddresses && group.linkedAddresses.length > 0) {
                 group.linkedAddresses.forEach(function(addrName) {
                     linkedNames.push(addrName);
@@ -2515,7 +2411,7 @@ $(document).ready(function() {
     }
     
     function findGroupByAddressName(addressName) {
-        return mockReportingGroups.find(function(g) {
+        return reportingGroups.find(function(g) {
             return g.linkedAddresses && g.linkedAddresses.indexOf(addressName) !== -1;
         });
     }
@@ -2526,7 +2422,7 @@ $(document).ready(function() {
         
         var linkedNames = getLinkedAddressNames();
         
-        mockAddresses.forEach(function(addr) {
+        overviewAddresses.forEach(function(addr) {
             var isLinked = linkedNames.indexOf(addr.name) !== -1;
             var optionText = addr.name + (isLinked ? ' (already linked)' : '');
             $dropdown.append('<option value="' + addr.id + '" data-name="' + addr.name + '" data-linked="' + isLinked + '">' + optionText + '</option>');
@@ -2601,8 +2497,8 @@ $(document).ready(function() {
             status: 'Active'
         };
         
-        mockReportingGroups.push(newGroup);
-        renderReportingGroups(mockReportingGroups);
+        reportingGroups.push(newGroup);
+        renderReportingGroups(reportingGroups);
         $('#createReportingGroupModal').modal('hide');
     });
     
@@ -2657,41 +2553,91 @@ $(document).ready(function() {
     $(document).on('click', '.archive-rg', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var group = mockReportingGroups.find(function(g) { return g.id === id; });
-        if (group) {
-            group.status = 'Archived';
-            renderReportingGroups(mockReportingGroups);
-        }
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        EmailToSmsService.archiveReportingGroup(id).then(function(response) {
+            if (response.success) {
+                reportingGroups = EmailToSmsService.getMockReportingGroups();
+                renderReportingGroups(reportingGroups);
+                showSuccessToast(response.message);
+            } else {
+                showErrorToast(response.error || 'Failed to archive group');
+            }
+        }).catch(function(error) {
+            console.error('Error archiving group:', error);
+            showErrorToast('An error occurred while archiving the group');
+        }).finally(function() {
+            $btn.prop('disabled', false).html(originalHtml);
+        });
     });
     
     $(document).on('click', '.unarchive-rg', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
-        var group = mockReportingGroups.find(function(g) { return g.id === id; });
-        if (group) {
-            group.status = 'Active';
-            renderReportingGroups(mockReportingGroups);
-        }
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        EmailToSmsService.unarchiveReportingGroup(id).then(function(response) {
+            if (response.success) {
+                reportingGroups = EmailToSmsService.getMockReportingGroups();
+                renderReportingGroups(reportingGroups);
+                showSuccessToast(response.message);
+            } else {
+                showErrorToast(response.error || 'Failed to unarchive group');
+            }
+        }).catch(function(error) {
+            console.error('Error unarchiving group:', error);
+            showErrorToast('An error occurred while unarchiving the group');
+        }).finally(function() {
+            $btn.prop('disabled', false).html(originalHtml);
+        });
     });
     
     $('#btnConfirmSuspend').on('click', function() {
         var id = $('#suspendModal').attr('data-address-id');
         var action = $('#suspendModal').attr('data-action');
-        var address = mockAddresses.find(function(a) { return a.id === id; });
-        if (address) {
-            var newStatus = (action === 'suspend') ? 'Suspended' : 'Active';
-            address.status = newStatus;
-            renderAddressesTable(mockAddresses);
-            if (selectedAddress && selectedAddress.id === id) {
-                selectedAddress.status = newStatus;
-                openDetailsDrawer(address);
+        var $btn = $(this);
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+        
+        var serviceMethod = (action === 'suspend') 
+            ? EmailToSmsService.suspendOverviewAddress(id)
+            : EmailToSmsService.reactivateOverviewAddress(id);
+        
+        serviceMethod.then(function(response) {
+            if (response.success) {
+                overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
+                renderAddressesTable(overviewAddresses);
+                
+                if (selectedAddress && selectedAddress.id === id) {
+                    var updatedAddress = overviewAddresses.find(function(a) { return a.id === id; });
+                    if (updatedAddress) {
+                        selectedAddress = updatedAddress;
+                        openDetailsDrawer(updatedAddress);
+                    }
+                }
+                
+                showSuccessToast(response.message);
+            } else {
+                showErrorToast(response.error || 'Failed to update address status');
             }
-            var toastMessage = (action === 'suspend') 
-                ? 'Email-to-SMS address suspended successfully'
-                : 'Email-to-SMS address reactivated successfully';
-            showSuccessToast(toastMessage);
-        }
-        bootstrap.Modal.getInstance(document.getElementById('suspendModal')).hide();
+        }).catch(function(error) {
+            console.error('Error updating address status:', error);
+            showErrorToast('An error occurred while updating the address status');
+        }).finally(function() {
+            $btn.prop('disabled', false);
+            if (action === 'suspend') {
+                $btn.html('<i class="fas fa-pause me-1"></i> Suspend');
+            } else {
+                $btn.html('<i class="fas fa-play me-1"></i> Reactivate');
+            }
+            bootstrap.Modal.getInstance(document.getElementById('suspendModal')).hide();
+        });
     });
     
     function showSuccessToast(message) {
@@ -2726,10 +2672,26 @@ $(document).ready(function() {
     
     $('#btnConfirmDelete').on('click', function() {
         var id = $('#deleteModal').data('id');
-        mockAddresses = mockAddresses.filter(function(a) { return a.id !== id; });
-        renderAddressesTable(mockAddresses);
-        closeDetailsDrawer();
-        $('#deleteModal').modal('hide');
+        var $btn = $(this);
+        
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Deleting...');
+        
+        EmailToSmsService.deleteOverviewAddress(id).then(function(response) {
+            if (response.success) {
+                overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
+                renderAddressesTable(overviewAddresses);
+                closeDetailsDrawer();
+                showSuccessToast(response.message);
+            } else {
+                showErrorToast(response.error || 'Failed to delete address');
+            }
+        }).catch(function(error) {
+            console.error('Error deleting address:', error);
+            showErrorToast('An error occurred while deleting the address');
+        }).finally(function() {
+            $btn.prop('disabled', false).html('<i class="fas fa-trash-alt me-1"></i> Delete');
+            $('#deleteModal').modal('hide');
+        });
     });
     
     $('#actionSuspend').on('click', function(e) {
@@ -2766,8 +2728,8 @@ $(document).ready(function() {
         }
     });
     
-    renderAddressesTable(mockAddresses);
-    renderReportingGroups(mockReportingGroups);
+    renderAddressesTable(overviewAddresses);
+    renderReportingGroups(reportingGroups);
     filterContactListMappings();
     
     // Contact Lists tab handlers

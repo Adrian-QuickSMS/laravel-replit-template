@@ -1207,6 +1207,382 @@ var EmailToSmsService = (function() {
         return _makeRequest('GET', contactListConfig.endpoints.accountFlags);
     }
     
+    // =====================================================================
+    // Overview Tab Service Methods (Email-to-SMS Addresses)
+    // =====================================================================
+    
+    var overviewConfig = {
+        endpoints: {
+            list: '/addresses',
+            get: '/addresses/{id}',
+            create: '/addresses',
+            update: '/addresses/{id}',
+            suspend: '/addresses/{id}/suspend',
+            reactivate: '/addresses/{id}/reactivate',
+            delete: '/addresses/{id}'
+        }
+    };
+    
+    var EMAIL_DOMAIN = '@sms.quicksms.io';
+    
+    var mockOverviewAddresses = [
+        {
+            id: 'addr-001',
+            name: 'Appointment Reminders',
+            originatingEmails: ['appointments.12abc' + EMAIL_DOMAIN, 'appts.nhs' + EMAIL_DOMAIN],
+            description: 'Automated appointment reminder notifications',
+            type: 'Contact List',
+            senderId: 'NHS Trust',
+            optOut: 'Global Opt-Out',
+            subAccount: 'Main Account',
+            reportingGroup: 'Appointments',
+            allowedSenders: ['admin@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
+            dailyLimit: 5000,
+            status: 'Active',
+            created: '2024-11-15',
+            lastUsed: '2025-01-09 08:45',
+            messagesSent: 12847
+        },
+        {
+            id: 'addr-002',
+            name: 'Prescription Ready',
+            originatingEmails: ['prescriptions.45def' + EMAIL_DOMAIN],
+            description: 'Notify patients when prescriptions are ready',
+            type: 'Standard',
+            senderId: 'Pharmacy',
+            optOut: 'Marketing Opt-Out',
+            subAccount: 'Marketing Team',
+            reportingGroup: 'Reminders',
+            allowedSenders: [],
+            dailyLimit: 2000,
+            status: 'Active',
+            created: '2024-12-01',
+            lastUsed: '2025-01-08 16:20',
+            messagesSent: 3421
+        },
+        {
+            id: 'addr-003',
+            name: 'Test Notifications',
+            originatingEmails: ['test.78ghi' + EMAIL_DOMAIN, 'test.dev' + EMAIL_DOMAIN, 'test.qa' + EMAIL_DOMAIN],
+            description: 'Test address for development',
+            type: 'Standard',
+            senderId: 'QuickSMS',
+            optOut: null,
+            subAccount: 'Support Team',
+            reportingGroup: 'Default',
+            allowedSenders: ['developer@company.com'],
+            dailyLimit: 100,
+            status: 'Suspended',
+            created: '2025-01-02',
+            lastUsed: '2025-01-05 11:30',
+            messagesSent: 156
+        }
+    ];
+    
+    var mockReportingGroups = [
+        { 
+            id: 'rg-001', 
+            name: 'Default', 
+            description: 'Default reporting group for uncategorized messages', 
+            linkedAddresses: ['Test Notifications'],
+            messagesSent: 156,
+            lastActivity: '2025-01-05 11:30',
+            created: '2024-10-01',
+            status: 'Active'
+        },
+        { 
+            id: 'rg-002', 
+            name: 'Appointments', 
+            description: 'All appointment-related SMS communications', 
+            linkedAddresses: ['Appointment Reminders'],
+            messagesSent: 12847,
+            lastActivity: '2025-01-09 08:45',
+            created: '2024-11-10',
+            status: 'Active'
+        },
+        { 
+            id: 'rg-003', 
+            name: 'Reminders', 
+            description: 'General reminder and notification messages', 
+            linkedAddresses: ['Prescription Ready'],
+            messagesSent: 3421,
+            lastActivity: '2025-01-08 16:20',
+            created: '2024-11-25',
+            status: 'Active'
+        },
+        { 
+            id: 'rg-004', 
+            name: 'Marketing Campaigns', 
+            description: 'Promotional and marketing SMS campaigns', 
+            linkedAddresses: [],
+            messagesSent: 45892,
+            lastActivity: '2024-12-20 14:00',
+            created: '2024-08-15',
+            status: 'Archived'
+        },
+        { 
+            id: 'rg-005', 
+            name: 'Urgent Alerts', 
+            description: 'High-priority urgent notifications', 
+            linkedAddresses: ['Emergency Alerts', 'System Notifications'],
+            messagesSent: 892,
+            lastActivity: '2025-01-07 09:15',
+            created: '2024-12-01',
+            status: 'Active'
+        }
+    ];
+    
+    /**
+     * List all Overview Email-to-SMS addresses
+     * @param {object} options - Filter options
+     * @returns {Promise<object>}
+     */
+    function listOverviewAddresses(options) {
+        options = options || {};
+        
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var results = mockOverviewAddresses.slice();
+                
+                if (options.search) {
+                    var searchTerm = options.search.toLowerCase();
+                    results = results.filter(function(item) {
+                        var emailMatch = item.originatingEmails.some(function(email) {
+                            return email.toLowerCase().indexOf(searchTerm) !== -1;
+                        });
+                        return item.name.toLowerCase().indexOf(searchTerm) !== -1 || emailMatch;
+                    });
+                }
+                
+                if (options.status && options.status.length > 0) {
+                    results = results.filter(function(item) {
+                        return options.status.indexOf(item.status) !== -1;
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: results,
+                    total: results.length
+                };
+            });
+        }
+        
+        var queryParams = new URLSearchParams(options).toString();
+        var endpoint = overviewConfig.endpoints.list + (queryParams ? '?' + queryParams : '');
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Get a single Overview Email-to-SMS address
+     * @param {string} id - Address ID
+     * @returns {Promise<object>}
+     */
+    function getOverviewAddress(id) {
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var address = mockOverviewAddresses.find(function(a) { return a.id === id; });
+                if (!address) {
+                    return { success: false, error: 'Address not found' };
+                }
+                return { success: true, data: address };
+            });
+        }
+        
+        var endpoint = overviewConfig.endpoints.get.replace('{id}', id);
+        return _makeRequest('GET', endpoint);
+    }
+    
+    /**
+     * Suspend an Overview Email-to-SMS address
+     * @param {string} id - Address ID
+     * @returns {Promise<object>}
+     */
+    function suspendOverviewAddress(id) {
+        if (config.useMockData) {
+            return simulateDelay(300).then(function() {
+                var index = mockOverviewAddresses.findIndex(function(a) { return a.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Address not found' };
+                }
+                
+                if (mockOverviewAddresses[index].status === 'Suspended') {
+                    return { success: false, error: 'Address is already suspended' };
+                }
+                
+                mockOverviewAddresses[index].status = 'Suspended';
+                
+                return {
+                    success: true,
+                    data: mockOverviewAddresses[index],
+                    message: 'Email-to-SMS address suspended successfully'
+                };
+            });
+        }
+        
+        var endpoint = overviewConfig.endpoints.suspend.replace('{id}', id);
+        return _makeRequest('POST', endpoint);
+    }
+    
+    /**
+     * Reactivate an Overview Email-to-SMS address
+     * @param {string} id - Address ID
+     * @returns {Promise<object>}
+     */
+    function reactivateOverviewAddress(id) {
+        if (config.useMockData) {
+            return simulateDelay(300).then(function() {
+                var index = mockOverviewAddresses.findIndex(function(a) { return a.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Address not found' };
+                }
+                
+                if (mockOverviewAddresses[index].status === 'Active') {
+                    return { success: false, error: 'Address is already active' };
+                }
+                
+                mockOverviewAddresses[index].status = 'Active';
+                
+                return {
+                    success: true,
+                    data: mockOverviewAddresses[index],
+                    message: 'Email-to-SMS address reactivated successfully'
+                };
+            });
+        }
+        
+        var endpoint = overviewConfig.endpoints.reactivate.replace('{id}', id);
+        return _makeRequest('POST', endpoint);
+    }
+    
+    /**
+     * Delete an Overview Email-to-SMS address
+     * @param {string} id - Address ID
+     * @returns {Promise<object>}
+     */
+    function deleteOverviewAddress(id) {
+        if (config.useMockData) {
+            return simulateDelay(300).then(function() {
+                var index = mockOverviewAddresses.findIndex(function(a) { return a.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Address not found' };
+                }
+                
+                mockOverviewAddresses.splice(index, 1);
+                
+                return {
+                    success: true,
+                    message: 'Email-to-SMS address deleted successfully'
+                };
+            });
+        }
+        
+        var endpoint = overviewConfig.endpoints.delete.replace('{id}', id);
+        return _makeRequest('DELETE', endpoint);
+    }
+    
+    /**
+     * List all reporting groups
+     * @param {object} options - Filter options
+     * @returns {Promise<object>}
+     */
+    function listReportingGroups(options) {
+        options = options || {};
+        
+        if (config.useMockData) {
+            return simulateDelay(100).then(function() {
+                var results = mockReportingGroups.slice();
+                
+                if (!options.includeArchived) {
+                    results = results.filter(function(g) { return g.status !== 'Archived'; });
+                }
+                
+                if (options.search) {
+                    var searchTerm = options.search.toLowerCase();
+                    results = results.filter(function(g) {
+                        return g.name.toLowerCase().indexOf(searchTerm) !== -1;
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: results,
+                    total: results.length
+                };
+            });
+        }
+        
+        return _makeRequest('GET', '/reporting-groups');
+    }
+    
+    /**
+     * Archive a reporting group
+     * @param {string} id - Group ID
+     * @returns {Promise<object>}
+     */
+    function archiveReportingGroup(id) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockReportingGroups.findIndex(function(g) { return g.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Group not found' };
+                }
+                
+                mockReportingGroups[index].status = 'Archived';
+                
+                return {
+                    success: true,
+                    data: mockReportingGroups[index],
+                    message: 'Reporting group archived successfully'
+                };
+            });
+        }
+        
+        return _makeRequest('POST', '/reporting-groups/' + id + '/archive');
+    }
+    
+    /**
+     * Unarchive a reporting group
+     * @param {string} id - Group ID
+     * @returns {Promise<object>}
+     */
+    function unarchiveReportingGroup(id) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockReportingGroups.findIndex(function(g) { return g.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Group not found' };
+                }
+                
+                mockReportingGroups[index].status = 'Active';
+                
+                return {
+                    success: true,
+                    data: mockReportingGroups[index],
+                    message: 'Reporting group unarchived successfully'
+                };
+            });
+        }
+        
+        return _makeRequest('POST', '/reporting-groups/' + id + '/unarchive');
+    }
+    
+    /**
+     * Get mock addresses data (for direct access during transition)
+     * @returns {Array}
+     */
+    function getMockOverviewAddresses() {
+        return mockOverviewAddresses;
+    }
+    
+    /**
+     * Get mock reporting groups data (for direct access during transition)
+     * @returns {Array}
+     */
+    function getMockReportingGroups() {
+        return mockReportingGroups;
+    }
+    
     // Public API
     return {
         config: config,
@@ -1221,7 +1597,7 @@ var EmailToSmsService = (function() {
         getTemplatesForSenderIdDropdown: getTemplatesForSenderIdDropdown,
         getSubaccounts: getSubaccounts,
         
-        // Contact List Email-to-SMS (new)
+        // Contact List Email-to-SMS
         listEmailToSmsContactListSetups: listEmailToSmsContactListSetups,
         getEmailToSmsContactListSetup: getEmailToSmsContactListSetup,
         createEmailToSmsContactListSetup: createEmailToSmsContactListSetup,
@@ -1232,6 +1608,20 @@ var EmailToSmsService = (function() {
         getOptOutLists: getOptOutLists,
         getApprovedSmsTemplates: getApprovedSmsTemplates,
         getAccountFlags: getAccountFlags,
+        
+        // Overview Tab (Email-to-SMS Addresses)
+        listOverviewAddresses: listOverviewAddresses,
+        getOverviewAddress: getOverviewAddress,
+        suspendOverviewAddress: suspendOverviewAddress,
+        reactivateOverviewAddress: reactivateOverviewAddress,
+        deleteOverviewAddress: deleteOverviewAddress,
+        getMockOverviewAddresses: getMockOverviewAddresses,
+        
+        // Reporting Groups
+        listReportingGroups: listReportingGroups,
+        archiveReportingGroup: archiveReportingGroup,
+        unarchiveReportingGroup: unarchiveReportingGroup,
+        getMockReportingGroups: getMockReportingGroups,
         
         // Utilities
         validateContentFilterRegex: validateContentFilterRegex,
