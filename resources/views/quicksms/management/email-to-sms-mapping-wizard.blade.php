@@ -691,6 +691,34 @@ $(document).ready(function() {
         } else {
             $('#btnNext').html('Next <i class="fas fa-arrow-right ms-1"></i>');
         }
+        
+        updateNextButtonState();
+    }
+    
+    function updateNextButtonState() {
+        var canProceed = false;
+        
+        switch (currentStep) {
+            case 0:
+                canProceed = wizardData.name.trim() !== '' && wizardData.subAccount !== '';
+                break;
+            case 1:
+                canProceed = true;
+                break;
+            case 2:
+                canProceed = wizardData.contactListId !== '';
+                break;
+            case 3:
+                canProceed = wizardData.senderId !== '';
+                break;
+            case 4:
+                canProceed = true;
+                break;
+            default:
+                canProceed = true;
+        }
+        
+        $('#btnNext').prop('disabled', !canProceed);
     }
     
     function saveDraft() {
@@ -729,6 +757,7 @@ $(document).ready(function() {
         if (wizardData.name) {
             generateEmailAddress();
         }
+        updateNextButtonState();
     });
     
     $('#mappingDescription').on('input', function() {
@@ -739,11 +768,13 @@ $(document).ready(function() {
     $('#subAccount').on('change', function() {
         wizardData.subAccount = $(this).val();
         $(this).removeClass('is-invalid');
+        updateNextButtonState();
     });
     
     $('#senderId').on('change', function() {
         wizardData.senderId = $(this).val();
         $(this).removeClass('is-invalid');
+        updateNextButtonState();
     });
     
     $('#subjectAsSenderId').on('change', function() {
@@ -777,6 +808,7 @@ $(document).ready(function() {
         wizardData.contactListName = $(this).data('name');
         wizardData.contactListCount = $(this).data('count');
         $('#contactListError').hide();
+        updateNextButtonState();
     });
     
     function addSenderEmail() {
