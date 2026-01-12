@@ -334,23 +334,13 @@
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 2: Email Settings</strong> – Configure allowed sender emails and view your generated inbound address.
+                                            <strong>Step 2: Email Settings</strong> – Configure which email addresses are allowed to trigger this mapping.
                                         </div>
                                         
-                                        <div class="mb-4">
-                                            <label class="form-label">Generated Email Address</label>
-                                            <div class="generated-email">
-                                                <code id="generatedEmailDisplay">Enter mapping name to generate...</code>
-                                                <div>
-                                                    <button class="btn btn-outline-primary btn-sm" id="btnCopyEmail" disabled>
-                                                        <i class="fas fa-copy me-1"></i> Copy to Clipboard
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <small class="text-muted">This unique address is auto-generated based on your mapping name.</small>
+                                        <div class="alert alert-pastel-secondary mb-4">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Email Address:</strong> A unique inbound email address will be generated when you complete and create this mapping. You'll be able to copy it from the confirmation screen.
                                         </div>
-                                        
-                                        <hr class="my-4">
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Allowed Sender Emails (Optional)</label>
@@ -730,6 +720,22 @@
                                     <div class="col-lg-10 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
                                             <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
+                                        </div>
+                                        
+                                        {{-- Generated Email Address - Prominent Display --}}
+                                        <div class="card mb-4 border-success">
+                                            <div class="card-header py-2 bg-success text-white">
+                                                <h6 class="mb-0"><i class="fas fa-envelope me-2"></i>Your Generated Email Address</h6>
+                                            </div>
+                                            <div class="card-body text-center py-4">
+                                                <code class="d-block fs-5 mb-3" id="generatedEmailDisplay" style="font-size: 1.25rem !important;">Generating...</code>
+                                                <button class="btn btn-outline-success" id="btnCopyEmail">
+                                                    <i class="fas fa-copy me-2"></i> Copy to Clipboard
+                                                </button>
+                                                <p class="text-muted small mt-3 mb-0">
+                                                    Send emails to this address to trigger SMS messages to your selected recipients.
+                                                </p>
+                                            </div>
                                         </div>
                                         
                                         <div class="row">
@@ -1259,11 +1265,10 @@ $(document).ready(function() {
         currentStep = stepIndex;
         updateNavButtons();
         
-        if (stepIndex === 1 && wizardData.name && !wizardData.generatedEmail) {
-            generateEmailAddress();
-        }
-        
         if (stepIndex === totalSteps - 1) {
+            if (wizardData.name && !wizardData.generatedEmail) {
+                generateEmailAddress();
+            }
             updateSummary();
         }
     }
