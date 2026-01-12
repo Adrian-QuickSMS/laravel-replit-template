@@ -1,6 +1,6 @@
 @extends('layouts.quicksms')
 
-@section('title', 'Create Email-to-SMS Mapping')
+@section('title', 'Create Email-to-SMS – Contact List')
 
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
@@ -18,7 +18,7 @@
 }
 .form-wizard .nav-wizard li {
     flex: 1;
-    max-width: 180px;
+    max-width: 150px;
 }
 .form-wizard .nav-wizard li .nav-link {
     position: relative;
@@ -74,7 +74,7 @@
 }
 .form-wizard .toolbar-bottom {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.5rem;
     margin-top: 2rem;
     padding-top: 1rem;
@@ -238,6 +238,15 @@
     border-color: rgba(136, 108, 192, 0.2);
     color: #5a4a7a;
 }
+.btn-save-draft {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
+}
+.btn-save-draft:hover {
+    background-color: #5a6268 !important;
+    border-color: #5a6268 !important;
+}
 </style>
 @endpush
 
@@ -263,19 +272,98 @@
                 <div class="card-body">
                     <div id="mappingWizard" class="form-wizard">
                         <ul class="nav nav-wizard">
-                            <li class="nav-item"><a class="nav-link" href="#step-contact-list"><span>1</span><small>List</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-allowed-senders"><span>2</span><small>Senders</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-email-generation"><span>3</span><small>Email</small></a></li>
-                            <li class="nav-item"><a class="nav-link" href="#step-confirmation"><span>4</span><small>Confirm</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-general"><span>1</span><small>General</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-email"><span>2</span><small>Email</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-recipients"><span>3</span><small>Recipients</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-message"><span>4</span><small>Message</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-review"><span>5</span><small>Review</small></a></li>
                         </ul>
                         
                         <div class="tab-content">
-                            <div id="step-contact-list" class="tab-pane" role="tabpanel">
+                            <div id="step-general" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 1: Select Contact List</strong> – Choose the Contact Book List that will receive SMS messages when an email is sent to the generated address.
+                                            <strong>Step 1: General</strong> – Define the basic information for this Email-to-SMS mapping.
                                         </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Mapping Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="mappingName" placeholder="e.g., Pharmacy Appointments" maxlength="50">
+                                                <small class="text-muted">A unique, descriptive name for this mapping.</small>
+                                                <div class="invalid-feedback">Please enter a mapping name.</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control" id="mappingDescription" rows="2" placeholder="Brief description of this mapping..." maxlength="200"></textarea>
+                                                <small class="text-muted"><span id="descCharCount">0</span>/200 characters</small>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="subAccount">
+                                                    <option value="">Select sub-account...</option>
+                                                    <option value="main">Main Account</option>
+                                                    <option value="marketing">Marketing</option>
+                                                    <option value="operations">Operations</option>
+                                                    <option value="support">Support</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select a sub-account.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="step-email" class="tab-pane" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 2: Email Settings</strong> – Configure allowed sender emails and view your generated inbound address.
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label">Generated Email Address</label>
+                                            <div class="generated-email">
+                                                <code id="generatedEmailDisplay">Enter mapping name to generate...</code>
+                                                <div>
+                                                    <button class="btn btn-outline-primary btn-sm" id="btnCopyEmail" disabled>
+                                                        <i class="fas fa-copy me-1"></i> Copy to Clipboard
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">This unique address is auto-generated based on your mapping name.</small>
+                                        </div>
+                                        
+                                        <hr class="my-4">
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Allowed Sender Emails (Optional)</label>
+                                            <div class="input-group">
+                                                <input type="email" class="form-control" id="newSenderEmail" placeholder="Enter email address...">
+                                                <button class="btn btn-outline-primary" type="button" id="btnAddSender">
+                                                    <i class="fas fa-plus"></i> Add
+                                                </button>
+                                            </div>
+                                            <small class="text-muted">Restrict which email addresses can trigger this mapping. Leave empty to allow any sender.</small>
+                                        </div>
+                                        
+                                        <div id="senderEmailTags" class="mb-3">
+                                            <span class="text-muted">No sender restrictions - any email can trigger this mapping</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="step-recipients" class="tab-pane" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 3: Recipients (Contact Book Access)</strong> – Select the Contact Book List that will receive SMS messages.
+                                        </div>
+                                        
                                         <div class="mb-3">
                                             <div class="input-group">
                                                 <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
@@ -297,69 +385,92 @@
                                 </div>
                             </div>
                             
-                            <div id="step-allowed-senders" class="tab-pane" role="tabpanel">
+                            <div id="step-message" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 2: Allowed Sender Emails (Optional)</strong> – Specify which email addresses are permitted to trigger this mapping. Leave empty to allow any sender.
+                                            <strong>Step 4: Message Settings</strong> – Configure how incoming emails are processed into SMS messages.
                                         </div>
                                         
-                                        <div class="mb-3">
-                                            <label class="form-label">Add Email Addresses</label>
-                                            <div class="input-group">
-                                                <input type="email" class="form-control" id="newSenderEmail" placeholder="Enter email address...">
-                                                <button class="btn btn-outline-primary" type="button" id="btnAddSender">
-                                                    <i class="fas fa-plus"></i> Add
-                                                </button>
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="senderId">
+                                                    <option value="">Select SenderID...</option>
+                                                    <option value="QuickSMS">QuickSMS</option>
+                                                    <option value="NHSTrust">NHSTrust</option>
+                                                    <option value="Pharmacy">Pharmacy</option>
+                                                    <option value="Clinic">Clinic</option>
+                                                </select>
+                                                <small class="text-muted">The SenderID that will appear on SMS messages.</small>
+                                                <div class="invalid-feedback">Please select a SenderID.</div>
                                             </div>
-                                            <small class="text-muted">Press Enter or click Add to add an email address to the whitelist.</small>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <div class="form-check form-switch mt-4">
+                                                    <input class="form-check-input" type="checkbox" id="subjectAsSenderId">
+                                                    <label class="form-check-label" for="subjectAsSenderId">Use Email Subject as SenderID</label>
+                                                </div>
+                                                <small class="text-muted">Override SenderID with email subject line content.</small>
+                                            </div>
                                         </div>
                                         
-                                        <div id="senderEmailTags" class="mb-3">
+                                        <hr class="my-3">
+                                        
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="multipleSms" checked>
+                                                    <label class="form-check-label" for="multipleSms">Allow Multiple SMS</label>
+                                                </div>
+                                                <small class="text-muted">Allow messages longer than 160 characters to be split.</small>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="deliveryReports" checked>
+                                                    <label class="form-check-label" for="deliveryReports">Delivery Reports</label>
+                                                </div>
+                                                <small class="text-muted">Receive delivery status notifications.</small>
+                                            </div>
                                         </div>
                                         
-                                        <div class="alert alert-pastel-primary small">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            <strong>Tip:</strong> If you leave this empty, any sender can trigger SMS messages to this Contact List. Add specific email addresses to restrict who can send.
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="contentFilter" checked>
+                                                    <label class="form-check-label" for="contentFilter">Content Filter</label>
+                                                </div>
+                                                <small class="text-muted">Apply content filtering and signature removal.</small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div id="step-email-generation" class="tab-pane" role="tabpanel">
+                            <div id="step-review" class="tab-pane" role="tabpanel">
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 3: Generated Email Address</strong> – Your unique inbound email address has been generated. Emails sent to this address will trigger SMS to the selected Contact List.
+                                            <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
                                         </div>
                                         
-                                        <div class="generated-email">
-                                            <code id="generatedEmailDisplay">loading...</code>
-                                            <div>
-                                                <button class="btn btn-outline-primary btn-sm" id="btnCopyEmail">
-                                                    <i class="fas fa-copy me-1"></i> Copy to Clipboard
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="alert alert-pastel-primary mt-3">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            <strong>Important:</strong> Each Email-to-SMS Address can only be mapped to one Contact List. This address is unique and cannot be changed after creation.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div id="step-confirmation" class="tab-pane" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-lg-8 mx-auto">
-                                        <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 4: Review & Confirm</strong> – Please review your mapping configuration before creating.
-                                        </div>
                                         <div class="summary-card">
+                                            <div class="summary-row">
+                                                <span class="summary-label">Mapping Name</span>
+                                                <span class="summary-value" id="summaryName">-</span>
+                                            </div>
+                                            <div class="summary-row">
+                                                <span class="summary-label">Sub-Account</span>
+                                                <span class="summary-value" id="summarySubAccount">-</span>
+                                            </div>
                                             <div class="summary-row">
                                                 <span class="summary-label">Email-to-SMS Address</span>
                                                 <span class="summary-value" id="summaryEmail">-</span>
+                                            </div>
+                                            <div class="summary-row">
+                                                <span class="summary-label">Allowed Senders</span>
+                                                <span class="summary-value" id="summarySenders">-</span>
                                             </div>
                                             <div class="summary-row">
                                                 <span class="summary-label">Contact List</span>
@@ -370,15 +481,19 @@
                                                 <span class="summary-value" id="summaryRecipients">-</span>
                                             </div>
                                             <div class="summary-row">
-                                                <span class="summary-label">Allowed Senders</span>
-                                                <span class="summary-value" id="summarySenders">-</span>
+                                                <span class="summary-label">SenderID</span>
+                                                <span class="summary-value" id="summarySenderId">-</span>
+                                            </div>
+                                            <div class="summary-row">
+                                                <span class="summary-label">Message Settings</span>
+                                                <span class="summary-value" id="summaryMessageSettings">-</span>
                                             </div>
                                         </div>
                                         
                                         <div class="rules-box">
                                             <h6><i class="fas fa-info-circle me-2"></i>How It Works</h6>
                                             <ul>
-                                                <li><strong>SenderID</strong> is extracted from the <strong>EMAIL SUBJECT</strong> line</li>
+                                                <li><strong>SenderID</strong> is extracted from the <strong>EMAIL SUBJECT</strong> line (if enabled)</li>
                                                 <li><strong>SMS content</strong> is extracted from the <strong>EMAIL BODY</strong></li>
                                                 <li>All recipients in the selected Contact List will receive the SMS</li>
                                                 <li>Only whitelisted sender emails can trigger this mapping (if configured)</li>
@@ -387,6 +502,18 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="toolbar-bottom" id="wizardToolbar">
+                            <button type="button" class="btn btn-save-draft" id="btnSaveDraft">
+                                <i class="fas fa-save me-1"></i> Save Draft
+                            </button>
+                            <button type="button" class="btn sw-btn-prev" id="btnPrev" style="display: none;">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </button>
+                            <button type="button" class="btn sw-btn-next" id="btnNext">
+                                Next <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -398,6 +525,7 @@
 
 @push('scripts')
 <script src="{{ asset('vendor/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
+<script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
     var mockContactLists = [
@@ -411,13 +539,29 @@ $(document).ready(function() {
         { id: 'cl-008', name: 'Suppliers', count: 45 }
     ];
     
-    var allowedSenders = [];
-    var generatedEmail = '';
+    var wizardData = {
+        name: '',
+        description: '',
+        subAccount: '',
+        allowedSenders: [],
+        generatedEmail: '',
+        contactListId: '',
+        contactListName: '',
+        contactListCount: 0,
+        senderId: '',
+        subjectAsSenderId: false,
+        multipleSms: true,
+        deliveryReports: true,
+        contentFilter: true
+    };
+    
+    var currentStep = 0;
+    var totalSteps = 5;
     
     function renderContactLists(lists) {
         var html = '';
         lists.forEach(function(list) {
-            var isSelected = $('#selectedContactListId').val() === list.id;
+            var isSelected = wizardData.contactListId === list.id;
             html += '<div class="contact-list-option d-flex justify-content-between align-items-center' + (isSelected ? ' selected' : '') + '" data-id="' + list.id + '" data-name="' + list.name + '" data-count="' + list.count + '">' +
                 '<div>' +
                     '<div class="list-name">' + list.name + '</div>' +
@@ -430,34 +574,193 @@ $(document).ready(function() {
     }
     
     function renderSenderTags() {
-        if (allowedSenders.length === 0) {
+        if (wizardData.allowedSenders.length === 0) {
             $('#senderEmailTags').html('<span class="text-muted">No sender restrictions - any email can trigger this mapping</span>');
             return;
         }
         var html = '';
-        allowedSenders.forEach(function(email, index) {
+        wizardData.allowedSenders.forEach(function(email, index) {
             html += '<span class="sender-email-tag">' + email + '<span class="remove-tag" data-index="' + index + '">&times;</span></span>';
         });
         $('#senderEmailTags').html(html);
     }
     
     function generateEmailAddress() {
-        var listName = $('#selectedContactListName').val() || 'mapping';
-        var slug = listName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        var name = wizardData.name || 'mapping';
+        var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         var random = Math.floor(1000 + Math.random() * 9000);
-        generatedEmail = slug + '-' + random + '@sms.quicksms.com';
-        $('#generatedEmailDisplay').text(generatedEmail);
+        wizardData.generatedEmail = slug + '-' + random + '@sms.quicksms.com';
+        $('#generatedEmailDisplay').text(wizardData.generatedEmail);
+        $('#btnCopyEmail').prop('disabled', false);
     }
     
     function updateSummary() {
-        $('#summaryEmail').text(generatedEmail);
-        $('#summaryContactList').text($('#selectedContactListName').val() || '-');
-        $('#summaryRecipients').text(($('#selectedContactListCount').val() || '0') + ' contacts');
-        $('#summarySenders').text(allowedSenders.length > 0 ? allowedSenders.length + ' whitelisted' : 'Any sender allowed');
+        $('#summaryName').text(wizardData.name || '-');
+        $('#summarySubAccount').text(wizardData.subAccount ? $('#subAccount option:selected').text() : '-');
+        $('#summaryEmail').text(wizardData.generatedEmail || '-');
+        $('#summarySenders').text(wizardData.allowedSenders.length > 0 ? wizardData.allowedSenders.length + ' whitelisted' : 'Any sender allowed');
+        $('#summaryContactList').text(wizardData.contactListName || '-');
+        $('#summaryRecipients').text(wizardData.contactListCount > 0 ? wizardData.contactListCount.toLocaleString() + ' contacts' : '-');
+        $('#summarySenderId').text(wizardData.senderId || '-');
+        
+        var settings = [];
+        if (wizardData.multipleSms) settings.push('Multiple SMS');
+        if (wizardData.deliveryReports) settings.push('Delivery Reports');
+        if (wizardData.contentFilter) settings.push('Content Filter');
+        if (wizardData.subjectAsSenderId) settings.push('Subject as SenderID');
+        $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'Default');
+    }
+    
+    function validateStep(stepIndex) {
+        var isValid = true;
+        
+        switch (stepIndex) {
+            case 0:
+                if (!wizardData.name.trim()) {
+                    $('#mappingName').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $('#mappingName').removeClass('is-invalid');
+                }
+                if (!wizardData.subAccount) {
+                    $('#subAccount').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $('#subAccount').removeClass('is-invalid');
+                }
+                break;
+            case 2:
+                if (!wizardData.contactListId) {
+                    $('#contactListError').show();
+                    isValid = false;
+                } else {
+                    $('#contactListError').hide();
+                }
+                break;
+            case 3:
+                if (!wizardData.senderId) {
+                    $('#senderId').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $('#senderId').removeClass('is-invalid');
+                }
+                break;
+        }
+        
+        return isValid;
+    }
+    
+    function goToStep(stepIndex) {
+        if (stepIndex < 0 || stepIndex >= totalSteps) return;
+        
+        $('.tab-pane').removeClass('active show');
+        $('.nav-wizard .nav-link').removeClass('active done');
+        
+        var stepIds = ['step-general', 'step-email', 'step-recipients', 'step-message', 'step-review'];
+        $('#' + stepIds[stepIndex]).addClass('active show');
+        
+        $('.nav-wizard .nav-link').each(function(index) {
+            if (index < stepIndex) {
+                $(this).addClass('done');
+            } else if (index === stepIndex) {
+                $(this).addClass('active');
+            }
+        });
+        
+        currentStep = stepIndex;
+        updateNavButtons();
+        
+        if (stepIndex === 1 && wizardData.name && !wizardData.generatedEmail) {
+            generateEmailAddress();
+        }
+        
+        if (stepIndex === totalSteps - 1) {
+            updateSummary();
+        }
+    }
+    
+    function updateNavButtons() {
+        if (currentStep === 0) {
+            $('#btnPrev').hide();
+        } else {
+            $('#btnPrev').show();
+        }
+        
+        if (currentStep === totalSteps - 1) {
+            $('#btnNext').html('<i class="fas fa-check me-1"></i> Create');
+        } else {
+            $('#btnNext').html('Next <i class="fas fa-arrow-right ms-1"></i>');
+        }
+    }
+    
+    function saveDraft() {
+        $('#autosaveIndicator').removeClass('saved').addClass('saving');
+        $('#autosaveText').text('Saving...');
+        
+        setTimeout(function() {
+            $('#autosaveIndicator').removeClass('saving').addClass('saved');
+            $('#autosaveText').text('Draft saved');
+        }, 500);
+    }
+    
+    function showSuccessToast(message) {
+        if (typeof toastr !== 'undefined') {
+            toastr.success(message);
+        } else {
+            alert(message);
+        }
+    }
+    
+    function showErrorToast(message) {
+        if (typeof toastr !== 'undefined') {
+            toastr.error(message);
+        } else {
+            alert(message);
+        }
     }
     
     renderContactLists(mockContactLists);
     renderSenderTags();
+    goToStep(0);
+    
+    $('#mappingName').on('input', function() {
+        wizardData.name = $(this).val().trim();
+        $(this).removeClass('is-invalid');
+        if (wizardData.name) {
+            generateEmailAddress();
+        }
+    });
+    
+    $('#mappingDescription').on('input', function() {
+        wizardData.description = $(this).val();
+        $('#descCharCount').text($(this).val().length);
+    });
+    
+    $('#subAccount').on('change', function() {
+        wizardData.subAccount = $(this).val();
+        $(this).removeClass('is-invalid');
+    });
+    
+    $('#senderId').on('change', function() {
+        wizardData.senderId = $(this).val();
+        $(this).removeClass('is-invalid');
+    });
+    
+    $('#subjectAsSenderId').on('change', function() {
+        wizardData.subjectAsSenderId = $(this).is(':checked');
+    });
+    
+    $('#multipleSms').on('change', function() {
+        wizardData.multipleSms = $(this).is(':checked');
+    });
+    
+    $('#deliveryReports').on('change', function() {
+        wizardData.deliveryReports = $(this).is(':checked');
+    });
+    
+    $('#contentFilter').on('change', function() {
+        wizardData.contentFilter = $(this).is(':checked');
+    });
     
     $('#searchContactList').on('input', function() {
         var term = $(this).val().toLowerCase();
@@ -470,9 +773,9 @@ $(document).ready(function() {
     $(document).on('click', '.contact-list-option', function() {
         $('.contact-list-option').removeClass('selected');
         $(this).addClass('selected');
-        $('#selectedContactListId').val($(this).data('id'));
-        $('#selectedContactListName').val($(this).data('name'));
-        $('#selectedContactListCount').val($(this).data('count'));
+        wizardData.contactListId = $(this).data('id');
+        wizardData.contactListName = $(this).data('name');
+        wizardData.contactListCount = $(this).data('count');
         $('#contactListError').hide();
     });
     
@@ -486,11 +789,11 @@ $(document).ready(function() {
             return;
         }
         
-        if (allowedSenders.indexOf(email) !== -1) {
+        if (wizardData.allowedSenders.indexOf(email) !== -1) {
             return;
         }
         
-        allowedSenders.push(email);
+        wizardData.allowedSenders.push(email);
         $('#newSenderEmail').val('').removeClass('is-invalid');
         renderSenderTags();
     }
@@ -505,12 +808,12 @@ $(document).ready(function() {
     
     $(document).on('click', '.remove-tag', function() {
         var index = $(this).data('index');
-        allowedSenders.splice(index, 1);
+        wizardData.allowedSenders.splice(index, 1);
         renderSenderTags();
     });
     
     $('#btnCopyEmail').on('click', function() {
-        navigator.clipboard.writeText(generatedEmail).then(function() {
+        navigator.clipboard.writeText(wizardData.generatedEmail).then(function() {
             var btn = $('#btnCopyEmail');
             btn.html('<i class="fas fa-check me-1"></i> Copied!');
             setTimeout(function() {
@@ -519,86 +822,78 @@ $(document).ready(function() {
         });
     });
     
-    $('#mappingWizard').smartWizard({
-        selected: 0,
-        theme: 'default',
-        autoAdjustHeight: true,
-        transition: {
-            animation: 'fade'
-        },
-        toolbar: {
-            showNextButton: true,
-            showPreviousButton: true,
-            position: 'bottom'
-        },
-        anchor: {
-            enableNavigation: false,
-            enableNavigationAlways: false,
-            enableDoneState: true,
-            markPreviousStepsAsDone: true,
-            unDoneOnBackNavigation: true,
-            enableClickNavigation: false
-        },
-        keyboard: {
-            keyNavigation: false
-        },
-        lang: {
-            next: 'Next <i class="fas fa-arrow-right ms-1"></i>',
-            previous: '<i class="fas fa-arrow-left me-1"></i> Back'
-        }
-    });
-    
-    $('#mappingWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
-        if (stepDirection === 'forward') {
-            if (currentStepIndex === 0) {
-                if (!$('#selectedContactListId').val()) {
-                    $('#contactListError').show();
-                    return false;
-                }
-            }
-            
-            if (currentStepIndex === 1) {
-                generateEmailAddress();
-            }
-            
-            if (currentStepIndex === 2) {
-                updateSummary();
-            }
-        }
-        return true;
-    });
-    
-    $('#mappingWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
-        var totalSteps = 4;
-        var $nextBtn = $('.sw-btn-next');
-        
-        if (stepIndex === totalSteps - 1) {
-            $nextBtn.html('<i class="fas fa-check me-1"></i> Create Mapping');
-        } else {
-            $nextBtn.html('Next <i class="fas fa-arrow-right ms-1"></i>');
-        }
-    });
-    
-    $('#mappingWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
-        if (currentStepIndex === 3 && stepDirection === 'forward') {
-            var newMapping = {
-                id: 'clm-' + Date.now(),
-                emailAddress: generatedEmail,
-                contactListName: $('#selectedContactListName').val(),
-                contactListId: $('#selectedContactListId').val(),
-                recipientsCount: parseInt($('#selectedContactListCount').val()),
-                allowedSenders: allowedSenders.slice(),
-                lastUsed: '-',
-                created: new Date().toISOString().split('T')[0],
-                status: 'Active'
+    $('#btnNext').on('click', function() {
+        if (currentStep === totalSteps - 1) {
+            var payload = {
+                name: wizardData.name,
+                description: wizardData.description,
+                subAccount: wizardData.subAccount,
+                emailAddress: wizardData.generatedEmail,
+                allowedSenders: wizardData.allowedSenders,
+                contactListId: wizardData.contactListId,
+                contactListName: wizardData.contactListName,
+                senderId: wizardData.senderId,
+                subjectAsSenderId: wizardData.subjectAsSenderId,
+                multipleSms: wizardData.multipleSms,
+                deliveryReports: wizardData.deliveryReports,
+                contentFilter: wizardData.contentFilter,
+                status: 'active'
             };
             
-            sessionStorage.setItem('newMapping', JSON.stringify(newMapping));
-            
-            window.location.href = '{{ route("management.email-to-sms") }}?tab=contact-lists&created=1';
-            return false;
+            EmailToSmsService.createEmailToSmsContactListSetup(payload).then(function(response) {
+                if (response.success) {
+                    showSuccessToast('Contact List mapping created successfully');
+                    window.location.href = '{{ route("management.email-to-sms") }}?tab=contact-lists&created=1';
+                } else {
+                    showErrorToast(response.error || 'Failed to create mapping');
+                }
+            }).catch(function(err) {
+                console.error('Create error:', err);
+                showErrorToast('An error occurred. Please try again.');
+            });
+            return;
         }
-        return true;
+        
+        if (!validateStep(currentStep)) {
+            return;
+        }
+        
+        goToStep(currentStep + 1);
+        saveDraft();
+    });
+    
+    $('#btnPrev').on('click', function() {
+        goToStep(currentStep - 1);
+    });
+    
+    $('#btnSaveDraft').on('click', function() {
+        var payload = {
+            name: wizardData.name,
+            description: wizardData.description,
+            subAccount: wizardData.subAccount,
+            emailAddress: wizardData.generatedEmail,
+            allowedSenders: wizardData.allowedSenders,
+            contactListId: wizardData.contactListId,
+            contactListName: wizardData.contactListName,
+            senderId: wizardData.senderId,
+            subjectAsSenderId: wizardData.subjectAsSenderId,
+            multipleSms: wizardData.multipleSms,
+            deliveryReports: wizardData.deliveryReports,
+            contentFilter: wizardData.contentFilter,
+            status: 'draft'
+        };
+        
+        EmailToSmsService.createEmailToSmsContactListSetup(payload).then(function(response) {
+            if (response.success) {
+                showSuccessToast('Draft saved successfully');
+                window.location.href = '{{ route("management.email-to-sms") }}?tab=contact-lists';
+            } else {
+                showErrorToast(response.error || 'Failed to save draft');
+            }
+        }).catch(function(err) {
+            console.error('Save draft error:', err);
+            showErrorToast('An error occurred. Please try again.');
+        });
     });
 });
 </script>
