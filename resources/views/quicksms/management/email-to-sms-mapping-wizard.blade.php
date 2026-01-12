@@ -137,6 +137,12 @@
 .modal-api-table tbody td:nth-child(2) { font-weight: 500; color: #343a40; }
 .modal-api-table tbody tr:last-child td { border-bottom: none; }
 .modal-api-table tbody tr:hover td { background: #f8f9fa; }
+.api-table { width: 100%; margin: 0; }
+.api-table thead th { background: #f8f9fa; padding: 0.75rem; font-weight: 600; font-size: 0.8rem; color: #495057; border-bottom: 1px solid #e9ecef; }
+.api-table tbody td { padding: 0.75rem; vertical-align: middle; border-bottom: 1px solid #f1f3f5; font-size: 0.85rem; }
+.api-table tbody td:first-child { color: #6c757d; }
+.api-table tbody tr:last-child td { border-bottom: none; }
+.api-table tbody tr:hover td { background: #f8f9fa; }
 .contact-list-option.selected {
     border-color: #886CC0;
     background: rgba(136, 108, 192, 0.1);
@@ -619,14 +625,14 @@
                                             <div class="col-lg-8">
                                                 <div class="card mb-3">
                                                     <div class="card-body p-0">
-                                                        <table class="table table-sm mb-0" style="font-size: 13px;">
-                                                            <thead class="table-light">
+                                                        <table class="table api-table mb-0">
+                                                            <thead>
                                                                 <tr><th colspan="2"><i class="fas fa-cog me-2"></i>Configuration</th></tr>
                                                             </thead>
                                                             <tbody>
                                                                 <tr>
                                                                     <td class="text-muted" style="width: 35%;">Mapping Name</td>
-                                                                    <td class="fw-medium" id="summaryName">-</td>
+                                                                    <td id="summaryName">-</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="text-muted">Description</td>
@@ -645,7 +651,7 @@
                                                                     <td id="summarySenders">-</td>
                                                                 </tr>
                                                             </tbody>
-                                                            <thead class="table-light">
+                                                            <thead>
                                                                 <tr><th colspan="2"><i class="fas fa-users me-2"></i>Recipients</th></tr>
                                                             </thead>
                                                             <tbody>
@@ -653,7 +659,7 @@
                                                                     <td class="text-muted">Selected From</td>
                                                                     <td id="summaryContactList">-</td>
                                                                 </tr>
-                                                                <tr class="table-success">
+                                                                <tr style="background-color: rgba(25, 135, 84, 0.1);">
                                                                     <td class="text-muted">Total Recipients</td>
                                                                     <td class="fw-bold" id="summaryRecipients">-</td>
                                                                 </tr>
@@ -662,13 +668,13 @@
                                                                     <td id="summaryOptOut">-</td>
                                                                 </tr>
                                                             </tbody>
-                                                            <thead class="table-light">
+                                                            <thead>
                                                                 <tr><th colspan="2"><i class="fas fa-sms me-2"></i>Message Settings</th></tr>
                                                             </thead>
                                                             <tbody>
                                                                 <tr>
                                                                     <td class="text-muted">SenderID</td>
-                                                                    <td class="fw-medium" id="summarySenderId">-</td>
+                                                                    <td id="summarySenderId">-</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="text-muted">Settings</td>

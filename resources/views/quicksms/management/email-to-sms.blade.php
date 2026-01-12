@@ -513,7 +513,7 @@
                             
                             <div class="table-container" id="addressesTableContainer">
                                 <div class="table-responsive">
-                                    <table class="table email-sms-table mb-0">
+                                    <table class="table api-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
@@ -715,7 +715,7 @@
                             
                             <div class="table-container" id="reportingGroupsTableContainer">
                                 <div class="table-responsive">
-                                    <table class="table email-sms-table mb-0">
+                                    <table class="table api-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th>Group Name</th>
@@ -812,7 +812,7 @@
                             
                             <div class="table-container" id="standardSmsTableContainer">
                                 <div class="table-responsive">
-                                    <table class="email-sms-table">
+                                    <table class="table api-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th style="width: 18%;">Name</th>
