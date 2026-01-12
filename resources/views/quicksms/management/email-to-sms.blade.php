@@ -503,106 +503,166 @@
                         </div>
                         
                         <div class="tab-pane fade" id="contact-lists" role="tabpanel">
-                            <p class="text-muted mb-3">Map email addresses to Contact Book Lists. When an email is received, SMS is sent to all recipients in the linked Contact List.</p>
-                            
-                            <div class="collapse mb-3" id="clFiltersPanel">
-                                <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
-                                    <div class="row g-3 align-items-start">
-                                        <div class="col-12 col-lg-6">
-                                            <label class="form-label small fw-bold">Date Created</label>
-                                            <div class="d-flex gap-2 align-items-center">
-                                                <input type="date" class="form-control form-control-sm" id="clFilterDateFrom">
-                                                <span class="text-muted small">to</span>
-                                                <input type="date" class="form-control form-control-sm" id="clFilterDateTo">
+                            <div class="row g-3">
+                                {{-- Left Column: Table + Controls --}}
+                                <div class="col-lg-8">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <div class="input-group input-group-sm" style="width: 220px;">
+                                                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                                <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Search...">
                                             </div>
-                                            <div class="d-flex flex-wrap gap-1 mt-2">
-                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn cl-date-preset" data-preset="7days">Last 7 Days</button>
-                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn cl-date-preset" data-preset="30days">Last 30 Days</button>
-                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn cl-date-preset" data-preset="thismonth">This Month</button>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="clShowArchived">
+                                                <label class="form-check-label small text-muted" for="clShowArchived">Archived</label>
                                             </div>
+                                            <div id="clActiveFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                         </div>
-                                        <div class="col-6 col-md-4 col-lg-3">
-                                            <label class="form-label small fw-bold">Contact List</label>
-                                            <select class="form-select form-select-sm" id="clFilterContactList">
-                                                <option value="">All Contact Lists</option>
-                                                <option value="NHS Patients">NHS Patients</option>
-                                                <option value="Pharmacy Patients">Pharmacy Patients</option>
-                                                <option value="Appointment List">Appointment List</option>
-                                                <option value="Newsletter Subscribers">Newsletter Subscribers</option>
-                                                <option value="Emergency Contacts">Emergency Contacts</option>
-                                            </select>
+                                        <div class="d-flex gap-1">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
+                                                <i class="fas fa-filter"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-sm" id="btnCreateContactListMapping">
+                                                <i class="fas fa-plus me-1"></i> Create
+                                            </button>
                                         </div>
                                     </div>
                                     
-                                    <div class="d-flex justify-content-end gap-2 mt-3">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetClFilters">Reset Filters</button>
-                                        <button type="button" class="btn btn-primary btn-sm" id="btnApplyClFilters">Apply Filters</button>
+                                    <div class="collapse mb-2" id="clFiltersPanel">
+                                        <div class="card card-body border-0 rounded-3 py-2 px-3" style="background-color: #f0ebf8;">
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-6 col-md-4">
+                                                    <label class="form-label small fw-bold mb-1">From</label>
+                                                    <input type="date" class="form-control form-control-sm" id="clFilterDateFrom">
+                                                </div>
+                                                <div class="col-6 col-md-4">
+                                                    <label class="form-label small fw-bold mb-1">To</label>
+                                                    <input type="date" class="form-control form-control-sm" id="clFilterDateTo">
+                                                </div>
+                                                <div class="col-12 col-md-4">
+                                                    <label class="form-label small fw-bold mb-1">Contact List</label>
+                                                    <select class="form-select form-select-sm" id="clFilterContactList">
+                                                        <option value="">All</option>
+                                                        <option value="NHS Patients">NHS Patients</option>
+                                                        <option value="Pharmacy Patients">Pharmacy Patients</option>
+                                                        <option value="Appointment List">Appointment List</option>
+                                                        <option value="Newsletter Subscribers">Newsletter Subscribers</option>
+                                                        <option value="Emergency Contacts">Emergency Contacts</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <div class="d-flex gap-1">
+                                                    <button type="button" class="btn btn-outline-primary btn-xs cl-date-preset" data-preset="7days">7d</button>
+                                                    <button type="button" class="btn btn-outline-primary btn-xs cl-date-preset" data-preset="30days">30d</button>
+                                                    <button type="button" class="btn btn-outline-primary btn-xs cl-date-preset" data-preset="thismonth">Month</button>
+                                                </div>
+                                                <div class="d-flex gap-1">
+                                                    <button type="button" class="btn btn-outline-secondary btn-xs" id="btnResetClFilters">Reset</button>
+                                                    <button type="button" class="btn btn-primary btn-xs" id="btnApplyClFilters">Apply</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="table-container" id="contactListsTableContainer">
+                                        <div class="table-responsive">
+                                            <table class="table email-sms-table table-sm mb-0" style="font-size: 13px;">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Target Lists</th>
+                                                        <th>Senders</th>
+                                                        <th>Updated</th>
+                                                        <th class="text-end">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="contactListsTableBody">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="empty-state py-4" id="emptyStateContactLists" style="display: none;">
+                                        <div class="empty-state-icon" style="font-size: 2rem;">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <h6>No Contact List Mappings</h6>
+                                        <p class="small text-muted mb-2">Create a mapping to link an Email-to-SMS Address to a Contact Book List.</p>
+                                        <button class="btn btn-primary btn-sm" id="btnCreateMappingEmpty">
+                                            <i class="fas fa-plus me-1"></i> Create Mapping
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div class="text-muted small">
+                                            Showing <span id="clShowingCount">0</span> of <span id="clTotalCount">0</span>
+                                        </div>
+                                        <nav>
+                                            <ul class="pagination pagination-sm mb-0" id="contactListsPagination">
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="input-group" style="width: 280px;">
-                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                        <input type="text" class="form-control" id="clQuickSearchInput" placeholder="Quick search by name...">
+                                
+                                {{-- Right Column: Sticky Summary --}}
+                                <div class="col-lg-4">
+                                    <div class="position-lg-sticky" style="top: 80px;">
+                                        <div class="card border-0 shadow-sm mb-3">
+                                            <div class="card-header py-2 bg-primary text-white">
+                                                <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Quick Stats</h6>
+                                            </div>
+                                            <div class="card-body py-2">
+                                                <div class="row g-2 text-center">
+                                                    <div class="col-6">
+                                                        <div class="p-2 rounded" style="background: #f0ebf8;">
+                                                            <div class="fs-4 fw-bold text-primary" id="clStatActive">0</div>
+                                                            <div class="small text-muted">Active</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="p-2 rounded" style="background: #e8f5e9;">
+                                                            <div class="fs-4 fw-bold text-success" id="clStatRecipients">0</div>
+                                                            <div class="small text-muted">Recipients</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="p-2 rounded" style="background: #fff3e0;">
+                                                            <div class="fs-4 fw-bold text-warning" id="clStatDrafts">0</div>
+                                                            <div class="small text-muted">Drafts</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="p-2 rounded" style="background: #fce4ec;">
+                                                            <div class="fs-4 fw-bold text-secondary" id="clStatArchived">0</div>
+                                                            <div class="small text-muted">Archived</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header py-2">
+                                                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>How It Works</h6>
+                                            </div>
+                                            <div class="card-body py-2" style="font-size: 13px;">
+                                                <ol class="mb-0 ps-3 small">
+                                                    <li class="mb-1">Email sent to generated address</li>
+                                                    <li class="mb-1">SenderID from email subject</li>
+                                                    <li class="mb-1">SMS content from email body</li>
+                                                    <li class="mb-0">SMS sent to all list recipients</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-grid mt-3">
+                                            <button type="button" class="btn btn-primary" id="btnCreateContactListMappingSidebar">
+                                                <i class="fas fa-plus me-1"></i> Create Mapping
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="form-check form-switch ms-2">
-                                        <input class="form-check-input" type="checkbox" id="clShowArchived">
-                                        <label class="form-check-label small text-muted" for="clShowArchived">Show archived</label>
-                                    </div>
-                                    <div id="clActiveFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
-                                        <i class="fas fa-filter me-1"></i> Filters
-                                    </button>
-                                    <button type="button" class="btn btn-primary btn-sm" id="btnCreateContactListMapping">
-                                        <i class="fas fa-plus me-1"></i> Create
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="table-container" id="contactListsTableContainer">
-                                <div class="table-responsive">
-                                    <table class="table email-sms-table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Subaccount</th>
-                                                <th>Allowed Sender Emails</th>
-                                                <th>Target Lists</th>
-                                                <th>Opt-out Lists</th>
-                                                <th>Created</th>
-                                                <th>Last Updated</th>
-                                                <th class="text-end">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="contactListsTableBody">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <div class="empty-state" id="emptyStateContactLists" style="display: none;">
-                                <div class="empty-state-icon">
-                                    <i class="fas fa-link"></i>
-                                </div>
-                                <h4>No Contact List Mappings</h4>
-                                <p>Create a mapping to link an Email-to-SMS Address to a Contact Book List.</p>
-                                <button class="btn btn-primary" id="btnCreateMappingEmpty">
-                                    <i class="fas fa-plus me-1"></i> Create Mapping
-                                </button>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <div class="text-muted small">
-                                    Showing <span id="clShowingCount">0</span> of <span id="clTotalCount">0</span> mappings
-                                </div>
-                                <nav>
-                                    <ul class="pagination pagination-sm mb-0" id="contactListsPagination">
-                                    </ul>
-                                </nav>
                             </div>
                         </div>
                         
@@ -2630,9 +2690,25 @@ $(document).ready(function() {
         renderReportingGroups(reportingGroups);
     }
     
+    function updateContactListStats(allMappings) {
+        var active = allMappings.filter(function(m) { return m.status === 'Active'; }).length;
+        var archived = allMappings.filter(function(m) { return m.status === 'Archived'; }).length;
+        var drafts = allMappings.filter(function(m) { return m.status === 'Draft'; }).length;
+        var totalRecipients = allMappings.reduce(function(sum, m) { 
+            return sum + (m.recipientCount || 0); 
+        }, 0);
+        
+        $('#clStatActive').text(active);
+        $('#clStatArchived').text(archived);
+        $('#clStatDrafts').text(drafts);
+        $('#clStatRecipients').text(totalRecipients > 1000 ? Math.round(totalRecipients/1000) + 'k' : totalRecipients);
+    }
+    
     function renderContactListMappings(mappings) {
         var tbody = $('#contactListsTableBody');
         tbody.empty();
+        
+        updateContactListStats(contactListSetups);
         
         if (mappings.length === 0) {
             $('#contactListsTableContainer').hide();
@@ -2646,63 +2722,42 @@ $(document).ready(function() {
         $('#emptyStateContactLists').hide();
         
         mappings.forEach(function(mapping) {
-            // Allowed Sender Emails - truncate with "+X more"
-            var allowedDisplay = '';
-            if (mapping.allowedSenders.length === 0) {
-                allowedDisplay = '<span class="text-muted small">All senders</span>';
-            } else if (mapping.allowedSenders.length === 1) {
-                allowedDisplay = '<span class="small">' + escapeHtml(mapping.allowedSenders[0]) + '</span>';
-            } else {
-                allowedDisplay = '<span class="small">' + escapeHtml(mapping.allowedSenders[0]) + '</span>' +
-                    '<span class="text-muted small ms-1">+' + (mapping.allowedSenders.length - 1) + ' more</span>';
-            }
-            
-            // Target Lists - show first 1-2 + "+X more"
             var targetDisplay = '';
             if (mapping.targetLists.length === 0) {
-                targetDisplay = '<span class="text-muted small">None</span>';
+                targetDisplay = '<span class="text-muted">None</span>';
             } else if (mapping.targetLists.length === 1) {
-                targetDisplay = '<span class="small">' + escapeHtml(mapping.targetLists[0]) + '</span>';
-            } else if (mapping.targetLists.length === 2) {
-                targetDisplay = '<span class="small">' + escapeHtml(mapping.targetLists[0]) + ', ' + escapeHtml(mapping.targetLists[1]) + '</span>';
+                targetDisplay = escapeHtml(mapping.targetLists[0]);
             } else {
-                targetDisplay = '<span class="small">' + escapeHtml(mapping.targetLists[0]) + ', ' + escapeHtml(mapping.targetLists[1]) + '</span>' +
-                    '<span class="text-muted small ms-1">+' + (mapping.targetLists.length - 2) + ' more</span>';
+                targetDisplay = escapeHtml(mapping.targetLists[0]) + ' <span class="text-muted">+' + (mapping.targetLists.length - 1) + '</span>';
             }
             
-            // Opt-out Lists - show "NO" or list names
-            var optOutDisplay = '';
-            if (mapping.optOutLists.length === 0) {
-                optOutDisplay = '<span class="text-muted small">NO</span>';
-            } else if (mapping.optOutLists.length === 1) {
-                optOutDisplay = '<span class="small">' + escapeHtml(mapping.optOutLists[0]) + '</span>';
-            } else {
-                optOutDisplay = '<span class="small">' + escapeHtml(mapping.optOutLists[0]) + '</span>' +
-                    '<span class="text-muted small ms-1">+' + (mapping.optOutLists.length - 1) + ' more</span>';
+            var sendersDisplay = mapping.allowedSenders.length === 0 
+                ? '<span class="text-muted">Any</span>' 
+                : mapping.allowedSenders.length + ' allowed';
+            
+            var statusBadge = '';
+            if (mapping.status === 'Archived') {
+                statusBadge = '<span class="badge bg-secondary ms-1">Arch</span>';
+            } else if (mapping.status === 'Draft') {
+                statusBadge = '<span class="badge bg-warning ms-1">Draft</span>';
             }
             
-            var statusClass = mapping.status === 'Active' ? '' : 'table-secondary';
-            var archivedBadge = mapping.status === 'Archived' ? ' <span class="badge bg-secondary ms-1">Archived</span>' : '';
-            
-            var row = '<tr data-id="' + mapping.id + '" class="' + statusClass + '">' +
-                '<td><span class="fw-medium">' + escapeHtml(mapping.name) + '</span>' + archivedBadge + '</td>' +
-                '<td>' + escapeHtml(mapping.subaccountName) + '</td>' +
-                '<td>' + allowedDisplay + '</td>' +
+            var row = '<tr data-id="' + mapping.id + '">' +
+                '<td><span class="fw-medium">' + escapeHtml(mapping.name) + '</span>' + statusBadge + '<br><small class="text-muted">' + escapeHtml(mapping.subaccountName) + '</small></td>' +
                 '<td>' + targetDisplay + '</td>' +
-                '<td>' + optOutDisplay + '</td>' +
-                '<td>' + mapping.created + '</td>' +
-                '<td>' + mapping.lastUpdated + '</td>' +
+                '<td>' + sendersDisplay + '</td>' +
+                '<td><small>' + mapping.lastUpdated + '</small></td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item clm-action-view" href="#" data-id="' + mapping.id + '"><i class="fas fa-eye me-2"></i> View</a></li>' +
-                            '<li><a class="dropdown-item clm-action-edit" href="#" data-id="' + mapping.id + '"><i class="fas fa-edit me-2"></i> Edit</a></li>' +
+                            '<li><a class="dropdown-item clm-action-view" href="#" data-id="' + mapping.id + '"><i class="fas fa-eye me-2"></i>View</a></li>' +
+                            '<li><a class="dropdown-item clm-action-edit" href="#" data-id="' + mapping.id + '"><i class="fas fa-edit me-2"></i>Edit</a></li>' +
                             (mapping.status === 'Active' 
-                                ? '<li><a class="dropdown-item clm-action-archive" href="#" data-id="' + mapping.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>'
-                                : '<li><a class="dropdown-item clm-action-unarchive" href="#" data-id="' + mapping.id + '"><i class="fas fa-undo me-2"></i> Unarchive</a></li>') +
+                                ? '<li><a class="dropdown-item clm-action-archive" href="#" data-id="' + mapping.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>'
+                                : '<li><a class="dropdown-item clm-action-unarchive" href="#" data-id="' + mapping.id + '"><i class="fas fa-undo me-2"></i>Unarchive</a></li>') +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
@@ -3788,7 +3843,7 @@ $(document).ready(function() {
         modal.show();
     }
     
-    $('#btnCreateContactListMapping').on('click', function() {
+    $('#btnCreateContactListMapping, #btnCreateContactListMappingSidebar, #btnCreateMappingEmpty').on('click', function() {
         window.location.href = '{{ route("management.email-to-sms.create-mapping") }}';
     });
     
