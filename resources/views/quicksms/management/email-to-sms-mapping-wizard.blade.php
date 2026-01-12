@@ -204,22 +204,35 @@
 .rules-box li:last-child {
     margin-bottom: 0;
 }
-.sender-email-tag {
+.email-address-badge {
     display: inline-flex;
     align-items: center;
-    background: #e9ecef;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    border-radius: 1rem;
+    padding: 0.35rem 0.75rem;
     margin: 0.25rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
+    font-family: monospace;
 }
-.sender-email-tag .remove-tag {
-    margin-left: 0.5rem;
-    cursor: pointer;
-    color: #6c757d;
-}
-.sender-email-tag .remove-tag:hover {
+.email-address-badge .remove-btn {
+    background: none;
+    border: none;
     color: #dc3545;
+    padding: 0 0 0 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.email-address-badge .remove-btn:hover {
+    color: #a71d2a;
+}
+.email-addresses-container {
+    min-height: 40px;
+}
+.alert-pastel-warning {
+    background-color: rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.3);
+    color: #856404;
 }
 .autosave-indicator {
     font-size: 0.85rem;
@@ -342,16 +355,32 @@
                                         <div class="mb-3">
                                             <label class="form-label">Allowed Sender Emails (Optional)</label>
                                             <div class="input-group">
-                                                <input type="email" class="form-control" id="newSenderEmail" placeholder="Enter email address...">
+                                                <input type="text" class="form-control" id="newSenderEmail" placeholder="e.g., user@domain.com or *@domain.com">
                                                 <button class="btn btn-outline-primary" type="button" id="btnAddSender">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <small class="text-muted">Restrict which email addresses can trigger this mapping. Leave empty to allow any sender.</small>
+                                            <div class="invalid-feedback" id="emailError"></div>
+                                            <small class="text-muted">Restrict who can trigger this mapping. Supports wildcards like *@domain.com</small>
                                         </div>
                                         
-                                        <div id="senderEmailTags" class="mb-3">
-                                            <span class="text-muted">No sender restrictions - any email can trigger this mapping</span>
+                                        <div id="wildcardWarning" class="alert alert-pastel-warning mb-3" style="display: none;">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Warning:</strong> Wildcard domains are less secure and may result in unintended messages being sent.
+                                        </div>
+                                        
+                                        <div id="senderEmailsList" class="email-addresses-container mb-3"></div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted"><span id="emailAddressCount">0</span> email addresses added</small>
+                                            <button type="button" class="btn btn-link btn-sm text-danger p-0" id="clearAllEmails" style="display: none;">
+                                                <i class="fas fa-trash-alt me-1"></i> Clear All
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="alert alert-pastel-primary small mt-3">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Tip:</strong> If you leave this empty, any sender can trigger SMS messages to this Contact List.
                                         </div>
                                     </div>
                                 </div>
@@ -573,16 +602,29 @@ $(document).ready(function() {
         $('#contactListOptions').html(html);
     }
     
-    function renderSenderTags() {
-        if (wizardData.allowedSenders.length === 0) {
-            $('#senderEmailTags').html('<span class="text-muted">No sender restrictions - any email can trigger this mapping</span>');
-            return;
-        }
+    function renderSenderEmails() {
         var html = '';
+        var hasWildcard = false;
+        
         wizardData.allowedSenders.forEach(function(email, index) {
-            html += '<span class="sender-email-tag">' + email + '<span class="remove-tag" data-index="' + index + '">&times;</span></span>';
+            if (email.startsWith('*@')) {
+                hasWildcard = true;
+            }
+            html += '<span class="email-address-badge">' + email + 
+                    '<button class="remove-btn" data-index="' + index + '"><i class="fas fa-times"></i></button></span>';
         });
-        $('#senderEmailTags').html(html);
+        
+        $('#senderEmailsList').html(html);
+        $('#emailAddressCount').text(wizardData.allowedSenders.length);
+        $('#clearAllEmails').toggle(wizardData.allowedSenders.length > 0);
+        $('#wildcardWarning').toggle(hasWildcard);
+    }
+    
+    function isValidEmailOrWildcard(email) {
+        var standardEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        var wildcardPattern = /^\*@[^\s@]+\.[^\s@]+$/;
+        
+        return standardEmailPattern.test(email) || wildcardPattern.test(email);
     }
     
     function generateEmailAddress() {
@@ -748,7 +790,7 @@ $(document).ready(function() {
     }
     
     renderContactLists(mockContactLists);
-    renderSenderTags();
+    renderSenderEmails();
     goToStep(0);
     
     $('#mappingName').on('input', function() {
@@ -812,22 +854,29 @@ $(document).ready(function() {
     });
     
     function addSenderEmail() {
-        var email = $('#newSenderEmail').val().trim();
+        var email = $('#newSenderEmail').val().trim().toLowerCase();
         if (!email) return;
         
-        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        $('#emailError').hide();
+        $('#newSenderEmail').removeClass('is-invalid');
+        
+        if (!isValidEmailOrWildcard(email)) {
+            $('#emailError').text('Invalid format. Use user@domain.com or *@domain.com').show();
             $('#newSenderEmail').addClass('is-invalid');
             return;
         }
         
         if (wizardData.allowedSenders.indexOf(email) !== -1) {
+            $('#emailError').text('This email address is already added').show();
+            $('#newSenderEmail').addClass('is-invalid');
             return;
         }
         
         wizardData.allowedSenders.push(email);
         $('#newSenderEmail').val('').removeClass('is-invalid');
-        renderSenderTags();
+        $('#emailError').hide();
+        renderSenderEmails();
+        saveDraft();
     }
     
     $('#btnAddSender').on('click', addSenderEmail);
@@ -838,10 +887,17 @@ $(document).ready(function() {
         }
     });
     
-    $(document).on('click', '.remove-tag', function() {
+    $(document).on('click', '#senderEmailsList .remove-btn', function() {
         var index = $(this).data('index');
         wizardData.allowedSenders.splice(index, 1);
-        renderSenderTags();
+        renderSenderEmails();
+        saveDraft();
+    });
+    
+    $('#clearAllEmails').on('click', function() {
+        wizardData.allowedSenders = [];
+        renderSenderEmails();
+        saveDraft();
     });
     
     $('#btnCopyEmail').on('click', function() {
