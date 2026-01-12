@@ -4168,9 +4168,25 @@ $(document).ready(function() {
         }
         
         if (urlParams.get('created') === '1') {
+            var createdName = urlParams.get('name') || '';
             sessionStorage.removeItem('newMapping');
-            window.history.replaceState({}, document.title, window.location.pathname);
-            // Data will be reloaded from service
+            window.history.replaceState({}, document.title, window.location.pathname + '?tab=contact-lists');
+            
+            setTimeout(function() {
+                if (createdName) {
+                    showSuccessToast('Contact List mapping "' + createdName + '" created successfully!');
+                } else {
+                    showSuccessToast('Contact List mapping created successfully!');
+                }
+                
+                var $newRow = $('#contactListsTableBody tr').first();
+                if ($newRow.length) {
+                    $newRow.addClass('table-success');
+                    setTimeout(function() {
+                        $newRow.removeClass('table-success');
+                    }, 3000);
+                }
+            }, 500);
         }
     })();
     
