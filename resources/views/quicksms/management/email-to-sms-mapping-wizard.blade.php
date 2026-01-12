@@ -931,6 +931,44 @@
         </div>
     </div>
 </div>
+
+{{-- Success Modal --}}
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2"></i> Email-to-SMS Address Created
+                </h5>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-envelope-open-text text-success" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-3">Your Email-to-SMS mapping has been created successfully. Send emails to the address below to trigger SMS messages:</p>
+                <div class="bg-light border rounded p-3 mb-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <code class="fs-5 text-primary" id="successEmailAddress">-</code>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnCopySuccessEmail" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i> 
+                    <strong>SenderID:</strong> Extracted from email subject<br>
+                    <strong>SMS Content:</strong> Extracted from email body
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ route('management.email-to-sms') }}?tab=contact-lists" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Contact List Library
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1733,8 +1771,10 @@ $(document).ready(function() {
         
         EmailToSmsService.createEmailToSmsContactListSetup(payload).then(function(response) {
             if (response.success) {
-                showSuccessToast('Contact List mapping created successfully!');
-                window.location.href = '{{ route("management.email-to-sms") }}?tab=contact-lists&created=1&name=' + encodeURIComponent(wizardData.name);
+                $('#successEmailAddress').text(wizardData.generatedEmail);
+                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
             } else {
                 btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
                 showErrorToast(response.error || 'Failed to create mapping');
@@ -1743,6 +1783,19 @@ $(document).ready(function() {
             console.error('Create error:', err);
             btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
             showErrorToast('An error occurred. Please try again.');
+        });
+    });
+    
+    $('#btnCopySuccessEmail').on('click', function() {
+        var email = $('#successEmailAddress').text();
+        navigator.clipboard.writeText(email).then(function() {
+            showSuccessToast('Email address copied to clipboard!');
+            $('#btnCopySuccessEmail').html('<i class="fas fa-check"></i>');
+            setTimeout(function() {
+                $('#btnCopySuccessEmail').html('<i class="fas fa-copy"></i>');
+            }, 2000);
+        }).catch(function() {
+            showErrorToast('Failed to copy. Please select and copy manually.');
         });
     });
     
