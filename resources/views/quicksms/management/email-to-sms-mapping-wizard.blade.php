@@ -388,27 +388,239 @@
                             
                             <div id="step-recipients" class="tab-pane" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-lg-8 mx-auto">
+                                    <div class="col-lg-10 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 3: Recipients (Contact Book Access)</strong> – Select the Contact Book List that will receive SMS messages.
+                                            <strong>Step 3: Recipients</strong> – Select recipients from your Contact Book. Combine contacts, lists, and tags.
                                         </div>
                                         
-                                        <div class="mb-3">
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                                <input type="text" class="form-control" id="searchContactList" placeholder="Search Contact Lists...">
+                                        {{-- Contact Book Selection Tabs (reusing Send Message pattern) --}}
+                                        <div class="card mb-3">
+                                            <div class="card-body p-3">
+                                                <ul class="nav nav-tabs mb-3" id="recipientTabs">
+                                                    <li class="nav-item">
+                                                        <button class="nav-link active py-2 px-3" data-bs-toggle="tab" data-bs-target="#cbContactsTab">
+                                                            <i class="fas fa-user me-1"></i> Contacts
+                                                        </button>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#cbListsTab">
+                                                            <i class="fas fa-list me-1"></i> Lists
+                                                        </button>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#cbDynamicListsTab">
+                                                            <i class="fas fa-sync-alt me-1"></i> Dynamic Lists
+                                                        </button>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#cbTagsTab">
+                                                            <i class="fas fa-tags me-1"></i> Tags
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                                
+                                                <div class="tab-content">
+                                                    {{-- Contacts Tab --}}
+                                                    <div class="tab-pane fade show active" id="cbContactsTab">
+                                                        <div class="row mb-2">
+                                                            <div class="col-md-6">
+                                                                <div class="input-group input-group-sm">
+                                                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                                    <input type="text" class="form-control" id="cbContactSearch" placeholder="Search names, numbers, tags...">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="d-flex gap-2 align-items-center">
+                                                                    <select class="form-select form-select-sm" id="cbContactSort">
+                                                                        <option value="recent">Most recently contacted</option>
+                                                                        <option value="added">Most recently added</option>
+                                                                        <option value="name_asc">Name A-Z</option>
+                                                                        <option value="name_desc">Name Z-A</option>
+                                                                    </select>
+                                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnToggleContactFilters">
+                                                                        <i class="fas fa-filter"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="d-none mb-2 p-2 bg-light rounded" id="cbContactFilters" style="font-size: 12px;">
+                                                            <div class="row">
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label mb-1">Tags</label>
+                                                                    <select class="form-select form-select-sm" id="cbFilterTags">
+                                                                        <option value="">All tags</option>
+                                                                        <option value="vip">VIP</option>
+                                                                        <option value="asthma">Asthma</option>
+                                                                        <option value="diabetes">Diabetes</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label mb-1">Has Mobile</label>
+                                                                    <select class="form-select form-select-sm" id="cbFilterMobile">
+                                                                        <option value="">Any</option>
+                                                                        <option value="yes">Yes</option>
+                                                                        <option value="no">No</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-4 d-flex align-items-end">
+                                                                    <button class="btn btn-link btn-sm" id="btnClearContactFilters">Clear filters</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                                                                <thead class="table-light sticky-top">
+                                                                    <tr>
+                                                                        <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="cbSelectAllContacts"></th>
+                                                                        <th>Name</th>
+                                                                        <th>Mobile</th>
+                                                                        <th>Tags</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="cbContactsTable">
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge bg-info">VIP</span></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge bg-success">Asthma</span></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="3" data-name="Robert Brown"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge bg-warning">Diabetes</span></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge bg-info">VIP</span></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td>Emily Davis</td><td>+44 7700***678</td><td><span class="badge bg-success">Asthma</span></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="7" data-name="David Miller"></td><td>David Miller</td><td>+44 7700***901</td><td></td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td>Lisa Anderson</td><td>+44 7700***234</td><td><span class="badge bg-warning">Diabetes</span> <span class="badge bg-danger">Hypertension</span></td></tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {{-- Static Lists Tab --}}
+                                                    <div class="tab-pane fade" id="cbListsTab">
+                                                        <div class="input-group input-group-sm mb-2">
+                                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                            <input type="text" class="form-control" id="cbListSearch" placeholder="Search lists...">
+                                                        </div>
+                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                                                                <thead class="table-light sticky-top">
+                                                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
+                                                                </thead>
+                                                                <tbody id="cbListsTable">
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="1" data-name="VIP Patients" data-count="1234"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="2" data-name="Newsletter Subscribers" data-count="5678"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="3" data-name="Flu Campaign 2025" data-count="3456"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="4" data-name="Repeat Prescriptions" data-count="2100"></td><td>Repeat Prescriptions</td><td>2,100</td><td>19-Dec-2025</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="5" data-name="NHS Reminders" data-count="8900"></td><td>NHS Reminders</td><td>8,900</td><td>18-Dec-2025</td></tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {{-- Dynamic Lists Tab --}}
+                                                    <div class="tab-pane fade" id="cbDynamicListsTab">
+                                                        <div class="input-group input-group-sm mb-2">
+                                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                            <input type="text" class="form-control" id="cbDynamicSearch" placeholder="Search dynamic lists...">
+                                                        </div>
+                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                                                                <thead class="table-light sticky-top">
+                                                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
+                                                                </thead>
+                                                                <tbody id="cbDynamicListsTable">
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="1" data-name="Over 65s" data-count="2345"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="2" data-name="Local Postcodes" data-count="1890"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="3" data-name="Active Last 30 Days" data-count="4500"></td><td>Active Last 30 Days</td><td>Last contact < 30 days</td><td>4,500</td><td>22-Dec-2025</td></tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {{-- Tags Tab --}}
+                                                    <div class="tab-pane fade" id="cbTagsTab">
+                                                        <div class="input-group input-group-sm mb-2">
+                                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                            <input type="text" class="form-control" id="cbTagSearch" placeholder="Search tags...">
+                                                        </div>
+                                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                                                                <thead class="table-light sticky-top">
+                                                                    <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
+                                                                </thead>
+                                                                <tbody id="cbTagsTable">
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge" style="background-color: #0d6efd;">VIP</span></td><td>456</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge" style="background-color: #198754;">Asthma</span></td><td>1,234</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge" style="background-color: #ffc107;">Diabetes</span></td><td>890</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge" style="background-color: #dc3545;">Hypertension</span></td><td>567</td></tr>
+                                                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge" style="background-color: #6f42c1;">Chronic Care</span></td><td>1,023</td></tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         
-                                        <div id="contactListOptions">
+                                        {{-- Recipient Summary Card --}}
+                                        <div class="card mb-3">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 class="mb-0"><i class="fas fa-users me-2"></i>Recipient Summary</h6>
+                                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnClearAllRecipients" style="display: none;">
+                                                        <i class="fas fa-times me-1"></i> Clear All
+                                                    </button>
+                                                </div>
+                                                
+                                                <div id="recipientChips" class="mb-2">
+                                                    <span class="text-muted small">No recipients selected</span>
+                                                </div>
+                                                
+                                                <div class="border-top pt-2">
+                                                    <div class="row text-center" style="font-size: 13px;">
+                                                        <div class="col-3">
+                                                            <div class="text-muted small">Contacts</div>
+                                                            <strong id="summaryContactsCount">0</strong>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-muted small">Lists</div>
+                                                            <strong id="summaryListsCount">0</strong>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-muted small">Total</div>
+                                                            <strong id="summaryTotalCount" class="text-primary">0</strong>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-muted small">Deduped</div>
+                                                            <strong id="summaryDedupedCount" class="text-success">0</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="alert alert-pastel-warning small mt-2 mb-0 d-none" id="invalidRecipientsWarning">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    <span id="invalidRecipientsText">0 recipients excluded (no valid mobile)</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         
-                                        <input type="hidden" id="selectedContactListId" value="">
-                                        <input type="hidden" id="selectedContactListName" value="">
-                                        <input type="hidden" id="selectedContactListCount" value="">
+                                        {{-- Opt-out List Selection --}}
+                                        <div class="card">
+                                            <div class="card-body p-3">
+                                                <h6 class="mb-3"><i class="fas fa-ban me-2"></i>Opt-out Lists</h6>
+                                                <p class="text-muted small mb-2">Select opt-out lists to exclude. Recipients on these lists will not receive SMS.</p>
+                                                
+                                                <select class="form-select" id="optOutLists" multiple size="4">
+                                                    <option value="NO" selected>NO - Do not apply any opt-out list</option>
+                                                    <option value="1">Global Opt-out List (2,345 contacts)</option>
+                                                    <option value="2">Marketing Opt-out (1,234 contacts)</option>
+                                                    <option value="3">NHS Do Not Contact (567 contacts)</option>
+                                                    <option value="4">Temporary Opt-out (89 contacts)</option>
+                                                </select>
+                                                <small class="text-muted">Hold Ctrl/Cmd to select multiple. Select "NO" to include all recipients.</small>
+                                            </div>
+                                        </div>
                                         
-                                        <div class="invalid-feedback" id="contactListError" style="display: none;">
-                                            Please select a Contact List to continue.
+                                        <div class="invalid-feedback" id="recipientError" style="display: none;">
+                                            Please select at least one recipient to continue.
                                         </div>
                                     </div>
                                 </div>
@@ -517,6 +729,10 @@
                                                 <span class="summary-label">Message Settings</span>
                                                 <span class="summary-value" id="summaryMessageSettings">-</span>
                                             </div>
+                                            <div class="summary-row">
+                                                <span class="summary-label">Opt-out Lists</span>
+                                                <span class="summary-value" id="summaryOptOut">-</span>
+                                            </div>
                                         </div>
                                         
                                         <div class="rules-box">
@@ -574,9 +790,11 @@ $(document).ready(function() {
         subAccount: '',
         allowedSenders: [],
         generatedEmail: '',
-        contactListId: '',
-        contactListName: '',
-        contactListCount: 0,
+        selectedContacts: [],
+        selectedLists: [],
+        selectedDynamicLists: [],
+        selectedTags: [],
+        optOutLists: ['NO'],
         senderId: '',
         subjectAsSenderId: false,
         multipleSms: true,
@@ -641,9 +859,20 @@ $(document).ready(function() {
         $('#summarySubAccount').text(wizardData.subAccount ? $('#subAccount option:selected').text() : '-');
         $('#summaryEmail').text(wizardData.generatedEmail || '-');
         $('#summarySenders').text(wizardData.allowedSenders.length > 0 ? wizardData.allowedSenders.length + ' whitelisted' : 'Any sender allowed');
-        $('#summaryContactList').text(wizardData.contactListName || '-');
-        $('#summaryRecipients').text(wizardData.contactListCount > 0 ? wizardData.contactListCount.toLocaleString() + ' contacts' : '-');
-        $('#summarySenderId').text(wizardData.senderId || '-');
+        
+        var recipientParts = [];
+        if (wizardData.selectedContacts.length > 0) recipientParts.push(wizardData.selectedContacts.length + ' contacts');
+        if (wizardData.selectedLists.length > 0) recipientParts.push(wizardData.selectedLists.length + ' lists');
+        if (wizardData.selectedDynamicLists.length > 0) recipientParts.push(wizardData.selectedDynamicLists.length + ' dynamic lists');
+        if (wizardData.selectedTags.length > 0) recipientParts.push(wizardData.selectedTags.length + ' tags');
+        $('#summaryContactList').text(recipientParts.length > 0 ? recipientParts.join(', ') : '-');
+        
+        var stats = calculateRecipientStats();
+        $('#summaryRecipients').text(stats.deduped > 0 ? stats.deduped.toLocaleString() + ' recipients (deduped)' : '-');
+        $('#summarySenderId').text(wizardData.senderId ? $('#senderId option:selected').text() : '-');
+        
+        var optOutText = wizardData.optOutLists.includes('NO') ? 'None applied' : wizardData.optOutLists.length + ' opt-out list(s) applied';
+        $('#summaryOptOut').text(optOutText);
         
         var settings = [];
         if (wizardData.multipleSms) settings.push('Multiple SMS');
@@ -651,6 +880,93 @@ $(document).ready(function() {
         if (wizardData.contentFilter) settings.push('Content Filter');
         if (wizardData.subjectAsSenderId) settings.push('Subject as SenderID');
         $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'Default');
+    }
+    
+    function calculateRecipientStats() {
+        var contactCount = wizardData.selectedContacts.length;
+        var listCount = 0;
+        var dynamicCount = 0;
+        var tagCount = 0;
+        
+        wizardData.selectedLists.forEach(function(list) {
+            listCount += parseInt(list.count) || 0;
+        });
+        wizardData.selectedDynamicLists.forEach(function(list) {
+            dynamicCount += parseInt(list.count) || 0;
+        });
+        wizardData.selectedTags.forEach(function(tag) {
+            tagCount += parseInt(tag.count) || 0;
+        });
+        
+        var total = contactCount + listCount + dynamicCount + tagCount;
+        var deduped = Math.floor(total * 0.95);
+        var invalid = Math.floor(total * 0.02);
+        
+        return {
+            contacts: contactCount,
+            lists: listCount,
+            dynamic: dynamicCount,
+            tags: tagCount,
+            total: total,
+            deduped: deduped,
+            invalid: invalid
+        };
+    }
+    
+    function updateRecipientSummary() {
+        var stats = calculateRecipientStats();
+        
+        $('#summaryContactsCount').text(wizardData.selectedContacts.length);
+        $('#summaryListsCount').text(wizardData.selectedLists.length + wizardData.selectedDynamicLists.length + wizardData.selectedTags.length);
+        $('#summaryTotalCount').text(stats.total.toLocaleString());
+        $('#summaryDedupedCount').text(stats.deduped.toLocaleString());
+        
+        if (stats.invalid > 0) {
+            $('#invalidRecipientsWarning').removeClass('d-none');
+            $('#invalidRecipientsText').text(stats.invalid + ' recipients excluded (no valid mobile)');
+        } else {
+            $('#invalidRecipientsWarning').addClass('d-none');
+        }
+        
+        renderRecipientChips();
+        
+        var hasRecipients = wizardData.selectedContacts.length > 0 || 
+                           wizardData.selectedLists.length > 0 || 
+                           wizardData.selectedDynamicLists.length > 0 || 
+                           wizardData.selectedTags.length > 0;
+        $('#btnClearAllRecipients').toggle(hasRecipients);
+        
+        updateNextButtonState();
+    }
+    
+    function renderRecipientChips() {
+        var html = '';
+        
+        wizardData.selectedContacts.forEach(function(contact) {
+            html += '<span class="badge bg-light text-dark me-1 mb-1"><i class="fas fa-user me-1"></i>' + contact.name + 
+                    '<button type="button" class="btn-close btn-close-sm ms-1" data-type="contact" data-id="' + contact.id + '"></button></span>';
+        });
+        
+        wizardData.selectedLists.forEach(function(list) {
+            html += '<span class="badge bg-primary me-1 mb-1"><i class="fas fa-list me-1"></i>' + list.name + ' (' + parseInt(list.count).toLocaleString() + ')' +
+                    '<button type="button" class="btn-close btn-close-white btn-close-sm ms-1" data-type="list" data-id="' + list.id + '"></button></span>';
+        });
+        
+        wizardData.selectedDynamicLists.forEach(function(list) {
+            html += '<span class="badge bg-info me-1 mb-1"><i class="fas fa-sync-alt me-1"></i>' + list.name + ' (' + parseInt(list.count).toLocaleString() + ')' +
+                    '<button type="button" class="btn-close btn-close-white btn-close-sm ms-1" data-type="dynamic" data-id="' + list.id + '"></button></span>';
+        });
+        
+        wizardData.selectedTags.forEach(function(tag) {
+            html += '<span class="badge bg-success me-1 mb-1"><i class="fas fa-tag me-1"></i>' + tag.name + ' (' + parseInt(tag.count).toLocaleString() + ')' +
+                    '<button type="button" class="btn-close btn-close-white btn-close-sm ms-1" data-type="tag" data-id="' + tag.id + '"></button></span>';
+        });
+        
+        if (html === '') {
+            html = '<span class="text-muted small">No recipients selected</span>';
+        }
+        
+        $('#recipientChips').html(html);
     }
     
     function validateStep(stepIndex) {
@@ -672,11 +988,15 @@ $(document).ready(function() {
                 }
                 break;
             case 2:
-                if (!wizardData.contactListId) {
-                    $('#contactListError').show();
+                var hasRecipients = wizardData.selectedContacts.length > 0 || 
+                                   wizardData.selectedLists.length > 0 || 
+                                   wizardData.selectedDynamicLists.length > 0 || 
+                                   wizardData.selectedTags.length > 0;
+                if (!hasRecipients) {
+                    $('#recipientError').show();
                     isValid = false;
                 } else {
-                    $('#contactListError').hide();
+                    $('#recipientError').hide();
                 }
                 break;
             case 3:
@@ -748,7 +1068,10 @@ $(document).ready(function() {
                 canProceed = true;
                 break;
             case 2:
-                canProceed = wizardData.contactListId !== '';
+                canProceed = wizardData.selectedContacts.length > 0 || 
+                             wizardData.selectedLists.length > 0 || 
+                             wizardData.selectedDynamicLists.length > 0 || 
+                             wizardData.selectedTags.length > 0;
                 break;
             case 3:
                 canProceed = wizardData.senderId !== '';
@@ -918,8 +1241,11 @@ $(document).ready(function() {
                 subAccount: wizardData.subAccount,
                 emailAddress: wizardData.generatedEmail,
                 allowedSenders: wizardData.allowedSenders,
-                contactListId: wizardData.contactListId,
-                contactListName: wizardData.contactListName,
+                selectedContacts: wizardData.selectedContacts,
+                selectedLists: wizardData.selectedLists,
+                selectedDynamicLists: wizardData.selectedDynamicLists,
+                selectedTags: wizardData.selectedTags,
+                optOutLists: wizardData.optOutLists,
                 senderId: wizardData.senderId,
                 subjectAsSenderId: wizardData.subjectAsSenderId,
                 multipleSms: wizardData.multipleSms,
@@ -961,8 +1287,11 @@ $(document).ready(function() {
             subAccount: wizardData.subAccount,
             emailAddress: wizardData.generatedEmail,
             allowedSenders: wizardData.allowedSenders,
-            contactListId: wizardData.contactListId,
-            contactListName: wizardData.contactListName,
+            selectedContacts: wizardData.selectedContacts,
+            selectedLists: wizardData.selectedLists,
+            selectedDynamicLists: wizardData.selectedDynamicLists,
+            selectedTags: wizardData.selectedTags,
+            optOutLists: wizardData.optOutLists,
             senderId: wizardData.senderId,
             subjectAsSenderId: wizardData.subjectAsSenderId,
             multipleSms: wizardData.multipleSms,
@@ -983,6 +1312,135 @@ $(document).ready(function() {
             showErrorToast('An error occurred. Please try again.');
         });
     });
+    
+    $(document).on('change', '.cb-contact', function() {
+        var id = $(this).val();
+        var name = $(this).data('name');
+        
+        if ($(this).is(':checked')) {
+            if (!wizardData.selectedContacts.find(c => c.id === id)) {
+                wizardData.selectedContacts.push({ id: id, name: name });
+            }
+        } else {
+            wizardData.selectedContacts = wizardData.selectedContacts.filter(c => c.id !== id);
+        }
+        updateRecipientSummary();
+    });
+    
+    $(document).on('change', '.cb-list', function() {
+        var id = $(this).val();
+        var name = $(this).data('name');
+        var count = $(this).data('count');
+        
+        if ($(this).is(':checked')) {
+            if (!wizardData.selectedLists.find(l => l.id === id)) {
+                wizardData.selectedLists.push({ id: id, name: name, count: count });
+            }
+        } else {
+            wizardData.selectedLists = wizardData.selectedLists.filter(l => l.id !== id);
+        }
+        updateRecipientSummary();
+    });
+    
+    $(document).on('change', '.cb-dynamic', function() {
+        var id = $(this).val();
+        var name = $(this).data('name');
+        var count = $(this).data('count');
+        
+        if ($(this).is(':checked')) {
+            if (!wizardData.selectedDynamicLists.find(l => l.id === id)) {
+                wizardData.selectedDynamicLists.push({ id: id, name: name, count: count });
+            }
+        } else {
+            wizardData.selectedDynamicLists = wizardData.selectedDynamicLists.filter(l => l.id !== id);
+        }
+        updateRecipientSummary();
+    });
+    
+    $(document).on('change', '.cb-tag', function() {
+        var id = $(this).val();
+        var name = $(this).data('name');
+        var count = $(this).data('count');
+        
+        if ($(this).is(':checked')) {
+            if (!wizardData.selectedTags.find(t => t.id === id)) {
+                wizardData.selectedTags.push({ id: id, name: name, count: count });
+            }
+        } else {
+            wizardData.selectedTags = wizardData.selectedTags.filter(t => t.id !== id);
+        }
+        updateRecipientSummary();
+    });
+    
+    $('#cbSelectAllContacts').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('.cb-contact').each(function() {
+            $(this).prop('checked', isChecked).trigger('change');
+        });
+    });
+    
+    $(document).on('click', '#recipientChips .btn-close', function() {
+        var type = $(this).data('type');
+        var id = $(this).data('id');
+        
+        switch(type) {
+            case 'contact':
+                wizardData.selectedContacts = wizardData.selectedContacts.filter(c => c.id != id);
+                $('.cb-contact[value="' + id + '"]').prop('checked', false);
+                break;
+            case 'list':
+                wizardData.selectedLists = wizardData.selectedLists.filter(l => l.id != id);
+                $('.cb-list[value="' + id + '"]').prop('checked', false);
+                break;
+            case 'dynamic':
+                wizardData.selectedDynamicLists = wizardData.selectedDynamicLists.filter(l => l.id != id);
+                $('.cb-dynamic[value="' + id + '"]').prop('checked', false);
+                break;
+            case 'tag':
+                wizardData.selectedTags = wizardData.selectedTags.filter(t => t.id != id);
+                $('.cb-tag[value="' + id + '"]').prop('checked', false);
+                break;
+        }
+        updateRecipientSummary();
+    });
+    
+    $('#btnClearAllRecipients').on('click', function() {
+        wizardData.selectedContacts = [];
+        wizardData.selectedLists = [];
+        wizardData.selectedDynamicLists = [];
+        wizardData.selectedTags = [];
+        $('.cb-contact, .cb-list, .cb-dynamic, .cb-tag').prop('checked', false);
+        $('#cbSelectAllContacts').prop('checked', false);
+        updateRecipientSummary();
+    });
+    
+    $('#btnToggleContactFilters').on('click', function() {
+        $('#cbContactFilters').toggleClass('d-none');
+    });
+    
+    $('#btnClearContactFilters').on('click', function() {
+        $('#cbFilterTags').val('');
+        $('#cbFilterMobile').val('');
+        $('#cbContactFilters').addClass('d-none');
+    });
+    
+    $('#optOutLists').on('change', function() {
+        var selected = $(this).val() || [];
+        
+        if (selected.includes('NO') && selected.length > 1) {
+            selected = selected.filter(v => v !== 'NO');
+            $(this).val(selected);
+        }
+        
+        if (selected.length === 0) {
+            selected = ['NO'];
+            $(this).val(selected);
+        }
+        
+        wizardData.optOutLists = selected;
+    });
+    
+    updateRecipientSummary();
 });
 </script>
 @endpush
