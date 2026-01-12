@@ -762,12 +762,13 @@
                                     <table class="email-sms-table">
                                         <thead>
                                             <tr>
-                                                <th style="width: 20%;">Name</th>
-                                                <th style="width: 15%;">Subaccount</th>
-                                                <th style="width: 30%;">Allowed Sender Emails</th>
-                                                <th style="width: 12%;">Created</th>
-                                                <th style="width: 12%;">Last Updated</th>
-                                                <th class="text-end" style="width: 11%;">Actions</th>
+                                                <th style="width: 18%;">Name</th>
+                                                <th style="width: 12%;">Subaccount</th>
+                                                <th style="width: 26%;">Allowed Sender Emails</th>
+                                                <th style="width: 10%;">Status</th>
+                                                <th style="width: 10%;">Created</th>
+                                                <th style="width: 10%;">Last Updated</th>
+                                                <th class="text-end" style="width: 14%;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="standardSmsTableBody">
@@ -2090,16 +2091,17 @@ $(document).ready(function() {
             multipleSms: $('#stdWizardMultipleSms').is(':checked'),
             deliveryReports: $('#stdWizardDeliveryReports').is(':checked'),
             deliveryEmail: $('#stdWizardDeliveryEmail').val().trim(),
-            signatureFilter: $('#stdWizardSignatureFilter').val().trim()
+            signatureFilter: $('#stdWizardSignatureFilter').val().trim(),
+            status: 'active'
         };
         
         EmailToSmsService.createStandardEmailToSmsSetup(payload).then(function(response) {
             if (response.success) {
                 stdWizardSetupCreated = true;
-                showSuccessToast('Standard Email-to-SMS created successfully');
+                showSuccessToast('Standard Email-to-SMS is now Live');
                 bootstrap.Modal.getInstance($('#createStandardModal')[0]).hide();
                 stdWizardReset();
-                loadStandardSetups();
+                loadStandardSmsTable();
             } else {
                 showErrorToast(response.error || 'Failed to create setup');
                 $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Create Setup');
@@ -2308,14 +2310,45 @@ $(document).ready(function() {
     });
     
     $('#stdWizardBtnSaveDraft').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
         $('#stdWizardAutosave').addClass('saving');
         $('#stdWizardAutosaveText').text('Saving draft...');
         
-        setTimeout(function() {
-            $('#stdWizardAutosave').removeClass('saving').addClass('saved');
-            $('#stdWizardAutosaveText').text('Draft saved');
-            showSuccessToast('Draft saved successfully');
-        }, 800);
+        var payload = {
+            name: $('#stdWizardName').val().trim(),
+            description: $('#stdWizardDescription').val().trim(),
+            subaccount: $('#stdWizardSubaccount').val(),
+            subaccountName: $('#stdWizardSubaccount option:selected').text(),
+            allowedEmails: stdWizardAllowedEmails,
+            senderId: $('#stdWizardSenderId').val(),
+            subjectAsSenderId: $('#stdWizardSubjectAsSenderId').is(':checked'),
+            multipleSms: $('#stdWizardMultipleSms').is(':checked'),
+            deliveryReports: $('#stdWizardDeliveryReports').is(':checked'),
+            deliveryReportsEmail: $('#stdWizardDeliveryEmail').val().trim(),
+            signatureFilter: $('#stdWizardSignatureFilter').val().trim(),
+            status: 'draft'
+        };
+        
+        EmailToSmsService.createStandardEmailToSmsSetup(payload).then(function(response) {
+            if (response.success) {
+                $('#stdWizardAutosave').removeClass('saving').addClass('saved');
+                $('#stdWizardAutosaveText').text('Draft saved');
+                showSuccessToast('Draft saved successfully');
+                bootstrap.Modal.getInstance($('#createStandardModal')[0]).hide();
+                stdWizardReset();
+                loadStandardSmsTable();
+            } else {
+                showErrorToast(response.error || 'Failed to save draft');
+            }
+            $btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> Save as Draft');
+        }).catch(function(error) {
+            console.error('Save draft failed:', error);
+            showErrorToast('An error occurred while saving draft');
+            $btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> Save as Draft');
+            $('#stdWizardAutosave').removeClass('saving');
+            $('#stdWizardAutosaveText').text('Save failed');
+        });
     });
     
     $('#createStandardModal').on('hidden.bs.modal', function() {
@@ -4327,10 +4360,20 @@ $(document).ready(function() {
             var allowedSendersHtml = formatAllowedSenders(item.allowedSenders);
             var archivedBadge = item.archived ? ' <span class="badge bg-secondary">Archived</span>' : '';
             
+            var statusBadge = '';
+            if (item.archived) {
+                statusBadge = '<span class="badge bg-secondary">Archived</span>';
+            } else if (item.status === 'draft') {
+                statusBadge = '<span class="badge bg-warning text-dark">Draft</span>';
+            } else {
+                statusBadge = '<span class="badge badge-live-status">Live</span>';
+            }
+            
             var row = '<tr data-id="' + item.id + '"' + (item.archived ? ' class="table-secondary"' : '') + '>' +
-                '<td><span class="email-sms-name">' + item.name + '</span>' + archivedBadge + '</td>' +
-                '<td>' + item.subaccountName + '</td>' +
+                '<td><span class="email-sms-name">' + escapeHtml(item.name) + '</span></td>' +
+                '<td>' + escapeHtml(item.subaccountName) + '</td>' +
                 '<td>' + allowedSendersHtml + '</td>' +
+                '<td>' + statusBadge + '</td>' +
                 '<td>' + item.created + '</td>' +
                 '<td>' + item.lastUpdated + '</td>' +
                 '<td class="text-end">' +
