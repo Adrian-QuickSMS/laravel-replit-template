@@ -31,7 +31,7 @@
     background: transparent !important;
     border: none !important;
 }
-.form-wizard .nav-wizard li .nav-link span.step-number {
+.form-wizard .nav-wizard li .nav-link span {
     border-radius: 3.125rem;
     width: 3rem;
     height: 3rem;
@@ -44,7 +44,7 @@
     background: #fff;
     color: var(--primary, #886CC0);
     position: relative;
-    z-index: 1;
+    z-index: 10;
 }
 .form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
@@ -59,8 +59,8 @@
 .form-wizard .nav-wizard li:last-child .nav-link:after {
     content: none;
 }
-.form-wizard .nav-wizard li .nav-link.active span.step-number,
-.form-wizard .nav-wizard li .nav-link.done span.step-number {
+.form-wizard .nav-wizard li .nav-link.active span,
+.form-wizard .nav-wizard li .nav-link.done span {
     background: var(--primary, #886CC0);
     color: #fff;
     border-color: var(--primary, #886CC0);
@@ -69,13 +69,8 @@
 .form-wizard .nav-wizard li .nav-link.done:after {
     background: var(--primary, #886CC0) !important;
 }
-.form-wizard .nav-wizard li .nav-link .step-label {
-    margin-top: 0.5rem;
-    font-size: 0.7rem;
-    text-align: center;
-    max-width: 80px;
-    line-height: 1.2;
-    color: #6c757d;
+.form-wizard .nav-wizard li .nav-link small {
+    display: none;
 }
 .form-wizard .toolbar-bottom {
     display: flex;
@@ -113,19 +108,8 @@
     cursor: not-allowed;
 }
 .form-wizard .tab-content .tab-pane {
-    padding: 1rem 0;
-}
-.step-content-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.step-content-header h4 {
-    margin-bottom: 0.5rem;
-    color: #343a40;
-}
-.step-content-header p {
-    color: #6c757d;
-    margin-bottom: 0;
+    padding: 0;
+    overflow: visible !important;
 }
 .contact-list-option {
     border: 2px solid #e9ecef;
@@ -237,6 +221,23 @@
 .sender-email-tag .remove-tag:hover {
     color: #dc3545;
 }
+.autosave-indicator {
+    font-size: 0.85rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+}
+.autosave-indicator.saving {
+    color: #ffc107;
+}
+.autosave-indicator.saved {
+    color: #28a745;
+}
+.alert-pastel-primary {
+    background-color: rgba(136, 108, 192, 0.1);
+    border-color: rgba(136, 108, 192, 0.2);
+    color: #5a4a7a;
+}
 </style>
 @endpush
 
@@ -244,57 +245,36 @@
 <div class="container-fluid">
     <div class="row page-titles">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('management') }}">Management</a></li>
             <li class="breadcrumb-item"><a href="{{ route('management.email-to-sms') }}">Email-to-SMS</a></li>
-            <li class="breadcrumb-item active">Create Mapping</li>
+            <li class="breadcrumb-item active">Create Contact List Mapping</li>
         </ol>
     </div>
     
     <div class="row">
-        <div class="col-12">
+        <div class="col-xl-12">
             <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title mb-0">Create Email-to-SMS Mapping</h4>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0"><i class="fas fa-link me-2 text-primary"></i>Create Email-to-SMS – Contact List</h4>
+                    <span class="autosave-indicator saved" id="autosaveIndicator">
+                        <i class="fas fa-cloud me-1"></i><span id="autosaveText">Draft saved</span>
+                    </span>
                 </div>
                 <div class="card-body">
                     <div id="mappingWizard" class="form-wizard">
                         <ul class="nav nav-wizard">
-                            <li>
-                                <a class="nav-link" href="#step-contact-list">
-                                    <span class="step-number">1</span>
-                                    <span class="step-label">Contact List</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="#step-allowed-senders">
-                                    <span class="step-number">2</span>
-                                    <span class="step-label">Allowed Senders</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="#step-email-generation">
-                                    <span class="step-number">3</span>
-                                    <span class="step-label">Email Address</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="#step-confirmation">
-                                    <span class="step-number">4</span>
-                                    <span class="step-label">Confirmation</span>
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="#step-contact-list"><span>1</span><small>List</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-allowed-senders"><span>2</span><small>Senders</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-email-generation"><span>3</span><small>Email</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-confirmation"><span>4</span><small>Confirm</small></a></li>
                         </ul>
                         
                         <div class="tab-content">
                             <div id="step-contact-list" class="tab-pane" role="tabpanel">
-                                <div class="step-content-header">
-                                    <h4>Select Contact List</h4>
-                                    <p>Choose the Contact Book List that will receive SMS messages when an email is sent to the generated address.</p>
-                                </div>
-                                
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 1: Select Contact List</strong> – Choose the Contact Book List that will receive SMS messages when an email is sent to the generated address.
+                                        </div>
                                         <div class="mb-3">
                                             <div class="input-group">
                                                 <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
@@ -317,13 +297,12 @@
                             </div>
                             
                             <div id="step-allowed-senders" class="tab-pane" role="tabpanel">
-                                <div class="step-content-header">
-                                    <h4>Allowed Sender Emails (Optional)</h4>
-                                    <p>Specify which email addresses are permitted to trigger this mapping. Leave empty to allow any sender.</p>
-                                </div>
-                                
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 2: Allowed Sender Emails (Optional)</strong> – Specify which email addresses are permitted to trigger this mapping. Leave empty to allow any sender.
+                                        </div>
+                                        
                                         <div class="mb-3">
                                             <label class="form-label">Add Email Addresses</label>
                                             <div class="input-group">
@@ -332,13 +311,13 @@
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <div class="form-text">Press Enter or click Add to add an email address to the whitelist.</div>
+                                            <small class="text-muted">Press Enter or click Add to add an email address to the whitelist.</small>
                                         </div>
                                         
                                         <div id="senderEmailTags" class="mb-3">
                                         </div>
                                         
-                                        <div class="alert alert-info small" style="background-color: rgba(48, 101, 208, 0.1); border: none;">
+                                        <div class="alert alert-pastel-primary small">
                                             <i class="fas fa-info-circle me-2"></i>
                                             <strong>Tip:</strong> If you leave this empty, any sender can trigger SMS messages to this Contact List. Add specific email addresses to restrict who can send.
                                         </div>
@@ -347,13 +326,12 @@
                             </div>
                             
                             <div id="step-email-generation" class="tab-pane" role="tabpanel">
-                                <div class="step-content-header">
-                                    <h4>Generated Email Address</h4>
-                                    <p>Your unique inbound email address has been generated. Emails sent to this address will trigger SMS to the selected Contact List.</p>
-                                </div>
-                                
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 3: Generated Email Address</strong> – Your unique inbound email address has been generated. Emails sent to this address will trigger SMS to the selected Contact List.
+                                        </div>
+                                        
                                         <div class="generated-email">
                                             <code id="generatedEmailDisplay">loading...</code>
                                             <div>
@@ -363,7 +341,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="alert alert-warning mt-3" style="background-color: rgba(255, 193, 7, 0.1); border: none;">
+                                        <div class="alert alert-pastel-primary mt-3">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
                                             <strong>Important:</strong> Each Email-to-SMS Address can only be mapped to one Contact List. This address is unique and cannot be changed after creation.
                                         </div>
@@ -372,13 +350,11 @@
                             </div>
                             
                             <div id="step-confirmation" class="tab-pane" role="tabpanel">
-                                <div class="step-content-header">
-                                    <h4>Review & Confirm</h4>
-                                    <p>Please review your mapping configuration before creating.</p>
-                                </div>
-                                
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 4: Review & Confirm</strong> – Please review your mapping configuration before creating.
+                                        </div>
                                         <div class="summary-card">
                                             <div class="summary-row">
                                                 <span class="summary-label">Email-to-SMS Address</span>
