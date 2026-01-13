@@ -1453,15 +1453,16 @@ $(document).ready(function() {
     }
 
     function getStatusLabel(status) {
-        var labels = {
-            'draft': 'Draft',
-            'pending': 'Pending Approval',
-            'approved': 'Approved',
-            'rejected': 'Rejected',
-            'suspended': 'Suspended',
-            'archived': 'Archived'
+        var statusConfig = {
+            'draft': { label: 'Draft', class: 'badge-pastel-secondary' },
+            'pending': { label: 'Pending Approval', class: 'badge-pastel-warning' },
+            'approved': { label: 'Approved', class: 'badge-pastel-success' },
+            'rejected': { label: 'Rejected', class: 'badge-pastel-danger' },
+            'suspended': { label: 'Suspended', class: 'badge-pastel-danger' },
+            'archived': { label: 'Archived', class: 'badge-pastel-secondary' }
         };
-        return labels[status] || status;
+        var config = statusConfig[status] || { label: status, class: 'badge-pastel-secondary' };
+        return '<span class="badge ' + config.class + '">' + config.label + '</span>';
     }
 
     function getUseCaseLabel(useCase) {
