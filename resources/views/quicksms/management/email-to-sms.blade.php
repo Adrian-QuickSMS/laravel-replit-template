@@ -3719,7 +3719,8 @@ $(document).ready(function() {
                 description: entry.description,
                 type: 'Standard',
                 subaccount: entry.subaccount,
-                allowedSenders: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
+                originatingEmails: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
+                reportingGroup: '-',
                 status: 'active',
                 created: entry.created,
                 lastUsed: '-'
@@ -3735,7 +3736,8 @@ $(document).ready(function() {
                 description: entry.description,
                 type: 'Contact List',
                 subaccount: entry.subaccountName,
-                allowedSenders: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
+                originatingEmails: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
+                reportingGroup: '-',
                 status: 'active',
                 created: entry.created,
                 lastUsed: '-'
