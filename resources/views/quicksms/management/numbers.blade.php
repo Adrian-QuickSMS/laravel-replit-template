@@ -417,9 +417,9 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                     <i class="fas fa-filter me-1"></i> Filters
                 </button>
-                <a href="{{ route('purchase.numbers') }}" class="btn btn-primary btn-sm">
+                <button type="button" class="btn btn-primary btn-sm" id="btnConfigureSelected" disabled>
                     <i class="fas fa-cog me-1"></i>Configure
-                </a>
+                </button>
             </div>
         </div>
         <div class="card-body">
@@ -1490,12 +1490,12 @@ $(document).ready(function() {
         $('#totalCount').text(numbersData.length);
     }
 
-    // Row click to open configuration drawer
+    // Row click to navigate to configuration page
     $(document).on('click', '.numbers-table tbody tr', function(e) {
         if ($(e.target).closest('.dropdown').length) return;
         if ($(e.target).hasClass('row-checkbox') || $(e.target).hasClass('form-check-input')) return;
         var id = $(this).data('id');
-        viewNumber(id);
+        navigateToConfigurePage([id]);
     });
 
     // Checkbox selection handling
@@ -1541,8 +1541,10 @@ $(document).ready(function() {
         
         if (count > 0) {
             $('#bulkActionBar').addClass('show');
+            $('#btnConfigureSelected').prop('disabled', false);
         } else {
             $('#bulkActionBar').removeClass('show');
+            $('#btnConfigureSelected').prop('disabled', true);
         }
         
         // Get selected numbers data
@@ -1562,6 +1564,21 @@ $(document).ready(function() {
         var allPortal = selectedData.every(function(n) { return n.mode === 'portal'; });
         $('#btnBulkAssignSubAccounts').prop('disabled', !allPortal || count === 0);
     }
+    
+    // Navigate to dedicated configuration page
+    function navigateToConfigurePage(ids) {
+        var idsParam = Array.isArray(ids) ? ids.join(',') : ids;
+        window.location.href = '{{ route("management.numbers.configure") }}?ids=' + idsParam;
+    }
+    
+    // Configure button click handler
+    $('#btnConfigureSelected').on('click', function() {
+        if (selectedNumbers.length === 0) {
+            toastr.warning('Please select at least one number to configure');
+            return;
+        }
+        navigateToConfigurePage(selectedNumbers);
+    });
 
     $('#btnClearSelection').on('click', function() {
         selectedNumbers = [];
@@ -2459,11 +2476,9 @@ $(document).ready(function() {
         toastr.success('Operating mode changed to ' + (newMode === 'portal' ? 'Portal' : 'API') + ' Mode');
     });
 
-    // Edit number function
+    // Edit number function - navigate to configuration page
     window.editNumber = function(id) {
-        // TODO: Implement edit number modal/wizard
-        console.log('Edit number:', id);
-        toastr.info('Edit number configuration coming soon');
+        navigateToConfigurePage([id]);
     };
 
     // Suspend number function
