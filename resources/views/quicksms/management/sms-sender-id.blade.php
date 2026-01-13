@@ -522,17 +522,16 @@
 
 @section('content')
 <div class="container-fluid">
-    <nav aria-label="breadcrumb" class="mb-3">
+    <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="#">Management</a></li>
-            <li class="breadcrumb-item active text-primary">SMS SenderID Registration</li>
+            <li class="breadcrumb-item active"><a href="javascript:void(0)">SMS SenderID Registration</a></li>
         </ol>
-    </nav>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                     <h5 class="card-title mb-0">SMS SenderID Library</h5>
                     <div class="d-flex align-items-center gap-2">
@@ -641,20 +640,18 @@
                             </table>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="text-muted small">
-                                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> SenderIDs
-                            </div>
-                            <nav>
-                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">
+                    Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> SenderIDs
                 </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <div class="modal fade" id="senderIdWizardModal" tabindex="-1" data-bs-backdrop="static">
@@ -1514,7 +1511,7 @@ $(document).ready(function() {
             html += '<td>' + (item.lastUsed ? formatDate(item.lastUsed) : '<span class="text-muted">Never</span>') + '</td>';
             html += '<td class="text-center">';
             html += '<div class="dropdown">';
-            html += '<button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>';
+            html += '<button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown" data-bs-container="body"><i class="fas fa-ellipsis-v"></i></button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             html += '<li><a class="dropdown-item btn-view-details" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i>View Details</a></li>';
             html += '<li><a class="dropdown-item btn-view-audit" href="#" data-id="' + item.id + '"><i class="fas fa-history me-2"></i>View Audit History</a></li>';
