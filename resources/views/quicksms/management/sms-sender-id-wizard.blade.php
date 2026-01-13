@@ -914,6 +914,55 @@ $(document).ready(function() {
     });
 
     $('#confirmSubmitBtn').on('click', function() {
+        // Collect form data
+        var selectedSubaccounts = $('#inputSubaccount option:selected').map(function() {
+            return $(this).text();
+        }).get();
+        
+        var now = new Date().toISOString();
+        var newSenderId = {
+            id: 'sid_' + Date.now(),
+            senderId: $('#inputSenderId').val(),
+            senderIdNormalised: $('#inputSenderId').val().toUpperCase(),
+            type: selectedType,
+            brand: $('#inputBrand').val(),
+            useCase: $('#inputUseCase').val() || 'general',
+            description: $('#inputDescription').val() || '',
+            subaccount: selectedSubaccounts.length > 0 ? selectedSubaccounts.join(', ') : 'Main Account',
+            status: 'pending',
+            isImmutable: false,
+            submittedBy: { userId: 'usr_current', name: 'Current User', email: 'user@example.com' },
+            submittedAt: now,
+            created: now,
+            updated: now,
+            lastUsed: null,
+            permissionConfirmed: $('#inputPermission').val() === 'yes',
+            permissionExplanation: $('#inputPermissionExplanation').val() || '',
+            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
+            approvalDetails: { 
+                decision: 'pending', 
+                timestamp: now, 
+                reviewer: null, 
+                reviewerId: null,
+                reviewerType: 'pending',
+                notes: null
+            },
+            auditHistory: [
+                { 
+                    action: 'Submitted for Approval', 
+                    user: 'Current User', 
+                    userId: 'usr_current', 
+                    timestamp: now, 
+                    auditType: 'submitted' 
+                }
+            ]
+        };
+        
+        // Store in localStorage
+        var storedSenderIds = JSON.parse(localStorage.getItem('quicksms_senderids') || '[]');
+        storedSenderIds.push(newSenderId);
+        localStorage.setItem('quicksms_senderids', JSON.stringify(storedSenderIds));
+        
         var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
         modal.hide();
         window.location.href = '{{ route("management.sms-sender-id") }}';

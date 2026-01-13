@@ -1405,6 +1405,13 @@ $(document).ready(function() {
         }
     ];
 
+    // Load any user-created SenderIDs from localStorage and merge with mock data
+    // TODO: Replace with backend API call when implemented
+    var storedSenderIds = JSON.parse(localStorage.getItem('quicksms_senderids') || '[]');
+    if (storedSenderIds.length > 0) {
+        senderIds = storedSenderIds.concat(senderIds);
+    }
+
     var currentPage = 1;
     var pageSize = 10;
     var sortColumn = 'created';
