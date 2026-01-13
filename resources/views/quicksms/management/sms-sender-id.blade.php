@@ -1084,24 +1084,46 @@ $(document).ready(function() {
         };
     }
 
+    // Comprehensive SenderID data model for audit and compliance
+    // All records store: submitted fields, normalized value, userId, timestamps, approval decisions, status transitions
+    // Archived records are immutable - no further modifications allowed
     var senderIds = [
         {
             id: 'sid_001',
             senderId: 'QUICKSMS',
+            senderIdNormalised: 'QUICKSMS', // Normalized value for comparison
             type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'transactional',
             description: 'Order confirmations and delivery updates',
             subaccount: 'Main Account',
             status: 'approved',
+            isImmutable: false, // True only after archival
+            // Submission metadata
+            submittedBy: { userId: 'usr_001', name: 'John Smith', email: 'john.smith@quicksms.com' },
+            submittedAt: '2024-01-15T10:30:00Z',
+            submittedFromIp: '192.168.1.100',
+            // Timestamps
             created: '2024-01-15T10:30:00Z',
+            updated: '2024-01-16T14:22:00Z',
             lastUsed: '2024-03-14T16:45:00Z',
+            // Permission confirmation
+            permissionConfirmed: true,
+            permissionExplanation: 'Brand owner - QuickSMS Ltd is the trading name',
+            // Scopes and approval
             scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
-            approvalDetails: { decision: 'approved', timestamp: '2024-01-16T14:22:00Z', reviewer: 'Compliance Team', reviewerType: 'manual' },
+            approvalDetails: { 
+                decision: 'approved', 
+                timestamp: '2024-01-16T14:22:00Z', 
+                reviewer: 'Compliance Team', 
+                reviewerId: 'usr_admin_01',
+                reviewerType: 'manual',
+                notes: 'Verified brand ownership through company registration'
+            },
             auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-16T14:22:00Z', auditType: 'approved' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-01-15T10:35:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Approval', user: 'John Smith', timestamp: '2024-01-15T10:30:00Z', auditType: 'submitted' }
+                { action: 'Approved', user: 'Compliance Team', userId: 'usr_admin_01', timestamp: '2024-01-16T14:22:00Z', auditType: 'approved', ipAddress: '10.0.0.1' },
+                { action: 'Under Review', user: 'System', userId: 'system', timestamp: '2024-01-15T10:35:00Z', auditType: 'status_change', previousStatus: 'pending', newStatus: 'under_review' },
+                { action: 'Submitted for Approval', user: 'John Smith', userId: 'usr_001', timestamp: '2024-01-15T10:30:00Z', auditType: 'submitted', ipAddress: '192.168.1.100' }
             ]
         },
         {
@@ -1206,17 +1228,26 @@ $(document).ready(function() {
         {
             id: 'sid_009',
             senderId: 'OLDPROMO',
+            senderIdNormalised: 'OLDPROMO',
             type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'marketing',
             description: 'Legacy promotional sender - no longer in use',
             subaccount: 'Marketing Department',
             status: 'archived',
+            isImmutable: true, // IMMUTABLE: Record locked after archival - no modifications allowed
+            archivedAt: '2024-02-28T15:30:00Z',
+            archivedBy: { userId: 'usr_admin_02', name: 'Admin User' },
+            archiveReason: 'No longer needed - replaced by PROMO',
+            submittedBy: { userId: 'usr_003', name: 'Marketing Team', email: 'marketing@quicksms.com' },
+            submittedAt: '2023-06-01T09:00:00Z',
             created: '2023-06-01T09:00:00Z',
+            updated: '2024-02-28T15:30:00Z',
             auditHistory: [
-                { action: 'Archived', user: 'Admin User', timestamp: '2024-02-28T15:30:00Z', auditType: 'archived', reason: 'No longer needed - replaced by PROMO' },
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2023-06-02T11:00:00Z', auditType: 'approved' },
-                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2023-06-01T09:00:00Z', auditType: 'submitted' }
+                { action: 'Record Locked', user: 'System', userId: 'system', timestamp: '2024-02-28T15:30:01Z', auditType: 'immutable', note: 'Record is now immutable - no further changes permitted' },
+                { action: 'Archived', user: 'Admin User', userId: 'usr_admin_02', timestamp: '2024-02-28T15:30:00Z', auditType: 'archived', reason: 'No longer needed - replaced by PROMO', ipAddress: '10.0.0.5' },
+                { action: 'Approved', user: 'Compliance Team', userId: 'usr_admin_01', timestamp: '2023-06-02T11:00:00Z', auditType: 'approved' },
+                { action: 'Submitted for Approval', user: 'Marketing Team', userId: 'usr_003', timestamp: '2023-06-01T09:00:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -1909,9 +1940,23 @@ $(document).ready(function() {
             finalSenderId = '+' + senderIdResult.normalised;
         }
 
+        // Generate normalized SenderID for comparison and audit
+        var senderIdNormalised = finalSenderId.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (senderIdType === 'numeric' && senderIdResult.normalised) {
+            senderIdNormalised = senderIdResult.normalised;
+        }
+
+        var now = new Date().toISOString();
+        var currentUser = {
+            userId: 'usr_current', // TODO: Replace with Auth::id() on backend
+            name: 'Current User',
+            email: 'user@quicksms.com'
+        };
+
         var newEntry = {
             id: 'sid_' + Date.now(),
             senderId: finalSenderId,
+            senderIdNormalised: senderIdNormalised, // Normalized for comparison/audit
             type: senderIdType,
             brand: brand,
             useCase: useCase,
@@ -1920,10 +1965,37 @@ $(document).ready(function() {
             subaccount: subaccount || 'Main Account',
             country: 'United Kingdom',
             status: 'pending',
-            created: new Date().toISOString(),
+            isImmutable: false, // Will become true upon archival
+            // Submission metadata for audit trail
+            submittedBy: currentUser,
+            submittedAt: now,
+            submittedFromIp: '0.0.0.0', // TODO: Capture from request on backend
+            // Permission confirmation audit
+            permissionConfirmed: true,
+            permissionExplanation: explanation || null,
+            // Timestamps
+            created: now,
+            updated: now,
+            lastUsed: null,
+            // Scopes (all enabled by default, can be restricted later)
             scopes: getDefaultScopes(),
+            // Full audit history with userId and timestamps
             auditHistory: [
-                { action: 'Submitted for Approval', user: 'Current User', timestamp: new Date().toISOString(), auditType: 'submitted' }
+                { 
+                    action: 'Submitted for Approval', 
+                    user: currentUser.name, 
+                    userId: currentUser.userId,
+                    timestamp: now, 
+                    auditType: 'submitted',
+                    ipAddress: '0.0.0.0', // TODO: Capture from request
+                    metadata: {
+                        senderIdOriginal: senderId,
+                        senderIdNormalised: senderIdNormalised,
+                        type: senderIdType,
+                        brand: brand,
+                        useCase: useCase
+                    }
+                }
             ]
         };
 
@@ -2031,18 +2103,50 @@ $(document).ready(function() {
         var id = $('#archiveModal').data('id');
         var item = senderIds.find(function(s) { return s.id === id; });
         if (item) {
+            // Check immutability - archived records cannot be modified
+            if (item.isImmutable) {
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast('This record is immutable and cannot be modified');
+                }
+                bootstrap.Modal.getInstance($('#archiveModal')[0]).hide();
+                return;
+            }
+
+            var now = new Date().toISOString();
+            var currentUser = { userId: 'usr_current', name: 'Current User' };
+            
+            // Update status and set immutability
             item.status = 'archived';
+            item.isImmutable = true; // Record becomes immutable after archival
+            item.archivedAt = now;
+            item.archivedBy = currentUser;
+            item.updated = now;
+
+            // Add archive audit entry
             item.auditHistory.unshift({
                 action: 'Archived',
-                user: 'Current User',
-                timestamp: new Date().toISOString(),
-                auditType: 'archived'
+                user: currentUser.name,
+                userId: currentUser.userId,
+                timestamp: now,
+                auditType: 'archived',
+                ipAddress: '0.0.0.0' // TODO: Capture from request
             });
+            
+            // Add immutability audit entry
+            item.auditHistory.unshift({
+                action: 'Record Locked',
+                user: 'System',
+                userId: 'system',
+                timestamp: now,
+                auditType: 'immutable',
+                note: 'Record is now immutable - no further changes permitted'
+            });
+
             bootstrap.Modal.getInstance($('#archiveModal')[0]).hide();
             closeDetailDrawer();
             renderTable();
             if (typeof showSuccessToast === 'function') {
-                showSuccessToast('SenderID archived');
+                showSuccessToast('SenderID archived and locked');
             }
         }
     });
@@ -2052,12 +2156,31 @@ $(document).ready(function() {
         var id = selectedSenderId && selectedSenderId.id;
         var item = senderIds.find(function(s) { return s.id === id; });
         if (item && item.status === 'draft') {
+            // Check immutability
+            if (item.isImmutable) {
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast('This record is immutable and cannot be modified');
+                }
+                return;
+            }
+
+            var now = new Date().toISOString();
+            var currentUser = { userId: 'usr_current', name: 'Current User' };
+            
             item.status = 'pending';
+            item.updated = now;
+            item.submittedAt = now;
+            item.submittedBy = currentUser;
+            
             item.auditHistory.unshift({
                 action: 'Submitted for Approval',
-                user: 'Current User',
-                timestamp: new Date().toISOString(),
-                auditType: 'submitted'
+                user: currentUser.name,
+                userId: currentUser.userId,
+                timestamp: now,
+                auditType: 'submitted',
+                previousStatus: 'draft',
+                newStatus: 'pending',
+                ipAddress: '0.0.0.0'
             });
             closeDetailDrawer();
             renderTable();
