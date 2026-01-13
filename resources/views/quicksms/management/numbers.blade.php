@@ -230,6 +230,45 @@
     font-weight: 500;
     color: #343a40;
 }
+.bulk-action-bar {
+    display: none;
+    background: linear-gradient(135deg, rgba(136, 108, 192, 0.1) 0%, rgba(111, 66, 193, 0.15) 100%);
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+    gap: 1rem;
+}
+.bulk-action-bar.show {
+    display: flex;
+}
+.bulk-action-bar .selection-info {
+    font-weight: 500;
+    color: #495057;
+}
+.bulk-action-bar .selection-count {
+    color: var(--primary);
+    font-weight: 600;
+}
+.bulk-action-bar .btn-bulk {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+}
+.numbers-table thead th.checkbox-col,
+.numbers-table tbody td.checkbox-col {
+    width: 40px !important;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center;
+    cursor: default;
+}
+.numbers-table thead th.checkbox-col:hover {
+    background: #f8f9fa;
+}
+.row-checkbox {
+    cursor: pointer;
+}
 </style>
 @endpush
 
@@ -337,6 +376,26 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-4 col-lg-2">
+                            <label class="form-label small fw-bold">Capability</label>
+                            <div class="dropdown multiselect-dropdown" data-filter="capabilities">
+                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                    <span class="dropdown-label">All Capabilities</span>
+                                </button>
+                                <div class="dropdown-menu w-100 p-2">
+                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                    </div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="api" id="capAPI"><label class="form-check-label small" for="capAPI">API</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="portal" id="capPortal"><label class="form-check-label small" for="capPortal">Portal SenderID</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="inbox" id="capInbox"><label class="form-check-label small" for="capInbox">Inbox</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="optout" id="capOptout"><label class="form-check-label small" for="capOptout">Opt-out</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 align-items-end mt-1">
+                        <div class="col-6 col-md-4 col-lg-2">
                             <label class="form-label small fw-bold">Sub-Account</label>
                             <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
                                 <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
@@ -378,11 +437,32 @@
                 </div>
             </div>
             
+            <div class="bulk-action-bar" id="bulkActionBar">
+                <div class="selection-info">
+                    <span class="selection-count" id="selectedCount">0</span> number(s) selected
+                </div>
+                <div class="d-flex gap-2 ms-auto">
+                    <button type="button" class="btn btn-warning btn-bulk" id="btnBulkSuspend" disabled>
+                        <i class="fas fa-pause-circle me-1"></i> Suspend
+                    </button>
+                    <button type="button" class="btn btn-success btn-bulk" id="btnBulkReactivate" disabled>
+                        <i class="fas fa-play-circle me-1"></i> Reactivate
+                    </button>
+                    <button type="button" class="btn btn-primary btn-bulk" id="btnBulkAssignSubAccounts" disabled>
+                        <i class="fas fa-users me-1"></i> Assign Sub-Accounts
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-bulk" id="btnClearSelection">
+                        <i class="fas fa-times me-1"></i> Clear
+                    </button>
+                </div>
+            </div>
+            
             <div class="numbers-table-container" id="numbersTableContainer">
                 <div class="table-responsive">
                     <table class="table numbers-table mb-0" id="numbersTable">
                         <thead>
                             <tr>
+                                <th class="checkbox-col"><input type="checkbox" class="form-check-input" id="selectAllCheckbox" title="Select all"></th>
                                 <th data-sort="number">Number <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="country">Country <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="type">Type <i class="fas fa-sort sort-icon"></i></th>
@@ -536,6 +616,41 @@
         </div>
     </div>
 </div>
+
+{{-- Bulk Assign Sub-Accounts Modal --}}
+<div class="modal fade" id="assignSubAccountsModal" tabindex="-1" aria-labelledby="assignSubAccountsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignSubAccountsModalLabel">Assign Sub-Accounts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Assigning sub-accounts to <strong><span id="assignNumbersCount">0</span></strong> selected number(s).
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Sub-Accounts</label>
+                    <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="assignSubAccAll">
+                            <label class="form-check-label fw-bold" for="assignSubAccAll">Select All</label>
+                        </div>
+                        <hr class="my-2">
+                        <div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="Main Account" id="assignSubAccMain"><label class="form-check-label" for="assignSubAccMain">Main Account</label></div>
+                        <div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="Marketing" id="assignSubAccMarketing"><label class="form-check-label" for="assignSubAccMarketing">Marketing</label></div>
+                        <div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="Support" id="assignSubAccSupport"><label class="form-check-label" for="assignSubAccSupport">Support</label></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmAssignSubAccounts">Assign</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -658,8 +773,11 @@ $(document).ready(function() {
         types: [],
         statuses: [],
         modes: [],
+        capabilities: [],
         subAccounts: []
     };
+
+    var selectedNumbers = [];
 
     // Add/remove dropdown-active class on parent td for z-index fix
     $(document).on('shown.bs.dropdown', '.numbers-table .dropdown', function() {
@@ -749,6 +867,13 @@ $(document).ready(function() {
             if (appliedFilters.statuses.length > 0 && !appliedFilters.statuses.includes(num.status)) return false;
             if (appliedFilters.modes.length > 0 && !appliedFilters.modes.includes(num.mode)) return false;
             
+            if (appliedFilters.capabilities.length > 0) {
+                var hasCapMatch = appliedFilters.capabilities.some(function(cap) {
+                    return num.capabilities.includes(cap);
+                });
+                if (!hasCapMatch) return false;
+            }
+            
             if (appliedFilters.subAccounts.length > 0) {
                 var hasMatch = num.subAccounts.some(function(sa) {
                     return appliedFilters.subAccounts.includes(sa);
@@ -793,8 +918,10 @@ $(document).ready(function() {
         var html = '';
         filtered.forEach(function(num) {
             var rowClass = num.status === 'suspended' ? 'suspended-row' : '';
-            html += '<tr class="' + rowClass + '" data-id="' + num.id + '">';
+            var isChecked = selectedNumbers.includes(num.id) ? 'checked' : '';
+            html += '<tr class="' + rowClass + '" data-id="' + num.id + '" data-mode="' + num.mode + '" data-status="' + num.status + '">';
             
+            html += '<td class="checkbox-col"><input type="checkbox" class="form-check-input row-checkbox" data-id="' + num.id + '" ' + isChecked + '></td>';
             html += '<td><span class="number-value">' + num.number + '</span></td>';
             html += '<td>' + num.countryName + '</td>';
             html += '<td>' + getTypeLabel(num.type) + '</td>';
@@ -843,8 +970,201 @@ $(document).ready(function() {
     // Row click to open configuration drawer
     $(document).on('click', '.numbers-table tbody tr', function(e) {
         if ($(e.target).closest('.dropdown').length) return;
+        if ($(e.target).hasClass('row-checkbox') || $(e.target).hasClass('form-check-input')) return;
         var id = $(this).data('id');
         viewNumber(id);
+    });
+
+    // Checkbox selection handling
+    $(document).on('change', '.row-checkbox', function() {
+        var id = $(this).data('id');
+        if ($(this).is(':checked')) {
+            if (!selectedNumbers.includes(id)) {
+                selectedNumbers.push(id);
+            }
+        } else {
+            selectedNumbers = selectedNumbers.filter(function(n) { return n !== id; });
+        }
+        updateBulkActionBar();
+        updateSelectAllCheckbox();
+    });
+
+    $('#selectAllCheckbox').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('.row-checkbox').each(function() {
+            $(this).prop('checked', isChecked);
+            var id = $(this).data('id');
+            if (isChecked) {
+                if (!selectedNumbers.includes(id)) {
+                    selectedNumbers.push(id);
+                }
+            } else {
+                selectedNumbers = selectedNumbers.filter(function(n) { return n !== id; });
+            }
+        });
+        updateBulkActionBar();
+    });
+
+    function updateSelectAllCheckbox() {
+        var total = $('.row-checkbox').length;
+        var checked = $('.row-checkbox:checked').length;
+        $('#selectAllCheckbox').prop('checked', total > 0 && total === checked);
+        $('#selectAllCheckbox').prop('indeterminate', checked > 0 && checked < total);
+    }
+
+    function updateBulkActionBar() {
+        var count = selectedNumbers.length;
+        $('#selectedCount').text(count);
+        
+        if (count > 0) {
+            $('#bulkActionBar').addClass('show');
+        } else {
+            $('#bulkActionBar').removeClass('show');
+        }
+        
+        // Get selected numbers data
+        var selectedData = numbersData.filter(function(n) { 
+            return selectedNumbers.includes(n.id); 
+        });
+        
+        // Check if any active numbers are selected (can suspend)
+        var hasActive = selectedData.some(function(n) { return n.status === 'active'; });
+        $('#btnBulkSuspend').prop('disabled', !hasActive);
+        
+        // Check if any suspended numbers are selected (can reactivate)
+        var hasSuspended = selectedData.some(function(n) { return n.status === 'suspended'; });
+        $('#btnBulkReactivate').prop('disabled', !hasSuspended);
+        
+        // Assign Sub-Accounts only for Portal mode numbers
+        var allPortal = selectedData.every(function(n) { return n.mode === 'portal'; });
+        $('#btnBulkAssignSubAccounts').prop('disabled', !allPortal || count === 0);
+    }
+
+    $('#btnClearSelection').on('click', function() {
+        selectedNumbers = [];
+        $('.row-checkbox').prop('checked', false);
+        $('#selectAllCheckbox').prop('checked', false).prop('indeterminate', false);
+        updateBulkActionBar();
+    });
+
+    // Bulk Suspend
+    $('#btnBulkSuspend').on('click', function() {
+        var activeNumbers = numbersData.filter(function(n) {
+            return selectedNumbers.includes(n.id) && n.status === 'active';
+        });
+        
+        if (activeNumbers.length === 0) {
+            toastr.warning('No active numbers selected to suspend');
+            return;
+        }
+        
+        $('#confirmModalLabel').text('Bulk Suspend Numbers');
+        $('#confirmModalMessage').text('Are you sure you want to suspend ' + activeNumbers.length + ' active number(s)?');
+        $('#confirmModalWarning').show();
+        $('#confirmModalWarningText').text('These numbers will be hidden from sender pickers across all modules.');
+        $('#confirmModalBtn').removeClass('btn-primary btn-danger').addClass('btn-warning').text('Suspend');
+        
+        $('#confirmModalBtn').off('click').on('click', function() {
+            // TODO: Backend API call
+            activeNumbers.forEach(function(num) {
+                num.status = 'suspended';
+            });
+            selectedNumbers = [];
+            $('.row-checkbox').prop('checked', false);
+            $('#selectAllCheckbox').prop('checked', false);
+            updateBulkActionBar();
+            renderTable();
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+            toastr.success(activeNumbers.length + ' number(s) suspended successfully');
+        });
+        
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    });
+
+    // Bulk Reactivate
+    $('#btnBulkReactivate').on('click', function() {
+        var suspendedNumbers = numbersData.filter(function(n) {
+            return selectedNumbers.includes(n.id) && n.status === 'suspended';
+        });
+        
+        if (suspendedNumbers.length === 0) {
+            toastr.warning('No suspended numbers selected to reactivate');
+            return;
+        }
+        
+        $('#confirmModalLabel').text('Bulk Reactivate Numbers');
+        $('#confirmModalMessage').text('Are you sure you want to reactivate ' + suspendedNumbers.length + ' suspended number(s)?');
+        $('#confirmModalWarning').hide();
+        $('#confirmModalBtn').removeClass('btn-warning btn-danger').addClass('btn-primary').text('Reactivate');
+        
+        $('#confirmModalBtn').off('click').on('click', function() {
+            // TODO: Backend API call
+            suspendedNumbers.forEach(function(num) {
+                num.status = 'active';
+            });
+            selectedNumbers = [];
+            $('.row-checkbox').prop('checked', false);
+            $('#selectAllCheckbox').prop('checked', false);
+            updateBulkActionBar();
+            renderTable();
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+            toastr.success(suspendedNumbers.length + ' number(s) reactivated successfully');
+        });
+        
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    });
+
+    // Bulk Assign Sub-Accounts
+    $('#btnBulkAssignSubAccounts').on('click', function() {
+        var portalNumbers = numbersData.filter(function(n) {
+            return selectedNumbers.includes(n.id) && n.mode === 'portal';
+        });
+        
+        if (portalNumbers.length === 0) {
+            toastr.warning('Assign Sub-Accounts is only available for Portal mode numbers');
+            return;
+        }
+        
+        $('#assignNumbersCount').text(portalNumbers.length);
+        $('.assign-subacc-check').prop('checked', false);
+        $('#assignSubAccAll').prop('checked', false);
+        
+        new bootstrap.Modal(document.getElementById('assignSubAccountsModal')).show();
+    });
+
+    // Select All in Assign Sub-Accounts modal
+    $('#assignSubAccAll').on('change', function() {
+        $('.assign-subacc-check').prop('checked', $(this).is(':checked'));
+    });
+
+    // Confirm Assign Sub-Accounts
+    $('#btnConfirmAssignSubAccounts').on('click', function() {
+        var selectedSubAccs = [];
+        $('.assign-subacc-check:checked').each(function() {
+            selectedSubAccs.push($(this).val());
+        });
+        
+        if (selectedSubAccs.length === 0) {
+            toastr.warning('Please select at least one sub-account');
+            return;
+        }
+        
+        var portalNumbers = numbersData.filter(function(n) {
+            return selectedNumbers.includes(n.id) && n.mode === 'portal';
+        });
+        
+        // TODO: Backend API call
+        portalNumbers.forEach(function(num) {
+            num.subAccounts = selectedSubAccs.slice();
+        });
+        
+        selectedNumbers = [];
+        $('.row-checkbox').prop('checked', false);
+        $('#selectAllCheckbox').prop('checked', false);
+        updateBulkActionBar();
+        renderTable();
+        bootstrap.Modal.getInstance(document.getElementById('assignSubAccountsModal')).hide();
+        toastr.success('Sub-accounts assigned to ' + portalNumbers.length + ' number(s)');
     });
 
     // Sorting
@@ -909,8 +1229,19 @@ $(document).ready(function() {
             case 'types': return 'Types';
             case 'statuses': return 'Statuses';
             case 'modes': return 'Modes';
+            case 'capabilities': return 'Capabilities';
             case 'subAccounts': return 'Sub-Accounts';
             default: return '';
+        }
+    }
+
+    function getCapabilityLabel(cap) {
+        switch(cap) {
+            case 'api': return 'API';
+            case 'portal': return 'Portal SenderID';
+            case 'inbox': return 'Inbox';
+            case 'optout': return 'Opt-out';
+            default: return cap;
         }
     }
 
@@ -919,6 +1250,7 @@ $(document).ready(function() {
         appliedFilters.types = [];
         appliedFilters.statuses = [];
         appliedFilters.modes = [];
+        appliedFilters.capabilities = [];
         appliedFilters.subAccounts = [];
         
         $('[data-filter="countries"] .form-check-input:checked').each(function() {
@@ -932,6 +1264,9 @@ $(document).ready(function() {
         });
         $('[data-filter="modes"] .form-check-input:checked').each(function() {
             appliedFilters.modes.push($(this).val());
+        });
+        $('[data-filter="capabilities"] .form-check-input:checked').each(function() {
+            appliedFilters.capabilities.push($(this).val());
         });
         $('[data-filter="subAccounts"] .form-check-input:checked').each(function() {
             appliedFilters.subAccounts.push($(this).val());
@@ -951,6 +1286,7 @@ $(document).ready(function() {
         appliedFilters.types = [];
         appliedFilters.statuses = [];
         appliedFilters.modes = [];
+        appliedFilters.capabilities = [];
         appliedFilters.subAccounts = [];
         updateActiveFiltersDisplay();
         renderTable();
@@ -965,6 +1301,7 @@ $(document).ready(function() {
                         appliedFilters.types.length > 0 || 
                         appliedFilters.statuses.length > 0 || 
                         appliedFilters.modes.length > 0 ||
+                        appliedFilters.capabilities.length > 0 ||
                         appliedFilters.subAccounts.length > 0;
         
         if (hasFilters) {
@@ -982,6 +1319,9 @@ $(document).ready(function() {
             });
             appliedFilters.modes.forEach(function(m) {
                 html += '<span class="filter-chip"><span class="chip-label">Mode:</span>' + (m === 'portal' ? 'Portal' : 'API') + '<span class="remove-chip" data-filter="modes" data-value="' + m + '"><i class="fas fa-times"></i></span></span>';
+            });
+            appliedFilters.capabilities.forEach(function(cap) {
+                html += '<span class="filter-chip"><span class="chip-label">Capability:</span>' + getCapabilityLabel(cap) + '<span class="remove-chip" data-filter="capabilities" data-value="' + cap + '"><i class="fas fa-times"></i></span></span>';
             });
             appliedFilters.subAccounts.forEach(function(sa) {
                 html += '<span class="filter-chip"><span class="chip-label">Sub-Account:</span>' + sa + '<span class="remove-chip" data-filter="subAccounts" data-value="' + sa + '"><i class="fas fa-times"></i></span></span>';
