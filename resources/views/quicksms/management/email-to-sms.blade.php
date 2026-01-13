@@ -168,6 +168,14 @@
 .api-table tbody tr:hover td:last-child {
     background: #f8f9fa;
 }
+/* Fix dropdown clipping in table cells */
+.api-table tbody td:last-child {
+    overflow: visible !important;
+}
+.api-table-container,
+.table-responsive {
+    overflow: visible !important;
+}
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
@@ -1969,6 +1977,16 @@
 <script>
 $(document).ready(function() {
     var EMAIL_DOMAIN = '@sms.quicksms.io';
+
+    // Close all other dropdowns when opening a new one
+    $(document).on('show.bs.dropdown', '.action-menu-btn', function() {
+        $('.action-menu-btn').not(this).each(function() {
+            var dropdown = bootstrap.Dropdown.getInstance(this);
+            if (dropdown) {
+                dropdown.hide();
+            }
+        });
+    });
     
     function escapeHtml(text) {
         if (text === null || text === undefined) return '';
@@ -2585,7 +2603,7 @@ $(document).ready(function() {
                 '<td>' + addr.created + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
@@ -2641,7 +2659,7 @@ $(document).ready(function() {
                 '<td>' + group.created + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
@@ -2786,7 +2804,7 @@ $(document).ready(function() {
                 '<td><small>' + mapping.lastUpdated + '</small></td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
@@ -4528,7 +4546,7 @@ $(document).ready(function() {
                 '<td>' + item.lastUpdated + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
-                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">' +
+                        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
                             '<i class="fas fa-ellipsis-v"></i>' +
                         '</button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
