@@ -3670,6 +3670,40 @@ $(document).ready(function() {
         }
     });
     
+    (function loadPendingOverviewEntries() {
+        var pendingStandard = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
+        pendingStandard.forEach(function(entry) {
+            overviewAddresses.unshift({
+                id: entry.id,
+                email: 'mobilenumber' + EMAIL_DOMAIN,
+                name: entry.name,
+                description: entry.description,
+                type: 'Standard',
+                subaccount: entry.subaccount,
+                allowedSenders: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
+                status: 'active',
+                created: entry.created,
+                lastUsed: '-'
+            });
+        });
+        
+        var pendingContactList = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
+        pendingContactList.forEach(function(entry) {
+            overviewAddresses.unshift({
+                id: entry.id,
+                email: entry.emailAddress,
+                name: entry.name,
+                description: entry.description,
+                type: 'Contact List',
+                subaccount: entry.subaccountName,
+                allowedSenders: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
+                status: 'active',
+                created: entry.created,
+                lastUsed: '-'
+            });
+        });
+    })();
+    
     renderAddressesTable(overviewAddresses);
     renderReportingGroups(reportingGroups);
     filterContactListMappings();
@@ -4673,6 +4707,30 @@ $(document).ready(function() {
         EmailToSmsService.listEmailToSmsSetups(options).then(function(response) {
             if (response.success) {
                 mockStandardSms = response.data;
+                
+                var pendingStandard = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
+                if (pendingStandard.length > 0) {
+                    pendingStandard.forEach(function(entry) {
+                        mockStandardSms.unshift({
+                            id: entry.id,
+                            name: entry.name,
+                            description: entry.description,
+                            subaccount: entry.subaccountId,
+                            subaccountName: entry.subaccount,
+                            allowedSenders: entry.allowedSenderEmails,
+                            senderId: entry.senderId,
+                            subjectAsSenderId: entry.subjectAsSenderId,
+                            multipleSms: entry.multipleSms,
+                            deliveryReports: entry.deliveryReports,
+                            deliveryEmail: entry.deliveryEmail,
+                            signatureFilter: entry.contentFilter,
+                            created: entry.created,
+                            lastUpdated: entry.lastUpdated,
+                            archived: false
+                        });
+                    });
+                }
+                
                 renderStandardSmsTable(mockStandardSms);
             }
         });

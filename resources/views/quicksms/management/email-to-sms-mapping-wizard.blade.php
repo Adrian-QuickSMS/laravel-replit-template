@@ -1767,21 +1767,35 @@ $(document).ready(function() {
         
         var payload = createMappingPayload('active');
         
-        EmailToSmsService.createEmailToSmsContactListSetup(payload).then(function(response) {
-            if (response.success) {
-                $('#successEmailAddress').text(wizardData.generatedEmail);
-                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                successModal.show();
-                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
-            } else {
-                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
-                showErrorToast(response.error || 'Failed to create mapping');
-            }
-        }).catch(function(err) {
-            console.error('Create error:', err);
-            btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
-            showErrorToast('An error occurred. Please try again.');
-        });
+        var newEntry = {
+            id: 'clm-' + Date.now(),
+            name: wizardData.name,
+            description: wizardData.description,
+            emailAddress: wizardData.generatedEmail,
+            subaccount: wizardData.subAccount,
+            subaccountName: $('#subAccount option:selected').text(),
+            contactList: wizardData.selectedLists.map(function(l) { return l.name; }).join(', ') || 
+                         wizardData.selectedDynamicLists.map(function(l) { return l.name; }).join(', ') ||
+                         wizardData.selectedContacts.length + ' contacts',
+            recipientCount: (wizardData.selectedLists.reduce(function(sum, l) { return sum + (l.count || 0); }, 0) +
+                            wizardData.selectedDynamicLists.reduce(function(sum, l) { return sum + (l.count || 0); }, 0) +
+                            wizardData.selectedContacts.length),
+            allowedSenders: wizardData.allowedSenders,
+            senderId: $('#senderId option:selected').text() || 'QuickSMS',
+            status: 'active',
+            created: new Date().toISOString().split('T')[0],
+            lastUsed: '-',
+            type: 'contactlist'
+        };
+        
+        var pendingEntries = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
+        pendingEntries.push(newEntry);
+        localStorage.setItem('quicksms_pending_contactlist', JSON.stringify(pendingEntries));
+        
+        $('#successEmailAddress').text(wizardData.generatedEmail);
+        var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        successModal.show();
+        btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
     });
     
     $('#btnCopySuccessEmail').on('click', function() {

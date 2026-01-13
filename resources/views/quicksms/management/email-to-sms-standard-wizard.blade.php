@@ -725,6 +725,30 @@ $(document).ready(function() {
     $('#btnCreate').on('click', function() {
         if (!validateStep(2)) return;
         
+        var newEntry = {
+            id: 'std-' + Date.now(),
+            name: $('#stdName').val().trim(),
+            description: $('#stdDescription').val().trim(),
+            subaccount: $('#stdSubaccount option:selected').text(),
+            subaccountId: $('#stdSubaccount').val(),
+            allowedSenderEmails: allowedEmails,
+            senderId: $('#stdSenderId option:selected').text(),
+            senderIdValue: $('#stdSenderId').val(),
+            subjectAsSenderId: $('#stdSubjectAsSenderId').is(':checked'),
+            multipleSms: $('#stdMultipleSms').is(':checked'),
+            deliveryReports: $('#stdDeliveryReports').is(':checked'),
+            deliveryEmail: $('#stdDeliveryEmail').val().trim(),
+            contentFilter: $('#stdSignatureFilter').val().trim(),
+            status: 'active',
+            created: new Date().toISOString().split('T')[0],
+            lastUpdated: new Date().toISOString().split('T')[0],
+            type: 'standard'
+        };
+        
+        var pendingEntries = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
+        pendingEntries.push(newEntry);
+        localStorage.setItem('quicksms_pending_standard', JSON.stringify(pendingEntries));
+        
         var modal = new bootstrap.Modal($('#successModal')[0]);
         modal.show();
     });
