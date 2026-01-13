@@ -1682,7 +1682,7 @@ class QuickSMSController extends Controller
 
     public function emailToSmsStandardCreate()
     {
-        return view('quicksms.management.standard-email-to-sms-form', [
+        return view('quicksms.management.email-to-sms-standard-wizard', [
             'page_title' => 'Create Standard Email-to-SMS'
         ]);
     }

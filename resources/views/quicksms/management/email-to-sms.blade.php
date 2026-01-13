@@ -804,9 +804,9 @@
                                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#stdFiltersPanel">
                                         <i class="fas fa-filter me-1"></i> Filters
                                     </button>
-                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createStandardModal">
+                                    <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus me-1"></i> Create
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                             
@@ -836,9 +836,9 @@
                                 </div>
                                 <h4>No Standard Email-to-SMS Setups</h4>
                                 <p>Create a Standard Email-to-SMS setup to send messages directly from email without mapping to Contact Lists.</p>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStandardModal">
+                                <a href="{{ route('management.email-to-sms.standard.create') }}" class="btn btn-primary">
                                     <i class="fas fa-plus me-1"></i> Create Standard Email-to-SMS
-                                </button>
+                                </a>
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center mt-3">
