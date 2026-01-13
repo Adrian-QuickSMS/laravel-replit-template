@@ -212,15 +212,6 @@ button.btn-save-draft:hover {
     font-size: 1.25rem;
     font-weight: 600;
     letter-spacing: 1px;
-    text-transform: uppercase;
-}
-.normalisation-preview {
-    margin-top: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(136, 108, 192, 0.08);
-    border-radius: 0.375rem;
-    font-size: 0.85rem;
-    color: #5a4a7a;
 }
 .permission-blocked-alert {
     border-left: 4px solid #dc3545;
@@ -326,9 +317,6 @@ button.btn-save-draft:hover {
                                             <div class="d-flex justify-content-between mt-1">
                                                 <small class="text-muted" id="senderIdHint">Max 11 characters: A-Z a-z 0-9 . - _ & space</small>
                                                 <small class="text-muted"><span id="senderIdCharCount">0</span>/11</small>
-                                            </div>
-                                            <div class="normalisation-preview" id="normalisationPreview" style="display: none;">
-                                                <i class="fas fa-arrow-right me-1"></i>Will be registered as: <strong id="normalisedValue"></strong>
                                             </div>
                                             <div class="invalid-feedback" id="senderIdError"></div>
                                         </div>
@@ -545,10 +533,13 @@ $(document).ready(function() {
             keyNavigation: false
         },
         lang: {
-            next: 'Next <i class="fas fa-arrow-right ms-1"></i>',
-            previous: '<i class="fas fa-arrow-left me-1"></i> Previous'
+            next: 'Next',
+            previous: 'Previous'
         }
     });
+
+    $('.sw-btn-next').html('Next <i class="fas fa-arrow-right ms-1"></i>');
+    $('.sw-btn-prev').html('<i class="fas fa-arrow-left me-1"></i> Previous');
 
     $('#senderIdWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
         if (stepIndex === 4) {
@@ -596,24 +587,11 @@ $(document).ready(function() {
         }
         $input.val('');
         $('#senderIdCharCount').text('0');
-        $('#normalisationPreview').hide();
     }
 
     $('#inputSenderId').on('input', function() {
         var val = $(this).val();
         $('#senderIdCharCount').text(val.length);
-        
-        if (selectedType === 'alphanumeric' && val.length > 0) {
-            var normalised = val.toUpperCase();
-            if (normalised !== val) {
-                $('#normalisedValue').text(normalised);
-                $('#normalisationPreview').show();
-            } else {
-                $('#normalisationPreview').hide();
-            }
-        } else {
-            $('#normalisationPreview').hide();
-        }
     });
 
     $('#inputPermission').on('change', function() {
@@ -696,7 +674,7 @@ $(document).ready(function() {
         };
         
         $('#reviewType').text(typeLabels[selectedType] || selectedType);
-        $('#reviewSenderId').text($('#inputSenderId').val().toUpperCase());
+        $('#reviewSenderId').text($('#inputSenderId').val());
         $('#reviewBrand').text($('#inputBrand').val());
         $('#reviewSubaccount').text($('#inputSubaccount option:selected').text() || 'Main Account');
         $('#reviewUseCase').text(useCaseLabels[$('#inputUseCase').val()] || '-');
