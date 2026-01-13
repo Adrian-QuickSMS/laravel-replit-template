@@ -346,14 +346,21 @@ button.btn-save-draft:hover {
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label fw-semibold">Subaccount</label>
-                                            <select class="form-select" id="inputSubaccount">
-                                                <option value="">Main Account</option>
+                                            <label class="form-label fw-semibold">Subaccount(s)</label>
+                                            <select class="form-select" id="inputSubaccount" multiple>
+                                                <option value="main">Main Account</option>
                                                 <option value="marketing">Marketing Department</option>
                                                 <option value="support">Customer Support</option>
                                                 <option value="operations">Operations</option>
                                             </select>
-                                            <small class="text-muted">Optionally assign to a subaccount for billing/reporting</small>
+                                            <small class="text-muted">Select one or more subaccounts to assign this SenderID</small>
+                                        </div>
+
+                                        <div class="mb-3" id="usersSection" style="display: none;">
+                                            <label class="form-label fw-semibold">Users</label>
+                                            <select class="form-select" id="inputUsers" multiple>
+                                            </select>
+                                            <small class="text-muted">Select specific users within the selected subaccount(s)</small>
                                         </div>
                                     </div>
                                 </div>
@@ -467,8 +474,12 @@ button.btn-save-draft:hover {
                                                     <span class="review-value">United Kingdom</span>
                                                 </div>
                                                 <div class="review-row">
-                                                    <span class="review-label">Subaccount:</span>
+                                                    <span class="review-label">Subaccount(s):</span>
                                                     <span class="review-value" id="reviewSubaccount"></span>
+                                                </div>
+                                                <div class="review-row" id="reviewUsersRow" style="display: none;">
+                                                    <span class="review-label">Users:</span>
+                                                    <span class="review-value" id="reviewUsers"></span>
                                                 </div>
                                             </div>
                                             
@@ -507,6 +518,26 @@ button.btn-save-draft:hover {
 $(document).ready(function() {
     var selectedType = 'alphanumeric';
     
+    var subaccountUsers = {
+        'main': [
+            { id: 'main-admin', name: 'Admin User' },
+            { id: 'main-john', name: 'John Smith' }
+        ],
+        'marketing': [
+            { id: 'mkt-amy', name: 'Amy Chen' },
+            { id: 'mkt-david', name: 'David Wilson' },
+            { id: 'mkt-sarah', name: 'Sarah Jones' }
+        ],
+        'support': [
+            { id: 'sup-mike', name: 'Mike Brown' },
+            { id: 'sup-lisa', name: 'Lisa Taylor' }
+        ],
+        'operations': [
+            { id: 'ops-james', name: 'James Anderson' },
+            { id: 'ops-emma', name: 'Emma Davis' }
+        ]
+    };
+
     $('#senderIdWizard').smartWizard({
         selected: 0,
         theme: 'arrows',
@@ -542,6 +573,25 @@ $(document).ready(function() {
     $('.sw-btn-prev').html('<i class="fas fa-arrow-left me-1"></i> Previous');
     
     $('#btnSaveDraft').insertBefore('.sw-btn-prev');
+
+    $('#inputSubaccount').on('change', function() {
+        var selectedSubaccounts = $(this).val() || [];
+        
+        if (selectedSubaccounts.length > 0) {
+            var usersHtml = '';
+            selectedSubaccounts.forEach(function(subId) {
+                var users = subaccountUsers[subId] || [];
+                users.forEach(function(user) {
+                    usersHtml += '<option value="' + user.id + '">' + user.name + '</option>';
+                });
+            });
+            $('#inputUsers').html(usersHtml);
+            $('#usersSection').show();
+        } else {
+            $('#inputUsers').html('');
+            $('#usersSection').hide();
+        }
+    });
 
     $('#senderIdWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
         if (stepIndex === 4) {
@@ -705,7 +755,22 @@ $(document).ready(function() {
         $('#reviewType').text(typeLabels[selectedType] || selectedType);
         $('#reviewSenderId').text($('#inputSenderId').val());
         $('#reviewBrand').text($('#inputBrand').val());
-        $('#reviewSubaccount').text($('#inputSubaccount option:selected').text() || 'Main Account');
+        
+        var selectedSubaccounts = $('#inputSubaccount option:selected').map(function() {
+            return $(this).text();
+        }).get();
+        $('#reviewSubaccount').text(selectedSubaccounts.length > 0 ? selectedSubaccounts.join(', ') : 'None selected');
+        
+        var selectedUsers = $('#inputUsers option:selected').map(function() {
+            return $(this).text();
+        }).get();
+        if (selectedUsers.length > 0) {
+            $('#reviewUsers').text(selectedUsers.join(', '));
+            $('#reviewUsersRow').show();
+        } else {
+            $('#reviewUsersRow').hide();
+        }
+        
         $('#reviewUseCase').text(useCaseLabels[$('#inputUseCase').val()] || '-');
         $('#reviewDescription').text($('#inputDescription').val() || '-');
     }
