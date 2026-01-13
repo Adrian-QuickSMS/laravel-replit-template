@@ -182,6 +182,112 @@
     background: rgba(255, 107, 107, 0.15);
     color: #ff6b6b;
 }
+.drawer-wide {
+    width: 500px;
+}
+.wizard-steps {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+}
+.wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+.wizard-step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+.wizard-step.active .wizard-step-number {
+    background: var(--primary);
+    color: #fff;
+}
+.wizard-step.completed .wizard-step-number {
+    background: #1cbb8c;
+    color: #fff;
+}
+.wizard-step.completed .wizard-step-number::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+}
+.wizard-step-label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    text-align: center;
+}
+.wizard-step.active .wizard-step-label {
+    color: var(--primary);
+    font-weight: 600;
+}
+.wizard-step-connector {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin: 0 0.25rem;
+    margin-bottom: 1rem;
+}
+.wizard-step-connector.completed {
+    background: #1cbb8c;
+}
+.wizard-panel-title {
+    color: #343a40;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+.review-summary {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.review-section {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.review-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.review-section-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+.review-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    font-size: 0.85rem;
+}
+.review-label {
+    color: #6c757d;
+}
+.review-value {
+    color: #343a40;
+    font-weight: 500;
+    text-align: right;
+}
+.wizard-nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
 .type-selector {
     display: flex;
     gap: 0.75rem;
@@ -547,100 +653,248 @@
 </div>
 
 <div class="drawer-backdrop" id="registerDrawerBackdrop"></div>
-<div class="drawer" id="registerDrawer">
+<div class="drawer drawer-wide" id="registerDrawer">
     <div class="drawer-header">
         <h5><i class="fas fa-id-badge me-2 text-primary"></i>Register SenderID</h5>
         <button type="button" class="btn-close" id="registerDrawerClose"></button>
     </div>
     <div class="drawer-body">
+        <div class="wizard-steps">
+            <div class="wizard-step active" data-step="1">
+                <div class="wizard-step-number">1</div>
+                <div class="wizard-step-label">SenderID</div>
+            </div>
+            <div class="wizard-step-connector"></div>
+            <div class="wizard-step" data-step="2">
+                <div class="wizard-step-number">2</div>
+                <div class="wizard-step-label">Business</div>
+            </div>
+            <div class="wizard-step-connector"></div>
+            <div class="wizard-step" data-step="3">
+                <div class="wizard-step-number">3</div>
+                <div class="wizard-step-label">Permission</div>
+            </div>
+            <div class="wizard-step-connector"></div>
+            <div class="wizard-step" data-step="4">
+                <div class="wizard-step-number">4</div>
+                <div class="wizard-step-label">Use Case</div>
+            </div>
+            <div class="wizard-step-connector"></div>
+            <div class="wizard-step" data-step="5">
+                <div class="wizard-step-number">5</div>
+                <div class="wizard-step-label">Review</div>
+            </div>
+        </div>
+
         <form id="registerForm">
-            <div class="mb-3">
-                <label class="form-label form-label-required">SenderID Type</label>
-                <div class="type-selector">
-                    <div class="type-card selected" data-type="alphanumeric">
-                        <div class="type-card-icon"><i class="fas fa-font"></i></div>
-                        <div class="type-card-title">Alphanumeric</div>
-                        <div class="type-card-desc">Text-based ID<br>e.g. MYBRAND</div>
+            <div class="wizard-panel" data-panel="1">
+                <h6 class="wizard-panel-title">SenderID Type & Value</h6>
+                <p class="text-muted small mb-3">Choose the type of SenderID and enter the value you wish to register.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label form-label-required">SenderID Type</label>
+                    <div class="type-selector">
+                        <div class="type-card selected" data-type="alphanumeric">
+                            <div class="type-card-icon"><i class="fas fa-font"></i></div>
+                            <div class="type-card-title">Alphanumeric</div>
+                            <div class="type-card-desc">Text-based ID<br>e.g. MYBRAND</div>
+                        </div>
+                        <div class="type-card" data-type="numeric">
+                            <div class="type-card-icon"><i class="fas fa-phone"></i></div>
+                            <div class="type-card-title">Numeric</div>
+                            <div class="type-card-desc">UK Virtual Mobile<br>e.g. +447700...</div>
+                        </div>
+                        <div class="type-card" data-type="shortcode">
+                            <div class="type-card-icon"><i class="fas fa-hashtag"></i></div>
+                            <div class="type-card-title">Shortcode</div>
+                            <div class="type-card-desc">Short number<br>e.g. 60123</div>
+                        </div>
                     </div>
-                    <div class="type-card" data-type="numeric">
-                        <div class="type-card-icon"><i class="fas fa-phone"></i></div>
-                        <div class="type-card-title">Numeric</div>
-                        <div class="type-card-desc">UK Virtual Mobile<br>e.g. +447700...</div>
+                    <input type="hidden" id="inputType" value="alphanumeric">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label form-label-required">SenderID Value</label>
+                    <div id="senderIdInputWrapper">
+                        <input type="text" class="form-control senderid-input" id="inputSenderId" 
+                               maxlength="11" placeholder="e.g. MyBrand" autocomplete="off">
                     </div>
-                    <div class="type-card" data-type="shortcode">
-                        <div class="type-card-icon"><i class="fas fa-hashtag"></i></div>
-                        <div class="type-card-title">Shortcode</div>
-                        <div class="type-card-desc">Short number<br>e.g. 60123</div>
+                    <div class="d-flex justify-content-between">
+                        <div class="validation-hint" id="senderIdHint">Max 11 characters: A-Z a-z 0-9 . - _ & space</div>
+                        <div class="char-counter" id="charCounterWrapper"><span id="senderIdCharCount">0</span>/11</div>
+                    </div>
+                    <div class="normalisation-preview" id="normalisationPreview" style="display: none;">
+                        <i class="fas fa-arrow-right me-1"></i>Will be registered as: <strong id="normalisedValue"></strong>
+                    </div>
+                    <div class="invalid-feedback" id="senderIdError"></div>
+                </div>
+            </div>
+
+            <div class="wizard-panel" data-panel="2" style="display: none;">
+                <h6 class="wizard-panel-title">Brand / Business Association</h6>
+                <p class="text-muted small mb-3">Associate this SenderID with your business entity.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label form-label-required">Brand / Business Name</label>
+                    <input type="text" class="form-control" id="inputBrand" 
+                           placeholder="Your company or brand name" autocomplete="off">
+                    <div class="validation-hint">The legal entity or brand this SenderID represents</div>
+                    <div class="invalid-feedback" id="brandError"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Country</label>
+                    <input type="text" class="form-control" value="United Kingdom" readonly disabled>
+                    <div class="validation-hint">SenderID registrations are currently available for UK only</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Subaccount</label>
+                    <select class="form-select" id="inputSubaccount">
+                        <option value="">Main Account</option>
+                        <option value="marketing">Marketing Department</option>
+                        <option value="support">Customer Support</option>
+                        <option value="operations">Operations</option>
+                    </select>
+                    <div class="validation-hint">Optionally assign to a subaccount for billing/reporting</div>
+                </div>
+            </div>
+
+            <div class="wizard-panel" data-panel="3" style="display: none;">
+                <h6 class="wizard-panel-title">Permission Confirmation</h6>
+                <p class="text-muted small mb-3">Confirm your authorisation to use this SenderID.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label form-label-required">Do you have permission to use this SenderID?</label>
+                    <select class="form-select" id="inputPermission">
+                        <option value="">Select...</option>
+                        <option value="yes">Yes - I am authorised to use this SenderID</option>
+                        <option value="no">No - I do not have permission</option>
+                    </select>
+                    <div class="invalid-feedback" id="permissionError"></div>
+                </div>
+
+                <div class="permission-blocked-alert alert alert-danger small" id="permissionBlockedAlert" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Registration Blocked:</strong> You must have permission to use a SenderID before registration. Please obtain authorisation from the brand owner before proceeding.
+                </div>
+
+                <div class="mb-3" id="confirmationSection" style="display: none;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="inputConfirmAuthorised">
+                        <label class="form-check-label" for="inputConfirmAuthorised">
+                            I confirm I am authorised to use this SenderID and understand that misuse may result in suspension
+                        </label>
+                    </div>
+                    <div class="invalid-feedback" id="confirmError"></div>
+                </div>
+
+                <div class="mb-3" id="explanationSection" style="display: none;">
+                    <label class="form-label">Additional Explanation (Optional)</label>
+                    <textarea class="form-control" id="inputExplanation" rows="3" 
+                              placeholder="Provide any additional context about your authorisation..."></textarea>
+                    <div class="validation-hint">e.g. "Brand registered under company X" or "Subsidiary of parent company Y"</div>
+                </div>
+            </div>
+
+            <div class="wizard-panel" data-panel="4" style="display: none;">
+                <h6 class="wizard-panel-title">Intended Use Case</h6>
+                <p class="text-muted small mb-3">How will this SenderID be used for messaging?</p>
+                
+                <div class="mb-3">
+                    <label class="form-label form-label-required">Primary Use Case</label>
+                    <select class="form-select" id="inputUseCase">
+                        <option value="">Select use case...</option>
+                        <option value="transactional">Transactional - Order updates, confirmations, receipts</option>
+                        <option value="marketing">Promotional - Marketing messages, offers, campaigns</option>
+                        <option value="otp">OTP - One-time passwords, verification codes, 2FA</option>
+                        <option value="mixed">Mixed - Combination of above use cases</option>
+                    </select>
+                    <div class="invalid-feedback" id="useCaseError"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="inputDescription" rows="3" 
+                              placeholder="Describe how this SenderID will be used..."></textarea>
+                    <div class="validation-hint">Help reviewers understand your intended messaging use</div>
+                </div>
+            </div>
+
+            <div class="wizard-panel" data-panel="5" style="display: none;">
+                <h6 class="wizard-panel-title">Review & Submit</h6>
+                <p class="text-muted small mb-3">Please review your registration details before submitting.</p>
+                
+                <div class="review-summary">
+                    <div class="review-section">
+                        <div class="review-section-title"><i class="fas fa-id-badge me-2"></i>SenderID Details</div>
+                        <div class="review-row">
+                            <span class="review-label">Type:</span>
+                            <span class="review-value" id="reviewType"></span>
+                        </div>
+                        <div class="review-row">
+                            <span class="review-label">SenderID:</span>
+                            <span class="review-value senderid-name" id="reviewSenderId"></span>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <div class="review-section-title"><i class="fas fa-building me-2"></i>Business Association</div>
+                        <div class="review-row">
+                            <span class="review-label">Brand / Business:</span>
+                            <span class="review-value" id="reviewBrand"></span>
+                        </div>
+                        <div class="review-row">
+                            <span class="review-label">Country:</span>
+                            <span class="review-value">United Kingdom</span>
+                        </div>
+                        <div class="review-row">
+                            <span class="review-label">Subaccount:</span>
+                            <span class="review-value" id="reviewSubaccount"></span>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <div class="review-section-title"><i class="fas fa-check-circle me-2"></i>Permission</div>
+                        <div class="review-row">
+                            <span class="review-label">Authorised:</span>
+                            <span class="review-value text-success"><i class="fas fa-check me-1"></i>Confirmed</span>
+                        </div>
+                    </div>
+
+                    <div class="review-section">
+                        <div class="review-section-title"><i class="fas fa-bullseye me-2"></i>Use Case</div>
+                        <div class="review-row">
+                            <span class="review-label">Primary Use:</span>
+                            <span class="review-value" id="reviewUseCase"></span>
+                        </div>
+                        <div class="review-row" id="reviewDescriptionRow">
+                            <span class="review-label">Description:</span>
+                            <span class="review-value" id="reviewDescription"></span>
+                        </div>
                     </div>
                 </div>
-                <input type="hidden" id="inputType" value="alphanumeric">
-                <div class="invalid-feedback d-block" id="typeError" style="display: none !important;"></div>
-            </div>
 
-            <div class="mb-3">
-                <label class="form-label form-label-required">SenderID</label>
-                <div id="senderIdInputWrapper">
-                    <input type="text" class="form-control senderid-input" id="inputSenderId" 
-                           maxlength="11" placeholder="e.g. MYCOMPANY" autocomplete="off">
+                <div class="alert alert-info small mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Review Process:</strong> SenderID registrations are typically reviewed within 1-2 business days. You'll receive an email notification once approved.
                 </div>
-                <div class="d-flex justify-content-between">
-                    <div class="validation-hint" id="senderIdHint">3-11 alphanumeric characters, must start with a letter</div>
-                    <div class="char-counter" id="charCounterWrapper"><span id="senderIdCharCount">0</span>/11</div>
-                </div>
-                <div class="normalisation-preview" id="normalisationPreview" style="display: none;">
-                    <i class="fas fa-arrow-right me-1"></i>Will be registered as: <strong id="normalisedValue"></strong>
-                </div>
-                <div class="invalid-feedback" id="senderIdError"></div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label form-label-required">Brand / Company Name</label>
-                <input type="text" class="form-control" id="inputBrand" 
-                       placeholder="Your company or brand name" autocomplete="off">
-                <div class="validation-hint">The legal entity or brand this SenderID represents</div>
-                <div class="invalid-feedback" id="brandError"></div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label form-label-required">Use Case</label>
-                <select class="form-select" id="inputUseCase">
-                    <option value="">Select use case...</option>
-                    <option value="otp">OTP / Verification - One-time passwords, login codes</option>
-                    <option value="marketing">Marketing - Promotional messages, offers</option>
-                    <option value="transactional">Transactional - Order updates, confirmations</option>
-                    <option value="alerts">Alerts / Notifications - Reminders, status updates</option>
-                </select>
-                <div class="invalid-feedback" id="useCaseError"></div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" id="inputDescription" rows="3" 
-                          placeholder="Describe how this SenderID will be used..."></textarea>
-                <div class="validation-hint">Help reviewers understand your intended use</div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Subaccount</label>
-                <select class="form-select" id="inputSubaccount">
-                    <option value="">Main Account</option>
-                    <option value="marketing">Marketing Department</option>
-                    <option value="support">Customer Support</option>
-                    <option value="operations">Operations</option>
-                </select>
-            </div>
-
-            <div class="alert alert-warning small mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong>Review Process:</strong> SenderID registrations are typically reviewed within 1-2 business days. You'll receive an email notification once approved.
             </div>
         </form>
     </div>
     <div class="drawer-footer">
         <button type="button" class="btn btn-outline-secondary" id="btnCancelRegister">Cancel</button>
-        <button type="button" class="btn btn-primary" id="btnSubmitRegister">
-            <i class="fas fa-paper-plane me-1"></i>Submit for Review
-        </button>
+        <div class="wizard-nav-buttons">
+            <button type="button" class="btn btn-outline-secondary" id="btnWizardBack" style="display: none;">
+                <i class="fas fa-arrow-left me-1"></i>Back
+            </button>
+            <button type="button" class="btn btn-primary" id="btnWizardNext">
+                Next<i class="fas fa-arrow-right ms-1"></i>
+            </button>
+            <button type="button" class="btn btn-primary" id="btnSubmitRegister" style="display: none;">
+                <i class="fas fa-paper-plane me-1"></i>Submit for Approval
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1131,19 +1385,187 @@ $(document).ready(function() {
         renderTable();
     };
 
+    var currentWizardStep = 1;
+    var totalWizardSteps = 5;
+
     function openRegisterDrawer() {
         $('#registerForm')[0].reset();
         $('#inputSenderId').removeClass('is-invalid');
         $('#inputBrand').removeClass('is-invalid');
         $('#inputUseCase').removeClass('is-invalid');
+        $('#inputPermission').removeClass('is-invalid');
+        $('#inputConfirmAuthorised').prop('checked', false);
         $('#senderIdCharCount').text('0');
         $('.type-card').removeClass('selected');
         $('.type-card[data-type="alphanumeric"]').addClass('selected');
         $('#inputType').val('alphanumeric');
         updateSenderIdInputForType('alphanumeric');
+        
+        currentWizardStep = 1;
+        updateWizardUI();
+        
         $('#registerDrawerBackdrop').addClass('show');
         $('#registerDrawer').addClass('show');
     }
+
+    function updateWizardUI() {
+        $('.wizard-panel').hide();
+        $('.wizard-panel[data-panel="' + currentWizardStep + '"]').show();
+        
+        $('.wizard-step').removeClass('active completed');
+        $('.wizard-step-connector').removeClass('completed');
+        
+        for (var i = 1; i <= totalWizardSteps; i++) {
+            var $step = $('.wizard-step[data-step="' + i + '"]');
+            if (i < currentWizardStep) {
+                $step.addClass('completed');
+                $step.find('.wizard-step-number').text('');
+            } else if (i === currentWizardStep) {
+                $step.addClass('active');
+                $step.find('.wizard-step-number').text(i);
+            } else {
+                $step.find('.wizard-step-number').text(i);
+            }
+        }
+        
+        $('.wizard-step-connector').each(function(index) {
+            if (index < currentWizardStep - 1) {
+                $(this).addClass('completed');
+            }
+        });
+        
+        $('#btnWizardBack').toggle(currentWizardStep > 1);
+        $('#btnWizardNext').toggle(currentWizardStep < totalWizardSteps);
+        $('#btnSubmitRegister').toggle(currentWizardStep === totalWizardSteps);
+        
+        if (currentWizardStep === totalWizardSteps) {
+            populateReviewSummary();
+        }
+    }
+
+    function populateReviewSummary() {
+        var senderIdType = $('#inputType').val();
+        var senderId = $('#inputSenderId').val();
+        var brand = $('#inputBrand').val();
+        var subaccount = $('#inputSubaccount option:selected').text() || 'Main Account';
+        var useCase = $('#inputUseCase option:selected').text();
+        var description = $('#inputDescription').val();
+        
+        var typeLabels = {
+            'alphanumeric': 'Alphanumeric',
+            'numeric': 'UK Virtual Mobile Number',
+            'shortcode': 'Shortcode'
+        };
+        
+        $('#reviewType').text(typeLabels[senderIdType] || senderIdType);
+        $('#reviewSenderId').text(senderId);
+        $('#reviewBrand').text(brand);
+        $('#reviewSubaccount').text(subaccount);
+        $('#reviewUseCase').text(useCase);
+        
+        if (description) {
+            $('#reviewDescriptionRow').show();
+            $('#reviewDescription').text(description);
+        } else {
+            $('#reviewDescriptionRow').hide();
+        }
+    }
+
+    function validateWizardStep(step) {
+        var isValid = true;
+        
+        if (step === 1) {
+            var senderIdType = $('#inputType').val();
+            var senderId = $('#inputSenderId').val().trim();
+            var result = validateSenderId(senderId, senderIdType);
+            
+            if (!senderId) {
+                $('#inputSenderId').addClass('is-invalid');
+                $('#senderIdError').text('SenderID is required');
+                isValid = false;
+            } else if (!result.valid) {
+                $('#inputSenderId').addClass('is-invalid');
+                $('#senderIdError').text(result.message);
+                isValid = false;
+            } else {
+                $('#inputSenderId').removeClass('is-invalid');
+            }
+        } else if (step === 2) {
+            var brand = $('#inputBrand').val().trim();
+            if (!brand) {
+                $('#inputBrand').addClass('is-invalid');
+                $('#brandError').text('Brand / Business name is required');
+                isValid = false;
+            } else {
+                $('#inputBrand').removeClass('is-invalid');
+            }
+        } else if (step === 3) {
+            var permission = $('#inputPermission').val();
+            var confirmed = $('#inputConfirmAuthorised').is(':checked');
+            
+            if (!permission) {
+                $('#inputPermission').addClass('is-invalid');
+                $('#permissionError').text('Please select a permission option');
+                isValid = false;
+            } else if (permission === 'no') {
+                isValid = false;
+            } else {
+                $('#inputPermission').removeClass('is-invalid');
+                
+                if (!confirmed) {
+                    $('#confirmError').text('You must confirm authorisation to proceed');
+                    $('#confirmError').show();
+                    isValid = false;
+                } else {
+                    $('#confirmError').hide();
+                }
+            }
+        } else if (step === 4) {
+            var useCase = $('#inputUseCase').val();
+            if (!useCase) {
+                $('#inputUseCase').addClass('is-invalid');
+                $('#useCaseError').text('Use case is required');
+                isValid = false;
+            } else {
+                $('#inputUseCase').removeClass('is-invalid');
+            }
+        }
+        
+        return isValid;
+    }
+
+    $('#btnWizardNext').on('click', function() {
+        if (validateWizardStep(currentWizardStep)) {
+            currentWizardStep++;
+            updateWizardUI();
+        }
+    });
+
+    $('#btnWizardBack').on('click', function() {
+        if (currentWizardStep > 1) {
+            currentWizardStep--;
+            updateWizardUI();
+        }
+    });
+
+    $('#inputPermission').on('change', function() {
+        var val = $(this).val();
+        $(this).removeClass('is-invalid');
+        
+        if (val === 'no') {
+            $('#permissionBlockedAlert').show();
+            $('#confirmationSection').hide();
+            $('#explanationSection').hide();
+        } else if (val === 'yes') {
+            $('#permissionBlockedAlert').hide();
+            $('#confirmationSection').show();
+            $('#explanationSection').show();
+        } else {
+            $('#permissionBlockedAlert').hide();
+            $('#confirmationSection').hide();
+            $('#explanationSection').hide();
+        }
+    });
 
     function updateSenderIdInputForType(senderIdType) {
         var $input = $('#inputSenderId');
@@ -1376,34 +1798,9 @@ $(document).ready(function() {
         var useCase = $('#inputUseCase').val();
         var description = $('#inputDescription').val().trim();
         var subaccount = $('#inputSubaccount option:selected').text();
-
-        var isValid = true;
+        var explanation = $('#inputExplanation').val().trim();
 
         var senderIdResult = validateSenderId(senderId, senderIdType);
-        if (!senderIdResult.valid) {
-            $('#inputSenderId').addClass('is-invalid');
-            $('#senderIdError').text(senderIdResult.message);
-            isValid = false;
-        }
-
-        if (!brand) {
-            $('#inputBrand').addClass('is-invalid');
-            $('#brandError').text('Brand name is required');
-            isValid = false;
-        } else {
-            $('#inputBrand').removeClass('is-invalid');
-        }
-
-        if (!useCase) {
-            $('#inputUseCase').addClass('is-invalid');
-            $('#useCaseError').text('Use case is required');
-            isValid = false;
-        } else {
-            $('#inputUseCase').removeClass('is-invalid');
-        }
-
-        if (!isValid) return;
-
         var finalSenderId = senderId;
         if (senderIdType === 'numeric' && senderIdResult.normalised) {
             finalSenderId = '+' + senderIdResult.normalised;
@@ -1416,7 +1813,9 @@ $(document).ready(function() {
             brand: brand,
             useCase: useCase,
             description: description,
+            explanation: explanation,
             subaccount: subaccount || 'Main Account',
+            country: 'United Kingdom',
             status: 'pending',
             created: new Date().toISOString(),
             scopes: getDefaultScopes(),
@@ -1427,10 +1826,11 @@ $(document).ready(function() {
 
         senderIds.unshift(newEntry);
         closeRegisterDrawer();
+        currentWizardStep = 1;
         renderTable();
 
         if (typeof showSuccessToast === 'function') {
-            showSuccessToast('SenderID "' + senderId + '" submitted for review');
+            showSuccessToast('SenderID "' + finalSenderId + '" submitted for approval');
         }
     });
 
