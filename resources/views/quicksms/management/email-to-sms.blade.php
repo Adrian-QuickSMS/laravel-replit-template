@@ -72,16 +72,29 @@
     font-weight: 600;
     color: #495057;
     font-size: 0.8rem;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.5rem;
     text-align: left;
     white-space: nowrap;
     border: none;
     border-bottom: 1px solid #e9ecef;
     background: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+}
+.email-sms-table thead th:hover {
+    background: #e9ecef;
+}
+.email-sms-table thead th .sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.4;
+}
+.email-sms-table thead th.sorted .sort-icon {
+    opacity: 1;
+    color: var(--primary);
 }
 .email-sms-table tbody td {
     vertical-align: middle;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.5rem;
     border: none;
     border-bottom: 1px solid #f1f3f5;
     font-size: 0.85rem;
@@ -129,12 +142,31 @@
 }
 .api-table thead th {
     background: #f8f9fa;
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem 0.5rem;
     font-weight: 600;
     font-size: 0.8rem;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
     white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.api-table thead th:hover {
+    background: #e9ecef;
+}
+.api-table thead th .sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.4;
+}
+.api-table thead th.sorted .sort-icon {
+    opacity: 1;
+    color: var(--primary);
+}
+.api-table thead th:last-child {
+    cursor: default;
+}
+.api-table thead th:last-child:hover {
+    background: #f8f9fa;
 }
 .api-table thead th:last-child {
     position: sticky;
@@ -403,10 +435,12 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <div>
-                        <h4 class="card-title mb-1">Email-to-SMS</h4>
-                        <p class="mb-0 text-muted small">Configure email addresses to trigger SMS messages to your Contact Lists.</p>
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="card-title mb-0">Email-to-SMS</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                            <i class="fas fa-filter me-1"></i> Filters
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -517,17 +551,12 @@
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="input-group" style="width: 280px;">
-                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                        <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
-                                    </div>
-                                    <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="input-group" style="width: 280px;">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
                                 </div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                                    <i class="fas fa-filter me-1"></i> Filters
-                                </button>
+                                <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
                             </div>
                             
                             <div class="table-container" id="addressesTableContainer">
