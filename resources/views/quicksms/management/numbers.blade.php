@@ -127,6 +127,40 @@
     background: rgba(214, 83, 193, 0.15);
     color: #D653C1;
 }
+.mode-btn {
+    border: 2px solid #dee2e6;
+    background: #fff;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+.mode-btn:hover {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.05);
+}
+.mode-btn.active {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.1);
+    box-shadow: 0 0 0 3px rgba(136, 108, 192, 0.2);
+}
+.mode-btn.active i {
+    color: #886CC0;
+}
+.mode-btn i {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+.mode-features {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.mode-features ul {
+    list-style: none;
+}
+.mode-features li {
+    padding: 0.25rem 0;
+}
 .action-menu-btn {
     background: transparent;
     border: none;
@@ -579,6 +613,47 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mb-3" id="modeSelectionCard">
+                <div class="card-body p-3">
+                    <h6 class="card-title mb-3"><i class="fas fa-exchange-alt me-2 text-primary"></i>Operating Mode</h6>
+                    <p class="small text-muted mb-3">Each number must operate in exactly one mode. Switching mode will affect feature availability.</p>
+                    
+                    <div class="mode-selector d-flex gap-2">
+                        <button type="button" class="btn mode-btn flex-fill" id="btnModePortal" data-mode="portal">
+                            <i class="fas fa-desktop me-2"></i>
+                            <span class="fw-semibold">Portal Mode</span>
+                            <div class="small text-muted mt-1">Campaigns, Inbox, Opt-out</div>
+                        </button>
+                        <button type="button" class="btn mode-btn flex-fill" id="btnModeAPI" data-mode="api">
+                            <i class="fas fa-code me-2"></i>
+                            <span class="fw-semibold">API Mode</span>
+                            <div class="small text-muted mt-1">API Integration Only</div>
+                        </button>
+                    </div>
+                    
+                    <div class="mode-features mt-3" id="portalModeFeatures" style="display: none;">
+                        <div class="small fw-bold text-primary mb-2">Portal Mode Features:</div>
+                        <ul class="small mb-0 ps-3">
+                            <li class="text-success"><i class="fas fa-check me-1"></i>Available in Campaign Composer</li>
+                            <li class="text-success"><i class="fas fa-check me-1"></i>Visible in Inbox for two-way messaging</li>
+                            <li class="text-success"><i class="fas fa-check me-1"></i>Usable for Opt-out management</li>
+                            <li class="text-success"><i class="fas fa-check me-1"></i>Available as Portal SenderID</li>
+                            <li class="text-danger"><i class="fas fa-times me-1"></i>Not available via API</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mode-features mt-3" id="apiModeFeatures" style="display: none;">
+                        <div class="small fw-bold text-primary mb-2">API Mode Features:</div>
+                        <ul class="small mb-0 ps-3">
+                            <li class="text-success"><i class="fas fa-check me-1"></i>Available via REST API</li>
+                            <li class="text-danger"><i class="fas fa-times me-1"></i>Not visible in Portal SenderID picker</li>
+                            <li class="text-danger"><i class="fas fa-times me-1"></i>Not available in Inbox</li>
+                            <li class="text-danger"><i class="fas fa-times me-1"></i>Not usable for Campaigns</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="p-4 border-top">
@@ -647,6 +722,71 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="btnConfirmAssignSubAccounts">Assign</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Mode Change Confirmation Modal --}}
+<div class="modal fade" id="modeChangeModal" tabindex="-1" aria-labelledby="modeChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modeChangeModalLabel">
+                    <i class="fas fa-exchange-alt me-2 text-warning"></i>Change Operating Mode
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-4">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Changing the operating mode will immediately affect how this number can be used across all modules.
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-5 text-center">
+                        <div class="p-3 rounded border" id="modeChangeFrom">
+                            <i class="fas fa-desktop fa-2x text-muted mb-2 d-block" id="modeFromIcon"></i>
+                            <span class="fw-bold" id="modeFromLabel">Portal Mode</span>
+                        </div>
+                    </div>
+                    <div class="col-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-arrow-right fa-2x text-warning"></i>
+                    </div>
+                    <div class="col-5 text-center">
+                        <div class="p-3 rounded border border-warning" id="modeChangeTo">
+                            <i class="fas fa-code fa-2x text-warning mb-2 d-block" id="modeToIcon"></i>
+                            <span class="fw-bold" id="modeToLabel">API Mode</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-times-circle text-danger me-2"></i>Features That Will Be Disabled</h6>
+                    <div id="disabledFeaturesList" class="ps-3">
+                        <div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Campaign Composer access</div>
+                        <div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Inbox visibility</div>
+                        <div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Opt-out management</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-check-circle text-success me-2"></i>Features That Will Be Enabled</h6>
+                    <div id="enabledFeaturesList" class="ps-3">
+                        <div class="text-success small mb-1"><i class="fas fa-check me-2"></i>REST API access</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This change will be logged for audit purposes and will take effect immediately across all modules.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmModeChange">
+                    <i class="fas fa-exchange-alt me-1"></i> Confirm Mode Change
+                </button>
             </div>
         </div>
     </div>
@@ -1348,10 +1488,14 @@ $(document).ready(function() {
         renderTable();
     });
 
+    var currentEditingNumberId = null;
+
     // View number function
     window.viewNumber = function(id) {
         var num = numbersData.find(function(n) { return n.id === id; });
         if (!num) return;
+        
+        currentEditingNumberId = id;
         
         $('#drawerNumber').text(num.number);
         $('#drawerNumberDetail').text(num.number);
@@ -1376,9 +1520,137 @@ $(document).ready(function() {
         $('#drawerPurchaseDate').text(formatDate(num.purchaseDate));
         $('#drawerRenewalDate').text(formatDate(num.renewalDate));
         
+        // Update mode selection buttons
+        updateModeSelectionUI(num.mode);
+        
         var offcanvas = new bootstrap.Offcanvas(document.getElementById('numberConfigDrawer'));
         offcanvas.show();
     };
+
+    function updateModeSelectionUI(currentMode) {
+        $('.mode-btn').removeClass('active');
+        if (currentMode === 'portal') {
+            $('#btnModePortal').addClass('active');
+            $('#portalModeFeatures').show();
+            $('#apiModeFeatures').hide();
+        } else {
+            $('#btnModeAPI').addClass('active');
+            $('#apiModeFeatures').show();
+            $('#portalModeFeatures').hide();
+        }
+    }
+
+    // Mode button click handlers
+    $('.mode-btn').on('click', function() {
+        var newMode = $(this).data('mode');
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num) return;
+        
+        // If clicking the currently active mode, just show features
+        if (num.mode === newMode) {
+            updateModeSelectionUI(newMode);
+            return;
+        }
+        
+        // Show mode change confirmation modal
+        showModeChangeModal(num, newMode);
+    });
+
+    function showModeChangeModal(num, newMode) {
+        var oldMode = num.mode;
+        
+        // Update modal visuals
+        if (oldMode === 'portal') {
+            $('#modeFromIcon').removeClass('fa-code').addClass('fa-desktop');
+            $('#modeFromLabel').text('Portal Mode');
+        } else {
+            $('#modeFromIcon').removeClass('fa-desktop').addClass('fa-code');
+            $('#modeFromLabel').text('API Mode');
+        }
+        
+        if (newMode === 'portal') {
+            $('#modeToIcon').removeClass('fa-code').addClass('fa-desktop');
+            $('#modeToLabel').text('Portal Mode');
+        } else {
+            $('#modeToIcon').removeClass('fa-desktop').addClass('fa-code');
+            $('#modeToLabel').text('API Mode');
+        }
+        
+        // Update features lists based on mode change direction
+        if (newMode === 'api') {
+            // Portal -> API: Losing portal features
+            $('#disabledFeaturesList').html(
+                '<div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Campaign Composer access</div>' +
+                '<div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Inbox visibility</div>' +
+                '<div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Portal SenderID availability</div>' +
+                '<div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>Opt-out management</div>'
+            );
+            $('#enabledFeaturesList').html(
+                '<div class="text-success small mb-1"><i class="fas fa-check me-2"></i>REST API access</div>' +
+                '<div class="text-success small mb-1"><i class="fas fa-check me-2"></i>Programmatic sending</div>'
+            );
+        } else {
+            // API -> Portal: Gaining portal features
+            $('#disabledFeaturesList').html(
+                '<div class="text-danger small mb-1"><i class="fas fa-times me-2"></i>REST API access</div>'
+            );
+            $('#enabledFeaturesList').html(
+                '<div class="text-success small mb-1"><i class="fas fa-check me-2"></i>Campaign Composer access</div>' +
+                '<div class="text-success small mb-1"><i class="fas fa-check me-2"></i>Inbox visibility</div>' +
+                '<div class="text-success small mb-1"><i class="fas fa-check me-2"></i>Portal SenderID availability</div>' +
+                '<div class="text-success small mb-1"><i class="fas fa-check me-2"></i>Opt-out management</div>'
+            );
+        }
+        
+        // Store pending mode change
+        $('#btnConfirmModeChange').data('number-id', num.id).data('new-mode', newMode);
+        
+        new bootstrap.Modal(document.getElementById('modeChangeModal')).show();
+    }
+
+    // Confirm mode change
+    $('#btnConfirmModeChange').on('click', function() {
+        var numberId = $(this).data('number-id');
+        var newMode = $(this).data('new-mode');
+        
+        var num = numbersData.find(function(n) { return n.id === numberId; });
+        if (!num) return;
+        
+        var oldMode = num.mode;
+        
+        // TODO: Backend API call to update mode with audit logging
+        // API should: 
+        // 1. Update number mode in database
+        // 2. Update capabilities based on new mode
+        // 3. Log audit entry with user, timestamp, old mode, new mode
+        // 4. Propagate changes to all modules immediately
+        
+        // Update local data
+        num.mode = newMode;
+        
+        // Update capabilities based on mode
+        if (newMode === 'api') {
+            // API mode: Only API capability
+            num.capabilities = ['api'];
+        } else {
+            // Portal mode: Portal-related capabilities
+            num.capabilities = ['portal', 'inbox', 'optout'];
+        }
+        
+        // Log mode change for audit (simulated)
+        console.log('AUDIT LOG: Mode change for number ' + num.number + ' from ' + oldMode + ' to ' + newMode + ' at ' + new Date().toISOString());
+        
+        // Update UI
+        updateModeSelectionUI(newMode);
+        $('#drawerMode').text(newMode === 'portal' ? 'Portal' : 'API');
+        $('#drawerModeBadge').text(newMode === 'portal' ? 'Portal' : 'API');
+        $('#drawerCapabilities').html(formatCapabilities(num.capabilities));
+        
+        renderTable();
+        
+        bootstrap.Modal.getInstance(document.getElementById('modeChangeModal')).hide();
+        toastr.success('Operating mode changed to ' + (newMode === 'portal' ? 'Portal' : 'API') + ' Mode');
+    });
 
     // Edit number function
     window.editNumber = function(id) {
