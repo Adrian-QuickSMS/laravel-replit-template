@@ -1084,9 +1084,39 @@ $(document).ready(function() {
         };
     }
 
-    // Comprehensive SenderID data model for audit and compliance
-    // All records store: submitted fields, normalized value, userId, timestamps, approval decisions, status transitions
-    // Archived records are immutable - no further modifications allowed
+    // ============================================================================
+    // SENDERID DATA MODEL - Comprehensive audit and compliance structure
+    // ============================================================================
+    // Current capabilities:
+    // - All submitted fields, normalized value, userId, timestamps
+    // - Approval decisions with reviewer details
+    // - Status transitions with full audit trail
+    // - Immutability enforcement after archival
+    //
+    // FUTURE EXTENSIBILITY (data model supports without UI changes):
+    // ----------------------------------------------------------------------------
+    // 1. EVIDENCE UPLOAD (trademark certificates, website screenshots, authorization letters)
+    //    - Add: evidenceAttachments: [{ type: 'trademark'|'website'|'letter', 
+    //           fileUrl, fileName, fileSize, uploadedBy, uploadedAt, verified }]
+    //    - Add: evidenceVerification: { status, verifiedBy, verifiedAt, notes }
+    //
+    // 2. INTERNATIONAL SENDERIDS (multi-country support)
+    //    - Current 'country' field already supports extension
+    //    - Add: countryCode (ISO 3166-1 alpha-2), regionCode, localRegulations: {}
+    //    - Add: operatorRequirements: [{ operator, requirementType, status }]
+    //
+    // 3. AUTOMATIC BRAND MATCHING (link to verified brand database)
+    //    - Add: brandMatch: { brandId, matchConfidence, matchedAt, matchSource }
+    //    - Add: brandVerification: { verified, verifiedAt, verifiedBy, method }
+    //    - Add: companyRegistration: { number, jurisdiction, verifiedAt }
+    //
+    // 4. DUAL APPROVAL WORKFLOWS (multi-stage approval with escalation)
+    //    - Current approvalDetails supports extension to array: approvalStages: []
+    //    - Add: approvalWorkflow: { type: 'single'|'dual'|'escalation', 
+    //           stages: [{ order, approverRole, decision, timestamp, notes }] }
+    //    - Add: escalationRules: { triggerConditions, escalateTo, timeoutHours }
+    //    - Add: pendingApprovals: [{ stage, assignedTo, dueAt }]
+    // ============================================================================
     var senderIds = [
         {
             id: 'sid_001',

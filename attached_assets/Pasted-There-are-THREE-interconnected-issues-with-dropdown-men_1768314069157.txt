@@ -1,0 +1,74 @@
+There are THREE interconnected issues with dropdown menus (three dots) in all Email-to-SMS tables causing them to be clipped and overlap.
+
+FILE: resources/views/quicksms/management/email-to-sms.blade.php
+
+PROBLEMS:
+1. Dropdown menus are partially hidden/clipped by table boundaries
+2. When clicking from one dropdown to another, the previous menu doesn't close
+3. Multiple dropdowns stack on top of each other
+
+ROOT CAUSES:
+1. The last table column uses "position: sticky" (lines 140-142, 156-158) which creates a stacking context that traps dropdown menus
+2. Tables are wrapped in ".table-responsive" divs which add "overflow-x: auto" that clips dropdowns
+3. No explicit JavaScript closes other dropdowns when opening a new one
+
+SOLUTION APPROACH:
+You must fix ALL THREE issues together - fixing one alone won't work.
+
+FIX #1: Make dropdowns render outside table structure
+Add data-bs-container="body" to ALL dropdown buttons so menus append to body instead of table cells.
+
+FIND all instances of:
+<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation();">
+
+CHANGE TO:
+<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">
+
+LOCATIONS:
+- Line 2575 (Overview/Addresses table)
+- Line 2631 (Reporting Groups table)  
+- Line 2776 (Contact Lists table)
+- Line 4516 (Standard library table)
+
+FIX #2: Override table-responsive overflow for dropdown columns
+Add this CSS after line 170 (after the .api-table tbody tr:hover rule):
+
+.api-table tbody td:last-child {
+    overflow: visible !important;
+}
+.api-table-container,
+.table-responsive {
+    overflow: visible !important;
+}
+
+FIX #3: Add JavaScript to explicitly close other dropdowns
+Add this code inside $(document).ready() block (around line 1970, after the EMAIL_DOMAIN variable):
+
+// Close all other dropdowns when opening a new one
+$(document).on('show.bs.dropdown', '.action-menu-btn', function() {
+    $('.action-menu-btn').not(this).each(function() {
+        var dropdown = bootstrap.Dropdown.getInstance(this);
+        if (dropdown) {
+            dropdown.hide();
+        }
+    });
+});
+
+WHY THIS WORKS:
+- data-bs-container="body" moves dropdown rendering outside the clipping context
+- CSS override allows dropdowns to extend beyond table boundaries
+- JavaScript ensures only one dropdown is open at a time
+
+TESTING:
+1. Go to Management > Email-to-SMS > Overview tab
+2. Click three dots on row 1 - dropdown should be fully visible
+3. Click three dots on row 2 - row 1's dropdown should close automatically
+4. Scroll table horizontally - three dots column should stay in place (sticky)
+5. Dropdown should still be fully visible when scrolling
+6. Repeat for Contact Lists tab and Standard tab
+
+CRITICAL:
+- You MUST make ALL THREE fixes
+- Do NOT remove "position: sticky" from the last column
+- Do NOT remove ".table-responsive" wrapper
+- Test that horizontal scrolling still works after the fixes
