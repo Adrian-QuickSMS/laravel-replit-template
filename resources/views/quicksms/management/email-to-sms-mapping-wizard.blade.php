@@ -1362,7 +1362,7 @@ $(document).ready(function() {
     function goToStep(stepIndex) {
         if (stepIndex < 0 || stepIndex >= totalSteps) return;
         
-        $('.tab-pane').removeClass('active show');
+        $('#mappingWizard > .tab-content > .tab-pane').removeClass('active show');
         $('.nav-wizard .nav-link').removeClass('active done');
         
         var stepIds = ['step-general', 'step-email', 'step-recipients', 'step-message', 'step-review'];
