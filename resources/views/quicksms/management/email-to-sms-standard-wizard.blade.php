@@ -486,16 +486,18 @@ button.btn-save-draft:hover {
                 <div class="mb-3">
                     <i class="fas fa-envelope-open-text text-primary" style="font-size: 3rem;"></i>
                 </div>
-                <p class="mb-3">Your Standard Email-to-SMS setup has been created successfully. Send emails to the address below to trigger SMS messages:</p>
-                <div class="success-email-box rounded p-3 mb-3">
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                        <code class="fs-5" id="successEmailAddress">-</code>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCopySuccessEmail" title="Copy to clipboard">
-                            <i class="fas fa-copy"></i>
-                        </button>
+                <p class="mb-3">Your Standard Email-to-SMS setup has been created successfully. You can now send messages using the Email-to-SMS service.</p>
+                <div class="alert alert-pastel-primary text-start mb-3">
+                    <p class="mb-2"><strong>Email Format:</strong></p>
+                    <div class="success-email-box rounded p-2 mb-2">
+                        <code class="fs-6">mobilenumber@sms.quicksms.com</code>
+                    </div>
+                    <p class="small mb-2"><strong>Example:</strong></p>
+                    <div class="success-email-box rounded p-2 mb-0">
+                        <code class="fs-6">447920099278@sms.quicksms.com</code>
                     </div>
                 </div>
-                <div class="alert alert-pastel-primary small mb-0">
+                <div class="alert alert-pastel-primary small mb-0 text-start">
                     <i class="fas fa-info-circle me-1"></i> 
                     <strong>SenderID:</strong> Extracted from email subject<br>
                     <strong>SMS Content:</strong> Extracted from email body
@@ -723,24 +725,8 @@ $(document).ready(function() {
     $('#btnCreate').on('click', function() {
         if (!validateStep(2)) return;
         
-        var generatedEmail = $('#stdName').val().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + 
-            '-' + Math.random().toString(36).substring(2, 6) + '@sms.quicksms.com';
-        
-        $('#successEmailAddress').text(generatedEmail);
-        
         var modal = new bootstrap.Modal($('#successModal')[0]);
         modal.show();
-    });
-    
-    $('#btnCopySuccessEmail').on('click', function() {
-        var email = $('#successEmailAddress').text();
-        navigator.clipboard.writeText(email).then(function() {
-            var btn = $('#btnCopySuccessEmail');
-            btn.html('<i class="fas fa-check"></i>');
-            setTimeout(function() {
-                btn.html('<i class="fas fa-copy"></i>');
-            }, 2000);
-        });
     });
     
     $('#btnSaveDraft').on('click', function() {
