@@ -4,19 +4,17 @@
 
 @push('styles')
 <style>
-.senderid-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-.senderid-header h2 {
+.breadcrumb {
+    background: transparent;
+    padding: 0;
     margin: 0;
-    font-weight: 600;
 }
-.senderid-header p {
-    margin: 0;
+.breadcrumb-item a {
     color: #6c757d;
+    text-decoration: none;
+}
+.breadcrumb-item.active {
+    font-weight: 500;
 }
 .empty-state {
     text-align: center;
@@ -50,11 +48,8 @@
     margin-left: auto;
     margin-right: auto;
 }
-.senderid-table-container {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
-    overflow-x: auto;
+.table-responsive {
+    overflow: visible;
 }
 .senderid-table {
     width: 100%;
@@ -330,34 +325,22 @@
     color: #6c757d;
     line-height: 1.3;
 }
-.search-filter-bar {
-    display: flex;
-    justify-content: space-between;
+.filter-chip {
+    display: inline-flex;
     align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #e9ecef;
-    gap: 1rem;
-    flex-wrap: wrap;
+    padding: 0.25rem 0.5rem;
+    background: rgba(136, 108, 192, 0.1);
+    color: #886CC0;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    gap: 0.25rem;
 }
-.search-box {
-    flex: 1;
-    max-width: 300px;
-    min-width: 200px;
+.filter-chip .remove-chip {
+    cursor: pointer;
+    opacity: 0.7;
 }
-.filters-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.pagination-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border-top: 1px solid #e9ecef;
-    background: #f8f9fa;
-    border-radius: 0 0 0.75rem 0.75rem;
+.filter-chip .remove-chip:hover {
+    opacity: 1;
 }
 .drawer-backdrop {
     position: fixed;
@@ -552,102 +535,137 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="senderid-header">
-        <div>
-            <h2>SMS SenderID Registration</h2>
-            <p>Register and manage approved sender identities for SMS messaging</p>
-        </div>
-        <button type="button" class="btn btn-primary" id="btnRegisterSenderId">
-            <i class="fas fa-plus me-2"></i>Register SenderID
-        </button>
-    </div>
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="#">Management</a></li>
+            <li class="breadcrumb-item active text-primary">SMS SenderID Registration</li>
+        </ol>
+    </nav>
 
-    <div class="info-banner">
-        <h6><i class="fas fa-shield-alt me-2"></i>UK Compliance Requirements</h6>
-        <ul>
-            <li>All SenderIDs must be registered and approved before use</li>
-            <li><strong>Alphanumeric:</strong> Max 11 characters (A-Z, a-z, 0-9, . - _ & space)</li>
-            <li><strong>Numeric:</strong> UK Virtual Mobile Number (+447xxxxxxxxx)</li>
-            <li><strong>Shortcode:</strong> Exactly 5 digits, starting with 6, 7, or 8</li>
-            <li>Must represent your brand and not impersonate others</li>
-        </ul>
-    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="card-title mb-0">SMS SenderID Library</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnToggleFilters">
+                            <i class="fas fa-filter me-1"></i> Filters
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnRegisterSenderId">
+                            <i class="fas fa-plus me-1"></i> Register SenderID
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="info-banner">
+                        <h6><i class="fas fa-shield-alt me-2"></i>UK Compliance Requirements</h6>
+                        <ul>
+                            <li>All SenderIDs must be registered and approved before use</li>
+                            <li><strong>Alphanumeric:</strong> Max 11 characters (A-Z, a-z, 0-9, . - _ & space)</li>
+                            <li><strong>Numeric:</strong> UK Virtual Mobile Number (+447xxxxxxxxx)</li>
+                            <li><strong>Shortcode:</strong> Exactly 5 digits, starting with 6, 7, or 8</li>
+                            <li>Must represent your brand and not impersonate others</li>
+                        </ul>
+                    </div>
 
-    <div id="emptyState" class="empty-state" style="display: none;">
-        <div class="empty-state-icon">
-            <i class="fas fa-id-badge"></i>
-        </div>
-        <h4>No SenderIDs Registered</h4>
-        <p>Register your first SenderID to start sending SMS messages with your brand identity.</p>
-        <button type="button" class="btn btn-primary" id="btnRegisterSenderIdEmpty">
-            <i class="fas fa-plus me-2"></i>Register SenderID
-        </button>
-    </div>
+                    <div class="collapse mb-3" id="filtersPanel">
+                        <div class="card card-body bg-light border-0 p-3">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Type</label>
+                                    <select class="form-select form-select-sm" id="filterType">
+                                        <option value="">All Types</option>
+                                        <option value="alphanumeric">Alphanumeric</option>
+                                        <option value="numeric">Numeric</option>
+                                        <option value="shortcode">Shortcode</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Status</label>
+                                    <select class="form-select form-select-sm" id="filterStatus">
+                                        <option value="">All Status</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="pending">Pending Approval</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                        <option value="suspended">Suspended</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Use Case</label>
+                                    <select class="form-select form-select-sm" id="filterUseCase">
+                                        <option value="">All Use Cases</option>
+                                        <option value="otp">OTP / Verification</option>
+                                        <option value="marketing">Marketing</option>
+                                        <option value="transactional">Transactional</option>
+                                        <option value="alerts">Alerts / Notifications</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
+                                        <i class="fas fa-check me-1"></i> Apply
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                                        <i class="fas fa-undo me-1"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <div id="senderIdLibrary" class="senderid-table-container">
-        <div class="search-filter-bar">
-            <div class="search-box">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search SenderIDs...">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="input-group" style="width: 280px;">
+                            <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search SenderIDs...">
+                        </div>
+                        <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
+                    </div>
+
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                        <h4>No SenderIDs Registered</h4>
+                        <p>Register your first SenderID to start sending SMS messages with your brand identity.</p>
+                        <button type="button" class="btn btn-primary" id="btnRegisterSenderIdEmpty">
+                            <i class="fas fa-plus me-2"></i>Register SenderID
+                        </button>
+                    </div>
+
+                    <div id="senderIdLibrary">
+                        <div class="table-responsive">
+                            <table class="table senderid-table" id="senderIdTable">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="senderId" onclick="sortTable('senderId')">SenderID <i class="fas fa-sort sort-icon"></i></th>
+                                        <th data-sort="type" onclick="sortTable('type')">Type <i class="fas fa-sort sort-icon"></i></th>
+                                        <th data-sort="brand" onclick="sortTable('brand')">Brand / Business <i class="fas fa-sort sort-icon"></i></th>
+                                        <th data-sort="useCase" onclick="sortTable('useCase')">Use Case <i class="fas fa-sort sort-icon"></i></th>
+                                        <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
+                                        <th data-sort="created" onclick="sortTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
+                                        <th data-sort="lastUsed" onclick="sortTable('lastUsed')">Last Used <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="senderIdTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted small">
+                                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> SenderIDs
+                            </div>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="filters-group">
-                <select class="form-select form-select-sm" id="filterType" style="width: 130px;">
-                    <option value="">All Types</option>
-                    <option value="alphanumeric">Alphanumeric</option>
-                    <option value="numeric">Numeric</option>
-                    <option value="shortcode">Shortcode</option>
-                </select>
-                <select class="form-select form-select-sm" id="filterStatus" style="width: 140px;">
-                    <option value="">All Status</option>
-                    <option value="draft">Draft</option>
-                    <option value="pending">Pending Approval</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="suspended">Suspended</option>
-                    <option value="archived">Archived</option>
-                </select>
-                <select class="form-select form-select-sm" id="filterUseCase" style="width: 130px;">
-                    <option value="">All Use Cases</option>
-                    <option value="otp">OTP / Verification</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="transactional">Transactional</option>
-                    <option value="alerts">Alerts / Notifications</option>
-                </select>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table senderid-table" id="senderIdTable">
-                <thead>
-                    <tr>
-                        <th data-sort="senderId" onclick="sortTable('senderId')">SenderID <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="type" onclick="sortTable('type')">Type <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="brand" onclick="sortTable('brand')">Brand / Business <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="useCase" onclick="sortTable('useCase')">Use Case <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="created" onclick="sortTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="lastUsed" onclick="sortTable('lastUsed')">Last Used <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="senderIdTableBody">
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination-container">
-            <div class="text-muted small">
-                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> SenderIDs
-            </div>
-            <nav>
-                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-                </ul>
-            </nav>
         </div>
     </div>
 </div>
@@ -2225,18 +2243,44 @@ $(document).ready(function() {
         renderTable();
     });
 
-    $('#filterType, #filterStatus, #filterUseCase').on('change', function() {
+    $('#btnToggleFilters').on('click', function() {
+        $('#filtersPanel').collapse('toggle');
+    });
+
+    $('#btnApplyFilters').on('click', function() {
         currentPage = 1;
         renderTable();
+        updateFilterChips();
     });
 
     $('#btnResetFilters').on('click', function() {
-        $('#searchInput').val('');
         $('#filterType').val('');
         $('#filterStatus').val('');
         $('#filterUseCase').val('');
         currentPage = 1;
         renderTable();
+        updateFilterChips();
+    });
+
+    function updateFilterChips() {
+        var chips = [];
+        var type = $('#filterType').val();
+        var status = $('#filterStatus').val();
+        var useCase = $('#filterUseCase').val();
+
+        if (type) chips.push('<span class="filter-chip">Type: ' + type + ' <i class="fas fa-times remove-chip" data-filter="filterType"></i></span>');
+        if (status) chips.push('<span class="filter-chip">Status: ' + status + ' <i class="fas fa-times remove-chip" data-filter="filterStatus"></i></span>');
+        if (useCase) chips.push('<span class="filter-chip">Use Case: ' + useCase + ' <i class="fas fa-times remove-chip" data-filter="filterUseCase"></i></span>');
+
+        $('#activeFiltersChips').html(chips.join(''));
+    }
+
+    $(document).on('click', '.remove-chip', function() {
+        var filter = $(this).data('filter');
+        $('#' + filter).val('');
+        currentPage = 1;
+        renderTable();
+        updateFilterChips();
     });
 
     $(document).on('click', '#paginationContainer .page-link', function(e) {
