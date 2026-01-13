@@ -560,7 +560,8 @@
                             <div class="row g-3 align-items-end">
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Type</label>
-                                    <select class="selectpicker form-control" id="filterType" multiple data-live-search="false" data-selected-text-format="count > 1" title="All Types" data-style="btn-outline-secondary btn-sm">
+                                    <select class="form-select form-select-sm" id="filterType">
+                                        <option value="">All Types</option>
                                         <option value="alphanumeric">Alphanumeric</option>
                                         <option value="numeric">Numeric</option>
                                         <option value="shortcode">Shortcode</option>
@@ -568,7 +569,8 @@
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Status</label>
-                                    <select class="selectpicker form-control" id="filterStatus" multiple data-live-search="false" data-selected-text-format="count > 1" title="All Status" data-style="btn-outline-secondary btn-sm">
+                                    <select class="form-select form-select-sm" id="filterStatus">
+                                        <option value="">All Status</option>
                                         <option value="draft">Draft</option>
                                         <option value="pending">Pending Approval</option>
                                         <option value="approved">Approved</option>
@@ -579,7 +581,8 @@
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
                                     <label class="form-label small fw-bold">Use Case</label>
-                                    <select class="selectpicker form-control" id="filterUseCase" multiple data-live-search="false" data-selected-text-format="count > 1" title="All Use Cases" data-style="btn-outline-secondary btn-sm">
+                                    <select class="form-select form-select-sm" id="filterUseCase">
+                                        <option value="">All Use Cases</option>
                                         <option value="otp">OTP / Verification</option>
                                         <option value="marketing">Marketing</option>
                                         <option value="transactional">Transactional</option>
@@ -603,7 +606,6 @@
                             <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                             <input type="text" class="form-control" id="searchInput" placeholder="Search SenderIDs...">
                         </div>
-                        <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
                     </div>
 
                     <div id="emptyState" class="empty-state" style="display: none;">
@@ -1452,18 +1454,18 @@ $(document).ready(function() {
 
     function filterSenderIds() {
         var search = $('#searchInput').val().toLowerCase();
-        var filterTypes = $('#filterType').val() || [];
-        var filterStatuses = $('#filterStatus').val() || [];
-        var filterUseCases = $('#filterUseCase').val() || [];
+        var filterType = $('#filterType').val();
+        var filterStatus = $('#filterStatus').val();
+        var filterUseCase = $('#filterUseCase').val();
 
         return senderIds.filter(function(item) {
             var matchSearch = !search || 
                 item.senderId.toLowerCase().includes(search) ||
                 item.brand.toLowerCase().includes(search) ||
                 (item.description && item.description.toLowerCase().includes(search));
-            var matchType = filterTypes.length === 0 || filterTypes.includes(item.type);
-            var matchStatus = filterStatuses.length === 0 || filterStatuses.includes(item.status);
-            var matchUseCase = filterUseCases.length === 0 || filterUseCases.includes(item.useCase);
+            var matchType = !filterType || item.type === filterType;
+            var matchStatus = !filterStatus || item.status === filterStatus;
+            var matchUseCase = !filterUseCase || item.useCase === filterUseCase;
             return matchSearch && matchType && matchStatus && matchUseCase;
         });
     }
@@ -2275,47 +2277,14 @@ $(document).ready(function() {
     $('#btnApplyFilters').on('click', function() {
         currentPage = 1;
         renderTable();
-        updateFilterChips();
     });
 
     $('#btnResetFilters').on('click', function() {
-        $('#filterType').selectpicker('deselectAll');
-        $('#filterStatus').selectpicker('deselectAll');
-        $('#filterUseCase').selectpicker('deselectAll');
+        $('#filterType').val('');
+        $('#filterStatus').val('');
+        $('#filterUseCase').val('');
         currentPage = 1;
         renderTable();
-        updateFilterChips();
-    });
-
-    function updateFilterChips() {
-        var chips = [];
-        var types = $('#filterType').val() || [];
-        var statuses = $('#filterStatus').val() || [];
-        var useCases = $('#filterUseCase').val() || [];
-
-        types.forEach(function(t) {
-            chips.push('<span class="filter-chip">Type: ' + t + ' <i class="fas fa-times remove-chip" data-filter="filterType" data-value="' + t + '"></i></span>');
-        });
-        statuses.forEach(function(s) {
-            chips.push('<span class="filter-chip">Status: ' + s + ' <i class="fas fa-times remove-chip" data-filter="filterStatus" data-value="' + s + '"></i></span>');
-        });
-        useCases.forEach(function(u) {
-            chips.push('<span class="filter-chip">Use Case: ' + u + ' <i class="fas fa-times remove-chip" data-filter="filterUseCase" data-value="' + u + '"></i></span>');
-        });
-
-        $('#activeFiltersChips').html(chips.join(''));
-    }
-
-    $(document).on('click', '.remove-chip', function() {
-        var filter = $(this).data('filter');
-        var value = $(this).data('value');
-        var $select = $('#' + filter);
-        var currentVals = $select.val() || [];
-        var newVals = currentVals.filter(function(v) { return v !== value; });
-        $select.selectpicker('val', newVals);
-        currentPage = 1;
-        renderTable();
-        updateFilterChips();
     });
 
     $(document).on('click', '#paginationContainer .page-link', function(e) {
