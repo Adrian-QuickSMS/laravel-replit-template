@@ -219,6 +219,18 @@
     color: #fff;
     border-radius: 1rem;
 }
+.api-restrictions {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid #e9ecef;
+}
+.api-restrictions ul {
+    list-style: none;
+}
+.api-restrictions li {
+    padding: 0.25rem 0;
+}
 .action-menu-btn {
     background: transparent;
     border: none;
@@ -787,6 +799,70 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mb-3" id="apiConfigCard" style="display: none;">
+                <div class="card-body p-3">
+                    <h6 class="card-title mb-3"><i class="fas fa-plug me-2 text-primary"></i>API Configuration</h6>
+                    <p class="small text-muted mb-3">Configure API-specific settings for this number.</p>
+                    
+                    <div class="alert alert-info small mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        API mode numbers are used exclusively via REST API. They cannot be used as SenderID, Inbox number, or in Portal features.
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">Sub-Account Attribution</label>
+                        <p class="text-muted small mb-2">API numbers can belong to only one sub-account for reporting and access control.</p>
+                        <select class="form-select form-select-sm" id="apiSubAccountSelect">
+                            <option value="">-- Select Sub-Account --</option>
+                            <option value="Main Account">Main Account</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Support">Support</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">Inbound Message Handling</label>
+                        <p class="text-muted small mb-2">Configure how incoming messages to this number are processed.</p>
+                        
+                        <div class="capability-toggle mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <div class="fw-semibold small">Enable Inbound Forwarding</div>
+                                    <div class="text-muted small">Forward incoming messages to a webhook URL</div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="toggleInboundForwarding">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="inboundUrlSection" style="display: none;">
+                            <label class="form-label small fw-medium">Inbound Webhook URL</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input type="url" class="form-control" id="apiInboundUrl" placeholder="https://your-domain.com/webhook/inbound">
+                            </div>
+                            <div class="form-text small">
+                                <i class="fas fa-lock me-1 text-success"></i>HTTPS URLs only. If empty, inbound messages will not be forwarded.
+                            </div>
+                            <div id="inboundUrlError" class="text-danger small mt-1" style="display: none;">
+                                <i class="fas fa-exclamation-circle me-1"></i>URL must start with https://
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="api-restrictions">
+                        <label class="form-label fw-bold small text-muted">API Mode Restrictions</label>
+                        <ul class="small text-muted mb-0 ps-3">
+                            <li><i class="fas fa-times text-danger me-1"></i>Cannot be used as Portal SenderID</li>
+                            <li><i class="fas fa-times text-danger me-1"></i>Cannot receive messages in Inbox</li>
+                            <li><i class="fas fa-times text-danger me-1"></i>Cannot be used in Campaign Builder</li>
+                            <li><i class="fas fa-times text-danger me-1"></i>Cannot handle opt-out via Portal</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="p-4 border-top">
@@ -963,11 +1039,15 @@ $(document).ready(function() {
             status: 'active',
             capabilities: ['api', 'inbox'],
             mode: 'api',
-            subAccounts: ['Main Account', 'Marketing'],
+            subAccounts: ['Main Account'],
             monthlyCost: 5.00,
             lastUsed: '2025-01-12 09:15:22',
             purchaseDate: '2024-08-20',
-            renewalDate: '2025-02-20'
+            renewalDate: '2025-02-20',
+            apiConfig: {
+                inboundForwarding: true,
+                inboundUrl: 'https://api.example.com/webhooks/sms/inbound'
+            }
         },
         {
             id: 3,
@@ -1022,7 +1102,11 @@ $(document).ready(function() {
             monthlyCost: 8.00,
             lastUsed: '2024-12-15 08:00:00',
             purchaseDate: '2024-03-22',
-            renewalDate: '2025-02-22'
+            renewalDate: '2025-02-22',
+            apiConfig: {
+                inboundForwarding: false,
+                inboundUrl: ''
+            }
         },
         {
             id: 6,
@@ -1674,9 +1758,11 @@ $(document).ready(function() {
         // Update mode selection buttons
         updateModeSelectionUI(num.mode);
         
-        // Populate portal configuration if in portal mode
+        // Populate configuration based on mode
         if (num.mode === 'portal') {
             populatePortalConfig(num);
+        } else {
+            populateApiConfig(num);
         }
         
         var offcanvas = new bootstrap.Offcanvas(document.getElementById('numberConfigDrawer'));
@@ -1690,11 +1776,13 @@ $(document).ready(function() {
             $('#portalModeFeatures').show();
             $('#apiModeFeatures').hide();
             $('#portalConfigCard').show();
+            $('#apiConfigCard').hide();
         } else {
             $('#btnModeAPI').addClass('active');
             $('#apiModeFeatures').show();
             $('#portalModeFeatures').hide();
             $('#portalConfigCard').hide();
+            $('#apiConfigCard').show();
         }
     }
 
@@ -1775,6 +1863,119 @@ $(document).ready(function() {
             container.append(html);
         });
     }
+
+    function populateApiConfig(num) {
+        if (num.mode !== 'api') return;
+        
+        var config = num.apiConfig || {};
+        
+        // Set sub-account (single select for API mode)
+        var subAccount = num.subAccounts && num.subAccounts.length > 0 ? num.subAccounts[0] : '';
+        $('#apiSubAccountSelect').val(subAccount);
+        
+        // Set inbound forwarding toggle
+        var inboundEnabled = config.inboundForwarding === true;
+        $('#toggleInboundForwarding').prop('checked', inboundEnabled);
+        
+        // Show/hide URL section based on toggle
+        if (inboundEnabled) {
+            $('#inboundUrlSection').show();
+        } else {
+            $('#inboundUrlSection').hide();
+        }
+        
+        // Set inbound URL
+        $('#apiInboundUrl').val(config.inboundUrl || '');
+        $('#inboundUrlError').hide();
+    }
+
+    // Handle API sub-account selection (single only)
+    $('#apiSubAccountSelect').on('change', function() {
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num) return;
+        
+        var selectedSubAccount = $(this).val();
+        
+        // API numbers can only belong to one sub-account
+        if (selectedSubAccount) {
+            num.subAccounts = [selectedSubAccount];
+        } else {
+            num.subAccounts = [];
+        }
+        
+        // TODO: Backend API call to update sub-account attribution
+        
+        // Update drawer display
+        var saHtml = num.subAccounts.map(function(sa) {
+            return '<span class="badge badge-pastel-secondary me-1 mb-1">' + sa + '</span>';
+        }).join('');
+        $('#drawerSubAccounts').html(saHtml || '<span class="text-muted">None assigned</span>');
+        
+        renderTable();
+        toastr.success('Sub-account attribution updated');
+    });
+
+    // Handle inbound forwarding toggle
+    $('#toggleInboundForwarding').on('change', function() {
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num) return;
+        
+        var isEnabled = $(this).is(':checked');
+        
+        if (!num.apiConfig) num.apiConfig = {};
+        num.apiConfig.inboundForwarding = isEnabled;
+        
+        if (isEnabled) {
+            $('#inboundUrlSection').slideDown(200);
+        } else {
+            $('#inboundUrlSection').slideUp(200);
+            // Clear URL when disabled
+            num.apiConfig.inboundUrl = '';
+            $('#apiInboundUrl').val('');
+        }
+        
+        // TODO: Backend API call to update inbound forwarding setting
+        toastr.success('Inbound forwarding ' + (isEnabled ? 'enabled' : 'disabled'));
+    });
+
+    // Handle inbound URL input with HTTPS validation
+    $('#apiInboundUrl').on('input blur', function() {
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num) return;
+        
+        var url = $(this).val().trim();
+        
+        // Validate HTTPS
+        if (url && !url.startsWith('https://')) {
+            $('#inboundUrlError').show();
+            $(this).addClass('is-invalid');
+            return;
+        } else {
+            $('#inboundUrlError').hide();
+            $(this).removeClass('is-invalid');
+        }
+        
+        if (!num.apiConfig) num.apiConfig = {};
+        num.apiConfig.inboundUrl = url;
+        
+        // TODO: Backend API call to update inbound URL
+    });
+
+    // Save inbound URL on enter key
+    $('#apiInboundUrl').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            var url = $(this).val().trim();
+            
+            if (url && !url.startsWith('https://')) {
+                toastr.error('URL must start with https://');
+                return;
+            }
+            
+            $(this).blur();
+            toastr.success('Inbound URL saved');
+        }
+    });
 
     // Handle sub-account checkbox changes in portal config
     $(document).on('change', '.portal-subacc-check', function() {
@@ -1982,6 +2183,19 @@ $(document).ready(function() {
                 };
             }
             populatePortalConfig(num);
+        } else {
+            // Initialize API config if switching to API mode
+            if (!num.apiConfig) {
+                num.apiConfig = {
+                    inboundForwarding: false,
+                    inboundUrl: ''
+                };
+            }
+            // API mode numbers can only have one sub-account
+            if (num.subAccounts && num.subAccounts.length > 1) {
+                num.subAccounts = [num.subAccounts[0]];
+            }
+            populateApiConfig(num);
         }
         
         renderTable();
