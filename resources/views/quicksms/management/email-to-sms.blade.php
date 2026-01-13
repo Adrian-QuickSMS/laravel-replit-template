@@ -106,9 +106,16 @@
     border-radius: 0.75rem;
     overflow: visible;
 }
-.table-container .dropdown-menu {
+.table-container .dropdown-menu,
+.email-sms-table .dropdown-menu {
     position: absolute;
     z-index: 1050;
+}
+#addresses,
+#addresses .card,
+#addresses .card-body,
+#emailSmsTabContent {
+    overflow: visible !important;
 }
 .api-table-container {
     background: #fff;
