@@ -43,6 +43,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/management/email-to-sms/standard/create', 'emailToSmsStandardCreate')->name('management.email-to-sms.standard.create');
     Route::get('/management/email-to-sms/standard/{id}/edit', 'emailToSmsStandardEdit')->name('management.email-to-sms.standard.edit');
     Route::get('/management/numbers', 'numbers')->name('management.numbers');
+    Route::get('/management/numbers/configure', 'numbersConfigure')->name('management.numbers.configure');
     
     Route::get('/account', 'account')->name('account');
     Route::get('/account/details', 'accountDetails')->name('account.details');

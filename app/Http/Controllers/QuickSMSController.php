@@ -1707,6 +1707,17 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function numbersConfigure(Request $request)
+    {
+        // Get selected number IDs from query string
+        $selectedIds = $request->query('ids', '');
+        
+        return view('quicksms.management.numbers-configure', [
+            'page_title' => 'Configure Numbers',
+            'selectedIds' => $selectedIds
+        ]);
+    }
+
     public function account()
     {
         return view('quicksms.placeholder', [
