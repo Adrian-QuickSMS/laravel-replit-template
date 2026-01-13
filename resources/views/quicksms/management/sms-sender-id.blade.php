@@ -753,6 +753,26 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Available usage scopes for SenderIDs (all enabled by default when approved)
+    var SENDERID_SCOPES = {
+        SEND_MESSAGE: 'send_message',      // Send Message / Campaigns
+        INBOX_REPLIES: 'inbox_replies',    // Inbox replies
+        EMAIL_TO_SMS: 'email_to_sms',      // Email-to-SMS
+        BULK_API: 'bulk_api',              // Bulk API
+        CAMPAIGN_API: 'campaign_api'       // Campaign API
+    };
+
+    // Default scopes - all enabled
+    function getDefaultScopes() {
+        return {
+            send_message: true,
+            inbox_replies: true,
+            email_to_sms: true,
+            bulk_api: true,
+            campaign_api: true
+        };
+    }
+
     var senderIds = [
         {
             id: 'sid_001',
@@ -764,6 +784,7 @@ $(document).ready(function() {
             subaccount: 'Main Account',
             status: 'approved',
             created: '2024-01-15T10:30:00Z',
+            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
             auditHistory: [
                 { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-16T14:22:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-01-15T10:35:00Z', auditType: 'submitted' },
@@ -780,6 +801,7 @@ $(document).ready(function() {
             subaccount: 'Operations',
             status: 'approved',
             created: '2024-02-01T09:00:00Z',
+            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
             auditHistory: [
                 { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-02T11:45:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-02-01T09:05:00Z', auditType: 'submitted' },
@@ -796,6 +818,7 @@ $(document).ready(function() {
             subaccount: 'Customer Support',
             status: 'approved',
             created: '2024-02-15T11:30:00Z',
+            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
             auditHistory: [
                 { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-16T09:00:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-02-15T11:35:00Z', auditType: 'submitted' },
@@ -812,6 +835,7 @@ $(document).ready(function() {
             subaccount: 'Marketing Department',
             status: 'approved',
             created: '2024-01-20T14:00:00Z',
+            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
             auditHistory: [
                 { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-22T10:00:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-01-20T14:05:00Z', auditType: 'submitted' },
@@ -1395,8 +1419,9 @@ $(document).ready(function() {
             subaccount: subaccount || 'Main Account',
             status: 'pending',
             created: new Date().toISOString(),
+            scopes: getDefaultScopes(),
             auditHistory: [
-                { action: 'Submitted for Review', user: 'Current User', timestamp: new Date().toISOString(), auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'Current User', timestamp: new Date().toISOString(), auditType: 'submitted' }
             ]
         };
 
