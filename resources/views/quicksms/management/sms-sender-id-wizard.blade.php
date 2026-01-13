@@ -589,6 +589,8 @@ $(document).ready(function() {
         }
         $input.val('');
         $('#senderIdCharCount').text('0');
+        $('#inputSenderId').removeClass('is-invalid');
+        $('#senderIdError').hide();
     }
 
     $('#inputSenderId').on('input', function() {
@@ -614,13 +616,38 @@ $(document).ready(function() {
         
         if (stepIndex === 0) {
             var senderId = $('#inputSenderId').val().trim();
+            $('#inputSenderId').removeClass('is-invalid');
+            $('#senderIdError').hide();
+            
             if (!senderId) {
                 $('#inputSenderId').addClass('is-invalid');
                 $('#senderIdError').text('SenderID value is required').show();
                 isValid = false;
-            } else {
-                $('#inputSenderId').removeClass('is-invalid');
-                $('#senderIdError').hide();
+            } else if (selectedType === 'alphanumeric') {
+                var alphaPattern = /^[A-Za-z0-9.\-_& ]+$/;
+                if (!alphaPattern.test(senderId)) {
+                    $('#inputSenderId').addClass('is-invalid');
+                    $('#senderIdError').text('Only A-Z, a-z, 0-9, ., -, _, &, and space are allowed').show();
+                    isValid = false;
+                } else if (senderId.length > 11) {
+                    $('#inputSenderId').addClass('is-invalid');
+                    $('#senderIdError').text('Maximum 11 characters allowed').show();
+                    isValid = false;
+                }
+            } else if (selectedType === 'numeric') {
+                var numericPattern = /^447\d{9}$/;
+                if (!numericPattern.test(senderId)) {
+                    $('#inputSenderId').addClass('is-invalid');
+                    $('#senderIdError').text('Must be a valid UK mobile number starting with 447 (12 digits total)').show();
+                    isValid = false;
+                }
+            } else if (selectedType === 'shortcode') {
+                var shortcodePattern = /^[678]\d{4}$/;
+                if (!shortcodePattern.test(senderId)) {
+                    $('#inputSenderId').addClass('is-invalid');
+                    $('#senderIdError').text('Must be exactly 5 digits starting with 6, 7, or 8').show();
+                    isValid = false;
+                }
             }
         } else if (stepIndex === 1) {
             var brand = $('#inputBrand').val().trim();
