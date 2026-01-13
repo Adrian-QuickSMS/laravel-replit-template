@@ -324,7 +324,7 @@
 }
 .success-email-box {
     background: rgba(136, 108, 192, 0.12);
-    border: 1px solid rgba(136, 108, 192, 0.35);
+    border: none;
 }
 .success-email-box code {
     color: #886CC0;
