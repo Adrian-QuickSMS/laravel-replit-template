@@ -120,10 +120,8 @@
     background: #f8f9fa;
 }
 .senderid-name {
-    font-weight: 600;
+    font-weight: 500;
     color: #343a40;
-    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    letter-spacing: 0.5px;
 }
 .badge-draft {
     background: rgba(173, 181, 189, 0.15);
