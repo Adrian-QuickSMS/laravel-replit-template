@@ -1599,10 +1599,8 @@ class QuickSMSController extends Controller
 
     public function smsSenderIdRegistration()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'SMS SenderID Registration',
-            'purpose' => 'Register and manage SMS sender IDs for your campaigns.',
-            'sub_modules' => []
+        return view('quicksms.management.sms-sender-id', [
+            'page_title' => 'SMS SenderID Registration'
         ]);
     }
 
