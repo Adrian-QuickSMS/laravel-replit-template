@@ -73,6 +73,17 @@
 .numbers-table tbody td:last-child.dropdown-active {
     z-index: 2000 !important;
 }
+.numbers-table .dropdown-menu {
+    z-index: 2050 !important;
+}
+.numbers-table-container:has(.dropdown.show),
+.numbers-table-container.has-dropdown-open {
+    overflow: visible !important;
+}
+.numbers-table-container .table-responsive:has(.dropdown.show),
+.numbers-table-container.has-dropdown-open .table-responsive {
+    overflow: visible !important;
+}
 .numbers-table tbody tr:last-child td {
     border-bottom: none;
 }
@@ -1294,11 +1305,14 @@ $(document).ready(function() {
     var selectedNumbers = [];
 
     // Add/remove dropdown-active class on parent td for z-index fix
+    // Also add has-dropdown-open class to container for overflow visibility (browser compatibility)
     $(document).on('shown.bs.dropdown', '.numbers-table .dropdown', function() {
         $(this).closest('td').addClass('dropdown-active');
+        $('#numbersTableContainer').addClass('has-dropdown-open');
     });
     $(document).on('hidden.bs.dropdown', '.numbers-table .dropdown', function() {
         $(this).closest('td').removeClass('dropdown-active');
+        $('#numbersTableContainer').removeClass('has-dropdown-open');
     });
 
     function getTypeLabel(type) {
