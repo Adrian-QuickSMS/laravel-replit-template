@@ -494,7 +494,7 @@ button.btn-save-draft:hover {
                     </div>
                     <p class="small mb-2"><strong>Example:</strong></p>
                     <div class="success-email-box rounded p-2 mb-0">
-                        <code class="fs-6">447920099278@sms.quicksms.com</code>
+                        <code class="fs-6">447700123456@sms.quicksms.com</code>
                     </div>
                 </div>
                 <div class="alert alert-pastel-primary small mb-0 text-start">
