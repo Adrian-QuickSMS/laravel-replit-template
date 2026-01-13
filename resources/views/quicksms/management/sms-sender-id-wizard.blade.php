@@ -321,7 +321,7 @@ button.btn-save-draft:hover {
                                             <input type="text" class="form-control senderid-input" id="inputSenderId" 
                                                    maxlength="11" placeholder="e.g. MyBrand" autocomplete="off">
                                             <div class="d-flex justify-content-between mt-1">
-                                                <small class="text-muted" id="senderIdHint">Max 11 characters: A-Z a-z 0-9 . - _ & space</small>
+                                                <small class="text-muted" id="senderIdHint">Max 11 characters: A-Z a-z 0-9 - _ & space</small>
                                                 <small class="text-muted"><span id="senderIdCharCount">0</span>/11</small>
                                             </div>
                                             <div class="invalid-feedback" id="senderIdError"></div>
@@ -688,7 +688,7 @@ $(document).ready(function() {
         
         if (selectedType === 'alphanumeric') {
             $input.attr('maxlength', '11').attr('placeholder', 'e.g. MyBrand');
-            $hint.text('Max 11 characters: A-Z a-z 0-9 . - _ & space');
+            $hint.text('Max 11 characters: A-Z a-z 0-9 - _ & space');
             $charWrapper.show();
         } else if (selectedType === 'numeric') {
             $input.attr('maxlength', '15').attr('placeholder', 'e.g. 447700900123');
@@ -708,6 +708,67 @@ $(document).ready(function() {
     $('#inputSenderId').on('input', function() {
         var val = $(this).val();
         $('#senderIdCharCount').text(val.length);
+        
+        // Real-time validation feedback
+        var $input = $(this);
+        var $error = $('#senderIdError');
+        
+        $input.removeClass('is-invalid');
+        $error.removeClass('d-block').hide();
+        
+        if (!val) {
+            // Empty is OK while typing, only show error on Next
+            return;
+        }
+        
+        var hasError = false;
+        var errorMsg = '';
+        
+        if (selectedType === 'alphanumeric') {
+            var alphaPattern = /^[A-Za-z0-9\-_& ]+$/;
+            if (!alphaPattern.test(val)) {
+                hasError = true;
+                errorMsg = 'Only A-Z, a-z, 0-9, -, _, &, and space are allowed';
+            } else if (val.length > 11) {
+                hasError = true;
+                errorMsg = 'Maximum 11 characters allowed';
+            }
+        } else if (selectedType === 'numeric') {
+            // Check if input contains only digits
+            if (!/^\d*$/.test(val)) {
+                hasError = true;
+                errorMsg = 'Only numbers are allowed';
+            } else if (val.length > 0) {
+                // Check if it starts with 447
+                if (!val.startsWith('447') && val.length >= 3) {
+                    hasError = true;
+                    errorMsg = 'UK mobile number must start with 447';
+                } else if (val.length > 12) {
+                    hasError = true;
+                    errorMsg = 'UK mobile number must be exactly 12 digits';
+                }
+            }
+        } else if (selectedType === 'shortcode') {
+            if (!/^\d*$/.test(val)) {
+                hasError = true;
+                errorMsg = 'Only numbers are allowed';
+            } else if (val.length >= 1) {
+                var firstDigit = val.charAt(0);
+                if (firstDigit !== '6' && firstDigit !== '7' && firstDigit !== '8') {
+                    hasError = true;
+                    errorMsg = 'Shortcode must start with 6, 7, or 8';
+                }
+            }
+            if (!hasError && val.length > 5) {
+                hasError = true;
+                errorMsg = 'Shortcode must be exactly 5 digits';
+            }
+        }
+        
+        if (hasError) {
+            $input.addClass('is-invalid');
+            $error.text(errorMsg).addClass('d-block').show();
+        }
     });
 
     $('#inputPermission').on('change', function() {
@@ -736,10 +797,10 @@ $(document).ready(function() {
                 $('#senderIdError').text('SenderID value is required').addClass('d-block').show();
                 isValid = false;
             } else if (selectedType === 'alphanumeric') {
-                var alphaPattern = /^[A-Za-z0-9.\-_& ]+$/;
+                var alphaPattern = /^[A-Za-z0-9\-_& ]+$/;
                 if (!alphaPattern.test(senderId)) {
                     $('#inputSenderId').addClass('is-invalid');
-                    $('#senderIdError').text('Only A-Z, a-z, 0-9, ., -, _, &, and space are allowed').addClass('d-block').show();
+                    $('#senderIdError').text('Only A-Z, a-z, 0-9, -, _, &, and space are allowed').addClass('d-block').show();
                     isValid = false;
                 } else if (senderId.length > 11) {
                     $('#inputSenderId').addClass('is-invalid');
