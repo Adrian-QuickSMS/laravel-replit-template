@@ -667,35 +667,35 @@ $(document).ready(function() {
         if (stepIndex === 0) {
             var senderId = $('#inputSenderId').val().trim();
             $('#inputSenderId').removeClass('is-invalid');
-            $('#senderIdError').hide();
+            $('#senderIdError').removeClass('d-block').hide();
             
             if (!senderId) {
                 $('#inputSenderId').addClass('is-invalid');
-                $('#senderIdError').text('SenderID value is required').show();
+                $('#senderIdError').text('SenderID value is required').addClass('d-block').show();
                 isValid = false;
             } else if (selectedType === 'alphanumeric') {
                 var alphaPattern = /^[A-Za-z0-9.\-_& ]+$/;
                 if (!alphaPattern.test(senderId)) {
                     $('#inputSenderId').addClass('is-invalid');
-                    $('#senderIdError').text('Only A-Z, a-z, 0-9, ., -, _, &, and space are allowed').show();
+                    $('#senderIdError').text('Only A-Z, a-z, 0-9, ., -, _, &, and space are allowed').addClass('d-block').show();
                     isValid = false;
                 } else if (senderId.length > 11) {
                     $('#inputSenderId').addClass('is-invalid');
-                    $('#senderIdError').text('Maximum 11 characters allowed').show();
+                    $('#senderIdError').text('Maximum 11 characters allowed').addClass('d-block').show();
                     isValid = false;
                 }
             } else if (selectedType === 'numeric') {
                 var numericPattern = /^447\d{9}$/;
                 if (!numericPattern.test(senderId)) {
                     $('#inputSenderId').addClass('is-invalid');
-                    $('#senderIdError').text('Must be a valid UK mobile number starting with 447 (12 digits total)').show();
+                    $('#senderIdError').text('Must be a valid UK mobile number starting with 447 (12 digits total)').addClass('d-block').show();
                     isValid = false;
                 }
             } else if (selectedType === 'shortcode') {
                 var shortcodePattern = /^[678]\d{4}$/;
                 if (!shortcodePattern.test(senderId)) {
                     $('#inputSenderId').addClass('is-invalid');
-                    $('#senderIdError').text('Must be exactly 5 digits starting with 6, 7, or 8').show();
+                    $('#senderIdError').text('Must be exactly 5 digits starting with 6, 7, or 8').addClass('d-block').show();
                     isValid = false;
                 }
             }
