@@ -535,7 +535,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                     <h5 class="card-title mb-0">SMS SenderID Library</h5>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnToggleFilters">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                         </button>
                         <button type="button" class="btn btn-primary btn-sm" id="btnRegisterSenderId">
@@ -556,21 +556,19 @@
                     </div>
 
                     <div class="collapse mb-3" id="filtersPanel">
-                        <div class="card card-body bg-light border-0 p-3">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <label class="form-label small text-muted">Type</label>
-                                    <select class="form-select form-select-sm" id="filterType">
-                                        <option value="">All Types</option>
+                        <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">Type</label>
+                                    <select class="selectpicker form-control" id="filterType" multiple data-live-search="false" data-selected-text-format="count > 1" title="All Types" data-style="btn-outline-secondary btn-sm">
                                         <option value="alphanumeric">Alphanumeric</option>
                                         <option value="numeric">Numeric</option>
                                         <option value="shortcode">Shortcode</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small text-muted">Status</label>
-                                    <select class="form-select form-select-sm" id="filterStatus">
-                                        <option value="">All Status</option>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">Status</label>
+                                    <select class="selectpicker form-control" id="filterStatus" multiple data-live-search="false" data-selected-text-format="count > 1" title="All Status" data-style="btn-outline-secondary btn-sm">
                                         <option value="draft">Draft</option>
                                         <option value="pending">Pending Approval</option>
                                         <option value="approved">Approved</option>
@@ -579,22 +577,21 @@
                                         <option value="archived">Archived</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small text-muted">Use Case</label>
-                                    <select class="form-select form-select-sm" id="filterUseCase">
-                                        <option value="">All Use Cases</option>
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <label class="form-label small fw-bold">Use Case</label>
+                                    <select class="selectpicker form-control" id="filterUseCase" multiple data-live-search="false" data-selected-text-format="count > 1" title="All Use Cases" data-style="btn-outline-secondary btn-sm">
                                         <option value="otp">OTP / Verification</option>
                                         <option value="marketing">Marketing</option>
                                         <option value="transactional">Transactional</option>
                                         <option value="alerts">Alerts / Notifications</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-end gap-2">
+                                <div class="col-6 col-md-4 col-lg-3 d-flex align-items-end gap-2">
                                     <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilters">
                                         <i class="fas fa-check me-1"></i> Apply
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
-                                        <i class="fas fa-undo me-1"></i> Reset
+                                        Reset
                                     </button>
                                 </div>
                             </div>
@@ -1113,6 +1110,9 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Initialize Bootstrap Select for multi-select filters
+    $('.selectpicker').selectpicker();
+    
     // Available usage scopes for SenderIDs (all enabled by default when approved)
     var SENDERID_SCOPES = {
         SEND_MESSAGE: 'send_message',      // Send Message / Campaigns
@@ -1452,18 +1452,18 @@ $(document).ready(function() {
 
     function filterSenderIds() {
         var search = $('#searchInput').val().toLowerCase();
-        var filterType = $('#filterType').val();
-        var status = $('#filterStatus').val();
-        var useCase = $('#filterUseCase').val();
+        var filterTypes = $('#filterType').val() || [];
+        var filterStatuses = $('#filterStatus').val() || [];
+        var filterUseCases = $('#filterUseCase').val() || [];
 
         return senderIds.filter(function(item) {
             var matchSearch = !search || 
                 item.senderId.toLowerCase().includes(search) ||
                 item.brand.toLowerCase().includes(search) ||
                 (item.description && item.description.toLowerCase().includes(search));
-            var matchType = !filterType || item.type === filterType;
-            var matchStatus = !status || item.status === status;
-            var matchUseCase = !useCase || item.useCase === useCase;
+            var matchType = filterTypes.length === 0 || filterTypes.includes(item.type);
+            var matchStatus = filterStatuses.length === 0 || filterStatuses.includes(item.status);
+            var matchUseCase = filterUseCases.length === 0 || filterUseCases.includes(item.useCase);
             return matchSearch && matchType && matchStatus && matchUseCase;
         });
     }
@@ -2272,10 +2272,6 @@ $(document).ready(function() {
         renderTable();
     });
 
-    $('#btnToggleFilters').on('click', function() {
-        $('#filtersPanel').collapse('toggle');
-    });
-
     $('#btnApplyFilters').on('click', function() {
         currentPage = 1;
         renderTable();
@@ -2283,9 +2279,9 @@ $(document).ready(function() {
     });
 
     $('#btnResetFilters').on('click', function() {
-        $('#filterType').val('');
-        $('#filterStatus').val('');
-        $('#filterUseCase').val('');
+        $('#filterType').selectpicker('deselectAll');
+        $('#filterStatus').selectpicker('deselectAll');
+        $('#filterUseCase').selectpicker('deselectAll');
         currentPage = 1;
         renderTable();
         updateFilterChips();
@@ -2293,20 +2289,30 @@ $(document).ready(function() {
 
     function updateFilterChips() {
         var chips = [];
-        var type = $('#filterType').val();
-        var status = $('#filterStatus').val();
-        var useCase = $('#filterUseCase').val();
+        var types = $('#filterType').val() || [];
+        var statuses = $('#filterStatus').val() || [];
+        var useCases = $('#filterUseCase').val() || [];
 
-        if (type) chips.push('<span class="filter-chip">Type: ' + type + ' <i class="fas fa-times remove-chip" data-filter="filterType"></i></span>');
-        if (status) chips.push('<span class="filter-chip">Status: ' + status + ' <i class="fas fa-times remove-chip" data-filter="filterStatus"></i></span>');
-        if (useCase) chips.push('<span class="filter-chip">Use Case: ' + useCase + ' <i class="fas fa-times remove-chip" data-filter="filterUseCase"></i></span>');
+        types.forEach(function(t) {
+            chips.push('<span class="filter-chip">Type: ' + t + ' <i class="fas fa-times remove-chip" data-filter="filterType" data-value="' + t + '"></i></span>');
+        });
+        statuses.forEach(function(s) {
+            chips.push('<span class="filter-chip">Status: ' + s + ' <i class="fas fa-times remove-chip" data-filter="filterStatus" data-value="' + s + '"></i></span>');
+        });
+        useCases.forEach(function(u) {
+            chips.push('<span class="filter-chip">Use Case: ' + u + ' <i class="fas fa-times remove-chip" data-filter="filterUseCase" data-value="' + u + '"></i></span>');
+        });
 
         $('#activeFiltersChips').html(chips.join(''));
     }
 
     $(document).on('click', '.remove-chip', function() {
         var filter = $(this).data('filter');
-        $('#' + filter).val('');
+        var value = $(this).data('value');
+        var $select = $('#' + filter);
+        var currentVals = $select.val() || [];
+        var newVals = currentVals.filter(function(v) { return v !== value; });
+        $select.selectpicker('val', newVals);
         currentPage = 1;
         renderTable();
         updateFilterChips();
