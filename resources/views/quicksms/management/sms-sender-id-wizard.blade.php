@@ -93,6 +93,12 @@
     z-index: 20;
     margin-top: auto;
 }
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+#submitConfirmModal {
+    z-index: 1050 !important;
+}
 .form-wizard .sw-btn-next {
     background-color: var(--primary, #886CC0) !important;
     border: 0 !important;
@@ -536,7 +542,7 @@ button.btn-save-draft:hover {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirmSubmitBtn">Submit</button>
+                <button type="button" class="btn btn-primary" id="confirmSubmitBtn">Submit</button>
             </div>
         </div>
     </div>
