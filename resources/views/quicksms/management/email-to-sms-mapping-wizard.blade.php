@@ -914,14 +914,14 @@
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white py-3">
-                <h5 class="modal-title" id="successModalLabel">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title text-primary" id="successModalLabel">
                     <i class="fas fa-check-circle me-2"></i> Email-to-SMS Address Created
                 </h5>
             </div>
             <div class="modal-body text-center py-4">
                 <div class="mb-3">
-                    <i class="fas fa-envelope-open-text text-success" style="font-size: 3rem;"></i>
+                    <i class="fas fa-envelope-open-text text-primary" style="font-size: 3rem;"></i>
                 </div>
                 <p class="mb-3">Your Email-to-SMS mapping has been created successfully. Send emails to the address below to trigger SMS messages:</p>
                 <div class="bg-light border rounded p-3 mb-3">
@@ -932,7 +932,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="alert alert-info small mb-0">
+                <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1"></i> 
                     <strong>SenderID:</strong> Extracted from email subject<br>
                     <strong>SMS Content:</strong> Extracted from email body
