@@ -522,6 +522,25 @@ button.btn-save-draft:hover {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-labelledby="submitConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitConfirmModalLabel">Submit for Approval</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to submit this SenderID for approval?</p>
+                <p class="text-muted small mb-0">Once submitted, your registration will be reviewed by our compliance team. This typically takes 1-2 business days.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmSubmitBtn">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -561,7 +580,7 @@ $(document).ready(function() {
             showNextButton: true,
             showPreviousButton: true,
             extraHtml: '<button class="btn btn-save-draft me-2" type="button" id="btnSaveDraft"><i class="fas fa-save me-1"></i>Save Draft</button>' +
-                       '<button class="btn btn-success" type="button" id="btnSubmit" style="display:none;"><i class="fas fa-paper-plane me-1"></i>Submit for Approval</button>'
+                       '<button class="btn btn-success text-white" type="button" id="btnSubmit" style="display:none;"><i class="fas fa-paper-plane me-1"></i>Submit for Approval</button>'
         },
         anchor: {
             enableNavigation: false,
@@ -823,10 +842,14 @@ $(document).ready(function() {
     });
 
     $('#btnSubmit').on('click', function() {
-        if (confirm('Are you sure you want to submit this SenderID for approval?')) {
-            alert('SenderID submitted for approval!');
-            window.location.href = '{{ route("management.sms-sender-id") }}';
-        }
+        var modal = new bootstrap.Modal(document.getElementById('submitConfirmModal'));
+        modal.show();
+    });
+
+    $('#confirmSubmitBtn').on('click', function() {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
+        modal.hide();
+        window.location.href = '{{ route("management.sms-sender-id") }}';
     });
 });
 </script>
