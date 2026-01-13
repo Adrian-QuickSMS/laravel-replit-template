@@ -4720,7 +4720,7 @@ $(document).ready(function() {
                             description: entry.description,
                             subaccount: entry.subaccountId,
                             subaccountName: entry.subaccount,
-                            allowedSenders: entry.allowedSenderEmails,
+                            allowedSenders: entry.allowedSenderEmails || [],
                             senderId: entry.senderId,
                             subjectAsSenderId: entry.subjectAsSenderId,
                             multipleSms: entry.multipleSms,
@@ -4729,9 +4729,11 @@ $(document).ready(function() {
                             signatureFilter: entry.contentFilter,
                             created: entry.created,
                             lastUpdated: entry.lastUpdated,
+                            status: 'active',
                             archived: false
                         });
                     });
+                    localStorage.removeItem('quicksms_pending_standard');
                 }
                 
                 renderStandardSmsTable(mockStandardSms);
