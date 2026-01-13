@@ -254,187 +254,201 @@ button.btn-save-draft:hover {
                         
                         <div class="tab-content">
                             <div class="tab-pane" id="step-general" role="tabpanel">
-                                <h5 class="mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Step 1: General</h5>
-                                <p class="text-muted mb-4">Define the setup name, description, and assign to a subaccount.</p>
-                                
                                 <div class="row">
-                                    <div class="col-lg-8">
-                                        <div class="mb-3">
-                                            <label class="form-label">Name <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="stdName" placeholder="e.g., Appointment Reminders" maxlength="50">
-                                            <div class="invalid-feedback">Please enter a name.</div>
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 1: General</strong> – Define the basic information for this Email-to-SMS setup.
                                         </div>
                                         
-                                        <div class="mb-3">
-                                            <label class="form-label">Description</label>
-                                            <textarea class="form-control" id="stdDescription" rows="2" placeholder="Brief description of this Email-to-SMS setup..." maxlength="200"></textarea>
-                                            <small class="text-muted"><span id="stdDescCharCount">0</span>/200 characters</small>
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
-                                            <select class="form-select" id="stdSubaccount">
-                                                <option value="">Select sub-account...</option>
-                                                <option value="main">Main Account</option>
-                                                <option value="marketing">Marketing Team</option>
-                                                <option value="support">Support Team</option>
-                                            </select>
-                                            <div class="invalid-feedback">Please select a sub-account.</div>
+                                        <div class="row">
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="stdName" placeholder="e.g., Appointment Reminders" maxlength="50">
+                                                <small class="text-muted">A unique, descriptive name for this setup.</small>
+                                                <div class="invalid-feedback">Please enter a name.</div>
+                                            </div>
+                                            
+                                            <div class="col-lg-12 mb-3">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control" id="stdDescription" rows="2" placeholder="Brief description of this Email-to-SMS setup..." maxlength="200"></textarea>
+                                                <small class="text-muted"><span id="stdDescCharCount">0</span>/200 characters</small>
+                                            </div>
+                                            
+                                            <div class="col-lg-6 mb-3">
+                                                <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="stdSubaccount">
+                                                    <option value="">Select sub-account...</option>
+                                                    <option value="main">Main Account</option>
+                                                    <option value="marketing">Marketing Team</option>
+                                                    <option value="support">Support Team</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select a sub-account.</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="tab-pane" id="step-email" role="tabpanel">
-                                <h5 class="mb-3"><i class="fas fa-envelope me-2 text-primary"></i>Step 2: Email Settings</h5>
-                                <p class="text-muted mb-4">Configure allowed sender emails. Leave empty to allow all senders.</p>
-                                
                                 <div class="row">
-                                    <div class="col-lg-10">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 2: Email Settings</strong> – Configure which email addresses are allowed to trigger this setup. <span class="badge bg-secondary">Optional</span>
+                                        </div>
+                                        
                                         <div class="mb-3">
-                                            <label class="form-label fw-medium">Allowed Sender Email(s) <span class="badge bg-secondary">Optional</span></label>
-                                            <p class="text-muted small mb-2">Only emails from these addresses will trigger SMS.</p>
-                                            <div class="input-group mb-2">
-                                                <input type="text" class="form-control" id="stdEmailInput" placeholder="user@domain.com or *@domain.com">
-                                                <button class="btn btn-primary" type="button" id="stdAddEmailBtn">
-                                                    <i class="fas fa-plus me-1"></i> Add
+                                            <label class="form-label">Allowed Sender Emails</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="stdEmailInput" placeholder="e.g., user@domain.com or *@domain.com">
+                                                <button class="btn btn-outline-primary" type="button" id="stdAddEmailBtn">
+                                                    <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
                                             <div class="invalid-feedback" id="stdEmailError" style="display: none;">Invalid email format.</div>
-                                            <small class="text-muted">Supports single emails (user@domain.com) or wildcard domains (*@domain.com).</small>
+                                            <small class="text-muted">Restrict who can trigger this setup. Supports wildcards like *@domain.com. Leave empty to allow all senders.</small>
+                                        </div>
+                                        
+                                        <div id="stdWildcardWarning" class="alert alert-pastel-warning mb-3 d-none">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Warning:</strong> Wildcard domains are less secure and may result in unintended messages being sent.
                                         </div>
                                         
                                         <div id="stdEmailTagsContainer" class="email-tags-container mb-3"></div>
                                         
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted"><span id="stdEmailCount">0</span> email(s) added</small>
+                                            <small class="text-muted"><span id="stdEmailCount">0</span> email addresses added</small>
                                             <button type="button" class="btn btn-link btn-sm text-danger p-0" id="stdClearAllEmails" style="display: none;">
                                                 <i class="fas fa-trash-alt me-1"></i> Clear All
                                             </button>
-                                        </div>
-                                        
-                                        <div id="stdWildcardWarning" class="alert alert-warning d-none mt-3">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            <strong>Warning:</strong> Wildcard email addresses are less secure and may result in unintended messages being sent.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="tab-pane" id="step-message" role="tabpanel">
-                                <h5 class="mb-3"><i class="fas fa-sms me-2 text-primary"></i>Step 3: Message Settings</h5>
-                                <p class="text-muted mb-4">Configure SenderID, delivery options, and content processing.</p>
-                                
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">SenderID <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="stdSenderId">
-                                            <option value="">Select SenderID...</option>
-                                            <option value="QuickSMS">QuickSMS</option>
-                                            <option value="MyBrand">MyBrand</option>
-                                            <option value="Notify">Notify</option>
-                                        </select>
-                                        <small class="text-muted">Only approved/live SenderIDs are shown.</small>
-                                        <div class="invalid-feedback">Please select a SenderID.</div>
-                                    </div>
-                                    
-                                    <div class="col-md-6" id="stdSubjectAsSenderIdGroup">
-                                        <label class="form-label">Subject as SenderID</label>
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" id="stdSubjectAsSenderId">
-                                            <label class="form-check-label" for="stdSubjectAsSenderId">
-                                                Extract SenderID from email subject
-                                            </label>
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 3: Message Settings</strong> – Configure SenderID, delivery options, and content processing.
                                         </div>
-                                        <small class="text-muted">Overrides selected SenderID with subject line content.</small>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label class="form-label">Enable Multiple SMS</label>
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" id="stdMultipleSms">
-                                            <label class="form-check-label" for="stdMultipleSms">
-                                                Allow multipart SMS messages
-                                            </label>
+                                        
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="stdSenderId">
+                                                    <option value="">Select SenderID...</option>
+                                                    <option value="QuickSMS">QuickSMS</option>
+                                                    <option value="MyBrand">MyBrand</option>
+                                                    <option value="Notify">Notify</option>
+                                                </select>
+                                                <small class="text-muted">Only approved/live SenderIDs are shown.</small>
+                                                <div class="invalid-feedback">Please select a SenderID.</div>
+                                            </div>
+                                            
+                                            <div class="col-md-6" id="stdSubjectAsSenderIdGroup">
+                                                <label class="form-label">Subject as SenderID</label>
+                                                <div class="form-check form-switch mt-2">
+                                                    <input class="form-check-input" type="checkbox" id="stdSubjectAsSenderId">
+                                                    <label class="form-check-label" for="stdSubjectAsSenderId">
+                                                        Extract SenderID from email subject
+                                                    </label>
+                                                </div>
+                                                <small class="text-muted">Overrides selected SenderID with subject line content.</small>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label class="form-label">Enable Multiple SMS</label>
+                                                <div class="form-check form-switch mt-2">
+                                                    <input class="form-check-input" type="checkbox" id="stdMultipleSms">
+                                                    <label class="form-check-label" for="stdMultipleSms">
+                                                        Allow multipart SMS messages
+                                                    </label>
+                                                </div>
+                                                <small class="text-muted">Messages over 160 characters sent as multiple parts.</small>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label class="form-label">Send Delivery Reports</label>
+                                                <div class="form-check form-switch mt-2">
+                                                    <input class="form-check-input" type="checkbox" id="stdDeliveryReports">
+                                                    <label class="form-check-label" for="stdDeliveryReports">
+                                                        Enable delivery report notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6" id="stdDeliveryEmailGroup" style="display: none;">
+                                                <label class="form-label">Delivery Reports Email <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control" id="stdDeliveryEmail" placeholder="reports@yourcompany.com">
+                                                <small class="text-muted">Receive delivery status notifications.</small>
+                                                <div class="invalid-feedback">Valid email required.</div>
+                                            </div>
+                                            
+                                            <div class="col-12">
+                                                <label class="form-label">Filter Content (Signature Removal)</label>
+                                                <textarea class="form-control" id="stdSignatureFilter" rows="3" placeholder="e.g., --&#10;.*&#10;Sent from.*"></textarea>
+                                                <small class="text-muted">Remove matching content from emails. Regex patterns supported, one pattern per line.</small>
+                                            </div>
                                         </div>
-                                        <small class="text-muted">Messages over 160 characters sent as multiple parts.</small>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <label class="form-label">Send Delivery Reports</label>
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" id="stdDeliveryReports">
-                                            <label class="form-check-label" for="stdDeliveryReports">
-                                                Enable delivery report notifications
-                                            </label>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6" id="stdDeliveryEmailGroup" style="display: none;">
-                                        <label class="form-label">Delivery Reports Email <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="stdDeliveryEmail" placeholder="reports@yourcompany.com">
-                                        <small class="text-muted">Receive delivery status notifications.</small>
-                                        <div class="invalid-feedback">Valid email required.</div>
-                                    </div>
-                                    
-                                    <div class="col-12">
-                                        <label class="form-label">Filter Content (Signature Removal)</label>
-                                        <textarea class="form-control" id="stdSignatureFilter" rows="3" placeholder="e.g., --&#10;.*&#10;Sent from.*"></textarea>
-                                        <small class="text-muted">Remove matching content from emails. Regex patterns supported, one pattern per line.</small>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="tab-pane" id="step-review" role="tabpanel">
-                                <h5 class="mb-3"><i class="fas fa-check-circle me-2 text-primary"></i>Step 4: Review & Confirm</h5>
-                                <p class="text-muted mb-4">Please review your configuration before creating.</p>
-                                
-                                <div class="alert alert-pastel-warning mb-4">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table api-table">
-                                        <thead>
-                                            <tr><th colspan="2"><i class="fas fa-cog me-2"></i>Configuration</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td class="text-muted" style="width: 200px;">Setup Name</td>
-                                                <td id="summaryName">-</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">Description</td>
-                                                <td id="summaryDescription">-</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">Sub-Account</td>
-                                                <td id="summarySubaccount">-</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">Allowed Senders</td>
-                                                <td id="summaryAllowedSenders">All senders allowed</td>
-                                            </tr>
-                                        </tbody>
-                                        <thead>
-                                            <tr><th colspan="2"><i class="fas fa-sms me-2"></i>Message Settings</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td class="text-muted">SenderID</td>
-                                                <td id="summarySenderId">-</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">Settings</td>
-                                                <td id="summaryMessageSettings">-</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">Content Filters</td>
-                                                <td id="summaryContentFilter">None</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <div class="row">
+                                    <div class="col-lg-8 mx-auto">
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <strong>Step 4: Review & Confirm</strong> – Please review your configuration before creating.
+                                        </div>
+                                        
+                                        <div class="alert alert-pastel-warning mb-4">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
+                                        </div>
+                                        
+                                        <div class="table-responsive">
+                                            <table class="table api-table">
+                                                <thead>
+                                                    <tr><th colspan="2"><i class="fas fa-cog me-2"></i>Configuration</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="text-muted" style="width: 200px;">Setup Name</td>
+                                                        <td id="summaryName">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Description</td>
+                                                        <td id="summaryDescription">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Sub-Account</td>
+                                                        <td id="summarySubaccount">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Allowed Senders</td>
+                                                        <td id="summaryAllowedSenders">All senders allowed</td>
+                                                    </tr>
+                                                </tbody>
+                                                <thead>
+                                                    <tr><th colspan="2"><i class="fas fa-sms me-2"></i>Message Settings</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="text-muted">SenderID</td>
+                                                        <td id="summarySenderId">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Settings</td>
+                                                        <td id="summaryMessageSettings">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Content Filters</td>
+                                                        <td id="summaryContentFilter">None</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
