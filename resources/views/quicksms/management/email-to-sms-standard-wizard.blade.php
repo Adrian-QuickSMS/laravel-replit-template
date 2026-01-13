@@ -520,26 +520,26 @@ $(document).ready(function() {
     var totalSteps = 4;
     var allowedEmails = [];
     
-    $('#standardWizard').smartWizard({
-        selected: 0,
-        theme: 'dots',
-        transition: {
-            animation: 'fade'
-        },
-        toolbar: {
-            showNextButton: false,
-            showPreviousButton: false
-        },
-        anchor: {
-            enableNavigation: false,
-            enableDoneStateNavigation: false
-        }
-    });
-    
     function goToStep(stepIndex) {
-        $('#standardWizard').smartWizard('goToStep', stepIndex);
+        if (stepIndex < 0 || stepIndex >= totalSteps) return;
+        
+        $('#standardWizard > .tab-content > .tab-pane').removeClass('active show');
+        $('.nav-wizard .nav-link').removeClass('active done');
+        
+        var stepIds = ['step-general', 'step-email', 'step-message', 'step-review'];
+        $('#' + stepIds[stepIndex]).addClass('active show');
+        
+        $('.nav-wizard .nav-link').each(function(index) {
+            if (index < stepIndex) {
+                $(this).addClass('done');
+            } else if (index === stepIndex) {
+                $(this).addClass('active');
+            }
+        });
+        
         currentStep = stepIndex;
         updateButtons();
+        
         if (stepIndex === totalSteps - 1) {
             updateReviewSummary();
         }
@@ -753,7 +753,7 @@ $(document).ready(function() {
         }, 1000);
     });
     
-    updateButtons();
+    goToStep(0);
 });
 </script>
 @endpush
