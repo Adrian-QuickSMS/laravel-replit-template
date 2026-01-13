@@ -3014,6 +3014,9 @@ $(document).ready(function() {
     }
     
     function filterContactListMappings() {
+        if (!Array.isArray(contactListSetups)) {
+            contactListSetups = [];
+        }
         var filtered = contactListSetups.slice();
         var chips = [];
         
@@ -3729,7 +3732,7 @@ $(document).ready(function() {
     
     renderAddressesTable(overviewAddresses);
     renderReportingGroups(reportingGroups);
-    filterContactListMappings();
+    loadContactListSetups().then(filterContactListMappings);
     
     // Contact Lists tab handlers
     $('#btnApplyClFilters').on('click', filterContactListMappings);
