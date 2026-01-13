@@ -313,14 +313,13 @@
     color: #5a4a7a;
 }
 .btn-save-draft {
-    background: rgba(214, 83, 193, 0.08) !important;
+    background: #fff !important;
     color: #D653C1 !important;
-    border: 1px solid rgba(214, 83, 193, 0.25) !important;
+    border: 1px solid #D653C1 !important;
     font-weight: 500;
 }
 .btn-save-draft:hover {
-    background: rgba(214, 83, 193, 0.15) !important;
-    border-color: rgba(214, 83, 193, 0.4) !important;
+    background: rgba(214, 83, 193, 0.08) !important;
 }
 .success-email-box {
     background: rgba(136, 108, 192, 0.12);
