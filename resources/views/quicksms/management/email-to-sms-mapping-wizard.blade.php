@@ -126,9 +126,9 @@
     gap: 0.5rem;
 }
 .form-wizard .sw-btn-prev {
-    background: rgba(136, 108, 192, 0.15) !important;
+    background: rgba(136, 108, 192, 0.08) !important;
     color: #886CC0 !important;
-    border: 1px solid rgba(136, 108, 192, 0.4) !important;
+    border: 1px solid rgba(136, 108, 192, 0.18) !important;
     padding: 0.75rem 1.5rem !important;
     border-radius: 0.375rem;
     font-weight: 500;
@@ -138,7 +138,7 @@
     gap: 0.5rem;
 }
 .form-wizard .sw-btn-prev:hover {
-    background: rgba(136, 108, 192, 0.25) !important;
+    background: rgba(136, 108, 192, 0.16) !important;
 }
 .form-wizard .sw-btn-next:hover {
     background-color: #7559b3 !important;
@@ -313,14 +313,15 @@
     color: #5a4a7a;
 }
 .btn-save-draft {
-    background: #fff !important;
+    background: rgba(214, 83, 193, 0.12) !important;
     color: #D653C1 !important;
-    border: 1px solid rgba(214, 83, 193, 0.5) !important;
+    border: 1px solid rgba(214, 83, 193, 0.35) !important;
     font-weight: 500;
 }
 .btn-save-draft:hover {
-    background: rgba(214, 83, 193, 0.08) !important;
-    border-color: rgba(214, 83, 193, 0.6) !important;
+    background: #D653C1 !important;
+    color: #fff !important;
+    border-color: #D653C1 !important;
 }
 </style>
 @endpush
