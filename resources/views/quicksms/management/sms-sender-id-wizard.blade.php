@@ -540,6 +540,8 @@ $(document).ready(function() {
 
     $('.sw-btn-next').html('Next <i class="fas fa-arrow-right ms-1"></i>');
     $('.sw-btn-prev').html('<i class="fas fa-arrow-left me-1"></i> Previous');
+    
+    $('#btnSaveDraft').insertBefore('.sw-btn-prev');
 
     $('#senderIdWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
         if (stepIndex === 4) {
