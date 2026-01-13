@@ -27,17 +27,18 @@
     white-space: nowrap;
     user-select: none;
 }
-.numbers-table thead th:first-child { width: 14%; }
-.numbers-table thead th:nth-child(2) { width: 8%; }
-.numbers-table thead th:nth-child(3) { width: 12%; }
-.numbers-table thead th:nth-child(4) { width: 9%; }
-.numbers-table thead th:nth-child(5) { width: 16%; }
-.numbers-table thead th:nth-child(6) { width: 7%; }
-.numbers-table thead th:nth-child(7) { width: 10%; }
-.numbers-table thead th:nth-child(8) { width: 8%; }
-.numbers-table thead th:nth-child(9) { width: 10%; }
+.numbers-table thead th.checkbox-col { width: 40px !important; min-width: 40px; max-width: 40px; }
+.numbers-table thead th:nth-child(2) { width: 12%; }
+.numbers-table thead th:nth-child(3) { width: 10%; }
+.numbers-table thead th:nth-child(4) { width: 7%; }
+.numbers-table thead th:nth-child(5) { width: 7%; }
+.numbers-table thead th:nth-child(6) { width: 14%; }
+.numbers-table thead th:nth-child(7) { width: 6%; }
+.numbers-table thead th:nth-child(8) { width: 10%; }
+.numbers-table thead th:nth-child(9) { width: 9%; }
+.numbers-table thead th:nth-child(10) { width: 11%; }
 .numbers-table thead th:last-child { 
-    width: 6%; 
+    width: 7%; 
     position: sticky;
     right: 0;
     background: #f8f9fa;
@@ -387,7 +388,6 @@
     padding: 0.35rem 0.75rem;
     font-size: 0.8rem;
 }
-.numbers-table thead th.checkbox-col,
 .numbers-table tbody td.checkbox-col {
     width: 40px !important;
     min-width: 40px;
@@ -422,7 +422,7 @@
                     <i class="fas fa-filter me-1"></i> Filters
                 </button>
                 <a href="{{ route('purchase.numbers') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus me-1"></i>Purchase Number
+                    <i class="fas fa-cog me-1"></i>Configure
                 </a>
             </div>
         </div>
@@ -620,7 +620,7 @@
                 <h4>No Numbers Found</h4>
                 <p>You don't have any numbers yet. Purchase your first number to start receiving messages.</p>
                 <a href="{{ route('purchase.numbers') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> Purchase Number
+                    <i class="fas fa-cog me-1"></i> Configure
                 </a>
             </div>
         
@@ -1471,13 +1471,13 @@ $(document).ready(function() {
             // Suspend - only for active numbers
             if (num.status === 'active') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(' + num.id + '); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="suspendNumber(' + num.id + '); return false;"><i class="fas fa-pause-circle me-2 text-muted"></i>Suspend</a></li>';
             }
             
             // Reactivate - only for suspended numbers
             if (num.status === 'suspended') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(' + num.id + '); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="reactivateNumber(' + num.id + '); return false;"><i class="fas fa-play-circle me-2 text-muted"></i>Reactivate</a></li>';
             }
             
             // NOTE: No delete/release action - numbers are never deleted
