@@ -507,7 +507,7 @@
                             
                             <div id="step-message" class="tab-pane" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-lg-8 mx-auto">
+                                    <div class="col-lg-8 mx-auto px-3">
                                         <div class="alert alert-pastel-primary mb-4">
                                             <strong>Step 4: Message Settings</strong> – Configure how incoming emails are processed into SMS messages.
                                         </div>
@@ -606,7 +606,7 @@
                             
                             <div id="step-review" class="tab-pane" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-lg-10 mx-auto">
+                                    <div class="col-lg-10 mx-auto px-3">
                                         <div class="alert alert-pastel-primary mb-3">
                                             <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
                                         </div>
