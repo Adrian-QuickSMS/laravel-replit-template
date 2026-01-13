@@ -325,6 +325,17 @@
 .char-counter.danger {
     color: #dc3545;
 }
+.normalisation-preview {
+    font-size: 0.8rem;
+    color: #1cbb8c;
+    background: rgba(28, 187, 140, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    margin-top: 0.5rem;
+}
+.normalisation-preview i {
+    color: #1cbb8c;
+}
 .validation-hint {
     font-size: 0.75rem;
     color: #6c757d;
@@ -570,6 +581,9 @@
                 <div class="d-flex justify-content-between">
                     <div class="validation-hint" id="senderIdHint">3-11 alphanumeric characters, must start with a letter</div>
                     <div class="char-counter" id="charCounterWrapper"><span id="senderIdCharCount">0</span>/11</div>
+                </div>
+                <div class="normalisation-preview" id="normalisationPreview" style="display: none;">
+                    <i class="fas fa-arrow-right me-1"></i>Will be registered as: <strong id="normalisedValue"></strong>
                 </div>
                 <div class="invalid-feedback" id="senderIdError"></div>
             </div>
@@ -1057,6 +1071,7 @@ $(document).ready(function() {
         
         $input.val('').removeClass('is-invalid');
         $('#senderIdCharCount').text('0');
+        $('#normalisationPreview').hide();
         
         if (senderIdType === 'alphanumeric') {
             $input.attr('maxlength', '11').attr('placeholder', 'e.g. MyBrand').removeClass('form-control-lg');
@@ -1064,8 +1079,8 @@ $(document).ready(function() {
             $counter.show().find('#senderIdCharCount').next().remove();
             $counter.html('<span id="senderIdCharCount">0</span>/11');
         } else if (senderIdType === 'numeric') {
-            $input.attr('maxlength', '14').attr('placeholder', 'e.g. +447700900123').removeClass('form-control-lg');
-            $hint.text('UK mobile number starting with +447');
+            $input.attr('maxlength', '14').attr('placeholder', '07xxxxxxxxx or +447xxxxxxxxx').removeClass('form-control-lg');
+            $hint.text('UK mobile: 07xxxxxxxxx, +447xxxxxxxxx, or 447xxxxxxxxx');
             $counter.hide();
         } else if (senderIdType === 'shortcode') {
             $input.attr('maxlength', '6').attr('placeholder', 'e.g. 60123').removeClass('form-control-lg');
@@ -1135,6 +1150,35 @@ $(document).ready(function() {
         selectedSenderId = null;
     }
 
+    function normaliseUkMobile(value) {
+        if (!value) return { normalised: null, valid: false, message: 'Phone number is required' };
+        
+        var cleaned = value.replace(/[\s\-\(\)]/g, '');
+        var normalised = null;
+        
+        if (/^07\d{9}$/.test(cleaned)) {
+            normalised = '447' + cleaned.substring(2);
+        } else if (/^\+447\d{9}$/.test(cleaned)) {
+            normalised = cleaned.substring(1);
+        } else if (/^447\d{9}$/.test(cleaned)) {
+            normalised = cleaned;
+        } else if (/^\+440\d{10}$/.test(cleaned) || /^440\d{10}$/.test(cleaned)) {
+            return { normalised: null, valid: false, message: 'Invalid format: do not include leading 0 after +44' };
+        } else if (/^0[1-9]\d{8,9}$/.test(cleaned) && !/^07/.test(cleaned)) {
+            return { normalised: null, valid: false, message: 'UK landlines are not permitted, only mobile numbers (07...)' };
+        } else if (/^\+[^4]/.test(cleaned) || /^\+4[^4]/.test(cleaned)) {
+            return { normalised: null, valid: false, message: 'Only UK numbers are permitted (+44...)' };
+        } else {
+            return { normalised: null, valid: false, message: 'Enter a valid UK mobile: 07xxxxxxxxx, +447xxxxxxxxx, or 447xxxxxxxxx' };
+        }
+        
+        if (!/^447[0-9]\d{8}$/.test(normalised)) {
+            return { normalised: null, valid: false, message: 'Not a valid UK mobile range' };
+        }
+        
+        return { normalised: normalised, valid: true };
+    }
+
     function validateSenderId(value, senderIdType) {
         if (!value) return { valid: false, message: 'SenderID is required' };
         
@@ -1149,7 +1193,18 @@ $(document).ready(function() {
                 }
             }
         } else if (senderIdType === 'numeric') {
-            if (!/^\+447\d{9}$/.test(value)) return { valid: false, message: 'Must be a valid UK mobile number (+447xxxxxxxxx)' };
+            var result = normaliseUkMobile(value);
+            if (!result.valid) {
+                return { valid: false, message: result.message };
+            }
+            var normalised = result.normalised;
+            var existingNormalised = senderIds.find(function(s) { 
+                if (s.type !== 'numeric') return false;
+                var n = normaliseUkMobile(s.senderId);
+                return n.valid && n.normalised === normalised;
+            });
+            if (existingNormalised) return { valid: false, message: 'This number is already registered' };
+            return { valid: true, normalised: normalised };
         } else if (senderIdType === 'shortcode') {
             if (!/^\d{5,6}$/.test(value)) return { valid: false, message: 'Must be 5-6 digits' };
         }
@@ -1173,15 +1228,31 @@ $(document).ready(function() {
         var val = $(this).val();
         
         if (senderIdType === 'numeric') {
-            if (val && !val.startsWith('+')) val = '+' + val;
             val = val.replace(/[^\d+]/g, '');
             $(this).val(val);
+            
+            var normalResult = normaliseUkMobile(val);
+            if (val && normalResult.valid && normalResult.normalised) {
+                $('#normalisedValue').text('+' + normalResult.normalised);
+                $('#normalisationPreview').show();
+            } else {
+                $('#normalisationPreview').hide();
+            }
         } else if (senderIdType === 'shortcode') {
             val = val.replace(/[^\d]/g, '');
             $(this).val(val);
+            $('#normalisationPreview').hide();
+        } else {
+            $('#normalisationPreview').hide();
         }
         
-        $('#senderIdCharCount').text(val.replace('+', '').length);
+        if (senderIdType === 'alphanumeric') {
+            $('#senderIdCharCount').text(val.length);
+        } else if (senderIdType === 'numeric') {
+            $('#senderIdCharCount').text(val.replace(/\+/g, '').length);
+        } else {
+            $('#senderIdCharCount').text(val.length);
+        }
         
         var result = validateSenderId(val, senderIdType);
         if (val && !result.valid) {
@@ -1231,9 +1302,14 @@ $(document).ready(function() {
 
         if (!isValid) return;
 
+        var finalSenderId = senderId;
+        if (senderIdType === 'numeric' && senderIdResult.normalised) {
+            finalSenderId = '+' + senderIdResult.normalised;
+        }
+
         var newEntry = {
             id: 'sid_' + Date.now(),
-            senderId: senderId,
+            senderId: finalSenderId,
             type: senderIdType,
             brand: brand,
             useCase: useCase,
