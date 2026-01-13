@@ -5,9 +5,6 @@
 @push('styles')
 <style>
 .numbers-table-container {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
     overflow-x: auto;
 }
 .numbers-table {
@@ -89,7 +86,6 @@
 .number-value {
     font-weight: 500;
     color: #343a40;
-    font-family: 'SF Mono', 'Consolas', monospace;
 }
 .badge-active {
     background: rgba(28, 187, 140, 0.15);
