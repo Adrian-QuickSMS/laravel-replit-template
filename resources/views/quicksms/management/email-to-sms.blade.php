@@ -1124,7 +1124,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" id="btnConfirmSuspend">
+                <button type="button" class="btn btn-danger" id="btnConfirmSuspend">
                     <i class="fas fa-pause me-1" id="suspendModalIcon"></i> <span id="suspendModalAction">Suspend</span>
                 </button>
             </div>
@@ -3222,7 +3222,7 @@ $(document).ready(function() {
             $('#suspendModalDescription').text('While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.');
             $('#suspendModalIcon').removeClass('fa-play').addClass('fa-pause');
             $('#suspendModalAction').text('Suspend');
-            $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning');
+            $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-danger');
             $('#suspendModal').attr('data-address-id', id).attr('data-action', 'suspend');
             var modal = new bootstrap.Modal(document.getElementById('suspendModal'));
             modal.show();
@@ -3239,7 +3239,7 @@ $(document).ready(function() {
             $('#suspendModalDescription').text('Once reactivated, emails sent to this address will resume triggering SMS messages.');
             $('#suspendModalIcon').removeClass('fa-pause').addClass('fa-play');
             $('#suspendModalAction').text('Reactivate');
-            $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success');
+            $('#btnConfirmSuspend').removeClass('btn-danger').addClass('btn-success');
             $('#suspendModal').attr('data-address-id', id).attr('data-action', 'reactivate');
             var modal = new bootstrap.Modal(document.getElementById('suspendModal'));
             modal.show();
@@ -3650,7 +3650,7 @@ $(document).ready(function() {
                 $('#suspendModalDescription').text('Once reactivated, emails sent to this address will resume triggering SMS messages.');
                 $('#suspendModalIcon').removeClass('fa-pause').addClass('fa-play');
                 $('#suspendModalAction').text('Reactivate');
-                $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success');
+                $('#btnConfirmSuspend').removeClass('btn-danger').addClass('btn-success');
                 $('#suspendModal').attr('data-address-id', selectedAddress.id).attr('data-action', 'reactivate');
             } else {
                 $('#suspendModalTitle').text('Suspend Email-to-SMS Address');
@@ -3658,7 +3658,7 @@ $(document).ready(function() {
                 $('#suspendModalDescription').text('While suspended, emails sent to this address will not trigger SMS messages. You can reactivate it at any time.');
                 $('#suspendModalIcon').removeClass('fa-play').addClass('fa-pause');
                 $('#suspendModalAction').text('Suspend');
-                $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning');
+                $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-danger');
                 $('#suspendModal').attr('data-address-id', selectedAddress.id).attr('data-action', 'suspend');
             }
             var modal = new bootstrap.Modal(document.getElementById('suspendModal'));
