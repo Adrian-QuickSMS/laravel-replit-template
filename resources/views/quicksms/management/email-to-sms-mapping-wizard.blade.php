@@ -398,7 +398,7 @@
                             
                             <div id="step-recipients" class="tab-pane" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-lg-10 mx-auto">
+                                    <div class="col-lg-10 mx-auto px-3">
                                         <div class="alert alert-pastel-primary mb-3">
                                             <strong>Step 3: Recipients</strong> – Select recipients from your Contact Book and configure opt-out rules.
                                         </div>
@@ -426,7 +426,7 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="row">
+                                        <div class="row g-3">
                                             {{-- Left: Contact Book Trigger + Selection Display --}}
                                             <div class="col-lg-8 mb-3">
                                                 <div class="card h-100">
