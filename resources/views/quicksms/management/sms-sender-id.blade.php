@@ -538,9 +538,9 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                         </button>
-                        <button type="button" class="btn btn-primary btn-sm" id="btnRegisterSenderId">
+                        <a href="{{ route('management.sms-sender-id.register') }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus me-1"></i> Register SenderID
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -612,9 +612,9 @@
                         </div>
                         <h4>No SenderIDs Registered</h4>
                         <p>Register your first SenderID to start sending SMS messages with your brand identity.</p>
-                        <button type="button" class="btn btn-primary" id="btnRegisterSenderIdEmpty">
+                        <a href="{{ route('management.sms-sender-id.register') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Register SenderID
-                        </button>
+                        </a>
                     </div>
 
                     <div id="senderIdLibrary">
