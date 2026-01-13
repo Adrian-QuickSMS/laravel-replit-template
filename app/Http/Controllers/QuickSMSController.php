@@ -1702,10 +1702,8 @@ class QuickSMSController extends Controller
 
     public function numbers()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Numbers',
-            'purpose' => 'Manage virtual numbers and long codes.',
-            'sub_modules' => []
+        return view('quicksms.management.numbers', [
+            'page_title' => 'Numbers'
         ]);
     }
 
