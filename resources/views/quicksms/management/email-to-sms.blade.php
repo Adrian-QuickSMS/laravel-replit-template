@@ -129,6 +129,12 @@
 body > .dropdown-menu {
     z-index: 1060 !important;
 }
+/* Action dropdown menu styling - ensure proper width and visibility */
+.action-menu-btn + .dropdown-menu,
+body > .dropdown-menu.dropdown-menu-end {
+    min-width: 150px !important;
+    white-space: nowrap;
+}
 #addresses,
 #addresses .card,
 #addresses .card-body,

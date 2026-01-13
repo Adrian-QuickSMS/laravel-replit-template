@@ -51,6 +51,15 @@
 .table-responsive {
     overflow: visible;
 }
+/* Action dropdown menu styling - ensure proper width and visibility */
+body > .dropdown-menu {
+    z-index: 1060 !important;
+}
+body > .dropdown-menu.dropdown-menu-end,
+.senderid-table .dropdown-menu {
+    min-width: 160px !important;
+    white-space: nowrap;
+}
 .senderid-table {
     width: 100%;
     margin: 0;
