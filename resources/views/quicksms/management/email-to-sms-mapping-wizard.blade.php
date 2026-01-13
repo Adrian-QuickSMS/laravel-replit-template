@@ -323,6 +323,13 @@
     color: #fff !important;
     border-color: #D653C1 !important;
 }
+.success-email-box {
+    background: rgba(136, 108, 192, 0.12);
+    border: 1px solid rgba(136, 108, 192, 0.35);
+}
+.success-email-box code {
+    color: #886CC0;
+}
 </style>
 @endpush
 
@@ -938,8 +945,8 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-white border-bottom py-3">
-                <h5 class="modal-title text-primary" id="successModalLabel">
-                    <i class="fas fa-check-circle me-2"></i> Email-to-SMS Address Created
+                <h5 class="modal-title text-dark" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2 text-primary"></i> Email-to-SMS Address Created
                 </h5>
             </div>
             <div class="modal-body text-center py-4">
@@ -947,10 +954,10 @@
                     <i class="fas fa-envelope-open-text text-primary" style="font-size: 3rem;"></i>
                 </div>
                 <p class="mb-3">Your Email-to-SMS mapping has been created successfully. Send emails to the address below to trigger SMS messages:</p>
-                <div class="bg-light border rounded p-3 mb-3">
+                <div class="success-email-box rounded p-3 mb-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <code class="fs-5 text-primary" id="successEmailAddress">-</code>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnCopySuccessEmail" title="Copy to clipboard">
+                        <code class="fs-5" id="successEmailAddress">-</code>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCopySuccessEmail" title="Copy to clipboard">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
