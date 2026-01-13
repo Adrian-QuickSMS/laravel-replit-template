@@ -161,6 +161,64 @@
 .mode-features li {
     padding: 0.25rem 0;
 }
+.capability-toggle {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+.capability-toggle:hover {
+    background: #f1f3f5;
+}
+.form-switch .form-check-input {
+    width: 2.5rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+.form-switch .form-check-input:checked {
+    background-color: #886CC0;
+    border-color: #886CC0;
+}
+.subaccount-defaults-item {
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background: #fff;
+}
+.subaccount-defaults-item .subaccount-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+.default-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    margin-bottom: 0.25rem;
+}
+.default-toggle:hover {
+    background: #f8f9fa;
+}
+.default-toggle.is-default {
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.3);
+}
+.default-toggle label {
+    font-size: 0.8rem;
+    color: #495057;
+    margin-bottom: 0;
+}
+.default-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    background: #886CC0;
+    color: #fff;
+    border-radius: 1rem;
+}
 .action-menu-btn {
     background: transparent;
     border: none;
@@ -654,6 +712,81 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mb-3" id="portalConfigCard" style="display: none;">
+                <div class="card-body p-3">
+                    <h6 class="card-title mb-3"><i class="fas fa-cogs me-2 text-primary"></i>Portal Configuration</h6>
+                    <p class="small text-muted mb-3">Configure how this number is used within the Portal.</p>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">Sub-Account Assignment</label>
+                        <p class="text-muted small mb-2">Controls visibility, defaults, and reporting scope.</p>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                            <div class="form-check mb-1">
+                                <input class="form-check-input portal-subacc-check" type="checkbox" value="Main Account" id="portalSubAccMain">
+                                <label class="form-check-label small" for="portalSubAccMain">Main Account</label>
+                            </div>
+                            <div class="form-check mb-1">
+                                <input class="form-check-input portal-subacc-check" type="checkbox" value="Marketing" id="portalSubAccMarketing">
+                                <label class="form-check-label small" for="portalSubAccMarketing">Marketing</label>
+                            </div>
+                            <div class="form-check mb-1">
+                                <input class="form-check-input portal-subacc-check" type="checkbox" value="Support" id="portalSubAccSupport">
+                                <label class="form-check-label small" for="portalSubAccSupport">Support</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">Portal Capabilities</label>
+                        <p class="text-muted small mb-2">Enable or disable specific features for this number.</p>
+                        
+                        <div class="capability-toggle mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <div class="fw-semibold small">Allow as SenderID</div>
+                                    <div class="text-muted small">Makes this number selectable in Campaign Builder</div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="toggleSenderID" checked>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="capability-toggle mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <div class="fw-semibold small">Enable Inbox Replies</div>
+                                    <div class="text-muted small">SMS replies appear in Inbox for two-way messaging</div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="toggleInboxReplies" checked>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="capability-toggle">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <div class="fw-semibold small">Enable Opt-out Handling</div>
+                                    <div class="text-muted small">STOP messages automatically update opt-out lists</div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="toggleOptout" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="defaultsSection">
+                        <label class="form-label fw-bold small">Defaults Per Sub-Account</label>
+                        <p class="text-muted small mb-2">Set this number as default for specific functions. Only one default per capability per sub-account.</p>
+                        
+                        <div id="subAccountDefaults">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="p-4 border-top">
@@ -811,7 +944,15 @@ $(document).ready(function() {
             monthlyCost: 5.00,
             lastUsed: '2025-01-13 14:32:45',
             purchaseDate: '2024-06-15',
-            renewalDate: '2025-02-15'
+            renewalDate: '2025-02-15',
+            portalConfig: {
+                allowSenderID: true,
+                enableInboxReplies: true,
+                enableOptout: true,
+                defaults: {
+                    'Main Account': { defaultSender: true, defaultInbox: false, defaultOptout: false }
+                }
+            }
         },
         {
             id: 2,
@@ -841,7 +982,17 @@ $(document).ready(function() {
             monthlyCost: 500.00,
             lastUsed: '2025-01-13 11:45:18',
             purchaseDate: '2024-01-10',
-            renewalDate: '2025-02-10'
+            renewalDate: '2025-02-10',
+            portalConfig: {
+                allowSenderID: true,
+                enableInboxReplies: true,
+                enableOptout: true,
+                defaults: {
+                    'Main Account': { defaultSender: false, defaultInbox: true, defaultOptout: false },
+                    'Marketing': { defaultSender: true, defaultInbox: false, defaultOptout: true },
+                    'Support': { defaultSender: false, defaultInbox: false, defaultOptout: false }
+                }
+            }
         },
         {
             id: 4,
@@ -1523,6 +1674,11 @@ $(document).ready(function() {
         // Update mode selection buttons
         updateModeSelectionUI(num.mode);
         
+        // Populate portal configuration if in portal mode
+        if (num.mode === 'portal') {
+            populatePortalConfig(num);
+        }
+        
         var offcanvas = new bootstrap.Offcanvas(document.getElementById('numberConfigDrawer'));
         offcanvas.show();
     };
@@ -1533,12 +1689,181 @@ $(document).ready(function() {
             $('#btnModePortal').addClass('active');
             $('#portalModeFeatures').show();
             $('#apiModeFeatures').hide();
+            $('#portalConfigCard').show();
         } else {
             $('#btnModeAPI').addClass('active');
             $('#apiModeFeatures').show();
             $('#portalModeFeatures').hide();
+            $('#portalConfigCard').hide();
         }
     }
+
+    function populatePortalConfig(num) {
+        if (num.mode !== 'portal') return;
+        
+        // Populate sub-account checkboxes
+        $('.portal-subacc-check').prop('checked', false);
+        if (num.subAccounts) {
+            num.subAccounts.forEach(function(sa) {
+                $('.portal-subacc-check[value="' + sa + '"]').prop('checked', true);
+            });
+        }
+        
+        // Populate capability toggles from portalConfig
+        var config = num.portalConfig || {};
+        $('#toggleSenderID').prop('checked', config.allowSenderID !== false);
+        $('#toggleInboxReplies').prop('checked', config.enableInboxReplies !== false);
+        $('#toggleOptout').prop('checked', config.enableOptout !== false);
+        
+        // Render defaults per sub-account
+        renderSubAccountDefaults(num);
+    }
+
+    function renderSubAccountDefaults(num) {
+        var container = $('#subAccountDefaults');
+        container.empty();
+        
+        if (!num.subAccounts || num.subAccounts.length === 0) {
+            container.html('<div class="text-muted small">No sub-accounts assigned. Assign sub-accounts above to configure defaults.</div>');
+            return;
+        }
+        
+        var config = num.portalConfig || {};
+        var defaults = config.defaults || {};
+        
+        num.subAccounts.forEach(function(sa) {
+            var saDefaults = defaults[sa] || {};
+            var saKey = sa.replace(/\s+/g, '_');
+            
+            var html = '<div class="subaccount-defaults-item">';
+            html += '<div class="subaccount-name"><i class="fas fa-building me-2"></i>' + sa + '</div>';
+            
+            // Default Sender Number
+            var isSenderDefault = saDefaults.defaultSender === true;
+            html += '<div class="default-toggle' + (isSenderDefault ? ' is-default' : '') + '">';
+            html += '<label><i class="fas fa-paper-plane me-2 text-primary"></i>Default Sender Number</label>';
+            if (isSenderDefault) {
+                html += '<span class="default-badge">DEFAULT</span>';
+            } else {
+                html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="sender" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+            }
+            html += '</div>';
+            
+            // Default Inbox Number
+            var isInboxDefault = saDefaults.defaultInbox === true;
+            html += '<div class="default-toggle' + (isInboxDefault ? ' is-default' : '') + '">';
+            html += '<label><i class="fas fa-inbox me-2 text-success"></i>Default Inbox Number</label>';
+            if (isInboxDefault) {
+                html += '<span class="default-badge">DEFAULT</span>';
+            } else {
+                html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="inbox" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+            }
+            html += '</div>';
+            
+            // Default Opt-out Number
+            var isOptoutDefault = saDefaults.defaultOptout === true;
+            html += '<div class="default-toggle' + (isOptoutDefault ? ' is-default' : '') + '">';
+            html += '<label><i class="fas fa-ban me-2 text-warning"></i>Default Opt-out Number</label>';
+            if (isOptoutDefault) {
+                html += '<span class="default-badge">DEFAULT</span>';
+            } else {
+                html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="optout" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+            }
+            html += '</div>';
+            
+            html += '</div>';
+            container.append(html);
+        });
+    }
+
+    // Handle sub-account checkbox changes in portal config
+    $(document).on('change', '.portal-subacc-check', function() {
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num) return;
+        
+        var selectedSubAccounts = [];
+        $('.portal-subacc-check:checked').each(function() {
+            selectedSubAccounts.push($(this).val());
+        });
+        
+        // TODO: Backend API call to update sub-accounts
+        num.subAccounts = selectedSubAccounts;
+        
+        // Re-render defaults section
+        renderSubAccountDefaults(num);
+        
+        // Update drawer display
+        var saHtml = num.subAccounts.map(function(sa) {
+            return '<span class="badge badge-pastel-secondary me-1 mb-1">' + sa + '</span>';
+        }).join('');
+        $('#drawerSubAccounts').html(saHtml || '<span class="text-muted">None assigned</span>');
+        
+        renderTable();
+    });
+
+    // Handle capability toggles
+    $('#toggleSenderID, #toggleInboxReplies, #toggleOptout').on('change', function() {
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num) return;
+        
+        if (!num.portalConfig) num.portalConfig = {};
+        
+        num.portalConfig.allowSenderID = $('#toggleSenderID').is(':checked');
+        num.portalConfig.enableInboxReplies = $('#toggleInboxReplies').is(':checked');
+        num.portalConfig.enableOptout = $('#toggleOptout').is(':checked');
+        
+        // Update capabilities array based on toggles
+        var caps = [];
+        if (num.portalConfig.allowSenderID) caps.push('portal');
+        if (num.portalConfig.enableInboxReplies) caps.push('inbox');
+        if (num.portalConfig.enableOptout) caps.push('optout');
+        num.capabilities = caps;
+        
+        // TODO: Backend API call to update portal config
+        
+        // Update drawer capabilities display
+        $('#drawerCapabilities').html(formatCapabilities(num.capabilities));
+        
+        renderTable();
+        toastr.success('Portal capabilities updated');
+    });
+
+    // Handle set default button clicks
+    $(document).on('click', '.btn-set-default', function() {
+        var subAccount = $(this).data('subaccount');
+        var type = $(this).data('type');
+        
+        var num = numbersData.find(function(n) { return n.id === currentEditingNumberId; });
+        if (!num || num.status !== 'active') {
+            toastr.error('Only active numbers can be set as defaults');
+            return;
+        }
+        
+        if (!num.portalConfig) num.portalConfig = {};
+        if (!num.portalConfig.defaults) num.portalConfig.defaults = {};
+        if (!num.portalConfig.defaults[subAccount]) num.portalConfig.defaults[subAccount] = {};
+        
+        // Clear this default from any other number for the same sub-account
+        numbersData.forEach(function(n) {
+            if (n.id !== num.id && n.portalConfig && n.portalConfig.defaults && n.portalConfig.defaults[subAccount]) {
+                if (type === 'sender') n.portalConfig.defaults[subAccount].defaultSender = false;
+                if (type === 'inbox') n.portalConfig.defaults[subAccount].defaultInbox = false;
+                if (type === 'optout') n.portalConfig.defaults[subAccount].defaultOptout = false;
+            }
+        });
+        
+        // Set this number as default
+        if (type === 'sender') num.portalConfig.defaults[subAccount].defaultSender = true;
+        if (type === 'inbox') num.portalConfig.defaults[subAccount].defaultInbox = true;
+        if (type === 'optout') num.portalConfig.defaults[subAccount].defaultOptout = true;
+        
+        // TODO: Backend API call to update defaults
+        
+        renderSubAccountDefaults(num);
+        
+        var typeLabel = type === 'sender' ? 'Sender' : (type === 'inbox' ? 'Inbox' : 'Opt-out');
+        toastr.success('Set as default ' + typeLabel + ' number for ' + subAccount);
+    });
 
     // Mode button click handlers
     $('.mode-btn').on('click', function() {
@@ -1645,6 +1970,19 @@ $(document).ready(function() {
         $('#drawerMode').text(newMode === 'portal' ? 'Portal' : 'API');
         $('#drawerModeBadge').text(newMode === 'portal' ? 'Portal' : 'API');
         $('#drawerCapabilities').html(formatCapabilities(num.capabilities));
+        
+        // Populate portal config if switching to portal mode
+        if (newMode === 'portal') {
+            if (!num.portalConfig) {
+                num.portalConfig = {
+                    allowSenderID: true,
+                    enableInboxReplies: true,
+                    enableOptout: true,
+                    defaults: {}
+                };
+            }
+            populatePortalConfig(num);
+        }
         
         renderTable();
         
