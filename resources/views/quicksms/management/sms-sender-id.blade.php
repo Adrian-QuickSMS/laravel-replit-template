@@ -130,13 +130,13 @@
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     letter-spacing: 0.5px;
 }
+.badge-draft {
+    background: rgba(173, 181, 189, 0.15);
+    color: #868e96;
+}
 .badge-pending {
     background: rgba(255, 191, 0, 0.15);
     color: #cc9900;
-}
-.badge-under-review {
-    background: rgba(48, 101, 208, 0.15);
-    color: #3065D0;
 }
 .badge-approved {
     background: rgba(28, 187, 140, 0.15);
@@ -149,6 +149,10 @@
 .badge-suspended {
     background: rgba(108, 117, 125, 0.15);
     color: #6c757d;
+}
+.badge-archived {
+    background: rgba(52, 58, 64, 0.15);
+    color: #495057;
 }
 .badge-otp {
     background: rgba(136, 108, 192, 0.15);
@@ -489,13 +493,14 @@
                     <option value="numeric">Numeric</option>
                     <option value="shortcode">Shortcode</option>
                 </select>
-                <select class="form-select form-select-sm" id="filterStatus" style="width: 130px;">
+                <select class="form-select form-select-sm" id="filterStatus" style="width: 140px;">
                     <option value="">All Status</option>
-                    <option value="pending">Pending Review</option>
-                    <option value="under-review">Under Review</option>
+                    <option value="draft">Draft</option>
+                    <option value="pending">Pending Approval</option>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>
                     <option value="suspended">Suspended</option>
+                    <option value="archived">Archived</option>
                 </select>
                 <select class="form-select form-select-sm" id="filterUseCase" style="width: 130px;">
                     <option value="">All Use Cases</option>
@@ -687,6 +692,11 @@
             <div class="alert alert-danger small" id="rejectionReason"></div>
         </div>
 
+        <div class="mb-4" id="suspensionReasonSection" style="display: none;">
+            <h6 class="text-muted mb-3">Suspension Reason</h6>
+            <div class="alert alert-warning small" id="suspensionReason"></div>
+        </div>
+
         <div>
             <h6 class="text-muted mb-3">Audit History</h6>
             <div class="audit-timeline" id="auditTimeline">
@@ -718,21 +728,21 @@
     </div>
 </div>
 
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade" id="archiveModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0">
-                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Delete SenderID</h5>
+                <h5 class="modal-title text-warning"><i class="fas fa-archive me-2"></i>Archive SenderID</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to permanently delete <strong id="deleteSenderId"></strong>?</p>
-                <p class="text-muted small">This action cannot be undone. The SenderID will need to be re-registered and re-approved if needed in the future.</p>
+                <p>Are you sure you want to archive <strong id="archiveSenderId"></strong>?</p>
+                <p class="text-muted small">Archived SenderIDs cannot be used for sending messages. This action is logged for audit purposes and can be reviewed by administrators.</p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmDelete">
-                    <i class="fas fa-trash-alt me-1"></i>Delete
+                <button type="button" class="btn btn-warning" id="btnConfirmArchive">
+                    <i class="fas fa-archive me-1"></i>Archive
                 </button>
             </div>
         </div>
@@ -819,7 +829,7 @@ $(document).ready(function() {
             status: 'pending',
             created: '2024-03-10T14:20:00Z',
             auditHistory: [
-                { action: 'Submitted for Review', user: 'Marketing Team', timestamp: '2024-03-10T14:20:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2024-03-10T14:20:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -830,11 +840,57 @@ $(document).ready(function() {
             useCase: 'otp',
             description: 'Two-factor authentication codes',
             subaccount: 'Main Account',
-            status: 'under-review',
+            status: 'pending',
             created: '2024-03-12T16:45:00Z',
             auditHistory: [
-                { action: 'Under Review', user: 'Compliance Team', timestamp: '2024-03-13T09:00:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Review', user: 'Tech Team', timestamp: '2024-03-12T16:45:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'Tech Team', timestamp: '2024-03-12T16:45:00Z', auditType: 'submitted' }
+            ]
+        },
+        {
+            id: 'sid_008',
+            senderId: 'NEWBRAND',
+            type: 'alphanumeric',
+            brand: 'QuickSMS Ltd',
+            useCase: 'transactional',
+            description: 'New brand identity - work in progress',
+            subaccount: 'Main Account',
+            status: 'draft',
+            created: '2024-03-15T10:00:00Z',
+            auditHistory: [
+                { action: 'Draft Created', user: 'John Smith', timestamp: '2024-03-15T10:00:00Z', auditType: 'created' }
+            ]
+        },
+        {
+            id: 'sid_009',
+            senderId: 'OLDPROMO',
+            type: 'alphanumeric',
+            brand: 'QuickSMS Ltd',
+            useCase: 'marketing',
+            description: 'Legacy promotional sender - no longer in use',
+            subaccount: 'Marketing Department',
+            status: 'archived',
+            created: '2023-06-01T09:00:00Z',
+            auditHistory: [
+                { action: 'Archived', user: 'Admin User', timestamp: '2024-02-28T15:30:00Z', auditType: 'archived', reason: 'No longer needed - replaced by PROMO' },
+                { action: 'Approved', user: 'Compliance Team', timestamp: '2023-06-02T11:00:00Z', auditType: 'approved' },
+                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2023-06-01T09:00:00Z', auditType: 'submitted' }
+            ]
+        },
+        {
+            id: 'sid_010',
+            senderId: '70123',
+            type: 'shortcode',
+            brand: 'QuickSMS Ltd',
+            useCase: 'marketing',
+            description: 'Campaign shortcode - suspended for compliance review',
+            subaccount: 'Marketing Department',
+            status: 'suspended',
+            created: '2023-09-15T14:00:00Z',
+            suspensionReason: 'Compliance review required following high complaint rate.',
+            auditHistory: [
+                { action: 'Suspended', user: 'QuickSMS Compliance', timestamp: '2024-03-01T10:00:00Z', auditType: 'suspended', reason: 'Compliance review required following high complaint rate.' },
+                { action: 'Approved', user: 'Compliance Team', timestamp: '2023-09-16T10:00:00Z', auditType: 'approved' },
+                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2023-09-15T14:00:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -884,11 +940,12 @@ $(document).ready(function() {
 
     function getStatusBadge(status) {
         var badges = {
-            'pending': '<span class="badge badge-pending">Pending Review</span>',
-            'under-review': '<span class="badge badge-under-review">Under Review</span>',
+            'draft': '<span class="badge badge-draft">Draft</span>',
+            'pending': '<span class="badge badge-pending">Pending Approval</span>',
             'approved': '<span class="badge badge-approved">Approved</span>',
             'rejected': '<span class="badge badge-rejected">Rejected</span>',
-            'suspended': '<span class="badge badge-suspended">Suspended</span>'
+            'suspended': '<span class="badge badge-suspended">Suspended</span>',
+            'archived': '<span class="badge badge-archived">Archived</span>'
         };
         return badges[status] || status;
     }
@@ -1116,6 +1173,13 @@ $(document).ready(function() {
             $('#rejectionReasonSection').hide();
         }
 
+        if (item.status === 'suspended' && item.suspensionReason) {
+            $('#suspensionReasonSection').show();
+            $('#suspensionReason').text(item.suspensionReason);
+        } else {
+            $('#suspensionReasonSection').hide();
+        }
+
         var auditHtml = '';
         item.auditHistory.forEach(function(audit) {
             auditHtml += '<div class="audit-item ' + (audit.auditType || '') + '">';
@@ -1130,13 +1194,19 @@ $(document).ready(function() {
         $('#auditTimeline').html(auditHtml);
 
         var actionsHtml = '';
-        if (item.status === 'approved') {
-            actionsHtml += '<button type="button" class="btn btn-warning btn-sm" id="btnDetailSuspend"><i class="fas fa-pause me-1"></i>Suspend</button>';
+        if (item.status === 'draft') {
+            actionsHtml += '<button type="button" class="btn btn-primary btn-sm me-2" id="btnDetailSubmit"><i class="fas fa-paper-plane me-1"></i>Submit for Approval</button>';
+            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
+        } else if (item.status === 'pending') {
+            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
+        } else if (item.status === 'approved') {
+            actionsHtml += '<button type="button" class="btn btn-warning btn-sm me-2" id="btnDetailSuspend"><i class="fas fa-pause me-1"></i>Suspend</button>';
+            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
         } else if (item.status === 'suspended') {
-            actionsHtml += '<button type="button" class="btn btn-success btn-sm" id="btnDetailReactivate"><i class="fas fa-play me-1"></i>Reactivate</button>';
-        }
-        if (item.status === 'rejected' || item.status === 'pending') {
-            actionsHtml += '<button type="button" class="btn btn-danger btn-sm" id="btnDetailDelete"><i class="fas fa-trash-alt me-1"></i>Delete</button>';
+            actionsHtml += '<button type="button" class="btn btn-success btn-sm me-2" id="btnDetailReactivate"><i class="fas fa-play me-1"></i>Reactivate</button>';
+            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
+        } else if (item.status === 'rejected') {
+            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
         }
         $('#detailDrawerActions').html(actionsHtml);
 
@@ -1391,25 +1461,54 @@ $(document).ready(function() {
         }
     });
 
-    $(document).on('click', '.btn-delete, #btnDetailDelete', function(e) {
+    $(document).on('click', '#btnDetailArchive', function(e) {
         e.preventDefault();
-        var id = $(this).data('id') || (selectedSenderId && selectedSenderId.id);
+        var id = selectedSenderId && selectedSenderId.id;
         var item = senderIds.find(function(s) { return s.id === id; });
         if (item) {
-            $('#deleteModal').data('id', id);
-            $('#deleteSenderId').text(item.senderId);
-            new bootstrap.Modal($('#deleteModal')[0]).show();
+            $('#archiveModal').data('id', id);
+            $('#archiveSenderId').text(item.senderId);
+            new bootstrap.Modal($('#archiveModal')[0]).show();
         }
     });
 
-    $('#btnConfirmDelete').on('click', function() {
-        var id = $('#deleteModal').data('id');
-        senderIds = senderIds.filter(function(s) { return s.id !== id; });
-        bootstrap.Modal.getInstance($('#deleteModal')[0]).hide();
-        closeDetailDrawer();
-        renderTable();
-        if (typeof showSuccessToast === 'function') {
-            showSuccessToast('SenderID deleted');
+    $('#btnConfirmArchive').on('click', function() {
+        var id = $('#archiveModal').data('id');
+        var item = senderIds.find(function(s) { return s.id === id; });
+        if (item) {
+            item.status = 'archived';
+            item.auditHistory.unshift({
+                action: 'Archived',
+                user: 'Current User',
+                timestamp: new Date().toISOString(),
+                auditType: 'archived'
+            });
+            bootstrap.Modal.getInstance($('#archiveModal')[0]).hide();
+            closeDetailDrawer();
+            renderTable();
+            if (typeof showSuccessToast === 'function') {
+                showSuccessToast('SenderID archived');
+            }
+        }
+    });
+
+    $(document).on('click', '#btnDetailSubmit', function(e) {
+        e.preventDefault();
+        var id = selectedSenderId && selectedSenderId.id;
+        var item = senderIds.find(function(s) { return s.id === id; });
+        if (item && item.status === 'draft') {
+            item.status = 'pending';
+            item.auditHistory.unshift({
+                action: 'Submitted for Approval',
+                user: 'Current User',
+                timestamp: new Date().toISOString(),
+                auditType: 'submitted'
+            });
+            closeDetailDrawer();
+            renderTable();
+            if (typeof showSuccessToast === 'function') {
+                showSuccessToast('SenderID submitted for approval');
+            }
         }
     });
 
