@@ -93,7 +93,26 @@
     z-index: 20;
     margin-top: auto;
 }
-.form-wizard .sw-btn-prev,
+.recipient-summary-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 13px;
+    position: sticky;
+    top: 0;
+    z-index: 15;
+}
+.recipient-summary-metrics {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
 .form-wizard .sw-btn-next {
     background-color: var(--primary, #886CC0) !important;
     border: 0 !important;
@@ -107,10 +126,19 @@
     gap: 0.5rem;
 }
 .form-wizard .sw-btn-prev {
-    background-color: #6c757d !important;
+    background: rgba(136, 108, 192, 0.15) !important;
+    color: #886CC0 !important;
+    border: 1px solid rgba(136, 108, 192, 0.4) !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 .form-wizard .sw-btn-prev:hover {
-    background-color: #5a6268 !important;
+    background: rgba(136, 108, 192, 0.25) !important;
 }
 .form-wizard .sw-btn-next:hover {
     background-color: #7559b3 !important;
@@ -285,13 +313,14 @@
     color: #5a4a7a;
 }
 .btn-save-draft {
-    background-color: #6c757d !important;
-    border-color: #6c757d !important;
-    color: #fff !important;
+    background: #fff !important;
+    color: #D653C1 !important;
+    border: 1px solid rgba(214, 83, 193, 0.5) !important;
+    font-weight: 500;
 }
 .btn-save-draft:hover {
-    background-color: #5a6268 !important;
-    border-color: #5a6268 !important;
+    background: rgba(214, 83, 193, 0.08) !important;
+    border-color: rgba(214, 83, 193, 0.6) !important;
 }
 </style>
 @endpush
@@ -416,26 +445,19 @@
                                             <strong>Step 3: Recipients</strong> – Select recipients from your Contact Book and configure opt-out rules.
                                         </div>
                                         
-                                        {{-- Sticky Recipient Summary Bar --}}
-                                        <div class="card shadow-sm mb-3" style="position: sticky; top: 0; z-index: 10;">
-                                            <div class="card-body py-2 px-3">
-                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="font-size: 13px;">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <i class="fas fa-users text-primary"></i>
-                                                    <strong>Selected:</strong>
-                                                    <span id="recipientChipsInline" class="text-muted">None</span>
-                                                </div>
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <span>Contacts: <strong id="summaryContactsCount">0</strong></span>
-                                                    <span>Lists: <strong id="summaryListsCount">0</strong></span>
-                                                    <span class="text-muted">Total: <span id="summaryTotalCount">0</span></span>
-                                                    <span class="text-warning fw-bold">Removed: <span id="summaryDedupedCount">0</span></span>
-                                                    <span class="text-success fw-bold">Unique: <span id="summaryUniqueCount">0</span></span>
-                                                    <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnClearAllRecipients" style="display: none;">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
+                                        {{-- Compact Sticky Recipient Summary Bar --}}
+                                        <div class="recipient-summary-bar mb-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fas fa-users text-primary"></i>
+                                                <strong>Selected:</strong>
+                                                <span id="recipientChipsInline" class="text-muted">No recipients selected</span>
                                             </div>
+                                            <div class="recipient-summary-metrics">
+                                                <span>Contacts: <strong id="summaryContactsCount">0</strong></span>
+                                                <span>Lists: <strong id="summaryListsCount">0</strong></span>
+                                                <span class="text-muted">Total: <span id="summaryTotalCount">0</span></span>
+                                                <span class="text-warning fw-bold">Removed: <span id="summaryDedupedCount">0</span></span>
+                                                <span class="text-success fw-bold">Unique: <span id="summaryUniqueCount">0</span></span>
                                             </div>
                                         </div>
                                         
