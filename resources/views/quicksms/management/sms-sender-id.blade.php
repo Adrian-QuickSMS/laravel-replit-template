@@ -1446,10 +1446,32 @@ $(document).ready(function() {
     function getTypeLabel(senderIdType) {
         var labels = {
             'alphanumeric': 'Alphanumeric',
-            'numeric': 'UK Virtual Mobile Number',
+            'numeric': 'Numeric',
             'shortcode': 'Shortcode'
         };
         return labels[senderIdType] || senderIdType;
+    }
+
+    function getStatusLabel(status) {
+        var labels = {
+            'draft': 'Draft',
+            'pending': 'Pending Approval',
+            'approved': 'Approved',
+            'rejected': 'Rejected',
+            'suspended': 'Suspended',
+            'archived': 'Archived'
+        };
+        return labels[status] || status;
+    }
+
+    function getUseCaseLabel(useCase) {
+        var labels = {
+            'otp': 'OTP / Verification',
+            'marketing': 'Marketing',
+            'transactional': 'Transactional',
+            'alerts': 'Alerts'
+        };
+        return labels[useCase] || useCase;
     }
 
     function filterSenderIds() {
@@ -1505,10 +1527,10 @@ $(document).ready(function() {
         paged.forEach(function(item) {
             html += '<tr data-id="' + item.id + '">';
             html += '<td><span class="senderid-name">' + escapeHtml(item.senderId) + '</span></td>';
-            html += '<td>' + getTypeBadge(item.type) + '</td>';
+            html += '<td>' + getTypeLabel(item.type) + '</td>';
             html += '<td>' + escapeHtml(item.brand) + '</td>';
-            html += '<td>' + getUseCaseBadge(item.useCase) + '</td>';
-            html += '<td>' + getStatusBadge(item.status) + '</td>';
+            html += '<td>' + getUseCaseLabel(item.useCase) + '</td>';
+            html += '<td>' + getStatusLabel(item.status) + '</td>';
             html += '<td>' + formatDate(item.created) + '</td>';
             html += '<td>' + (item.lastUsed ? formatDate(item.lastUsed) : '<span class="text-muted">Never</span>') + '</td>';
             html += '<td class="text-center">';
