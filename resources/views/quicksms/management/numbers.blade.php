@@ -730,6 +730,11 @@
                     <h6 class="card-title mb-3"><i class="fas fa-cogs me-2 text-primary"></i>Portal Configuration</h6>
                     <p class="small text-muted mb-3">Configure how this number is used within the Portal.</p>
                     
+                    <div id="portalShortcodeKeywordNotice" class="alert alert-info small mb-3" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Shortcode Keyword:</strong> This number can only be used for opt-out handling. SenderID and Inbox options are not available for shortcode keywords.
+                    </div>
+                    
                     <div class="mb-4">
                         <label class="form-label fw-bold small">Sub-Account Assignment</label>
                         <p class="text-muted small mb-2">Controls visibility, defaults, and reporting scope.</p>
@@ -852,6 +857,11 @@
                         </div>
                     </div>
                     
+                    <div id="apiShortcodeKeywordNotice" class="alert alert-warning small mb-3" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Shortcode Keyword:</strong> This number can only be used for opt-out keywords or API inbound triggers. It cannot be used as SenderID or Inbox number.
+                    </div>
+
                     <div class="api-restrictions">
                         <label class="form-label fw-bold small text-muted">API Mode Restrictions</label>
                         <ul class="small text-muted mb-0 ps-3">
@@ -1789,6 +1799,8 @@ $(document).ready(function() {
     function populatePortalConfig(num) {
         if (num.mode !== 'portal') return;
         
+        var isShortcodeKeyword = num.type === 'shortcode_keyword';
+        
         // Populate sub-account checkboxes
         $('.portal-subacc-check').prop('checked', false);
         if (num.subAccounts) {
@@ -1799,11 +1811,30 @@ $(document).ready(function() {
         
         // Populate capability toggles from portalConfig
         var config = num.portalConfig || {};
-        $('#toggleSenderID').prop('checked', config.allowSenderID !== false);
-        $('#toggleInboxReplies').prop('checked', config.enableInboxReplies !== false);
+        
+        // HARD RULE: Shortcode Keywords cannot be SenderID or Inbox
+        if (isShortcodeKeyword) {
+            // Show notice for shortcode keywords
+            $('#portalShortcodeKeywordNotice').show();
+            // Hide SenderID toggle - shortcode keywords cannot be SenderID
+            $('#toggleSenderID').closest('.capability-toggle').hide();
+            // Hide Inbox toggle - shortcode keywords cannot be Inbox number
+            $('#toggleInboxReplies').closest('.capability-toggle').hide();
+            // Force these to false
+            config.allowSenderID = false;
+            config.enableInboxReplies = false;
+        } else {
+            $('#portalShortcodeKeywordNotice').hide();
+            $('#toggleSenderID').closest('.capability-toggle').show();
+            $('#toggleInboxReplies').closest('.capability-toggle').show();
+            $('#toggleSenderID').prop('checked', config.allowSenderID !== false);
+            $('#toggleInboxReplies').prop('checked', config.enableInboxReplies !== false);
+        }
+        
+        // Opt-out is always available (shortcode keywords CAN be used for opt-out)
         $('#toggleOptout').prop('checked', config.enableOptout !== false);
         
-        // Render defaults per sub-account
+        // Render defaults per sub-account (will also enforce shortcode keyword rules)
         renderSubAccountDefaults(num);
     }
 
@@ -1816,6 +1847,7 @@ $(document).ready(function() {
             return;
         }
         
+        var isShortcodeKeyword = num.type === 'shortcode_keyword';
         var config = num.portalConfig || {};
         var defaults = config.defaults || {};
         
@@ -1826,29 +1858,33 @@ $(document).ready(function() {
             var html = '<div class="subaccount-defaults-item">';
             html += '<div class="subaccount-name"><i class="fas fa-building me-2"></i>' + sa + '</div>';
             
-            // Default Sender Number
-            var isSenderDefault = saDefaults.defaultSender === true;
-            html += '<div class="default-toggle' + (isSenderDefault ? ' is-default' : '') + '">';
-            html += '<label><i class="fas fa-paper-plane me-2 text-primary"></i>Default Sender Number</label>';
-            if (isSenderDefault) {
-                html += '<span class="default-badge">DEFAULT</span>';
-            } else {
-                html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="sender" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+            // HARD RULE: Shortcode Keywords cannot be SenderID - hide this option entirely
+            if (!isShortcodeKeyword) {
+                var isSenderDefault = saDefaults.defaultSender === true;
+                html += '<div class="default-toggle' + (isSenderDefault ? ' is-default' : '') + '">';
+                html += '<label><i class="fas fa-paper-plane me-2 text-primary"></i>Default Sender Number</label>';
+                if (isSenderDefault) {
+                    html += '<span class="default-badge">DEFAULT</span>';
+                } else {
+                    html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="sender" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+                }
+                html += '</div>';
             }
-            html += '</div>';
             
-            // Default Inbox Number
-            var isInboxDefault = saDefaults.defaultInbox === true;
-            html += '<div class="default-toggle' + (isInboxDefault ? ' is-default' : '') + '">';
-            html += '<label><i class="fas fa-inbox me-2 text-success"></i>Default Inbox Number</label>';
-            if (isInboxDefault) {
-                html += '<span class="default-badge">DEFAULT</span>';
-            } else {
-                html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="inbox" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+            // HARD RULE: Shortcode Keywords cannot be Inbox number - hide this option entirely
+            if (!isShortcodeKeyword) {
+                var isInboxDefault = saDefaults.defaultInbox === true;
+                html += '<div class="default-toggle' + (isInboxDefault ? ' is-default' : '') + '">';
+                html += '<label><i class="fas fa-inbox me-2 text-success"></i>Default Inbox Number</label>';
+                if (isInboxDefault) {
+                    html += '<span class="default-badge">DEFAULT</span>';
+                } else {
+                    html += '<button type="button" class="btn btn-sm btn-outline-primary btn-set-default" data-subaccount="' + sa + '" data-type="inbox" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">Set Default</button>';
+                }
+                html += '</div>';
             }
-            html += '</div>';
             
-            // Default Opt-out Number
+            // Default Opt-out Number - always available (shortcode keywords CAN be used for opt-out)
             var isOptoutDefault = saDefaults.defaultOptout === true;
             html += '<div class="default-toggle' + (isOptoutDefault ? ' is-default' : '') + '">';
             html += '<label><i class="fas fa-ban me-2 text-warning"></i>Default Opt-out Number</label>';
@@ -1867,6 +1903,7 @@ $(document).ready(function() {
     function populateApiConfig(num) {
         if (num.mode !== 'api') return;
         
+        var isShortcodeKeyword = num.type === 'shortcode_keyword';
         var config = num.apiConfig || {};
         
         // Set sub-account (single select for API mode)
@@ -1874,6 +1911,7 @@ $(document).ready(function() {
         $('#apiSubAccountSelect').val(subAccount);
         
         // Set inbound forwarding toggle
+        // Shortcode Keywords CAN be used for API inbound triggers
         var inboundEnabled = config.inboundForwarding === true;
         $('#toggleInboundForwarding').prop('checked', inboundEnabled);
         
@@ -1887,6 +1925,13 @@ $(document).ready(function() {
         // Set inbound URL
         $('#apiInboundUrl').val(config.inboundUrl || '');
         $('#inboundUrlError').hide();
+        
+        // Update API restrictions display for shortcode keywords
+        if (isShortcodeKeyword) {
+            $('#apiShortcodeKeywordNotice').show();
+        } else {
+            $('#apiShortcodeKeywordNotice').hide();
+        }
     }
 
     // Handle API sub-account selection (single only)
