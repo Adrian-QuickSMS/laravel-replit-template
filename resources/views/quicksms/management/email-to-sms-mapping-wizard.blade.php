@@ -580,7 +580,7 @@
                                         {{-- Content Filter Textarea --}}
                                         <div class="mb-3">
                                             <label class="form-label">
-                                                <strong>Filter Content</strong> <span class="badge bg-light text-dark">Optional</span>
+                                                <strong>Filter Content</strong> <span class="badge badge-pastel-secondary">Optional</span>
                                             </label>
                                             <textarea class="form-control" id="contentFilter" rows="4" placeholder="Enter regex patterns to remove from email content (one per line)&#10;&#10;Example:&#10;^--[\s\S]*$&#10;Sent from my iPhone&#10;\[image:.*?\]"></textarea>
                                             <small class="text-muted">
