@@ -458,7 +458,7 @@
             <li>All SenderIDs must be registered and approved before use</li>
             <li><strong>Alphanumeric:</strong> Max 11 characters (A-Z, a-z, 0-9, . - _ & space)</li>
             <li><strong>Numeric:</strong> UK Virtual Mobile Number (+447xxxxxxxxx)</li>
-            <li><strong>Shortcode:</strong> 5-6 digit UK shortcode</li>
+            <li><strong>Shortcode:</strong> Exactly 5 digits, starting with 6, 7, or 8</li>
             <li>Must represent your brand and not impersonate others</li>
         </ul>
     </div>
@@ -1083,9 +1083,9 @@ $(document).ready(function() {
             $hint.text('UK mobile: 07xxxxxxxxx, +447xxxxxxxxx, or 447xxxxxxxxx');
             $counter.hide();
         } else if (senderIdType === 'shortcode') {
-            $input.attr('maxlength', '6').attr('placeholder', 'e.g. 60123').removeClass('form-control-lg');
-            $hint.text('5-6 digit UK shortcode');
-            $counter.show().html('<span id="senderIdCharCount">0</span>/6');
+            $input.attr('maxlength', '5').attr('placeholder', 'e.g. 60123').removeClass('form-control-lg');
+            $hint.text('Exactly 5 digits, must start with 6, 7, or 8');
+            $counter.show().html('<span id="senderIdCharCount">0</span>/5');
         }
     }
 
@@ -1206,7 +1206,15 @@ $(document).ready(function() {
             if (existingNormalised) return { valid: false, message: 'This number is already registered' };
             return { valid: true, normalised: normalised };
         } else if (senderIdType === 'shortcode') {
-            if (!/^\d{5,6}$/.test(value)) return { valid: false, message: 'Must be 5-6 digits' };
+            if (!/^\d+$/.test(value)) {
+                return { valid: false, message: 'Shortcode must contain digits only' };
+            }
+            if (value.length !== 5) {
+                return { valid: false, message: 'UK shortcodes must be exactly 5 digits' };
+            }
+            if (!/^[678]/.test(value)) {
+                return { valid: false, message: 'UK shortcodes must start with 6, 7, or 8' };
+            }
         }
 
         var existing = senderIds.find(function(s) { return s.senderId.toUpperCase() === value.toUpperCase(); });
