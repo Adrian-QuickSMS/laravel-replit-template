@@ -774,9 +774,15 @@
                     <div class="invalid-feedback" id="permissionError"></div>
                 </div>
 
-                <div class="permission-blocked-alert alert alert-danger small" id="permissionBlockedAlert" style="display: none;">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Registration Blocked:</strong> You must have permission to use a SenderID before registration. Please obtain authorisation from the brand owner before proceeding.
+                <div class="permission-blocked-alert alert alert-danger" id="permissionBlockedAlert" style="display: none;">
+                    <div class="d-flex">
+                        <i class="fas fa-ban me-3 mt-1 fa-lg"></i>
+                        <div>
+                            <strong class="d-block">Registration Cannot Continue</strong>
+                            <p class="mb-2 small">You have indicated that you do not have permission to use this SenderID. UK regulations require explicit authorisation from the brand owner before a SenderID can be registered.</p>
+                            <p class="mb-0 small text-muted"><i class="fas fa-arrow-right me-1"></i>Please obtain written authorisation from the brand owner, then return to complete registration.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-3" id="confirmationSection" style="display: none;">
@@ -942,13 +948,32 @@
         </div>
 
         <div class="mb-4" id="rejectionReasonSection" style="display: none;">
-            <h6 class="text-muted mb-3">Rejection Reason</h6>
-            <div class="alert alert-danger small" id="rejectionReason"></div>
+            <div class="alert alert-danger mb-0">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-times-circle me-2 mt-1"></i>
+                    <div>
+                        <strong class="d-block mb-1">Registration Rejected</strong>
+                        <p class="mb-2 small" id="rejectionReason"></p>
+                        <hr class="my-2">
+                        <p class="mb-0 small text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            To resubmit, you must register a new SenderID with the required changes addressed.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="mb-4" id="suspensionReasonSection" style="display: none;">
-            <h6 class="text-muted mb-3">Suspension Reason</h6>
-            <div class="alert alert-warning small" id="suspensionReason"></div>
+            <div class="alert alert-warning mb-0">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-pause-circle me-2 mt-1"></i>
+                    <div>
+                        <strong class="d-block mb-1">SenderID Suspended</strong>
+                        <p class="mb-0 small" id="suspensionReason"></p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div>
@@ -1221,11 +1246,30 @@ $(document).ready(function() {
             subaccount: 'Main Account',
             status: 'rejected',
             created: '2024-03-05T11:00:00Z',
-            rejectionReason: 'SenderID "BANK" is a reserved term and cannot be registered without additional verification of financial institution status.',
+            rejectionReason: 'SenderID "BANK" is a reserved term and cannot be registered without additional verification of financial institution status. Please provide proof of authorisation from a registered financial institution.',
+            approvalDetails: { decision: 'rejected', timestamp: '2024-03-06T10:30:00Z', reviewer: 'Compliance Team', reviewerType: 'manual', rejectionReason: 'Reserved term - requires financial verification' },
             auditHistory: [
                 { action: 'Rejected', user: 'Compliance Team', timestamp: '2024-03-06T10:30:00Z', auditType: 'rejected', reason: 'Reserved term - requires financial verification' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-03-05T11:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Review', user: 'John Smith', timestamp: '2024-03-05T11:00:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'John Smith', timestamp: '2024-03-05T11:00:00Z', auditType: 'submitted' }
+            ]
+        },
+        {
+            id: 'sid_011',
+            senderId: 'HMRC',
+            type: 'alphanumeric',
+            brand: 'QuickSMS Ltd',
+            useCase: 'transactional',
+            description: 'Tax notifications',
+            subaccount: 'Main Account',
+            status: 'rejected',
+            created: '2024-02-20T09:00:00Z',
+            rejectionReason: 'SenderID "HMRC" impersonates a UK government agency. Only the official HM Revenue & Customs organisation may use this identifier. Impersonation of government bodies is strictly prohibited.',
+            approvalDetails: { decision: 'rejected', timestamp: '2024-02-21T14:00:00Z', reviewer: 'UK Operator Check', reviewerType: 'operator', rejectionReason: 'Government impersonation' },
+            auditHistory: [
+                { action: 'Rejected', user: 'UK Operator Check', timestamp: '2024-02-21T14:00:00Z', auditType: 'rejected', reason: 'Government impersonation' },
+                { action: 'Under Review', user: 'System', timestamp: '2024-02-20T09:05:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Approval', user: 'John Smith', timestamp: '2024-02-20T09:00:00Z', auditType: 'submitted' }
             ]
         }
     ];
@@ -1780,7 +1824,20 @@ $(document).ready(function() {
         }
 
         var existing = senderIds.find(function(s) { return s.senderId.toUpperCase() === value.toUpperCase(); });
-        if (existing) return { valid: false, message: 'This SenderID is already registered' };
+        if (existing) {
+            if (existing.status === 'rejected') {
+                return { valid: false, message: 'This SenderID was previously rejected. Please review the rejection reason and register with a different identifier.' };
+            } else if (existing.status === 'pending') {
+                return { valid: false, message: 'This SenderID is already pending approval' };
+            } else if (existing.status === 'approved') {
+                return { valid: false, message: 'This SenderID is already registered and approved' };
+            } else if (existing.status === 'suspended') {
+                return { valid: false, message: 'This SenderID is registered but currently suspended' };
+            } else if (existing.status === 'archived') {
+                return { valid: false, message: 'This SenderID is archived. Contact support to restore it.' };
+            }
+            return { valid: false, message: 'This SenderID is already registered' };
+        }
 
         return { valid: true };
     }
