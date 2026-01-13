@@ -312,14 +312,19 @@
     border-color: rgba(136, 108, 192, 0.2);
     color: #5a4a7a;
 }
-.btn-save-draft {
-    background: #fff !important;
+.toolbar-bottom .btn.btn-save-draft,
+button.btn-save-draft {
+    background-color: #fff !important;
     color: #D653C1 !important;
     border: 1px solid #D653C1 !important;
+    border-color: #D653C1 !important;
     font-weight: 500;
 }
-.btn-save-draft:hover {
-    background: rgba(214, 83, 193, 0.08) !important;
+.toolbar-bottom .btn.btn-save-draft:hover,
+button.btn-save-draft:hover {
+    background-color: rgba(214, 83, 193, 0.08) !important;
+    color: #D653C1 !important;
+    border-color: #D653C1 !important;
 }
 .success-email-box {
     background: rgba(136, 108, 192, 0.12);
