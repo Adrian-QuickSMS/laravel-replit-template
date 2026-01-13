@@ -104,7 +104,11 @@
 .table-container {
     background: #fff;
     border-radius: 0.75rem;
-    overflow: hidden;
+    overflow: visible;
+}
+.table-container .dropdown-menu {
+    position: absolute;
+    z-index: 1050;
 }
 .api-table-container {
     background: #fff;
