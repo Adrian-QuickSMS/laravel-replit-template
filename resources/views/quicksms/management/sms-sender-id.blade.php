@@ -627,11 +627,11 @@
                     <tr>
                         <th data-sort="senderId" onclick="sortTable('senderId')">SenderID <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="type" onclick="sortTable('type')">Type <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="brand" onclick="sortTable('brand')">Brand / Company <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="brand" onclick="sortTable('brand')">Brand / Business <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="useCase" onclick="sortTable('useCase')">Use Case <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="subaccount" onclick="sortTable('subaccount')">Subaccount <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="created" onclick="sortTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="lastUsed" onclick="sortTable('lastUsed')">Last Used <i class="fas fa-sort sort-icon"></i></th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -1002,6 +1002,38 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="submissionConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title text-success"><i class="fas fa-check-circle me-2"></i>Registration Submitted</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Your SenderID <strong id="submissionSenderId"></strong> has been submitted for approval.</p>
+                
+                <div class="alert alert-info small mb-3">
+                    <h6 class="alert-heading mb-2"><i class="fas fa-info-circle me-1"></i>What happens next?</h6>
+                    <ol class="mb-0 ps-3">
+                        <li class="mb-1">Your registration will be reviewed by our compliance team</li>
+                        <li class="mb-1">We may perform third-party validation checks</li>
+                        <li class="mb-1">Mobile operators may also verify compliance</li>
+                        <li>You'll receive an email notification with the outcome</li>
+                    </ol>
+                </div>
+                
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-clock me-1"></i>
+                    Review typically takes <strong>1-2 business days</strong>. You can track the status in your SenderID library.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1038,11 +1070,13 @@ $(document).ready(function() {
             subaccount: 'Main Account',
             status: 'approved',
             created: '2024-01-15T10:30:00Z',
+            lastUsed: '2024-03-14T16:45:00Z',
             scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
+            approvalDetails: { decision: 'approved', timestamp: '2024-01-16T14:22:00Z', reviewer: 'Compliance Team', reviewerType: 'manual' },
             auditHistory: [
                 { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-16T14:22:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-01-15T10:35:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Review', user: 'John Smith', timestamp: '2024-01-15T10:30:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'John Smith', timestamp: '2024-01-15T10:30:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -1055,11 +1089,13 @@ $(document).ready(function() {
             subaccount: 'Operations',
             status: 'approved',
             created: '2024-02-01T09:00:00Z',
+            lastUsed: '2024-03-13T09:30:00Z',
             scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
+            approvalDetails: { decision: 'approved', timestamp: '2024-02-02T11:45:00Z', reviewer: 'Compliance Team', reviewerType: 'manual' },
             auditHistory: [
                 { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-02T11:45:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-02-01T09:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Review', user: 'Jane Doe', timestamp: '2024-02-01T09:00:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'Jane Doe', timestamp: '2024-02-01T09:00:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -1072,11 +1108,13 @@ $(document).ready(function() {
             subaccount: 'Customer Support',
             status: 'approved',
             created: '2024-02-15T11:30:00Z',
+            lastUsed: '2024-03-14T11:20:00Z',
             scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
+            approvalDetails: { decision: 'approved', timestamp: '2024-02-16T09:00:00Z', reviewer: 'Third-Party Validator', reviewerType: 'third_party' },
             auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-16T09:00:00Z', auditType: 'approved' },
+                { action: 'Approved', user: 'Third-Party Validator', timestamp: '2024-02-16T09:00:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-02-15T11:35:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Review', user: 'Support Team', timestamp: '2024-02-15T11:30:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'Support Team', timestamp: '2024-02-15T11:30:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -1089,11 +1127,13 @@ $(document).ready(function() {
             subaccount: 'Marketing Department',
             status: 'approved',
             created: '2024-01-20T14:00:00Z',
+            lastUsed: '2024-03-10T15:00:00Z',
             scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
+            approvalDetails: { decision: 'approved', timestamp: '2024-01-22T10:00:00Z', reviewer: 'UK Operator Check', reviewerType: 'operator' },
             auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-22T10:00:00Z', auditType: 'approved' },
+                { action: 'Approved', user: 'UK Operator Check', timestamp: '2024-01-22T10:00:00Z', auditType: 'approved' },
                 { action: 'Under Review', user: 'System', timestamp: '2024-01-20T14:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Review', user: 'Marketing Team', timestamp: '2024-01-20T14:00:00Z', auditType: 'submitted' }
+                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2024-01-20T14:00:00Z', auditType: 'submitted' }
             ]
         },
         {
@@ -1313,21 +1353,27 @@ $(document).ready(function() {
             html += '<td>' + escapeHtml(item.brand) + '</td>';
             html += '<td>' + getUseCaseBadge(item.useCase) + '</td>';
             html += '<td>' + getStatusBadge(item.status) + '</td>';
-            html += '<td>' + escapeHtml(item.subaccount) + '</td>';
             html += '<td>' + formatDate(item.created) + '</td>';
+            html += '<td>' + (item.lastUsed ? formatDate(item.lastUsed) : '<span class="text-muted">Never</span>') + '</td>';
             html += '<td class="text-center">';
             html += '<div class="dropdown">';
             html += '<button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             html += '<li><a class="dropdown-item btn-view-details" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i>View Details</a></li>';
+            html += '<li><a class="dropdown-item btn-view-audit" href="#" data-id="' + item.id + '"><i class="fas fa-history me-2"></i>View Audit History</a></li>';
             if (item.status === 'approved') {
+                html += '<li><hr class="dropdown-divider"></li>';
                 html += '<li><a class="dropdown-item btn-suspend" href="#" data-id="' + item.id + '"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
+                html += '<li><a class="dropdown-item btn-archive-row" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>';
             }
             if (item.status === 'suspended') {
+                html += '<li><hr class="dropdown-divider"></li>';
                 html += '<li><a class="dropdown-item btn-reactivate" href="#" data-id="' + item.id + '"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
+                html += '<li><a class="dropdown-item btn-archive-row" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>';
             }
-            if (item.status === 'rejected' || item.status === 'pending') {
-                html += '<li><a class="dropdown-item text-danger btn-delete" href="#" data-id="' + item.id + '"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>';
+            if (item.status === 'rejected') {
+                html += '<li><hr class="dropdown-divider"></li>';
+                html += '<li><a class="dropdown-item btn-archive-row" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>';
             }
             html += '</ul>';
             html += '</div>';
@@ -1829,10 +1875,13 @@ $(document).ready(function() {
         currentWizardStep = 1;
         renderTable();
 
-        if (typeof showSuccessToast === 'function') {
-            showSuccessToast('SenderID "' + finalSenderId + '" submitted for approval');
-        }
+        showSubmissionConfirmation(finalSenderId);
     });
+
+    function showSubmissionConfirmation(senderId) {
+        $('#submissionSenderId').text(senderId);
+        new bootstrap.Modal($('#submissionConfirmModal')[0]).show();
+    }
 
     $(document).on('click', '.btn-view-details', function(e) {
         e.preventDefault();
@@ -1883,6 +1932,30 @@ $(document).ready(function() {
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('SenderID ' + (action === 'suspend' ? 'suspended' : 'reactivated'));
             }
+        }
+    });
+
+    $(document).on('click', '.btn-view-audit', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var item = senderIds.find(function(s) { return s.id === id; });
+        if (item) {
+            selectedSenderId = item;
+            openDetailDrawer(id);
+            setTimeout(function() {
+                $('a[data-bs-target="#detailAudit"]').tab('show');
+            }, 100);
+        }
+    });
+
+    $(document).on('click', '.btn-archive-row', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var item = senderIds.find(function(s) { return s.id === id; });
+        if (item && (item.status === 'approved' || item.status === 'rejected' || item.status === 'suspended')) {
+            $('#archiveModal').data('id', id);
+            $('#archiveSenderId').text(item.senderId);
+            new bootstrap.Modal($('#archiveModal')[0]).show();
         }
     });
 
