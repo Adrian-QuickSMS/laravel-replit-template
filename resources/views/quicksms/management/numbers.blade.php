@@ -170,6 +170,34 @@
 .capability-toggle:hover {
     background: #f1f3f5;
 }
+.audit-history-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.audit-history-item {
+    padding: 0.5rem;
+    border-left: 3px solid #886CC0;
+    background: #f8f9fa;
+    margin-bottom: 0.5rem;
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+.audit-history-item:last-child {
+    margin-bottom: 0;
+}
+.audit-history-item .audit-action {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+}
+.audit-history-item .audit-details {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.audit-history-item .audit-meta {
+    font-size: 0.7rem;
+    color: #adb5bd;
+    margin-top: 0.25rem;
+}
 .form-switch .form-check-input {
     width: 2.5rem;
     height: 1.25rem;
@@ -668,6 +696,38 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
+                    <h6 class="card-title mb-3"><i class="fas fa-history me-2 text-primary"></i>Audit Trail</h6>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Created</div>
+                        <div class="col-7 small" id="drawerCreatedAt">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Created By</div>
+                        <div class="col-7 small" id="drawerCreatedBy">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted small">Last Modified</div>
+                        <div class="col-7 small" id="drawerModifiedAt">-</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-5 text-muted small">Modified By</div>
+                        <div class="col-7 small" id="drawerModifiedBy">-</div>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold">Recent Changes</span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="btnViewFullAudit">
+                            View All <i class="fas fa-external-link-alt ms-1"></i>
+                        </button>
+                    </div>
+                    <div id="drawerAuditHistory" class="audit-history-list">
+                        <div class="text-muted small">No audit history available</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body p-3">
                     <h6 class="card-title mb-3"><i class="fas fa-history me-2 text-primary"></i>Usage</h6>
                     <div class="row mb-2">
                         <div class="col-5 text-muted small">Last Used</div>
@@ -1077,6 +1137,15 @@ $(document).ready(function() {
             lastUsed: '2025-01-13 14:32:45',
             purchaseDate: '2024-06-15',
             renewalDate: '2025-02-15',
+            createdAt: '2024-06-15 10:00:00',
+            createdBy: 'admin@quicksms.com',
+            modifiedAt: '2025-01-13 09:45:12',
+            modifiedBy: 'john.smith@company.com',
+            auditHistory: [
+                { timestamp: '2025-01-13 09:45:12', user: 'john.smith@company.com', action: 'Sub-account changed', details: 'Added to Marketing sub-account' },
+                { timestamp: '2025-01-10 14:22:08', user: 'john.smith@company.com', action: 'Mode changed', details: 'Changed from API to Portal' },
+                { timestamp: '2024-06-15 10:00:00', user: 'admin@quicksms.com', action: 'Number purchased', details: 'Initial setup' }
+            ],
             portalConfig: {
                 allowSenderID: true,
                 enableInboxReplies: true,
@@ -1100,6 +1169,14 @@ $(document).ready(function() {
             lastUsed: '2025-01-12 09:15:22',
             purchaseDate: '2024-08-20',
             renewalDate: '2025-02-20',
+            createdAt: '2024-08-20 11:30:00',
+            createdBy: 'admin@quicksms.com',
+            modifiedAt: '2025-01-12 09:15:22',
+            modifiedBy: 'api.integration@company.com',
+            auditHistory: [
+                { timestamp: '2025-01-12 09:15:22', user: 'api.integration@company.com', action: 'Inbound URL updated', details: 'Webhook URL configured' },
+                { timestamp: '2024-08-20 11:30:00', user: 'admin@quicksms.com', action: 'Number purchased', details: 'Initial setup as API mode' }
+            ],
             apiConfig: {
                 inboundForwarding: true,
                 inboundUrl: 'https://api.example.com/webhooks/sms/inbound'
@@ -1119,6 +1196,16 @@ $(document).ready(function() {
             lastUsed: '2025-01-13 11:45:18',
             purchaseDate: '2024-01-10',
             renewalDate: '2025-02-10',
+            createdAt: '2024-01-10 09:00:00',
+            createdBy: 'admin@quicksms.com',
+            modifiedAt: '2025-01-13 11:45:18',
+            modifiedBy: 'sarah.jones@company.com',
+            auditHistory: [
+                { timestamp: '2025-01-13 11:45:18', user: 'sarah.jones@company.com', action: 'Sub-account changed', details: 'Added to Support sub-account' },
+                { timestamp: '2025-01-05 16:10:00', user: 'john.smith@company.com', action: 'Status changed', details: 'Reactivated from suspended' },
+                { timestamp: '2025-01-02 11:00:00', user: 'admin@quicksms.com', action: 'Status changed', details: 'Suspended for maintenance' },
+                { timestamp: '2024-01-10 09:00:00', user: 'admin@quicksms.com', action: 'Number purchased', details: 'Dedicated shortcode acquired' }
+            ],
             portalConfig: {
                 allowSenderID: true,
                 enableInboxReplies: true,
@@ -1820,6 +1907,13 @@ $(document).ready(function() {
         $('#drawerPurchaseDate').text(formatDate(num.purchaseDate));
         $('#drawerRenewalDate').text(formatDate(num.renewalDate));
         
+        // Populate audit trail
+        $('#drawerCreatedAt').text(num.createdAt ? formatDateTime(num.createdAt) : '-');
+        $('#drawerCreatedBy').text(num.createdBy || '-');
+        $('#drawerModifiedAt').text(num.modifiedAt ? formatDateTime(num.modifiedAt) : '-');
+        $('#drawerModifiedBy').text(num.modifiedBy || '-');
+        renderAuditHistory(num);
+        
         // Update mode selection buttons
         updateModeSelectionUI(num.mode);
         
@@ -1849,6 +1943,69 @@ $(document).ready(function() {
             $('#portalConfigCard').hide();
             $('#apiConfigCard').show();
         }
+    }
+
+    function renderAuditHistory(num) {
+        var container = $('#drawerAuditHistory');
+        
+        if (!num.auditHistory || num.auditHistory.length === 0) {
+            container.html('<div class="text-muted small">No audit history available</div>');
+            return;
+        }
+        
+        // Show last 5 entries (most recent first)
+        var recentHistory = num.auditHistory.slice(0, 5);
+        
+        var html = '';
+        recentHistory.forEach(function(entry) {
+            html += '<div class="audit-history-item">';
+            html += '<div class="audit-action">' + entry.action + '</div>';
+            html += '<div class="audit-details">' + entry.details + '</div>';
+            html += '<div class="audit-meta">';
+            html += '<i class="fas fa-user me-1"></i>' + entry.user;
+            html += ' &bull; <i class="fas fa-clock ms-1 me-1"></i>' + formatDateTime(entry.timestamp);
+            html += '</div>';
+            html += '</div>';
+        });
+        
+        container.html(html);
+    }
+
+    // Add audit entry helper - called when changes are made
+    // TODO: Backend integration - audit entries should be created server-side with authenticated user info
+    function addAuditEntry(num, action, details) {
+        if (!num.auditHistory) {
+            num.auditHistory = [];
+        }
+        
+        var entry = {
+            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            user: 'current.user@company.com', // TODO: Get from authenticated session
+            action: action,
+            details: details
+        };
+        
+        // Add to beginning of array (most recent first)
+        num.auditHistory.unshift(entry);
+        
+        // Update modification timestamp
+        num.modifiedAt = entry.timestamp;
+        num.modifiedBy = entry.user;
+        
+        /*
+         * TODO: Backend propagation - changes must reflect instantly across all modules:
+         * - Send Message: Update available SenderID pickers
+         * - Inbox: Update available inbox numbers and routing
+         * - Email-to-SMS: Update number assignments and defaults
+         * - API usage: Update webhook configurations and routing
+         * - Reporting attribution: Update sub-account associations for analytics
+         * 
+         * Implementation approach:
+         * 1. All changes should trigger a backend API call
+         * 2. Backend should update the database and broadcast changes via websockets/events
+         * 3. Other modules should listen for number configuration changes
+         * 4. Consider using Laravel events: NumberStatusChanged, NumberModeChanged, NumberConfigUpdated
+         */
     }
 
     function populatePortalConfig(num) {
@@ -2252,7 +2409,9 @@ $(document).ready(function() {
         // 4. Propagate changes to all modules immediately
         
         // Update local data
+        var oldMode = num.mode;
         num.mode = newMode;
+        addAuditEntry(num, 'Mode changed', 'Changed from ' + (oldMode === 'portal' ? 'Portal' : 'API') + ' to ' + (newMode === 'portal' ? 'Portal' : 'API'));
         
         // Update capabilities based on mode
         if (newMode === 'api') {
@@ -2323,8 +2482,9 @@ $(document).ready(function() {
         $('#confirmModalBtn').removeClass('btn-primary btn-danger').addClass('btn-warning').text('Suspend');
         
         $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call
+            // TODO: Backend API call with audit logging
             num.status = 'suspended';
+            addAuditEntry(num, 'Status changed', 'Number suspended');
             renderTable();
             bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
             toastr.success('Number suspended successfully');
@@ -2344,8 +2504,9 @@ $(document).ready(function() {
         $('#confirmModalBtn').removeClass('btn-warning btn-danger').addClass('btn-primary').text('Reactivate');
         
         $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call
+            // TODO: Backend API call with audit logging
             num.status = 'active';
+            addAuditEntry(num, 'Status changed', 'Number reactivated');
             renderTable();
             bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
             toastr.success('Number reactivated successfully');
@@ -2392,7 +2553,18 @@ $(document).ready(function() {
         }
         
         // TODO: Backend API call with audit logging
+        var oldSubAccounts = num.subAccounts ? num.subAccounts.slice() : [];
         num.subAccounts = selectedSubAccounts;
+        
+        // Log sub-account changes
+        var added = selectedSubAccounts.filter(function(sa) { return !oldSubAccounts.includes(sa); });
+        var removed = oldSubAccounts.filter(function(sa) { return !selectedSubAccounts.includes(sa); });
+        var changes = [];
+        if (added.length > 0) changes.push('Added: ' + added.join(', '));
+        if (removed.length > 0) changes.push('Removed: ' + removed.join(', '));
+        if (changes.length > 0) {
+            addAuditEntry(num, 'Sub-account changed', changes.join('; '));
+        }
         
         // Update portalConfig defaults - remove defaults for unassigned sub-accounts
         if (num.portalConfig && num.portalConfig.defaults) {
