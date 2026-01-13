@@ -2016,13 +2016,22 @@ $(document).ready(function() {
     var EMAIL_DOMAIN = '@sms.quicksms.io';
 
     // Close all other dropdowns when opening a new one
-    $(document).on('show.bs.dropdown', '.action-menu-btn', function() {
-        $('.action-menu-btn').not(this).each(function() {
-            var dropdown = bootstrap.Dropdown.getInstance(this);
-            if (dropdown) {
-                dropdown.hide();
-            }
+    $(document).on('show.bs.dropdown', '[data-bs-toggle="dropdown"]', function(e) {
+        var currentToggle = this;
+        $('[data-bs-toggle="dropdown"][aria-expanded="true"]').not(currentToggle).each(function() {
+            var dropdown = bootstrap.Dropdown.getOrCreateInstance(this);
+            dropdown.hide();
         });
+    });
+
+    // Close dropdowns when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.dropdown').length) {
+            $('[data-bs-toggle="dropdown"][aria-expanded="true"]').each(function() {
+                var dropdown = bootstrap.Dropdown.getOrCreateInstance(this);
+                dropdown.hide();
+            });
+        }
     });
     
     function escapeHtml(text) {

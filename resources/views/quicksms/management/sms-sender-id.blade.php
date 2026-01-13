@@ -1114,6 +1114,25 @@
 $(document).ready(function() {
     // Initialize Bootstrap Select for multi-select filters
     $('.selectpicker').selectpicker();
+
+    // Close all other dropdowns when opening a new one
+    $(document).on('show.bs.dropdown', '[data-bs-toggle="dropdown"]', function(e) {
+        var currentToggle = this;
+        $('[data-bs-toggle="dropdown"][aria-expanded="true"]').not(currentToggle).each(function() {
+            var dropdown = bootstrap.Dropdown.getOrCreateInstance(this);
+            dropdown.hide();
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.dropdown').length) {
+            $('[data-bs-toggle="dropdown"][aria-expanded="true"]').each(function() {
+                var dropdown = bootstrap.Dropdown.getOrCreateInstance(this);
+                dropdown.hide();
+            });
+        }
+    });
     
     // Available usage scopes for SenderIDs (all enabled by default when approved)
     var SENDERID_SCOPES = {

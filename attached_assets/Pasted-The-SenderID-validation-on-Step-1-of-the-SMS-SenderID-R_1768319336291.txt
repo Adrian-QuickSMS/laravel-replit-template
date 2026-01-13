@@ -1,0 +1,150 @@
+The SenderID validation on Step 1 of the SMS SenderID Registration wizard is not working correctly. Users can type invalid characters without any real-time feedback.
+
+FILE: resources/views/quicksms/management/sms-sender-id-wizard.blade.php
+
+PROBLEMS:
+1. Validation only runs when clicking "Next" button, not while typing
+2. Alphanumeric regex incorrectly allows dots (.) which violate UK compliance
+3. No visual feedback for invalid characters until trying to proceed to next step
+
+---
+
+FIX #1: Remove dot from allowed characters
+
+LOCATION: Line 739
+CHANGE FROM:
+var alphaPattern = /^[A-Za-z0-9.\-_& ]+$/;
+
+CHANGE TO:
+var alphaPattern = /^[A-Za-z0-9\-_& ]+$/;
+
+LOCATION: Line 742
+CHANGE FROM:
+$('#senderIdError').text('Only A-Z, a-z, 0-9, ., -, _, &, and space are allowed').addClass('d-block').show();
+
+CHANGE TO:
+$('#senderIdError').text('Only A-Z, a-z, 0-9, -, _, &, and space are allowed').addClass('d-block').show();
+
+LOCATION: Line 324
+CHANGE FROM:
+<small class="text-muted" id="senderIdHint">Max 11 characters: A-Z a-z 0-9 . - _ & space</small>
+
+CHANGE TO:
+<small class="text-muted" id="senderIdHint">Max 11 characters: A-Z a-z 0-9 - _ & space</small>
+
+---
+
+FIX #2: Add real-time validation as user types
+
+LOCATION: Lines 708-711
+
+REPLACE THIS:
+$('#inputSenderId').on('input', function() {
+    var val = $(this).val();
+    $('#senderIdCharCount').text(val.length);
+});
+
+WITH THIS:
+$('#inputSenderId').on('input', function() {
+    var val = $(this).val();
+    $('#senderIdCharCount').text(val.length);
+    
+    // Real-time validation feedback
+    var $input = $(this);
+    var $error = $('#senderIdError');
+    
+    $input.removeClass('is-invalid');
+    $error.removeClass('d-block').hide();
+    
+    if (!val) {
+        // Empty is OK while typing, only show error on Next
+        return;
+    }
+    
+    var hasError = false;
+    var errorMsg = '';
+    
+    if (selectedType === 'alphanumeric') {
+        var alphaPattern = /^[A-Za-z0-9\-_& ]+$/;
+        if (!alphaPattern.test(val)) {
+            hasError = true;
+            errorMsg = 'Only A-Z, a-z, 0-9, -, _, &, and space are allowed';
+        } else if (val.length > 11) {
+            hasError = true;
+            errorMsg = 'Maximum 11 characters allowed';
+        }
+    } else if (selectedType === 'numeric') {
+        // Check if input contains only digits
+        if (!/^\d*$/.test(val)) {
+            hasError = true;
+            errorMsg = 'Only numbers are allowed';
+        } else if (val.length > 0) {
+            // Check if it starts with 447
+            if (!val.startsWith('447') && val.length >= 3) {
+                hasError = true;
+                errorMsg = 'UK mobile number must start with 447';
+            } else if (val.length > 12) {
+                hasError = true;
+                errorMsg = 'UK mobile number must be exactly 12 digits';
+            }
+        }
+    } else if (selectedType === 'shortcode') {
+        if (!/^\d*$/.test(val)) {
+            hasError = true;
+            errorMsg = 'Only numbers are allowed';
+        } else if (val.length > 0 && val.length === 5) {
+            var firstDigit = val.charAt(0);
+            if (firstDigit !== '6' && firstDigit !== '7' && firstDigit !== '8') {
+                hasError = true;
+                errorMsg = 'Shortcode must start with 6, 7, or 8';
+            }
+        } else if (val.length > 5) {
+            hasError = true;
+            errorMsg = 'Shortcode must be exactly 5 digits';
+        }
+    }
+    
+    if (hasError) {
+        $input.addClass('is-invalid');
+        $error.text(errorMsg).addClass('d-block').show();
+    }
+});
+
+---
+
+WHY THIS WORKS:
+1. Removes dot (.) from alphanumeric allowed characters to match UK compliance
+2. Validates input in real-time as user types
+3. Shows immediate visual feedback (red border + error message) for invalid characters
+4. Provides helpful error messages specific to each SenderID type
+5. Still allows partial input while typing (e.g., for numeric, allows typing "44" before completing "447...")
+
+---
+
+TESTING:
+Alphanumeric:
+1. Go to Management > SMS SenderID Registration
+2. Select "Alphanumeric" type
+3. Type "UC&@" - should immediately show error "Only A-Z, a-z, 0-9, -, _, &, and space are allowed"
+4. Remove @ symbol - error should disappear
+5. Type more than 11 characters - should show "Maximum 11 characters allowed"
+6. Type "MyBrand" - no error shown, can proceed
+
+Numeric:
+1. Select "Numeric" type
+2. Type "abc" - should show "Only numbers are allowed"
+3. Type "123" - should show "UK mobile number must start with 447"
+4. Type "447700900123" - no error shown
+5. Type more than 12 digits - should show error
+
+Shortcode:
+1. Select "Shortcode" type  
+2. Type "12345" - should show "Shortcode must start with 6, 7, or 8"
+3. Type "60123" - no error shown
+4. Type "601234" (6 digits) - should show "Shortcode must be exactly 5 digits"
+
+CRITICAL:
+- Make ALL THREE changes (regex, error message, hint text)
+- Test that validation shows immediately as you type
+- Test that valid input doesn't show errors
+- Test clicking "Next" still validates properly
