@@ -1970,6 +1970,19 @@
 $(document).ready(function() {
     var EMAIL_DOMAIN = '@sms.quicksms.io';
     
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        var str = String(text);
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return str.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+    
     var overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
     var reportingGroups = EmailToSmsService.getMockReportingGroups();
     
