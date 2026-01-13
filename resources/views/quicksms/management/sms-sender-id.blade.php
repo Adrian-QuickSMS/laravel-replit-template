@@ -73,14 +73,15 @@
     white-space: nowrap;
     user-select: none;
 }
-.senderid-table thead th:first-child { width: 18%; }
-.senderid-table thead th:nth-child(2) { width: 20%; }
-.senderid-table thead th:nth-child(3) { width: 14%; }
-.senderid-table thead th:nth-child(4) { width: 13%; }
-.senderid-table thead th:nth-child(5) { width: 15%; }
-.senderid-table thead th:nth-child(6) { width: 12%; }
+.senderid-table thead th:first-child { width: 16%; }
+.senderid-table thead th:nth-child(2) { width: 11%; }
+.senderid-table thead th:nth-child(3) { width: 16%; }
+.senderid-table thead th:nth-child(4) { width: 12%; }
+.senderid-table thead th:nth-child(5) { width: 11%; }
+.senderid-table thead th:nth-child(6) { width: 13%; }
+.senderid-table thead th:nth-child(7) { width: 11%; }
 .senderid-table thead th:last-child { 
-    width: 8%; 
+    width: 7%; 
     position: sticky;
     right: 0;
     background: #f8f9fa;
@@ -164,6 +165,60 @@
 .badge-alerts {
     background: rgba(48, 101, 208, 0.15);
     color: #3065D0;
+}
+.badge-alphanumeric {
+    background: rgba(136, 108, 192, 0.15);
+    color: #886CC0;
+}
+.badge-numeric {
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
+}
+.badge-shortcode {
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff6b6b;
+}
+.type-selector {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.type-card {
+    flex: 1;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    text-align: center;
+}
+.type-card:hover {
+    border-color: rgba(136, 108, 192, 0.5);
+    background: rgba(136, 108, 192, 0.02);
+}
+.type-card.selected {
+    border-color: var(--primary);
+    background: rgba(136, 108, 192, 0.08);
+}
+.type-card-icon {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+.type-card.selected .type-card-icon {
+    color: var(--primary);
+}
+.type-card-title {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #343a40;
+    margin-bottom: 0.15rem;
+}
+.type-card-desc {
+    font-size: 0.7rem;
+    color: #6c757d;
+    line-height: 1.3;
 }
 .search-filter-bar {
     display: flex;
@@ -417,7 +472,13 @@
                 </div>
             </div>
             <div class="filters-group">
-                <select class="form-select form-select-sm" id="filterStatus" style="width: 140px;">
+                <select class="form-select form-select-sm" id="filterType" style="width: 130px;">
+                    <option value="">All Types</option>
+                    <option value="alphanumeric">Alphanumeric</option>
+                    <option value="numeric">Numeric</option>
+                    <option value="shortcode">Shortcode</option>
+                </select>
+                <select class="form-select form-select-sm" id="filterStatus" style="width: 130px;">
                     <option value="">All Status</option>
                     <option value="pending">Pending Review</option>
                     <option value="under-review">Under Review</option>
@@ -425,7 +486,7 @@
                     <option value="rejected">Rejected</option>
                     <option value="suspended">Suspended</option>
                 </select>
-                <select class="form-select form-select-sm" id="filterUseCase" style="width: 140px;">
+                <select class="form-select form-select-sm" id="filterUseCase" style="width: 130px;">
                     <option value="">All Use Cases</option>
                     <option value="otp">OTP / Verification</option>
                     <option value="marketing">Marketing</option>
@@ -443,6 +504,7 @@
                 <thead>
                     <tr>
                         <th data-sort="senderId" onclick="sortTable('senderId')">SenderID <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="type" onclick="sortTable('type')">Type <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="brand" onclick="sortTable('brand')">Brand / Company <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="useCase" onclick="sortTable('useCase')">Use Case <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
@@ -477,12 +539,37 @@
     <div class="drawer-body">
         <form id="registerForm">
             <div class="mb-3">
+                <label class="form-label form-label-required">SenderID Type</label>
+                <div class="type-selector">
+                    <div class="type-card selected" data-type="alphanumeric">
+                        <div class="type-card-icon"><i class="fas fa-font"></i></div>
+                        <div class="type-card-title">Alphanumeric</div>
+                        <div class="type-card-desc">Text-based ID<br>e.g. MYBRAND</div>
+                    </div>
+                    <div class="type-card" data-type="numeric">
+                        <div class="type-card-icon"><i class="fas fa-phone"></i></div>
+                        <div class="type-card-title">Numeric</div>
+                        <div class="type-card-desc">UK Virtual Mobile<br>e.g. +447700...</div>
+                    </div>
+                    <div class="type-card" data-type="shortcode">
+                        <div class="type-card-icon"><i class="fas fa-hashtag"></i></div>
+                        <div class="type-card-title">Shortcode</div>
+                        <div class="type-card-desc">Short number<br>e.g. 60123</div>
+                    </div>
+                </div>
+                <input type="hidden" id="inputType" value="alphanumeric">
+                <div class="invalid-feedback d-block" id="typeError" style="display: none !important;"></div>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label form-label-required">SenderID</label>
-                <input type="text" class="form-control senderid-input" id="inputSenderId" 
-                       maxlength="11" placeholder="e.g. MYCOMPANY" autocomplete="off">
+                <div id="senderIdInputWrapper">
+                    <input type="text" class="form-control senderid-input" id="inputSenderId" 
+                           maxlength="11" placeholder="e.g. MYCOMPANY" autocomplete="off">
+                </div>
                 <div class="d-flex justify-content-between">
                     <div class="validation-hint" id="senderIdHint">3-11 alphanumeric characters, must start with a letter</div>
-                    <div class="char-counter"><span id="senderIdCharCount">0</span>/11</div>
+                    <div class="char-counter" id="charCounterWrapper"><span id="senderIdCharCount">0</span>/11</div>
                 </div>
                 <div class="invalid-feedback" id="senderIdError"></div>
             </div>
@@ -550,6 +637,10 @@
             <div class="detail-row">
                 <div class="detail-label">SenderID</div>
                 <div class="detail-value"><span id="detailSenderId" class="senderid-name"></span></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Type</div>
+                <div class="detail-value" id="detailType"></div>
             </div>
             <div class="detail-row">
                 <div class="detail-label">Brand / Company</div>
@@ -642,6 +733,7 @@ $(document).ready(function() {
         {
             id: 'sid_001',
             senderId: 'QUICKSMS',
+            type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'transactional',
             description: 'Order confirmations and delivery updates',
@@ -649,14 +741,15 @@ $(document).ready(function() {
             status: 'approved',
             created: '2024-01-15T10:30:00Z',
             auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-16T14:22:00Z', type: 'approved' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-01-15T10:35:00Z', type: 'submitted' },
-                { action: 'Submitted for Review', user: 'John Smith', timestamp: '2024-01-15T10:30:00Z', type: 'submitted' }
+                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-16T14:22:00Z', auditType: 'approved' },
+                { action: 'Under Review', user: 'System', timestamp: '2024-01-15T10:35:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Review', user: 'John Smith', timestamp: '2024-01-15T10:30:00Z', auditType: 'submitted' }
             ]
         },
         {
             id: 'sid_002',
             senderId: 'ALERTS',
+            type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'alerts',
             description: 'System alerts and notifications',
@@ -664,14 +757,47 @@ $(document).ready(function() {
             status: 'approved',
             created: '2024-02-01T09:00:00Z',
             auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-02T11:45:00Z', type: 'approved' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-02-01T09:05:00Z', type: 'submitted' },
-                { action: 'Submitted for Review', user: 'Jane Doe', timestamp: '2024-02-01T09:00:00Z', type: 'submitted' }
+                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-02T11:45:00Z', auditType: 'approved' },
+                { action: 'Under Review', user: 'System', timestamp: '2024-02-01T09:05:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Review', user: 'Jane Doe', timestamp: '2024-02-01T09:00:00Z', auditType: 'submitted' }
             ]
         },
         {
             id: 'sid_003',
+            senderId: '+447700900123',
+            type: 'numeric',
+            brand: 'QuickSMS Ltd',
+            useCase: 'otp',
+            description: 'Two-way messaging for customer support',
+            subaccount: 'Customer Support',
+            status: 'approved',
+            created: '2024-02-15T11:30:00Z',
+            auditHistory: [
+                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-16T09:00:00Z', auditType: 'approved' },
+                { action: 'Under Review', user: 'System', timestamp: '2024-02-15T11:35:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Review', user: 'Support Team', timestamp: '2024-02-15T11:30:00Z', auditType: 'submitted' }
+            ]
+        },
+        {
+            id: 'sid_004',
+            senderId: '60123',
+            type: 'shortcode',
+            brand: 'QuickSMS Ltd',
+            useCase: 'marketing',
+            description: 'Marketing campaigns and promotional offers',
+            subaccount: 'Marketing Department',
+            status: 'approved',
+            created: '2024-01-20T14:00:00Z',
+            auditHistory: [
+                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-01-22T10:00:00Z', auditType: 'approved' },
+                { action: 'Under Review', user: 'System', timestamp: '2024-01-20T14:05:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Review', user: 'Marketing Team', timestamp: '2024-01-20T14:00:00Z', auditType: 'submitted' }
+            ]
+        },
+        {
+            id: 'sid_005',
             senderId: 'PROMO',
+            type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'marketing',
             description: 'Marketing campaigns and special offers',
@@ -679,12 +805,13 @@ $(document).ready(function() {
             status: 'pending',
             created: '2024-03-10T14:20:00Z',
             auditHistory: [
-                { action: 'Submitted for Review', user: 'Marketing Team', timestamp: '2024-03-10T14:20:00Z', type: 'submitted' }
+                { action: 'Submitted for Review', user: 'Marketing Team', timestamp: '2024-03-10T14:20:00Z', auditType: 'submitted' }
             ]
         },
         {
-            id: 'sid_004',
+            id: 'sid_006',
             senderId: 'VERIFY',
+            type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'otp',
             description: 'Two-factor authentication codes',
@@ -692,13 +819,14 @@ $(document).ready(function() {
             status: 'under-review',
             created: '2024-03-12T16:45:00Z',
             auditHistory: [
-                { action: 'Under Review', user: 'Compliance Team', timestamp: '2024-03-13T09:00:00Z', type: 'submitted' },
-                { action: 'Submitted for Review', user: 'Tech Team', timestamp: '2024-03-12T16:45:00Z', type: 'submitted' }
+                { action: 'Under Review', user: 'Compliance Team', timestamp: '2024-03-13T09:00:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Review', user: 'Tech Team', timestamp: '2024-03-12T16:45:00Z', auditType: 'submitted' }
             ]
         },
         {
-            id: 'sid_005',
+            id: 'sid_007',
             senderId: 'BANK',
+            type: 'alphanumeric',
             brand: 'QuickSMS Ltd',
             useCase: 'transactional',
             description: 'Banking notifications',
@@ -707,9 +835,9 @@ $(document).ready(function() {
             created: '2024-03-05T11:00:00Z',
             rejectionReason: 'SenderID "BANK" is a reserved term and cannot be registered without additional verification of financial institution status.',
             auditHistory: [
-                { action: 'Rejected', user: 'Compliance Team', timestamp: '2024-03-06T10:30:00Z', type: 'rejected', reason: 'Reserved term - requires financial verification' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-03-05T11:05:00Z', type: 'submitted' },
-                { action: 'Submitted for Review', user: 'John Smith', timestamp: '2024-03-05T11:00:00Z', type: 'submitted' }
+                { action: 'Rejected', user: 'Compliance Team', timestamp: '2024-03-06T10:30:00Z', auditType: 'rejected', reason: 'Reserved term - requires financial verification' },
+                { action: 'Under Review', user: 'System', timestamp: '2024-03-05T11:05:00Z', auditType: 'submitted' },
+                { action: 'Submitted for Review', user: 'John Smith', timestamp: '2024-03-05T11:00:00Z', auditType: 'submitted' }
             ]
         }
     ];
@@ -761,8 +889,27 @@ $(document).ready(function() {
         return badges[useCase] || useCase;
     }
 
+    function getTypeBadge(senderIdType) {
+        var badges = {
+            'alphanumeric': '<span class="badge badge-alphanumeric">Alphanumeric</span>',
+            'numeric': '<span class="badge badge-numeric">Numeric</span>',
+            'shortcode': '<span class="badge badge-shortcode">Shortcode</span>'
+        };
+        return badges[senderIdType] || senderIdType;
+    }
+
+    function getTypeLabel(senderIdType) {
+        var labels = {
+            'alphanumeric': 'Alphanumeric',
+            'numeric': 'UK Virtual Mobile Number',
+            'shortcode': 'Shortcode'
+        };
+        return labels[senderIdType] || senderIdType;
+    }
+
     function filterSenderIds() {
         var search = $('#searchInput').val().toLowerCase();
+        var filterType = $('#filterType').val();
         var status = $('#filterStatus').val();
         var useCase = $('#filterUseCase').val();
 
@@ -771,9 +918,10 @@ $(document).ready(function() {
                 item.senderId.toLowerCase().includes(search) ||
                 item.brand.toLowerCase().includes(search) ||
                 (item.description && item.description.toLowerCase().includes(search));
+            var matchType = !filterType || item.type === filterType;
             var matchStatus = !status || item.status === status;
             var matchUseCase = !useCase || item.useCase === useCase;
-            return matchSearch && matchStatus && matchUseCase;
+            return matchSearch && matchType && matchStatus && matchUseCase;
         });
     }
 
@@ -812,6 +960,7 @@ $(document).ready(function() {
         paged.forEach(function(item) {
             html += '<tr data-id="' + item.id + '">';
             html += '<td><span class="senderid-name">' + escapeHtml(item.senderId) + '</span></td>';
+            html += '<td>' + getTypeBadge(item.type) + '</td>';
             html += '<td>' + escapeHtml(item.brand) + '</td>';
             html += '<td>' + getUseCaseBadge(item.useCase) + '</td>';
             html += '<td>' + getStatusBadge(item.status) + '</td>';
@@ -893,8 +1042,36 @@ $(document).ready(function() {
         $('#inputBrand').removeClass('is-invalid');
         $('#inputUseCase').removeClass('is-invalid');
         $('#senderIdCharCount').text('0');
+        $('.type-card').removeClass('selected');
+        $('.type-card[data-type="alphanumeric"]').addClass('selected');
+        $('#inputType').val('alphanumeric');
+        updateSenderIdInputForType('alphanumeric');
         $('#registerDrawerBackdrop').addClass('show');
         $('#registerDrawer').addClass('show');
+    }
+
+    function updateSenderIdInputForType(senderIdType) {
+        var $input = $('#inputSenderId');
+        var $hint = $('#senderIdHint');
+        var $counter = $('#charCounterWrapper');
+        
+        $input.val('').removeClass('is-invalid');
+        $('#senderIdCharCount').text('0');
+        
+        if (senderIdType === 'alphanumeric') {
+            $input.attr('maxlength', '11').attr('placeholder', 'e.g. MYBRAND').removeClass('form-control-lg');
+            $hint.text('3-11 alphanumeric characters, must start with a letter');
+            $counter.show().find('#senderIdCharCount').next().remove();
+            $counter.html('<span id="senderIdCharCount">0</span>/11');
+        } else if (senderIdType === 'numeric') {
+            $input.attr('maxlength', '14').attr('placeholder', 'e.g. +447700900123').removeClass('form-control-lg');
+            $hint.text('UK mobile number starting with +447');
+            $counter.hide();
+        } else if (senderIdType === 'shortcode') {
+            $input.attr('maxlength', '6').attr('placeholder', 'e.g. 60123').removeClass('form-control-lg');
+            $hint.text('5-6 digit UK shortcode');
+            $counter.show().html('<span id="senderIdCharCount">0</span>/6');
+        }
     }
 
     function closeRegisterDrawer() {
@@ -909,6 +1086,7 @@ $(document).ready(function() {
         selectedSenderId = item;
 
         $('#detailSenderId').text(item.senderId);
+        $('#detailType').html(getTypeBadge(item.type));
         $('#detailBrand').text(item.brand);
         $('#detailUseCase').html(getUseCaseBadge(item.useCase));
         $('#detailDescription').text(item.description || '-');
@@ -925,7 +1103,7 @@ $(document).ready(function() {
 
         var auditHtml = '';
         item.auditHistory.forEach(function(audit) {
-            auditHtml += '<div class="audit-item ' + audit.type + '">';
+            auditHtml += '<div class="audit-item ' + (audit.auditType || '') + '">';
             auditHtml += '<div class="audit-action">' + escapeHtml(audit.action) + '</div>';
             auditHtml += '<div class="audit-user">by ' + escapeHtml(audit.user) + '</div>';
             auditHtml += '<div class="audit-time">' + formatDateTime(audit.timestamp) + '</div>';
@@ -957,12 +1135,19 @@ $(document).ready(function() {
         selectedSenderId = null;
     }
 
-    function validateSenderId(value) {
+    function validateSenderId(value, senderIdType) {
         if (!value) return { valid: false, message: 'SenderID is required' };
-        if (value.length < 3) return { valid: false, message: 'Minimum 3 characters required' };
-        if (value.length > 11) return { valid: false, message: 'Maximum 11 characters allowed' };
-        if (!/^[A-Za-z]/.test(value)) return { valid: false, message: 'Must start with a letter' };
-        if (!/^[A-Za-z0-9]+$/.test(value)) return { valid: false, message: 'Only letters and numbers allowed' };
+        
+        if (senderIdType === 'alphanumeric') {
+            if (value.length < 3) return { valid: false, message: 'Minimum 3 characters required' };
+            if (value.length > 11) return { valid: false, message: 'Maximum 11 characters allowed' };
+            if (!/^[A-Za-z]/.test(value)) return { valid: false, message: 'Must start with a letter' };
+            if (!/^[A-Za-z0-9]+$/.test(value)) return { valid: false, message: 'Only letters and numbers allowed' };
+        } else if (senderIdType === 'numeric') {
+            if (!/^\+447\d{9}$/.test(value)) return { valid: false, message: 'Must be a valid UK mobile number (+447xxxxxxxxx)' };
+        } else if (senderIdType === 'shortcode') {
+            if (!/^\d{5,6}$/.test(value)) return { valid: false, message: 'Must be 5-6 digits' };
+        }
 
         var existing = senderIds.find(function(s) { return s.senderId.toUpperCase() === value.toUpperCase(); });
         if (existing) return { valid: false, message: 'This SenderID is already registered' };
@@ -970,12 +1155,31 @@ $(document).ready(function() {
         return { valid: true };
     }
 
+    $('.type-card').on('click', function() {
+        $('.type-card').removeClass('selected');
+        $(this).addClass('selected');
+        var selectedType = $(this).data('type');
+        $('#inputType').val(selectedType);
+        updateSenderIdInputForType(selectedType);
+    });
+
     $('#inputSenderId').on('input', function() {
-        var val = $(this).val().toUpperCase().replace(/[^A-Z0-9]/g, '');
-        $(this).val(val);
-        $('#senderIdCharCount').text(val.length);
+        var senderIdType = $('#inputType').val();
+        var val = $(this).val();
         
-        var result = validateSenderId(val);
+        if (senderIdType === 'alphanumeric') {
+            val = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        } else if (senderIdType === 'numeric') {
+            if (!val.startsWith('+')) val = '+' + val;
+            val = val.replace(/[^\d+]/g, '');
+        } else if (senderIdType === 'shortcode') {
+            val = val.replace(/[^\d]/g, '');
+        }
+        
+        $(this).val(val);
+        $('#senderIdCharCount').text(val.replace('+', '').length);
+        
+        var result = validateSenderId(val, senderIdType);
         if (val && !result.valid) {
             $(this).addClass('is-invalid');
             $('#senderIdError').text(result.message);
@@ -989,7 +1193,11 @@ $(document).ready(function() {
     $('#detailDrawerClose, #detailDrawerBackdrop').on('click', closeDetailDrawer);
 
     $('#btnSubmitRegister').on('click', function() {
-        var senderId = $('#inputSenderId').val().toUpperCase();
+        var senderIdType = $('#inputType').val();
+        var senderId = $('#inputSenderId').val();
+        if (senderIdType === 'alphanumeric') {
+            senderId = senderId.toUpperCase();
+        }
         var brand = $('#inputBrand').val().trim();
         var useCase = $('#inputUseCase').val();
         var description = $('#inputDescription').val().trim();
@@ -997,7 +1205,7 @@ $(document).ready(function() {
 
         var isValid = true;
 
-        var senderIdResult = validateSenderId(senderId);
+        var senderIdResult = validateSenderId(senderId, senderIdType);
         if (!senderIdResult.valid) {
             $('#inputSenderId').addClass('is-invalid');
             $('#senderIdError').text(senderIdResult.message);
@@ -1025,6 +1233,7 @@ $(document).ready(function() {
         var newEntry = {
             id: 'sid_' + Date.now(),
             senderId: senderId,
+            type: senderIdType,
             brand: brand,
             useCase: useCase,
             description: description,
@@ -1032,7 +1241,7 @@ $(document).ready(function() {
             status: 'pending',
             created: new Date().toISOString(),
             auditHistory: [
-                { action: 'Submitted for Review', user: 'Current User', timestamp: new Date().toISOString(), type: 'submitted' }
+                { action: 'Submitted for Review', user: 'Current User', timestamp: new Date().toISOString(), auditType: 'submitted' }
             ]
         };
 
@@ -1086,7 +1295,7 @@ $(document).ready(function() {
                 action: action === 'suspend' ? 'Suspended' : 'Reactivated',
                 user: 'Current User',
                 timestamp: new Date().toISOString(),
-                type: action === 'suspend' ? 'rejected' : 'approved'
+                auditType: action === 'suspend' ? 'rejected' : 'approved'
             });
             bootstrap.Modal.getInstance($('#suspendModal')[0]).hide();
             closeDetailDrawer();
@@ -1124,13 +1333,14 @@ $(document).ready(function() {
         renderTable();
     });
 
-    $('#filterStatus, #filterUseCase').on('change', function() {
+    $('#filterType, #filterStatus, #filterUseCase').on('change', function() {
         currentPage = 1;
         renderTable();
     });
 
     $('#btnResetFilters').on('click', function() {
         $('#searchInput').val('');
+        $('#filterType').val('');
         $('#filterStatus').val('');
         $('#filterUseCase').val('');
         currentPage = 1;
