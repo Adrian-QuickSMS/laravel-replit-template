@@ -120,9 +120,14 @@
     overflow: visible;
 }
 .table-container .dropdown-menu,
-.email-sms-table .dropdown-menu {
+.email-sms-table .dropdown-menu,
+.api-table .dropdown-menu {
     position: absolute;
-    z-index: 1050;
+    z-index: 1050 !important;
+}
+/* Ensure dropdown menus rendered to body appear above all table elements */
+body > .dropdown-menu {
+    z-index: 1060 !important;
 }
 #addresses,
 #addresses .card,
@@ -134,7 +139,10 @@
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow-x: auto;
+    overflow: visible;
+}
+.table-responsive {
+    overflow: visible !important;
 }
 .api-table {
     width: 100%;
