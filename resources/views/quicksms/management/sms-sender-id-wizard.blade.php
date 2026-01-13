@@ -347,20 +347,32 @@ button.btn-save-draft:hover {
 
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold">Subaccount(s)</label>
-                                            <select class="form-select" id="inputSubaccount" multiple>
-                                                <option value="main">Main Account</option>
-                                                <option value="marketing">Marketing Department</option>
-                                                <option value="support">Customer Support</option>
-                                                <option value="operations">Operations</option>
-                                            </select>
-                                            <small class="text-muted">Select one or more subaccounts to assign this SenderID</small>
+                                            <div class="multiselect-wrapper">
+                                                <div class="form-check mb-1">
+                                                    <input class="form-check-input" type="checkbox" id="selectAllSubaccounts">
+                                                    <label class="form-check-label small text-muted" for="selectAllSubaccounts">Select All</label>
+                                                </div>
+                                                <select class="form-select" id="inputSubaccount" multiple size="4">
+                                                    <option value="main">Main Account</option>
+                                                    <option value="marketing">Marketing Department</option>
+                                                    <option value="support">Customer Support</option>
+                                                    <option value="operations">Operations</option>
+                                                </select>
+                                            </div>
+                                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                                         </div>
 
                                         <div class="mb-3" id="usersSection" style="display: none;">
                                             <label class="form-label fw-semibold">Users</label>
-                                            <select class="form-select" id="inputUsers" multiple>
-                                            </select>
-                                            <small class="text-muted">Select specific users within the selected subaccount(s)</small>
+                                            <div class="multiselect-wrapper">
+                                                <div class="form-check mb-1">
+                                                    <input class="form-check-input" type="checkbox" id="selectAllUsers">
+                                                    <label class="form-check-label small text-muted" for="selectAllUsers">Select All</label>
+                                                </div>
+                                                <select class="form-select" id="inputUsers" multiple size="4">
+                                                </select>
+                                            </div>
+                                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                                         </div>
                                     </div>
                                 </div>
@@ -574,8 +586,16 @@ $(document).ready(function() {
     
     $('#btnSaveDraft').insertBefore('.sw-btn-prev');
 
+    $('#selectAllSubaccounts').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('#inputSubaccount option').prop('selected', isChecked);
+        $('#inputSubaccount').trigger('change');
+    });
+
     $('#inputSubaccount').on('change', function() {
         var selectedSubaccounts = $(this).val() || [];
+        var totalOptions = $('#inputSubaccount option').length;
+        $('#selectAllSubaccounts').prop('checked', selectedSubaccounts.length === totalOptions);
         
         if (selectedSubaccounts.length > 0) {
             var usersHtml = '';
@@ -586,11 +606,24 @@ $(document).ready(function() {
                 });
             });
             $('#inputUsers').html(usersHtml);
+            $('#selectAllUsers').prop('checked', false);
             $('#usersSection').show();
         } else {
             $('#inputUsers').html('');
+            $('#selectAllUsers').prop('checked', false);
             $('#usersSection').hide();
         }
+    });
+
+    $('#selectAllUsers').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('#inputUsers option').prop('selected', isChecked);
+    });
+
+    $('#inputUsers').on('change', function() {
+        var selectedUsers = $(this).val() || [];
+        var totalOptions = $('#inputUsers option').length;
+        $('#selectAllUsers').prop('checked', selectedUsers.length === totalOptions && totalOptions > 0);
     });
 
     $('#senderIdWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
