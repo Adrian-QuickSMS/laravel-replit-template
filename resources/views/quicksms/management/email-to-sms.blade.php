@@ -584,9 +584,9 @@
                                             <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#clFiltersPanel">
                                                 <i class="fas fa-filter"></i>
                                             </button>
-                                            <button type="button" class="btn btn-primary btn-sm" id="btnCreateContactListMapping">
+                                            <a href="{{ route('management.email-to-sms.create-mapping') }}" class="btn btn-primary btn-sm">
                                                 <i class="fas fa-plus me-1"></i> Create
-                                            </button>
+                                            </a>
                                         </div>
                                     </div>
                                     
@@ -651,9 +651,9 @@
                                         </div>
                                         <h6>No Contact List Mappings</h6>
                                         <p class="small text-muted mb-2">Create a mapping to link an Email-to-SMS Address to a Contact Book List.</p>
-                                        <button class="btn btn-primary btn-sm" id="btnCreateMappingEmpty">
+                                        <a href="{{ route('management.email-to-sms.create-mapping') }}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-plus me-1"></i> Create Mapping
-                                        </button>
+                                        </a>
                                     </div>
                                     
                                     <div class="d-flex justify-content-between align-items-center mt-2">

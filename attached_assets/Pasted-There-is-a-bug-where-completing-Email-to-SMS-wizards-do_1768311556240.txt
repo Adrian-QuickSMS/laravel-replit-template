@@ -1,0 +1,81 @@
+There is a bug where completing Email-to-SMS wizards does not add entries to the Overview or library tables.
+
+FILE: resources/views/quicksms/management/email-to-sms.blade.php
+
+BUG DESCRIPTION:
+When I complete the "Email-to-SMS - Standard" wizard or "Email-to-SMS - Contact List" wizard, the new entry does NOT appear in:
+- The Overview table
+- The Standard library table (for Standard entries)
+- The Contact Lists table (for Contact List entries)
+
+ROOT CAUSE:
+The wizards save entries to localStorage with property names "allowedSenderEmails" and "allowedSenders", but the table rendering function expects "originatingEmails" and "reportingGroup". This property mismatch causes rendering to fail.
+
+FIX #1 - Standard entries (lines 3700-3714):
+
+CHANGE line 3709 FROM:
+allowedSenders: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
+
+TO:
+originatingEmails: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
+
+ADD new line after that:
+reportingGroup: '-',
+
+FIX #2 - Contact List entries (lines 3716-3730):
+
+CHANGE line 3725 FROM:
+allowedSenders: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
+
+TO:
+originatingEmails: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
+
+ADD new line after that:
+reportingGroup: '-',
+
+COMPLETE CORRECTED CODE FOR BOTH SECTIONS:
+
+Lines 3700-3714 should be:
+var pendingStandard = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
+pendingStandard.forEach(function(entry) {
+    overviewAddresses.unshift({
+        id: entry.id,
+        email: 'mobilenumber' + EMAIL_DOMAIN,
+        name: entry.name,
+        description: entry.description,
+        type: 'Standard',
+        subaccount: entry.subaccount,
+        originatingEmails: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
+        reportingGroup: '-',
+        status: 'active',
+        created: entry.created,
+        lastUsed: '-'
+    });
+});
+
+Lines 3716-3730 should be:
+var pendingContactList = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
+pendingContactList.forEach(function(entry) {
+    overviewAddresses.unshift({
+        id: entry.id,
+        email: entry.emailAddress,
+        name: entry.name,
+        description: entry.description,
+        type: 'Contact List',
+        subaccount: entry.subaccountName,
+        originatingEmails: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
+        reportingGroup: '-',
+        status: 'active',
+        created: entry.created,
+        lastUsed: '-'
+    });
+});
+
+TESTING:
+1. Complete a Standard Email-to-SMS wizard
+2. Return to Email-to-SMS page
+3. Verify entry appears in Overview table
+4. Switch to Standard tab and verify entry appears there
+5. Complete a Contact List wizard (if Create button now works)
+6. Verify entry appears in Overview table with "Contact List" type
+7. Switch to Contact Lists tab and verify entry appears there
