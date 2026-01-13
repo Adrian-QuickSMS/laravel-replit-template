@@ -3896,7 +3896,7 @@ $(document).ready(function() {
         modal.show();
     }
     
-    $('#btnCreateContactListMapping, #btnCreateContactListMappingSidebar, #btnCreateMappingEmpty').on('click', function() {
+    $(document).on('click', '#btnCreateContactListMapping, #btnCreateContactListMappingSidebar, #btnCreateMappingEmpty', function() {
         window.location.href = '{{ route("management.email-to-sms.create-mapping") }}';
     });
     
