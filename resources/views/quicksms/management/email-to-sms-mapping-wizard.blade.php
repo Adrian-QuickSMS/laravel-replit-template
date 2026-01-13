@@ -759,7 +759,7 @@
                 
                 <div class="tab-content">
                     {{-- Contacts Tab --}}
-                    <div class="tab-pane fade show active" id="modalContactsTab">
+                    <div class="tab-pane show active" id="modalContactsTab">
                         <div class="row mb-2">
                             <div class="col-md-6">
                                 <div class="input-group input-group-sm">
@@ -832,7 +832,7 @@
                     </div>
                     
                     {{-- Static Lists Tab --}}
-                    <div class="tab-pane fade" id="modalListsTab">
+                    <div class="tab-pane" id="modalListsTab">
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                             <input type="text" class="form-control modal-list-search" placeholder="Search lists...">
@@ -854,7 +854,7 @@
                     </div>
                     
                     {{-- Dynamic Lists Tab --}}
-                    <div class="tab-pane fade" id="modalDynamicListsTab">
+                    <div class="tab-pane" id="modalDynamicListsTab">
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                             <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists...">
@@ -874,7 +874,7 @@
                     </div>
                     
                     {{-- Tags Tab --}}
-                    <div class="tab-pane fade" id="modalTagsTab">
+                    <div class="tab-pane" id="modalTagsTab">
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
                             <input type="text" class="form-control modal-tag-search" placeholder="Search tags...">
