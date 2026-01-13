@@ -1604,6 +1604,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function smsSenderIdRegister()
+    {
+        return view('quicksms.management.sms-sender-id-wizard', [
+            'page_title' => 'Register SenderID'
+        ]);
+    }
+
     public function templates()
     {
         // TODO: Replace with database query - GET /api/sender-ids
