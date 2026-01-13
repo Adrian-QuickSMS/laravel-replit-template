@@ -2503,6 +2503,26 @@ $(document).ready(function() {
                         status: item.status === 'active' ? 'Active' : 'Archived'
                     };
                 });
+                
+                var pendingContactList = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
+                if (pendingContactList.length > 0) {
+                    pendingContactList.forEach(function(entry) {
+                        contactListSetups.unshift({
+                            id: entry.id,
+                            name: entry.name,
+                            description: entry.description,
+                            subaccountId: entry.subaccount,
+                            subaccountName: entry.subaccountName,
+                            allowedSenders: entry.allowedSenders || [],
+                            targetLists: [entry.contactList],
+                            optOutLists: [],
+                            created: entry.created,
+                            lastUpdated: entry.created,
+                            status: 'Active'
+                        });
+                    });
+                    localStorage.removeItem('quicksms_pending_contactlist');
+                }
             }
             return contactListSetups;
         }).catch(function(error) {
