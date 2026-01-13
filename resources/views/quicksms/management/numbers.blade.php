@@ -911,6 +911,52 @@
     </div>
 </div>
 
+{{-- Single Number Assign Sub-Accounts Modal --}}
+<div class="modal fade" id="assignSubAccountModal" tabindex="-1" aria-labelledby="assignSubAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignSubAccountModalLabel"><i class="fas fa-building me-2"></i>Assign Sub-Accounts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Assigning sub-accounts for number: <strong><span id="assignSubAccountNumber"></span></strong>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Sub-Accounts</label>
+                    <p class="text-muted small mb-2">Controls visibility, defaults, and reporting scope for this number.</p>
+                    <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Main Account" id="assignSubAccMainSingle">
+                            <label class="form-check-label" for="assignSubAccMainSingle">Main Account</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Marketing" id="assignSubAccMarketingSingle">
+                            <label class="form-check-label" for="assignSubAccMarketingSingle">Marketing</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Support" id="assignSubAccSupportSingle">
+                            <label class="form-check-label" for="assignSubAccSupportSingle">Support</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Sales" id="assignSubAccSalesSingle">
+                            <label class="form-check-label" for="assignSubAccSalesSingle">Sales</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmAssignSubAccounts">
+                    <i class="fas fa-check me-1"></i> Apply Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Bulk Assign Sub-Accounts Modal --}}
 <div class="modal fade" id="assignSubAccountsModal" tabindex="-1" aria-labelledby="assignSubAccountsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1324,21 +1370,30 @@ $(document).ready(function() {
             html += '</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             
-            html += '<li><a class="dropdown-item" href="#" onclick="viewNumber(' + num.id + '); return false;">View Configuration</a></li>';
-            html += '<li><a class="dropdown-item" href="#" onclick="editNumber(' + num.id + '); return false;">Edit Configuration</a></li>';
+            // View Details - always available
+            html += '<li><a class="dropdown-item" href="#" onclick="viewNumber(' + num.id + '); return false;"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>';
             
+            // Edit Configuration - always available
+            html += '<li><a class="dropdown-item" href="#" onclick="editNumber(' + num.id + '); return false;"><i class="fas fa-cog me-2 text-muted"></i>Edit Configuration</a></li>';
+            
+            // Assign Sub-Accounts - Portal mode only
+            if (num.mode === 'portal') {
+                html += '<li><a class="dropdown-item" href="#" onclick="assignSubAccountsToNumber(' + num.id + '); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign Sub-Accounts</a></li>';
+            }
+            
+            // Suspend - only for active numbers
             if (num.status === 'active') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(' + num.id + '); return false;">Suspend Number</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(' + num.id + '); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
             }
             
+            // Reactivate - only for suspended numbers
             if (num.status === 'suspended') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(' + num.id + '); return false;">Reactivate Number</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(' + num.id + '); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
             }
             
-            html += '<li><hr class="dropdown-divider"></li>';
-            html += '<li><a class="dropdown-item text-danger" href="#" onclick="releaseNumber(' + num.id + '); return false;">Release Number</a></li>';
+            // NOTE: No delete/release action - numbers are never deleted
             
             html += '</ul>';
             html += '</div>';
@@ -2299,27 +2354,61 @@ $(document).ready(function() {
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
     };
 
-    // Release number function
-    window.releaseNumber = function(id) {
+    // Assign Sub-Accounts function (Portal mode only)
+    window.assignSubAccountsToNumber = function(id) {
+        var num = numbersData.find(function(n) { return n.id === id; });
+        if (!num || num.mode !== 'portal') return;
+        
+        // Populate modal with current assignments
+        $('#assignSubAccountNumber').text(num.number);
+        $('.assign-subacc-check').prop('checked', false);
+        if (num.subAccounts) {
+            num.subAccounts.forEach(function(sa) {
+                $('.assign-subacc-check[value="' + sa + '"]').prop('checked', true);
+            });
+        }
+        
+        // Store current number ID for confirmation
+        $('#assignSubAccountModal').data('number-id', id);
+        
+        new bootstrap.Modal(document.getElementById('assignSubAccountModal')).show();
+    };
+    
+    // Handle Assign Sub-Accounts confirmation
+    $('#btnConfirmAssignSubAccounts').on('click', function() {
+        var id = $('#assignSubAccountModal').data('number-id');
         var num = numbersData.find(function(n) { return n.id === id; });
         if (!num) return;
         
-        $('#confirmModalLabel').text('Release Number');
-        $('#confirmModalMessage').text('Are you sure you want to release ' + num.number + '? This action cannot be undone.');
-        $('#confirmModalWarning').show();
-        $('#confirmModalWarningText').text('You will stop being billed for this number at the end of the current billing period. The number will become available for other customers.');
-        $('#confirmModalBtn').removeClass('btn-primary btn-warning').addClass('btn-danger').text('Release Number');
-        
-        $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call
-            numbersData = numbersData.filter(function(n) { return n.id !== id; });
-            renderTable();
-            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-            toastr.success('Number released successfully');
+        // Get selected sub-accounts
+        var selectedSubAccounts = [];
+        $('.assign-subacc-check:checked').each(function() {
+            selectedSubAccounts.push($(this).val());
         });
         
-        new bootstrap.Modal(document.getElementById('confirmModal')).show();
-    };
+        if (selectedSubAccounts.length === 0) {
+            toastr.warning('Please select at least one sub-account');
+            return;
+        }
+        
+        // TODO: Backend API call with audit logging
+        num.subAccounts = selectedSubAccounts;
+        
+        // Update portalConfig defaults - remove defaults for unassigned sub-accounts
+        if (num.portalConfig && num.portalConfig.defaults) {
+            var newDefaults = {};
+            selectedSubAccounts.forEach(function(sa) {
+                if (num.portalConfig.defaults[sa]) {
+                    newDefaults[sa] = num.portalConfig.defaults[sa];
+                }
+            });
+            num.portalConfig.defaults = newDefaults;
+        }
+        
+        renderTable();
+        bootstrap.Modal.getInstance(document.getElementById('assignSubAccountModal')).hide();
+        toastr.success('Sub-account assignments updated for ' + num.number);
+    });
 
     // Initial render
     renderTable();
