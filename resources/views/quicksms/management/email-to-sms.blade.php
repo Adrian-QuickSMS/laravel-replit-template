@@ -135,6 +135,19 @@ body > .dropdown-menu.dropdown-menu-end {
     min-width: 150px !important;
     white-space: nowrap;
 }
+/* Fix dropdown z-index stacking context issue - elevate open dropdown above other rows */
+.email-sms-table td .dropdown,
+.api-table td .dropdown {
+    position: relative;
+}
+.email-sms-table td .dropdown.show,
+.api-table td .dropdown.show {
+    z-index: 2000 !important;
+}
+.email-sms-table td .dropdown.show .dropdown-menu,
+.api-table td .dropdown.show .dropdown-menu {
+    z-index: 2001 !important;
+}
 #addresses,
 #addresses .card,
 #addresses .card-body,

@@ -60,6 +60,16 @@ body > .dropdown-menu.dropdown-menu-end,
     min-width: 160px !important;
     white-space: nowrap;
 }
+/* Fix dropdown z-index stacking context issue - elevate open dropdown above other rows */
+.senderid-table td .dropdown {
+    position: relative;
+}
+.senderid-table td .dropdown.show {
+    z-index: 2000 !important;
+}
+.senderid-table td .dropdown.show .dropdown-menu {
+    z-index: 2001 !important;
+}
 .senderid-table {
     width: 100%;
     margin: 0;
