@@ -74,6 +74,8 @@
 }
 .form-wizard .tab-content {
     min-height: 300px;
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
     padding-bottom: 1rem;
 }
 .form-wizard .tab-content .tab-pane {
@@ -83,11 +85,13 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    padding-top: 1rem;
+    padding: 1rem 0 0 0;
     border-top: 1px solid #e9ecef;
     background: #fff;
-    position: relative;
+    position: sticky;
+    bottom: 0;
     z-index: 20;
+    margin-top: auto;
 }
 .form-wizard .sw-btn-prev,
 .form-wizard .sw-btn-next {
