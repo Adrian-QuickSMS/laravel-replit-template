@@ -564,13 +564,13 @@ $(document).ready(function() {
                        '<button class="btn btn-success" type="button" id="btnSubmit" style="display:none;"><i class="fas fa-paper-plane me-1"></i>Submit for Approval</button>'
         },
         anchor: {
-            enableNavigation: true,
+            enableNavigation: false,
             enableNavigationAlways: false,
             enableDoneState: true,
             markPreviousStepsAsDone: true,
             markAllPreviousStepsAsDone: true,
             removeDoneStepOnNavigateBack: false,
-            enableDoneStateNavigation: true
+            enableDoneStateNavigation: false
         },
         keyboard: {
             keyNavigation: false
@@ -639,7 +639,11 @@ $(document).ready(function() {
 
     $('#senderIdWizard').on('leaveStep', function(e, anchorObject, stepIndex, stepDirection) {
         if (stepDirection === 'forward') {
-            return validateStep(stepIndex);
+            var isValid = validateStep(stepIndex);
+            if (!isValid) {
+                e.preventDefault();
+                return false;
+            }
         }
         return true;
     });
