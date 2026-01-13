@@ -72,13 +72,22 @@
 .form-wizard .nav-wizard li .nav-link small {
     display: none;
 }
+.form-wizard .tab-content {
+    min-height: 300px;
+    padding-bottom: 1rem;
+}
+.form-wizard .tab-content .tab-pane {
+    padding-bottom: 1rem;
+}
 .form-wizard .toolbar-bottom {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid #e9ecef;
+    background: #fff;
+    position: relative;
+    z-index: 20;
 }
 .form-wizard .sw-btn-prev,
 .form-wizard .sw-btn-next {
