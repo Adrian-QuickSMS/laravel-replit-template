@@ -1,0 +1,100 @@
+The three dots dropdown menus are still overlapping in Email-to-SMS and SMS SenderID pages. The previous fixes were partially implemented but the auto-close JavaScript is broken.
+
+AFFECTED FILES:
+- resources/views/quicksms/management/email-to-sms.blade.php
+- resources/views/quicksms/management/sms-sender-id.blade.php
+
+PROBLEM:
+The auto-close handler (line 2019-2026 in email-to-sms.blade.php) doesn't work because:
+1. bootstrap.Dropdown.getInstance() returns null for dynamically created buttons
+2. It only targets .action-menu-btn class (SMS SenderID uses different classes)
+3. Bootstrap's built-in auto-close doesn't work with data-bs-container="body"
+
+SOLUTION:
+Replace the broken auto-close handler with a robust universal approach that works for ALL pages.
+
+---
+
+FIX #1: Email-to-SMS Page
+LOCATION: resources/views/quicksms/management/email-to-sms.blade.php
+
+FIND AND REPLACE lines 2019-2026:
+
+DELETE THIS BROKEN CODE:
+$(document).on('show.bs.dropdown', '.action-menu-btn', function() {
+    $('.action-menu-btn').not(this).each(function() {
+        var dropdown = bootstrap.Dropdown.getInstance(this);
+        if (dropdown) {
+            dropdown.hide();
+        }
+    });
+});
+
+REPLACE WITH THIS WORKING CODE:
+$(document).on('show.bs.dropdown', '[data-bs-toggle="dropdown"]', function(e) {
+    // Close all other open dropdowns
+    $('.dropdown-menu.show').removeClass('show');
+    $('[data-bs-toggle="dropdown"][aria-expanded="true"]').attr('aria-expanded', 'false');
+});
+
+// Also close dropdowns when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.dropdown').length) {
+        $('.dropdown-menu.show').removeClass('show');
+        $('[data-bs-toggle="dropdown"][aria-expanded="true"]').attr('aria-expanded', 'false');
+    }
+});
+
+---
+
+FIX #2: SMS SenderID Page
+LOCATION: resources/views/quicksms/management/sms-sender-id.blade.php
+
+ADD this code inside the $(document).ready() block (after line 1400, after the var declarations):
+
+// Close all other open dropdowns when opening a new one
+$(document).on('show.bs.dropdown', '[data-bs-toggle="dropdown"]', function(e) {
+    $('.dropdown-menu.show').removeClass('show');
+    $('[data-bs-toggle="dropdown"][aria-expanded="true"]').attr('aria-expanded', 'false');
+});
+
+// Close dropdowns when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.dropdown').length) {
+        $('.dropdown-menu.show').removeClass('show');
+        $('[data-bs-toggle="dropdown"][aria-expanded="true"]').attr('aria-expanded', 'false');
+    }
+});
+
+---
+
+WHY THIS WORKS:
+1. Targets ALL dropdown buttons using [data-bs-toggle="dropdown"] selector
+2. Directly manipulates DOM classes (.show) instead of relying on Bootstrap instances
+3. Works for dynamically created elements (event delegation on document)
+4. Closes dropdowns when clicking outside
+5. Works universally across both pages
+
+---
+
+TESTING:
+Email-to-SMS Page:
+1. Go to Management > Email-to-SMS > Overview tab
+2. Click three dots on row 1 - dropdown appears
+3. Click three dots on row 2 - row 1 dropdown closes automatically
+4. Click anywhere outside - dropdown closes
+5. Repeat for Contact Lists and Standard tabs
+
+SMS SenderID Page:
+1. Go to Management > SMS SenderID Registration
+2. Click three dots on row 1 - dropdown appears
+3. Click three dots on row 2 - row 1 dropdown closes automatically
+4. Click anywhere outside - dropdown closes
+5. Verify "View Details" and "View Audit History" options work
+
+CRITICAL:
+- You MUST replace the broken code in email-to-sms.blade.php
+- You MUST add the new code to sms-sender-id.blade.php
+- Do NOT remove data-bs-container="body" attributes
+- Do NOT change the overflow: visible CSS rules
+- Test that clicking outside dropdowns closes them
