@@ -293,7 +293,7 @@ button.btn-save-draft:hover {
                                 <div class="row">
                                     <div class="col-lg-8 mx-auto">
                                         <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 2: Email Settings</strong> – Configure which email addresses are allowed to trigger this setup. <span class="badge bg-secondary">Optional</span>
+                                            <strong>Step 2: Email Settings</strong> – Configure which email addresses are allowed to trigger this setup.
                                         </div>
                                         
                                         <div class="mb-3">
