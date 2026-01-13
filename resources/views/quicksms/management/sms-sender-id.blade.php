@@ -313,8 +313,7 @@
 }
 .senderid-input {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .char-counter {
     font-size: 0.75rem;
@@ -446,8 +445,9 @@
         <h6><i class="fas fa-shield-alt me-2"></i>UK Compliance Requirements</h6>
         <ul>
             <li>All SenderIDs must be registered and approved before use</li>
-            <li>SenderIDs must be 3-11 alphanumeric characters (letters and numbers only)</li>
-            <li>Cannot start with a number or contain spaces/special characters</li>
+            <li><strong>Alphanumeric:</strong> Max 11 characters (A-Z, a-z, 0-9, . - _ & space)</li>
+            <li><strong>Numeric:</strong> UK Virtual Mobile Number (+447xxxxxxxxx)</li>
+            <li><strong>Shortcode:</strong> 5-6 digit UK shortcode</li>
             <li>Must represent your brand and not impersonate others</li>
         </ul>
     </div>
@@ -1059,8 +1059,8 @@ $(document).ready(function() {
         $('#senderIdCharCount').text('0');
         
         if (senderIdType === 'alphanumeric') {
-            $input.attr('maxlength', '11').attr('placeholder', 'e.g. MYBRAND').removeClass('form-control-lg');
-            $hint.text('3-11 alphanumeric characters, must start with a letter');
+            $input.attr('maxlength', '11').attr('placeholder', 'e.g. MyBrand').removeClass('form-control-lg');
+            $hint.text('Max 11 characters: A-Z a-z 0-9 . - _ & space');
             $counter.show().find('#senderIdCharCount').next().remove();
             $counter.html('<span id="senderIdCharCount">0</span>/11');
         } else if (senderIdType === 'numeric') {
@@ -1139,10 +1139,15 @@ $(document).ready(function() {
         if (!value) return { valid: false, message: 'SenderID is required' };
         
         if (senderIdType === 'alphanumeric') {
-            if (value.length < 3) return { valid: false, message: 'Minimum 3 characters required' };
             if (value.length > 11) return { valid: false, message: 'Maximum 11 characters allowed' };
-            if (!/^[A-Za-z]/.test(value)) return { valid: false, message: 'Must start with a letter' };
-            if (!/^[A-Za-z0-9]+$/.test(value)) return { valid: false, message: 'Only letters and numbers allowed' };
+            
+            var allowedPattern = /^[A-Za-z0-9.\-_& ]+$/;
+            if (!allowedPattern.test(value)) {
+                var invalidChar = value.match(/[^A-Za-z0-9.\-_& ]/);
+                if (invalidChar) {
+                    return { valid: false, message: "Character '" + invalidChar[0] + "' is not permitted in SenderIDs" };
+                }
+            }
         } else if (senderIdType === 'numeric') {
             if (!/^\+447\d{9}$/.test(value)) return { valid: false, message: 'Must be a valid UK mobile number (+447xxxxxxxxx)' };
         } else if (senderIdType === 'shortcode') {
@@ -1167,16 +1172,15 @@ $(document).ready(function() {
         var senderIdType = $('#inputType').val();
         var val = $(this).val();
         
-        if (senderIdType === 'alphanumeric') {
-            val = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        } else if (senderIdType === 'numeric') {
-            if (!val.startsWith('+')) val = '+' + val;
+        if (senderIdType === 'numeric') {
+            if (val && !val.startsWith('+')) val = '+' + val;
             val = val.replace(/[^\d+]/g, '');
+            $(this).val(val);
         } else if (senderIdType === 'shortcode') {
             val = val.replace(/[^\d]/g, '');
+            $(this).val(val);
         }
         
-        $(this).val(val);
         $('#senderIdCharCount').text(val.replace('+', '').length);
         
         var result = validateSenderId(val, senderIdType);
@@ -1194,10 +1198,7 @@ $(document).ready(function() {
 
     $('#btnSubmitRegister').on('click', function() {
         var senderIdType = $('#inputType').val();
-        var senderId = $('#inputSenderId').val();
-        if (senderIdType === 'alphanumeric') {
-            senderId = senderId.toUpperCase();
-        }
+        var senderId = $('#inputSenderId').val().trim();
         var brand = $('#inputBrand').val().trim();
         var useCase = $('#inputUseCase').val();
         var description = $('#inputDescription').val().trim();
