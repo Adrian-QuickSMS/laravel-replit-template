@@ -129,6 +129,11 @@ body > .dropdown-menu.dropdown-menu-end,
     z-index: 1;
     box-shadow: -2px 0 4px rgba(0,0,0,0.05);
 }
+/* Raise sticky td z-index when dropdown is open to escape stacking context */
+.senderid-table tbody td:last-child:has(.dropdown.show),
+.senderid-table tbody td:last-child.dropdown-active {
+    z-index: 2000 !important;
+}
 .senderid-table tbody tr:last-child td {
     border-bottom: none;
 }
@@ -1141,6 +1146,14 @@ $(document).ready(function() {
             var dropdown = bootstrap.Dropdown.getOrCreateInstance(this);
             dropdown.hide();
         });
+    });
+
+    // Add/remove dropdown-active class on parent td for z-index fix (browser compatibility fallback for :has())
+    $(document).on('shown.bs.dropdown', '.senderid-table .dropdown', function() {
+        $(this).closest('td').addClass('dropdown-active');
+    });
+    $(document).on('hidden.bs.dropdown', '.senderid-table .dropdown', function() {
+        $(this).closest('td').removeClass('dropdown-active');
     });
 
     // Close dropdowns when clicking outside
