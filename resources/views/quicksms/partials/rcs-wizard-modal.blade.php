@@ -1,17 +1,17 @@
 <div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content d-flex flex-column">
-            <div class="modal-header py-3 flex-shrink-0" style="background: var(--primary); color: #fff;">
+        <div class="modal-content" style="height: 100vh; max-height: 100vh; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header py-3" style="background: var(--primary); color: #fff; flex-shrink: 0;">
                 <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
             </div>
-            <div class="modal-body p-0 flex-grow-1" style="overflow: hidden;">
-                <div class="row g-0 h-100">
-                    <div class="col-lg-5 p-4 d-flex flex-column align-items-center justify-content-start border-end h-100" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: auto;">
+            <div class="modal-body p-0" style="flex: 1 1 auto; overflow: hidden; min-height: 0;">
+                <div class="row g-0" style="height: 100%;">
+                    <div class="col-lg-5 p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: auto; height: 100%;">
                         <p class="text-muted small mb-3">Live Preview</p>
                         <div id="rcsWizardPreviewContainer"></div>
                     </div>
-                    <div class="col-lg-7 p-4 h-100" id="rcsConfigColumn" style="overflow-y: auto;">
+                    <div class="col-lg-7 p-4" id="rcsConfigColumn" style="overflow-y: auto; height: 100%;">
                         <div class="rcs-config-panel">
                             <div id="rcsValidationErrors" class="d-none"></div>
                             
@@ -257,7 +257,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer py-2 flex-shrink-0 border-top">
+            <div class="modal-footer py-2 border-top" style="flex-shrink: 0; background: #fff;">
                 <button type="button" class="btn btn-secondary" onclick="handleRcsWizardClose()">Cancel</button>
                 <button type="button" class="btn btn-primary" id="rcsApplyContentBtn" onclick="handleRcsApplyContent()" disabled>
                     <i class="fas fa-check me-1"></i>Apply RCS Content
