@@ -208,6 +208,36 @@
     border-radius: 0.5rem;
     padding: 1rem;
 }
+.subaccount-assignment-box {
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: #fff;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.subaccount-tree-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+.subaccount-tree-item:last-child {
+    border-bottom: none;
+}
+.subaccount-tree-item .toggle-users {
+    color: var(--primary);
+    text-decoration: none;
+}
+.subaccount-tree-item .toggle-users:hover {
+    color: #6c5b9e;
+}
+.subaccount-tree-item .user-list {
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+}
+.subaccount-tree-item .user-list .form-check {
+    margin-bottom: 0;
+}
 .mode-selector-card h6 {
     color: #333;
 }
@@ -416,19 +446,104 @@
                         
                         <div class="row">
                             <div class="col-lg-6 mb-4">
-                                <label class="form-label fw-bold">Sub-Account Attribution</label>
-                                <p class="text-muted small mb-2">API numbers can belong to only one sub-account.</p>
-                                <select class="form-select" id="apiSubAccountSelect">
-                                    <option value="">-- Select Sub-Account --</option>
-                                    <option value="Main Account">Main Account</option>
-                                    <option value="Marketing">Marketing</option>
-                                    <option value="Support">Support</option>
-                                </select>
+                                <label class="form-label fw-bold">Sub-Account & User Assignment</label>
+                                <p class="text-muted small mb-2">Assign this number to sub-accounts and specific users.</p>
+                                
+                                <div class="subaccount-assignment-box">
+                                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="apiSelectAllSubAccounts">
+                                            <label class="form-check-label fw-medium small" for="apiSelectAllSubAccounts">Select All Sub-Accounts</label>
+                                        </div>
+                                        <span class="badge badge-pastel-pink" id="apiSelectedSubAccountCount">0 selected</span>
+                                    </div>
+                                    
+                                    <div class="subaccount-tree" id="apiSubAccountTree">
+                                        <div class="subaccount-tree-item">
+                                            <div class="d-flex align-items-center">
+                                                <input class="form-check-input me-2" type="checkbox" id="apiSubAccMain" data-subaccount="main">
+                                                <i class="fas fa-building me-2 text-primary"></i>
+                                                <span class="fw-medium small">Main Account</span>
+                                                <button type="button" class="btn btn-link btn-sm ms-auto p-0 toggle-users" data-target="apiUsersMain">
+                                                    <i class="fas fa-chevron-down small"></i>
+                                                </button>
+                                            </div>
+                                            <div class="user-list mt-2 ps-4 d-none" id="apiUsersMain">
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserMainAdmin" data-subaccount="main">
+                                                    <label class="form-check-label" for="apiUserMainAdmin"><i class="fas fa-user me-1 text-muted"></i>Admin User</label>
+                                                </div>
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserMainJohn" data-subaccount="main">
+                                                    <label class="form-check-label" for="apiUserMainJohn"><i class="fas fa-user me-1 text-muted"></i>John Smith</label>
+                                                </div>
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserMainSarah" data-subaccount="main">
+                                                    <label class="form-check-label" for="apiUserMainSarah"><i class="fas fa-user me-1 text-muted"></i>Sarah Johnson</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="subaccount-tree-item">
+                                            <div class="d-flex align-items-center">
+                                                <input class="form-check-input me-2" type="checkbox" id="apiSubAccMarketing" data-subaccount="marketing">
+                                                <i class="fas fa-bullhorn me-2 text-primary"></i>
+                                                <span class="fw-medium small">Marketing</span>
+                                                <button type="button" class="btn btn-link btn-sm ms-auto p-0 toggle-users" data-target="apiUsersMarketing">
+                                                    <i class="fas fa-chevron-down small"></i>
+                                                </button>
+                                            </div>
+                                            <div class="user-list mt-2 ps-4 d-none" id="apiUsersMarketing">
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserMktMike" data-subaccount="marketing">
+                                                    <label class="form-check-label" for="apiUserMktMike"><i class="fas fa-user me-1 text-muted"></i>Mike Wilson</label>
+                                                </div>
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserMktEmma" data-subaccount="marketing">
+                                                    <label class="form-check-label" for="apiUserMktEmma"><i class="fas fa-user me-1 text-muted"></i>Emma Davis</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="subaccount-tree-item">
+                                            <div class="d-flex align-items-center">
+                                                <input class="form-check-input me-2" type="checkbox" id="apiSubAccSupport" data-subaccount="support">
+                                                <i class="fas fa-headset me-2 text-primary"></i>
+                                                <span class="fw-medium small">Support</span>
+                                                <button type="button" class="btn btn-link btn-sm ms-auto p-0 toggle-users" data-target="apiUsersSupport">
+                                                    <i class="fas fa-chevron-down small"></i>
+                                                </button>
+                                            </div>
+                                            <div class="user-list mt-2 ps-4 d-none" id="apiUsersSupport">
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserSupTom" data-subaccount="support">
+                                                    <label class="form-check-label" for="apiUserSupTom"><i class="fas fa-user me-1 text-muted"></i>Tom Brown</label>
+                                                </div>
+                                                <div class="form-check small py-1">
+                                                    <input class="form-check-input user-check" type="checkbox" id="apiUserSupLisa" data-subaccount="support">
+                                                    <label class="form-check-label" for="apiUserSupLisa"><i class="fas fa-user me-1 text-muted"></i>Lisa Chen</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="col-lg-6 mb-4">
-                                <label class="form-label fw-bold">Inbound Message Handling</label>
-                                <p class="text-muted small mb-2">Configure how incoming messages are processed.</p>
+                                <label class="form-label fw-bold">API Capabilities</label>
+                                <p class="text-muted small mb-2">Configure features available for this API number.</p>
+                                
+                                <div class="capability-toggle-card" id="apiCapSenderIDCard">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold small">Allow as SenderID in Send Message</div>
+                                            <div class="text-muted small">Selectable when composing messages</div>
+                                        </div>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="toggleApiSenderID">
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="capability-toggle-card">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -461,7 +576,6 @@
                         <div class="api-restrictions-box small mb-0">
                             <label class="form-label fw-bold small mb-2" style="color: #333;">API Mode Restrictions</label>
                             <ul class="mb-0 ps-3" style="color: #6c757d;">
-                                <li><i class="fas fa-times me-1" style="color: var(--primary);"></i>Cannot be used as Portal SenderID</li>
                                 <li><i class="fas fa-times me-1" style="color: var(--primary);"></i>Cannot receive messages in Inbox</li>
                                 <li><i class="fas fa-times me-1" style="color: var(--primary);"></i>Cannot be used in Campaign Builder</li>
                             </ul>
@@ -756,9 +870,12 @@ $(document).ready(function() {
         $('.subaccount-select-list input').prop('checked', false);
         $('#toggleSenderID, #toggleInbox, #toggleOptout').prop('checked', true);
         $('#toggleInboundForwarding').prop('checked', false);
+        $('#toggleApiSenderID').prop('checked', false);
         $('#webhookSection').hide();
         $('#apiInboundUrl').val('');
-        $('#apiSubAccountSelect').val('');
+        $('#apiSubAccountTree input').prop('checked', false).prop('indeterminate', false);
+        $('#apiSelectAllSubAccounts').prop('checked', false).prop('indeterminate', false);
+        updateApiSubAccountCount();
         updateSubAccountDefaults();
         toastr.info('Configuration reset to defaults');
     });
@@ -772,6 +889,78 @@ $(document).ready(function() {
         
         $('#saveSuccessModal').modal('show');
     });
+    
+    // Sub-account tree toggle handlers
+    $(document).on('click', '.toggle-users', function(e) {
+        e.preventDefault();
+        var targetId = $(this).data('target');
+        var userList = $('#' + targetId);
+        var icon = $(this).find('i');
+        
+        if (userList.hasClass('d-none')) {
+            userList.removeClass('d-none');
+            icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        } else {
+            userList.addClass('d-none');
+            icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        }
+    });
+    
+    // Select All Sub-Accounts handler
+    $('#apiSelectAllSubAccounts').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('#apiSubAccountTree input[type="checkbox"]').prop('checked', isChecked);
+        updateApiSubAccountCount();
+    });
+    
+    // Individual sub-account checkbox handler
+    $('#apiSubAccountTree').on('change', 'input[data-subaccount]', function() {
+        var subaccount = $(this).data('subaccount');
+        var isSubAccountCheck = $(this).closest('.subaccount-tree-item').children('.d-flex').find('input').is(this);
+        
+        if (isSubAccountCheck) {
+            // If main checkbox clicked, toggle all users
+            var isChecked = $(this).is(':checked');
+            $(this).closest('.subaccount-tree-item').find('.user-check[data-subaccount="' + subaccount + '"]').prop('checked', isChecked);
+        } else {
+            // If user checkbox clicked, update parent state
+            var parentItem = $(this).closest('.subaccount-tree-item');
+            var userChecks = parentItem.find('.user-check');
+            var checkedUsers = parentItem.find('.user-check:checked');
+            var mainCheck = parentItem.children('.d-flex').find('input[type="checkbox"]');
+            
+            if (checkedUsers.length === userChecks.length) {
+                mainCheck.prop('checked', true).prop('indeterminate', false);
+            } else if (checkedUsers.length > 0) {
+                mainCheck.prop('checked', false).prop('indeterminate', true);
+            } else {
+                mainCheck.prop('checked', false).prop('indeterminate', false);
+            }
+        }
+        
+        updateApiSubAccountCount();
+        updateSelectAllState();
+    });
+    
+    function updateApiSubAccountCount() {
+        var checked = $('#apiSubAccountTree .subaccount-tree-item > .d-flex > input:checked').length;
+        var partial = $('#apiSubAccountTree .subaccount-tree-item > .d-flex > input:indeterminate').length;
+        var total = checked + (partial > 0 ? ' (+' + partial + ' partial)' : '');
+        $('#apiSelectedSubAccountCount').text(checked + ' selected');
+    }
+    
+    function updateSelectAllState() {
+        var allChecks = $('#apiSubAccountTree .subaccount-tree-item > .d-flex > input');
+        var allChecked = $('#apiSubAccountTree .subaccount-tree-item > .d-flex > input:checked');
+        
+        if (allChecked.length === allChecks.length) {
+            $('#apiSelectAllSubAccounts').prop('checked', true).prop('indeterminate', false);
+        } else if (allChecked.length > 0) {
+            $('#apiSelectAllSubAccounts').prop('checked', false).prop('indeterminate', true);
+        } else {
+            $('#apiSelectAllSubAccounts').prop('checked', false).prop('indeterminate', false);
+        }
+    }
     
     init();
 });
