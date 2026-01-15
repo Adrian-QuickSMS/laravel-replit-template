@@ -284,6 +284,84 @@
     background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
     padding-right: calc(1.5em + 0.75rem);
 }
+/* Pricing Tab Styles */
+.pricing-display-card {
+    border: 1px solid #e9ecef;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+.pricing-display-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.pricing-display-card.pricing-active {
+    border: 2px solid var(--primary);
+    position: relative;
+}
+.pricing-display-card .active-badge {
+    position: absolute;
+    top: -1px;
+    right: 1rem;
+    background: var(--primary);
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 0 0 0.375rem 0.375rem;
+    z-index: 10;
+}
+.pricing-header-starter {
+    background: linear-gradient(135deg, #1cbb8c 0%, #17a673 100%);
+}
+.pricing-header-enterprise {
+    background: linear-gradient(135deg, #6f42c1 0%, #886ab5 100%);
+}
+.pricing-header-bespoke {
+    background: linear-gradient(135deg, #D653C1 0%, #886ab5 100%);
+}
+.pricing-rates {
+    padding: 0;
+}
+.rate-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.rate-row:last-child {
+    border-bottom: none;
+}
+.rate-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+.rate-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333;
+}
+.pricing-features li {
+    padding: 0.375rem 0;
+    font-size: 0.875rem;
+    color: #495057;
+}
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+}
+.nav-tabs .nav-link:hover {
+    color: var(--primary);
+    border-color: transparent;
+}
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    background: transparent;
+    border-color: transparent transparent var(--primary) transparent;
+}
 .usage-chip i {
     font-size: 0.6rem;
 }
@@ -308,9 +386,27 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="accordion accordion-primary" id="accountDetailsAccordion">
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs mb-4" id="accountTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#detailsContent" type="button" role="tab" aria-controls="detailsContent" aria-selected="true">
+            <i class="fas fa-building me-2"></i>Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pricing-tab" data-bs-toggle="tab" data-bs-target="#pricingContent" type="button" role="tab" aria-controls="pricingContent" aria-selected="false">
+            <i class="fas fa-tags me-2"></i>Pricing
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="accountTabsContent">
+    <!-- Details Tab -->
+    <div class="tab-pane fade show active" id="detailsContent" role="tabpanel" aria-labelledby="details-tab">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="accordion accordion-primary" id="accountDetailsAccordion">
             
             <div class="accordion-item">
                 <h2 class="accordion-header">
@@ -840,6 +936,153 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+</div>
+    </div>
+    
+    <!-- Pricing Tab -->
+    <div class="tab-pane fade" id="pricingContent" role="tabpanel" aria-labelledby="pricing-tab">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="mb-1">Your Pricing Plan</h5>
+                        <p class="text-muted mb-0 small">Pricing is managed by your account manager. Contact support to discuss changes.</p>
+                    </div>
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        <i class="fas fa-eye me-1"></i>Read Only
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4" id="pricingTiersDisplay">
+            <!-- Starter Tier -->
+            <div class="col-md-4">
+                <div class="card pricing-display-card h-100">
+                    <div class="card-header pricing-header-starter text-center py-4">
+                        <h4 class="text-white mb-2">Starter</h4>
+                        <p class="text-white-50 mb-0 small">0 – 50,000 messages</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="pricing-rates">
+                            <div class="rate-row">
+                                <span class="rate-label">SMS UK</span>
+                                <span class="rate-value">£0.034</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">SMS International</span>
+                                <span class="rate-value">£0.045</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">RCS Basic</span>
+                                <span class="rate-value">£0.042</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">RCS Rich</span>
+                                <span class="rate-value">£0.065</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <ul class="pricing-features list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>Portal access</li>
+                            <li><i class="fas fa-check text-success me-2"></i>API access</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Email support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Enterprise Tier -->
+            <div class="col-md-4">
+                <div class="card pricing-display-card h-100 pricing-active">
+                    <div class="active-badge">Your Plan</div>
+                    <div class="card-header pricing-header-enterprise text-center py-4">
+                        <h4 class="text-white mb-2">Enterprise</h4>
+                        <p class="text-white-50 mb-0 small">50,000 – 1,000,000 messages</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="pricing-rates">
+                            <div class="rate-row">
+                                <span class="rate-label">SMS UK</span>
+                                <span class="rate-value">£0.028</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">SMS International</span>
+                                <span class="rate-value">£0.038</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">RCS Basic</span>
+                                <span class="rate-value">£0.035</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">RCS Rich</span>
+                                <span class="rate-value">£0.052</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <ul class="pricing-features list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>Portal access</li>
+                            <li><i class="fas fa-check text-success me-2"></i>API access</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Priority support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dedicated account manager</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bespoke Tier -->
+            <div class="col-md-4">
+                <div class="card pricing-display-card h-100">
+                    <div class="card-header pricing-header-bespoke text-center py-4">
+                        <span class="badge bg-white text-dark mb-2"><i class="fas fa-gem me-1"></i>Custom</span>
+                        <h4 class="text-white mb-2">Bespoke</h4>
+                        <p class="text-white-50 mb-0 small">1,000,000+ messages</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="pricing-rates">
+                            <div class="rate-row">
+                                <span class="rate-label">SMS UK</span>
+                                <span class="rate-value">Custom</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">SMS International</span>
+                                <span class="rate-value">Custom</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">RCS Basic</span>
+                                <span class="rate-value">Custom</span>
+                            </div>
+                            <div class="rate-row">
+                                <span class="rate-label">RCS Rich</span>
+                                <span class="rate-value">Custom</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <ul class="pricing-features list-unstyled mb-0">
+                            <li><i class="fas fa-check text-success me-2"></i>All Enterprise features</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Volume discounts</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Custom SLAs</li>
+                            <li><i class="fas fa-check text-success me-2"></i>24/7 support</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent text-center py-3">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-envelope me-1"></i>Contact Sales
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-light border small">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    <strong>Note:</strong> Pricing shown is from HubSpot and reflects your current agreement. VAT is applied separately on invoices where applicable. For pricing changes, please contact your account manager.
+                </div>
+            </div>
         </div>
     </div>
 </div>
