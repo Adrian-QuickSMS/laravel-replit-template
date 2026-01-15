@@ -16,7 +16,7 @@
                             <div id="rcsValidationErrors" class="d-none"></div>
                             
                             <div class="mb-4">
-                                <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-layer-group me-2"></i>Message Type</h6>
+                                <h6 class="mb-3">Message Type</h6>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="rcsMessageType" id="rcsTypeSingle" value="single" checked>
                                     <label class="btn btn-outline-primary" for="rcsTypeSingle">
@@ -31,7 +31,7 @@
                             
                             <div class="d-none mb-4" id="rcsCarouselNav">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <h6 class="text-muted text-uppercase small mb-0"><i class="fas fa-th-list me-2"></i>Cards</h6>
+                                    <h6 class="mb-0">Cards</h6>
                                     <span class="badge badge-pastel-pink" id="rcsCardCount">1 / 10</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 align-items-center" id="rcsCardTabs">
@@ -49,7 +49,7 @@
                                 </div>
                                 
                                 <div class="mb-4">
-                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-image me-2"></i>Media</h6>
+                                    <h6 class="mb-3">Media</h6>
                                     <div id="rcsMediaInputContainer">
                                         @include('quicksms.partials.shared-image-editor', [
                                             'editorId' => 'rcsMedia',
@@ -163,7 +163,7 @@
                                                 <div id="rcsHostedUrlSection" class="mb-3 d-none">
                                                     <label class="form-label small mb-1"><i class="fas fa-link me-1 text-primary"></i>Hosted URL</label>
                                                     <div class="input-group input-group-sm">
-                                                        <input type="text" class="form-control form-control-sm bg-light" id="rcsHostedUrlDisplay" readonly>
+                                                        <input type="text" class="form-control form-control-sm" id="rcsHostedUrlDisplay" readonly style="background: transparent; border-color: var(--primary);">
                                                         <button type="button" class="btn btn-outline-secondary" onclick="copyRcsHostedUrl()" title="Copy URL">
                                                             <i class="fas fa-copy"></i>
                                                         </button>
@@ -186,7 +186,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-4">
-                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-heading me-2"></i>Description</h6>
+                                    <h6 class="mb-3">Description</h6>
                                     <div class="position-relative border rounded">
                                         <input type="text" class="form-control form-control-sm fw-bold border-0" id="rcsDescription" 
                                             placeholder="Enter card description (bold text)" maxlength="150"
@@ -210,7 +210,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-4">
-                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-align-left me-2"></i>Text Body</h6>
+                                    <h6 class="mb-3">Text Body</h6>
                                     <div class="position-relative border rounded">
                                         <textarea class="form-control form-control-sm border-0" id="rcsTextBody" rows="4" 
                                             placeholder="Enter message body content..." maxlength="2100"
@@ -234,7 +234,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-4">
-                                    <h6 class="text-muted text-uppercase small mb-3"><i class="fas fa-mouse-pointer me-2"></i>Action Buttons</h6>
+                                    <h6 class="mb-3">Action Buttons</h6>
                                     <div class="border rounded p-3">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <small class="text-muted">Add up to 4 interactive buttons</small>
