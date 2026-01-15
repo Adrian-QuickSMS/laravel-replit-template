@@ -380,11 +380,92 @@ span.badge.channel-pill-rcs,
     border-top: 1px solid #eee;
     text-decoration: none;
 }
+
+/* Compact density mode for laptop screens (<=1440px) */
+@media (max-width: 1440px) {
+    .qsms-density-compact .chat-left-body {
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+    }
+    .qsms-density-compact .chat-bx {
+        padding: 0.625rem 0.75rem;
+    }
+    .qsms-density-compact .p-3 {
+        padding: 0.75rem !important;
+    }
+    .qsms-density-compact h4.mb-0 {
+        font-size: 1rem;
+    }
+    .qsms-density-compact .qs-pill {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+    .qsms-density-compact #replyComposerCard .card-body {
+        padding: 0.75rem !important;
+    }
+    .qsms-density-compact #replyComposerCard .form-control,
+    .qsms-density-compact #replyComposerCard .form-select {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    .qsms-density-compact #replyComposerCard .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    .qsms-density-compact #replyComposerCard .btn-group .btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    .qsms-density-compact #replyComposerCard .mb-2 {
+        margin-bottom: 0.375rem !important;
+    }
+    .qsms-density-compact #replyComposerCard .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    .qsms-density-compact .contact-name {
+        font-size: 0.8125rem;
+    }
+    .qsms-density-compact .time-stamp {
+        font-size: 0.65rem;
+    }
+    .qsms-density-compact .message-preview {
+        font-size: 0.75rem;
+    }
+}
+
+/* Extra compact for smaller laptops (<=1366px) */
+@media (max-width: 1366px) {
+    .qsms-density-compact .chat-left-body {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+    }
+    .qsms-density-compact .p-3 {
+        padding: 0.5rem !important;
+    }
+    .qsms-density-compact #replyComposerCard .card-body {
+        padding: 0.5rem !important;
+    }
+    .qsms-density-compact #replyComposerCard .form-control,
+    .qsms-density-compact #replyComposerCard .form-select {
+        padding: 0.3rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    .qsms-density-compact #replyComposerCard .btn {
+        padding: 0.3rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    .qsms-density-compact #replyComposerCard .btn-group .btn {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.65rem;
+    }
+}
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid qsms-density-compact">
     <div class="row">
         <div class="col-xl-12">
             <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
