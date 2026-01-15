@@ -332,14 +332,38 @@
 .rate-row:last-child {
     border-bottom: none;
 }
+.pricing-section {
+    margin-bottom: 1rem;
+}
+.pricing-section:last-of-type {
+    margin-bottom: 0;
+}
+.pricing-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+.rate-info {
+    display: flex;
+    flex-direction: column;
+}
 .rate-label {
     font-size: 0.875rem;
+    color: #333;
+    font-weight: 500;
+}
+.rate-basis {
+    font-size: 0.7rem;
     color: #6c757d;
+    font-style: italic;
 }
 .rate-value {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #333;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
 }
 .pricing-features li {
     padding: 0.375rem 0;
@@ -966,22 +990,42 @@
                         <p class="text-white-50 mb-0 small">0 – 50,000 messages</p>
                     </div>
                     <div class="card-body">
-                        <div class="pricing-rates">
-                            <div class="rate-row">
-                                <span class="rate-label">SMS UK</span>
-                                <span class="rate-value">£0.034</span>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">SMS Rates</h6>
+                            <div class="pricing-rates">
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">SMS UK</span>
+                                        <span class="rate-basis">per SMS submitted</span>
+                                    </div>
+                                    <span class="rate-value">£0.034</span>
+                                </div>
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">SMS International</span>
+                                        <span class="rate-basis">per SMS submitted</span>
+                                    </div>
+                                    <span class="rate-value">£0.045</span>
+                                </div>
                             </div>
-                            <div class="rate-row">
-                                <span class="rate-label">SMS International</span>
-                                <span class="rate-value">£0.045</span>
-                            </div>
-                            <div class="rate-row">
-                                <span class="rate-label">RCS Basic</span>
-                                <span class="rate-value">£0.042</span>
-                            </div>
-                            <div class="rate-row">
-                                <span class="rate-label">RCS Rich</span>
-                                <span class="rate-value">£0.065</span>
+                        </div>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">RCS Rates</h6>
+                            <div class="pricing-rates">
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">RCS Basic</span>
+                                        <span class="rate-basis">per RCS submitted</span>
+                                    </div>
+                                    <span class="rate-value">£0.042</span>
+                                </div>
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">RCS Rich</span>
+                                        <span class="rate-basis">per RCS submitted</span>
+                                    </div>
+                                    <span class="rate-value">£0.065</span>
+                                </div>
                             </div>
                         </div>
                         <hr>
@@ -1003,22 +1047,42 @@
                         <p class="text-white-50 mb-0 small">50,000 – 1,000,000 messages</p>
                     </div>
                     <div class="card-body">
-                        <div class="pricing-rates">
-                            <div class="rate-row">
-                                <span class="rate-label">SMS UK</span>
-                                <span class="rate-value">£0.028</span>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">SMS Rates</h6>
+                            <div class="pricing-rates">
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">SMS UK</span>
+                                        <span class="rate-basis">per delivered SMS</span>
+                                    </div>
+                                    <span class="rate-value">£0.028</span>
+                                </div>
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">SMS International</span>
+                                        <span class="rate-basis">per delivered SMS</span>
+                                    </div>
+                                    <span class="rate-value">£0.038</span>
+                                </div>
                             </div>
-                            <div class="rate-row">
-                                <span class="rate-label">SMS International</span>
-                                <span class="rate-value">£0.038</span>
-                            </div>
-                            <div class="rate-row">
-                                <span class="rate-label">RCS Basic</span>
-                                <span class="rate-value">£0.035</span>
-                            </div>
-                            <div class="rate-row">
-                                <span class="rate-label">RCS Rich</span>
-                                <span class="rate-value">£0.052</span>
+                        </div>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">RCS Rates</h6>
+                            <div class="pricing-rates">
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">RCS Basic</span>
+                                        <span class="rate-basis">per delivered RCS</span>
+                                    </div>
+                                    <span class="rate-value">£0.035</span>
+                                </div>
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">RCS Rich</span>
+                                        <span class="rate-basis">per delivered RCS</span>
+                                    </div>
+                                    <span class="rate-value">£0.052</span>
+                                </div>
                             </div>
                         </div>
                         <hr>
@@ -1041,22 +1105,42 @@
                         <p class="text-white-50 mb-0 small">1,000,000+ messages</p>
                     </div>
                     <div class="card-body">
-                        <div class="pricing-rates">
-                            <div class="rate-row">
-                                <span class="rate-label">SMS UK</span>
-                                <span class="rate-value">Custom</span>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">SMS Rates</h6>
+                            <div class="pricing-rates">
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">SMS UK</span>
+                                        <span class="rate-basis">per delivered SMS</span>
+                                    </div>
+                                    <span class="rate-value">Custom</span>
+                                </div>
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">SMS International</span>
+                                        <span class="rate-basis">per delivered SMS</span>
+                                    </div>
+                                    <span class="rate-value">Custom</span>
+                                </div>
                             </div>
-                            <div class="rate-row">
-                                <span class="rate-label">SMS International</span>
-                                <span class="rate-value">Custom</span>
-                            </div>
-                            <div class="rate-row">
-                                <span class="rate-label">RCS Basic</span>
-                                <span class="rate-value">Custom</span>
-                            </div>
-                            <div class="rate-row">
-                                <span class="rate-label">RCS Rich</span>
-                                <span class="rate-value">Custom</span>
+                        </div>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">RCS Rates</h6>
+                            <div class="pricing-rates">
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">RCS Basic</span>
+                                        <span class="rate-basis">per delivered RCS</span>
+                                    </div>
+                                    <span class="rate-value">Custom</span>
+                                </div>
+                                <div class="rate-row">
+                                    <div class="rate-info">
+                                        <span class="rate-label">RCS Rich</span>
+                                        <span class="rate-basis">per delivered RCS</span>
+                                    </div>
+                                    <span class="rate-value">Custom</span>
+                                </div>
                             </div>
                         </div>
                         <hr>
