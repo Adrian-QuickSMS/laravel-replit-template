@@ -67,22 +67,47 @@
                 </div>
                 
                 <div class="section-card mb-4">
-                    <h6 class="section-title"><i class="fas fa-mobile-alt me-2"></i>B. Mobile Number & MFA</h6>
-                    <p class="section-helper">Your mobile number is used for account recovery and two-factor authentication (MFA).</p>
+                    <h6 class="section-title"><i class="fas fa-mobile-alt me-2"></i>B. Mobile Number Verification</h6>
+                    <p class="section-helper">Verify your mobile number for account security and two-factor authentication (MFA is mandatory for all accounts).</p>
                     
                     <div class="form-group mb-3">
                         <label class="form-label" for="mobileNumber">Mobile Number <span class="text-danger">*</span></label>
-                        <input type="tel" class="form-control" id="mobileNumber" placeholder="+44 7700 900123" required>
-                        <div class="invalid-feedback">Please enter a valid mobile number</div>
-                        <small class="form-text text-muted">Include country code (e.g., +44 for UK)</small>
+                        <div class="input-group">
+                            <input type="tel" class="form-control" id="mobileNumber" placeholder="+44 7700 900123" required>
+                            <button class="btn btn-outline-primary" type="button" id="sendOtpBtn">
+                                <span class="btn-text">Send Code</span>
+                                <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="mobileError">Please enter a valid mobile number</div>
+                        <small class="form-text text-muted">E.164 format preferred (e.g., +447700900123)</small>
+                        <div class="otp-status mt-2 d-none" id="otpStatus"></div>
                     </div>
                     
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="enableMfa">
-                        <label class="form-check-label" for="enableMfa">
-                            Enable Two-Factor Authentication (recommended)
-                        </label>
-                        <small class="d-block text-muted mt-1">You'll receive a verification code via SMS when signing in from a new device.</small>
+                    <div class="form-group mb-3 d-none" id="otpInputGroup">
+                        <label class="form-label" for="otpCode">Verification Code <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
+                            <button class="btn btn-primary" type="button" id="verifyOtpBtn">
+                                <span class="btn-text">Verify</span>
+                                <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="otpError">Invalid verification code</div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
+                            <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
+                        </div>
+                    </div>
+                    
+                    <div class="verified-badge d-none" id="mobileVerifiedBadge">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Mobile number verified</span>
+                    </div>
+                    
+                    <div class="mfa-notice mt-3">
+                        <i class="fas fa-shield-alt text-primary me-2"></i>
+                        <small class="text-muted">Two-factor authentication (MFA) is enabled by default for all accounts. You'll receive a verification code via SMS when signing in.</small>
                     </div>
                 </div>
                 
@@ -314,6 +339,55 @@
     background: #d1e7dd;
     color: #0f5132;
 }
+.otp-status {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+}
+.otp-status.sending {
+    background: #e7f1ff;
+    color: #0d6efd;
+}
+.otp-status.sent {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+.otp-status.error {
+    background: #f8d7da;
+    color: #842029;
+}
+.verified-badge {
+    display: flex;
+    align-items: center;
+    background: #d1e7dd;
+    color: #0f5132;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+.mfa-notice {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    border-left: 3px solid #886CC0;
+}
+#otpCode {
+    letter-spacing: 0.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+}
+.btn-outline-primary {
+    color: #886CC0;
+    border-color: #886CC0;
+}
+.btn-outline-primary:hover {
+    background-color: #886CC0;
+    border-color: #886CC0;
+    color: #fff;
+}
 </style>
 
 @push('scripts')
@@ -348,6 +422,172 @@ $(document).ready(function() {
     var passwordCheckTimeout;
     var passwordIsValid = false;
     var passwordChecksComplete = false;
+    
+    // OTP verification state
+    var mobileVerified = false;
+    var currentOtp = null;
+    var otpExpiry = null;
+    var countdownInterval = null;
+    var resendCooldown = 30; // seconds before resend is enabled
+    
+    // E.164 format validation (international format)
+    function isValidE164(number) {
+        var cleaned = number.replace(/[\s\-\(\)]/g, '');
+        return /^\+[1-9]\d{6,14}$/.test(cleaned);
+    }
+    
+    // Send OTP button handler
+    $('#sendOtpBtn').on('click', function() {
+        var mobile = $('#mobileNumber').val().trim();
+        
+        if (!mobile || !isValidE164(mobile)) {
+            $('#mobileNumber').addClass('is-invalid');
+            $('#mobileError').text('Please enter a valid mobile number in E.164 format (e.g., +447700900123)');
+            return;
+        }
+        
+        $('#mobileNumber').removeClass('is-invalid');
+        
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+        $btn.find('.btn-text').addClass('d-none');
+        $btn.find('.btn-loading').removeClass('d-none');
+        
+        var $status = $('#otpStatus');
+        $status.removeClass('d-none sent error').addClass('sending');
+        $status.html('<i class="fas fa-spinner fa-spin me-2"></i>Sending verification code...');
+        
+        // Mock SMS OTP send
+        // In production: POST /api/auth/send-otp { mobile: mobile }
+        setTimeout(function() {
+            // Generate mock 6-digit OTP
+            currentOtp = String(Math.floor(100000 + Math.random() * 900000));
+            otpExpiry = Date.now() + (5 * 60 * 1000); // 5 minutes
+            
+            console.log('[OTP] Mock code sent to ' + mobile + ': ' + currentOtp);
+            
+            $status.removeClass('sending').addClass('sent');
+            $status.html('<i class="fas fa-check-circle me-2"></i>Verification code sent to ' + mobile);
+            
+            // Show OTP input
+            $('#otpInputGroup').removeClass('d-none');
+            $('#otpCode').focus();
+            
+            // Reset button
+            $btn.prop('disabled', false);
+            $btn.find('.btn-text').removeClass('d-none').text('Resend');
+            $btn.find('.btn-loading').addClass('d-none');
+            
+            // Lock mobile number field
+            $('#mobileNumber').prop('readonly', true);
+            
+            // Start countdown
+            startCountdown();
+            
+            // Enable resend after cooldown
+            var $resend = $('#resendOtpBtn');
+            $resend.prop('disabled', true);
+            setTimeout(function() {
+                $resend.prop('disabled', false);
+            }, resendCooldown * 1000);
+            
+        }, 1500);
+    });
+    
+    function startCountdown() {
+        var remaining = 5 * 60; // 5 minutes
+        
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        countdownInterval = setInterval(function() {
+            remaining--;
+            var minutes = Math.floor(remaining / 60);
+            var seconds = remaining % 60;
+            $('#otpCountdown').text(minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+            
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                $('#otpCountdown').text('Expired');
+                currentOtp = null;
+                $('#otpStatus').removeClass('sent sending').addClass('error');
+                $('#otpStatus').html('<i class="fas fa-exclamation-triangle me-2"></i>Code expired. Please request a new code.');
+            }
+        }, 1000);
+    }
+    
+    // Resend OTP
+    $('#resendOtpBtn').on('click', function() {
+        $('#sendOtpBtn').click();
+    });
+    
+    // Verify OTP button handler
+    $('#verifyOtpBtn').on('click', function() {
+        var enteredOtp = $('#otpCode').val().trim();
+        
+        if (!enteredOtp || enteredOtp.length !== 6) {
+            $('#otpCode').addClass('is-invalid');
+            $('#otpError').text('Please enter the 6-digit verification code');
+            return;
+        }
+        
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+        $btn.find('.btn-text').addClass('d-none');
+        $btn.find('.btn-loading').removeClass('d-none');
+        
+        // Mock OTP verification
+        // In production: POST /api/auth/verify-otp { mobile: mobile, otp: enteredOtp }
+        setTimeout(function() {
+            if (!currentOtp || Date.now() > otpExpiry) {
+                $('#otpCode').addClass('is-invalid');
+                $('#otpError').text('Code has expired. Please request a new code.');
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+                return;
+            }
+            
+            if (enteredOtp !== currentOtp) {
+                $('#otpCode').addClass('is-invalid');
+                $('#otpError').text('Invalid verification code. Please try again.');
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+                console.log('[OTP] Verification failed. Entered: ' + enteredOtp + ', Expected: ' + currentOtp);
+                return;
+            }
+            
+            // Success!
+            mobileVerified = true;
+            clearInterval(countdownInterval);
+            
+            // Hide OTP input, show verified badge
+            $('#otpInputGroup').addClass('d-none');
+            $('#otpStatus').addClass('d-none');
+            $('#sendOtpBtn').addClass('d-none');
+            $('#mobileVerifiedBadge').removeClass('d-none');
+            
+            console.log('[OTP] Mobile verified successfully');
+            
+        }, 800);
+    });
+    
+    // OTP input - only allow numbers
+    $('#otpCode').on('input', function() {
+        $(this).val($(this).val().replace(/[^0-9]/g, ''));
+        $(this).removeClass('is-invalid');
+    });
+    
+    // Mobile number change detection
+    $('#mobileNumber').on('input', function() {
+        $(this).removeClass('is-invalid');
+        // Reset verification if number changes
+        if (mobileVerified) {
+            mobileVerified = false;
+            $('#mobileVerifiedBadge').addClass('d-none');
+            $('#sendOtpBtn').removeClass('d-none').find('.btn-text').text('Send Code');
+        }
+    });
     
     $('.show-pass').on('click', function() {
         var $input = $(this).siblings('input');
@@ -473,8 +713,15 @@ $(document).ready(function() {
             isValid = false;
         }
         
+        // Validate mobile number is provided
         if (!$('#mobileNumber').val().trim()) {
             $('#mobileNumber').addClass('is-invalid');
+            $('#mobileError').text('Mobile number is required');
+            isValid = false;
+        } else if (!mobileVerified) {
+            // Mobile must be verified via OTP
+            $('#mobileNumber').addClass('is-invalid');
+            $('#mobileError').text('Please verify your mobile number with SMS code');
             isValid = false;
         }
         
@@ -507,7 +754,8 @@ $(document).ready(function() {
             email: email,
             password_hash: 'ARGON2ID_HASH_PLACEHOLDER', // Backend hashes with per-user salt
             mobile_number: $('#mobileNumber').val().trim(),
-            enable_mfa: $('#enableMfa').is(':checked'),
+            mobile_verified: true, // Verified via SMS OTP
+            mfa_enabled: true, // MFA is mandatory for all accounts
             consents: {
                 terms: true,
                 privacy: true,
