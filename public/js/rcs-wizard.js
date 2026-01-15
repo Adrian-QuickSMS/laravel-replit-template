@@ -1514,10 +1514,6 @@ function executePendingNavigation() {
 }
 
 function handleRcsWizardClose() {
-    console.log('[RCS] handleRcsWizardClose called');
-    console.log('[RCS] isRcsImageDirty():', isRcsImageDirty());
-    console.log('[RCS] isDirty state:', rcsImageDirtyState.isDirty);
-    console.log('[RCS] hostedUrl:', rcsMediaData.hostedUrl);
     if (isRcsImageDirty()) {
         showRcsUnsavedChangesModal({ type: 'closeWizard' });
     } else {
@@ -1551,10 +1547,6 @@ function closeRcsWizardModal() {
 }
 
 function handleRcsApplyContent() {
-    console.log('[RCS] handleRcsApplyContent called');
-    console.log('[RCS] isRcsImageDirty():', isRcsImageDirty());
-    console.log('[RCS] isDirty state:', rcsImageDirtyState.isDirty);
-    console.log('[RCS] hostedUrl:', rcsMediaData.hostedUrl);
     if (isRcsImageDirty()) {
         showRcsUnsavedChangesModal({ type: 'applyContent' });
     } else {

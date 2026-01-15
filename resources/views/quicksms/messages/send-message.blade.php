@@ -1295,6 +1295,22 @@ function updatePreview() {
         if (richRcsPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
         } else {
+            // Show Rich RCS preview - use configured content or placeholder
+            var selectedOption = rcsAgentSelect?.selectedOptions[0];
+            var agent = {
+                name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
+                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                verified: true,
+                tagline: selectedOption?.dataset?.tagline || 'Business messaging'
+            };
+            
+            if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+                // Render configured Rich RCS content
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsPersistentPayload, agent);
+            } else {
+                // Show placeholder for unconfigured Rich RCS
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPlaceholder(agent);
+            }
             return;
         }
     }

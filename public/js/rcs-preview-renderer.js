@@ -311,6 +311,75 @@ var RcsPreviewRenderer = (function() {
         return { valid: errors.length === 0, errors: errors, warnings: warnings };
     }
 
+    function renderRichRcsPlaceholder(agent) {
+        agent = agent || { name: 'QuickSMS Brand', logo: '', verified: true, tagline: 'Business messaging' };
+        
+        var placeholderCard = '<div class="rcs-message">' +
+            '<div class="rcs-card" style="max-width: 296px;">' +
+                '<div class="rcs-media rcs-media--medium" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(136,108,192,0.2), rgba(136,108,192,0.1));">' +
+                    '<i class="fas fa-image" style="font-size: 48px; color: rgba(136,108,192,0.5);"></i>' +
+                '</div>' +
+                '<div class="rcs-card-content">' +
+                    '<p class="rcs-card-title" style="color: #999;">Rich RCS Card</p>' +
+                    '<p class="rcs-card-description" style="color: #bbb;">Click "Create RCS Message" below to configure your rich media content.</p>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+        
+        return renderPhoneFrame(agent, placeholderCard, { channel: 'rcs', inputPlaceholder: 'RCS message' });
+    }
+
+    function renderRichRcsPreview(payload, agent) {
+        agent = agent || { name: 'QuickSMS Brand', logo: '', verified: true, tagline: 'Business messaging' };
+        
+        if (!payload || !payload.cards || payload.cards.length === 0) {
+            return renderRichRcsPlaceholder(agent);
+        }
+        
+        var messageHtml = '';
+        
+        // Map payload orientation to height class
+        function getHeightClass(orientation) {
+            var map = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
+            return map[orientation] || 'medium';
+        }
+        
+        if (payload.cards.length === 1 || payload.type === 'single') {
+            var card = payload.cards[0];
+            var heightClass = getHeightClass(card.media?.orientation);
+            var cardSchema = {
+                title: card.description || '',
+                description: card.textBody || '',
+                media: card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url,
+                buttons: (card.buttons || []).map(function(btn) {
+                    return { label: btn.label, type: btn.type, action: btn.action };
+                })
+            };
+            messageHtml = '<div class="rcs-message">' + renderRichCard(cardSchema, { heightOverride: heightClass }) + '</div>';
+        } else {
+            // Carousel - pass proper structure to renderCarousel
+            var firstCard = payload.cards[0];
+            var mediaHeight = getHeightClass(firstCard.media?.orientation);
+            var carouselCards = payload.cards.map(function(card) {
+                return {
+                    title: card.description || '',
+                    description: card.textBody || '',
+                    media: card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url,
+                    buttons: (card.buttons || []).map(function(btn) {
+                        return { label: btn.label, type: btn.type, action: btn.action };
+                    })
+                };
+            });
+            messageHtml = renderCarousel({
+                cards: carouselCards,
+                cardWidth: payload.cardWidth || 'medium',
+                mediaHeight: mediaHeight
+            });
+        }
+        
+        return renderPhoneFrame(agent, messageHtml, { channel: 'rcs', inputPlaceholder: 'RCS message' });
+    }
+
     return {
         escapeHtml: escapeHtml,
         getMediaHeight: getMediaHeight,
@@ -326,6 +395,8 @@ var RcsPreviewRenderer = (function() {
         renderSmsHeader: renderSmsHeader,
         renderPhoneFrame: renderPhoneFrame,
         renderPreview: renderPreview,
+        renderRichRcsPlaceholder: renderRichRcsPlaceholder,
+        renderRichRcsPreview: renderRichRcsPreview,
         initCarouselBehavior: initCarouselBehavior,
         validateRcsMessage: validateRcsMessage,
         RCS_CONSTRAINTS: RCS_CONSTRAINTS
