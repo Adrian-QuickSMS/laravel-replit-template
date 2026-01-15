@@ -1,0 +1,42 @@
+You are working on my QuickSMS portal UI (Tailwind-based admin template). On 14–15" widescreen laptops the page feels too stretched and “floaty”. I want a proper, repeatable layout fix.
+
+GOAL
+Implement a consistent “desktop container” layout so content doesn’t span the full viewport width. Use a max-width centered container for the main content area while keeping the left sidebar full height.
+
+TARGET BREAKPOINTS
+- Laptop baseline: 1366x768 and 1440x900 must look balanced.
+- Large screens should not keep stretching content infinitely.
+
+WHAT TO CHANGE (DO THIS FIRST ON THE ‘Send Message’ page)
+1) Add a main content container:
+   - main content should be centered with max-width: 1280px (or 1200–1280)
+   - add horizontal padding: px-6 (mobile smaller)
+   - keep the existing sidebar and topbar, but constrain the page content inside the container.
+
+2) Convert the main page layout to a responsive 2-column grid:
+   - Left column (form): flex-1, minimum comfortable width.
+   - Right column (Message Preview): fixed-ish width (e.g. 420–480px) and should NOT expand beyond that.
+   - On smaller widths (<1024px), stack into 1 column (preview below).
+
+3) Make preview more usable:
+   - On desktop (lg and up), make the preview column sticky with top offset under the header (e.g. top-24).
+   - Ensure the preview card height doesn’t exceed viewport: use max-h and internal scrolling if needed.
+
+4) Ensure spacing and rhythm:
+   - Use consistent vertical spacing between cards (gap-6)
+   - Prevent cards and inputs from becoming too wide:
+     - apply max-w to long single inputs (like campaign name) if needed.
+
+IMPLEMENTATION DETAILS
+- Find the page component/template for “Send Message” and the shared layout wrapper (where sidebar + topbar are defined).
+- Introduce a reusable CSS/Tailwind utility:
+  - container class like: mx-auto w-full max-w-[1280px] px-6
+- Apply it to page content area on this page first, then make it the default for all pages using the same layout.
+
+DELIVERABLES
+- Show me the exact files changed.
+- Provide the Tailwind class changes and any new wrapper components.
+- After changes, add a quick note: what to adjust if I want max width 1200 or 1440 instead.
+
+IMPORTANT
+Do not visually redesign colours or components. This is purely a layout + responsiveness fix.
