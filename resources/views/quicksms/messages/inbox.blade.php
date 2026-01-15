@@ -56,7 +56,6 @@
     flex: 1 !important;
     min-width: 0 !important;
     height: 100% !important;
-    position: relative !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
@@ -77,17 +76,15 @@
 }
 #chatArea {
     flex: 1 1 0 !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
     background: var(--bs-card-bg, #fff) !important;
-    padding-bottom: 300px !important;
+    padding: 15px !important;
 }
 #replyComposerCard {
-    position: absolute !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    flex: 0 0 auto !important;
     z-index: 100 !important;
-    max-height: 480px !important;
+    max-height: 280px !important;
     overflow: visible !important;
     margin: 0 !important;
     border-radius: 0 !important;
@@ -437,101 +434,196 @@ span.badge.channel-pill-rcs,
     text-decoration: none;
 }
 
-/* Compact density mode for laptop screens (<=1440px) */
-@media (max-width: 1440px) {
-    /* Left pane width reduction */
-    .qsms-density-compact .chat-left-body {
-        width: 300px !important;
-        min-width: 300px !important;
-        max-width: 300px !important;
-    }
-    /* Conversation list items - more compact */
-    .qsms-density-compact .chat-bx {
-        padding: 0.5rem 0.75rem;
-    }
-    .qsms-density-compact .chat-bx .chat-name {
-        font-size: 13px !important;
-        max-width: 100px !important;
-    }
-    .qsms-density-compact .chat-bx small {
-        font-size: 10px !important;
-    }
-    .qsms-density-compact .chat-bx p {
-        font-size: 12px !important;
-    }
-    /* Header area - only target text, not layout */
-    .qsms-density-compact .meassge-left-side h4.mb-0 {
-        font-size: 1rem;
-    }
-    .qsms-density-compact .qs-pill {
-        font-size: 0.65rem;
-        padding: 0.2rem 0.4rem;
-    }
-    /* Filter dropdowns in left pane */
-    .qsms-density-compact .meassge-left-side .form-select-sm {
-        font-size: 11px !important;
-        padding: 0.25rem 1.5rem 0.25rem 0.5rem !important;
-    }
-    /* Composer form elements only */
-    .qsms-density-compact #replyComposerCard .card-body {
-        padding: 0.75rem !important;
-    }
-    .qsms-density-compact #replyComposerCard .form-control,
-    .qsms-density-compact #replyComposerCard .form-select {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact #replyComposerCard .btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact #replyComposerCard .btn-group .btn {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.7rem;
-    }
-    .qsms-density-compact #replyComposerCard .mb-2 {
-        margin-bottom: 0.375rem !important;
-    }
-    .qsms-density-compact #replyComposerCard .mb-3 {
-        margin-bottom: 0.5rem !important;
-    }
+/* ===== COMPACT DENSITY MODE - Default (75% proportions) ===== */
+
+/* Left pane - compact width */
+.qsms-density-compact .chat-left-body {
+    width: 280px !important;
+    min-width: 260px !important;
+    max-width: 300px !important;
 }
 
-/* Extra compact for smaller laptops (<=1366px) */
+/* Left pane header - compact */
+.qsms-density-compact .meassge-left-side .p-3 {
+    padding: 0.5rem 0.75rem !important;
+}
+.qsms-density-compact .meassge-left-side h4.mb-0 {
+    font-size: 0.9rem !important;
+}
+.qsms-density-compact .qs-pill {
+    font-size: 0.6rem !important;
+    padding: 0.15rem 0.4rem !important;
+}
+
+/* Search input - compact */
+.qsms-density-compact .meassge-left-side .input-group-sm .form-control {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.qsms-density-compact .meassge-left-side .input-group-text {
+    padding: 0.25rem 0.5rem !important;
+}
+
+/* Filter dropdowns - compact */
+.qsms-density-compact .meassge-left-side .form-select-sm {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 1.25rem 0.2rem 0.4rem !important;
+}
+
+/* Conversation list items - compact */
+.qsms-density-compact .chat-bx {
+    padding: 0.4rem 0.6rem !important;
+}
+.qsms-density-compact .chat-bx .chat-name {
+    font-size: 0.75rem !important;
+    max-width: 110px !important;
+}
+.qsms-density-compact .chat-bx small {
+    font-size: 0.625rem !important;
+}
+.qsms-density-compact .chat-bx p {
+    font-size: 0.7rem !important;
+    margin-bottom: 0 !important;
+}
+.qsms-density-compact .chat-img {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    font-size: 0.7rem !important;
+}
+
+/* Chat header - compact */
+.qsms-density-compact #chatHeader {
+    padding: 0.5rem 0.75rem !important;
+}
+.qsms-density-compact #chatHeader h5 {
+    font-size: 0.875rem !important;
+}
+.qsms-density-compact #chatHeader small {
+    font-size: 0.7rem !important;
+}
+.qsms-density-compact #chatHeader .chat-img {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    font-size: 0.75rem !important;
+}
+.qsms-density-compact #chatHeader .btn-sm {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.qsms-density-compact #chatHeader .badge {
+    font-size: 0.6rem !important;
+    padding: 0.2rem 0.4rem !important;
+}
+
+/* Message bubbles - compact text */
+.qsms-density-compact .message-received p,
+.qsms-density-compact .message-sent p {
+    font-size: 0.8rem !important;
+    margin-bottom: 0.25rem !important;
+}
+.qsms-density-compact .message-received,
+.qsms-density-compact .message-sent {
+    padding: 0.5rem 0.75rem !important;
+}
+.qsms-density-compact .qs-chat-messages small {
+    font-size: 0.625rem !important;
+}
+.qsms-density-compact .date-separator span {
+    font-size: 0.625rem !important;
+}
+
+/* Composer - compact */
+.qsms-density-compact #replyComposerCard .card-body {
+    padding: 0.5rem 0.75rem !important;
+}
+.qsms-density-compact #replyComposerCard .form-label {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.2rem !important;
+}
+.qsms-density-compact #replyComposerCard .form-control,
+.qsms-density-compact #replyComposerCard .form-select {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.qsms-density-compact #replyComposerCard textarea.form-control {
+    padding: 0.375rem 0.5rem !important;
+    padding-bottom: 30px !important;
+}
+.qsms-density-compact #replyComposerCard .btn {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.qsms-density-compact #replyComposerCard .btn-group .btn {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.4rem !important;
+}
+.qsms-density-compact #replyComposerCard .mb-2 {
+    margin-bottom: 0.25rem !important;
+}
+.qsms-density-compact #replyComposerCard .mb-1 {
+    margin-bottom: 0.15rem !important;
+}
+.qsms-density-compact #replyComposerCard .row.mb-2 {
+    margin-bottom: 0.35rem !important;
+}
+.qsms-density-compact #replyComposerCard .text-muted.small {
+    font-size: 0.65rem !important;
+}
+.qsms-density-compact #replyComposerCard .col-md-6,
+.qsms-density-compact #replyComposerCard .col-lg-5,
+.qsms-density-compact #replyComposerCard .col-lg-7 {
+    padding-left: 0.375rem !important;
+    padding-right: 0.375rem !important;
+}
+
+/* Contact sidebar - compact */
+.qsms-density-compact .contact-sidebar {
+    width: 220px !important;
+    min-width: 200px !important;
+    padding: 0.5rem !important;
+}
+.qsms-density-compact .contact-sidebar h5 {
+    font-size: 0.8rem !important;
+}
+.qsms-density-compact .contact-sidebar h6 {
+    font-size: 0.75rem !important;
+}
+.qsms-density-compact .contact-sidebar small {
+    font-size: 0.65rem !important;
+}
+.qsms-density-compact .contact-sidebar .btn-sm {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+.qsms-density-compact .contact-sidebar .badge {
+    font-size: 0.6rem !important;
+    padding: 0.15rem 0.35rem !important;
+}
+
+/* Reduce composer max-height for compact mode */
+.qsms-density-compact #replyComposerCard {
+    max-height: 240px !important;
+}
+
+/* ===== Extra compact for smaller laptops (<=1366px) ===== */
 @media (max-width: 1366px) {
     .qsms-density-compact .chat-left-body {
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 260px !important;
+        width: 240px !important;
+        min-width: 220px !important;
     }
-    .qsms-density-compact .chat-bx {
-        padding: 0.4rem 0.5rem;
+    .qsms-density-compact .contact-sidebar {
+        width: 200px !important;
+        min-width: 180px !important;
     }
     .qsms-density-compact .chat-bx .chat-name {
-        font-size: 12px !important;
-        max-width: 80px !important;
+        max-width: 90px !important;
     }
-    .qsms-density-compact .chat-bx small {
-        font-size: 9px !important;
-    }
-    .qsms-density-compact .chat-bx p {
-        font-size: 11px !important;
-    }
-    .qsms-density-compact #replyComposerCard .card-body {
-        padding: 0.5rem !important;
-    }
-    .qsms-density-compact #replyComposerCard .form-control,
-    .qsms-density-compact #replyComposerCard .form-select {
-        padding: 0.3rem 0.625rem;
-        font-size: 0.75rem;
-    }
-    .qsms-density-compact #replyComposerCard .btn {
-        padding: 0.3rem 0.625rem;
-        font-size: 0.75rem;
-    }
-    .qsms-density-compact #replyComposerCard .btn-group .btn {
-        padding: 0.25rem 0.4rem;
-        font-size: 0.65rem;
+    .qsms-density-compact #replyComposerCard {
+        max-height: 220px !important;
     }
 }
 </style>
@@ -745,7 +837,7 @@ span.badge.channel-pill-rcs,
                                 @endif
                             </div>
                             
-                            <div class="card border-top" id="replyComposerCard" style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; border-radius: 0; z-index: 100; max-height: 480px; overflow: visible;">
+                            <div class="card border-top" id="replyComposerCard">
                                 <div class="card-body p-2">
                                     <div class="row mb-2">
                                         <div class="col-12 mb-1">
