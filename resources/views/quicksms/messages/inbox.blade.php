@@ -621,6 +621,10 @@ span.badge.channel-pill-rcs,
 /* Reduce composer max-height for compact mode */
 .qsms-density-compact #replyComposerCard {
     max-height: 300px !important;
+    overflow-y: auto !important;
+}
+.qsms-density-compact #replyComposerCard .card-body {
+    min-height: min-content !important;
 }
 /* Make textarea smaller in compact mode */
 .qsms-density-compact #replyComposerCard #replyMessage {
@@ -658,6 +662,7 @@ span.badge.channel-pill-rcs,
     }
     .qsms-density-compact #replyComposerCard {
         max-height: 220px !important;
+        overflow-y: auto !important;
     }
 }
 </style>
