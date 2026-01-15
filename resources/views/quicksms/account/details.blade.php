@@ -276,46 +276,51 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#companyInfo" aria-expanded="false">
                         <i class="fas fa-building me-2 text-primary"></i>Company Information
-                        <span class="section-indicator required"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
+                        <span class="section-indicator required" id="companyStatusBadge"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
                     </button>
                 </h2>
                 <div id="companyInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
+                        <p class="text-muted small mb-3">Complete all required fields to enable go-live. This information is used across RCS, SMS SenderID, and billing systems.</p>
+                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Legal Company Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="legalCompanyName" value="Acme Communications Ltd">
+                                    <label class="form-label">Company Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control company-field" id="companyName" value="Acme Communications Ltd">
+                                    <div class="field-hint">Legal registered company name</div>
                                     <div class="usage-chips">
                                         <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
                                         <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
                                         <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoices</span>
                                     </div>
-                                    <div class="validation-error">Legal company name is required</div>
+                                    <div class="validation-error">Company name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Trading Name<span class="optional-indicator">(Optional)</span></label>
                                     <input type="text" class="form-control" id="tradingName" value="Acme Comms" placeholder="If different from legal name">
+                                    <div class="field-hint">Only if trading under a different name</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Company Registration Number<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="companyRegNumber" value="12345678" placeholder="e.g., 12345678">
+                                    <label class="form-label">Company Number<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control company-field" id="companyNumber" value="12345678" placeholder="e.g., 12345678">
+                                    <div class="field-hint">Companies House registration number</div>
                                     <div class="usage-chips">
                                         <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
                                         <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
                                     </div>
-                                    <div class="validation-error">Company registration number is required</div>
+                                    <div class="validation-error">Company number is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Industry / Sector<span class="required-indicator">*</span></label>
-                                    <select class="form-select" id="industrySector">
-                                        <option value="">Select industry...</option>
+                                    <label class="form-label">Sector<span class="required-indicator">*</span></label>
+                                    <select class="form-select company-field" id="companySector">
+                                        <option value="">Select sector...</option>
                                         <option value="telecommunications" selected>Telecommunications & Media</option>
                                         <option value="financial">Financial Services</option>
                                         <option value="healthcare">Healthcare</option>
@@ -326,25 +331,22 @@
                                         <option value="technology">Technology</option>
                                         <option value="manufacturing">Manufacturing</option>
                                         <option value="professional">Professional Services</option>
+                                        <option value="utilities">Utilities & Energy</option>
+                                        <option value="logistics">Logistics & Transport</option>
                                         <option value="other">Other</option>
                                     </select>
-                                    <div class="validation-error">Please select an industry</div>
+                                    <div class="validation-error">Please select a sector</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Company Website<span class="required-indicator">*</span></label>
-                                    <input type="url" class="form-control" id="companyWebsite" value="https://www.acmecomms.co.uk" placeholder="https://www.example.com">
+                                    <label class="form-label">Primary Website<span class="required-indicator">*</span></label>
+                                    <input type="url" class="form-control company-field" id="companyWebsite" value="https://www.acmecomms.co.uk" placeholder="https://www.example.com">
+                                    <div class="field-hint">Must start with https://</div>
                                     <div class="usage-chips">
                                         <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
                                     </div>
-                                    <div class="validation-error">Please enter a valid website URL</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Company Phone<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="tel" class="form-control" id="companyPhone" value="+44 20 7946 0958" placeholder="+44 20 1234 5678">
+                                    <div class="validation-error" id="websiteError">Please enter a valid website URL starting with https://</div>
                                 </div>
                             </div>
                         </div>
@@ -354,7 +356,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="regAddress1" value="123 Business Park">
+                                    <input type="text" class="form-control company-field" id="regAddress1" value="123 Business Park">
                                     <div class="validation-error">Address is required</div>
                                 </div>
                             </div>
@@ -367,41 +369,107 @@
                             <div class="col-md-4">
                                 <div class="field-group">
                                     <label class="form-label">City<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="regCity" value="London">
+                                    <input type="text" class="form-control company-field" id="regCity" value="London">
                                     <div class="validation-error">City is required</div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="field-group">
-                                    <label class="form-label">County / State<span class="optional-indicator">(Optional)</span></label>
+                                    <label class="form-label">County / Region<span class="optional-indicator">(Optional)</span></label>
                                     <input type="text" class="form-control" id="regCounty" value="Greater London">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="field-group">
                                     <label class="form-label">Postcode<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="regPostcode" value="EC1A 1BB">
+                                    <input type="text" class="form-control company-field" id="regPostcode" value="EC1A 1BB">
                                     <div class="validation-error">Postcode is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Country<span class="required-indicator">*</span></label>
-                                    <select class="form-select" id="regCountry">
+                                    <select class="form-select company-field" id="regCountry">
+                                        <option value="">Select country...</option>
                                         <option value="UK" selected>United Kingdom</option>
                                         <option value="US">United States</option>
                                         <option value="DE">Germany</option>
                                         <option value="FR">France</option>
                                         <option value="IE">Ireland</option>
+                                        <option value="NL">Netherlands</option>
+                                        <option value="ES">Spain</option>
+                                        <option value="IT">Italy</option>
                                     </select>
+                                    <div class="validation-error">Country is required</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mt-4 mb-3">
+                            <input class="form-check-input" type="checkbox" id="operatingSameAsRegistered" checked>
+                            <label class="form-check-label" for="operatingSameAsRegistered">
+                                Operating address same as registered address
+                            </label>
+                        </div>
+                        
+                        <div id="operatingAddressSection" style="display: none;">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-building me-2 text-primary"></i>Operating Address</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control operating-field" id="opAddress1" value="">
+                                        <div class="validation-error">Address is required</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Address Line 2<span class="optional-indicator">(Optional)</span></label>
+                                        <input type="text" class="form-control" id="opAddress2" value="">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-group">
+                                        <label class="form-label">City<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control operating-field" id="opCity" value="">
+                                        <div class="validation-error">City is required</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-group">
+                                        <label class="form-label">County / Region<span class="optional-indicator">(Optional)</span></label>
+                                        <input type="text" class="form-control" id="opCounty" value="">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-group">
+                                        <label class="form-label">Postcode<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control operating-field" id="opPostcode" value="">
+                                        <div class="validation-error">Postcode is required</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Country<span class="required-indicator">*</span></label>
+                                        <select class="form-select operating-field" id="opCountry">
+                                            <option value="">Select country...</option>
+                                            <option value="UK">United Kingdom</option>
+                                            <option value="US">United States</option>
+                                            <option value="DE">Germany</option>
+                                            <option value="FR">France</option>
+                                            <option value="IE">Ireland</option>
+                                            <option value="NL">Netherlands</option>
+                                            <option value="ES">Spain</option>
+                                            <option value="IT">Italy</option>
+                                        </select>
+                                        <div class="validation-error">Country is required</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="section-actions">
-                            <span class="auto-save-indicator" id="companyAutoSave">
-                                <i class="fas fa-circle-notch fa-spin"></i> Saving...
-                            </span>
+                            <span class="auto-save-indicator" id="companyAutoSave"></span>
                             <button type="button" class="btn btn-primary btn-sm" id="saveCompanyInfo">
                                 <i class="fas fa-save me-1"></i>Save Changes
                             </button>
@@ -709,6 +777,58 @@ $(document).ready(function() {
         }
     });
     
+    $('#operatingSameAsRegistered').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#operatingAddressSection').slideUp();
+        } else {
+            $('#operatingAddressSection').slideDown();
+        }
+    });
+    
+    $('#companyWebsite').on('blur', function() {
+        var value = $(this).val().trim();
+        if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+            $(this).val('https://' + value);
+        }
+    });
+    
+    function updateCompanyStatusBadge() {
+        var allValid = true;
+        var requiredFields = ['#companyName', '#companyNumber', '#companySector', '#companyWebsite', 
+                              '#regAddress1', '#regCity', '#regPostcode', '#regCountry'];
+        
+        requiredFields.forEach(function(selector) {
+            var value = $(selector).val();
+            if (!value || value.trim() === '') {
+                allValid = false;
+            }
+        });
+        
+        if (!$('#operatingSameAsRegistered').is(':checked')) {
+            var opFields = ['#opAddress1', '#opCity', '#opPostcode', '#opCountry'];
+            opFields.forEach(function(selector) {
+                var value = $(selector).val();
+                if (!value || value.trim() === '') {
+                    allValid = false;
+                }
+            });
+        }
+        
+        var $badge = $('#companyStatusBadge');
+        if (allValid) {
+            $badge.removeClass('required').addClass('complete')
+                .html('<i class="fas fa-check-circle"></i> Complete');
+        } else {
+            $badge.removeClass('complete').addClass('required')
+                .html('<i class="fas fa-exclamation-circle"></i> Required to go live');
+        }
+    }
+    
+    $('.company-field, .operating-field').on('input blur change', function() {
+        validateField($(this));
+        updateCompanyStatusBadge();
+    });
+    
     function showAutoSave($indicator, state) {
         if (state === 'saving') {
             $indicator.removeClass('saved').addClass('saving')
@@ -875,7 +995,45 @@ $(document).ready(function() {
     });
     
     $('#saveCompanyInfo').on('click', function() {
-        saveSection('companyInfo', $(this), $('#companyAutoSave'));
+        var $saveBtn = $(this);
+        var $autoSave = $('#companyAutoSave');
+        var isValid = true;
+        
+        var website = $('#companyWebsite').val().trim();
+        if (website && !website.startsWith('https://')) {
+            $('#companyWebsite').addClass('is-invalid');
+            $('#websiteError').text('Website must start with https://');
+            isValid = false;
+        }
+        
+        $('.company-field').each(function() {
+            if (!validateField($(this))) {
+                isValid = false;
+            }
+        });
+        
+        if (!$('#operatingSameAsRegistered').is(':checked')) {
+            $('.operating-field').each(function() {
+                if (!validateField($(this))) {
+                    isValid = false;
+                }
+            });
+        }
+        
+        if (!isValid) {
+            toastr.error('Please complete all required fields before saving.');
+            return;
+        }
+        
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        showAutoSave($autoSave, 'saving');
+        
+        setTimeout(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            showAutoSave($autoSave, 'saved');
+            updateCompanyStatusBadge();
+            toastr.success('Company information saved successfully.');
+        }, 800);
     });
     
     $('#saveSignatory').on('click', function() {
