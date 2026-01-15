@@ -6,6 +6,13 @@ use Illuminate\Http\Request;
 
 class QuickSMSController extends Controller
 {
+    public function signup()
+    {
+        return view('quicksms.auth.signup', [
+            'page_title' => 'Sign Up'
+        ]);
+    }
+    
     public function dashboard()
     {
         // TODO: Replace with actual data from API

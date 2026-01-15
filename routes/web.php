@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuickSMSController;
 use App\Http\Controllers\Api\RcsAssetController;
 
+// Public auth routes (no authentication required)
+Route::controller(QuickSMSController::class)->group(function () {
+    Route::get('/signup', 'signup')->name('auth.signup');
+});
+
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/', 'dashboard')->name('dashboard');
     
