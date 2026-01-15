@@ -14,17 +14,26 @@
 }
 .inbox-page-container .row {
     flex: 1 !important;
+    min-height: 0 !important;
     margin: 0 !important;
 }
 .inbox-page-container .col-xl-12 {
     padding: 0 !important;
     height: 100% !important;
+    min-height: 0 !important;
 }
 .inbox-main-card {
     height: 100% !important;
+    min-height: 0 !important;
     border-radius: 0 !important;
     margin: 0 !important;
     overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.inbox-main-card > .card-body {
+    flex: 1 !important;
+    min-height: 0 !important;
 }
 .chat-left-body {
     width: 300px !important;
@@ -634,7 +643,7 @@ span.badge.channel-pill-rcs,
     <div class="row">
         <div class="col-xl-12">
             <div class="card inbox-main-card mb-0">
-                <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%; min-height: 0;">
+                <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%; min-height: 0; overflow: hidden;">
                     <div class="chat-left-body">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
@@ -724,7 +733,7 @@ span.badge.channel-pill-rcs,
                         </div>
                     </div>
                     
-                    <div class="chat-pane-wrapper" id="chatPaneWrapper" style="flex: 1; min-width: 0; height: 100%; position: relative; display: flex; flex-direction: column; overflow: hidden;">
+                    <div class="chat-pane-wrapper" id="chatPaneWrapper">
                             <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3" id="chatHeader" style="flex: 0 0 auto;">
                                 <div class="d-flex align-items-center">
                                     <div class="chat-img me-3" id="chatAvatar">
