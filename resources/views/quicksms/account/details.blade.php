@@ -16,137 +16,6 @@
 .breadcrumb-item.active {
     font-weight: 500;
 }
-.info-card {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
-    margin-bottom: 1.5rem;
-}
-.info-card .card-header {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    padding: 1rem 1.25rem;
-    border-radius: 0.75rem 0.75rem 0 0;
-}
-.info-card .card-header h6 {
-    margin: 0;
-    font-weight: 600;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.info-card .card-header h6 i {
-    color: var(--primary);
-}
-.info-card .card-body {
-    padding: 1.25rem;
-}
-.info-row {
-    display: flex;
-    padding: 0.625rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-.info-row:last-child {
-    border-bottom: none;
-}
-.info-label {
-    flex: 0 0 180px;
-    font-weight: 500;
-    color: #6c757d;
-    font-size: 0.875rem;
-}
-.info-value {
-    flex: 1;
-    color: #333;
-    font-size: 0.875rem;
-}
-.info-value.text-muted {
-    font-style: italic;
-}
-.edit-field {
-    display: none !important;
-}
-.edit-mode .view-field {
-    display: none !important;
-}
-.edit-mode .edit-field {
-    display: block !important;
-}
-.edit-mode .edit-field.d-flex {
-    display: flex !important;
-}
-.btn-edit-section {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.8rem;
-}
-.source-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: rgba(136, 108, 192, 0.1);
-    color: var(--primary);
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-.source-badge i {
-    font-size: 0.6rem;
-}
-.usage-indicator {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-.usage-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: #f8f9fa;
-    color: #6c757d;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.7rem;
-}
-.usage-chip i {
-    font-size: 0.65rem;
-}
-.usage-chip.active {
-    background: rgba(40, 167, 69, 0.1);
-    color: #28a745;
-}
-.audit-trail-container {
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    max-height: 300px;
-    overflow-y: auto;
-}
-.audit-entry {
-    padding: 0.75rem;
-    background: #fff;
-    border-radius: 0.375rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid #e9ecef;
-}
-.audit-entry:last-child {
-    margin-bottom: 0;
-}
-.audit-entry .audit-time {
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-.audit-entry .audit-user {
-    font-weight: 500;
-    color: #333;
-    font-size: 0.8rem;
-}
-.audit-entry .audit-action {
-    font-size: 0.8rem;
-    color: #495057;
-}
 .highlight-box {
     background: rgba(136, 108, 192, 0.08);
     border: 1px solid rgba(136, 108, 192, 0.2);
@@ -164,54 +33,147 @@
     margin-bottom: 0;
     font-size: 0.875rem;
 }
-.address-block {
-    line-height: 1.6;
-}
-.contact-card {
+.accordion-primary .accordion-button {
     background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    height: 100%;
-}
-.contact-card .contact-name {
     font-weight: 600;
     color: #333;
-    margin-bottom: 0.25rem;
+    padding: 1rem 1.25rem;
 }
-.contact-card .contact-role {
+.accordion-primary .accordion-button:not(.collapsed) {
+    background: rgba(136, 108, 192, 0.08);
     color: var(--primary);
-    font-size: 0.8rem;
+    box-shadow: none;
+}
+.accordion-primary .accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(136, 108, 192, 0.3);
+}
+.accordion-primary .accordion-button::after {
+    background-size: 1rem;
+}
+.accordion-primary .accordion-item {
+    border: 1px solid #e9ecef;
     margin-bottom: 0.75rem;
+    border-radius: 0.5rem !important;
+    overflow: hidden;
 }
-.contact-card .contact-detail {
-    font-size: 0.85rem;
-    color: #495057;
-    margin-bottom: 0.25rem;
+.accordion-primary .accordion-body {
+    padding: 1.25rem;
+    background: #fff;
 }
-.contact-card .contact-detail i {
-    width: 18px;
-    color: #6c757d;
-}
-.verification-status {
+.section-indicator {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    padding: 0.25rem 0.625rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 500;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-left: 0.75rem;
 }
-.verification-status.verified {
+.section-indicator.required {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+.section-indicator.optional {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+.section-indicator.complete {
     background: rgba(40, 167, 69, 0.1);
     color: #28a745;
 }
-.verification-status.pending {
-    background: rgba(255, 193, 7, 0.15);
-    color: #856404;
+.form-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.875rem;
+    margin-bottom: 0.375rem;
 }
-.verification-status.unverified {
-    background: rgba(220, 53, 69, 0.1);
+.form-label .required-indicator {
     color: #dc3545;
+    margin-left: 0.125rem;
+}
+.form-label .optional-indicator {
+    color: #6c757d;
+    font-weight: 400;
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+.form-control, .form-select {
+    font-size: 0.875rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: rgba(136, 108, 192, 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.15);
+}
+.field-group {
+    margin-bottom: 1.25rem;
+}
+.field-group:last-child {
+    margin-bottom: 0;
+}
+.field-hint {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+.section-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    margin-top: 1.5rem;
+}
+.validation-error {
+    font-size: 0.75rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+    display: none;
+}
+.is-invalid ~ .validation-error {
+    display: block;
+}
+.readonly-value {
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    color: #495057;
+}
+.auto-save-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.auto-save-indicator.saving {
+    color: var(--primary);
+}
+.auto-save-indicator.saved {
+    color: #28a745;
+}
+.usage-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+}
+.usage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(136, 108, 192, 0.08);
+    color: var(--primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+.usage-chip i {
+    font-size: 0.6rem;
 }
 </style>
 @endpush
@@ -229,492 +191,497 @@
     <div class="col-12">
         <div class="highlight-box">
             <h6><i class="fas fa-database me-2"></i>Account Information Centre</h6>
-            <p>This is the authoritative source for your company information. Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing, VAT handling, Support tickets, and Compliance records. Keeping this information accurate ensures consistency across all services.</p>
+            <p>This is the authoritative source for your company information. Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing, VAT handling, Support tickets, and Compliance records.</p>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
-        <div class="info-card" id="companyInfoCard">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6><i class="fas fa-building"></i> Company Information</h6>
-                <button class="btn btn-outline-primary btn-sm btn-edit-section" data-section="company">
-                    <i class="fas fa-pencil-alt me-1"></i>Edit
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="info-row">
-                    <div class="info-label">Legal Company Name</div>
-                    <div class="info-value">
-                        <span class="view-field">Acme Communications Ltd</span>
-                        <input type="text" class="form-control form-control-sm edit-field" id="companyName" value="Acme Communications Ltd">
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Trading Name</div>
-                    <div class="info-value">
-                        <span class="view-field">Acme Comms</span>
-                        <input type="text" class="form-control form-control-sm edit-field" id="tradingName" value="Acme Comms">
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Company Registration No.</div>
-                    <div class="info-value">
-                        <span class="view-field">12345678</span>
-                        <input type="text" class="form-control form-control-sm edit-field" id="companyRegNo" value="12345678">
-                        <div class="usage-indicator view-field">
-                            <span class="usage-chip active"><i class="fas fa-check-circle"></i> RCS Registration</span>
-                            <span class="usage-chip active"><i class="fas fa-check-circle"></i> SMS SenderID</span>
-                            <span class="usage-chip active"><i class="fas fa-check-circle"></i> Billing</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">VAT Number</div>
-                    <div class="info-value">
-                        <span class="view-field">GB123456789</span>
-                        <input type="text" class="form-control form-control-sm edit-field" id="vatNumber" value="GB123456789">
-                        <div class="usage-indicator view-field">
-                            <span class="usage-chip active"><i class="fas fa-check-circle"></i> Invoicing</span>
-                            <span class="usage-chip active"><i class="fas fa-check-circle"></i> VAT Returns</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Industry / Sector</div>
-                    <div class="info-value">
-                        <span class="view-field">Telecommunications & Media</span>
-                        <select class="form-select form-select-sm edit-field" id="industrySector">
-                            <option value="">Select industry...</option>
-                            <option value="telecommunications" selected>Telecommunications & Media</option>
-                            <option value="financial">Financial Services</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="retail">Retail & E-commerce</option>
-                            <option value="travel">Travel & Hospitality</option>
-                            <option value="education">Education</option>
-                            <option value="government">Government & Public Sector</option>
-                            <option value="technology">Technology</option>
-                            <option value="manufacturing">Manufacturing</option>
-                            <option value="professional">Professional Services</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Company Website</div>
-                    <div class="info-value">
-                        <span class="view-field"><a href="https://www.acmecomms.co.uk" target="_blank">www.acmecomms.co.uk</a></span>
-                        <input type="url" class="form-control form-control-sm edit-field" id="companyWebsite" value="https://www.acmecomms.co.uk">
-                    </div>
-                </div>
-                
-                <div class="d-flex gap-2 mt-3 edit-field">
-                    <button class="btn btn-primary btn-sm btn-save-section" data-section="company">
-                        <i class="fas fa-check me-1"></i>Save Changes
+    <div class="col-lg-12">
+        <div class="accordion accordion-primary" id="accountDetailsAccordion">
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#signUpDetails" aria-expanded="true">
+                        <i class="fas fa-user-plus me-2 text-primary"></i>Sign Up Details
+                        <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm btn-cancel-section" data-section="company">
-                        Cancel
+                </h2>
+                <div id="signUpDetails" class="accordion-collapse collapse show" data-bs-parent="#accountDetailsAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Account ID</label>
+                                    <div class="readonly-value">ACC-2024-00847</div>
+                                    <div class="field-hint">System-generated identifier</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Account Status</label>
+                                    <div class="readonly-value">
+                                        <span class="badge badge-pastel-success">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Account Created</label>
+                                    <div class="readonly-value">15 March 2023</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Account Type</label>
+                                    <div class="readonly-value">Enterprise</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Primary Email<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control" id="primaryEmail" value="admin@acmecomms.co.uk">
+                                    <div class="field-hint">Used for account notifications and login</div>
+                                    <div class="validation-error">Please enter a valid email address</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Account Owner Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="accountOwnerName" value="Sarah Johnson">
+                                    <div class="validation-error">Account owner name is required</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section-actions">
+                            <span class="auto-save-indicator saved" id="signUpAutoSave">
+                                <i class="fas fa-check-circle"></i> All changes saved
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#companyInfo" aria-expanded="false">
+                        <i class="fas fa-building me-2 text-primary"></i>Company Information
+                        <span class="section-indicator required"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
                     </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-card" id="registeredAddressCard">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6><i class="fas fa-map-marker-alt"></i> Registered Address</h6>
-                <button class="btn btn-outline-primary btn-sm btn-edit-section" data-section="registered">
-                    <i class="fas fa-pencil-alt me-1"></i>Edit
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="view-field">
-                    <div class="address-block">
-                        <strong>Acme Communications Ltd</strong><br>
-                        123 Business Park<br>
-                        Tech Quarter, Floor 5<br>
-                        London<br>
-                        Greater London<br>
-                        EC1A 1BB<br>
-                        United Kingdom
-                    </div>
-                    <div class="usage-indicator mt-2">
-                        <span class="usage-chip active"><i class="fas fa-check-circle"></i> Legal Documents</span>
-                        <span class="usage-chip active"><i class="fas fa-check-circle"></i> Compliance</span>
-                    </div>
-                </div>
-                <div class="edit-field">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label small">Address Line 1 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-sm" id="regAddress1" value="123 Business Park">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small">Address Line 2</label>
-                            <input type="text" class="form-control form-control-sm" id="regAddress2" value="Tech Quarter, Floor 5">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">City <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-sm" id="regCity" value="London">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">County / State</label>
-                            <input type="text" class="form-control form-control-sm" id="regCounty" value="Greater London">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Postcode <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-sm" id="regPostcode" value="EC1A 1BB">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Country <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-sm" id="regCountry">
-                                <option value="UK" selected>United Kingdom</option>
-                                <option value="US">United States</option>
-                                <option value="DE">Germany</option>
-                                <option value="FR">France</option>
-                                <option value="IE">Ireland</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <button class="btn btn-primary btn-sm btn-save-section" data-section="registered">
-                            <i class="fas fa-check me-1"></i>Save Changes
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm btn-cancel-section" data-section="registered">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-card" id="billingAddressCard">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6><i class="fas fa-file-invoice-dollar"></i> Billing Address</h6>
-                <button class="btn btn-outline-primary btn-sm btn-edit-section" data-section="billing">
-                    <i class="fas fa-pencil-alt me-1"></i>Edit
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="view-field">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="source-badge"><i class="fas fa-link"></i> Same as Registered Address</span>
-                    </div>
-                    <div class="address-block text-muted">
-                        123 Business Park<br>
-                        Tech Quarter, Floor 5<br>
-                        London, EC1A 1BB<br>
-                        United Kingdom
-                    </div>
-                    <div class="usage-indicator mt-2">
-                        <span class="usage-chip active"><i class="fas fa-check-circle"></i> Invoices</span>
-                        <span class="usage-chip active"><i class="fas fa-check-circle"></i> Statements</span>
-                    </div>
-                </div>
-                <div class="edit-field">
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="sameAsRegistered" checked>
-                        <label class="form-check-label small" for="sameAsRegistered">
-                            Same as registered address
-                        </label>
-                    </div>
-                    <div id="billingAddressFields" style="display: none;">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label small">Address Line 1 <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" id="billAddress1" value="">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small">Address Line 2</label>
-                                <input type="text" class="form-control form-control-sm" id="billAddress2" value="">
+                </h2>
+                <div id="companyInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Legal Company Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="legalCompanyName" value="Acme Communications Ltd">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
+                                        <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
+                                        <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoices</span>
+                                    </div>
+                                    <div class="validation-error">Legal company name is required</div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small">City <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" id="billCity" value="">
+                                <div class="field-group">
+                                    <label class="form-label">Trading Name<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="tradingName" value="Acme Comms" placeholder="If different from legal name">
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small">County / State</label>
-                                <input type="text" class="form-control form-control-sm" id="billCounty" value="">
+                                <div class="field-group">
+                                    <label class="form-label">Company Registration Number<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="companyRegNumber" value="12345678" placeholder="e.g., 12345678">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
+                                        <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
+                                    </div>
+                                    <div class="validation-error">Company registration number is required</div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small">Postcode <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" id="billPostcode" value="">
+                                <div class="field-group">
+                                    <label class="form-label">Industry / Sector<span class="required-indicator">*</span></label>
+                                    <select class="form-select" id="industrySector">
+                                        <option value="">Select industry...</option>
+                                        <option value="telecommunications" selected>Telecommunications & Media</option>
+                                        <option value="financial">Financial Services</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="retail">Retail & E-commerce</option>
+                                        <option value="travel">Travel & Hospitality</option>
+                                        <option value="education">Education</option>
+                                        <option value="government">Government & Public Sector</option>
+                                        <option value="technology">Technology</option>
+                                        <option value="manufacturing">Manufacturing</option>
+                                        <option value="professional">Professional Services</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    <div class="validation-error">Please select an industry</div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small">Country <span class="text-danger">*</span></label>
-                                <select class="form-select form-select-sm" id="billCountry">
-                                    <option value="UK" selected>United Kingdom</option>
-                                    <option value="US">United States</option>
-                                    <option value="DE">Germany</option>
-                                    <option value="FR">France</option>
-                                    <option value="IE">Ireland</option>
-                                </select>
+                                <div class="field-group">
+                                    <label class="form-label">Company Website<span class="required-indicator">*</span></label>
+                                    <input type="url" class="form-control" id="companyWebsite" value="https://www.acmecomms.co.uk" placeholder="https://www.example.com">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
+                                    </div>
+                                    <div class="validation-error">Please enter a valid website URL</div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <button class="btn btn-primary btn-sm btn-save-section" data-section="billing">
-                            <i class="fas fa-check me-1"></i>Save Changes
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm btn-cancel-section" data-section="billing">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-card" id="contactsCard">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6><i class="fas fa-users"></i> Key Contacts</h6>
-                <button class="btn btn-outline-primary btn-sm btn-edit-section" data-section="contacts">
-                    <i class="fas fa-pencil-alt me-1"></i>Edit
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="view-field">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="contact-card">
-                                <div class="contact-name">Sarah Johnson</div>
-                                <div class="contact-role">Primary Contact</div>
-                                <div class="contact-detail"><i class="fas fa-envelope"></i> sarah.johnson@acmecomms.co.uk</div>
-                                <div class="contact-detail"><i class="fas fa-phone"></i> +44 20 7946 0958</div>
-                                <div class="contact-detail"><i class="fas fa-briefcase"></i> Account Director</div>
-                                <div class="mt-2">
-                                    <span class="usage-chip active"><i class="fas fa-check-circle"></i> Support</span>
-                                    <span class="usage-chip active"><i class="fas fa-check-circle"></i> Escalations</span>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Company Phone<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="tel" class="form-control" id="companyPhone" value="+44 20 7946 0958" placeholder="+44 20 1234 5678">
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="contact-card">
-                                <div class="contact-name">Michael Chen</div>
-                                <div class="contact-role">Billing Contact</div>
-                                <div class="contact-detail"><i class="fas fa-envelope"></i> m.chen@acmecomms.co.uk</div>
-                                <div class="contact-detail"><i class="fas fa-phone"></i> +44 20 7946 0959</div>
-                                <div class="contact-detail"><i class="fas fa-briefcase"></i> Finance Manager</div>
-                                <div class="mt-2">
-                                    <span class="usage-chip active"><i class="fas fa-check-circle"></i> Invoices</span>
-                                    <span class="usage-chip active"><i class="fas fa-check-circle"></i> Payments</span>
+                        
+                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Registered Address</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="regAddress1" value="123 Business Park">
+                                    <div class="validation-error">Address is required</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Address Line 2<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="regAddress2" value="Tech Quarter, Floor 5">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="field-group">
+                                    <label class="form-label">City<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="regCity" value="London">
+                                    <div class="validation-error">City is required</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="field-group">
+                                    <label class="form-label">County / State<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="regCounty" value="Greater London">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="field-group">
+                                    <label class="form-label">Postcode<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="regPostcode" value="EC1A 1BB">
+                                    <div class="validation-error">Postcode is required</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Country<span class="required-indicator">*</span></label>
+                                    <select class="form-select" id="regCountry">
+                                        <option value="UK" selected>United Kingdom</option>
+                                        <option value="US">United States</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="IE">Ireland</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="contact-card">
-                                <div class="contact-name">David Park</div>
-                                <div class="contact-role">Technical Contact</div>
-                                <div class="contact-detail"><i class="fas fa-envelope"></i> d.park@acmecomms.co.uk</div>
-                                <div class="contact-detail"><i class="fas fa-phone"></i> +44 20 7946 0960</div>
-                                <div class="contact-detail"><i class="fas fa-briefcase"></i> CTO</div>
-                                <div class="mt-2">
-                                    <span class="usage-chip active"><i class="fas fa-check-circle"></i> API Issues</span>
-                                    <span class="usage-chip active"><i class="fas fa-check-circle"></i> Technical</span>
+                        
+                        <div class="section-actions">
+                            <span class="auto-save-indicator" id="companyAutoSave">
+                                <i class="fas fa-circle-notch fa-spin"></i> Saving...
+                            </span>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveCompanyInfo">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#supportOperations" aria-expanded="false">
+                        <i class="fas fa-headset me-2 text-primary"></i>Support & Operations
+                        <span class="section-indicator optional"><i class="fas fa-info-circle"></i> Optional</span>
+                    </button>
+                </h2>
+                <div id="supportOperations" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                    <div class="accordion-body">
+                        <p class="text-muted small mb-4">Configure contacts for support tickets and operational notifications. If not specified, the primary account contact will be used.</p>
+                        
+                        <h6 class="fw-bold mb-3"><i class="fas fa-user-tie me-2 text-primary"></i>Primary Contact</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Full Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="primaryContactName" value="Sarah Johnson">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-headset"></i> Support Tickets</span>
+                                        <span class="usage-chip"><i class="fas fa-exclamation-triangle"></i> Escalations</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Job Title<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="primaryContactTitle" value="Account Director">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Email<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control" id="primaryContactEmail" value="sarah.johnson@acmecomms.co.uk">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Phone<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="tel" class="form-control" id="primaryContactPhone" value="+44 20 7946 0958">
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="edit-field">
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <h6 class="small fw-bold text-primary mb-3">Primary Contact</h6>
-                            <div class="mb-2">
-                                <label class="form-label small">Full Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" id="primaryName" value="Sarah Johnson">
+                        
+                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-code me-2 text-primary"></i>Technical Contact</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Full Name<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="techContactName" value="David Park">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-plug"></i> API Issues</span>
+                                        <span class="usage-chip"><i class="fas fa-cog"></i> Technical Support</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control form-control-sm" id="primaryEmail" value="sarah.johnson@acmecomms.co.uk">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Job Title<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="techContactTitle" value="CTO">
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Phone <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control form-control-sm" id="primaryPhone" value="+44 20 7946 0958">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Email<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="email" class="form-control" id="techContactEmail" value="d.park@acmecomms.co.uk">
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Job Title</label>
-                                <input type="text" class="form-control form-control-sm" id="primaryTitle" value="Account Director">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <h6 class="small fw-bold text-primary mb-3">Billing Contact</h6>
-                            <div class="mb-2">
-                                <label class="form-label small">Full Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" id="billingName" value="Michael Chen">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control form-control-sm" id="billingEmail" value="m.chen@acmecomms.co.uk">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Phone <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control form-control-sm" id="billingPhone" value="+44 20 7946 0959">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Job Title</label>
-                                <input type="text" class="form-control form-control-sm" id="billingTitle" value="Finance Manager">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Phone<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="tel" class="form-control" id="techContactPhone" value="+44 20 7946 0960">
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <h6 class="small fw-bold text-primary mb-3">Technical Contact</h6>
-                            <div class="mb-2">
-                                <label class="form-label small">Full Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" id="technicalName" value="David Park">
+                        
+                        <div class="section-actions">
+                            <span class="auto-save-indicator saved" id="supportAutoSave">
+                                <i class="fas fa-check-circle"></i> All changes saved
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contractSignatory" aria-expanded="false">
+                        <i class="fas fa-signature me-2 text-primary"></i>Contract Signatory
+                        <span class="section-indicator required"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
+                    </button>
+                </h2>
+                <div id="contractSignatory" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                    <div class="accordion-body">
+                        <p class="text-muted small mb-4">The contract signatory is authorized to sign legal agreements on behalf of your company. This information is required for service activation.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Full Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="signatoryName" value="James Wilson">
+                                    <div class="validation-error">Signatory name is required</div>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control form-control-sm" id="technicalEmail" value="d.park@acmecomms.co.uk">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Job Title<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="signatoryTitle" value="Managing Director">
+                                    <div class="validation-error">Job title is required</div>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Phone <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control form-control-sm" id="technicalPhone" value="+44 20 7946 0960">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Email<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control" id="signatoryEmail" value="j.wilson@acmecomms.co.uk">
+                                    <div class="validation-error">Please enter a valid email address</div>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Job Title</label>
-                                <input type="text" class="form-control form-control-sm" id="technicalTitle" value="CTO">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Phone<span class="required-indicator">*</span></label>
+                                    <input type="tel" class="form-control" id="signatoryPhone" value="+44 20 7946 0961">
+                                    <div class="validation-error">Phone number is required</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <button class="btn btn-primary btn-sm btn-save-section" data-section="contacts">
-                            <i class="fas fa-check me-1"></i>Save Changes
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm btn-cancel-section" data-section="contacts">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="info-card">
-            <div class="card-header">
-                <h6><i class="fas fa-shield-alt"></i> Account Status</h6>
-            </div>
-            <div class="card-body">
-                <div class="info-row">
-                    <div class="info-label">Account ID</div>
-                    <div class="info-value"><code>ACC-2024-00847</code></div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Status</div>
-                    <div class="info-value">
-                        <span class="badge badge-pastel-success">Active</span>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Created</div>
-                    <div class="info-value">15 Mar 2023</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Account Type</div>
-                    <div class="info-value">Enterprise</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-card">
-            <div class="card-header">
-                <h6><i class="fas fa-check-double"></i> Verification Status</h6>
-            </div>
-            <div class="card-body">
-                <div class="info-row">
-                    <div class="info-label">Company</div>
-                    <div class="info-value">
-                        <span class="verification-status verified"><i class="fas fa-check-circle"></i> Verified</span>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">VAT Number</div>
-                    <div class="info-value">
-                        <span class="verification-status verified"><i class="fas fa-check-circle"></i> Verified</span>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Primary Email</div>
-                    <div class="info-value">
-                        <span class="verification-status verified"><i class="fas fa-check-circle"></i> Verified</span>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Phone</div>
-                    <div class="info-value">
-                        <span class="verification-status pending"><i class="fas fa-clock"></i> Pending</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-card">
-            <div class="card-header">
-                <h6><i class="fas fa-link"></i> Data Usage</h6>
-            </div>
-            <div class="card-body">
-                <p class="small text-muted mb-3">This account data is used by the following modules:</p>
-                <div class="d-flex flex-column gap-2">
-                    <a href="{{ route('management.rcs-agent') }}" class="d-flex align-items-center text-decoration-none">
-                        <span class="usage-chip active me-2"><i class="fas fa-robot"></i></span>
-                        <span class="small text-dark">RCS Agent Registration</span>
-                    </a>
-                    <a href="{{ route('management.sms-sender-id') }}" class="d-flex align-items-center text-decoration-none">
-                        <span class="usage-chip active me-2"><i class="fas fa-id-badge"></i></span>
-                        <span class="small text-dark">SMS SenderID Registration</span>
-                    </a>
-                    <a href="{{ route('purchase.messages') }}" class="d-flex align-items-center text-decoration-none">
-                        <span class="usage-chip active me-2"><i class="fas fa-file-invoice-dollar"></i></span>
-                        <span class="small text-dark">Billing & Invoicing</span>
-                    </a>
-                    <a href="{{ route('support.dashboard') }}" class="d-flex align-items-center text-decoration-none">
-                        <span class="usage-chip active me-2"><i class="fas fa-headset"></i></span>
-                        <span class="small text-dark">Support Tickets</span>
-                    </a>
-                    <a href="{{ route('reporting.dashboard') }}" class="d-flex align-items-center text-decoration-none">
-                        <span class="usage-chip active me-2"><i class="fas fa-chart-bar"></i></span>
-                        <span class="small text-dark">Reporting & Compliance</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6><i class="fas fa-history"></i> Recent Changes</h6>
-                <a href="{{ route('account.audit-logs') }}" class="small text-decoration-none">View All</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="audit-trail-container" style="border-radius: 0 0 0.75rem 0.75rem;">
-                    <div class="audit-entry">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <span class="audit-user">Sarah Johnson</span>
-                            <span class="audit-time">2 hours ago</span>
+                        
+                        <div class="section-actions">
+                            <span class="auto-save-indicator" id="signatoryAutoSave"></span>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveSignatory">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
                         </div>
-                        <div class="audit-action">Updated primary contact phone number</div>
-                    </div>
-                    <div class="audit-entry">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <span class="audit-user">System</span>
-                            <span class="audit-time">Yesterday</span>
-                        </div>
-                        <div class="audit-action">VAT number verified by HMRC</div>
-                    </div>
-                    <div class="audit-entry">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <span class="audit-user">Michael Chen</span>
-                            <span class="audit-time">3 days ago</span>
-                        </div>
-                        <div class="audit-action">Updated billing contact email</div>
-                    </div>
-                    <div class="audit-entry">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <span class="audit-user">Admin</span>
-                            <span class="audit-time">1 week ago</span>
-                        </div>
-                        <div class="audit-action">Account upgraded to Enterprise tier</div>
                     </div>
                 </div>
             </div>
+            
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vatTaxInfo" aria-expanded="false">
+                        <i class="fas fa-receipt me-2 text-primary"></i>VAT & Tax Information
+                        <span class="section-indicator required"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
+                    </button>
+                </h2>
+                <div id="vatTaxInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                    <div class="accordion-body">
+                        <p class="text-muted small mb-4">VAT information is required for invoicing and tax compliance. Changes to VAT details are audit-logged.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">VAT Registration Number<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="vatNumber" value="GB123456789" placeholder="e.g., GB123456789">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Invoicing</span>
+                                        <span class="usage-chip"><i class="fas fa-percentage"></i> VAT Returns</span>
+                                    </div>
+                                    <div class="validation-error">VAT number is required</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">VAT Status</label>
+                                    <div class="readonly-value">
+                                        <span class="badge badge-pastel-success"><i class="fas fa-check-circle me-1"></i>Verified by HMRC</span>
+                                    </div>
+                                    <div class="field-hint">Last verified: 14 Jan 2026</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Tax Country<span class="required-indicator">*</span></label>
+                                    <select class="form-select" id="taxCountry">
+                                        <option value="UK" selected>United Kingdom</option>
+                                        <option value="US">United States</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="IE">Ireland</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Tax Exempt<span class="optional-indicator">(Optional)</span></label>
+                                    <select class="form-select" id="taxExempt">
+                                        <option value="no" selected>No - Standard VAT applies</option>
+                                        <option value="yes">Yes - Tax exempt</option>
+                                    </select>
+                                    <div class="field-hint">If exempt, upload exemption certificate below</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-credit-card me-2 text-primary"></i>Billing Contact</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Full Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control" id="billingContactName" value="Michael Chen">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoice Delivery</span>
+                                        <span class="usage-chip"><i class="fas fa-money-bill"></i> Payment Queries</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Job Title<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="text" class="form-control" id="billingContactTitle" value="Finance Manager">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Email<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control" id="billingContactEmail" value="m.chen@acmecomms.co.uk">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Phone<span class="optional-indicator">(Optional)</span></label>
+                                    <input type="tel" class="form-control" id="billingContactPhone" value="+44 20 7946 0959">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Billing Address</h6>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="sameAsRegistered" checked>
+                            <label class="form-check-label small" for="sameAsRegistered">
+                                Same as registered company address
+                            </label>
+                        </div>
+                        <div id="billingAddressFields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control" id="billAddress1" value="">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">Address Line 2<span class="optional-indicator">(Optional)</span></label>
+                                        <input type="text" class="form-control" id="billAddress2" value="">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-group">
+                                        <label class="form-label">City<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control" id="billCity" value="">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-group">
+                                        <label class="form-label">Postcode<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control" id="billPostcode" value="">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="field-group">
+                                        <label class="form-label">Country<span class="required-indicator">*</span></label>
+                                        <select class="form-select" id="billCountry">
+                                            <option value="UK" selected>United Kingdom</option>
+                                            <option value="US">United States</option>
+                                            <option value="DE">Germany</option>
+                                            <option value="FR">France</option>
+                                            <option value="IE">Ireland</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-actions">
+                            <span class="auto-save-indicator" id="vatAutoSave"></span>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveVatInfo">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 </div>
@@ -724,42 +691,122 @@
 <script>
 $(document).ready(function() {
     
-    $('.btn-edit-section').on('click', function() {
-        var section = $(this).data('section');
-        var $card = $(this).closest('.info-card');
-        $card.addClass('edit-mode');
-        $(this).hide();
-    });
-    
-    $('.btn-cancel-section').on('click', function() {
-        var section = $(this).data('section');
-        var $card = $(this).closest('.info-card');
-        $card.removeClass('edit-mode');
-        $card.find('.btn-edit-section').show();
-    });
-    
-    $('.btn-save-section').on('click', function() {
-        var section = $(this).data('section');
-        var $card = $(this).closest('.info-card');
-        var $btn = $(this);
-        
-        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
-        
-        setTimeout(function() {
-            $card.removeClass('edit-mode');
-            $card.find('.btn-edit-section').show();
-            $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i>Save Changes');
-            
-            toastr.success('Changes saved successfully. All linked modules have been updated.');
-        }, 800);
-    });
-    
     $('#sameAsRegistered').on('change', function() {
         if ($(this).is(':checked')) {
             $('#billingAddressFields').slideUp();
         } else {
             $('#billingAddressFields').slideDown();
         }
+    });
+    
+    function showAutoSave($indicator, state) {
+        if (state === 'saving') {
+            $indicator.removeClass('saved').addClass('saving')
+                .html('<i class="fas fa-circle-notch fa-spin"></i> Saving...');
+        } else if (state === 'saved') {
+            $indicator.removeClass('saving').addClass('saved')
+                .html('<i class="fas fa-check-circle"></i> All changes saved');
+        }
+    }
+    
+    var autoSaveTimeout;
+    function triggerAutoSave($indicator, sectionName) {
+        clearTimeout(autoSaveTimeout);
+        showAutoSave($indicator, 'saving');
+        
+        autoSaveTimeout = setTimeout(function() {
+            showAutoSave($indicator, 'saved');
+            console.log('Auto-saved: ' + sectionName);
+        }, 1000);
+    }
+    
+    $('#signUpDetails input').on('input', function() {
+        triggerAutoSave($('#signUpAutoSave'), 'Sign Up Details');
+    });
+    
+    $('#supportOperations input').on('input', function() {
+        triggerAutoSave($('#supportAutoSave'), 'Support & Operations');
+    });
+    
+    function validateField($field) {
+        var value = $field.val().trim();
+        var isRequired = $field.closest('.field-group').find('.required-indicator').length > 0;
+        
+        if (isRequired && !value) {
+            $field.addClass('is-invalid');
+            return false;
+        }
+        
+        if ($field.attr('type') === 'email' && value) {
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                $field.addClass('is-invalid');
+                return false;
+            }
+        }
+        
+        if ($field.attr('type') === 'url' && value) {
+            try {
+                new URL(value);
+            } catch (e) {
+                $field.addClass('is-invalid');
+                return false;
+            }
+        }
+        
+        $field.removeClass('is-invalid');
+        return true;
+    }
+    
+    $('input, select').on('blur', function() {
+        validateField($(this));
+    });
+    
+    $('input').on('input', function() {
+        if ($(this).hasClass('is-invalid')) {
+            validateField($(this));
+        }
+    });
+    
+    function saveSection(sectionId, $saveBtn, $autoSave) {
+        var $section = $('#' + sectionId);
+        var isValid = true;
+        
+        $section.find('input[required], input').each(function() {
+            var $field = $(this);
+            var isRequired = $field.closest('.field-group').find('.required-indicator').length > 0;
+            if (isRequired) {
+                if (!validateField($field)) {
+                    isValid = false;
+                }
+            }
+        });
+        
+        if (!isValid) {
+            toastr.error('Please fix the validation errors before saving.');
+            return;
+        }
+        
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        showAutoSave($autoSave, 'saving');
+        
+        setTimeout(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            showAutoSave($autoSave, 'saved');
+            toastr.success('Changes saved successfully. Audit log updated.');
+        }, 800);
+    }
+    
+    $('#saveCompanyInfo').on('click', function() {
+        saveSection('companyInfo', $(this), $('#companyAutoSave'));
+    });
+    
+    $('#saveSignatory').on('click', function() {
+        saveSection('contractSignatory', $(this), $('#signatoryAutoSave'));
+    });
+    
+    $('#saveVatInfo').on('click', function() {
+        saveSection('vatTaxInfo', $(this), $('#vatAutoSave'));
     });
     
 });

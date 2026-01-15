@@ -40,15 +40,23 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Purchase:** Functionality for purchasing messages and numbers (Admin/Finance/Messaging Managers only), leveraging HubSpot for pricing and Stripe for payments. Includes "Pay Invoice" and "Top Up Balance" flows.
 - **Management:** Covers RCS Agent/SMS SenderID registrations, Templates, API Connections, Email-to-SMS, and Number management.
 - **Account:** Manages account details, user/access, sub-accounts, audit logs, and security settings.
-- **Account Details (Source of Truth):** The `Account > Details` page serves as the authoritative single source of truth for all customer account information. Data entered here is automatically shared with:
-  - RCS Agent Registration (company info, contacts)
-  - SMS SenderID Registration (company registration, addresses)
-  - Billing & Invoicing (billing address, billing contact, VAT number)
-  - VAT Handling (VAT number verification)
-  - Support Tickets (primary contact, technical contact)
-  - Reporting & Compliance (company registration, audit trail)
+- **Account Details (Source of Truth):** The `Account > Details` page serves as the authoritative single source of truth for all customer account information. Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing & Invoicing, VAT handling, Support tickets, and Compliance records.
   
-  The page contains organized sections for: Company Information (legal name, trading name, registration number, VAT, industry, website), Registered Address, Billing Address (with "same as registered" option), Key Contacts (Primary, Billing, Technical), Account Status, Verification Status, Data Usage links, and Recent Changes audit trail. All sections support inline editing with save/cancel functionality and audit logging. Downstream modules must read from this data and must NOT duplicate fields.
+  **Page Structure (5 Collapsible Accordion Cards):**
+  1. **Sign Up Details** - Account ID (read-only), Status, Created date, Type, Primary Email, Account Owner Name
+  2. **Company Information** (Required to go live) - Legal name, Trading name, Company registration number, Industry, Website, Phone, Full registered address
+  3. **Support & Operations** (Optional) - Primary Contact (name, title, email, phone), Technical Contact details
+  4. **Contract Signatory** (Required to go live) - Authorized signatory name, title, email, phone
+  5. **VAT & Tax Information** (Required to go live) - VAT number with verification status, Tax country, Tax exempt option, Billing contact, Billing address (with "same as registered" option)
+  
+  **UX Rules:**
+  - Mandatory fields marked with red asterisk (*), optional fields labelled "(Optional)"
+  - Section status indicators: "Complete" (green), "Required to go live" (red), "Optional" (grey)
+  - Inline validation only (no modals), auto-save for Sign Up and Support sections, explicit Save button for other sections
+  - Usage chips show which downstream modules consume each field (RCS Registration, SMS SenderID, Invoices, etc.)
+  - Sensitive changes (VAT, Signatory) are audit-logged with timestamps
+  
+  Downstream modules must read from this data and must NOT duplicate fields.
 - **Support:** Provides a dashboard, ticket creation, and knowledge base.
 - **Template Integration:** Templates are dynamically filtered by trigger type and channel, with version numbers and a refresh option.
 - **RCS Asset Management:** Server-side image processing for RCS media using Intervention Image, including SSRF protection, dedicated storage, and an interactive crop editor.
