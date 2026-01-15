@@ -250,6 +250,7 @@ function saveCurrentCardData() {
     card.media.assetUuid = rcsMediaData.assetUuid;
     card.media.hostedUrl = rcsMediaData.hostedUrl;
     card.media.originalUrl = rcsMediaData.originalUrl;
+    card.media.savedDataUrl = rcsMediaData.savedDataUrl;
     
     var orientChecked = document.querySelector('input[name="rcsOrientation"]:checked');
     card.media.orientation = orientChecked ? orientChecked.value : 'vertical_short';
@@ -281,6 +282,14 @@ function loadCardData(cardNum) {
     rcsMediaData.assetUuid = card.media.assetUuid;
     rcsMediaData.hostedUrl = card.media.hostedUrl;
     rcsMediaData.originalUrl = card.media.originalUrl;
+    rcsMediaData.savedDataUrl = card.media.savedDataUrl;
+    
+    // Show/hide hosted URL section based on whether this card has a saved URL
+    if (card.media.hostedUrl) {
+        showRcsHostedUrl(card.media.hostedUrl);
+    } else {
+        hideRcsHostedUrl();
+    }
     
     if (card.media.url) {
         var cardWidth = card.media.cardWidth || 'medium';
@@ -620,9 +629,12 @@ function getWizardCardSchema(cardNum) {
     var mediaUrl = null;
     
     if (isCurrentCard) {
-        mediaUrl = rcsMediaData.hostedUrl || rcsMediaData.url || null;
+        // Use savedDataUrl for preview (shows edited image), fallback to url
+        mediaUrl = rcsMediaData.savedDataUrl || rcsMediaData.hostedUrl || rcsMediaData.url || null;
     } else {
-        mediaUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : 
+        // For other cards, use savedDataUrl if available
+        mediaUrl = (card.media && card.media.savedDataUrl) ? card.media.savedDataUrl :
+                   (card.media && card.media.hostedUrl) ? card.media.hostedUrl : 
                    (card.media && card.media.url) ? card.media.url : null;
     }
     
@@ -638,7 +650,9 @@ function getWizardCardSchema(cardNum) {
 
 function getWizardCarouselCardSchema(cardNum) {
     var card = rcsCardsData[cardNum] || {};
-    var mediaUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl :
+    // Use savedDataUrl for preview (shows edited image), fallback to hostedUrl then url
+    var mediaUrl = (card.media && card.media.savedDataUrl) ? card.media.savedDataUrl :
+                   (card.media && card.media.hostedUrl) ? card.media.hostedUrl :
                    (card.media && card.media.url) ? card.media.url : null;
     var btns = card.buttons || [];
     
@@ -1076,52 +1090,155 @@ function getCurrentEditParams() {
     };
 }
 
+/**
+ * Mock Media Service - stores edited images and generates URLs
+ * TODO: Replace with real backend implementation
+ */
+var rcsMockMediaStore = {};
+
+function generateRcsMockMediaUrl() {
+    var uuid = 'rcs-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    return 'https://qsms.uk/rcs/media/' + uuid;
+}
+
+function generateCroppedImageDataUrl() {
+    return new Promise(function(resolve, reject) {
+        try {
+            var img = document.getElementById('rcsMediaPreviewImg');
+            if (!img || !img.src) {
+                reject(new Error('No image loaded'));
+                return;
+            }
+            
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            
+            // Use crop frame dimensions
+            canvas.width = rcsCropState.frameWidth * 2; // Higher res for quality
+            canvas.height = rcsCropState.frameHeight * 2;
+            
+            // Calculate source coordinates based on crop state
+            var scale = rcsCropState.zoom / 100;
+            var scaledWidth = rcsCropState.imageWidth * scale;
+            var scaledHeight = rcsCropState.imageHeight * scale;
+            
+            // Draw the cropped region
+            ctx.drawImage(
+                img,
+                -rcsCropState.offsetX / scale,
+                -rcsCropState.offsetY / scale,
+                canvas.width / scale,
+                canvas.height / scale,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+            
+            resolve(canvas.toDataURL('image/jpeg', 0.9));
+        } catch (e) {
+            // Fallback to original image URL if canvas fails
+            resolve(rcsMediaData.url || rcsMediaData.originalUrl);
+        }
+    });
+}
+
 function saveRcsImageEdits() {
-    if (!rcsMediaData.originalUrl || rcsMediaData.source !== 'url') return;
+    if (!rcsMediaData.url && !rcsMediaData.originalUrl) return;
     
     showRcsProcessingIndicator();
     var editParams = getCurrentEditParams();
     
-    fetch('/api/rcs/assets/process-url', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-        },
-        body: JSON.stringify({
-            url: rcsMediaData.originalUrl,
-            edit_params: editParams,
-            draft_session: rcsDraftSession
-        })
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
+    // Generate cropped image and save
+    generateCroppedImageDataUrl().then(function(croppedDataUrl) {
+        // Generate mock hosted URL
+        var mockUrl = generateRcsMockMediaUrl();
+        var uuid = mockUrl.split('/').pop();
+        
+        // Store in mock media store for preview
+        rcsMockMediaStore[uuid] = {
+            dataUrl: croppedDataUrl,
+            originalUrl: rcsMediaData.originalUrl || rcsMediaData.url,
+            editParams: editParams,
+            timestamp: Date.now()
+        };
+        
+        // Update media data
+        rcsMediaData.assetUuid = uuid;
+        rcsMediaData.hostedUrl = mockUrl;
+        rcsMediaData.savedDataUrl = croppedDataUrl; // Store for preview
+        
+        // Show the hosted URL section
+        showRcsHostedUrl(mockUrl);
+        
+        // Update image info
+        updateRcsImageInfo();
+        
+        // Clear dirty state
+        clearRcsImageDirtyState();
+        initRcsImageBaseline();
+        
+        // Save to current card and update preview
+        saveCurrentCardData();
+        updateRcsWizardPreview();
+        
         hideRcsProcessingIndicator();
-        if (data.success && data.asset) {
-            rcsMediaData.assetUuid = data.asset.uuid;
-            rcsMediaData.hostedUrl = data.asset.public_url;
-            rcsMediaData.url = data.asset.public_url;
-            rcsMediaData.dimensions = { width: data.asset.width, height: data.asset.height };
-            rcsMediaData.fileSize = data.asset.file_size;
-            showRcsMediaPreview(data.asset.public_url);
-            updateRcsImageInfo();
-            clearRcsImageDirtyState();
-            initRcsImageBaseline();
-            saveCurrentCardData();
-            updateRcsWizardPreview();
-        } else if (data.error) {
-            showRcsMediaError(data.error);
-        }
-    })
-    .catch(function(err) {
+        
+        console.log('[RCS Save] Image saved with URL:', mockUrl);
+    }).catch(function(err) {
         hideRcsProcessingIndicator();
         console.error('[RCS Save Error]', err);
         showRcsMediaError('Failed to process image: ' + (err.message || 'Please try again.'));
     });
 }
 
+function showRcsHostedUrl(url) {
+    var section = document.getElementById('rcsHostedUrlSection');
+    var input = document.getElementById('rcsHostedUrlDisplay');
+    var saveBtn = document.getElementById('rcsImageSaveBtn');
+    
+    if (section && input) {
+        input.value = url;
+        section.classList.remove('d-none');
+    }
+    
+    // Hide save button since already saved
+    if (saveBtn) {
+        saveBtn.classList.add('d-none');
+    }
+}
+
+function hideRcsHostedUrl() {
+    var section = document.getElementById('rcsHostedUrlSection');
+    if (section) {
+        section.classList.add('d-none');
+    }
+}
+
+function copyRcsHostedUrl() {
+    var input = document.getElementById('rcsHostedUrlDisplay');
+    if (!input || !input.value) return;
+    
+    navigator.clipboard.writeText(input.value).then(function() {
+        // Show brief success feedback
+        var btn = input.nextElementSibling;
+        if (btn) {
+            var originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+            setTimeout(function() {
+                btn.innerHTML = originalIcon;
+            }, 1500);
+        }
+    }).catch(function(err) {
+        console.error('[Copy Error]', err);
+        // Fallback for older browsers
+        input.select();
+        document.execCommand('copy');
+    });
+}
+
 function saveRcsImageEditsAndContinue() {
-    if (!rcsMediaData.originalUrl || rcsMediaData.source !== 'url') {
+    if (!rcsMediaData.url && !rcsMediaData.originalUrl) {
         hideRcsUnsavedChangesModal();
         executePendingNavigation();
         return;
@@ -1130,40 +1247,35 @@ function saveRcsImageEditsAndContinue() {
     showRcsProcessingIndicator();
     var editParams = getCurrentEditParams();
     
-    fetch('/api/rcs/assets/process-url', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-        },
-        body: JSON.stringify({
-            url: rcsMediaData.originalUrl,
-            edit_params: editParams,
-            draft_session: rcsDraftSession
-        })
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
+    // Generate cropped image and save using mock service
+    generateCroppedImageDataUrl().then(function(croppedDataUrl) {
+        var mockUrl = generateRcsMockMediaUrl();
+        var uuid = mockUrl.split('/').pop();
+        
+        rcsMockMediaStore[uuid] = {
+            dataUrl: croppedDataUrl,
+            originalUrl: rcsMediaData.originalUrl || rcsMediaData.url,
+            editParams: editParams,
+            timestamp: Date.now()
+        };
+        
+        rcsMediaData.assetUuid = uuid;
+        rcsMediaData.hostedUrl = mockUrl;
+        rcsMediaData.savedDataUrl = croppedDataUrl;
+        
+        showRcsHostedUrl(mockUrl);
+        updateRcsImageInfo();
+        clearRcsImageDirtyState();
+        initRcsImageBaseline();
+        saveCurrentCardData();
+        updateRcsWizardPreview();
+        
         hideRcsProcessingIndicator();
-        if (data.success && data.asset) {
-            rcsMediaData.assetUuid = data.asset.uuid;
-            rcsMediaData.hostedUrl = data.asset.public_url;
-            rcsMediaData.url = data.asset.public_url;
-            rcsMediaData.dimensions = { width: data.asset.width, height: data.asset.height };
-            rcsMediaData.fileSize = data.asset.file_size;
-            showRcsMediaPreview(data.asset.public_url);
-            updateRcsImageInfo();
-            clearRcsImageDirtyState();
-            initRcsImageBaseline();
-            saveCurrentCardData();
-            updateRcsWizardPreview();
-            hideRcsUnsavedChangesModal();
-            executePendingNavigation();
-        } else if (data.error) {
-            showRcsMediaError(data.error);
-        }
-    })
-    .catch(function(err) {
+        hideRcsUnsavedChangesModal();
+        executePendingNavigation();
+        
+        console.log('[RCS Save] Image saved with URL:', mockUrl);
+    }).catch(function(err) {
         hideRcsProcessingIndicator();
         console.error('[RCS Save Error]', err);
         showRcsMediaError('Failed to process image: ' + (err.message || 'Please try again.'));
@@ -1490,7 +1602,7 @@ function showRcsMediaPreview(src) {
 }
 
 function removeRcsMedia() {
-    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0, assetUuid: null, hostedUrl: null, originalUrl: null };
+    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0, assetUuid: null, hostedUrl: null, originalUrl: null, savedDataUrl: null };
     var preview = document.getElementById('rcsMediaPreview');
     if (preview) preview.classList.add('d-none');
     var img = document.getElementById('rcsMediaPreviewImg');
@@ -1504,9 +1616,12 @@ function removeRcsMedia() {
     var urlInput = document.getElementById('rcsMediaUrlInput');
     var fileInput = document.getElementById('rcsMediaFileInput');
     var zoomSlider = document.getElementById('rcsZoomSlider');
-    if (urlInput) urlInput.value = '';
+    if (urlInput) urlInput.value = 'https://';
     if (fileInput) fileInput.value = '';
     if (zoomSlider) zoomSlider.value = 100;
+    
+    // Hide the hosted URL section
+    hideRcsHostedUrl();
     
     if (typeof window.rcsMediaReset === 'function') {
         window.rcsMediaReset();

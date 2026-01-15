@@ -160,6 +160,17 @@
                                                     <small class="text-muted d-block mt-1">Changes will be saved to QuickSMS hosted URL</small>
                                                 </div>
                                                 
+                                                <div id="rcsHostedUrlSection" class="mb-3 d-none">
+                                                    <label class="form-label small mb-1"><i class="fas fa-link me-1 text-success"></i>Hosted URL</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm bg-light" id="rcsHostedUrlDisplay" readonly>
+                                                        <button type="button" class="btn btn-outline-secondary" onclick="copyRcsHostedUrl()" title="Copy URL">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-success d-block mt-1"><i class="fas fa-check-circle me-1"></i>Image saved and ready for delivery</small>
+                                                </div>
+                                                
                                                 <div class="pt-3 border-top">
                                                     <div class="d-flex justify-content-between align-items-center small">
                                                         <span class="text-muted">Original:</span>
