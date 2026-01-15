@@ -112,16 +112,22 @@
 .field-group:last-child {
     margin-bottom: 0;
 }
-.row {
-    margin-bottom: 1.5rem;
+.card-body > .row,
+.accordion-body > .row {
+    margin-bottom: 2rem !important;
 }
-.row:last-child {
-    margin-bottom: 0;
+.card-body > .row:last-child,
+.accordion-body > .row:last-child {
+    margin-bottom: 0 !important;
 }
 .field-hint {
     font-size: 0.75rem;
     color: #6c757d;
     margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+.col-md-6 {
+    margin-bottom: 1.25rem;
 }
 .section-actions {
     display: flex;
