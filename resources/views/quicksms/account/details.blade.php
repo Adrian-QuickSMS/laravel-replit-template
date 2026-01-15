@@ -107,13 +107,16 @@
     box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.15);
 }
 .field-group {
-    margin-bottom: 1.75rem;
+    margin-bottom: 0.5rem;
 }
 .field-group:last-child {
     margin-bottom: 0;
 }
-.row + .row {
-    margin-top: 0.5rem;
+.row {
+    margin-bottom: 1.5rem;
+}
+.row:last-child {
+    margin-bottom: 0;
 }
 .field-hint {
     font-size: 0.75rem;
