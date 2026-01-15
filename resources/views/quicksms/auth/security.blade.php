@@ -140,6 +140,14 @@
                         <small class="d-block text-muted mt-1">We may verify your identity and business details to prevent misuse of our platform.</small>
                     </div>
                     
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="thirdPartyConsent" required>
+                        <label class="form-check-label" for="thirdPartyConsent">
+                            I agree that QuickSMS may share my information with trusted third-party fraud prevention, validation, and messaging partners to protect against abuse <span class="text-danger">*</span>
+                        </label>
+                        <div class="invalid-feedback">You must agree to third-party data sharing to continue</div>
+                    </div>
+                    
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="contentConsent" required>
                         <label class="form-check-label" for="contentConsent">
@@ -725,7 +733,7 @@ $(document).ready(function() {
             isValid = false;
         }
         
-        var requiredCheckboxes = ['termsConsent', 'privacyConsent', 'fraudConsent', 'contentConsent'];
+        var requiredCheckboxes = ['termsConsent', 'privacyConsent', 'fraudConsent', 'thirdPartyConsent', 'contentConsent'];
         requiredCheckboxes.forEach(function(id) {
             var $checkbox = $('#' + id);
             if (!$checkbox.is(':checked')) {
@@ -760,7 +768,18 @@ $(document).ready(function() {
                 terms: true,
                 privacy: true,
                 fraud_prevention: true,
+                third_party_sharing: true,
                 content_compliance: true
+            },
+            consent_audit: {
+                third_party_sharing: {
+                    consent_given: true,
+                    consent_text: 'I agree that QuickSMS may share my information with trusted third-party fraud prevention, validation, and messaging partners to protect against abuse',
+                    timestamp: new Date().toISOString(),
+                    user_email: email,
+                    ip_address: 'CAPTURED_BY_SERVER', // Backend captures IP
+                    user_agent: navigator.userAgent
+                }
             },
             marketing: {
                 email: $('#marketingEmail').is(':checked'),
