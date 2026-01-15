@@ -1221,74 +1221,47 @@ function generateCroppedImageDataUrl() {
             var displayWidth = naturalWidth * totalScale;
             var displayHeight = naturalHeight * totalScale;
             
-            // The crop frame is centered in the workspace
-            // The image is also centered when offset is 0,0
-            // When offset is applied, the image shifts relative to the centered position
-            
-            // Calculate where the crop frame is relative to the image's top-left
-            // When centered (offset=0): frame center = image center
-            // Frame top-left in image display coords = (displayWidth/2 - frameWidth/2, displayHeight/2 - frameHeight/2)
-            // With offset: image shifts by offset, so frame sees: above - offset
-            
-            var frameCenterToImageCenter_X = 0; // When offset=0, centers align
-            var frameCenterToImageCenter_Y = 0;
-            
-            // Offset moves the image, so the frame "sees" the opposite direction
-            // If offset is positive (image moved right), frame sees left part of image
-            var frameLeftInDisplayCoords = (displayWidth / 2) - (rcsCropState.frameWidth / 2) - rcsCropState.offsetX;
-            var frameTopInDisplayCoords = (displayHeight / 2) - (rcsCropState.frameHeight / 2) - rcsCropState.offsetY;
+            // Both the image and crop frame are centered in the workspace when offset=0
+            // The frame's left edge relative to image's left edge (in display coords):
+            // = (displayWidth - frameWidth) / 2 when centered
+            // When offset is applied, image moves by offset, so frame sees: base - offset
+            var frameLeftRelativeToImage = (displayWidth - rcsCropState.frameWidth) / 2 - rcsCropState.offsetX;
+            var frameTopRelativeToImage = (displayHeight - rcsCropState.frameHeight) / 2 - rcsCropState.offsetY;
             
             // Convert display coordinates to natural image coordinates
-            var sourceX = frameLeftInDisplayCoords / totalScale;
-            var sourceY = frameTopInDisplayCoords / totalScale;
+            var sourceX = frameLeftRelativeToImage / totalScale;
+            var sourceY = frameTopRelativeToImage / totalScale;
             var sourceWidth = rcsCropState.frameWidth / totalScale;
             var sourceHeight = rcsCropState.frameHeight / totalScale;
             
             console.log('[RCS Crop] Natural:', naturalWidth, 'x', naturalHeight);
-            console.log('[RCS Crop] Display:', displayWidth, 'x', displayHeight, 'totalScale:', totalScale);
+            console.log('[RCS Crop] Display:', displayWidth.toFixed(1), 'x', displayHeight.toFixed(1), 'totalScale:', totalScale.toFixed(4));
             console.log('[RCS Crop] Frame:', rcsCropState.frameWidth, 'x', rcsCropState.frameHeight);
             console.log('[RCS Crop] Offset:', rcsCropState.offsetX, ',', rcsCropState.offsetY);
-            console.log('[RCS Crop] Source rect:', sourceX, sourceY, sourceWidth, sourceHeight);
+            console.log('[RCS Crop] FrameRel:', frameLeftRelativeToImage.toFixed(1), ',', frameTopRelativeToImage.toFixed(1));
+            console.log('[RCS Crop] Source rect:', sourceX.toFixed(1), sourceY.toFixed(1), sourceWidth.toFixed(1), sourceHeight.toFixed(1));
             
-            // Handle edge cases where crop extends beyond image bounds
-            var destX = 0, destY = 0, destWidth = outputWidth, destHeight = outputHeight;
+            // Clamp source coordinates to valid image bounds
+            var clampedSourceX = Math.max(0, sourceX);
+            var clampedSourceY = Math.max(0, sourceY);
+            var clampedSourceWidth = Math.min(sourceWidth, naturalWidth - clampedSourceX);
+            var clampedSourceHeight = Math.min(sourceHeight, naturalHeight - clampedSourceY);
             
-            if (sourceX < 0) {
-                var clipRatio = -sourceX / sourceWidth;
-                destX = clipRatio * outputWidth;
-                destWidth = outputWidth - destX;
-                sourceWidth = sourceWidth + sourceX;
-                sourceX = 0;
-            }
-            if (sourceY < 0) {
-                var clipRatio = -sourceY / sourceHeight;
-                destY = clipRatio * outputHeight;
-                destHeight = outputHeight - destY;
-                sourceHeight = sourceHeight + sourceY;
-                sourceY = 0;
-            }
-            if (sourceX + sourceWidth > naturalWidth) {
-                var overflow = (sourceX + sourceWidth) - naturalWidth;
-                var clipRatio = overflow / (sourceWidth + overflow - (sourceWidth - overflow));
-                destWidth = destWidth * (1 - overflow / (sourceWidth + overflow));
-                sourceWidth = naturalWidth - sourceX;
-            }
-            if (sourceY + sourceHeight > naturalHeight) {
-                var overflow = (sourceY + sourceHeight) - naturalHeight;
-                destHeight = destHeight * (1 - overflow / (sourceHeight + overflow));
-                sourceHeight = naturalHeight - sourceY;
-            }
+            // Calculate corresponding destination rectangle
+            var destX = (clampedSourceX - sourceX) / sourceWidth * outputWidth;
+            var destY = (clampedSourceY - sourceY) / sourceHeight * outputHeight;
+            var destWidth = clampedSourceWidth / sourceWidth * outputWidth;
+            var destHeight = clampedSourceHeight / sourceHeight * outputHeight;
             
             // Fill with background color for any areas outside the image
             ctx.fillStyle = '#f0f0f0';
             ctx.fillRect(0, 0, outputWidth, outputHeight);
             
             // Draw the cropped region
-            if (sourceWidth > 0 && sourceHeight > 0 && destWidth > 0 && destHeight > 0) {
+            if (clampedSourceWidth > 0 && clampedSourceHeight > 0) {
                 ctx.drawImage(
                     img,
-                    Math.max(0, sourceX), Math.max(0, sourceY), 
-                    Math.min(sourceWidth, naturalWidth), Math.min(sourceHeight, naturalHeight),
+                    clampedSourceX, clampedSourceY, clampedSourceWidth, clampedSourceHeight,
                     destX, destY, destWidth, destHeight
                 );
             }
