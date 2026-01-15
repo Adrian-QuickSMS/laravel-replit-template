@@ -2,6 +2,7 @@
  * RCS Content Wizard - Shared JavaScript
  * Used by both Send Message and Inbox pages
  */
+console.log('[RCS Wizard] Script loading...');
 
 var rcsCardCount = 1;
 var rcsCurrentCard = 1;
@@ -2586,6 +2587,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize https:// prefill behavior for all URL inputs
     initRcsHttpsPrefill();
+    
+    // Footer button handlers - using addEventListener for reliable event binding
+    var cancelBtn = document.getElementById('rcsWizardCancelBtn');
+    if (cancelBtn) {
+        console.log('[RCS Wizard] Cancel button found, binding event');
+        cancelBtn.addEventListener('click', function(e) {
+            console.log('[RCS Wizard] Cancel button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            handleRcsWizardClose();
+        });
+    } else {
+        console.log('[RCS Wizard] Cancel button not found');
+    }
+    
+    var applyBtn = document.getElementById('rcsApplyContentBtn');
+    if (applyBtn) {
+        console.log('[RCS Wizard] Apply button found, binding event');
+        applyBtn.addEventListener('click', function(e) {
+            console.log('[RCS Wizard] Apply button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            handleRcsApplyContent();
+        });
+    } else {
+        console.log('[RCS Wizard] Apply button not found');
+    }
+    
+    console.log('[RCS Wizard] DOMContentLoaded complete');
 });
 
 /**

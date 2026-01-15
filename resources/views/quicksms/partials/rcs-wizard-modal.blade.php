@@ -257,9 +257,9 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer py-2 border-top" style="flex-shrink: 0; background: #fff;">
-                <button type="button" class="btn btn-secondary" onclick="handleRcsWizardClose()">Cancel</button>
-                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn" onclick="handleRcsApplyContent()" disabled>
+            <div class="modal-footer py-2 border-top" style="flex-shrink: 0; background: #fff; z-index: 10; position: relative; pointer-events: auto;">
+                <button type="button" class="btn btn-secondary" id="rcsWizardCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn">
                     <i class="fas fa-check me-1"></i>Apply RCS Content
                 </button>
             </div>
