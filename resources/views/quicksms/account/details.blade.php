@@ -482,81 +482,57 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#supportOperations" aria-expanded="false">
                         <i class="fas fa-headset me-2 text-primary"></i>Support & Operations
-                        <span class="section-indicator optional"><i class="fas fa-info-circle"></i> Optional</span>
+                        <span class="section-indicator required" id="supportStatusBadge"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
                     </button>
                 </h2>
                 <div id="supportOperations" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
-                        <p class="text-muted small mb-4">Configure contacts for support tickets and operational notifications. If not specified, the primary account contact will be used.</p>
+                        <p class="text-muted small mb-4">Configure email addresses for billing notifications, support communications, and incident alerts. Shared or group inboxes are accepted.</p>
                         
-                        <h6 class="fw-bold mb-3"><i class="fas fa-user-tie me-2 text-primary"></i>Primary Contact</h6>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Full Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="primaryContactName" value="Sarah Johnson">
+                                    <label class="form-label">Accounts & Billing Email<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control support-field" id="billingEmail" value="accounts@acmecomms.co.uk" placeholder="e.g., accounts@company.com">
+                                    <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoices</span>
+                                        <span class="usage-chip"><i class="fas fa-credit-card"></i> Payments</span>
+                                    </div>
+                                    <div class="validation-error">Please enter a valid email address</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Support Email Address<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control support-field" id="supportEmail" value="support@acmecomms.co.uk" placeholder="e.g., support@company.com">
+                                    <div class="field-hint">Receives support ticket updates and general communications</div>
                                     <div class="usage-chips">
                                         <span class="usage-chip"><i class="fas fa-headset"></i> Support Tickets</span>
-                                        <span class="usage-chip"><i class="fas fa-exclamation-triangle"></i> Escalations</span>
+                                        <span class="usage-chip"><i class="fas fa-bell"></i> Notifications</span>
                                     </div>
+                                    <div class="validation-error">Please enter a valid email address</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Job Title<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="text" class="form-control" id="primaryContactTitle" value="Account Director">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Email<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control" id="primaryContactEmail" value="sarah.johnson@acmecomms.co.uk">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Phone<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="tel" class="form-control" id="primaryContactPhone" value="+44 20 7946 0958">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-code me-2 text-primary"></i>Technical Contact</h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Full Name<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="text" class="form-control" id="techContactName" value="David Park">
+                                    <label class="form-label">Incident Email Address<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control support-field" id="incidentEmail" value="incidents@acmecomms.co.uk" placeholder="e.g., incidents@company.com">
+                                    <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
                                     <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-plug"></i> API Issues</span>
-                                        <span class="usage-chip"><i class="fas fa-cog"></i> Technical Support</span>
+                                        <span class="usage-chip"><i class="fas fa-exclamation-triangle"></i> Incidents</span>
+                                        <span class="usage-chip"><i class="fas fa-server"></i> Service Alerts</span>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Job Title<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="text" class="form-control" id="techContactTitle" value="CTO">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Email<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="email" class="form-control" id="techContactEmail" value="d.park@acmecomms.co.uk">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Phone<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="tel" class="form-control" id="techContactPhone" value="+44 20 7946 0960">
+                                    <div class="validation-error">Please enter a valid email address</div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="section-actions">
-                            <span class="auto-save-indicator saved" id="supportAutoSave">
-                                <i class="fas fa-check-circle"></i> All changes saved
-                            </span>
+                            <span class="auto-save-indicator" id="supportAutoSave"></span>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveSupportOps">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -850,8 +826,61 @@ $(document).ready(function() {
         }, 1000);
     }
     
-    $('#supportOperations input').on('input', function() {
-        triggerAutoSave($('#supportAutoSave'), 'Support & Operations');
+    function updateSupportStatusBadge() {
+        var allValid = true;
+        $('.support-field').each(function() {
+            var value = $(this).val().trim();
+            if (!value) {
+                allValid = false;
+                return false;
+            }
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                allValid = false;
+                return false;
+            }
+        });
+        
+        var $badge = $('#supportStatusBadge');
+        if (allValid) {
+            $badge.removeClass('required').addClass('complete')
+                .html('<i class="fas fa-check-circle"></i> Complete');
+        } else {
+            $badge.removeClass('complete').addClass('required')
+                .html('<i class="fas fa-exclamation-circle"></i> Required to go live');
+        }
+    }
+    
+    $('.support-field').on('input blur', function() {
+        validateField($(this));
+        updateSupportStatusBadge();
+    });
+    
+    $('#saveSupportOps').on('click', function() {
+        var $saveBtn = $(this);
+        var $autoSave = $('#supportAutoSave');
+        var isValid = true;
+        
+        $('.support-field').each(function() {
+            if (!validateField($(this))) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            toastr.error('Please enter valid email addresses for all fields.');
+            return;
+        }
+        
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        showAutoSave($autoSave, 'saving');
+        
+        setTimeout(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            showAutoSave($autoSave, 'saved');
+            updateSupportStatusBadge();
+            toastr.success('Support & operations contacts saved successfully.');
+        }, 800);
     });
     
     function validatePhoneNumber(phone) {
