@@ -499,7 +499,7 @@ function applyRcsContent() {
     if (clearBtnInbox) clearBtnInbox.classList.remove('d-none');
     if (wizardBtnTextInbox) wizardBtnTextInbox.textContent = 'Edit RCS Message';
     
-    bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+    closeRcsWizardModal();
     
     setTimeout(function() {
         if (typeof updateRcsWizardPreviewInMain === 'function') {
@@ -1235,7 +1235,7 @@ function executePendingNavigation() {
     if (pendingAction.type === 'selectCard') {
         selectRcsCardDirect(pendingAction.cardNum);
     } else if (pendingAction.type === 'closeWizard') {
-        bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+        closeRcsWizardModal();
     } else if (pendingAction.type === 'applyContent') {
         applyRcsContent();
     } else if (pendingAction.type === 'changeType') {
@@ -1253,7 +1253,32 @@ function handleRcsWizardClose() {
     if (isRcsImageDirty()) {
         showRcsUnsavedChangesModal({ type: 'closeWizard' });
     } else {
-        bootstrap.Modal.getInstance(document.getElementById('rcsWizardModal')).hide();
+        closeRcsWizardModal();
+    }
+}
+
+function closeRcsWizardModal() {
+    var modalEl = document.getElementById('rcsWizardModal');
+    if (!modalEl) {
+        console.error('[RCS Wizard] Modal element not found');
+        return;
+    }
+    var modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) {
+        modalInstance.hide();
+    } else {
+        console.warn('[RCS Wizard] Modal instance not found, trying to create one');
+        try {
+            var newModal = new bootstrap.Modal(modalEl);
+            newModal.hide();
+        } catch (e) {
+            console.error('[RCS Wizard] Failed to close modal:', e);
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            var backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
     }
 }
 
