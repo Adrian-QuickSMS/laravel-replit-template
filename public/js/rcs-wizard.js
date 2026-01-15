@@ -1179,7 +1179,7 @@ function generateCroppedImageDataUrl() {
                 return;
             }
             
-            // Output canvas matches the crop frame aspect ratio but at higher resolution
+            // Output canvas matches the crop frame aspect ratio at 2x resolution
             var outputWidth = 720;
             var outputHeight = Math.round(720 * (rcsCropState.frameHeight / rcsCropState.frameWidth)) || 360;
             
@@ -1192,59 +1192,72 @@ function generateCroppedImageDataUrl() {
             var naturalWidth = img.naturalWidth || rcsCropState.imageWidth;
             var naturalHeight = img.naturalHeight || rcsCropState.imageHeight;
             
-            // Calculate how the image appears in the editor
-            var scale = rcsCropState.zoom / 100;
-            var scaledWidth = naturalWidth * scale;
-            var scaledHeight = naturalHeight * scale;
+            // Total display scale combines displayScale (fit to workspace) and zoom
+            var totalScale = rcsCropState.displayScale * (rcsCropState.zoom / 100);
             
-            // The offset tells us where the image's top-left is relative to the frame's top-left
-            // Positive offset = image is shifted right/down from frame origin
-            // Negative offset = image starts before/above frame origin
-            var offsetX = rcsCropState.offsetX || 0;
-            var offsetY = rcsCropState.offsetY || 0;
+            // Displayed image size in CSS pixels
+            var displayWidth = naturalWidth * totalScale;
+            var displayHeight = naturalHeight * totalScale;
             
-            // Calculate what portion of the natural image is visible in the frame
-            // Source coordinates in natural image pixels
-            var sourceX = -offsetX / scale;
-            var sourceY = -offsetY / scale;
-            var sourceWidth = rcsCropState.frameWidth / scale;
-            var sourceHeight = rcsCropState.frameHeight / scale;
+            // The crop frame is centered in the workspace
+            // The image is also centered when offset is 0,0
+            // When offset is applied, the image shifts relative to the centered position
+            
+            // Calculate where the crop frame is relative to the image's top-left
+            // When centered (offset=0): frame center = image center
+            // Frame top-left in image display coords = (displayWidth/2 - frameWidth/2, displayHeight/2 - frameHeight/2)
+            // With offset: image shifts by offset, so frame sees: above - offset
+            
+            var frameCenterToImageCenter_X = 0; // When offset=0, centers align
+            var frameCenterToImageCenter_Y = 0;
+            
+            // Offset moves the image, so the frame "sees" the opposite direction
+            // If offset is positive (image moved right), frame sees left part of image
+            var frameLeftInDisplayCoords = (displayWidth / 2) - (rcsCropState.frameWidth / 2) - rcsCropState.offsetX;
+            var frameTopInDisplayCoords = (displayHeight / 2) - (rcsCropState.frameHeight / 2) - rcsCropState.offsetY;
+            
+            // Convert display coordinates to natural image coordinates
+            var sourceX = frameLeftInDisplayCoords / totalScale;
+            var sourceY = frameTopInDisplayCoords / totalScale;
+            var sourceWidth = rcsCropState.frameWidth / totalScale;
+            var sourceHeight = rcsCropState.frameHeight / totalScale;
             
             console.log('[RCS Crop] Natural:', naturalWidth, 'x', naturalHeight);
+            console.log('[RCS Crop] Display:', displayWidth, 'x', displayHeight, 'totalScale:', totalScale);
             console.log('[RCS Crop] Frame:', rcsCropState.frameWidth, 'x', rcsCropState.frameHeight);
-            console.log('[RCS Crop] Offset:', offsetX, ',', offsetY, 'Scale:', scale);
+            console.log('[RCS Crop] Offset:', rcsCropState.offsetX, ',', rcsCropState.offsetY);
             console.log('[RCS Crop] Source rect:', sourceX, sourceY, sourceWidth, sourceHeight);
             
             // Handle edge cases where crop extends beyond image bounds
             var destX = 0, destY = 0, destWidth = outputWidth, destHeight = outputHeight;
             
-            // If source starts before image (negative), adjust
             if (sourceX < 0) {
-                destX = (-sourceX / sourceWidth) * outputWidth;
+                var clipRatio = -sourceX / sourceWidth;
+                destX = clipRatio * outputWidth;
                 destWidth = outputWidth - destX;
                 sourceWidth = sourceWidth + sourceX;
                 sourceX = 0;
             }
             if (sourceY < 0) {
-                destY = (-sourceY / sourceHeight) * outputHeight;
+                var clipRatio = -sourceY / sourceHeight;
+                destY = clipRatio * outputHeight;
                 destHeight = outputHeight - destY;
                 sourceHeight = sourceHeight + sourceY;
                 sourceY = 0;
             }
-            
-            // If source extends beyond image, clip it
             if (sourceX + sourceWidth > naturalWidth) {
                 var overflow = (sourceX + sourceWidth) - naturalWidth;
-                destWidth = destWidth * ((sourceWidth - overflow) / sourceWidth);
+                var clipRatio = overflow / (sourceWidth + overflow - (sourceWidth - overflow));
+                destWidth = destWidth * (1 - overflow / (sourceWidth + overflow));
                 sourceWidth = naturalWidth - sourceX;
             }
             if (sourceY + sourceHeight > naturalHeight) {
                 var overflow = (sourceY + sourceHeight) - naturalHeight;
-                destHeight = destHeight * ((sourceHeight - overflow) / sourceHeight);
+                destHeight = destHeight * (1 - overflow / (sourceHeight + overflow));
                 sourceHeight = naturalHeight - sourceY;
             }
             
-            // Fill with a background color first (for areas outside the image)
+            // Fill with background color for any areas outside the image
             ctx.fillStyle = '#f0f0f0';
             ctx.fillRect(0, 0, outputWidth, outputHeight);
             
@@ -1252,7 +1265,8 @@ function generateCroppedImageDataUrl() {
             if (sourceWidth > 0 && sourceHeight > 0 && destWidth > 0 && destHeight > 0) {
                 ctx.drawImage(
                     img,
-                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    Math.max(0, sourceX), Math.max(0, sourceY), 
+                    Math.min(sourceWidth, naturalWidth), Math.min(sourceHeight, naturalHeight),
                     destX, destY, destWidth, destHeight
                 );
             }
