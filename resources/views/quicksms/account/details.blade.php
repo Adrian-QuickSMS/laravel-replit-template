@@ -783,8 +783,9 @@
                                 <div class="col-md-6">
                                     <div class="field-group">
                                         <label class="form-label">VAT Number<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control vat-detail-field" id="vatNumber" value="GB123456789" placeholder="e.g., GB123456789">
+                                        <input type="text" class="form-control vat-detail-field" id="vatNumber" value="" placeholder="e.g., GB123456789">
                                         <div class="field-hint" id="vatFormatHint">Format: GB followed by 9 digits</div>
+                                        <div class="vat-verification-status small mt-1" id="vatVerificationStatus" style="display: none;"></div>
                                         <div class="usage-chips">
                                             <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Invoicing</span>
                                             <span class="usage-chip"><i class="fas fa-percentage"></i> VAT Returns</span>
@@ -1494,6 +1495,110 @@ $(document).ready(function() {
         }
     });
     
+    // VAT Validation Service (backend-ready)
+    var VatValidationService = {
+        // Mock database for testing scenarios
+        mockDatabase: {
+            'GB123456789': { valid: true, verified: true, company_name: 'Acme Communications Ltd' },
+            'GB987654321': { valid: true, verified: true, company_name: 'Global Tech Solutions PLC' },
+            'GB000000000': { valid: true, verified: false, reason: 'not_found' },
+            'GB999999999': { valid: true, verified: null, reason: 'service_unavailable' },
+            'DE123456789': { valid: true, verified: true, company_name: 'Deutsche Firma GmbH' },
+            'FR12345678901': { valid: true, verified: true, company_name: 'Entreprise Francaise SARL' }
+        },
+        
+        isValidating: false,
+        
+        // Validate format locally first
+        validateFormat: function(vatNumber, country) {
+            if (!vatNumber || !country) return false;
+            if (vatFormats[country]) {
+                return vatFormats[country].pattern.test(vatNumber.toUpperCase());
+            }
+            return vatNumber.length >= 8;
+        },
+        
+        // Main verification function
+        verify: function(vatNumber, country, callbacks) {
+            var self = this;
+            var $field = $('#vatNumber');
+            var $status = $('#vatVerificationStatus');
+            
+            if (this.isValidating) return;
+            
+            vatNumber = vatNumber.trim().toUpperCase();
+            
+            // Clear previous states
+            $field.removeClass('is-invalid is-valid');
+            $status.removeClass('text-success text-warning text-danger').hide();
+            
+            // First validate format
+            if (!this.validateFormat(vatNumber, country)) {
+                $field.addClass('is-invalid');
+                $('#vatNumberError').text('Invalid VAT number format for ' + country);
+                return;
+            }
+            
+            // Set loading state
+            this.isValidating = true;
+            $status.html('<i class="fas fa-spinner fa-spin me-1"></i>Verifying with HMRC/VIES...')
+                .removeClass('text-success text-warning text-danger')
+                .addClass('text-muted').show();
+            
+            // TODO: Replace mock with actual API call
+            // Backend endpoint: POST /api/vat/verify
+            // Request: { vat_number: string, country: string }
+            // Response: { valid: bool, verified: bool|null, company_name?: string, reason?: string }
+            
+            setTimeout(function() {
+                self.isValidating = false;
+                var response;
+                
+                // Check mock database
+                if (self.mockDatabase[vatNumber]) {
+                    response = self.mockDatabase[vatNumber];
+                } else {
+                    // Default: generate mock verified response
+                    response = { valid: true, verified: true, company_name: 'Verified Business' };
+                }
+                
+                if (response.verified === true) {
+                    // Verified successfully
+                    $field.addClass('is-valid');
+                    $status.html('<i class="fas fa-check-circle me-1"></i>Verified' + 
+                        (response.company_name ? ' - ' + response.company_name : ''))
+                        .removeClass('text-muted text-warning text-danger')
+                        .addClass('text-success').show();
+                    
+                    if (callbacks && callbacks.onVerified) {
+                        callbacks.onVerified(response);
+                    }
+                } else if (response.verified === false) {
+                    // Not valid / not found
+                    $status.html('<i class="fas fa-exclamation-triangle me-1"></i>Not valid or cannot be verified')
+                        .removeClass('text-muted text-success text-danger')
+                        .addClass('text-warning').show();
+                    
+                    if (callbacks && callbacks.onNotVerified) {
+                        callbacks.onNotVerified(response);
+                    }
+                } else {
+                    // Service unavailable - warn but don't block
+                    $status.html('<i class="fas fa-info-circle me-1"></i>Verification service unavailable. You can still save.')
+                        .removeClass('text-muted text-success text-danger')
+                        .addClass('text-warning').show();
+                    
+                    if (callbacks && callbacks.onServiceError) {
+                        callbacks.onServiceError(response);
+                    }
+                }
+                
+                updateVatStatusBadge();
+                
+            }, 1200);
+        }
+    };
+    
     function validateVatNumber() {
         var country = $('#vatCountry').val();
         var vatNum = $('#vatNumber').val().trim().toUpperCase();
@@ -1501,6 +1606,7 @@ $(document).ready(function() {
         if (!vatNum) {
             $('#vatNumber').addClass('is-invalid');
             $('#vatNumberError').text('VAT number is required');
+            $('#vatVerificationStatus').hide();
             return false;
         }
         
@@ -1508,6 +1614,7 @@ $(document).ready(function() {
             if (!vatFormats[country].pattern.test(vatNum)) {
                 $('#vatNumber').addClass('is-invalid');
                 $('#vatNumberError').text('Invalid VAT number format for ' + country);
+                $('#vatVerificationStatus').hide();
                 return false;
             }
         }
@@ -1544,7 +1651,16 @@ $(document).ready(function() {
     
     $('#vatNumber').on('blur', function() {
         if ($('#vatRegistered').val() === 'yes') {
-            validateVatNumber();
+            var vatNum = $(this).val().trim();
+            var country = $('#vatCountry').val();
+            
+            if (vatNum && country) {
+                // Trigger verification (includes format validation)
+                VatValidationService.verify(vatNum, country);
+            } else if (vatNum && !country) {
+                $('#vatNumber').addClass('is-invalid');
+                $('#vatNumberError').text('Please select a VAT country first');
+            }
         }
     });
     
