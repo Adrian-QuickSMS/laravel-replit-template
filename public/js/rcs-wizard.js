@@ -1024,7 +1024,11 @@ function initRcsImageBaseline() {
 }
 
 function markRcsImageDirty() {
-    if (rcsMediaData.source === 'url' && rcsMediaData.originalUrl && !rcsMediaData.hostedUrl) {
+    // Check dirty state for any image that hasn't been saved yet
+    var hasImage = rcsMediaData.url || rcsMediaData.file;
+    var notYetSaved = !rcsMediaData.hostedUrl;
+    
+    if (hasImage && notYetSaved) {
         var current = getCurrentEditParams();
         var hasChanges = current.zoom !== rcsImageDirtyState.baselineZoom ||
                          current.orientation !== rcsImageDirtyState.baselineOrientation ||
@@ -1052,19 +1056,26 @@ function clearRcsImageDirtyState() {
 function updateRcsSaveButtonVisibility() {
     var saveBtn = document.getElementById('rcsImageSaveBtn');
     if (saveBtn) {
-        var shouldShow = rcsMediaData.source === 'url' && 
-                         rcsMediaData.originalUrl && 
-                         !rcsMediaData.hostedUrl &&
-                         rcsImageDirtyState.isDirty;
+        // Show save button when:
+        // 1. We have an image loaded (from URL or file upload)
+        // 2. AND it hasn't been saved to a hosted URL yet
+        // 3. AND either: it's dirty from edits, OR it's a file upload that needs saving
+        var hasImage = rcsMediaData.url || rcsMediaData.file;
+        var notYetSaved = !rcsMediaData.hostedUrl;
+        var isFileUpload = rcsMediaData.source === 'upload' || rcsMediaData.source === 'file';
+        var needsSave = rcsImageDirtyState.isDirty || isFileUpload;
+        
+        var shouldShow = hasImage && notYetSaved && needsSave;
         saveBtn.classList.toggle('d-none', !shouldShow);
     }
 }
 
 function isRcsImageDirty() {
-    return rcsMediaData.source === 'url' && 
-           rcsMediaData.originalUrl && 
-           !rcsMediaData.hostedUrl &&
-           rcsImageDirtyState.isDirty;
+    var hasImage = rcsMediaData.url || rcsMediaData.file;
+    var notYetSaved = !rcsMediaData.hostedUrl;
+    var isFileUpload = rcsMediaData.source === 'upload' || rcsMediaData.source === 'file';
+    var needsSave = rcsImageDirtyState.isDirty || isFileUpload;
+    return hasImage && notYetSaved && needsSave;
 }
 
 function showRcsUnsavedChangesModal(pendingAction) {
