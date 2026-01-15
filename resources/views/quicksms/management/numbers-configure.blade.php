@@ -437,19 +437,6 @@
                                     <p class="text-muted small mb-2">Optionally limit to specific users within selected sub-accounts.</p>
                                     
                                     <select class="selectpicker form-control" id="apiUserSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="All users (default)" disabled>
-                                        <optgroup label="Main Account">
-                                            <option value="main-admin">Admin User</option>
-                                            <option value="main-john">John Smith</option>
-                                            <option value="main-sarah">Sarah Johnson</option>
-                                        </optgroup>
-                                        <optgroup label="Marketing">
-                                            <option value="mkt-mike">Mike Wilson</option>
-                                            <option value="mkt-emma">Emma Davis</option>
-                                        </optgroup>
-                                        <optgroup label="Support">
-                                            <option value="sup-tom">Tom Brown</option>
-                                            <option value="sup-lisa">Lisa Chen</option>
-                                        </optgroup>
                                     </select>
                                     <small class="text-muted d-block mt-1">Leave empty to allow all users in selected sub-accounts.</small>
                                 </div>
@@ -815,17 +802,89 @@ $(document).ready(function() {
         $('#saveSuccessModal').modal('show');
     });
     
+    // Mock user data by sub-account (TODO: Replace with backend data)
+    var usersBySubAccount = {
+        'main': [
+            { value: 'main-admin', name: 'Admin User' },
+            { value: 'main-john', name: 'John Smith' },
+            { value: 'main-sarah', name: 'Sarah Johnson' }
+        ],
+        'marketing': [
+            { value: 'mkt-mike', name: 'Mike Wilson' },
+            { value: 'mkt-emma', name: 'Emma Davis' }
+        ],
+        'support': [
+            { value: 'sup-tom', name: 'Tom Brown' },
+            { value: 'sup-lisa', name: 'Lisa Chen' }
+        ],
+        'sales': [
+            { value: 'sales-alex', name: 'Alex Turner' },
+            { value: 'sales-rachel', name: 'Rachel Green' }
+        ],
+        'operations': [
+            { value: 'ops-david', name: 'David Miller' }
+        ],
+        'finance': [
+            { value: 'fin-kate', name: 'Kate Wilson' },
+            { value: 'fin-james', name: 'James Brown' }
+        ],
+        'hr': [
+            { value: 'hr-susan', name: 'Susan Lee' }
+        ],
+        'it': [
+            { value: 'it-paul', name: 'Paul Zhang' },
+            { value: 'it-maria', name: 'Maria Garcia' }
+        ],
+        'legal': [
+            { value: 'legal-robert', name: 'Robert King' }
+        ],
+        'customer-success': [
+            { value: 'cs-amy', name: 'Amy Roberts' },
+            { value: 'cs-brian', name: 'Brian Scott' }
+        ]
+    };
+    
+    var subAccountNames = {
+        'main': 'Main Account',
+        'marketing': 'Marketing',
+        'support': 'Support',
+        'sales': 'Sales',
+        'operations': 'Operations',
+        'finance': 'Finance',
+        'hr': 'Human Resources',
+        'it': 'IT Department',
+        'legal': 'Legal',
+        'customer-success': 'Customer Success'
+    };
+    
     // Initialize selectpickers for API configuration
     $('#apiSubAccountSelect, #apiUserSelect').selectpicker();
     
-    // Enable user select when sub-accounts are selected
+    // Dynamically populate user dropdown based on selected sub-accounts
     $('#apiSubAccountSelect').on('changed.bs.select', function() {
-        var selected = $(this).val();
-        if (selected && selected.length > 0) {
-            $('#apiUserSelect').prop('disabled', false).selectpicker('refresh');
+        var selected = $(this).val() || [];
+        var $userSelect = $('#apiUserSelect');
+        
+        // Clear and rebuild user options
+        $userSelect.empty();
+        
+        if (selected.length > 0) {
+            selected.forEach(function(subAccId) {
+                var users = usersBySubAccount[subAccId] || [];
+                if (users.length > 0) {
+                    var $optgroup = $('<optgroup>').attr('label', subAccountNames[subAccId]);
+                    users.forEach(function(user) {
+                        $optgroup.append($('<option>').val(user.value).text(user.name));
+                    });
+                    $userSelect.append($optgroup);
+                }
+            });
+            $userSelect.prop('disabled', false);
         } else {
-            $('#apiUserSelect').prop('disabled', true).val([]).selectpicker('refresh');
+            $userSelect.prop('disabled', true);
         }
+        
+        $userSelect.selectpicker('refresh');
     });
     
     init();
