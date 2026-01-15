@@ -881,9 +881,103 @@ $(document).ready(function() {
         
         console.log('[Security] Saving security settings:', formData);
         
+        // Mock account provisioning
+        // In production: POST /api/auth/provision-account
         setTimeout(function() {
-            window.location.href = '/signup/complete?email=' + encodeURIComponent(email);
-        }, 1500);
+            // Step 1: Create QuickSMS Account
+            var accountId = 'ACC-' + Date.now();
+            var userId = 'USR-' + Date.now();
+            
+            var provisioningResult = {
+                account: {
+                    id: accountId,
+                    created_at: new Date().toISOString(),
+                    status: 'active',
+                    type: 'standard'
+                },
+                user: {
+                    id: userId,
+                    email: email,
+                    role: 'account_owner',
+                    email_verified: true,
+                    mfa_enabled: true,
+                    mobile_verified: true,
+                    created_at: new Date().toISOString()
+                },
+                security: {
+                    password_policy_applied: true,
+                    password_hash_algorithm: 'argon2id',
+                    password_history_count: 10
+                },
+                credits: formData.test_credits.eligible ? {
+                    applied: true,
+                    amount: 100,
+                    reason: 'marketing_opt_in',
+                    applied_at: new Date().toISOString()
+                } : {
+                    applied: false,
+                    amount: 0
+                },
+                account_details: {
+                    first_name: urlParams.get('first_name') || 'New',
+                    last_name: urlParams.get('last_name') || 'User',
+                    job_title: urlParams.get('job_title') || '',
+                    business_name: urlParams.get('business_name') || '',
+                    business_email: email,
+                    mobile_number: formData.mobile_number,
+                    country: urlParams.get('country') || 'United Kingdom'
+                },
+                hubspot_sync: {
+                    triggered: true,
+                    contact_id: 'HS-CONTACT-' + Date.now(),
+                    company_id: 'HS-COMPANY-' + Date.now(),
+                    synced_at: new Date().toISOString(),
+                    properties: {
+                        email: email,
+                        phone: formData.mobile_number,
+                        marketing_consent: formData.marketing.consent,
+                        marketing_consent_timestamp: formData.marketing.consent_timestamp,
+                        mfa_enabled: true,
+                        email_verified: true
+                    }
+                },
+                audit: {
+                    event: 'account_provisioned',
+                    timestamp: new Date().toISOString(),
+                    user_agent: navigator.userAgent,
+                    ip_address: 'CAPTURED_BY_SERVER',
+                    details: {
+                        email_verified: true,
+                        mobile_verified: true,
+                        mfa_enabled: true,
+                        test_credits_applied: formData.test_credits.eligible,
+                        marketing_consent: formData.marketing.consent,
+                        consents_accepted: ['terms', 'privacy', 'fraud_prevention', 'third_party_sharing', 'content_compliance']
+                    }
+                }
+            };
+            
+            console.log('[Provisioning] Account created:', provisioningResult);
+            console.log('[HubSpot] Contact synced:', provisioningResult.hubspot_sync);
+            console.log('[Audit] Event logged:', provisioningResult.audit);
+            
+            if (formData.test_credits.eligible) {
+                console.log('[Credits] 100 test SMS credits applied to account');
+            }
+            
+            // Store provisioning result for dashboard
+            sessionStorage.setItem('quicksms_onboarding', JSON.stringify({
+                completed: true,
+                account_id: accountId,
+                user_id: userId,
+                email: email,
+                test_credits_applied: formData.test_credits.eligible,
+                test_credits_amount: formData.test_credits.eligible ? 100 : 0
+            }));
+            
+            // Redirect to Dashboard
+            window.location.href = '/dashboard?onboarding=complete&credits=' + (formData.test_credits.eligible ? '100' : '0');
+        }, 2000);
     });
     
     $('input[required]').on('input change', function() {
