@@ -50,11 +50,17 @@
     color: #dc3545;
 }
 .mode-warning-banner {
-    background: rgba(255, 193, 7, 0.15);
-    border: 1px solid rgba(255, 193, 7, 0.4);
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.3);
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
+}
+.mode-warning-banner strong {
+    color: #333 !important;
+}
+.mode-warning-banner .fa-exclamation-triangle {
+    color: var(--primary) !important;
 }
 .config-section {
     background: #fff;
@@ -71,7 +77,7 @@
 .config-section-header h6 {
     margin: 0;
     font-weight: 600;
-    color: #495057;
+    color: #333;
 }
 .config-section-body {
     padding: 1.25rem;
@@ -196,6 +202,27 @@
     background-color: #886CC0;
     border-color: #886CC0;
 }
+.api-restrictions-box {
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.mode-selector-card h6 {
+    color: #333;
+}
+.mode-selector-card .mode-features-list li.text-success {
+    color: #6c757d !important;
+}
+.mode-selector-card .mode-features-list li.text-success i {
+    color: var(--primary) !important;
+}
+.mode-selector-card .mode-features-list li.text-danger {
+    color: #6c757d !important;
+}
+.mode-selector-card .mode-features-list li.text-danger i {
+    color: #adb5bd !important;
+}
 </style>
 @endpush
 
@@ -229,10 +256,10 @@
             
             <div class="mode-warning-banner" id="mixedModeWarning" style="display: none;">
                 <div class="d-flex align-items-start">
-                    <i class="fas fa-exclamation-triangle text-warning me-3 mt-1"></i>
+                    <i class="fas fa-exclamation-triangle me-3 mt-1" style="color: var(--primary);"></i>
                     <div>
-                        <strong class="text-warning">Mixed Mode Warning</strong>
-                        <p class="mb-0 small text-muted mt-1">The selected numbers have different operating modes. Some configuration options may not apply to all numbers.</p>
+                        <strong style="color: #333;">Mixed Mode Warning</strong>
+                        <p class="mb-0 small mt-1" style="color: #6c757d;">The selected numbers have different operating modes. Some configuration options may not apply to all numbers.</p>
                     </div>
                 </div>
             </div>
@@ -431,12 +458,12 @@
                             </div>
                         </div>
                         
-                        <div class="alert alert-secondary small mb-0">
-                            <label class="form-label fw-bold small text-muted mb-2">API Mode Restrictions</label>
-                            <ul class="mb-0 ps-3 text-muted">
-                                <li><i class="fas fa-times text-danger me-1"></i>Cannot be used as Portal SenderID</li>
-                                <li><i class="fas fa-times text-danger me-1"></i>Cannot receive messages in Inbox</li>
-                                <li><i class="fas fa-times text-danger me-1"></i>Cannot be used in Campaign Builder</li>
+                        <div class="api-restrictions-box small mb-0">
+                            <label class="form-label fw-bold small mb-2" style="color: #333;">API Mode Restrictions</label>
+                            <ul class="mb-0 ps-3" style="color: #6c757d;">
+                                <li><i class="fas fa-times me-1" style="color: var(--primary);"></i>Cannot be used as Portal SenderID</li>
+                                <li><i class="fas fa-times me-1" style="color: var(--primary);"></i>Cannot receive messages in Inbox</li>
+                                <li><i class="fas fa-times me-1" style="color: var(--primary);"></i>Cannot be used in Campaign Builder</li>
                             </ul>
                         </div>
                     </div>
