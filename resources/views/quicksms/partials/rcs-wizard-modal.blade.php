@@ -271,11 +271,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Save image changes?</h5>
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-dark me-2"></i>Save image changes?</h5>
             </div>
             <div class="modal-body">
                 <p>You have made changes to how the image is presented. Do you want to save?</p>
-                <div class="alert alert-info small mb-3">
+                <div class="small mb-3 p-3 rounded" style="background: rgba(136, 108, 192, 0.15); color: #6c5b9e;">
                     <i class="fas fa-info-circle me-1"></i>
                     <strong>If you save:</strong> QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.
                 </div>

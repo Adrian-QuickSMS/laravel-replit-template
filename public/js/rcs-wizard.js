@@ -1374,6 +1374,9 @@ function saveRcsImageEditsAndContinue() {
 function discardRcsImageEdits() {
     hideRcsUnsavedChangesModal();
     
+    // Save pending navigation before clearing dirty state (which clears it)
+    var savedPendingAction = rcsImageDirtyState.pendingNavigation;
+    
     var baselineZoom = rcsImageDirtyState.baselineZoom || 100;
     var baselineOrient = rcsImageDirtyState.baselineOrientation || 'vertical_short';
     var baselineOffsetX = rcsImageDirtyState.baselineOffsetX || 0;
@@ -1410,6 +1413,8 @@ function discardRcsImageEdits() {
     initRcsImageBaseline();
     updateRcsWizardPreview();
     
+    // Restore and execute the pending navigation
+    rcsImageDirtyState.pendingNavigation = savedPendingAction;
     executePendingNavigation();
 }
 
