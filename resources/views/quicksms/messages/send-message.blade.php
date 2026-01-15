@@ -5,6 +5,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
+/* Page-specific validation styles */
 .validation-error-field {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
@@ -17,19 +18,8 @@
 .content-body {
     overflow: visible !important;
 }
-.send-message-content-container {
-    max-width: 1280px;
-    width: 100%;
-    margin: 0 auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
-@media (min-width: 992px) {
-    .send-message-content-container {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-    }
-}
+
+/* Send Message page-specific layout */
 .send-message-layout {
     display: flex;
     gap: 1.5rem;
@@ -68,125 +58,30 @@
     }
 }
 
-/* Compact density mode for laptop screens (<=1440px) */
+/* Send Message page-specific density adjustments */
 @media (max-width: 1440px) {
-    .qsms-density-compact .card-body {
-        padding: 1rem !important;
-    }
-    .qsms-density-compact .card-body.p-4 {
-        padding: 1rem !important;
-    }
-    .qsms-density-compact h6.mb-3 {
-        margin-bottom: 0.5rem !important;
-        font-size: 0.875rem;
-    }
-    .qsms-density-compact .form-control,
-    .qsms-density-compact .form-select {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8125rem;
-        min-height: calc(1.5em + 0.75rem + 2px);
-    }
-    .qsms-density-compact textarea.form-control {
-        padding: 0.5rem 0.75rem;
-    }
-    .qsms-density-compact .btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
-    .qsms-density-compact .btn-group .btn {
-        padding: 0.375rem 0.625rem;
-        font-size: 0.75rem;
-    }
-    .qsms-density-compact .btn-group .btn i {
-        font-size: 0.7rem;
-    }
-    .qsms-density-compact .row.mb-3 {
-        margin-bottom: 0.75rem !important;
-    }
-    .qsms-density-compact .mb-3 {
-        margin-bottom: 0.75rem !important;
-    }
-    .qsms-density-compact .mb-4 {
-        margin-bottom: 1rem !important;
-    }
-    .qsms-density-compact .card.mb-3 {
-        margin-bottom: 0.75rem !important;
-    }
-    .qsms-density-compact .form-label {
-        font-size: 0.8125rem;
-        margin-bottom: 0.375rem;
-    }
-    .qsms-density-compact .form-check-label {
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact .text-muted {
-        font-size: 0.75rem;
-    }
-    .qsms-density-compact p.text-muted {
-        font-size: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-    .qsms-density-compact .badge {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.5rem;
-    }
-    .qsms-density-compact .alert {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact .border-top.pt-3 {
-        padding-top: 0.75rem !important;
-    }
-    .qsms-density-compact .d-flex.gap-2 {
-        gap: 0.375rem !important;
-    }
-    .qsms-density-compact .send-message-layout {
+    .send-message-layout {
         gap: 1rem;
     }
-    .qsms-density-compact .send-message-right {
+    .send-message-right {
         flex: 0 0 400px;
         width: 400px;
     }
-    .qsms-density-compact .send-message-right .card {
+    .send-message-right .card {
         max-height: calc(100vh - 100px);
     }
-    .qsms-density-compact #mainPreviewContainer {
+    #mainPreviewContainer {
         transform: scale(0.75);
         margin-bottom: -100px;
     }
 }
 
-/* Extra compact for smaller laptops (<=1366px) */
 @media (max-width: 1366px) {
-    .qsms-density-compact .card-body {
-        padding: 0.875rem !important;
-    }
-    .qsms-density-compact .form-control,
-    .qsms-density-compact .form-select {
-        padding: 0.3rem 0.625rem;
-        font-size: 0.75rem;
-        min-height: calc(1.5em + 0.6rem + 2px);
-    }
-    .qsms-density-compact .btn {
-        padding: 0.3rem 0.625rem;
-        font-size: 0.75rem;
-    }
-    .qsms-density-compact .btn-group .btn {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.7rem;
-    }
-    .qsms-density-compact h6.mb-3 {
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact .send-message-right {
+    .send-message-right {
         flex: 0 0 360px;
         width: 360px;
     }
-    .qsms-density-compact #mainPreviewContainer {
+    #mainPreviewContainer {
         transform: scale(0.65);
         margin-bottom: -120px;
     }
@@ -195,8 +90,8 @@
 @endpush
 
 @section('content')
-<div class="container-fluid qsms-density-compact">
-    <div class="send-message-content-container">
+<div class="container-fluid">
+    <div class="send-message-layout-wrap">
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>

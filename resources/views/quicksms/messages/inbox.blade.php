@@ -2,6 +2,8 @@
 
 @section('title', 'Inbox')
 
+@section('body_class', 'qsms-fullbleed')
+
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>

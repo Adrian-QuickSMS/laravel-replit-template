@@ -100,8 +100,12 @@
             if($page == 'ui_button'){ $body_class = 'btn-page';} 
             if($page == 'ui_badge'){ $body_class = 'badge-demo';}
         @endphp
-        <div class="content-body default-height {{$body_class}}">
-           @yield('content')
+        <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
+            <div class="qsms-main">
+                <div class="qsms-content-wrap">
+                    @yield('content')
+                </div>
+            </div>
         </div>
         <!--**********************************
             Content body end
