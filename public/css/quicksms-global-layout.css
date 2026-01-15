@@ -1,0 +1,441 @@
+/**
+ * QuickSMS Global Layout & Density System
+ * 
+ * This file provides consistent layout containers and responsive density
+ * scaling across the entire QuickSMS portal.
+ * 
+ * Breakpoints:
+ * - Default: All screens
+ * - Compact: <= 1440px (standard laptops)
+ * - Extra Compact: <= 1366px (smaller laptops)
+ * - Mobile: <= 991.98px
+ */
+
+/* =============================================================================
+   CSS VARIABLES - Density Tokens
+   ============================================================================= */
+:root {
+    --qsms-card-pad: 1.25rem;
+    --qsms-gap: 1rem;
+    --qsms-control-pad-y: 0.5rem;
+    --qsms-control-pad-x: 0.75rem;
+    --qsms-font-xs: 0.75rem;
+    --qsms-font-sm: 0.8125rem;
+    --qsms-font-base: 0.875rem;
+    --qsms-font-md: 0.9375rem;
+    --qsms-btn-pad-y: 0.5rem;
+    --qsms-btn-pad-x: 0.875rem;
+    --qsms-spacing-1: 0.25rem;
+    --qsms-spacing-2: 0.5rem;
+    --qsms-spacing-3: 0.75rem;
+    --qsms-spacing-4: 1rem;
+    --qsms-spacing-5: 1.5rem;
+}
+
+/* =============================================================================
+   CONTENT WRAPPER SYSTEM
+   ============================================================================= */
+.qsms-main {
+    width: 100%;
+    height: 100%;
+}
+
+.qsms-content-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .qsms-content-wrap {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Full-bleed opt-out for pages like Inbox */
+.qsms-fullbleed .qsms-content-wrap,
+body.qsms-fullbleed .qsms-content-wrap {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.qsms-fullbleed .qsms-main,
+body.qsms-fullbleed .qsms-main {
+    padding: 0;
+}
+
+/* =============================================================================
+   COMPACT DENSITY MODE (<=1440px) - Standard Laptops
+   ============================================================================= */
+@media (max-width: 1440px) {
+    .qsms-density-compact .card-body {
+        padding: 1rem !important;
+    }
+    
+    .qsms-density-compact .card-body.p-4 {
+        padding: 1rem !important;
+    }
+    
+    .qsms-density-compact h6.mb-3 {
+        margin-bottom: 0.5rem !important;
+        font-size: 0.875rem;
+    }
+    
+    .qsms-density-compact .form-control,
+    .qsms-density-compact .form-select {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+        min-height: calc(1.5em + 0.75rem + 2px);
+    }
+    
+    .qsms-density-compact textarea.form-control {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .qsms-density-compact .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    .qsms-density-compact .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .btn-group .btn {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .btn-group .btn i {
+        font-size: 0.7rem;
+    }
+    
+    .qsms-density-compact .row.mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .qsms-density-compact .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .qsms-density-compact .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .qsms-density-compact .card.mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .qsms-density-compact .form-label {
+        font-size: 0.8125rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    .qsms-density-compact .form-check-label {
+        font-size: 0.8125rem;
+    }
+    
+    .qsms-density-compact .text-muted {
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact p.text-muted {
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .qsms-density-compact .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .qsms-density-compact .alert {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    .qsms-density-compact .border-top.pt-3 {
+        padding-top: 0.75rem !important;
+    }
+    
+    .qsms-density-compact .d-flex.gap-2 {
+        gap: 0.375rem !important;
+    }
+    
+    /* Table density */
+    .qsms-density-compact .table th,
+    .qsms-density-compact .table td {
+        padding: 0.5rem 0.625rem;
+        font-size: 0.8125rem;
+    }
+    
+    .qsms-density-compact .table thead th {
+        font-size: 0.75rem;
+    }
+    
+    /* Card header density */
+    .qsms-density-compact .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .qsms-density-compact .card-header h4,
+    .qsms-density-compact .card-header h5,
+    .qsms-density-compact .card-header h6 {
+        font-size: 0.9375rem;
+        margin-bottom: 0;
+    }
+    
+    /* Breadcrumb density */
+    .qsms-density-compact .breadcrumb {
+        font-size: 0.75rem;
+        padding: 0.5rem 0;
+    }
+    
+    /* Page title density */
+    .qsms-density-compact .page-titles {
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Nav tabs density */
+    .qsms-density-compact .nav-tabs .nav-link {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.8125rem;
+    }
+    
+    /* List group density */
+    .qsms-density-compact .list-group-item {
+        padding: 0.625rem 1rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* =============================================================================
+   EXTRA COMPACT DENSITY MODE (<=1366px) - Smaller Laptops
+   ============================================================================= */
+@media (max-width: 1366px) {
+    .qsms-density-compact .card-body {
+        padding: 0.875rem !important;
+    }
+    
+    .qsms-density-compact .form-control,
+    .qsms-density-compact .form-select {
+        padding: 0.3rem 0.625rem;
+        font-size: 0.75rem;
+        min-height: calc(1.5em + 0.6rem + 2px);
+    }
+    
+    .qsms-density-compact .btn {
+        padding: 0.3rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .btn-group .btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    .qsms-density-compact h6.mb-3 {
+        font-size: 0.8125rem;
+    }
+    
+    /* Table extra density */
+    .qsms-density-compact .table th,
+    .qsms-density-compact .table td {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .table thead th {
+        font-size: 0.7rem;
+    }
+    
+    /* Card header extra density */
+    .qsms-density-compact .card-header {
+        padding: 0.625rem 0.875rem;
+    }
+    
+    /* Breadcrumb extra density */
+    .qsms-density-compact .breadcrumb {
+        font-size: 0.7rem;
+    }
+    
+    /* Nav tabs extra density */
+    .qsms-density-compact .nav-tabs .nav-link {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* =============================================================================
+   MOBILE RESPONSIVE (<=991.98px)
+   ============================================================================= */
+@media (max-width: 991.98px) {
+    .qsms-density-compact .card-body {
+        padding: 1rem !important;
+    }
+    
+    .qsms-density-compact .form-control,
+    .qsms-density-compact .form-select {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .qsms-density-compact .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* =============================================================================
+   MODAL DENSITY & SIZING
+   ============================================================================= */
+.qsms-density-compact .modal-sm {
+    max-width: 480px;
+}
+
+.qsms-density-compact .modal-dialog:not(.modal-sm):not(.modal-lg):not(.modal-xl):not(.modal-fullscreen) {
+    max-width: 680px;
+}
+
+.qsms-density-compact .modal-lg {
+    max-width: 900px;
+}
+
+.qsms-density-compact .modal-xl {
+    max-width: 1100px;
+}
+
+@media (max-width: 1440px) {
+    .qsms-density-compact .modal-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .qsms-density-compact .modal-body {
+        padding: 1rem;
+    }
+    
+    .qsms-density-compact .modal-footer {
+        padding: 0.75rem 1rem;
+    }
+    
+    .qsms-density-compact .modal-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 1366px) {
+    .qsms-density-compact .modal-header {
+        padding: 0.625rem 0.875rem;
+    }
+    
+    .qsms-density-compact .modal-body {
+        padding: 0.875rem;
+    }
+    
+    .qsms-density-compact .modal-footer {
+        padding: 0.625rem 0.875rem;
+    }
+    
+    .qsms-density-compact .modal-title {
+        font-size: 0.9375rem;
+    }
+}
+
+/* Fullscreen modal content wrapper */
+.qsms-density-compact .modal-fullscreen .modal-body .qsms-modal-content-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+/* =============================================================================
+   WIZARD COMPONENTS DENSITY
+   ============================================================================= */
+@media (max-width: 1440px) {
+    .qsms-density-compact .sw-theme-dots .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    .qsms-density-compact .sw-theme-dots .step-content {
+        padding: 1rem;
+    }
+    
+    .qsms-density-compact .wizard-step-header h5 {
+        font-size: 1rem;
+    }
+    
+    .qsms-density-compact .wizard-step-header p {
+        font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 1366px) {
+    .qsms-density-compact .sw-theme-dots .nav-link {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .sw-theme-dots .step-content {
+        padding: 0.875rem;
+    }
+    
+    .qsms-density-compact .wizard-step-header h5 {
+        font-size: 0.9375rem;
+    }
+    
+    .qsms-density-compact .wizard-step-header p {
+        font-size: 0.75rem;
+    }
+}
+
+/* =============================================================================
+   DATA TABLES DENSITY
+   ============================================================================= */
+@media (max-width: 1440px) {
+    .qsms-density-compact .dataTables_wrapper .dataTables_filter input,
+    .qsms-density-compact .dataTables_wrapper .dataTables_length select {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    .qsms-density-compact .dataTables_wrapper .dataTables_info,
+    .qsms-density-compact .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .dataTables_wrapper .paginate_button {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+@media (max-width: 1366px) {
+    .qsms-density-compact .dataTables_wrapper .dataTables_filter input,
+    .qsms-density-compact .dataTables_wrapper .dataTables_length select {
+        padding: 0.3rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    
+    .qsms-density-compact .dataTables_wrapper .dataTables_info,
+    .qsms-density-compact .dataTables_wrapper .dataTables_paginate {
+        font-size: 0.7rem;
+    }
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+.qsms-gap-1 { gap: var(--qsms-spacing-1); }
+.qsms-gap-2 { gap: var(--qsms-spacing-2); }
+.qsms-gap-3 { gap: var(--qsms-spacing-3); }
+.qsms-gap-4 { gap: var(--qsms-spacing-4); }
+.qsms-gap-5 { gap: var(--qsms-spacing-5); }
