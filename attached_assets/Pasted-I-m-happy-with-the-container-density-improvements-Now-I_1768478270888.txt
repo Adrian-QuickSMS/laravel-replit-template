@@ -1,0 +1,160 @@
+I'm happy with the container + density improvements. Now I want this to be a GLOBAL PRINCIPLE applied across the entire portal build, not page-by-page.
+
+STACK / CONTEXT
+This project uses Bootstrap 5 (Fillow template). We already implemented a max-width content container and a compact density approach on the Send Message page (resources/views/quicksms/messages/send-message.blade.php, lines 20-194). Now make this part of the core template so ALL pages/components inherit it automatically.
+
+REFERENCE IMPLEMENTATION
+Use resources/views/quicksms/messages/send-message.blade.php as the reference:
+- Lines 20-26: .send-message-content-container (max-width: 1280px pattern)
+- Lines 71-193: .qsms-density-compact rules for different breakpoints
+- Line 198: Applied via class="qsms-density-compact" on container
+
+GOAL
+Create a consistent, reusable layout + density system that applies everywhere:
+- every page (except deliberate full-bleed pages like Inbox)
+- every card, table, form
+- all modals (small, large, fullscreen)
+- all wizards (e.g., api-connection-wizard.blade.php, sms-sender-id-wizard.blade.php)
+
+Key principles:
+1) Main content should not stretch infinitely on widescreens (max-width: 1280px)
+2) UI density should be appropriate for 14–15" laptops at 100% zoom
+3) The system must be implemented in the base layout and shared global CSS so future pages automatically comply WITHOUT needing inline styles
+
+NON-NEGOTIABLE RULES (THE PRINCIPLES)
+[Keep your existing A, B, C, D sections - they're good]
+
+IMPLEMENTATION REQUIREMENTS (DO THIS IN CODE)
+
+1) CREATE GLOBAL CSS FILE
+- Create new file: /public/css/quicksms-global-layout.css
+- Extract ALL density and container rules from send-message.blade.php lines 20-194
+- Convert to global classes (rename .send-message-* to .qsms-*)
+- Use these exact breakpoints to match existing pattern:
+  - Default/Compact: @media (max-width: 1440px)
+  - Extra Compact: @media (max-width: 1366px)
+  - Mobile: @media (max-width: 991.98px)
+- Load this CSS globally by adding to /resources/views/layouts/default.blade.php <head> section (after line 40)
+
+2) IMPLEMENT GLOBAL WRAPPER IN BASE LAYOUT
+File: /resources/views/layouts/default.blade.php
+
+CURRENT CODE (line 103-105):
+<div class="content-body default-height {{$body_class}}">
+   @yield('content')
+</div>
+
+CHANGE TO:
+<div class="content-body default-height qsms-app {{$body_class}}">
+    <div class="qsms-main">
+        <div class="qsms-content-wrap">
+            @yield('content')
+        </div>
+    </div>
+</div>
+
+Add opt-out support for full-bleed pages (like Inbox):
+- Pages can add body class "qsms-fullbleed" to opt out
+- In send-message.blade.php: Remove inline styles (lines 7-194) after confirming global CSS works
+
+3) GLOBAL CSS STRUCTURE
+Create /public/css/quicksms-global-layout.css with these sections:
+
+/* Root wrapper class */
+.qsms-app { /* scopes all overrides */ }
+
+/* Content container */
+.qsms-content-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+@media (max-width: 991.98px) {
+    .qsms-content-wrap {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+/* Full-bleed opt-out */
+body.qsms-fullbleed .qsms-content-wrap {
+    max-width: none;
+}
+
+/* Density system with CSS variables */
+:root {
+    --qsms-card-pad: 18px;
+    --qsms-gap: 16px;
+    --qsms-control-pad-y: .40rem;
+    --qsms-control-pad-x: .60rem;
+    --qsms-font-sm: .875rem;
+    --qsms-font-base: .95rem;
+    --qsms-btn-pad-y: .45rem;
+    --qsms-btn-pad-x: .75rem;
+}
+
+/* Compact density for laptop screens */
+@media (max-width: 1440px) {
+    .qsms-app .qsms-density-compact { /* rules from send-message.blade.php lines 73-149 */ }
+}
+
+/* Extra compact for smaller laptops */
+@media (max-width: 1366px) {
+    .qsms-app .qsms-density-compact { /* rules from send-message.blade.php lines 164-193 */ }
+}
+
+/* Apply variables to Bootstrap components globally */
+.qsms-app .card .card-body { padding: var(--qsms-card-pad); }
+.qsms-app .btn { padding: var(--qsms-btn-pad-y) var(--qsms-btn-pad-x); font-size: var(--qsms-font-sm); }
+.qsms-app .form-control,
+.qsms-app .form-select { padding: var(--qsms-control-pad-y) var(--qsms-control-pad-x); font-size: var(--qsms-font-sm); }
+
+4) APPLY DENSITY CLASS TO PAGES
+- Update /resources/views/layouts/quicksms.blade.php to add qsms-density-compact by default
+- Or add it to the content-body div in default.blade.php
+
+5) FIX MODALS GLOBALLY
+- Search for all .modal-dialog instances in /resources/views
+- Apply max-widths:
+  - .modal-sm: max-width: 560px
+  - .modal-md (default): max-width: 800px
+  - .modal-lg: max-width: 1100px
+  - .modal-xl and .modal-fullscreen: add .qsms-content-wrap inside .modal-body
+
+6) FIX WIZARDS
+- Identify all wizard files in /resources/views/quicksms/management/*-wizard.blade.php
+- Ensure each wizard page content is wrapped in .qsms-content-wrap
+- Apply .qsms-density-compact class to wizard containers
+
+7) UPDATE SEND MESSAGE PAGE
+After global CSS is working:
+- Remove inline <style> block (lines 7-194) from send-message.blade.php
+- Keep only page-specific CSS (validation-error-field if any)
+- Update line 198: change class="container-fluid qsms-density-compact" to just class="container-fluid" (density now applied globally)
+
+8) HANDLE INBOX EXCEPTION
+File: /resources/views/quicksms/messages/inbox.blade.php
+- This is a full-bleed page by design (chat interface)
+- Add to @section('content') wrapper: <body class="qsms-fullbleed"> or data attribute
+- Or update line 198 in inbox.blade.php to add .qsms-fullbleed to the section
+
+DELIVERABLES
+- List all files changed (with line numbers)
+- Confirm Send Message inline styles were removed and page still looks identical
+- Confirm Inbox remains full-bleed
+- List any pages that were identified as needing .qsms-fullbleed opt-out
+- Test at these resolutions:
+  - 1366x768 (extra compact)
+  - 1440x900 (compact)
+  - 1920x1080 (comfortable)
+  - 2560x1440 (comfortable)
+
+IMPORTANT NOTES:
+- Do NOT change colors, branding, or redesign components
+- Do NOT break existing layouts (especially Inbox full-bleed design)
+- Match the exact breakpoints used in Send Message (1440px, 1366px, 991.98px)
+- Use the existing Bootstrap 5 classes where possible
+- Preserve all functionality - this is purely a layout/density refactor
