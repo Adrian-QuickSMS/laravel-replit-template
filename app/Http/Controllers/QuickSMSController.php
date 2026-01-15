@@ -6,6 +6,13 @@ use Illuminate\Http\Request;
 
 class QuickSMSController extends Controller
 {
+    public function login()
+    {
+        return view('quicksms.auth.login', [
+            'page_title' => 'Login'
+        ]);
+    }
+    
     public function signup()
     {
         return view('quicksms.auth.signup', [
