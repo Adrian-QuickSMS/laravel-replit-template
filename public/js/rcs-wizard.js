@@ -469,13 +469,16 @@ function persistRcsPayload(payload) {
 }
 
 function applyRcsContent() {
+    console.log('[RCS Apply] applyRcsContent started');
     saveCurrentCardData();
     
     var validation = validateRcsContent();
+    console.log('[RCS Apply] Validation result:', JSON.stringify(validation));
     
     hideRcsValidationErrors();
     
     if (!validation.valid) {
+        console.log('[RCS Apply] Validation failed, showing errors');
         showRcsValidationErrors(validation.errors, validation.warnings);
         return;
     }
@@ -510,11 +513,16 @@ function applyRcsContent() {
     if (clearBtnInbox) clearBtnInbox.classList.remove('d-none');
     if (wizardBtnTextInbox) wizardBtnTextInbox.textContent = 'Edit RCS Message';
     
+    console.log('[RCS Apply] Closing wizard modal');
     closeRcsWizardModal();
     
     setTimeout(function() {
+        console.log('[RCS Apply] Calling updateRcsWizardPreviewInMain');
         if (typeof updateRcsWizardPreviewInMain === 'function') {
             updateRcsWizardPreviewInMain();
+            console.log('[RCS Apply] Preview updated successfully');
+        } else {
+            console.log('[RCS Apply] updateRcsWizardPreviewInMain not available');
         }
     }, 100);
 }
@@ -1547,9 +1555,17 @@ function closeRcsWizardModal() {
 }
 
 function handleRcsApplyContent() {
-    if (isRcsImageDirty()) {
+    console.log('[RCS Apply] handleRcsApplyContent called');
+    var dirty = isRcsImageDirty();
+    console.log('[RCS Apply] isRcsImageDirty:', dirty);
+    console.log('[RCS Apply] rcsMediaData:', JSON.stringify(rcsMediaData));
+    console.log('[RCS Apply] rcsImageDirtyState:', JSON.stringify(rcsImageDirtyState));
+    
+    if (dirty) {
+        console.log('[RCS Apply] Showing unsaved changes modal');
         showRcsUnsavedChangesModal({ type: 'applyContent' });
     } else {
+        console.log('[RCS Apply] Calling applyRcsContent directly');
         applyRcsContent();
     }
 }
