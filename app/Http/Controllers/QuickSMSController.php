@@ -13,6 +13,20 @@ class QuickSMSController extends Controller
         ]);
     }
     
+    public function verifyEmail()
+    {
+        return view('quicksms.auth.verify-email', [
+            'page_title' => 'Verify Email'
+        ]);
+    }
+    
+    public function signupSecurity()
+    {
+        return view('quicksms.auth.security', [
+            'page_title' => 'Security & Consent'
+        ]);
+    }
+    
     public function dashboard()
     {
         // TODO: Replace with actual data from API
