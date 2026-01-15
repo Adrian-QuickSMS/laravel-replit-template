@@ -161,37 +161,45 @@
                     <h6 class="section-title"><i class="fas fa-envelope me-2"></i>D. Marketing Preferences</h6>
                     <p class="section-helper">Optional: Stay informed about product updates and offers.</p>
                     
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="marketingEmail">
-                        <label class="form-check-label" for="marketingEmail">
-                            I would like to receive product updates via email
-                        </label>
-                    </div>
-                    
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="marketingSms">
-                        <label class="form-check-label" for="marketingSms">
-                            I would like to receive promotional offers via SMS
-                        </label>
-                    </div>
-                    
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="partnerOffers">
-                        <label class="form-check-label" for="partnerOffers">
-                            I'm interested in partner offers and integrations
+                        <input class="form-check-input" type="checkbox" id="marketingConsent">
+                        <label class="form-check-label" for="marketingConsent">
+                            I agree to receive product updates, tips, and offers from QuickSMS via email, SMS, and RCS. I can opt out at any time.
                         </label>
+                        <small class="d-block text-muted mt-1">Email updates are sent to your business email. SMS/RCS updates are sent to your verified mobile number.</small>
                     </div>
                 </div>
                 
-                <div class="section-card section-card-highlight mb-4">
-                    <h6 class="section-title"><i class="fas fa-gift me-2 text-success"></i>E. Test Credit Eligibility</h6>
-                    <div class="d-flex align-items-start">
-                        <div class="test-credit-icon me-3">
-                            <i class="fas fa-coins text-warning"></i>
+                <div class="section-card mb-4" id="testCreditSection">
+                    <h6 class="section-title"><i class="fas fa-gift me-2"></i>E. Test Credit Eligibility</h6>
+                    
+                    <div id="creditEligibilityStatus">
+                        <div class="credit-status-pending" id="creditPending">
+                            <div class="d-flex align-items-start">
+                                <div class="test-credit-icon me-3">
+                                    <i class="fas fa-coins text-muted"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-2"><strong>Unlock 100 free test SMS credits</strong></p>
+                                    <p class="text-muted mb-0 small">Opt in to marketing above to receive 100 free test SMS credits when your account is created.</p>
+                                    <ul class="eligibility-checklist mt-2 mb-0">
+                                        <li id="checkMobile"><i class="fas fa-circle"></i> Mobile number verified</li>
+                                        <li id="checkMarketing"><i class="fas fa-circle"></i> Marketing consent accepted</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <p class="mb-2"><strong>You're eligible for free test credits!</strong></p>
-                            <p class="text-muted mb-0 small">Once your account is verified, you'll receive <strong>10 free SMS credits</strong> to test our platform. No payment required to get started.</p>
+                        
+                        <div class="credit-status-eligible d-none" id="creditEligible">
+                            <div class="d-flex align-items-start">
+                                <div class="test-credit-icon test-credit-icon-success me-3">
+                                    <i class="fas fa-coins text-warning"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-2 text-success"><strong><i class="fas fa-check-circle me-1"></i>You're eligible for 100 free test credits!</strong></p>
+                                    <p class="text-muted mb-0 small">Your 100 free SMS credits will be applied when your account is created. No payment required to get started.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -396,6 +404,40 @@
     border-color: #886CC0;
     color: #fff;
 }
+.eligibility-checklist {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.8rem;
+}
+.eligibility-checklist li {
+    padding: 0.25rem 0;
+    color: #6c757d;
+}
+.eligibility-checklist li i {
+    font-size: 0.5rem;
+    margin-right: 0.5rem;
+    color: #dee2e6;
+}
+.eligibility-checklist li.checked {
+    color: #28a745;
+}
+.eligibility-checklist li.checked i {
+    color: #28a745;
+}
+.test-credit-icon-success {
+    background: #fef3c7 !important;
+}
+.credit-status-pending {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+.credit-status-eligible {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border-left: 3px solid #22c55e;
+}
 </style>
 
 @push('scripts')
@@ -572,6 +614,9 @@ $(document).ready(function() {
             // Hide OTP input, show verified badge
             $('#otpInputGroup').addClass('d-none');
             $('#otpStatus').addClass('d-none');
+            
+            // Update credit eligibility
+            updateCreditEligibility();
             $('#sendOtpBtn').addClass('d-none');
             $('#mobileVerifiedBadge').removeClass('d-none');
             
@@ -595,7 +640,40 @@ $(document).ready(function() {
             $('#mobileVerifiedBadge').addClass('d-none');
             $('#sendOtpBtn').removeClass('d-none').find('.btn-text').text('Send Code');
         }
+        updateCreditEligibility();
     });
+    
+    // Marketing consent change handler
+    $('#marketingConsent').on('change', function() {
+        updateCreditEligibility();
+    });
+    
+    // Update credit eligibility status
+    function updateCreditEligibility() {
+        var marketingChecked = $('#marketingConsent').is(':checked');
+        
+        // Update checklist items
+        if (mobileVerified) {
+            $('#checkMobile').addClass('checked');
+        } else {
+            $('#checkMobile').removeClass('checked');
+        }
+        
+        if (marketingChecked) {
+            $('#checkMarketing').addClass('checked');
+        } else {
+            $('#checkMarketing').removeClass('checked');
+        }
+        
+        // Show eligible or pending state
+        if (mobileVerified && marketingChecked) {
+            $('#creditPending').addClass('d-none');
+            $('#creditEligible').removeClass('d-none');
+        } else {
+            $('#creditPending').removeClass('d-none');
+            $('#creditEligible').addClass('d-none');
+        }
+    }
     
     $('.show-pass').on('click', function() {
         var $input = $(this).siblings('input');
@@ -782,9 +860,22 @@ $(document).ready(function() {
                 }
             },
             marketing: {
-                email: $('#marketingEmail').is(':checked'),
-                sms: $('#marketingSms').is(':checked'),
-                partners: $('#partnerOffers').is(':checked')
+                consent: $('#marketingConsent').is(':checked'),
+                consent_timestamp: $('#marketingConsent').is(':checked') ? new Date().toISOString() : null,
+                channels: {
+                    email: $('#marketingConsent').is(':checked'),
+                    sms: $('#marketingConsent').is(':checked') && mobileVerified,
+                    rcs: $('#marketingConsent').is(':checked') && mobileVerified
+                }
+            },
+            test_credits: {
+                eligible: mobileVerified && $('#marketingConsent').is(':checked'),
+                amount: (mobileVerified && $('#marketingConsent').is(':checked')) ? 100 : 0,
+                reason: (mobileVerified && $('#marketingConsent').is(':checked')) ? 'marketing_opt_in' : null
+            },
+            hubspot_sync: {
+                marketing_consent: $('#marketingConsent').is(':checked'),
+                marketing_consent_timestamp: $('#marketingConsent').is(':checked') ? new Date().toISOString() : null
             }
         };
         
