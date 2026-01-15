@@ -409,8 +409,8 @@
                         <h6><i class="fas fa-plug me-2 text-primary"></i>API Configuration</h6>
                     </div>
                     <div class="config-section-body">
-                        <div id="apiShortcodeNotice" class="alert alert-warning small mb-4" style="display: none;">
-                            <i class="fas fa-info-circle me-2"></i>
+                        <div id="apiShortcodeNotice" class="alert small mb-4" style="display: none; background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #333;">
+                            <i class="fas fa-info-circle me-2" style="color: var(--primary);"></i>
                             <strong>Shortcode Keyword:</strong> This number can only be used for opt-out keywords or API inbound triggers.
                         </div>
                         
@@ -521,20 +521,20 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-exchange-alt me-2 text-warning"></i>Confirm Mode Change
+                    <i class="fas fa-exchange-alt me-2" style="color: var(--primary);"></i>Confirm Mode Change
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning mb-3">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                <div class="alert mb-3" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #333;">
+                    <i class="fas fa-info-circle me-2" style="color: var(--primary);"></i>
                     Changing the operating mode will immediately affect how this number can be used.
                 </div>
                 <p class="mb-0">Are you sure you want to switch to <strong id="newModeLabel">API Mode</strong>?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" id="btnConfirmModeChange">
+                <button type="button" class="btn btn-primary" id="btnConfirmModeChange">
                     <i class="fas fa-exchange-alt me-1"></i> Confirm Change
                 </button>
             </div>
