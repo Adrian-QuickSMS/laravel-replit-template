@@ -542,40 +542,49 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contractSignatory" aria-expanded="false">
                         <i class="fas fa-signature me-2 text-primary"></i>Contract Signatory
-                        <span class="section-indicator required"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
+                        <span class="section-indicator required" id="signatoryStatusBadge"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
                     </button>
                 </h2>
                 <div id="contractSignatory" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
-                        <p class="text-muted small mb-4">The contract signatory is authorized to sign legal agreements on behalf of your company. This information is required for service activation.</p>
+                        <p class="text-muted small mb-4">The contract signatory is the individual authorised to enter contracts on behalf of your company. This person will receive legal notices and approval requests.</p>
                         
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Full Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="signatoryName" value="James Wilson">
-                                    <div class="validation-error">Signatory name is required</div>
+                                    <input type="text" class="form-control signatory-field" id="signatoryName" value="James Wilson" placeholder="e.g., John Smith">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-file-contract"></i> Contracts</span>
+                                        <span class="usage-chip"><i class="fas fa-gavel"></i> Legal Notices</span>
+                                    </div>
+                                    <div class="validation-error">Full name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Job Title<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="signatoryTitle" value="Managing Director">
+                                    <input type="text" class="form-control signatory-field" id="signatoryTitle" value="Managing Director" placeholder="e.g., CEO, Managing Director">
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-check-double"></i> Approvals</span>
+                                    </div>
                                     <div class="validation-error">Job title is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Email<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control" id="signatoryEmail" value="j.wilson@acmecomms.co.uk">
+                                    <label class="form-label">Email Address<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control signatory-field" id="signatoryEmail" value="j.wilson@acmecomms.co.uk" placeholder="e.g., signatory@company.com">
+                                    <div class="field-hint">Used for contract signing and legal communications</div>
+                                    <div class="usage-chips">
+                                        <span class="usage-chip"><i class="fas fa-file-signature"></i> Contract Signing</span>
+                                        <span class="usage-chip"><i class="fas fa-envelope-open-text"></i> Legal Comms</span>
+                                    </div>
+                                    <div class="alert alert-warning domain-warning py-2 px-3 mt-2" id="signatoryDomainWarning" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <span>Email domain does not match your company website domain. Please verify this is correct.</span>
+                                    </div>
                                     <div class="validation-error">Please enter a valid email address</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Phone<span class="required-indicator">*</span></label>
-                                    <input type="tel" class="form-control" id="signatoryPhone" value="+44 20 7946 0961">
-                                    <div class="validation-error">Phone number is required</div>
                                 </div>
                             </div>
                         </div>
@@ -1065,8 +1074,97 @@ $(document).ready(function() {
         }, 800);
     });
     
+    function getCompanyDomain() {
+        var website = $('#companyWebsite').val().trim();
+        if (!website) return null;
+        try {
+            var url = new URL(website);
+            return url.hostname.replace('www.', '');
+        } catch (e) {
+            return null;
+        }
+    }
+    
+    function checkSignatoryDomainMatch() {
+        var email = $('#signatoryEmail').val().trim();
+        var companyDomain = getCompanyDomain();
+        
+        if (!email || !companyDomain) {
+            $('#signatoryDomainWarning').hide();
+            return;
+        }
+        
+        var emailDomain = email.split('@')[1];
+        if (emailDomain && emailDomain.replace('www.', '') !== companyDomain) {
+            $('#signatoryDomainWarning').show();
+        } else {
+            $('#signatoryDomainWarning').hide();
+        }
+    }
+    
+    function updateSignatoryStatusBadge() {
+        var allValid = true;
+        $('.signatory-field').each(function() {
+            var value = $(this).val().trim();
+            if (!value) {
+                allValid = false;
+                return false;
+            }
+        });
+        
+        var email = $('#signatoryEmail').val().trim();
+        if (email) {
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                allValid = false;
+            }
+        }
+        
+        var $badge = $('#signatoryStatusBadge');
+        if (allValid) {
+            $badge.removeClass('required').addClass('complete')
+                .html('<i class="fas fa-check-circle"></i> Complete');
+        } else {
+            $badge.removeClass('complete').addClass('required')
+                .html('<i class="fas fa-exclamation-circle"></i> Required to go live');
+        }
+    }
+    
+    $('.signatory-field').on('input blur', function() {
+        validateField($(this));
+        updateSignatoryStatusBadge();
+    });
+    
+    $('#signatoryEmail').on('blur', function() {
+        checkSignatoryDomainMatch();
+    });
+    
     $('#saveSignatory').on('click', function() {
-        saveSection('contractSignatory', $(this), $('#signatoryAutoSave'));
+        var $saveBtn = $(this);
+        var $autoSave = $('#signatoryAutoSave');
+        var isValid = true;
+        
+        $('.signatory-field').each(function() {
+            if (!validateField($(this))) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            toastr.error('Please complete all required fields before saving.');
+            return;
+        }
+        
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        showAutoSave($autoSave, 'saving');
+        
+        setTimeout(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            showAutoSave($autoSave, 'saved');
+            updateSignatoryStatusBadge();
+            checkSignatoryDomainMatch();
+            toastr.success('Contract signatory details saved successfully.');
+        }, 800);
     });
     
     $('#saveVatInfo').on('click', function() {
