@@ -146,24 +146,6 @@
     opacity: 0.5;
     pointer-events: none;
 }
-.subaccount-select-list {
-    border: 1px solid #e9ecef;
-    border-radius: 0.5rem;
-    max-height: 200px;
-    overflow-y: auto;
-}
-.subaccount-select-item {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f1f3f5;
-    display: flex;
-    align-items: center;
-}
-.subaccount-select-item:last-child {
-    border-bottom: none;
-}
-.subaccount-select-item:hover {
-    background: #f8f9fa;
-}
 .defaults-grid {
     display: grid;
     gap: 0.75rem;
@@ -336,19 +318,27 @@
                             <div class="col-lg-6 mb-4">
                                 <label class="form-label fw-bold">Sub-Account Assignment</label>
                                 <p class="text-muted small mb-2">Select which sub-accounts can use this number.</p>
-                                <div class="subaccount-select-list">
-                                    <div class="subaccount-select-item">
-                                        <input class="form-check-input me-2" type="checkbox" id="subAccMain" value="Main Account">
-                                        <label class="form-check-label" for="subAccMain">Main Account</label>
-                                    </div>
-                                    <div class="subaccount-select-item">
-                                        <input class="form-check-input me-2" type="checkbox" id="subAccMarketing" value="Marketing">
-                                        <label class="form-check-label" for="subAccMarketing">Marketing</label>
-                                    </div>
-                                    <div class="subaccount-select-item">
-                                        <input class="form-check-input me-2" type="checkbox" id="subAccSupport" value="Support">
-                                        <label class="form-check-label" for="subAccSupport">Support</label>
-                                    </div>
+                                
+                                <select class="selectpicker form-control" id="portalSubAccountSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="Select sub-accounts...">
+                                    <option value="main">Main Account</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="support">Support</option>
+                                    <option value="sales">Sales</option>
+                                    <option value="operations">Operations</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="hr">Human Resources</option>
+                                    <option value="it">IT Department</option>
+                                    <option value="legal">Legal</option>
+                                    <option value="customer-success">Customer Success</option>
+                                </select>
+                                
+                                <div class="mt-3">
+                                    <label class="form-label fw-bold">User Assignment <span class="badge badge-pastel-pink ms-1">Optional</span></label>
+                                    <p class="text-muted small mb-2">Optionally limit to specific users within selected sub-accounts.</p>
+                                    
+                                    <select class="selectpicker form-control" id="portalUserSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="All users (default)" disabled>
+                                    </select>
+                                    <small class="text-muted d-block mt-1">Leave empty to allow all users in selected sub-accounts.</small>
                                 </div>
                             </div>
                             
@@ -679,9 +669,9 @@ $(document).ready(function() {
     }
     
     function updateSubAccountDefaults() {
-        var checkedSubAccounts = [];
-        $('.subaccount-select-list input:checked').each(function() {
-            checkedSubAccounts.push($(this).val());
+        var selectedSubAccounts = $('#portalSubAccountSelect').val() || [];
+        var checkedSubAccounts = selectedSubAccounts.map(function(id) {
+            return subAccountNames[id] || id;
         });
         
         if (checkedSubAccounts.length === 0) {
@@ -742,9 +732,6 @@ $(document).ready(function() {
         }
     });
     
-    $('.subaccount-select-list input').on('change', function() {
-        updateSubAccountDefaults();
-    });
     
     $('#toggleInboundForwarding').on('change', function() {
         if ($(this).is(':checked')) {
@@ -780,7 +767,8 @@ $(document).ready(function() {
     
     $('#btnResetConfig').on('click', function() {
         setInitialMode();
-        $('.subaccount-select-list input').prop('checked', false);
+        $('#portalSubAccountSelect').val([]).selectpicker('refresh');
+        $('#portalUserSelect').val([]).prop('disabled', true).selectpicker('refresh');
         $('#toggleSenderID, #toggleInbox, #toggleOptout').prop('checked', true);
         $('#toggleInboundForwarding').prop('checked', false);
         $('#toggleApiSenderID').prop('checked', false);
@@ -857,13 +845,12 @@ $(document).ready(function() {
         'customer-success': 'Customer Success'
     };
     
-    // Initialize selectpickers for API configuration
-    $('#apiSubAccountSelect, #apiUserSelect').selectpicker();
+    // Initialize all selectpickers
+    $('#apiSubAccountSelect, #apiUserSelect, #portalSubAccountSelect, #portalUserSelect').selectpicker();
     
-    // Dynamically populate user dropdown based on selected sub-accounts
-    $('#apiSubAccountSelect').on('changed.bs.select', function() {
-        var selected = $(this).val() || [];
-        var $userSelect = $('#apiUserSelect');
+    // Helper function to populate user dropdown based on selected sub-accounts
+    function populateUserDropdown($subAccountSelect, $userSelect) {
+        var selected = $subAccountSelect.val() || [];
         
         // Clear and rebuild user options
         $userSelect.empty();
@@ -885,6 +872,17 @@ $(document).ready(function() {
         }
         
         $userSelect.selectpicker('refresh');
+    }
+    
+    // API mode: Dynamically populate user dropdown based on selected sub-accounts
+    $('#apiSubAccountSelect').on('changed.bs.select', function() {
+        populateUserDropdown($(this), $('#apiUserSelect'));
+    });
+    
+    // Portal mode: Dynamically populate user dropdown based on selected sub-accounts
+    $('#portalSubAccountSelect').on('changed.bs.select', function() {
+        populateUserDropdown($(this), $('#portalUserSelect'));
+        updateSubAccountDefaults();
     });
     
     init();
