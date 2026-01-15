@@ -19,25 +19,49 @@
                 
                 <div class="section-card mb-4">
                     <h6 class="section-title"><i class="fas fa-lock me-2"></i>A. Password Setup</h6>
-                    <p class="section-helper">Create a strong password to secure your account.</p>
+                    <p class="section-helper">Create a strong password to secure your account. Password is hashed using Argon2id before storage.</p>
                     
                     <div class="form-group mb-3">
                         <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
                         <div class="position-relative">
-                            <input type="password" class="form-control" id="password" placeholder="Minimum 8 characters" required>
+                            <input type="password" class="form-control" id="password" placeholder="12-128 characters" required autocomplete="new-password" minlength="12" maxlength="128">
                             <span class="show-pass eye">
                                 <i class="fa fa-eye-slash"></i>
                                 <i class="fa fa-eye"></i>
                             </span>
                         </div>
-                        <div class="invalid-feedback">Password must be at least 8 characters</div>
-                        <div class="password-strength mt-2" id="passwordStrength"></div>
-                        <small class="form-text text-muted">Use a mix of letters, numbers, and symbols for best security.</small>
+                        <div class="invalid-feedback" id="passwordError">Password does not meet requirements</div>
+                        
+                        <div class="password-rules mt-2" id="passwordRules">
+                            <div class="rule-item" id="rule-length">
+                                <i class="fas fa-circle rule-icon"></i>
+                                <span>12-128 characters</span>
+                            </div>
+                            <div class="rule-item" id="rule-uppercase">
+                                <i class="fas fa-circle rule-icon"></i>
+                                <span>At least 1 uppercase letter (A-Z)</span>
+                            </div>
+                            <div class="rule-item" id="rule-lowercase">
+                                <i class="fas fa-circle rule-icon"></i>
+                                <span>At least 1 lowercase letter (a-z)</span>
+                            </div>
+                            <div class="rule-item" id="rule-number">
+                                <i class="fas fa-circle rule-icon"></i>
+                                <span>At least 1 number (0-9)</span>
+                            </div>
+                            <div class="rule-item" id="rule-special">
+                                <i class="fas fa-circle rule-icon"></i>
+                                <span>At least 1 special character</span>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted mt-2">Allowed special characters: ! @ £ $ % ^ & * ( ) _ - = + [ ] { } ; : ' " , . &lt; &gt; ? / \ | ~</small>
+                        
+                        <div class="password-check-status mt-2 d-none" id="passwordCheckStatus"></div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label" for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
                         <div class="invalid-feedback" id="confirmError">Passwords do not match</div>
                     </div>
                 </div>
@@ -242,6 +266,54 @@
     background-color: #886CC0;
     border-color: #886CC0;
 }
+.password-rules {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+}
+.rule-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    padding: 0.25rem 0;
+}
+.rule-item .rule-icon {
+    font-size: 0.5rem;
+    color: #dee2e6;
+    transition: color 0.2s ease;
+}
+.rule-item.valid .rule-icon {
+    color: #28a745;
+}
+.rule-item.valid {
+    color: #28a745;
+}
+.rule-item.invalid .rule-icon {
+    color: #dc3545;
+}
+.rule-item.invalid {
+    color: #dc3545;
+}
+.password-check-status {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+}
+.password-check-status.checking {
+    background: #e7f1ff;
+    color: #0d6efd;
+}
+.password-check-status.error {
+    background: #f8d7da;
+    color: #842029;
+}
+.password-check-status.success {
+    background: #d1e7dd;
+    color: #0f5132;
+}
 </style>
 
 @push('scripts')
@@ -263,6 +335,20 @@ $(document).ready(function() {
         $('#verifiedBadge').hide();
     }
     
+    // Allowed special characters for password
+    var SPECIAL_CHARS = '!@£$%^&*()_\\-=+\\[\\]{};\':\",.\\<\\>?/\\\\|~';
+    var SPECIAL_CHARS_REGEX = new RegExp('[' + SPECIAL_CHARS + ']');
+    
+    // Mock breached passwords (backend would check against HaveIBeenPwned API)
+    var BREACHED_PASSWORDS = ['password123!', 'Password1234!', 'Qwerty123456!', 'Welcome123!'];
+    
+    // Mock previous passwords (backend would check against user's history)
+    var PREVIOUS_PASSWORDS = ['OldPassword1!', 'MyOldPass123!'];
+    
+    var passwordCheckTimeout;
+    var passwordIsValid = false;
+    var passwordChecksComplete = false;
+    
     $('.show-pass').on('click', function() {
         var $input = $(this).siblings('input');
         var type = $input.attr('type') === 'password' ? 'text' : 'password';
@@ -272,33 +358,83 @@ $(document).ready(function() {
     
     $('#password').on('input', function() {
         var password = $(this).val();
-        var $strength = $('#passwordStrength');
         
-        if (password.length === 0) {
-            $strength.html('').removeClass('weak medium strong');
-            return;
-        }
+        // Reset checks
+        passwordChecksComplete = false;
+        $('#passwordCheckStatus').addClass('d-none');
         
-        var strength = calculateStrength(password);
-        $strength.html('<div class="strength-bar"><div class="strength-fill"></div></div><span>' + strength.label + '</span>');
-        $strength.removeClass('weak medium strong').addClass(strength.class);
+        // Validate password rules in real-time
+        var rules = validatePasswordRules(password);
+        updateRuleIndicators(rules);
         
-        if (password.length >= 8) {
+        // Check if all rules pass
+        passwordIsValid = rules.length && rules.uppercase && rules.lowercase && rules.number && rules.special;
+        
+        if (passwordIsValid) {
             $(this).removeClass('is-invalid');
+            // Debounce backend checks
+            clearTimeout(passwordCheckTimeout);
+            passwordCheckTimeout = setTimeout(function() {
+                checkPasswordBackend(password);
+            }, 500);
         }
     });
     
-    function calculateStrength(password) {
-        var score = 0;
-        if (password.length >= 8) score++;
-        if (password.length >= 12) score++;
-        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-        if (/\d/.test(password)) score++;
-        if (/[^a-zA-Z0-9]/.test(password)) score++;
+    function validatePasswordRules(password) {
+        return {
+            length: password.length >= 12 && password.length <= 128,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: SPECIAL_CHARS_REGEX.test(password)
+        };
+    }
+    
+    function updateRuleIndicators(rules) {
+        updateRule('rule-length', rules.length);
+        updateRule('rule-uppercase', rules.uppercase);
+        updateRule('rule-lowercase', rules.lowercase);
+        updateRule('rule-number', rules.number);
+        updateRule('rule-special', rules.special);
+    }
+    
+    function updateRule(ruleId, isValid) {
+        var $rule = $('#' + ruleId);
+        $rule.removeClass('valid invalid');
+        if ($('#password').val().length > 0) {
+            $rule.addClass(isValid ? 'valid' : 'invalid');
+        }
+    }
+    
+    function checkPasswordBackend(password) {
+        var $status = $('#passwordCheckStatus');
         
-        if (score <= 2) return { class: 'weak', label: 'Weak password' };
-        if (score <= 3) return { class: 'medium', label: 'Medium strength' };
-        return { class: 'strong', label: 'Strong password' };
+        // Show checking status
+        $status.removeClass('d-none error success').addClass('checking');
+        $status.html('<i class="fas fa-spinner fa-spin me-2"></i>Checking password security...');
+        
+        // Mock backend checks
+        // In production: POST /api/auth/check-password (hashed or using k-anonymity for breach check)
+        setTimeout(function() {
+            var isBreached = BREACHED_PASSWORDS.includes(password);
+            var isPreviouslyUsed = PREVIOUS_PASSWORDS.includes(password);
+            
+            if (isBreached) {
+                $status.removeClass('checking success').addClass('error');
+                $status.html('<i class="fas fa-exclamation-triangle me-2"></i>This password has been found in a data breach. Please choose a different password.');
+                passwordChecksComplete = false;
+            } else if (isPreviouslyUsed) {
+                $status.removeClass('checking success').addClass('error');
+                $status.html('<i class="fas fa-exclamation-triangle me-2"></i>You cannot reuse one of your last 10 passwords. Please choose a different password.');
+                passwordChecksComplete = false;
+            } else {
+                $status.removeClass('checking error').addClass('success');
+                $status.html('<i class="fas fa-check-circle me-2"></i>Password meets all security requirements.');
+                passwordChecksComplete = true;
+            }
+            
+            console.log('[Password] Backend check result:', { isBreached, isPreviouslyUsed, checksComplete: passwordChecksComplete });
+        }, 800);
     }
     
     $('#confirmPassword').on('input', function() {
@@ -307,6 +443,7 @@ $(document).ready(function() {
         
         if (confirm && confirm !== password) {
             $(this).addClass('is-invalid');
+            $('#confirmError').text('Passwords do not match');
         } else {
             $(this).removeClass('is-invalid');
         }
@@ -319,8 +456,15 @@ $(document).ready(function() {
         var password = $('#password').val();
         var confirm = $('#confirmPassword').val();
         
-        if (password.length < 8) {
+        // Validate password rules
+        var rules = validatePasswordRules(password);
+        if (!rules.length || !rules.uppercase || !rules.lowercase || !rules.number || !rules.special) {
             $('#password').addClass('is-invalid');
+            $('#passwordError').text('Password does not meet all requirements');
+            isValid = false;
+        } else if (!passwordChecksComplete) {
+            $('#password').addClass('is-invalid');
+            $('#passwordError').text('Please wait for security checks to complete');
             isValid = false;
         }
         
@@ -357,9 +501,11 @@ $(document).ready(function() {
         
         // Mock save security settings
         // In production: POST /api/auth/complete-security
+        // Password should be hashed using Argon2id on the server
+        // Never log plaintext password
         var formData = {
             email: email,
-            password: password,
+            password_hash: 'ARGON2ID_HASH_PLACEHOLDER', // Backend hashes with per-user salt
             mobile_number: $('#mobileNumber').val().trim(),
             enable_mfa: $('#enableMfa').is(':checked'),
             consents: {
