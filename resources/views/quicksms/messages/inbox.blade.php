@@ -55,7 +55,7 @@
     flex: 1 1 0 !important;
     overflow-y: auto !important;
     background: var(--bs-card-bg, #fff) !important;
-    padding-bottom: 270px !important;
+    padding-bottom: 300px !important;
 }
 #replyComposerCard {
     position: absolute !important;
@@ -485,7 +485,7 @@ span.badge.channel-pill-rcs,
 <div class="container-fluid qsms-density-compact">
     <div class="row">
         <div class="col-xl-12">
-            <div class="card mb-0" style="height: calc(100vh - 120px); overflow: hidden;">
+            <div class="card mb-0" style="height: calc(100vh - 80px); overflow: hidden;">
                 <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%; min-height: 0;">
                     <div class="chat-left-body" style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
                         <div class="meassge-left-side">
@@ -631,7 +631,7 @@ span.badge.channel-pill-rcs,
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 490px 15px;">
+                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 300px 15px;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
@@ -1380,32 +1380,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[Inbox] DOMContentLoaded fired');
     console.log('[Inbox] Loaded', conversationsData.length, 'conversations');
     
-    // Fix layout after Fillow JS runs - ensure chat pane has proper height
-    setTimeout(function() {
-        var wrapper = document.getElementById('chatPaneWrapper');
-        var chatArea = document.getElementById('chatArea');
-        var composer = document.getElementById('replyComposerCard');
-        var header = document.getElementById('chatHeader');
-        
-        if (wrapper && chatArea && composer && header) {
-            var wrapperHeight = wrapper.offsetHeight || wrapper.clientHeight;
-            var headerHeight = header.offsetHeight || header.clientHeight || 75;
-            var composerHeight = composer.offsetHeight || composer.clientHeight || 250;
-            
-            // Calculate available height for chat area
-            var chatAreaHeight = wrapperHeight - headerHeight - composerHeight;
-            
-            console.log('[Layout] Wrapper:', wrapperHeight, 'Header:', headerHeight, 'Composer:', composerHeight, 'ChatArea:', chatAreaHeight);
-            
-            // If wrapper has valid height, set chat area height explicitly
-            if (wrapperHeight > 0 && chatAreaHeight > 100) {
-                chatArea.style.height = chatAreaHeight + 'px';
-                chatArea.style.minHeight = chatAreaHeight + 'px';
-                chatArea.style.maxHeight = chatAreaHeight + 'px';
-                console.log('[Layout] Chat area height set to:', chatAreaHeight);
-            }
-        }
-    }, 100);
+    // Layout is handled by CSS with absolute positioned composer
+    // Chat area uses flex: 1 1 0 with padding-bottom for composer overlay space
+    console.log('[Layout] Using CSS flex layout with absolute positioned composer');
     
     // Initialize modals with error handling
     try {
