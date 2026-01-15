@@ -32,7 +32,7 @@
                             <div class="d-none mb-4" id="rcsCarouselNav">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                     <h6 class="text-muted text-uppercase small mb-0"><i class="fas fa-th-list me-2"></i>Cards</h6>
-                                    <span class="badge bg-secondary" id="rcsCardCount">1 / 10</span>
+                                    <span class="badge badge-pastel-pink" id="rcsCardCount">1 / 10</span>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 align-items-center" id="rcsCardTabs">
                                     <button type="button" class="btn btn-primary btn-sm rcs-card-tab active" data-card="1" onclick="selectRcsCard(1)">Card 1</button>
@@ -45,7 +45,7 @@
                             
                             <div id="rcsCardConfig">
                                 <div class="d-none mb-2" id="rcsCurrentCardLabel">
-                                    <span class="badge bg-primary"><i class="fas fa-square me-1"></i>Editing: <span id="rcsCurrentCardName">Card 1</span></span>
+                                    <span class="badge badge-pastel-pink"><i class="fas fa-square me-1"></i>Editing: <span id="rcsCurrentCardName">Card 1</span></span>
                                 </div>
                                 
                                 <div class="mb-4">
@@ -111,7 +111,7 @@
                                                             <i class="fas fa-image me-1"></i><strong>Recommended resolutions (2:1 aspect ratio):</strong>
                                                         </small>
                                                         <ul class="mb-0 ps-3 small text-muted" style="font-size: 0.75rem; line-height: 1.4;">
-                                                            <li><strong>Short:</strong> 1440 × 720 px <span class="text-success">(optimal)</span></li>
+                                                            <li><strong>Short:</strong> 1440 × 720 px <span class="text-primary">(optimal)</span></li>
                                                             <li><strong>Medium:</strong> ~1080 × 720 px <span class="text-muted">(acceptable)</span></li>
                                                             <li><strong>Tall:</strong> DP-based scaling <span class="text-muted">(no fixed size)</span></li>
                                                         </ul>
@@ -161,24 +161,24 @@
                                                 </div>
                                                 
                                                 <div id="rcsHostedUrlSection" class="mb-3 d-none">
-                                                    <label class="form-label small mb-1"><i class="fas fa-link me-1 text-success"></i>Hosted URL</label>
+                                                    <label class="form-label small mb-1"><i class="fas fa-link me-1 text-primary"></i>Hosted URL</label>
                                                     <div class="input-group input-group-sm">
                                                         <input type="text" class="form-control form-control-sm bg-light" id="rcsHostedUrlDisplay" readonly>
                                                         <button type="button" class="btn btn-outline-secondary" onclick="copyRcsHostedUrl()" title="Copy URL">
                                                             <i class="fas fa-copy"></i>
                                                         </button>
                                                     </div>
-                                                    <small class="text-success d-block mt-1"><i class="fas fa-check-circle me-1"></i>Image saved and ready for delivery</small>
+                                                    <small class="text-primary d-block mt-1"><i class="fas fa-check-circle me-1"></i>Image saved and ready for delivery</small>
                                                 </div>
                                                 
                                                 <div class="pt-3 border-top">
                                                     <div class="d-flex justify-content-between align-items-center small">
                                                         <span class="text-muted">Original:</span>
-                                                        <span id="rcsImageDimensions" class="badge bg-secondary">--</span>
+                                                        <span id="rcsImageDimensions" class="badge badge-pastel-pink">--</span>
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-center small mt-1">
                                                         <span class="text-muted">File size:</span>
-                                                        <span id="rcsImageFileSize" class="badge bg-secondary">--</span>
+                                                        <span id="rcsImageFileSize" class="badge badge-pastel-pink">--</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -238,7 +238,7 @@
                                     <div class="border rounded p-3">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <small class="text-muted">Add up to 4 interactive buttons</small>
-                                            <span class="badge bg-secondary" id="rcsButtonCount">0 / 4</span>
+                                            <span class="badge badge-pastel-pink" id="rcsButtonCount">0 / 4</span>
                                         </div>
                                         
                                         <div id="rcsButtonsList"></div>
