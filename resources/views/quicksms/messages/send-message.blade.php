@@ -17,20 +17,39 @@
 .content-body {
     overflow: visible !important;
 }
+.send-message-content-container {
+    max-width: 1280px;
+    width: 100%;
+    margin: 0 auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+@media (min-width: 992px) {
+    .send-message-content-container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
 .send-message-layout {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     align-items: flex-start;
 }
 .send-message-left {
-    flex: 1 1 66.666%;
+    flex: 1 1 auto;
     min-width: 0;
 }
 .send-message-right {
-    flex: 0 0 33.333%;
+    flex: 0 0 460px;
+    width: 460px;
+    max-width: 100%;
     position: sticky;
-    top: 80px;
+    top: 90px;
     align-self: flex-start;
+}
+.send-message-right .card {
+    max-height: calc(100vh - 120px);
+    overflow: auto;
 }
 @media (max-width: 991.98px) {
     .send-message-layout {
@@ -39,8 +58,13 @@
     .send-message-left,
     .send-message-right {
         flex: 0 0 100%;
+        width: 100%;
         max-width: 100%;
         position: static;
+    }
+    .send-message-right .card {
+        max-height: none;
+        overflow: visible;
     }
 }
 </style>
@@ -48,15 +72,16 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row page-titles">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('messages') }}">Messages</a></li>
-            <li class="breadcrumb-item active">Send Message</li>
-        </ol>
-    </div>
-    
-    <div class="send-message-layout">
+    <div class="send-message-content-container">
+        <div class="row page-titles">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('messages') }}">Messages</a></li>
+                <li class="breadcrumb-item active">Send Message</li>
+            </ol>
+        </div>
+        
+        <div class="send-message-layout">
         <div class="send-message-left">
             <div class="card mb-3">
                 <div class="card-body p-4">
@@ -445,6 +470,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 
