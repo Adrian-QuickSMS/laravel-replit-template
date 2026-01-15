@@ -837,6 +837,142 @@ $(document).ready(function() {
         isHighImpactField: function(fieldId) { return highImpactFields.includes(fieldId); }
     };
     
+    window.AccountDetailsData = {
+        getSignUpDetails: function() {
+            return {
+                first_name: $('#signupFirstName').val(),
+                last_name: $('#signupLastName').val(),
+                job_title: $('#signupJobTitle').val(),
+                business_name: $('#signupBusinessName').val(),
+                email: $('#signupEmail').val(),
+                mobile: $('#signupMobile').val()
+            };
+        },
+        getCompanyInformation: function() {
+            return {
+                company_name: $('#companyName').val(),
+                trading_name: $('#tradingName').val(),
+                company_number: $('#companyNumber').val(),
+                sector: $('#companySector').val(),
+                website: $('#companyWebsite').val(),
+                registered_address: {
+                    line1: $('#regAddress1').val(),
+                    line2: $('#regAddress2').val(),
+                    city: $('#regCity').val(),
+                    county: $('#regCounty').val(),
+                    postcode: $('#regPostcode').val(),
+                    country: $('#regCountry').val()
+                },
+                operating_address_same: $('#operatingSameAsRegistered').is(':checked'),
+                operating_address: $('#operatingSameAsRegistered').is(':checked') ? null : {
+                    line1: $('#opAddress1').val(),
+                    line2: $('#opAddress2').val(),
+                    city: $('#opCity').val(),
+                    county: $('#opCounty').val(),
+                    postcode: $('#opPostcode').val(),
+                    country: $('#opCountry').val()
+                }
+            };
+        },
+        getSupportContacts: function() {
+            return {
+                billing_email: $('#billingEmail').val(),
+                support_email: $('#supportEmail').val(),
+                incident_email: $('#incidentEmail').val()
+            };
+        },
+        getContractSignatory: function() {
+            return {
+                name: $('#signatoryName').val(),
+                title: $('#signatoryTitle').val(),
+                email: $('#signatoryEmail').val()
+            };
+        },
+        getVatInformation: function() {
+            var isRegistered = $('#vatRegistered').val() === 'yes';
+            return {
+                vat_registered: isRegistered,
+                vat_number: isRegistered ? $('#vatNumber').val() : null,
+                vat_country: isRegistered ? $('#vatCountry').val() : null,
+                reverse_charges: isRegistered ? $('#reverseCharges').val() === 'yes' : null
+            };
+        },
+        getAll: function() {
+            return {
+                sign_up: this.getSignUpDetails(),
+                company: this.getCompanyInformation(),
+                support_contacts: this.getSupportContacts(),
+                signatory: this.getContractSignatory(),
+                vat: this.getVatInformation(),
+                retrieved_at: new Date().toISOString()
+            };
+        },
+        getForModule: function(moduleName) {
+            var data = this.getAll();
+            var moduleData = {
+                source: 'account_details',
+                read_only: true,
+                module: moduleName,
+                retrieved_at: data.retrieved_at
+            };
+            
+            switch(moduleName) {
+                case 'rcs_agent_registration':
+                    moduleData.data = {
+                        company_name: data.company.company_name,
+                        company_number: data.company.company_number,
+                        website: data.company.website,
+                        registered_address: data.company.registered_address,
+                        signatory: data.signatory
+                    };
+                    break;
+                case 'sms_senderid_registration':
+                    moduleData.data = {
+                        company_name: data.company.company_name,
+                        company_number: data.company.company_number,
+                        registered_address: data.company.registered_address
+                    };
+                    break;
+                case 'billing_invoicing':
+                    moduleData.data = {
+                        company_name: data.company.company_name,
+                        billing_email: data.support_contacts.billing_email,
+                        vat: data.vat,
+                        registered_address: data.company.registered_address
+                    };
+                    break;
+                case 'finance_reporting':
+                    moduleData.data = {
+                        company_name: data.company.company_name,
+                        vat: data.vat,
+                        billing_email: data.support_contacts.billing_email
+                    };
+                    break;
+                case 'support_incidents':
+                    moduleData.data = {
+                        company_name: data.company.company_name,
+                        support_email: data.support_contacts.support_email,
+                        incident_email: data.support_contacts.incident_email,
+                        primary_contact: data.sign_up
+                    };
+                    break;
+                case 'compliance_audit':
+                    moduleData.data = {
+                        company_name: data.company.company_name,
+                        company_number: data.company.company_number,
+                        vat: data.vat,
+                        signatory: data.signatory,
+                        registered_address: data.company.registered_address
+                    };
+                    break;
+                default:
+                    moduleData.data = data;
+            }
+            
+            return moduleData;
+        }
+    };
+    
     $('#vatRegistered').on('change', function() {
         if ($(this).val() === 'yes') {
             $('#vatDetailsSection').slideDown();
