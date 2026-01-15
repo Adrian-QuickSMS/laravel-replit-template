@@ -319,25 +319,48 @@
                                 <label class="form-label fw-bold">Sub-Account Assignment</label>
                                 <p class="text-muted small mb-2">Select which sub-accounts can use this number.</p>
                                 
-                                <select class="selectpicker form-control" id="portalSubAccountSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="Select sub-accounts...">
-                                    <option value="main">Main Account</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="support">Support</option>
-                                    <option value="sales">Sales</option>
-                                    <option value="operations">Operations</option>
-                                    <option value="finance">Finance</option>
-                                    <option value="hr">Human Resources</option>
-                                    <option value="it">IT Department</option>
-                                    <option value="legal">Legal</option>
-                                    <option value="customer-success">Customer Success</option>
-                                </select>
+                                <div class="dropdown filter-dropdown w-100" id="portalSubAccountDropdown" data-filter="portalSubAccounts">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <span class="dropdown-label">Select sub-accounts...</span>
+                                    </button>
+                                    <div class="dropdown-menu w-100 p-2">
+                                        <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                            <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                            <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                        </div>
+                                        <div class="dropdown-options" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="main" id="portalSubAccMain"><label class="form-check-label small" for="portalSubAccMain">Main Account</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="marketing" id="portalSubAccMarketing"><label class="form-check-label small" for="portalSubAccMarketing">Marketing</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="support" id="portalSubAccSupport"><label class="form-check-label small" for="portalSubAccSupport">Support</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="sales" id="portalSubAccSales"><label class="form-check-label small" for="portalSubAccSales">Sales</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="operations" id="portalSubAccOps"><label class="form-check-label small" for="portalSubAccOps">Operations</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="finance" id="portalSubAccFinance"><label class="form-check-label small" for="portalSubAccFinance">Finance</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="hr" id="portalSubAccHR"><label class="form-check-label small" for="portalSubAccHR">Human Resources</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="it" id="portalSubAccIT"><label class="form-check-label small" for="portalSubAccIT">IT Department</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="legal" id="portalSubAccLegal"><label class="form-check-label small" for="portalSubAccLegal">Legal</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="customer-success" id="portalSubAccCS"><label class="form-check-label small" for="portalSubAccCS">Customer Success</label></div>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="mt-3">
                                     <label class="form-label fw-bold">User Assignment <span class="badge badge-pastel-pink ms-1">Optional</span></label>
                                     <p class="text-muted small mb-2">Optionally limit to specific users within selected sub-accounts.</p>
                                     
-                                    <select class="selectpicker form-control" id="portalUserSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="All users (default)" disabled>
-                                    </select>
+                                    <div class="dropdown filter-dropdown w-100" id="portalUserDropdown" data-filter="portalUsers">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" disabled>
+                                            <span class="dropdown-label">All users (default)</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="dropdown-options" id="portalUserOptions" style="max-height: 200px; overflow-y: auto;">
+                                                <p class="text-muted small mb-0">Select sub-accounts first</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <small class="text-muted d-block mt-1">Leave empty to allow all users in selected sub-accounts.</small>
                                 </div>
                             </div>
@@ -409,25 +432,48 @@
                                 <label class="form-label fw-bold">Sub-Account Assignment</label>
                                 <p class="text-muted small mb-2">Select which sub-accounts can use this number.</p>
                                 
-                                <select class="selectpicker form-control" id="apiSubAccountSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="Select sub-accounts...">
-                                    <option value="main">Main Account</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="support">Support</option>
-                                    <option value="sales">Sales</option>
-                                    <option value="operations">Operations</option>
-                                    <option value="finance">Finance</option>
-                                    <option value="hr">Human Resources</option>
-                                    <option value="it">IT Department</option>
-                                    <option value="legal">Legal</option>
-                                    <option value="customer-success">Customer Success</option>
-                                </select>
+                                <div class="dropdown filter-dropdown w-100" id="apiSubAccountDropdown" data-filter="apiSubAccounts">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                        <span class="dropdown-label">Select sub-accounts...</span>
+                                    </button>
+                                    <div class="dropdown-menu w-100 p-2">
+                                        <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                            <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                            <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                        </div>
+                                        <div class="dropdown-options" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="main" id="apiSubAccMain"><label class="form-check-label small" for="apiSubAccMain">Main Account</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="marketing" id="apiSubAccMarketing"><label class="form-check-label small" for="apiSubAccMarketing">Marketing</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="support" id="apiSubAccSupport"><label class="form-check-label small" for="apiSubAccSupport">Support</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="sales" id="apiSubAccSales"><label class="form-check-label small" for="apiSubAccSales">Sales</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="operations" id="apiSubAccOps"><label class="form-check-label small" for="apiSubAccOps">Operations</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="finance" id="apiSubAccFinance"><label class="form-check-label small" for="apiSubAccFinance">Finance</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="hr" id="apiSubAccHR"><label class="form-check-label small" for="apiSubAccHR">Human Resources</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="it" id="apiSubAccIT"><label class="form-check-label small" for="apiSubAccIT">IT Department</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="legal" id="apiSubAccLegal"><label class="form-check-label small" for="apiSubAccLegal">Legal</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="customer-success" id="apiSubAccCS"><label class="form-check-label small" for="apiSubAccCS">Customer Success</label></div>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="mt-3">
                                     <label class="form-label fw-bold">User Assignment <span class="badge badge-pastel-pink ms-1">Optional</span></label>
                                     <p class="text-muted small mb-2">Optionally limit to specific users within selected sub-accounts.</p>
                                     
-                                    <select class="selectpicker form-control" id="apiUserSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" title="All users (default)" disabled>
-                                    </select>
+                                    <div class="dropdown filter-dropdown w-100" id="apiUserDropdown" data-filter="apiUsers">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" disabled>
+                                            <span class="dropdown-label">All users (default)</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2">
+                                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                            </div>
+                                            <div class="dropdown-options" id="apiUserOptions" style="max-height: 200px; overflow-y: auto;">
+                                                <p class="text-muted small mb-0">Select sub-accounts first</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <small class="text-muted d-block mt-1">Leave empty to allow all users in selected sub-accounts.</small>
                                 </div>
                             </div>
@@ -669,7 +715,7 @@ $(document).ready(function() {
     }
     
     function updateSubAccountDefaults() {
-        var selectedSubAccounts = $('#portalSubAccountSelect').val() || [];
+        var selectedSubAccounts = getSelectedValues('portalSubAccountDropdown');
         var checkedSubAccounts = selectedSubAccounts.map(function(id) {
             return subAccountNames[id] || id;
         });
@@ -767,15 +813,24 @@ $(document).ready(function() {
     
     $('#btnResetConfig').on('click', function() {
         setInitialMode();
-        $('#portalSubAccountSelect').val([]).selectpicker('refresh');
-        $('#portalUserSelect').val([]).prop('disabled', true).selectpicker('refresh');
+        // Reset Portal dropdowns
+        $('#portalSubAccountDropdown .form-check-input').prop('checked', false);
+        $('#portalSubAccountDropdown .dropdown-label').text('Select sub-accounts...');
+        $('#portalUserOptions').html('<p class="text-muted small mb-0">Select sub-accounts first</p>');
+        $('#portalUserDropdown button').prop('disabled', true);
+        $('#portalUserDropdown .dropdown-label').text('All users (default)');
+        // Reset API dropdowns
+        $('#apiSubAccountDropdown .form-check-input').prop('checked', false);
+        $('#apiSubAccountDropdown .dropdown-label').text('Select sub-accounts...');
+        $('#apiUserOptions').html('<p class="text-muted small mb-0">Select sub-accounts first</p>');
+        $('#apiUserDropdown button').prop('disabled', true);
+        $('#apiUserDropdown .dropdown-label').text('All users (default)');
+        // Reset toggles
         $('#toggleSenderID, #toggleInbox, #toggleOptout').prop('checked', true);
         $('#toggleInboundForwarding').prop('checked', false);
         $('#toggleApiSenderID').prop('checked', false);
         $('#webhookSection').hide();
         $('#apiInboundUrl').val('');
-        $('#apiSubAccountSelect').val([]).selectpicker('refresh');
-        $('#apiUserSelect').val([]).prop('disabled', true).selectpicker('refresh');
         updateSubAccountDefaults();
         toastr.info('Configuration reset to defaults');
     });
@@ -845,44 +900,99 @@ $(document).ready(function() {
         'customer-success': 'Customer Success'
     };
     
-    // Initialize all selectpickers
-    $('#apiSubAccountSelect, #apiUserSelect, #portalSubAccountSelect, #portalUserSelect').selectpicker();
+    // Filter dropdown handlers - Select All / Clear
+    $('.filter-dropdown .select-all-btn').on('click', function(e) {
+        e.preventDefault();
+        $(this).closest('.dropdown-menu').find('.form-check-input').prop('checked', true).trigger('change');
+    });
+    
+    $('.filter-dropdown .clear-all-btn').on('click', function(e) {
+        e.preventDefault();
+        $(this).closest('.dropdown-menu').find('.form-check-input').prop('checked', false).trigger('change');
+    });
+    
+    // Helper function to get selected values from a filter dropdown
+    function getSelectedValues(dropdownId) {
+        var values = [];
+        $('#' + dropdownId + ' .form-check-input:checked').each(function() {
+            values.push($(this).val());
+        });
+        return values;
+    }
+    
+    // Helper function to update dropdown label
+    function updateDropdownLabel(dropdownId, defaultLabel) {
+        var selected = getSelectedValues(dropdownId);
+        var $label = $('#' + dropdownId + ' .dropdown-label');
+        
+        if (selected.length === 0) {
+            $label.text(defaultLabel);
+        } else if (selected.length <= 2) {
+            var names = selected.map(function(id) { return subAccountNames[id] || id; });
+            $label.text(names.join(', '));
+        } else {
+            $label.text(selected.length + ' selected');
+        }
+    }
     
     // Helper function to populate user dropdown based on selected sub-accounts
-    function populateUserDropdown($subAccountSelect, $userSelect) {
-        var selected = $subAccountSelect.val() || [];
+    function populateUserDropdown(subAccountDropdownId, userOptionsId, userDropdownId) {
+        var selected = getSelectedValues(subAccountDropdownId);
+        var $userOptions = $('#' + userOptionsId);
+        var $userBtn = $('#' + userDropdownId + ' button');
         
-        // Clear and rebuild user options
-        $userSelect.empty();
+        $userOptions.empty();
         
         if (selected.length > 0) {
             selected.forEach(function(subAccId) {
                 var users = usersBySubAccount[subAccId] || [];
                 if (users.length > 0) {
-                    var $optgroup = $('<optgroup>').attr('label', subAccountNames[subAccId]);
+                    $userOptions.append('<div class="small fw-bold text-muted mt-2 mb-1">' + subAccountNames[subAccId] + '</div>');
                     users.forEach(function(user) {
-                        $optgroup.append($('<option>').val(user.value).text(user.name));
+                        var checkId = userDropdownId + '_' + user.value.replace(/[^a-zA-Z0-9]/g, '');
+                        $userOptions.append('<div class="form-check"><input class="form-check-input" type="checkbox" value="' + user.value + '" id="' + checkId + '"><label class="form-check-label small" for="' + checkId + '">' + user.name + '</label></div>');
                     });
-                    $userSelect.append($optgroup);
                 }
             });
-            $userSelect.prop('disabled', false);
+            $userBtn.prop('disabled', false);
         } else {
-            $userSelect.prop('disabled', true);
+            $userOptions.html('<p class="text-muted small mb-0">Select sub-accounts first</p>');
+            $userBtn.prop('disabled', true);
         }
         
-        $userSelect.selectpicker('refresh');
+        $('#' + userDropdownId + ' .dropdown-label').text('All users (default)');
     }
     
-    // API mode: Dynamically populate user dropdown based on selected sub-accounts
-    $('#apiSubAccountSelect').on('changed.bs.select', function() {
-        populateUserDropdown($(this), $('#apiUserSelect'));
+    // Portal sub-account change handler
+    $('#portalSubAccountDropdown .form-check-input').on('change', function() {
+        updateDropdownLabel('portalSubAccountDropdown', 'Select sub-accounts...');
+        populateUserDropdown('portalSubAccountDropdown', 'portalUserOptions', 'portalUserDropdown');
+        updateSubAccountDefaults();
     });
     
-    // Portal mode: Dynamically populate user dropdown based on selected sub-accounts
-    $('#portalSubAccountSelect').on('changed.bs.select', function() {
-        populateUserDropdown($(this), $('#portalUserSelect'));
-        updateSubAccountDefaults();
+    // API sub-account change handler
+    $('#apiSubAccountDropdown .form-check-input').on('change', function() {
+        updateDropdownLabel('apiSubAccountDropdown', 'Select sub-accounts...');
+        populateUserDropdown('apiSubAccountDropdown', 'apiUserOptions', 'apiUserDropdown');
+    });
+    
+    // User selection change handlers
+    $(document).on('change', '#portalUserOptions .form-check-input, #apiUserOptions .form-check-input', function() {
+        var dropdownId = $(this).closest('.filter-dropdown').attr('id');
+        var $label = $('#' + dropdownId + ' .dropdown-label');
+        var checked = $('#' + dropdownId + ' .dropdown-options .form-check-input:checked');
+        
+        if (checked.length === 0) {
+            $label.text('All users (default)');
+        } else if (checked.length <= 2) {
+            var names = [];
+            checked.each(function() {
+                names.push($(this).next('label').text());
+            });
+            $label.text(names.join(', '));
+        } else {
+            $label.text(checked.length + ' users selected');
+        }
     });
     
     init();
