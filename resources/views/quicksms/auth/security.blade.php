@@ -459,6 +459,203 @@ $(document).ready(function() {
         $('#verifiedBadge').hide();
     }
     
+    // =====================================================
+    // SECURITY CONTROLS - Backend-ready service wrappers
+    // =====================================================
+    
+    // Security Configuration
+    var SecurityConfig = {
+        https_only: true,
+        rate_limits: {
+            signup_per_ip: { max: 5, window_minutes: 15 },
+            login_per_ip: { max: 10, window_minutes: 15 },
+            login_per_email: { max: 5, window_minutes: 15 },
+            otp_send_per_mobile: { max: 3, window_minutes: 10 },
+            otp_verify_attempts: { max: 5, window_minutes: 5 }
+        },
+        account_lockout: {
+            max_failed_attempts: 5,
+            lockout_duration_minutes: 30,
+            progressive_delay: true
+        }
+    };
+    
+    // Rate Limiting Service (Mock - Backend would use Redis/DB)
+    var RateLimitService = {
+        attempts: {},
+        
+        checkLimit: function(key, limitConfig) {
+            var now = Date.now();
+            var windowMs = limitConfig.window_minutes * 60 * 1000;
+            
+            if (!this.attempts[key]) {
+                this.attempts[key] = [];
+            }
+            
+            // Clean old attempts
+            this.attempts[key] = this.attempts[key].filter(function(t) {
+                return now - t < windowMs;
+            });
+            
+            if (this.attempts[key].length >= limitConfig.max) {
+                var oldestAttempt = this.attempts[key][0];
+                var retryAfter = Math.ceil((windowMs - (now - oldestAttempt)) / 1000);
+                return { allowed: false, retryAfter: retryAfter };
+            }
+            
+            return { allowed: true, remaining: limitConfig.max - this.attempts[key].length };
+        },
+        
+        recordAttempt: function(key) {
+            if (!this.attempts[key]) {
+                this.attempts[key] = [];
+            }
+            this.attempts[key].push(Date.now());
+        },
+        
+        checkSignupRate: function(ipAddress) {
+            return this.checkLimit('signup:' + ipAddress, SecurityConfig.rate_limits.signup_per_ip);
+        },
+        
+        checkLoginRate: function(ipAddress, email) {
+            var ipCheck = this.checkLimit('login_ip:' + ipAddress, SecurityConfig.rate_limits.login_per_ip);
+            var emailCheck = this.checkLimit('login_email:' + email, SecurityConfig.rate_limits.login_per_email);
+            
+            if (!ipCheck.allowed) return ipCheck;
+            if (!emailCheck.allowed) return emailCheck;
+            return { allowed: true };
+        },
+        
+        checkOtpSendRate: function(mobile) {
+            return this.checkLimit('otp_send:' + mobile, SecurityConfig.rate_limits.otp_send_per_mobile);
+        },
+        
+        checkOtpVerifyRate: function(mobile) {
+            return this.checkLimit('otp_verify:' + mobile, SecurityConfig.rate_limits.otp_verify_attempts);
+        }
+    };
+    
+    // Account Lockout Service (Mock - Backend would use DB)
+    var LockoutService = {
+        failedAttempts: {},
+        lockedAccounts: {},
+        
+        recordFailedAttempt: function(email) {
+            if (!this.failedAttempts[email]) {
+                this.failedAttempts[email] = { count: 0, lastAttempt: null };
+            }
+            this.failedAttempts[email].count++;
+            this.failedAttempts[email].lastAttempt = Date.now();
+            
+            if (this.failedAttempts[email].count >= SecurityConfig.account_lockout.max_failed_attempts) {
+                this.lockAccount(email);
+            }
+            
+            AuditService.log('login_failed', { email: email, attempt_count: this.failedAttempts[email].count });
+            
+            return this.failedAttempts[email].count;
+        },
+        
+        lockAccount: function(email) {
+            var unlockTime = Date.now() + (SecurityConfig.account_lockout.lockout_duration_minutes * 60 * 1000);
+            this.lockedAccounts[email] = unlockTime;
+            AuditService.log('account_locked', { email: email, unlock_at: new Date(unlockTime).toISOString() });
+        },
+        
+        isLocked: function(email) {
+            if (!this.lockedAccounts[email]) return false;
+            if (Date.now() > this.lockedAccounts[email]) {
+                delete this.lockedAccounts[email];
+                delete this.failedAttempts[email];
+                return false;
+            }
+            return true;
+        },
+        
+        getUnlockTime: function(email) {
+            return this.lockedAccounts[email] ? new Date(this.lockedAccounts[email]).toISOString() : null;
+        },
+        
+        resetOnSuccess: function(email) {
+            delete this.failedAttempts[email];
+            delete this.lockedAccounts[email];
+        }
+    };
+    
+    // Audit Logging Service (Mock - Backend would persist to DB)
+    var AuditService = {
+        logs: [],
+        
+        log: function(event, details) {
+            var entry = {
+                id: 'AUDIT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                event: event,
+                timestamp: new Date().toISOString(),
+                actor: {
+                    email: email || 'anonymous',
+                    ip_address: 'CAPTURED_BY_SERVER',
+                    user_agent: navigator.userAgent
+                },
+                details: details || {},
+                session_id: sessionStorage.getItem('session_id') || 'unknown'
+            };
+            
+            this.logs.push(entry);
+            console.log('[AuditService]', entry.event, entry);
+            
+            // In production: POST /api/audit/log
+            return entry;
+        },
+        
+        logSignupStart: function(email) {
+            return this.log('signup_started', { email: email });
+        },
+        
+        logSignupComplete: function(email, accountId) {
+            return this.log('signup_completed', { email: email, account_id: accountId });
+        },
+        
+        logEmailVerification: function(email, success, method) {
+            return this.log('email_verification', { email: email, success: success, method: method || 'token' });
+        },
+        
+        logConsentCapture: function(email, consents) {
+            return this.log('consent_captured', { email: email, consents: consents });
+        },
+        
+        logPasswordSet: function(email) {
+            return this.log('password_set', { email: email, policy_applied: true, algorithm: 'argon2id' });
+        },
+        
+        logPasswordChange: function(email) {
+            return this.log('password_changed', { email: email, policy_applied: true });
+        },
+        
+        logMfaOtpSent: function(mobile, success) {
+            return this.log('mfa_otp_sent', { mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2), success: success });
+        },
+        
+        logMfaOtpVerified: function(mobile, success) {
+            return this.log('mfa_otp_verified', { mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2), success: success });
+        },
+        
+        getRecentLogs: function(count) {
+            return this.logs.slice(-count);
+        }
+    };
+    
+    // Initialize session ID for audit tracking
+    if (!sessionStorage.getItem('session_id')) {
+        sessionStorage.setItem('session_id', 'SES-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
+    }
+    
+    // Log signup security step start
+    AuditService.log('security_step_started', { step: 2, email: email });
+    
+    // =====================================================
+    // PASSWORD VALIDATION
+    // =====================================================
+    
     // Allowed special characters for password
     var SPECIAL_CHARS = '!@£$%^&*()_\\-=+\\[\\]{};\':\",.\\<\\>?/\\\\|~';
     var SPECIAL_CHARS_REGEX = new RegExp('[' + SPECIAL_CHARS + ']');
@@ -473,7 +670,10 @@ $(document).ready(function() {
     var passwordIsValid = false;
     var passwordChecksComplete = false;
     
-    // OTP verification state
+    // =====================================================
+    // OTP VERIFICATION STATE
+    // =====================================================
+    
     var mobileVerified = false;
     var currentOtp = null;
     var otpExpiry = null;
@@ -496,7 +696,18 @@ $(document).ready(function() {
             return;
         }
         
+        // Check rate limit for OTP sending
+        var rateCheck = RateLimitService.checkOtpSendRate(mobile);
+        if (!rateCheck.allowed) {
+            var $status = $('#otpStatus');
+            $status.removeClass('d-none sent sending').addClass('error');
+            $status.html('<i class="fas fa-exclamation-triangle me-2"></i>Too many attempts. Please try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
+            AuditService.log('otp_send_rate_limited', { mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2) });
+            return;
+        }
+        
         $('#mobileNumber').removeClass('is-invalid');
+        RateLimitService.recordAttempt('otp_send:' + mobile);
         
         var $btn = $(this);
         $btn.prop('disabled', true);
@@ -512,6 +723,9 @@ $(document).ready(function() {
         setTimeout(function() {
             // Generate mock 6-digit OTP
             currentOtp = String(Math.floor(100000 + Math.random() * 900000));
+            
+            // Audit log OTP sent
+            AuditService.logMfaOtpSent(mobile, true);
             otpExpiry = Date.now() + (5 * 60 * 1000); // 5 minutes
             
             console.log('[OTP] Mock code sent to ' + mobile + ': ' + currentOtp);
@@ -573,12 +787,24 @@ $(document).ready(function() {
     // Verify OTP button handler
     $('#verifyOtpBtn').on('click', function() {
         var enteredOtp = $('#otpCode').val().trim();
+        var mobile = $('#mobileNumber').val().trim();
         
         if (!enteredOtp || enteredOtp.length !== 6) {
             $('#otpCode').addClass('is-invalid');
             $('#otpError').text('Please enter the 6-digit verification code');
             return;
         }
+        
+        // Check rate limit for OTP verification attempts
+        var rateCheck = RateLimitService.checkOtpVerifyRate(mobile);
+        if (!rateCheck.allowed) {
+            $('#otpCode').addClass('is-invalid');
+            $('#otpError').text('Too many attempts. Please try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
+            AuditService.log('otp_verify_rate_limited', { mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2) });
+            return;
+        }
+        
+        RateLimitService.recordAttempt('otp_verify:' + mobile);
         
         var $btn = $(this);
         $btn.prop('disabled', true);
@@ -594,6 +820,7 @@ $(document).ready(function() {
                 $btn.prop('disabled', false);
                 $btn.find('.btn-text').removeClass('d-none');
                 $btn.find('.btn-loading').addClass('d-none');
+                AuditService.logMfaOtpVerified(mobile, false);
                 return;
             }
             
@@ -603,9 +830,13 @@ $(document).ready(function() {
                 $btn.prop('disabled', false);
                 $btn.find('.btn-text').removeClass('d-none');
                 $btn.find('.btn-loading').addClass('d-none');
+                AuditService.logMfaOtpVerified(mobile, false);
                 console.log('[OTP] Verification failed. Entered: ' + enteredOtp + ', Expected: ' + currentOtp);
                 return;
             }
+            
+            // Audit log successful verification
+            AuditService.logMfaOtpVerified(mobile, true);
             
             // Success!
             mobileVerified = true;
@@ -881,6 +1112,19 @@ $(document).ready(function() {
         
         console.log('[Security] Saving security settings:', formData);
         
+        // Audit log: Password set
+        AuditService.logPasswordSet(email);
+        
+        // Audit log: Consent capture
+        AuditService.logConsentCapture(email, {
+            terms: true,
+            privacy: true,
+            fraud_prevention: true,
+            third_party_sharing: true,
+            content_compliance: true,
+            marketing: formData.marketing.consent
+        });
+        
         // Mock account provisioning
         // In production: POST /api/auth/provision-account
         setTimeout(function() {
@@ -1034,8 +1278,12 @@ $(document).ready(function() {
             console.log('[HubSpot] Sync completed:', hubspotResult);
             console.log('[Audit] Event logged:', provisioningResult.audit);
             
+            // Audit log: Signup completed
+            AuditService.logSignupComplete(email, accountId);
+            
             if (formData.test_credits.eligible) {
                 console.log('[Credits] 100 test SMS credits applied to account');
+                AuditService.log('test_credits_applied', { email: email, amount: 100, reason: 'marketing_opt_in' });
             }
             
             // Store provisioning result for dashboard
