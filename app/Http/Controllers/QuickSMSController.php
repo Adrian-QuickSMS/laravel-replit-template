@@ -1735,10 +1735,8 @@ class QuickSMSController extends Controller
 
     public function accountDetails()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Account Details',
-            'purpose' => 'View and update your account information.',
-            'sub_modules' => []
+        return view('quicksms.account.details', [
+            'page_title' => 'Account Details'
         ]);
     }
 
