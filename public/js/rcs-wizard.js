@@ -927,24 +927,9 @@ function addRcsCard() {
     rcsCardsData[rcsCardCount].media.orientation = rcsCarouselHeight;
     rcsCardsData[rcsCardCount].media.cardWidth = rcsCarouselWidth;
     
-    var tabsContainer = document.getElementById('rcsCardTabs');
-    var addBtn = document.getElementById('rcsAddCardBtn');
-    
-    var newTab = document.createElement('button');
-    newTab.type = 'button';
-    newTab.className = 'btn btn-outline-primary btn-sm rcs-card-tab';
-    newTab.setAttribute('data-card', rcsCardCount);
-    newTab.textContent = 'Card ' + rcsCardCount;
-    newTab.onclick = function() { selectRcsCard(rcsCardCount); };
-    
-    tabsContainer.insertBefore(newTab, addBtn);
-    
+    rebuildCardTabs();
     updateRcsCardCount();
     selectRcsCard(rcsCardCount);
-    
-    if (rcsCardCount >= rcsMaxCards) {
-        addBtn.disabled = true;
-    }
 }
 
 function deleteRcsCard(cardNum) {
@@ -977,20 +962,57 @@ function rebuildCardTabs() {
     var addBtn = document.getElementById('rcsAddCardBtn');
     if (!tabsContainer) return;
     
+    tabsContainer.querySelectorAll('.rcs-card-tab-wrapper').forEach(function(wrapper) {
+        wrapper.remove();
+    });
     tabsContainer.querySelectorAll('.rcs-card-tab').forEach(function(tab) {
         tab.remove();
     });
     
     for (var i = 1; i <= rcsCardCount; i++) {
-        var tab = document.createElement('button');
-        tab.type = 'button';
-        tab.className = 'btn btn-sm rcs-card-tab ' + (i === rcsCurrentCard ? 'btn-primary active' : 'btn-outline-primary');
-        tab.setAttribute('data-card', i);
-        tab.textContent = 'Card ' + i;
-        (function(cardNum) {
-            tab.onclick = function() { selectRcsCard(cardNum); };
-        })(i);
-        tabsContainer.insertBefore(tab, addBtn);
+        if (rcsCardCount > 1) {
+            // Create wrapper with tab and remove button
+            var wrapper = document.createElement('div');
+            wrapper.className = 'btn-group btn-group-sm rcs-card-tab-wrapper';
+            
+            var tab = document.createElement('button');
+            tab.type = 'button';
+            tab.className = 'btn rcs-card-tab ' + (i === rcsCurrentCard ? 'btn-primary active' : 'btn-outline-primary');
+            tab.setAttribute('data-card', i);
+            tab.textContent = 'Card ' + i;
+            (function(cardNum) {
+                tab.onclick = function() { selectRcsCard(cardNum); };
+            })(i);
+            
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn ' + (i === rcsCurrentCard ? 'btn-primary' : 'btn-outline-primary');
+            removeBtn.innerHTML = '<i class="fas fa-times" style="font-size: 10px;"></i>';
+            removeBtn.title = 'Remove Card ' + i;
+            (function(cardNum) {
+                removeBtn.onclick = function(e) { 
+                    e.stopPropagation();
+                    if (confirm('Remove Card ' + cardNum + '?')) {
+                        deleteRcsCard(cardNum);
+                    }
+                };
+            })(i);
+            
+            wrapper.appendChild(tab);
+            wrapper.appendChild(removeBtn);
+            tabsContainer.insertBefore(wrapper, addBtn);
+        } else {
+            // Single card - no remove button needed
+            var tab = document.createElement('button');
+            tab.type = 'button';
+            tab.className = 'btn btn-sm rcs-card-tab ' + (i === rcsCurrentCard ? 'btn-primary active' : 'btn-outline-primary');
+            tab.setAttribute('data-card', i);
+            tab.textContent = 'Card ' + i;
+            (function(cardNum) {
+                tab.onclick = function() { selectRcsCard(cardNum); };
+            })(i);
+            tabsContainer.insertBefore(tab, addBtn);
+        }
     }
     
     if (addBtn) addBtn.disabled = rcsCardCount >= rcsMaxCards;
@@ -2478,11 +2500,11 @@ function renderRcsButtons() {
         var typeIcon = btn.type === 'url' ? 'fa-link' : btn.type === 'phone' ? 'fa-phone' : 'fa-calendar-plus';
         var typeLabel = btn.type === 'url' ? 'URL' : btn.type === 'phone' ? 'Call' : 'Calendar';
         
-        var html = '<div class="d-flex align-items-center justify-content-between p-2 border rounded mb-2 bg-light">';
+        var html = '<div class="d-flex align-items-center justify-content-between p-2 border rounded mb-2" style="background: rgba(136, 108, 192, 0.15);">';
         html += '<div class="d-flex align-items-center">';
-        html += '<span class="badge bg-secondary me-2"><i class="fas ' + typeIcon + '"></i></span>';
-        html += '<span class="small fw-medium">' + escapeHtmlRcs(btn.label) + '</span>';
-        html += '<span class="badge bg-light text-muted ms-2 small">' + typeLabel + '</span>';
+        html += '<span class="me-2" style="color: #6c5b9e;"><i class="fas ' + typeIcon + '"></i></span>';
+        html += '<span class="small fw-medium" style="color: #6c5b9e;">' + escapeHtmlRcs(btn.label) + '</span>';
+        html += '<span class="badge ms-2 small" style="background: rgba(136, 108, 192, 0.25); color: #6c5b9e;">' + typeLabel + '</span>';
         html += '</div>';
         html += '<div class="btn-group btn-group-sm">';
         html += '<button type="button" class="btn btn-outline-secondary" onclick="editRcsButton(' + index + ')"><i class="fas fa-edit"></i></button>';
