@@ -1,0 +1,45 @@
+Yes — it’s Bootstrap 5 (Fillow). Please IMPLEMENT the layout fix now (no task list).
+
+GOAL
+On 14–15" widescreen laptops the Send Message page feels too stretched. Add a consistent “content container” and improve the 2-column layout so it feels anchored and balanced.
+
+SCOPE (DO FIRST)
+Apply changes to the “Send Message” page. If the layout wrapper is shared, implement the container at the layout level so it benefits all pages, but make sure Send Message is correct even if you only do it there.
+
+REQUIREMENTS (BOOTSTRAP 5)
+1) Add a centered content container for the MAIN page content (not the sidebar):
+   - Use Bootstrap container sizing OR a custom max-width:
+     - Preferred: a wrapper with max-width: 1280px, width: 100%, margin: 0 auto
+   - Add horizontal padding (e.g. px-3 px-lg-4).
+   - Keep sidebar + topbar full width as they are; only constrain the inner page content region.
+
+2) Make the main content responsive 2-column:
+   - At lg (≥992px): 2 columns:
+     - Left = form area (fluid)
+     - Right = Message Preview with fixed-ish width (420–480px). It should not expand.
+   - At <lg: stack columns (preview below).
+
+Bootstrap example behaviour:
+- Use row + cols:
+  - Left: col-lg
+  - Right: col-lg-auto with a fixed width style (e.g. width: 460px; max-width: 100%)
+  - Add gap: g-4 or g-5
+
+3) Sticky preview on desktop:
+   - On lg and up, make preview card sticky under the header:
+     - position: sticky; top: 90px (adjust to clear topbar/breadcrumb)
+   - Ensure it doesn’t exceed viewport:
+     - max-height: calc(100vh - 120px)
+     - overflow: auto (only inside the preview card/body)
+
+4) Keep visual design the same:
+   - Do NOT change colours, typography, components, or spacing styles beyond layout/container and column spacing.
+
+DELIVERABLE
+- Make the code changes now.
+- List EXACT files changed.
+- Show the exact CSS added (prefer in existing stylesheet, or a small new one).
+- Tell me the final values used for:
+  - max content width (e.g. 1280px)
+  - preview width (e.g. 460px)
+  - sticky top of
