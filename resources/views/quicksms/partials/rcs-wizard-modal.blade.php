@@ -1,6 +1,6 @@
 <div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
+        <div class="modal-content d-flex flex-column">
             <div class="modal-header py-3 flex-shrink-0" style="background: var(--primary); color: #fff;">
                 <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
