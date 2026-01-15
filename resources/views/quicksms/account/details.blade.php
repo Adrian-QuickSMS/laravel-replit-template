@@ -622,11 +622,6 @@
                                     <label class="form-label">Company Name<span class="required-indicator">*</span></label>
                                     <input type="text" class="form-control company-field" id="companyName" value="">
                                     <div class="field-hint">Legal registered company name</div>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
-                                        <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
-                                        <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoices</span>
-                                    </div>
                                     <div class="validation-error">Company name is required</div>
                                 </div>
                             </div>
@@ -648,10 +643,6 @@
                                     </div>
                                     <div class="field-hint" id="companyNumberHint">Companies House registration number</div>
                                     <div class="lookup-status" id="lookupStatus"></div>
-                                    <div class="usage-chips" id="companyNumberChips">
-                                        <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
-                                        <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
-                                    </div>
                                     <div class="validation-error" id="companyNumberError">Company number is required</div>
                                 </div>
                             </div>
@@ -682,9 +673,6 @@
                                     <label class="form-label">Primary Website<span class="required-indicator">*</span></label>
                                     <input type="url" class="form-control company-field" id="companyWebsite" value="https://www.acmecomms.co.uk" placeholder="https://www.example.com">
                                     <div class="field-hint">Must start with https://</div>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
-                                    </div>
                                     <div class="validation-error" id="websiteError">Please enter a valid website URL starting with https://</div>
                                 </div>
                             </div>
@@ -834,10 +822,6 @@
                                     <label class="form-label">Accounts & Billing Email<span class="required-indicator">*</span></label>
                                     <input type="email" class="form-control support-field" id="billingEmail" value="accounts@acmecomms.co.uk" placeholder="e.g., accounts@company.com">
                                     <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoices</span>
-                                        <span class="usage-chip"><i class="fas fa-credit-card"></i> Payments</span>
-                                    </div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
                             </div>
@@ -846,10 +830,6 @@
                                     <label class="form-label">Support Email Address<span class="required-indicator">*</span></label>
                                     <input type="email" class="form-control support-field" id="supportEmail" value="support@acmecomms.co.uk" placeholder="e.g., support@company.com">
                                     <div class="field-hint">Receives support ticket updates and general communications</div>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-headset"></i> Support Tickets</span>
-                                        <span class="usage-chip"><i class="fas fa-bell"></i> Notifications</span>
-                                    </div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
                             </div>
@@ -858,10 +838,6 @@
                                     <label class="form-label">Incident Email Address<span class="required-indicator">*</span></label>
                                     <input type="email" class="form-control support-field" id="incidentEmail" value="incidents@acmecomms.co.uk" placeholder="e.g., incidents@company.com">
                                     <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-exclamation-triangle"></i> Incidents</span>
-                                        <span class="usage-chip"><i class="fas fa-server"></i> Service Alerts</span>
-                                    </div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
                             </div>
@@ -893,10 +869,6 @@
                                 <div class="field-group">
                                     <label class="form-label">Full Name<span class="required-indicator">*</span></label>
                                     <input type="text" class="form-control signatory-field" id="signatoryName" value="James Wilson" placeholder="e.g., John Smith">
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-file-contract"></i> Contracts</span>
-                                        <span class="usage-chip"><i class="fas fa-gavel"></i> Legal Notices</span>
-                                    </div>
                                     <div class="validation-error">Full name is required</div>
                                 </div>
                             </div>
@@ -904,9 +876,6 @@
                                 <div class="field-group">
                                     <label class="form-label">Job Title<span class="required-indicator">*</span></label>
                                     <input type="text" class="form-control signatory-field" id="signatoryTitle" value="Managing Director" placeholder="e.g., CEO, Managing Director">
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-check-double"></i> Approvals</span>
-                                    </div>
                                     <div class="validation-error">Job title is required</div>
                                 </div>
                             </div>
@@ -915,10 +884,6 @@
                                     <label class="form-label">Email Address<span class="required-indicator">*</span></label>
                                     <input type="email" class="form-control signatory-field" id="signatoryEmail" value="j.wilson@acmecomms.co.uk" placeholder="e.g., signatory@company.com">
                                     <div class="field-hint">Used for contract signing and legal communications</div>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-file-signature"></i> Contract Signing</span>
-                                        <span class="usage-chip"><i class="fas fa-envelope-open-text"></i> Legal Comms</span>
-                                    </div>
                                     <div class="alert alert-warning domain-warning py-2 px-3 mt-2" id="signatoryDomainWarning" style="display: none;">
                                         <i class="fas fa-exclamation-triangle me-2"></i>
                                         <span>Email domain does not match your company website domain. Please verify this is correct.</span>
@@ -958,10 +923,6 @@
                                         <option value="yes" selected>Yes - VAT registered</option>
                                         <option value="no">No - Not VAT registered</option>
                                     </select>
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Billing</span>
-                                        <span class="usage-chip"><i class="fas fa-calculator"></i> Invoices</span>
-                                    </div>
                                     <div class="validation-error">Please select VAT registration status</div>
                                 </div>
                             </div>
@@ -975,10 +936,6 @@
                                         <input type="text" class="form-control vat-detail-field" id="vatNumber" value="" placeholder="e.g., GB123456789">
                                         <div class="field-hint" id="vatFormatHint">Format: GB followed by 9 digits</div>
                                         <div class="vat-verification-status small mt-1" id="vatVerificationStatus" style="display: none;"></div>
-                                        <div class="usage-chips">
-                                            <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Invoicing</span>
-                                            <span class="usage-chip"><i class="fas fa-percentage"></i> VAT Returns</span>
-                                        </div>
                                         <div class="validation-error" id="vatNumberError">VAT number is required</div>
                                     </div>
                                 </div>
