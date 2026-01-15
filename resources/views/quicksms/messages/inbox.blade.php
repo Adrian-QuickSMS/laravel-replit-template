@@ -95,10 +95,11 @@
     padding: 15px !important;
 }
 #replyComposerCard {
-    flex: 0 0 auto !important;
+    flex: 0 1 auto !important;
     z-index: 100 !important;
-    max-height: 280px !important;
-    overflow: visible !important;
+    max-height: 50vh !important;
+    min-height: 180px !important;
+    overflow-y: auto !important;
     margin: 0 !important;
     border-radius: 0 !important;
     border-left: 0 !important;
