@@ -245,6 +245,45 @@
 .lookup-status.loading {
     color: var(--primary);
 }
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 0.875rem 1.25rem;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    max-width: 350px;
+    font-size: 0.875rem;
+}
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.toast-notification.toast-error {
+    border-left: 4px solid #dc3545;
+    color: #dc3545;
+}
+.toast-notification.toast-warning {
+    border-left: 4px solid #ffc107;
+    color: #856404;
+}
+.toast-notification.toast-success {
+    border-left: 4px solid #28a745;
+    color: #28a745;
+}
+#companyNumber.is-valid {
+    border-color: #28a745;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    padding-right: calc(1.5em + 0.75rem);
+}
 .usage-chip i {
     font-size: 0.6rem;
 }
@@ -1217,58 +1256,188 @@ $(document).ready(function() {
         updateCompanyStatusBadge();
     }
     
-    // Companies House Lookup (backend-ready mock)
-    function lookupCompaniesHouse(companyNumber) {
-        var $status = $('#lookupStatus');
-        var $lookupBtn = $('#lookupCompanyBtn');
-        
-        // Validate format (8 digits or 2 letters + 6 digits)
-        var numberPattern = /^([0-9]{8}|[A-Z]{2}[0-9]{6})$/i;
-        if (!numberPattern.test(companyNumber.trim())) {
-            $status.text('Invalid company number format').addClass('error').removeClass('success loading');
-            return;
-        }
-        
-        $status.html('<i class="fas fa-spinner fa-spin me-1"></i>Looking up...').addClass('loading').removeClass('success error');
-        $lookupBtn.prop('disabled', true);
-        
-        // TODO: Replace with actual Companies House API call
-        // Backend endpoint: POST /api/companies-house/lookup
-        // Request: { company_number: companyNumber }
-        // Response: { company_name, registered_address: { line1, line2, city, county, postcode, country } }
-        
-        setTimeout(function() {
-            // Mock response - simulates successful lookup
-            var mockData = {
-                company_name: 'Acme Communications Ltd',
-                registered_address: {
-                    line1: '123 Business Park',
-                    line2: 'Tech Quarter',
-                    city: 'London',
-                    county: 'Greater London',
-                    postcode: 'EC1A 1BB',
-                    country: 'UK'
+    // Companies House Lookup Service (backend-ready)
+    var CompaniesHouseLookup = {
+        // Mock data for testing different scenarios
+        mockDatabase: {
+            '12345678': {
+                success: true,
+                data: {
+                    company_name: 'Acme Communications Ltd',
+                    company_status: 'active',
+                    registered_address: {
+                        line1: '123 Business Park',
+                        line2: 'Tech Quarter',
+                        city: 'London',
+                        county: 'Greater London',
+                        postcode: 'EC1A 1BB',
+                        country: 'UK'
+                    }
                 }
-            };
+            },
+            '87654321': {
+                success: true,
+                data: {
+                    company_name: 'Global Tech Solutions PLC',
+                    company_status: 'active',
+                    registered_address: {
+                        line1: '45 Innovation Way',
+                        line2: 'Science Park',
+                        city: 'Cambridge',
+                        county: 'Cambridgeshire',
+                        postcode: 'CB1 2AB',
+                        country: 'UK'
+                    }
+                }
+            },
+            '00000000': {
+                success: false,
+                error: 'not_found',
+                message: 'Could not find a company with that number.'
+            },
+            '99999999': {
+                success: false,
+                error: 'service_unavailable',
+                message: 'Service unavailable, try again later.'
+            }
+        },
+        
+        // Validate company number format
+        validateFormat: function(number) {
+            var pattern = /^([0-9]{8}|[A-Z]{2}[0-9]{6})$/i;
+            return pattern.test(number.trim());
+        },
+        
+        // Show toast notification
+        showToast: function(message, type) {
+            if (typeof toastr !== 'undefined') {
+                toastr[type](message);
+            } else {
+                // Fallback toast using Fillow style
+                var $toast = $('<div class="toast-notification toast-' + type + '">' + 
+                    '<i class="fas fa-' + (type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle') + ' me-2"></i>' + 
+                    message + '</div>');
+                $('body').append($toast);
+                setTimeout(function() { $toast.addClass('show'); }, 100);
+                setTimeout(function() { $toast.removeClass('show'); setTimeout(function() { $toast.remove(); }, 300); }, 4000);
+            }
+        },
+        
+        // Main lookup function
+        lookup: function(companyNumber, callbacks) {
+            var self = this;
+            var $status = $('#lookupStatus');
+            var $lookupBtn = $('#lookupCompanyBtn');
+            var $numberField = $('#companyNumber');
             
-            // Populate fields
-            $('#companyName').val(mockData.company_name);
-            $('#regAddress1').val(mockData.registered_address.line1);
-            $('#regAddress2').val(mockData.registered_address.line2);
-            $('#regCity').val(mockData.registered_address.city);
-            $('#regCounty').val(mockData.registered_address.county);
-            $('#regPostcode').val(mockData.registered_address.postcode);
-            $('#regCountry').val(mockData.registered_address.country);
+            // Clear previous states
+            $numberField.removeClass('is-invalid is-valid');
+            $status.removeClass('success error');
             
-            $status.html('<i class="fas fa-check-circle me-1"></i>Company details populated').addClass('success').removeClass('error loading');
-            $lookupBtn.prop('disabled', false);
+            // Validate format
+            if (!this.validateFormat(companyNumber)) {
+                $status.html('<i class="fas fa-exclamation-triangle me-1"></i>Invalid format. Use 8 digits or 2 letters + 6 digits.')
+                    .addClass('error');
+                $numberField.addClass('is-invalid');
+                return;
+            }
             
-            updateCompanyStatusBadge();
+            // Set loading state
+            $status.html('<i class="fas fa-spinner fa-spin me-1"></i>Searching Companies House...')
+                .addClass('loading').removeClass('success error');
+            $lookupBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+            $numberField.prop('readonly', true);
+            
+            // TODO: Replace mock with actual API call
+            // Backend endpoint: POST /api/companies-house/lookup
+            // Request: { company_number: companyNumber }
+            // Response: { success: bool, data?: {...}, error?: string, message?: string }
+            
+            // Simulate API call with mock data
+            setTimeout(function() {
+                var response;
+                
+                // Check mock database first, otherwise generate response
+                if (self.mockDatabase[companyNumber]) {
+                    response = self.mockDatabase[companyNumber];
+                } else {
+                    // Default: generate mock success response for any valid format
+                    response = {
+                        success: true,
+                        data: {
+                            company_name: 'Company ' + companyNumber + ' Ltd',
+                            company_status: 'active',
+                            registered_address: {
+                                line1: Math.floor(Math.random() * 200) + 1 + ' High Street',
+                                line2: '',
+                                city: 'London',
+                                county: '',
+                                postcode: 'SW1A 1AA',
+                                country: 'UK'
+                            }
+                        }
+                    };
+                }
+                
+                // Reset button state
+                $lookupBtn.prop('disabled', false).html('<i class="fas fa-search me-1"></i>Lookup');
+                $numberField.prop('readonly', false);
+                
+                if (response.success) {
+                    // Success - populate fields
+                    self.populateFields(response.data);
+                    $status.html('<i class="fas fa-check-circle me-1"></i>Company details populated from Companies House')
+                        .addClass('success').removeClass('error loading');
+                    $numberField.addClass('is-valid');
+                    
+                    if (callbacks && callbacks.onSuccess) {
+                        callbacks.onSuccess(response.data);
+                    }
+                } else {
+                    // Error handling
+                    $status.html('<i class="fas fa-exclamation-circle me-1"></i>' + response.message)
+                        .addClass('error').removeClass('success loading');
+                    
+                    if (response.error === 'not_found') {
+                        $numberField.addClass('is-invalid');
+                        self.showToast(response.message, 'error');
+                    } else if (response.error === 'service_unavailable') {
+                        self.showToast(response.message, 'warning');
+                    }
+                    
+                    if (callbacks && callbacks.onError) {
+                        callbacks.onError(response);
+                    }
+                }
+                
+                updateCompanyStatusBadge();
+                
+            }, 1500); // Simulate network delay
+        },
+        
+        // Populate form fields with response data
+        populateFields: function(data) {
+            var oldCompanyName = $('#companyName').val();
+            
+            $('#companyName').val(data.company_name);
+            $('#regAddress1').val(data.registered_address.line1);
+            $('#regAddress2').val(data.registered_address.line2 || '');
+            $('#regCity').val(data.registered_address.city);
+            $('#regCounty').val(data.registered_address.county || '');
+            $('#regPostcode').val(data.registered_address.postcode);
+            $('#regCountry').val(data.registered_address.country);
             
             // Log audit for autofill
-            logFieldChange('companyName', '', mockData.company_name, 'Companies House Lookup');
-            
-        }, 1200);
+            if (oldCompanyName !== data.company_name) {
+                logFieldChange('companyName', oldCompanyName, data.company_name, 'Companies House Lookup');
+            }
+            logFieldChange('registered_address', '', JSON.stringify(data.registered_address), 'Companies House Lookup');
+        }
+    };
+    
+    // Legacy wrapper for backward compatibility
+    function lookupCompaniesHouse(companyNumber) {
+        CompaniesHouseLookup.lookup(companyNumber);
     }
     
     // Lookup button click
