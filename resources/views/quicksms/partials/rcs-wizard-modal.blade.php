@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
             <div class="modal-header py-3 flex-shrink-0" style="background: var(--primary); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-magic me-2"></i>RCS Content Wizard</h5>
+                <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
             </div>
             <div class="modal-body p-0 flex-grow-1" style="overflow: hidden;">
@@ -65,7 +65,7 @@
                                     <div id="rcsMediaPreview" class="d-none mt-3">
                                             <div class="mt-3 p-3 border rounded" id="rcsImageEditor" style="background: rgba(136, 108, 192, 0.1);">
                                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <h6 class="small text-muted text-uppercase mb-0"><i class="fas fa-crop-alt me-1"></i>Image Crop & Position</h6>
+                                                    <h6 class="mb-0">Image Crop & Position</h6>
                                                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRcsMedia()">
                                                         <i class="fas fa-trash-alt me-1"></i>Remove
                                                     </button>
