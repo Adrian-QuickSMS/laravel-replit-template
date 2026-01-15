@@ -418,6 +418,8 @@ function buildRcsPayload() {
             media: {
                 source: card.media.source,
                 url: card.media.url,
+                hostedUrl: card.media.hostedUrl || null,
+                assetUuid: card.media.assetUuid || null,
                 fileName: card.media.fileName,
                 fileSize: card.media.fileSize,
                 dimensions: card.media.dimensions,
@@ -626,20 +628,27 @@ function getWizardCardSchema(cardNum) {
     var btns = rcsButtons.length > 0 ? rcsButtons : (card.buttons || []);
     
     var isCurrentCard = (cardNum === rcsCurrentCard);
-    var mediaUrl = null;
+    var hostedUrl = null;
+    var displayUrl = null;
     
     if (isCurrentCard) {
-        // Use savedDataUrl for preview (shows edited image), fallback to url
-        mediaUrl = rcsMediaData.savedDataUrl || rcsMediaData.hostedUrl || rcsMediaData.url || null;
+        // hostedUrl is the payload URL (single source of truth)
+        hostedUrl = rcsMediaData.hostedUrl || null;
+        // For preview display, resolve hostedUrl to actual renderable data
+        displayUrl = hostedUrl ? resolveRcsMediaUrl(hostedUrl) : rcsMediaData.url;
     } else {
-        // For other cards, use savedDataUrl if available
-        mediaUrl = (card.media && card.media.savedDataUrl) ? card.media.savedDataUrl :
-                   (card.media && card.media.hostedUrl) ? card.media.hostedUrl : 
-                   (card.media && card.media.url) ? card.media.url : null;
+        // For other cards, use hostedUrl as source of truth
+        hostedUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : null;
+        displayUrl = hostedUrl ? resolveRcsMediaUrl(hostedUrl) : 
+                     (card.media && card.media.url) ? card.media.url : null;
     }
     
     return {
-        media: mediaUrl ? { url: mediaUrl, height: heightClass } : null,
+        media: displayUrl ? { 
+            url: displayUrl,  // Renderable URL for preview
+            hostedUrl: hostedUrl,  // Payload URL (source of truth)
+            height: heightClass 
+        } : null,
         title: description || null,
         description: textBody || null,
         buttons: btns.map(function(btn) {
@@ -650,17 +659,22 @@ function getWizardCardSchema(cardNum) {
 
 function getWizardCarouselCardSchema(cardNum) {
     var card = rcsCardsData[cardNum] || {};
-    // Use savedDataUrl for preview (shows edited image), fallback to hostedUrl then url
-    var mediaUrl = (card.media && card.media.savedDataUrl) ? card.media.savedDataUrl :
-                   (card.media && card.media.hostedUrl) ? card.media.hostedUrl :
-                   (card.media && card.media.url) ? card.media.url : null;
+    // hostedUrl is the payload URL (single source of truth)
+    var hostedUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : null;
+    // Resolve to displayable URL for preview
+    var displayUrl = hostedUrl ? resolveRcsMediaUrl(hostedUrl) : 
+                     (card.media && card.media.url) ? card.media.url : null;
     var btns = card.buttons || [];
     
     var orientationToHeight = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
     var mediaHeight = orientationToHeight[rcsCarouselHeight] || 'medium';
     
     return {
-        media: mediaUrl ? { url: mediaUrl, height: mediaHeight } : null,
+        media: displayUrl ? { 
+            url: displayUrl,  // Renderable URL for preview
+            hostedUrl: hostedUrl,  // Payload URL (source of truth)
+            height: mediaHeight 
+        } : null,
         title: card.description || null,
         description: card.textBody ? (card.textBody.length > 80 ? card.textBody.substring(0, 80) + '...' : card.textBody) : null,
         buttons: btns.map(function(btn) {
@@ -1099,6 +1113,26 @@ var rcsMockMediaStore = {};
 function generateRcsMockMediaUrl() {
     var uuid = 'rcs-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     return 'https://qsms.uk/rcs/media/' + uuid;
+}
+
+/**
+ * Resolve a hosted URL to its actual image data for preview rendering.
+ * In production, this would be a direct URL. For mock, we look up stored data.
+ * This ensures preview uses the same URL reference as the payload.
+ */
+function resolveRcsMediaUrl(hostedUrl) {
+    if (!hostedUrl) return null;
+    
+    // Extract UUID from hosted URL
+    var uuid = hostedUrl.split('/').pop();
+    
+    // Look up in mock store
+    if (rcsMockMediaStore[uuid] && rcsMockMediaStore[uuid].dataUrl) {
+        return rcsMockMediaStore[uuid].dataUrl;
+    }
+    
+    // If not in store (production case), return the URL as-is
+    return hostedUrl;
 }
 
 function generateCroppedImageDataUrl() {
