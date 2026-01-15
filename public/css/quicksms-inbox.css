@@ -44,17 +44,39 @@
     border-top: 1px solid #e9ecef !important;
 }
 
-/* Message Bubble Width - both inbound and outbound use same max-width */
+/* Message Bubble Width - responsive for screen sizes */
 .qs-chat-messages .message-received,
 .qs-chat-messages .media .message-received {
-    max-width: 65%;
+    max-width: 75%;
     min-width: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .qs-chat-messages .message-sent,
 .qs-chat-messages .media .message-sent {
-    max-width: 65%;
+    max-width: 75%;
     min-width: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+@media (max-width: 1440px) {
+    .qs-chat-messages .message-received,
+    .qs-chat-messages .media .message-received,
+    .qs-chat-messages .message-sent,
+    .qs-chat-messages .media .message-sent {
+        max-width: 80%;
+    }
+}
+
+@media (max-width: 1366px) {
+    .qs-chat-messages .message-received,
+    .qs-chat-messages .media .message-received,
+    .qs-chat-messages .message-sent,
+    .qs-chat-messages .media .message-sent {
+        max-width: 85%;
+    }
 }
 
 .qs-chat-messages .message-sent p,

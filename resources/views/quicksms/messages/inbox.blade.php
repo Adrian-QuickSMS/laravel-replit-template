@@ -5,24 +5,48 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-.inbox-main-container {
-    height: calc(100vh - 80px);
-    overflow: hidden;
-}
-.inbox-row {
+/* Full viewport height layout chain */
+.inbox-page-container {
+    padding: 0 !important;
+    height: calc(100vh - 5.3rem) !important;
     display: flex !important;
-    flex-direction: row !important;
-    height: 100%;
+    flex-direction: column !important;
+}
+.inbox-page-container .row {
+    flex: 1 !important;
+    margin: 0 !important;
+}
+.inbox-page-container .col-xl-12 {
+    padding: 0 !important;
+    height: 100% !important;
+}
+.inbox-main-card {
+    height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
 }
 .chat-left-body {
-    width: 340px !important;
-    min-width: 340px !important;
+    width: 300px !important;
+    min-width: 280px !important;
     max-width: 340px !important;
     flex-shrink: 0 !important;
     display: flex;
     flex-direction: column;
     height: 100%;
     border-right: 1px solid #e9ecef;
+}
+@media (max-width: 1440px) {
+    .chat-left-body {
+        width: 280px !important;
+        min-width: 260px !important;
+    }
+}
+@media (max-width: 1366px) {
+    .chat-left-body {
+        width: 260px !important;
+        min-width: 240px !important;
+    }
 }
 .chat-sidebar {
     flex: 1;
@@ -192,13 +216,32 @@ body[data-theme-version="dark"] #replyComposerCard .btn-group .btn-check:checked
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-left-radius: 0.25rem;
-    max-width: 65%;
+    max-width: 75%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 .message-sent {
     padding: 0.75rem 1rem;
     border-radius: 1rem;
     border-bottom-right-radius: 0.25rem;
-    max-width: 65%;
+    max-width: 75%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+/* Responsive message bubbles */
+@media (max-width: 1440px) {
+    .message-received, .message-sent {
+        max-width: 80%;
+    }
+}
+@media (max-width: 1366px) {
+    .message-received, .message-sent {
+        max-width: 85%;
+        padding: 0.6rem 0.8rem;
+    }
+    .message-received p, .message-sent p {
+        font-size: 0.875rem;
+    }
 }
 .message-sent small {
     color: rgba(0,0,0,0.6);
@@ -284,8 +327,21 @@ span.badge.channel-pill-rcs,
     overflow: hidden;
     flex-shrink: 0;
     width: 280px;
+    min-width: 240px;
     height: 100%;
     overflow-y: auto;
+}
+@media (max-width: 1440px) {
+    .contact-sidebar {
+        width: 260px;
+        min-width: 220px;
+    }
+}
+@media (max-width: 1366px) {
+    .contact-sidebar {
+        width: 240px;
+        min-width: 200px;
+    }
 }
 .sort-dropdown {
     appearance: none;
@@ -482,12 +538,12 @@ span.badge.channel-pill-rcs,
 @endpush
 
 @section('content')
-<div class="container-fluid qsms-density-compact">
+<div class="container-fluid qsms-density-compact inbox-page-container">
     <div class="row">
         <div class="col-xl-12">
-            <div class="card mb-0" style="height: calc(100vh - 80px); overflow: hidden;">
+            <div class="card inbox-main-card mb-0">
                 <div class="card-body p-0" style="display: flex; flex-direction: row; height: 100%; min-height: 0;">
-                    <div class="chat-left-body" style="width: 340px; min-width: 340px; flex-shrink: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+                    <div class="chat-left-body">
                         <div class="meassge-left-side">
                             <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
                                 <div class="d-flex align-items-center flex-wrap gap-2">
@@ -631,7 +687,7 @@ span.badge.channel-pill-rcs,
                                 <small class="text-muted" id="chatSearchResults"></small>
                             </div>
                             
-                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto; padding: 15px 15px 300px 15px;">
+                            <div class="qs-chat-messages" id="chatArea" style="flex: 1 1 0; overflow-y: auto;">
                                 @if(isset($conversations[0]['messages']))
                                     @php $lastDate = null; @endphp
                                     @foreach($conversations[0]['messages'] as $msg)
