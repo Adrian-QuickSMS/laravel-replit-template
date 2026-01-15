@@ -56,6 +56,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - Usage chips show which downstream modules consume each field (RCS Registration, SMS SenderID, Invoices, etc.)
   - Sensitive changes (VAT, Signatory) are audit-logged with timestamps
   
+  **Permissions & Audit:**
+  - Only Account Owner / Admin may edit this page (enforced by "Admin / Owner Only" badge)
+  - All changes are audit-logged with: field name, old value, new value, user, timestamp
+  - High-impact changes flagged: Company Name, Company Number, VAT status
+  - Audit logic is backend-ready (structured JSON payload output to console)
+  - No raw audit log UI exposure on this page
+  
   Downstream modules must read from this data and must NOT duplicate fields.
 - **Support:** Provides a dashboard, ticket creation, and knowledge base.
 - **Template Integration:** Templates are dynamically filtered by trigger type and channel, with version numbers and a refresh option.

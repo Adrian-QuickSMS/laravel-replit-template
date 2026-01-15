@@ -700,6 +700,143 @@ $(document).ready(function() {
     
     $('[data-bs-toggle="tooltip"]').tooltip();
     
+    var originalValues = {};
+    var highImpactFields = ['companyName', 'companyNumber', 'vatRegistered'];
+    var currentUser = {
+        id: 1,
+        name: 'Sarah Johnson',
+        email: 'sarah.johnson@acmecomms.co.uk',
+        role: 'admin'
+    };
+    
+    function captureOriginalValues() {
+        $('input, select, textarea').each(function() {
+            var id = $(this).attr('id');
+            if (id) {
+                originalValues[id] = $(this).val();
+            }
+        });
+    }
+    
+    captureOriginalValues();
+    
+    function createAuditEntry(fieldId, fieldLabel, oldValue, newValue) {
+        var isHighImpact = highImpactFields.includes(fieldId);
+        return {
+            field_id: fieldId,
+            field_name: fieldLabel,
+            old_value: oldValue,
+            new_value: newValue,
+            user_id: currentUser.id,
+            user_name: currentUser.name,
+            user_email: currentUser.email,
+            timestamp: new Date().toISOString(),
+            is_high_impact: isHighImpact,
+            section: getFieldSection(fieldId)
+        };
+    }
+    
+    function getFieldSection(fieldId) {
+        var sectionMap = {
+            'signupFirstName': 'sign_up_details',
+            'signupLastName': 'sign_up_details',
+            'signupJobTitle': 'sign_up_details',
+            'signupBusinessName': 'sign_up_details',
+            'signupEmail': 'sign_up_details',
+            'signupMobile': 'sign_up_details',
+            'companyName': 'company_information',
+            'tradingName': 'company_information',
+            'companyNumber': 'company_information',
+            'companySector': 'company_information',
+            'companyWebsite': 'company_information',
+            'billingEmail': 'support_operations',
+            'supportEmail': 'support_operations',
+            'incidentEmail': 'support_operations',
+            'signatoryName': 'contract_signatory',
+            'signatoryTitle': 'contract_signatory',
+            'signatoryEmail': 'contract_signatory',
+            'vatRegistered': 'vat_tax_information',
+            'vatNumber': 'vat_tax_information',
+            'vatCountry': 'vat_tax_information',
+            'reverseCharges': 'vat_tax_information'
+        };
+        return sectionMap[fieldId] || 'unknown';
+    }
+    
+    function getFieldLabel(fieldId) {
+        var $field = $('#' + fieldId);
+        var $label = $field.closest('.field-group').find('label.form-label').first();
+        return $label.text().replace('*', '').replace('(Optional)', '').trim();
+    }
+    
+    function collectChanges(section) {
+        var changes = [];
+        var sectionFields = [];
+        
+        switch(section) {
+            case 'signUpDetails':
+                sectionFields = ['signupFirstName', 'signupLastName', 'signupJobTitle', 'signupBusinessName', 'signupEmail', 'signupMobile'];
+                break;
+            case 'companyInfo':
+                sectionFields = ['companyName', 'tradingName', 'companyNumber', 'companySector', 'companyWebsite', 'regAddress1', 'regAddress2', 'regCity', 'regCounty', 'regPostcode', 'regCountry'];
+                break;
+            case 'supportOperations':
+                sectionFields = ['billingEmail', 'supportEmail', 'incidentEmail'];
+                break;
+            case 'contractSignatory':
+                sectionFields = ['signatoryName', 'signatoryTitle', 'signatoryEmail'];
+                break;
+            case 'vatTaxInfo':
+                sectionFields = ['vatRegistered', 'vatNumber', 'vatCountry', 'reverseCharges'];
+                break;
+        }
+        
+        sectionFields.forEach(function(fieldId) {
+            var $field = $('#' + fieldId);
+            if ($field.length) {
+                var currentValue = $field.val();
+                var originalValue = originalValues[fieldId] || '';
+                
+                if (currentValue !== originalValue) {
+                    changes.push(createAuditEntry(
+                        fieldId,
+                        getFieldLabel(fieldId),
+                        originalValue,
+                        currentValue
+                    ));
+                }
+            }
+        });
+        
+        return changes;
+    }
+    
+    function submitAuditLog(changes) {
+        if (changes.length === 0) return;
+        
+        var hasHighImpact = changes.some(function(c) { return c.is_high_impact; });
+        
+        var auditPayload = {
+            changes: changes,
+            has_high_impact_changes: hasHighImpact,
+            submitted_at: new Date().toISOString(),
+            user: currentUser
+        };
+        
+        console.log('Audit Log Payload (Backend Ready):', JSON.stringify(auditPayload, null, 2));
+        
+        changes.forEach(function(change) {
+            originalValues[change.field_id] = change.new_value;
+        });
+    }
+    
+    window.AccountDetailsAudit = {
+        collectChanges: collectChanges,
+        submitAuditLog: submitAuditLog,
+        getOriginalValues: function() { return originalValues; },
+        isHighImpactField: function(fieldId) { return highImpactFields.includes(fieldId); }
+    };
+    
     $('#vatRegistered').on('change', function() {
         if ($(this).val() === 'yes') {
             $('#vatDetailsSection').slideDown();
@@ -908,6 +1045,9 @@ $(document).ready(function() {
         showAutoSave($autoSave, 'saving');
         
         setTimeout(function() {
+            var changes = collectChanges('supportOperations');
+            submitAuditLog(changes);
+            
             $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
             showAutoSave($autoSave, 'saved');
             updateSupportStatusBadge();
@@ -1048,6 +1188,9 @@ $(document).ready(function() {
         showAutoSave($autoSave, 'saving');
         
         setTimeout(function() {
+            var changes = collectChanges('signUpDetails');
+            submitAuditLog(changes);
+            
             $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
             showAutoSave($autoSave, 'saved');
             updateSignUpStatusBadge();
@@ -1090,6 +1233,9 @@ $(document).ready(function() {
         showAutoSave($autoSave, 'saving');
         
         setTimeout(function() {
+            var changes = collectChanges('companyInfo');
+            submitAuditLog(changes);
+            
             $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
             showAutoSave($autoSave, 'saved');
             updateCompanyStatusBadge();
@@ -1182,6 +1328,9 @@ $(document).ready(function() {
         showAutoSave($autoSave, 'saving');
         
         setTimeout(function() {
+            var changes = collectChanges('contractSignatory');
+            submitAuditLog(changes);
+            
             $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
             showAutoSave($autoSave, 'saved');
             updateSignatoryStatusBadge();
@@ -1224,6 +1373,9 @@ $(document).ready(function() {
         showAutoSave($autoSave, 'saving');
         
         setTimeout(function() {
+            var changes = collectChanges('vatTaxInfo');
+            submitAuditLog(changes);
+            
             $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
             showAutoSave($autoSave, 'saved');
             updateVatStatusBadge();
