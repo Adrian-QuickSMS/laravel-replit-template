@@ -927,20 +927,6 @@ $(document).ready(function() {
                     mobile_number: formData.mobile_number,
                     country: urlParams.get('country') || 'United Kingdom'
                 },
-                hubspot_sync: {
-                    triggered: true,
-                    contact_id: 'HS-CONTACT-' + Date.now(),
-                    company_id: 'HS-COMPANY-' + Date.now(),
-                    synced_at: new Date().toISOString(),
-                    properties: {
-                        email: email,
-                        phone: formData.mobile_number,
-                        marketing_consent: formData.marketing.consent,
-                        marketing_consent_timestamp: formData.marketing.consent_timestamp,
-                        mfa_enabled: true,
-                        email_verified: true
-                    }
-                },
                 audit: {
                     event: 'account_provisioned',
                     timestamp: new Date().toISOString(),
@@ -957,8 +943,95 @@ $(document).ready(function() {
                 }
             };
             
+            // HubSpot Service - Backend-ready wrapper
+            // In production: Replace with actual HubSpot API calls via backend
+            var HubSpotService = {
+                createContact: function(contactData) {
+                    // POST /api/hubspot/contacts
+                    var payload = {
+                        properties: {
+                            firstname: contactData.first_name,
+                            lastname: contactData.last_name,
+                            email: contactData.email,
+                            jobtitle: contactData.job_title,
+                            company: contactData.business_name,
+                            phone: contactData.mobile_number,
+                            country: contactData.country,
+                            email_verified: String(contactData.email_verified),
+                            marketing_consent: String(contactData.marketing_consent),
+                            marketing_consent_timestamp: contactData.marketing_consent_timestamp || '',
+                            test_credit_eligible: String(contactData.test_credit_eligible)
+                        }
+                    };
+                    console.log('[HubSpotService] createContact payload:', payload);
+                    return {
+                        success: true,
+                        id: 'HS-CONTACT-' + Date.now(),
+                        payload: payload
+                    };
+                },
+                createCompany: function(companyData) {
+                    // POST /api/hubspot/companies
+                    var payload = {
+                        properties: {
+                            name: companyData.company_name,
+                            country: companyData.country,
+                            domain: companyData.email ? companyData.email.split('@')[1] : ''
+                        }
+                    };
+                    console.log('[HubSpotService] createCompany payload:', payload);
+                    return {
+                        success: true,
+                        id: 'HS-COMPANY-' + Date.now(),
+                        payload: payload
+                    };
+                },
+                associateContactToCompany: function(contactId, companyId) {
+                    // PUT /api/hubspot/associations
+                    console.log('[HubSpotService] associateContactToCompany:', { contactId, companyId });
+                    return { success: true };
+                },
+                syncOnboarding: function(accountDetails, formData) {
+                    // Combined sync method for onboarding
+                    var contactResult = this.createContact({
+                        first_name: accountDetails.first_name,
+                        last_name: accountDetails.last_name,
+                        email: accountDetails.business_email,
+                        job_title: accountDetails.job_title,
+                        business_name: accountDetails.business_name,
+                        mobile_number: accountDetails.mobile_number,
+                        country: accountDetails.country,
+                        email_verified: true,
+                        marketing_consent: formData.marketing.consent,
+                        marketing_consent_timestamp: formData.marketing.consent_timestamp,
+                        test_credit_eligible: formData.test_credits.eligible
+                    });
+                    
+                    var companyResult = this.createCompany({
+                        company_name: accountDetails.business_name,
+                        country: accountDetails.country,
+                        email: accountDetails.business_email
+                    });
+                    
+                    if (contactResult.success && companyResult.success) {
+                        this.associateContactToCompany(contactResult.id, companyResult.id);
+                    }
+                    
+                    return {
+                        success: true,
+                        contact: contactResult,
+                        company: companyResult,
+                        synced_at: new Date().toISOString()
+                    };
+                }
+            };
+            
+            // Execute HubSpot sync
+            var hubspotResult = HubSpotService.syncOnboarding(provisioningResult.account_details, formData);
+            provisioningResult.hubspot_sync = hubspotResult;
+            
             console.log('[Provisioning] Account created:', provisioningResult);
-            console.log('[HubSpot] Contact synced:', provisioningResult.hubspot_sync);
+            console.log('[HubSpot] Sync completed:', hubspotResult);
             console.log('[Audit] Event logged:', provisioningResult.audit);
             
             if (formData.test_credits.eligible) {
