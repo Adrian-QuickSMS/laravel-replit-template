@@ -603,133 +603,77 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vatTaxInfo" aria-expanded="false">
                         <i class="fas fa-receipt me-2 text-primary"></i>VAT & Tax Information
-                        <span class="section-indicator required"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
+                        <span class="section-indicator required" id="vatStatusBadge"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
                     </button>
                 </h2>
                 <div id="vatTaxInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
-                        <p class="text-muted small mb-4">VAT information is required for invoicing and tax compliance. Changes to VAT details are audit-logged.</p>
+                        <p class="text-muted small mb-4">VAT settings are used for billing and invoice generation. Changes to VAT details are audit-logged.</p>
                         
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">VAT Registration Number<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="vatNumber" value="GB123456789" placeholder="e.g., GB123456789">
+                                    <label class="form-label">VAT Registered<span class="required-indicator">*</span></label>
+                                    <select class="form-select vat-field" id="vatRegistered">
+                                        <option value="">Select...</option>
+                                        <option value="yes" selected>Yes - VAT registered</option>
+                                        <option value="no">No - Not VAT registered</option>
+                                    </select>
                                     <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Invoicing</span>
-                                        <span class="usage-chip"><i class="fas fa-percentage"></i> VAT Returns</span>
+                                        <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Billing</span>
+                                        <span class="usage-chip"><i class="fas fa-calculator"></i> Invoices</span>
                                     </div>
-                                    <div class="validation-error">VAT number is required</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">VAT Status</label>
-                                    <div class="readonly-value">
-                                        <span class="badge badge-pastel-success"><i class="fas fa-check-circle me-1"></i>Verified by HMRC</span>
-                                    </div>
-                                    <div class="field-hint">Last verified: 14 Jan 2026</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Tax Country<span class="required-indicator">*</span></label>
-                                    <select class="form-select" id="taxCountry">
-                                        <option value="UK" selected>United Kingdom</option>
-                                        <option value="US">United States</option>
-                                        <option value="DE">Germany</option>
-                                        <option value="FR">France</option>
-                                        <option value="IE">Ireland</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Tax Exempt<span class="optional-indicator">(Optional)</span></label>
-                                    <select class="form-select" id="taxExempt">
-                                        <option value="no" selected>No - Standard VAT applies</option>
-                                        <option value="yes">Yes - Tax exempt</option>
-                                    </select>
-                                    <div class="field-hint">If exempt, upload exemption certificate below</div>
+                                    <div class="validation-error">Please select VAT registration status</div>
                                 </div>
                             </div>
                         </div>
                         
-                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-credit-card me-2 text-primary"></i>Billing Contact</h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Full Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="billingContactName" value="Michael Chen">
-                                    <div class="usage-chips">
-                                        <span class="usage-chip"><i class="fas fa-file-invoice"></i> Invoice Delivery</span>
-                                        <span class="usage-chip"><i class="fas fa-money-bill"></i> Payment Queries</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Job Title<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="text" class="form-control" id="billingContactTitle" value="Finance Manager">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Email<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control" id="billingContactEmail" value="m.chen@acmecomms.co.uk">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="field-group">
-                                    <label class="form-label">Phone<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="tel" class="form-control" id="billingContactPhone" value="+44 20 7946 0959">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h6 class="fw-bold mt-4 mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Billing Address</h6>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="sameAsRegistered" checked>
-                            <label class="form-check-label small" for="sameAsRegistered">
-                                Same as registered company address
-                            </label>
-                        </div>
-                        <div id="billingAddressFields" style="display: none;">
+                        <div id="vatDetailsSection">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="field-group">
-                                        <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control" id="billAddress1" value="">
+                                        <label class="form-label">VAT Number<span class="required-indicator">*</span></label>
+                                        <input type="text" class="form-control vat-detail-field" id="vatNumber" value="GB123456789" placeholder="e.g., GB123456789">
+                                        <div class="field-hint" id="vatFormatHint">Format: GB followed by 9 digits</div>
+                                        <div class="usage-chips">
+                                            <span class="usage-chip"><i class="fas fa-file-invoice-dollar"></i> Invoicing</span>
+                                            <span class="usage-chip"><i class="fas fa-percentage"></i> VAT Returns</span>
+                                        </div>
+                                        <div class="validation-error" id="vatNumberError">VAT number is required</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="field-group">
-                                        <label class="form-label">Address Line 2<span class="optional-indicator">(Optional)</span></label>
-                                        <input type="text" class="form-control" id="billAddress2" value="">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="field-group">
-                                        <label class="form-label">City<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control" id="billCity" value="">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="field-group">
-                                        <label class="form-label">Postcode<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control" id="billPostcode" value="">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="field-group">
-                                        <label class="form-label">Country<span class="required-indicator">*</span></label>
-                                        <select class="form-select" id="billCountry">
-                                            <option value="UK" selected>United Kingdom</option>
-                                            <option value="US">United States</option>
-                                            <option value="DE">Germany</option>
-                                            <option value="FR">France</option>
-                                            <option value="IE">Ireland</option>
+                                        <label class="form-label">VAT Country<span class="required-indicator">*</span></label>
+                                        <select class="form-select vat-detail-field" id="vatCountry">
+                                            <option value="">Select country...</option>
+                                            <option value="GB" selected>United Kingdom (GB)</option>
+                                            <option value="DE">Germany (DE)</option>
+                                            <option value="FR">France (FR)</option>
+                                            <option value="IE">Ireland (IE)</option>
+                                            <option value="NL">Netherlands (NL)</option>
+                                            <option value="ES">Spain (ES)</option>
+                                            <option value="IT">Italy (IT)</option>
+                                            <option value="BE">Belgium (BE)</option>
+                                            <option value="AT">Austria (AT)</option>
+                                            <option value="PL">Poland (PL)</option>
                                         </select>
+                                        <div class="validation-error">Please select a VAT country</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="field-group">
+                                        <label class="form-label">
+                                            Reverse Charges<span class="required-indicator">*</span>
+                                            <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="<strong>No</strong> = You are sending messages to your own customers<br><br><strong>Yes</strong> = You are providing messaging as a service to third parties (reverse charge applies)"></i>
+                                        </label>
+                                        <select class="form-select vat-detail-field" id="reverseCharges">
+                                            <option value="">Select...</option>
+                                            <option value="no" selected>No - Messaging to own customers</option>
+                                            <option value="yes">Yes - Messaging provided as a service</option>
+                                        </select>
+                                        <div class="field-hint">Determines how VAT is applied on invoices</div>
+                                        <div class="validation-error">Please select reverse charges option</div>
                                     </div>
                                 </div>
                             </div>
@@ -754,11 +698,90 @@
 <script>
 $(document).ready(function() {
     
-    $('#sameAsRegistered').on('change', function() {
-        if ($(this).is(':checked')) {
-            $('#billingAddressFields').slideUp();
+    $('[data-bs-toggle="tooltip"]').tooltip();
+    
+    $('#vatRegistered').on('change', function() {
+        if ($(this).val() === 'yes') {
+            $('#vatDetailsSection').slideDown();
         } else {
-            $('#billingAddressFields').slideDown();
+            $('#vatDetailsSection').slideUp();
+        }
+        updateVatStatusBadge();
+    });
+    
+    var vatFormats = {
+        'GB': { pattern: /^GB\d{9}$|^GB\d{12}$|^GBGD\d{3}$|^GBHA\d{3}$/, hint: 'Format: GB followed by 9 or 12 digits' },
+        'DE': { pattern: /^DE\d{9}$/, hint: 'Format: DE followed by 9 digits' },
+        'FR': { pattern: /^FR[A-Z0-9]{2}\d{9}$/, hint: 'Format: FR followed by 2 characters and 9 digits' },
+        'IE': { pattern: /^IE\d{7}[A-Z]{1,2}$|^IE\d[A-Z]\d{5}[A-Z]$/, hint: 'Format: IE followed by 7 digits and 1-2 letters' },
+        'NL': { pattern: /^NL\d{9}B\d{2}$/, hint: 'Format: NL followed by 9 digits, B, and 2 digits' },
+        'ES': { pattern: /^ES[A-Z0-9]\d{7}[A-Z0-9]$/, hint: 'Format: ES followed by 9 alphanumeric characters' },
+        'IT': { pattern: /^IT\d{11}$/, hint: 'Format: IT followed by 11 digits' },
+        'BE': { pattern: /^BE0\d{9}$/, hint: 'Format: BE0 followed by 9 digits' },
+        'AT': { pattern: /^ATU\d{8}$/, hint: 'Format: ATU followed by 8 digits' },
+        'PL': { pattern: /^PL\d{10}$/, hint: 'Format: PL followed by 10 digits' }
+    };
+    
+    $('#vatCountry').on('change', function() {
+        var country = $(this).val();
+        if (vatFormats[country]) {
+            $('#vatFormatHint').text(vatFormats[country].hint);
+        } else {
+            $('#vatFormatHint').text('Enter your VAT number');
+        }
+    });
+    
+    function validateVatNumber() {
+        var country = $('#vatCountry').val();
+        var vatNum = $('#vatNumber').val().trim().toUpperCase();
+        
+        if (!vatNum) {
+            $('#vatNumber').addClass('is-invalid');
+            $('#vatNumberError').text('VAT number is required');
+            return false;
+        }
+        
+        if (vatFormats[country]) {
+            if (!vatFormats[country].pattern.test(vatNum)) {
+                $('#vatNumber').addClass('is-invalid');
+                $('#vatNumberError').text('Invalid VAT number format for ' + country);
+                return false;
+            }
+        }
+        
+        $('#vatNumber').removeClass('is-invalid');
+        return true;
+    }
+    
+    function updateVatStatusBadge() {
+        var isRegistered = $('#vatRegistered').val();
+        var allValid = true;
+        
+        if (!isRegistered) {
+            allValid = false;
+        } else if (isRegistered === 'yes') {
+            if (!$('#vatNumber').val().trim() || !$('#vatCountry').val() || !$('#reverseCharges').val()) {
+                allValid = false;
+            }
+        }
+        
+        var $badge = $('#vatStatusBadge');
+        if (allValid) {
+            $badge.removeClass('required').addClass('complete')
+                .html('<i class="fas fa-check-circle"></i> Complete');
+        } else {
+            $badge.removeClass('complete').addClass('required')
+                .html('<i class="fas fa-exclamation-circle"></i> Required to go live');
+        }
+    }
+    
+    $('.vat-field, .vat-detail-field').on('input blur change', function() {
+        updateVatStatusBadge();
+    });
+    
+    $('#vatNumber').on('blur', function() {
+        if ($('#vatRegistered').val() === 'yes') {
+            validateVatNumber();
         }
     });
     
@@ -1168,7 +1191,44 @@ $(document).ready(function() {
     });
     
     $('#saveVatInfo').on('click', function() {
-        saveSection('vatTaxInfo', $(this), $('#vatAutoSave'));
+        var $saveBtn = $(this);
+        var $autoSave = $('#vatAutoSave');
+        var isValid = true;
+        var isRegistered = $('#vatRegistered').val();
+        
+        if (!isRegistered) {
+            $('#vatRegistered').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        if (isRegistered === 'yes') {
+            if (!validateVatNumber()) {
+                isValid = false;
+            }
+            if (!$('#vatCountry').val()) {
+                $('#vatCountry').addClass('is-invalid');
+                isValid = false;
+            }
+            if (!$('#reverseCharges').val()) {
+                $('#reverseCharges').addClass('is-invalid');
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            toastr.error('Please complete all required VAT fields before saving.');
+            return;
+        }
+        
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        showAutoSave($autoSave, 'saving');
+        
+        setTimeout(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            showAutoSave($autoSave, 'saved');
+            updateVatStatusBadge();
+            toastr.success('VAT & tax information saved successfully. Audit log updated.');
+        }, 800);
     });
     
 });

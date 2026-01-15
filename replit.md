@@ -47,7 +47,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   2. **Company Information** (Required to go live) - Legal name, Trading name, Company registration number, Industry, Website, Phone, Full registered address
   3. **Support & Operations** (Optional) - Primary Contact (name, title, email, phone), Technical Contact details
   4. **Contract Signatory** (Required to go live) - Authorized signatory name, title, email, phone
-  5. **VAT & Tax Information** (Required to go live) - VAT number with verification status, Tax country, Tax exempt option, Billing contact, Billing address (with "same as registered" option)
+  5. **VAT & Tax Information** (Required to go live) - VAT Registered (Yes/No), and if Yes: VAT Number (country-validated), VAT Country, Reverse Charges (Yes/No with tooltip). VAT fields hidden when not registered. Settings feed billing and invoice logic.
   
   **UX Rules:**
   - Mandatory fields marked with red asterisk (*), optional fields labelled "(Optional)"
