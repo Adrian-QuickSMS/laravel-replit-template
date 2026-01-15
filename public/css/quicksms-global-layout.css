@@ -225,19 +225,22 @@ body.qsms-fullbleed .qsms-main {
     
     .qsms-density-compact .form-control,
     .qsms-density-compact .form-select {
-        padding: 0.3rem 0.625rem;
-        font-size: 0.75rem;
-        min-height: calc(1.5em + 0.6rem + 2px);
+        padding: 0.35rem 0.625rem;
+        font-size: 0.8125rem;
+        min-height: calc(1.5em + 0.7rem + 2px);
     }
     
+    /* Buttons - ensure adequate height and readability */
     .qsms-density-compact .btn {
-        padding: 0.3rem 0.625rem;
-        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+        min-height: 32px;
     }
     
     .qsms-density-compact .btn-group .btn {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.7rem;
+        padding: 0.35rem 0.625rem;
+        font-size: 0.75rem;
+        min-height: 30px;
     }
     
     .qsms-density-compact h6.mb-3 {
@@ -248,11 +251,11 @@ body.qsms-fullbleed .qsms-main {
     .qsms-density-compact .table th,
     .qsms-density-compact .table td {
         padding: 0.375rem 0.5rem;
-        font-size: 0.75rem;
+        font-size: 0.8125rem;
     }
     
     .qsms-density-compact .table thead th {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
     }
     
     /* Card header extra density */
@@ -260,9 +263,14 @@ body.qsms-fullbleed .qsms-main {
         padding: 0.625rem 0.875rem;
     }
     
-    /* Breadcrumb extra density */
+    /* Breadcrumb extra density - maintain readability with proper spacing */
     .qsms-density-compact .breadcrumb {
-        font-size: 0.7rem;
+        font-size: 0.8125rem;
+        padding-left: 0.5rem;
+    }
+    
+    .qsms-density-compact .page-titles {
+        padding-left: 0.5rem;
     }
     
     /* Nav tabs extra density */
