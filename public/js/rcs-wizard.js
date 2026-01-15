@@ -1069,11 +1069,10 @@ function initRcsImageBaseline() {
 }
 
 function markRcsImageDirty() {
-    // Check dirty state for any image that hasn't been saved yet
-    var hasImage = rcsMediaData.url || rcsMediaData.file;
-    var notYetSaved = !rcsMediaData.hostedUrl;
+    // Check dirty state for any image - even after it's been saved once
+    var hasImage = rcsMediaData.url || rcsMediaData.file || rcsMediaData.hostedUrl;
     
-    if (hasImage && notYetSaved) {
+    if (hasImage) {
         var current = getCurrentEditParams();
         var hasChanges = current.zoom !== rcsImageDirtyState.baselineZoom ||
                          current.orientation !== rcsImageDirtyState.baselineOrientation ||
@@ -1102,25 +1101,26 @@ function updateRcsSaveButtonVisibility() {
     var saveBtn = document.getElementById('rcsImageSaveBtn');
     if (saveBtn) {
         // Show save button when:
-        // 1. We have an image loaded (from URL or file upload)
-        // 2. AND it hasn't been saved to a hosted URL yet
-        // 3. AND either: it's dirty from edits, OR it's a file upload that needs saving
-        var hasImage = rcsMediaData.url || rcsMediaData.file;
-        var notYetSaved = !rcsMediaData.hostedUrl;
+        // 1. We have an image loaded (from URL, file upload, or previously saved)
+        // 2. AND either: it's dirty from edits, OR it's a file upload that hasn't been saved yet
+        var hasImage = rcsMediaData.url || rcsMediaData.file || rcsMediaData.hostedUrl;
         var isFileUpload = rcsMediaData.source === 'upload' || rcsMediaData.source === 'file';
-        var needsSave = rcsImageDirtyState.isDirty || isFileUpload;
+        var notYetSaved = !rcsMediaData.hostedUrl;
+        var needsInitialSave = isFileUpload && notYetSaved;
+        var hasUnsavedChanges = rcsImageDirtyState.isDirty;
         
-        var shouldShow = hasImage && notYetSaved && needsSave;
+        var shouldShow = hasImage && (needsInitialSave || hasUnsavedChanges);
         saveBtn.classList.toggle('d-none', !shouldShow);
     }
 }
 
 function isRcsImageDirty() {
-    var hasImage = rcsMediaData.url || rcsMediaData.file;
-    var notYetSaved = !rcsMediaData.hostedUrl;
+    var hasImage = rcsMediaData.url || rcsMediaData.file || rcsMediaData.hostedUrl;
     var isFileUpload = rcsMediaData.source === 'upload' || rcsMediaData.source === 'file';
-    var needsSave = rcsImageDirtyState.isDirty || isFileUpload;
-    return hasImage && notYetSaved && needsSave;
+    var notYetSaved = !rcsMediaData.hostedUrl;
+    var needsInitialSave = isFileUpload && notYetSaved;
+    var hasUnsavedChanges = rcsImageDirtyState.isDirty;
+    return hasImage && (needsInitialSave || hasUnsavedChanges);
 }
 
 function showRcsUnsavedChangesModal(pendingAction) {
