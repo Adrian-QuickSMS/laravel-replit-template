@@ -8,7 +8,7 @@
 /* Full viewport height layout chain */
 .inbox-page-container {
     padding: 0 !important;
-    height: calc(100vh - 5.3rem) !important;
+    height: calc(100vh - 10rem) !important;
     display: flex !important;
     flex-direction: column !important;
 }
@@ -616,6 +616,26 @@ span.badge.channel-pill-rcs,
 /* Reduce composer max-height for compact mode */
 .qsms-density-compact #replyComposerCard {
     max-height: 240px !important;
+}
+/* Make textarea smaller in compact mode */
+.qsms-density-compact #replyComposerCard #replyMessage {
+    rows: 2 !important;
+    height: 50px !important;
+    min-height: 40px !important;
+    padding-bottom: 30px !important;
+}
+/* Tighten character count row */
+.qsms-density-compact #replyComposerCard .d-flex.justify-content-between.align-items-center.mb-2 {
+    margin-bottom: 0.25rem !important;
+}
+/* Reduce send button container margin */
+.qsms-density-compact #replyComposerCard .d-flex.justify-content-end {
+    margin-top: 0.25rem !important;
+}
+/* Smaller send button */
+.qsms-density-compact #replyComposerCard .btn-primary {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.8rem !important;
 }
 
 /* ===== Extra compact for smaller laptops (<=1366px) ===== */
