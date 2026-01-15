@@ -370,6 +370,35 @@
     font-size: 0.875rem;
     color: #495057;
 }
+.pricing-badges {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+.pricing-badge {
+    background: #f8f9fa;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.375rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.pricing-badge .badge-price {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #2c2c2c;
+    white-space: nowrap;
+    margin-bottom: 0.125rem;
+}
+.pricing-badge .badge-label {
+    font-size: 0.65rem;
+    color: #6c757d;
+    font-weight: 400;
+    white-space: nowrap;
+}
 .nav-tabs .nav-link {
     color: #6c757d;
     border: none;
@@ -1028,6 +1057,23 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">Other Services</h6>
+                            <div class="pricing-badges">
+                                <div class="pricing-badge">
+                                    <span class="badge-price">£0.002</span>
+                                    <span class="badge-label">AI Token</span>
+                                </div>
+                                <div class="pricing-badge">
+                                    <span class="badge-price">£5.00</span>
+                                    <span class="badge-label">VMN /mo</span>
+                                </div>
+                                <div class="pricing-badge">
+                                    <span class="badge-price">£25.00</span>
+                                    <span class="badge-label">Keyword /mo</span>
+                                </div>
+                            </div>
+                        </div>
                         <hr>
                         <ul class="pricing-features list-unstyled mb-0">
                             <li><i class="fas fa-check text-success me-2"></i>Portal access</li>
@@ -1082,6 +1128,23 @@
                                         <span class="rate-basis">per delivered RCS</span>
                                     </div>
                                     <span class="rate-value">£0.052</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">Other Services</h6>
+                            <div class="pricing-badges">
+                                <div class="pricing-badge">
+                                    <span class="badge-price">£0.0015</span>
+                                    <span class="badge-label">AI Token</span>
+                                </div>
+                                <div class="pricing-badge">
+                                    <span class="badge-price">£4.00</span>
+                                    <span class="badge-label">VMN /mo</span>
+                                </div>
+                                <div class="pricing-badge">
+                                    <span class="badge-price">£20.00</span>
+                                    <span class="badge-label">Keyword /mo</span>
                                 </div>
                             </div>
                         </div>
@@ -1140,6 +1203,23 @@
                                         <span class="rate-basis">per delivered RCS</span>
                                     </div>
                                     <span class="rate-value">Custom</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pricing-section">
+                            <h6 class="pricing-section-title">Other Services</h6>
+                            <div class="pricing-badges">
+                                <div class="pricing-badge">
+                                    <span class="badge-price">Custom</span>
+                                    <span class="badge-label">AI Token</span>
+                                </div>
+                                <div class="pricing-badge">
+                                    <span class="badge-price">Custom</span>
+                                    <span class="badge-label">VMN /mo</span>
+                                </div>
+                                <div class="pricing-badge">
+                                    <span class="badge-price">Custom</span>
+                                    <span class="badge-label">Keyword /mo</span>
                                 </div>
                             </div>
                         </div>
