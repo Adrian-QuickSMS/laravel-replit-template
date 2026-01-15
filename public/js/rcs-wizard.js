@@ -634,13 +634,26 @@ function getWizardCardSchema(cardNum) {
     if (isCurrentCard) {
         // hostedUrl is the payload URL (single source of truth)
         hostedUrl = rcsMediaData.hostedUrl || null;
-        // For preview display, resolve hostedUrl to actual renderable data
-        displayUrl = hostedUrl ? resolveRcsMediaUrl(hostedUrl) : rcsMediaData.url;
+        // For preview display, use savedDataUrl first (immediate after save), 
+        // then try resolver, then fall back to original url
+        if (rcsMediaData.savedDataUrl) {
+            displayUrl = rcsMediaData.savedDataUrl;
+        } else if (hostedUrl) {
+            displayUrl = resolveRcsMediaUrl(hostedUrl);
+        } else {
+            displayUrl = rcsMediaData.url;
+        }
     } else {
         // For other cards, use hostedUrl as source of truth
         hostedUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : null;
-        displayUrl = hostedUrl ? resolveRcsMediaUrl(hostedUrl) : 
-                     (card.media && card.media.url) ? card.media.url : null;
+        // Use savedDataUrl first, then resolver, then original url
+        if (card.media && card.media.savedDataUrl) {
+            displayUrl = card.media.savedDataUrl;
+        } else if (hostedUrl) {
+            displayUrl = resolveRcsMediaUrl(hostedUrl);
+        } else {
+            displayUrl = (card.media && card.media.url) ? card.media.url : null;
+        }
     }
     
     return {
@@ -661,9 +674,15 @@ function getWizardCarouselCardSchema(cardNum) {
     var card = rcsCardsData[cardNum] || {};
     // hostedUrl is the payload URL (single source of truth)
     var hostedUrl = (card.media && card.media.hostedUrl) ? card.media.hostedUrl : null;
-    // Resolve to displayable URL for preview
-    var displayUrl = hostedUrl ? resolveRcsMediaUrl(hostedUrl) : 
-                     (card.media && card.media.url) ? card.media.url : null;
+    // Use savedDataUrl first, then resolver, then original url
+    var displayUrl = null;
+    if (card.media && card.media.savedDataUrl) {
+        displayUrl = card.media.savedDataUrl;
+    } else if (hostedUrl) {
+        displayUrl = resolveRcsMediaUrl(hostedUrl);
+    } else {
+        displayUrl = (card.media && card.media.url) ? card.media.url : null;
+    }
     var btns = card.buttons || [];
     
     var orientationToHeight = { 'vertical_short': 'short', 'vertical_medium': 'medium', 'vertical_tall': 'tall' };
