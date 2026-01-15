@@ -8,9 +8,11 @@
 /* Full viewport height layout chain */
 .inbox-page-container {
     padding: 0 !important;
-    height: calc(100vh - 10rem) !important;
+    height: calc(100vh - 4rem) !important;
+    max-height: calc(100vh - 4rem) !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow: hidden !important;
 }
 .inbox-page-container .row {
     flex: 1 !important;
@@ -615,7 +617,7 @@ span.badge.channel-pill-rcs,
 
 /* Reduce composer max-height for compact mode */
 .qsms-density-compact #replyComposerCard {
-    max-height: 240px !important;
+    max-height: 300px !important;
 }
 /* Make textarea smaller in compact mode */
 .qsms-density-compact #replyComposerCard #replyMessage {
