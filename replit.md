@@ -16,6 +16,15 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Interactive Elements:** Mobile number masking, dynamic validation, real-time character counting.
 - **Content Editor:** Enhanced with personalization, emoji support, AI assistance, and channel-aware behavior.
 - **Color Scheme:** Portal-wide standardization using `public/css/quicksms-pastel.css`.
+- **Global Layout & Density System:** Implemented in `public/css/quicksms-global-layout.css` with automatic application via `layouts/default.blade.php`. Features:
+  - **Content Container:** Max-width 1280px wrapper (`.qsms-content-wrap`) for centered, constrained content
+  - **Density Classes:** `.qsms-density-compact` applied globally with responsive breakpoints:
+    - Default/Compact: @media (max-width: 1440px) - standard laptops
+    - Extra Compact: @media (max-width: 1366px) - smaller laptops  
+    - Mobile: @media (max-width: 991.98px)
+  - **Full-Bleed Opt-Out:** Pages can add `@section('body_class', 'qsms-fullbleed')` to bypass container constraints (used by Inbox)
+  - **CSS Variables:** Density tokens for consistent spacing (`--qsms-card-pad`, `--qsms-gap`, `--qsms-control-pad-y/x`, `--qsms-font-*`, `--qsms-btn-pad-*`)
+  - **Modal Sizing:** Responsive modal max-widths (sm: 480px, default: 680px, lg: 900px, xl: 1100px)
 - **RCS Agent Registration Wizard:** An 8-step page-based wizard using jQuery SmartWizard for registering RCS agents, including branding assets, handset/compliance details, agent type, messaging behavior, company details, and test numbers. Features field validation, draft autosave, and audit trails.
 - **Message Templates:** Complete management with a multi-step creation wizard, versioning, lifecycle states (Draft/Live/Archived), and a detailed version history with rollback capabilities and an audit trail.
 - **Unified RCS Wizard:** Shared component for creating rich RCS messages across different sections, supporting loading of Rich RCS templates.
