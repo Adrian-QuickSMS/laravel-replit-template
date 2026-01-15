@@ -17,6 +17,32 @@
 .content-body {
     overflow: visible !important;
 }
+.send-message-layout {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.send-message-left {
+    flex: 1 1 66.666%;
+    min-width: 0;
+}
+.send-message-right {
+    flex: 0 0 33.333%;
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+}
+@media (max-width: 991.98px) {
+    .send-message-layout {
+        flex-direction: column;
+    }
+    .send-message-left,
+    .send-message-right {
+        flex: 0 0 100%;
+        max-width: 100%;
+        position: static;
+    }
+}
 </style>
 @endpush
 
