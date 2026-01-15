@@ -41,25 +41,25 @@ var rcsCropState = {
     startOffsetX: 0,
     startOffsetY: 0,
     frameWidth: 280,
-    frameHeight: 112,
+    frameHeight: 106,
     orientation: 'vertical_short'
 };
 
 var rcsSingleCardFrameSizes = {
-    'vertical_short': { width: 200, height: 100, aspectRatio: 2 },
-    'vertical_medium': { width: 240, height: 120, aspectRatio: 2 },
-    'vertical_tall': { width: 280, height: 140, aspectRatio: 2 }
+    'vertical_short': { width: 280, height: 106, aspectRatio: 2.64 },
+    'vertical_medium': { width: 280, height: 159, aspectRatio: 1.76 },
+    'vertical_tall': { width: 280, height: 250, aspectRatio: 1.12 }
 };
 
 var rcsCarouselFrameSizes = {
     'small': {
-        'vertical_short': { width: 180, height: 112 },
-        'vertical_medium': { width: 180, height: 168 }
+        'vertical_short': { width: 180, height: 68 },
+        'vertical_medium': { width: 180, height: 102 }
     },
     'medium': {
-        'vertical_short': { width: 296, height: 112 },
-        'vertical_medium': { width: 296, height: 168 },
-        'vertical_tall': { width: 296, height: 264 }
+        'vertical_short': { width: 280, height: 106 },
+        'vertical_medium': { width: 280, height: 159 },
+        'vertical_tall': { width: 280, height: 250 }
     }
 };
 
