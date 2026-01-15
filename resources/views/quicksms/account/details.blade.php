@@ -172,6 +172,79 @@
     font-size: 0.7rem;
     font-weight: 500;
 }
+.selectable-tile {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    background: #fff;
+    text-align: center;
+}
+.selectable-tile:hover {
+    border-color: rgba(136, 108, 192, 0.4);
+    background: rgba(136, 108, 192, 0.03);
+}
+.selectable-tile.selected {
+    border-color: var(--primary);
+    background: rgba(136, 108, 192, 0.08);
+}
+.selectable-tile .tile-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.25rem;
+}
+.selectable-tile .tile-check {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    color: var(--primary);
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.selectable-tile.selected .tile-check {
+    opacity: 1;
+}
+.selectable-tile .tile-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+.selectable-tile .tile-desc {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0;
+    line-height: 1.3;
+}
+.company-lookup-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+.company-lookup-row .form-control {
+    flex: 1;
+}
+.lookup-status {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+.lookup-status.success {
+    color: #28a745;
+}
+.lookup-status.error {
+    color: #dc3545;
+}
+.lookup-status.loading {
+    color: var(--primary);
+}
 .usage-chip i {
     font-size: 0.6rem;
 }
@@ -283,11 +356,43 @@
                     <div class="accordion-body">
                         <p class="text-muted small mb-3">Complete all required fields to enable go-live. This information is used across RCS, SMS SenderID, and billing systems.</p>
                         
+                        <!-- Company Type Tile Selector -->
+                        <div class="field-group mb-4">
+                            <label class="form-label">Company Type<span class="required-indicator">*</span></label>
+                            <div class="row g-3" id="companyTypeSelector">
+                                <div class="col-md-4">
+                                    <div class="selectable-tile company-type-tile" data-type="uk_limited">
+                                        <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                        <div class="tile-icon bg-pastel-primary"><i class="fas fa-building"></i></div>
+                                        <h6 class="tile-title">UK Limited</h6>
+                                        <p class="tile-desc">Private or public limited company registered with Companies House</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="selectable-tile company-type-tile" data-type="sole_trader">
+                                        <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                        <div class="tile-icon bg-pastel-warning"><i class="fas fa-user-tie"></i></div>
+                                        <h6 class="tile-title">Sole Trader</h6>
+                                        <p class="tile-desc">Self-employed individual trading under their own name</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="selectable-tile company-type-tile" data-type="government">
+                                        <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                        <div class="tile-icon bg-pastel-info"><i class="fas fa-landmark"></i></div>
+                                        <h6 class="tile-title">Local, Central Government and NHS</h6>
+                                        <p class="tile-desc">Public sector organisations and health services</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="validation-error" id="companyTypeError">Please select a company type</div>
+                        </div>
+                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Company Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control company-field" id="companyName" value="Acme Communications Ltd">
+                                    <input type="text" class="form-control company-field" id="companyName" value="">
                                     <div class="field-hint">Legal registered company name</div>
                                     <div class="usage-chips">
                                         <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
@@ -300,20 +405,26 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Trading Name<span class="optional-indicator">(Optional)</span></label>
-                                    <input type="text" class="form-control" id="tradingName" value="Acme Comms" placeholder="If different from legal name">
+                                    <input type="text" class="form-control" id="tradingName" value="" placeholder="If different from legal name">
                                     <div class="field-hint">Only if trading under a different name</div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="companyNumberGroup">
                                 <div class="field-group">
-                                    <label class="form-label">Company Number<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control company-field" id="companyNumber" value="12345678" placeholder="e.g., 12345678">
-                                    <div class="field-hint">Companies House registration number</div>
-                                    <div class="usage-chips">
+                                    <label class="form-label" id="companyNumberLabel">Company Number<span class="required-indicator" id="companyNumberRequired">*</span></label>
+                                    <div class="company-lookup-row" id="companyLookupRow">
+                                        <input type="text" class="form-control company-field" id="companyNumber" value="" placeholder="e.g., 12345678">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="lookupCompanyBtn" style="display: none;">
+                                            <i class="fas fa-search me-1"></i>Lookup
+                                        </button>
+                                    </div>
+                                    <div class="field-hint" id="companyNumberHint">Companies House registration number</div>
+                                    <div class="lookup-status" id="lookupStatus"></div>
+                                    <div class="usage-chips" id="companyNumberChips">
                                         <span class="usage-chip"><i class="fas fa-robot"></i> RCS Registration</span>
                                         <span class="usage-chip"><i class="fas fa-id-badge"></i> SMS SenderID</span>
                                     </div>
-                                    <div class="validation-error">Company number is required</div>
+                                    <div class="validation-error" id="companyNumberError">Company number is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -850,9 +961,10 @@ $(document).ready(function() {
         },
         getCompanyInformation: function() {
             return {
+                company_type: selectedCompanyType,
                 company_name: $('#companyName').val(),
                 trading_name: $('#tradingName').val(),
-                company_number: $('#companyNumber').val(),
+                company_number: selectedCompanyType !== 'sole_trader' ? $('#companyNumber').val() : null,
                 sector: $('#companySector').val(),
                 website: $('#companyWebsite').val(),
                 registered_address: {
@@ -1049,6 +1161,139 @@ $(document).ready(function() {
         }
     };
     
+    // Company Type Tile Selector
+    var selectedCompanyType = null;
+    
+    $('.company-type-tile').on('click', function() {
+        $('.company-type-tile').removeClass('selected');
+        $(this).addClass('selected');
+        selectedCompanyType = $(this).data('type');
+        $('#companyTypeError').hide();
+        
+        handleCompanyTypeChange(selectedCompanyType);
+    });
+    
+    function handleCompanyTypeChange(type) {
+        var $numberGroup = $('#companyNumberGroup');
+        var $numberField = $('#companyNumber');
+        var $lookupBtn = $('#lookupCompanyBtn');
+        var $requiredIndicator = $('#companyNumberRequired');
+        var $hint = $('#companyNumberHint');
+        var $chips = $('#companyNumberChips');
+        
+        // Reset lookup status
+        $('#lookupStatus').text('').removeClass('success error loading');
+        
+        switch(type) {
+            case 'uk_limited':
+                // Company Number is mandatory, show lookup button
+                $numberGroup.show();
+                $numberField.prop('required', true).removeClass('is-invalid');
+                $requiredIndicator.show();
+                $lookupBtn.show();
+                $hint.text('Companies House registration number (8 digits)');
+                $chips.show();
+                break;
+                
+            case 'sole_trader':
+                // Company Number is hidden/not required
+                $numberGroup.hide();
+                $numberField.prop('required', false).val('').removeClass('is-invalid');
+                $requiredIndicator.hide();
+                $lookupBtn.hide();
+                break;
+                
+            case 'government':
+                // Company Number is optional
+                $numberGroup.show();
+                $numberField.prop('required', false).removeClass('is-invalid');
+                $requiredIndicator.hide();
+                $lookupBtn.hide();
+                $hint.text('Optional - enter if applicable');
+                $chips.show();
+                break;
+        }
+        
+        updateCompanyStatusBadge();
+    }
+    
+    // Companies House Lookup (backend-ready mock)
+    function lookupCompaniesHouse(companyNumber) {
+        var $status = $('#lookupStatus');
+        var $lookupBtn = $('#lookupCompanyBtn');
+        
+        // Validate format (8 digits or 2 letters + 6 digits)
+        var numberPattern = /^([0-9]{8}|[A-Z]{2}[0-9]{6})$/i;
+        if (!numberPattern.test(companyNumber.trim())) {
+            $status.text('Invalid company number format').addClass('error').removeClass('success loading');
+            return;
+        }
+        
+        $status.html('<i class="fas fa-spinner fa-spin me-1"></i>Looking up...').addClass('loading').removeClass('success error');
+        $lookupBtn.prop('disabled', true);
+        
+        // TODO: Replace with actual Companies House API call
+        // Backend endpoint: POST /api/companies-house/lookup
+        // Request: { company_number: companyNumber }
+        // Response: { company_name, registered_address: { line1, line2, city, county, postcode, country } }
+        
+        setTimeout(function() {
+            // Mock response - simulates successful lookup
+            var mockData = {
+                company_name: 'Acme Communications Ltd',
+                registered_address: {
+                    line1: '123 Business Park',
+                    line2: 'Tech Quarter',
+                    city: 'London',
+                    county: 'Greater London',
+                    postcode: 'EC1A 1BB',
+                    country: 'UK'
+                }
+            };
+            
+            // Populate fields
+            $('#companyName').val(mockData.company_name);
+            $('#regAddress1').val(mockData.registered_address.line1);
+            $('#regAddress2').val(mockData.registered_address.line2);
+            $('#regCity').val(mockData.registered_address.city);
+            $('#regCounty').val(mockData.registered_address.county);
+            $('#regPostcode').val(mockData.registered_address.postcode);
+            $('#regCountry').val(mockData.registered_address.country);
+            
+            $status.html('<i class="fas fa-check-circle me-1"></i>Company details populated').addClass('success').removeClass('error loading');
+            $lookupBtn.prop('disabled', false);
+            
+            updateCompanyStatusBadge();
+            
+            // Log audit for autofill
+            logFieldChange('companyName', '', mockData.company_name, 'Companies House Lookup');
+            
+        }, 1200);
+    }
+    
+    // Lookup button click
+    $('#lookupCompanyBtn').on('click', function() {
+        var companyNumber = $('#companyNumber').val().trim();
+        if (companyNumber) {
+            lookupCompaniesHouse(companyNumber);
+        } else {
+            $('#lookupStatus').text('Please enter a company number first').addClass('error').removeClass('success loading');
+        }
+    });
+    
+    // Auto-lookup on blur for UK Limited
+    $('#companyNumber').on('blur', function() {
+        if (selectedCompanyType === 'uk_limited') {
+            var value = $(this).val().trim();
+            if (value && value.length >= 8) {
+                // Only auto-lookup if company name is empty
+                if (!$('#companyName').val().trim()) {
+                    lookupCompaniesHouse(value);
+                }
+            }
+        }
+    });
+    
     $('#vatRegistered').on('change', function() {
         if ($(this).val() === 'yes') {
             $('#vatDetailsSection').slideDown();
@@ -1151,8 +1396,20 @@ $(document).ready(function() {
     
     function updateCompanyStatusBadge() {
         var allValid = true;
-        var requiredFields = ['#companyName', '#companyNumber', '#companySector', '#companyWebsite', 
+        
+        // Company Type is always required
+        if (!selectedCompanyType) {
+            allValid = false;
+        }
+        
+        // Build required fields based on company type
+        var requiredFields = ['#companyName', '#companySector', '#companyWebsite', 
                               '#regAddress1', '#regCity', '#regPostcode', '#regCountry'];
+        
+        // Company Number is only required for UK Limited
+        if (selectedCompanyType === 'uk_limited') {
+            requiredFields.push('#companyNumber');
+        }
         
         requiredFields.forEach(function(selector) {
             var value = $(selector).val();
