@@ -383,24 +383,40 @@ span.badge.channel-pill-rcs,
 
 /* Compact density mode for laptop screens (<=1440px) */
 @media (max-width: 1440px) {
+    /* Left pane width reduction */
     .qsms-density-compact .chat-left-body {
         width: 300px !important;
         min-width: 300px !important;
         max-width: 300px !important;
     }
+    /* Conversation list items - more compact */
     .qsms-density-compact .chat-bx {
-        padding: 0.625rem 0.75rem;
+        padding: 0.5rem 0.75rem;
     }
-    .qsms-density-compact .p-3 {
-        padding: 0.75rem !important;
+    .qsms-density-compact .chat-bx .chat-name {
+        font-size: 13px !important;
+        max-width: 100px !important;
     }
-    .qsms-density-compact h4.mb-0 {
+    .qsms-density-compact .chat-bx small {
+        font-size: 10px !important;
+    }
+    .qsms-density-compact .chat-bx p {
+        font-size: 12px !important;
+    }
+    /* Header area - only target text, not layout */
+    .qsms-density-compact .meassge-left-side h4.mb-0 {
         font-size: 1rem;
     }
     .qsms-density-compact .qs-pill {
         font-size: 0.65rem;
         padding: 0.2rem 0.4rem;
     }
+    /* Filter dropdowns in left pane */
+    .qsms-density-compact .meassge-left-side .form-select-sm {
+        font-size: 11px !important;
+        padding: 0.25rem 1.5rem 0.25rem 0.5rem !important;
+    }
+    /* Composer form elements only */
     .qsms-density-compact #replyComposerCard .card-body {
         padding: 0.75rem !important;
     }
@@ -423,15 +439,6 @@ span.badge.channel-pill-rcs,
     .qsms-density-compact #replyComposerCard .mb-3 {
         margin-bottom: 0.5rem !important;
     }
-    .qsms-density-compact .contact-name {
-        font-size: 0.8125rem;
-    }
-    .qsms-density-compact .time-stamp {
-        font-size: 0.65rem;
-    }
-    .qsms-density-compact .message-preview {
-        font-size: 0.75rem;
-    }
 }
 
 /* Extra compact for smaller laptops (<=1366px) */
@@ -441,8 +448,18 @@ span.badge.channel-pill-rcs,
         min-width: 260px !important;
         max-width: 260px !important;
     }
-    .qsms-density-compact .p-3 {
-        padding: 0.5rem !important;
+    .qsms-density-compact .chat-bx {
+        padding: 0.4rem 0.5rem;
+    }
+    .qsms-density-compact .chat-bx .chat-name {
+        font-size: 12px !important;
+        max-width: 80px !important;
+    }
+    .qsms-density-compact .chat-bx small {
+        font-size: 9px !important;
+    }
+    .qsms-density-compact .chat-bx p {
+        font-size: 11px !important;
     }
     .qsms-density-compact #replyComposerCard .card-body {
         padding: 0.5rem !important;
