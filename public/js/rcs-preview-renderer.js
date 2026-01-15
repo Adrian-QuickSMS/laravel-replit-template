@@ -64,16 +64,12 @@ var RcsPreviewRenderer = (function() {
         if (height === 'none') return '';
         var heightPx = getMediaHeight(height);
         
-        // Prefer hostedUrl (saved/cropped image) over original url
-        var imageUrl = media.hostedUrl || media.url;
+        // Use url for preview rendering (contains displayable data URL or original URL)
+        // hostedUrl is the payload URL for delivery, not for preview rendering
+        var imageUrl = media.url;
         if (imageUrl) {
-            // Add cache buster for hosted URLs to ensure fresh image after save
-            var cacheBustedUrl = imageUrl;
-            if (imageUrl.indexOf('/storage/rcs-assets/') !== -1) {
-                cacheBustedUrl = imageUrl + (imageUrl.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
-            }
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + ';">' +
-                '<img src="' + escapeHtml(cacheBustedUrl) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +
+                '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +
                 '</div>';
         } else {
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + '; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">' +
