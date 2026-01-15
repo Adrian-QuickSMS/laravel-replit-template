@@ -63,7 +63,19 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - Audit logic is backend-ready (structured JSON payload output to console)
   - No raw audit log UI exposure on this page
   
-  Downstream modules must read from this data and must NOT duplicate fields.
+  **Downstream Consumption:**
+  - Global `window.AccountDetailsData` API for read-only access
+  - Module-specific data via `getForModule(moduleName)`: rcs_agent_registration, sms_senderid_registration, billing_invoicing, finance_reporting, support_incidents, compliance_audit
+  - All responses include `source: 'account_details'` and `read_only: true`
+  - Downstream modules must read from this data and NOT duplicate fields
+  
+  **Non-Functional Requirements:**
+  - Fast-loading: Minimal DOM, efficient field capture on load
+  - Cache-friendly: `getMetadata()` provides cache_key and cache_ttl (300s)
+  - International support: 11 countries, EU VAT validation formats
+  - API-accessible: `exportForApi()` returns HAL-style response with _links
+  - GDPR compliant: `getGdprExport()` provides categorized personal data export, right to rectify via this page
+  - Data versioning: Schema version 1.0.0, no breaking changes to existing contracts
 - **Support:** Provides a dashboard, ticket creation, and knowledge base.
 - **Template Integration:** Templates are dynamically filtered by trigger type and channel, with version numbers and a refresh option.
 - **RCS Asset Management:** Server-side image processing for RCS media using Intervention Image, including SSRF protection, dedicated storage, and an interactive crop editor.

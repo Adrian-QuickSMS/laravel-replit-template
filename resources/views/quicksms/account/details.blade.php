@@ -970,6 +970,82 @@ $(document).ready(function() {
             }
             
             return moduleData;
+        },
+        
+        getDataVersion: function() {
+            return '1.0.0';
+        },
+        
+        getMetadata: function() {
+            return {
+                version: this.getDataVersion(),
+                schema: 'account_details_v1',
+                cache_key: 'account_details_' + Date.now(),
+                cache_ttl: 300,
+                supports: {
+                    international_addresses: true,
+                    eu_vat_validation: true,
+                    gdpr_right_to_rectify: true,
+                    api_accessible: true
+                },
+                supported_countries: ['GB', 'DE', 'FR', 'IE', 'NL', 'ES', 'IT', 'BE', 'AT', 'PL', 'US'],
+                supported_vat_formats: Object.keys(vatFormats),
+                last_modified: new Date().toISOString()
+            };
+        },
+        
+        exportForApi: function() {
+            return {
+                data: this.getAll(),
+                metadata: this.getMetadata(),
+                _links: {
+                    self: '/api/v1/account/details',
+                    audit: '/api/v1/account/details/audit',
+                    gdpr_export: '/api/v1/account/details/gdpr-export',
+                    gdpr_rectify: '/api/v1/account/details/gdpr-rectify'
+                }
+            };
+        },
+        
+        getGdprExport: function() {
+            var data = this.getAll();
+            return {
+                subject_type: 'account',
+                export_date: new Date().toISOString(),
+                data_categories: {
+                    identity: {
+                        first_name: data.sign_up.first_name,
+                        last_name: data.sign_up.last_name,
+                        job_title: data.sign_up.job_title
+                    },
+                    contact: {
+                        email: data.sign_up.email,
+                        mobile: data.sign_up.mobile,
+                        billing_email: data.support_contacts.billing_email,
+                        support_email: data.support_contacts.support_email,
+                        incident_email: data.support_contacts.incident_email
+                    },
+                    company: {
+                        business_name: data.sign_up.business_name,
+                        company_name: data.company.company_name,
+                        trading_name: data.company.trading_name,
+                        company_number: data.company.company_number,
+                        website: data.company.website,
+                        sector: data.company.sector
+                    },
+                    financial: {
+                        vat_registered: data.vat.vat_registered,
+                        vat_number: data.vat.vat_number,
+                        vat_country: data.vat.vat_country
+                    },
+                    addresses: {
+                        registered: data.company.registered_address,
+                        operating: data.company.operating_address
+                    }
+                },
+                rectification_available: true,
+                rectification_url: '/account/details'
+            };
         }
     };
     
