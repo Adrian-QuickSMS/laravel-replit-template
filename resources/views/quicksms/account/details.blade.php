@@ -204,59 +204,69 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#signUpDetails" aria-expanded="true">
                         <i class="fas fa-user-plus me-2 text-primary"></i>Sign Up Details
-                        <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
+                        <span class="section-indicator complete" id="signUpStatusBadge"><i class="fas fa-check-circle"></i> Complete</span>
                     </button>
                 </h2>
                 <div id="signUpDetails" class="accordion-collapse collapse show" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="text-muted small mb-0">All fields are mandatory. Editable by Account Owner or Admin only.</p>
+                            <span class="badge badge-pastel-primary"><i class="fas fa-user-shield me-1"></i>Admin / Owner Only</span>
+                        </div>
+                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Account ID</label>
-                                    <div class="readonly-value">ACC-2024-00847</div>
-                                    <div class="field-hint">System-generated identifier</div>
+                                    <label class="form-label">First Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control signup-field" id="signupFirstName" value="Sarah" data-field="firstName">
+                                    <div class="validation-error">First name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Account Status</label>
-                                    <div class="readonly-value">
-                                        <span class="badge badge-pastel-success">Active</span>
-                                    </div>
+                                    <label class="form-label">Last Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control signup-field" id="signupLastName" value="Johnson" data-field="lastName">
+                                    <div class="validation-error">Last name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Account Created</label>
-                                    <div class="readonly-value">15 March 2023</div>
+                                    <label class="form-label">Job Title<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control signup-field" id="signupJobTitle" value="Account Director" data-field="jobTitle">
+                                    <div class="validation-error">Job title is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Account Type</label>
-                                    <div class="readonly-value">Enterprise</div>
+                                    <label class="form-label">Business Name<span class="required-indicator">*</span></label>
+                                    <input type="text" class="form-control signup-field" id="signupBusinessName" value="Acme Communications Ltd" data-field="businessName">
+                                    <div class="field-hint">Legal registered company name</div>
+                                    <div class="validation-error">Business name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Primary Email<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control" id="primaryEmail" value="admin@acmecomms.co.uk">
-                                    <div class="field-hint">Used for account notifications and login</div>
-                                    <div class="validation-error">Please enter a valid email address</div>
+                                    <label class="form-label">Business Email Address<span class="required-indicator">*</span></label>
+                                    <input type="email" class="form-control signup-field" id="signupEmail" value="sarah.johnson@acmecomms.co.uk" data-field="email">
+                                    <div class="field-hint">Must be unique across the platform</div>
+                                    <div class="validation-error" id="emailError">Please enter a valid email address</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
-                                    <label class="form-label">Account Owner Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control" id="accountOwnerName" value="Sarah Johnson">
-                                    <div class="validation-error">Account owner name is required</div>
+                                    <label class="form-label">Mobile Number<span class="required-indicator">*</span></label>
+                                    <input type="tel" class="form-control signup-field" id="signupMobile" value="+44 7700 900123" placeholder="+44 7XXX XXXXXX" data-field="mobile">
+                                    <div class="field-hint">E.164 format preferred (e.g., +447700900123)</div>
+                                    <div class="validation-error" id="mobileError">Please enter a valid mobile number</div>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="section-actions">
-                            <span class="auto-save-indicator saved" id="signUpAutoSave">
-                                <i class="fas fa-check-circle"></i> All changes saved
-                            </span>
+                            <span class="auto-save-indicator" id="signUpAutoSave"></span>
+                            <button type="button" class="btn btn-primary btn-sm" id="saveSignUpDetails">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -720,17 +730,22 @@ $(document).ready(function() {
         }, 1000);
     }
     
-    $('#signUpDetails input').on('input', function() {
-        triggerAutoSave($('#signUpAutoSave'), 'Sign Up Details');
-    });
-    
     $('#supportOperations input').on('input', function() {
         triggerAutoSave($('#supportAutoSave'), 'Support & Operations');
     });
     
+    function validatePhoneNumber(phone) {
+        var cleaned = phone.replace(/[\s\-\(\)]/g, '');
+        var e164Regex = /^\+[1-9]\d{6,14}$/;
+        var ukRegex = /^(\+44|0044|44)?[1-9]\d{9,10}$/;
+        return e164Regex.test(cleaned) || ukRegex.test(cleaned);
+    }
+    
     function validateField($field) {
         var value = $field.val().trim();
         var isRequired = $field.closest('.field-group').find('.required-indicator').length > 0;
+        
+        $field.val(value);
         
         if (isRequired && !value) {
             $field.addClass('is-invalid');
@@ -741,6 +756,15 @@ $(document).ready(function() {
             var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(value)) {
                 $field.addClass('is-invalid');
+                $('#emailError').text('Please enter a valid email address');
+                return false;
+            }
+        }
+        
+        if ($field.attr('type') === 'tel' && value) {
+            if (!validatePhoneNumber(value)) {
+                $field.addClass('is-invalid');
+                $('#mobileError').text('Please enter a valid mobile number (E.164 format preferred)');
                 return false;
             }
         }
@@ -757,6 +781,31 @@ $(document).ready(function() {
         $field.removeClass('is-invalid');
         return true;
     }
+    
+    function updateSignUpStatusBadge() {
+        var allValid = true;
+        $('.signup-field').each(function() {
+            var value = $(this).val().trim();
+            if (!value) {
+                allValid = false;
+                return false;
+            }
+        });
+        
+        var $badge = $('#signUpStatusBadge');
+        if (allValid) {
+            $badge.removeClass('required').addClass('complete')
+                .html('<i class="fas fa-check-circle"></i> Complete');
+        } else {
+            $badge.removeClass('complete').addClass('required')
+                .html('<i class="fas fa-exclamation-circle"></i> Incomplete');
+        }
+    }
+    
+    $('.signup-field').on('input blur', function() {
+        validateField($(this));
+        updateSignUpStatusBadge();
+    });
     
     $('input, select').on('blur', function() {
         validateField($(this));
@@ -796,6 +845,34 @@ $(document).ready(function() {
             toastr.success('Changes saved successfully. Audit log updated.');
         }, 800);
     }
+    
+    $('#saveSignUpDetails').on('click', function() {
+        var $section = $('#signUpDetails');
+        var $saveBtn = $(this);
+        var $autoSave = $('#signUpAutoSave');
+        var isValid = true;
+        
+        $('.signup-field').each(function() {
+            if (!validateField($(this))) {
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            toastr.error('Please complete all mandatory fields before saving.');
+            return;
+        }
+        
+        $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        showAutoSave($autoSave, 'saving');
+        
+        setTimeout(function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            showAutoSave($autoSave, 'saved');
+            updateSignUpStatusBadge();
+            toastr.success('Sign up details saved successfully.');
+        }, 800);
+    });
     
     $('#saveCompanyInfo').on('click', function() {
         saveSection('companyInfo', $(this), $('#companyAutoSave'));

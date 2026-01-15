@@ -43,7 +43,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Account Details (Source of Truth):** The `Account > Details` page serves as the authoritative single source of truth for all customer account information. Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing & Invoicing, VAT handling, Support tickets, and Compliance records.
   
   **Page Structure (5 Collapsible Accordion Cards):**
-  1. **Sign Up Details** - Account ID (read-only), Status, Created date, Type, Primary Email, Account Owner Name
+  1. **Sign Up Details** - First Name, Last Name, Job Title, Business Name (legal name), Business Email Address (unique platform-wide), Mobile Number (E.164 preferred). All fields mandatory with inline validation. Editable by Account Owner/Admin only.
   2. **Company Information** (Required to go live) - Legal name, Trading name, Company registration number, Industry, Website, Phone, Full registered address
   3. **Support & Operations** (Optional) - Primary Contact (name, title, email, phone), Technical Contact details
   4. **Contract Signatory** (Required to go live) - Authorized signatory name, title, email, phone
