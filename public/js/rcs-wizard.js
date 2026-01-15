@@ -2248,6 +2248,16 @@ function updateRcsButtonsPreview() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Close button handler - properly manages unsaved changes
+    var closeBtn = document.getElementById('rcsWizardCloseBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleRcsWizardClose();
+        });
+    }
+    
     document.querySelectorAll('input[name="rcsMediaSource"]').forEach(function(radio) {
         radio.addEventListener('change', toggleRcsMediaSource);
     });

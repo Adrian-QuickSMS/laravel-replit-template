@@ -3,7 +3,7 @@
         <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
             <div class="modal-header py-3 flex-shrink-0" style="background: var(--primary); color: #fff;">
                 <h5 class="modal-title"><i class="fas fa-magic me-2"></i>RCS Content Wizard</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="handleRcsWizardClose(); return false;"></button>
+                <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
             </div>
             <div class="modal-body p-0 flex-grow-1" style="overflow: hidden;">
                 <div class="row g-0 h-100">
