@@ -399,6 +399,46 @@
     font-weight: 400;
     white-space: nowrap;
 }
+.pricing-error-state,
+.pricing-access-denied {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px dashed #dee2e6;
+}
+.pricing-error-state .error-icon,
+.pricing-access-denied .access-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fff3cd;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+.pricing-error-state .error-icon i {
+    font-size: 1.5rem;
+    color: #856404;
+}
+.pricing-access-denied .access-icon {
+    background: #e9ecef;
+}
+.pricing-access-denied .access-icon i {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+.pricing-loading-state {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px dashed #dee2e6;
+}
+#refreshPricingBtn.loading i {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 .nav-tabs .nav-link {
     color: #6c757d;
     border: none;
@@ -996,19 +1036,62 @@
     
     <!-- Pricing Tab -->
     <div class="tab-pane fade" id="pricingContent" role="tabpanel" aria-labelledby="pricing-tab">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h5 class="mb-1">Your Pricing Plan</h5>
-                        <p class="text-muted mb-0 small">Pricing is managed by your account manager. Contact support to discuss changes.</p>
-                    </div>
-                    <span class="badge bg-light text-dark px-3 py-2">
-                        <i class="fas fa-eye me-1"></i>Read Only
-                    </span>
+        @php
+            // Permission check - only Admin/Owner can view pricing
+            $canViewPricing = true; // TODO: Replace with auth check: auth()->user()->hasRole(['admin', 'owner'])
+            $currentUserRole = 'admin'; // Mock: admin, owner, user
+        @endphp
+        
+        @if(!$canViewPricing)
+            <!-- Access Denied State -->
+            <div class="pricing-access-denied text-center py-5">
+                <div class="access-icon mb-3">
+                    <i class="fas fa-lock"></i>
                 </div>
+                <h5 class="mb-2">Access Restricted</h5>
+                <p class="text-muted mb-0">Pricing information is only available to Account Owners and Administrators.</p>
             </div>
-        </div>
+        @else
+            <!-- Loading State -->
+            <div id="pricingLoadingState" class="pricing-loading-state text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mb-0">Loading pricing from HubSpot...</p>
+            </div>
+            
+            <!-- Error State -->
+            <div id="pricingErrorState" class="pricing-error-state text-center py-5" style="display: none;">
+                <div class="error-icon mb-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h5 class="mb-2">Unable to Load Pricing</h5>
+                <p class="text-muted mb-3" id="pricingErrorMessage">Failed to fetch pricing data. Please try again.</p>
+                <button class="btn btn-primary" id="retryPricingBtn">
+                    <i class="fas fa-sync-alt me-2"></i>Retry
+                </button>
+            </div>
+            
+            <!-- Pricing Content -->
+            <div id="pricingContentLoaded">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="mb-1">Your Pricing Plan</h5>
+                                <p class="text-muted mb-0 small">Pricing is managed by your account manager. Contact support to discuss changes.</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-outline-secondary btn-sm" id="refreshPricingBtn" title="Refresh pricing">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <span class="badge bg-light text-dark px-3 py-2">
+                                    <i class="fas fa-eye me-1"></i>Read Only
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         
         <div class="row g-4" id="pricingTiersDisplay">
             <!-- Starter Tier -->
@@ -1248,6 +1331,8 @@
                 </div>
             </div>
         </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection
@@ -1257,6 +1342,104 @@
 $(document).ready(function() {
     
     $('[data-bs-toggle="tooltip"]').tooltip();
+    
+    // Pricing Service - Mock HubSpot Integration
+    var PricingService = {
+        simulateError: false, // Set to true to test error state
+        
+        fetchPricing: function() {
+            var self = this;
+            return new Promise(function(resolve, reject) {
+                // Show loading state
+                $('#pricingLoadingState').show();
+                $('#pricingErrorState').hide();
+                $('#pricingContentLoaded').hide();
+                
+                // Simulate API delay
+                setTimeout(function() {
+                    $('#pricingLoadingState').hide();
+                    
+                    if (self.simulateError) {
+                        // Simulate HubSpot API failure
+                        reject({ 
+                            message: 'Unable to connect to HubSpot. Please check your connection and try again.',
+                            code: 'HUBSPOT_UNAVAILABLE'
+                        });
+                    } else {
+                        // Simulate successful fetch
+                        resolve({
+                            currentPlan: 'enterprise',
+                            tiers: {
+                                starter: { sms: 0.065, rcs_rich: 0.085, rcs_basic: 0.068, ai_token: 0.002, vmn: 5.00, keyword: 25.00 },
+                                enterprise: { sms: 0.052, rcs_rich: 0.072, rcs_basic: 0.056, ai_token: 0.0015, vmn: 4.00, keyword: 20.00 },
+                                bespoke: { sms: 'custom', rcs_rich: 'custom', rcs_basic: 'custom', ai_token: 'custom', vmn: 'custom', keyword: 'custom' }
+                            },
+                            lastUpdated: new Date().toISOString()
+                        });
+                    }
+                }, 800);
+            });
+        },
+        
+        showError: function(error) {
+            $('#pricingLoadingState').hide();
+            $('#pricingContentLoaded').hide();
+            $('#pricingErrorMessage').text(error.message || 'Failed to fetch pricing data. Please try again.');
+            $('#pricingErrorState').show();
+        },
+        
+        showContent: function(data) {
+            $('#pricingLoadingState').hide();
+            $('#pricingErrorState').hide();
+            $('#pricingContentLoaded').show();
+            console.log('[PricingService] Pricing loaded:', data);
+        }
+    };
+    
+    // Load pricing when tab is clicked
+    $('#pricing-tab').on('shown.bs.tab', function() {
+        // Only load if not already loaded
+        if ($('#pricingContentLoaded').is(':visible')) return;
+        
+        PricingService.fetchPricing()
+            .then(function(data) {
+                PricingService.showContent(data);
+            })
+            .catch(function(error) {
+                PricingService.showError(error);
+            });
+    });
+    
+    // Retry button
+    $('#retryPricingBtn').on('click', function() {
+        PricingService.fetchPricing()
+            .then(function(data) {
+                PricingService.showContent(data);
+            })
+            .catch(function(error) {
+                PricingService.showError(error);
+            });
+    });
+    
+    // Refresh button
+    $('#refreshPricingBtn').on('click', function() {
+        var $btn = $(this);
+        $btn.addClass('loading').prop('disabled', true);
+        
+        PricingService.fetchPricing()
+            .then(function(data) {
+                PricingService.showContent(data);
+            })
+            .catch(function(error) {
+                PricingService.showError(error);
+            })
+            .finally(function() {
+                $btn.removeClass('loading').prop('disabled', false);
+            });
+    });
+    
+    // Expose for testing error state: PricingService.simulateError = true
+    window.PricingService = PricingService;
     
     var originalValues = {};
     var highImpactFields = ['companyName', 'companyNumber', 'vatRegistered'];
