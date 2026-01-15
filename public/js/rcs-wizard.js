@@ -1179,31 +1179,83 @@ function generateCroppedImageDataUrl() {
                 return;
             }
             
+            // Output canvas matches the crop frame aspect ratio but at higher resolution
+            var outputWidth = 720;
+            var outputHeight = Math.round(720 * (rcsCropState.frameHeight / rcsCropState.frameWidth)) || 360;
+            
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
+            canvas.width = outputWidth;
+            canvas.height = outputHeight;
             
-            // Use crop frame dimensions
-            canvas.width = rcsCropState.frameWidth * 2 || 720; // Higher res for quality
-            canvas.height = rcsCropState.frameHeight * 2 || 360;
+            // Get the natural image dimensions
+            var naturalWidth = img.naturalWidth || rcsCropState.imageWidth;
+            var naturalHeight = img.naturalHeight || rcsCropState.imageHeight;
             
-            console.log('[RCS Crop] Canvas size:', canvas.width, 'x', canvas.height);
-            console.log('[RCS Crop] Crop state:', JSON.stringify(rcsCropState));
-            
-            // Calculate source coordinates based on crop state
+            // Calculate how the image appears in the editor
             var scale = rcsCropState.zoom / 100;
+            var scaledWidth = naturalWidth * scale;
+            var scaledHeight = naturalHeight * scale;
+            
+            // The offset tells us where the image's top-left is relative to the frame's top-left
+            // Positive offset = image is shifted right/down from frame origin
+            // Negative offset = image starts before/above frame origin
+            var offsetX = rcsCropState.offsetX || 0;
+            var offsetY = rcsCropState.offsetY || 0;
+            
+            // Calculate what portion of the natural image is visible in the frame
+            // Source coordinates in natural image pixels
+            var sourceX = -offsetX / scale;
+            var sourceY = -offsetY / scale;
+            var sourceWidth = rcsCropState.frameWidth / scale;
+            var sourceHeight = rcsCropState.frameHeight / scale;
+            
+            console.log('[RCS Crop] Natural:', naturalWidth, 'x', naturalHeight);
+            console.log('[RCS Crop] Frame:', rcsCropState.frameWidth, 'x', rcsCropState.frameHeight);
+            console.log('[RCS Crop] Offset:', offsetX, ',', offsetY, 'Scale:', scale);
+            console.log('[RCS Crop] Source rect:', sourceX, sourceY, sourceWidth, sourceHeight);
+            
+            // Handle edge cases where crop extends beyond image bounds
+            var destX = 0, destY = 0, destWidth = outputWidth, destHeight = outputHeight;
+            
+            // If source starts before image (negative), adjust
+            if (sourceX < 0) {
+                destX = (-sourceX / sourceWidth) * outputWidth;
+                destWidth = outputWidth - destX;
+                sourceWidth = sourceWidth + sourceX;
+                sourceX = 0;
+            }
+            if (sourceY < 0) {
+                destY = (-sourceY / sourceHeight) * outputHeight;
+                destHeight = outputHeight - destY;
+                sourceHeight = sourceHeight + sourceY;
+                sourceY = 0;
+            }
+            
+            // If source extends beyond image, clip it
+            if (sourceX + sourceWidth > naturalWidth) {
+                var overflow = (sourceX + sourceWidth) - naturalWidth;
+                destWidth = destWidth * ((sourceWidth - overflow) / sourceWidth);
+                sourceWidth = naturalWidth - sourceX;
+            }
+            if (sourceY + sourceHeight > naturalHeight) {
+                var overflow = (sourceY + sourceHeight) - naturalHeight;
+                destHeight = destHeight * ((sourceHeight - overflow) / sourceHeight);
+                sourceHeight = naturalHeight - sourceY;
+            }
+            
+            // Fill with a background color first (for areas outside the image)
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, outputWidth, outputHeight);
             
             // Draw the cropped region
-            ctx.drawImage(
-                img,
-                -rcsCropState.offsetX / scale,
-                -rcsCropState.offsetY / scale,
-                canvas.width / scale,
-                canvas.height / scale,
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
+            if (sourceWidth > 0 && sourceHeight > 0 && destWidth > 0 && destHeight > 0) {
+                ctx.drawImage(
+                    img,
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    destX, destY, destWidth, destHeight
+                );
+            }
             
             try {
                 var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
@@ -1211,19 +1263,16 @@ function generateCroppedImageDataUrl() {
                 resolve(dataUrl);
             } catch (canvasError) {
                 console.error('[RCS Crop] Canvas toDataURL failed (CORS?):', canvasError);
-                // For file uploads, the original URL is already a data URL we can use
                 if (rcsMediaData.source === 'upload' && rcsMediaData.url && rcsMediaData.url.startsWith('data:')) {
                     console.log('[RCS Crop] Using original data URL for file upload');
                     resolve(rcsMediaData.url);
                 } else {
-                    // For URL sources with CORS issues, we can't crop - use original
                     console.log('[RCS Crop] Fallback to original URL');
                     resolve(rcsMediaData.url || rcsMediaData.originalUrl);
                 }
             }
         } catch (e) {
             console.error('[RCS Crop] Unexpected error:', e);
-            // Fallback to original image URL if canvas fails
             resolve(rcsMediaData.url || rcsMediaData.originalUrl);
         }
     });
