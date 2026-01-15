@@ -190,15 +190,20 @@ body.qsms-fullbleed .qsms-main {
         margin-bottom: 0;
     }
     
-    /* Breadcrumb density */
+    /* Breadcrumb density - maintain proportional sizing with page title */
     .qsms-density-compact .breadcrumb {
-        font-size: 0.75rem;
-        padding: 0.5rem 0;
+        font-size: 0.875rem;
+        padding: 0.5rem 0 0.5rem 0.75rem;
+    }
+    
+    .qsms-density-compact .breadcrumb-item a,
+    .qsms-density-compact .breadcrumb-item.active {
+        font-size: 0.875rem;
     }
     
     /* Page title density */
     .qsms-density-compact .page-titles {
-        padding: 0.5rem 0;
+        padding: 0.5rem 0 0.5rem 0.75rem;
         margin-bottom: 0.5rem;
     }
     
@@ -263,14 +268,19 @@ body.qsms-fullbleed .qsms-main {
         padding: 0.625rem 0.875rem;
     }
     
-    /* Breadcrumb extra density - maintain readability with proper spacing */
+    /* Breadcrumb extra density - match page title size with proper spacing */
     .qsms-density-compact .breadcrumb {
-        font-size: 0.8125rem;
-        padding-left: 0.5rem;
+        font-size: 0.9375rem;
+        padding: 0.5rem 0 0.5rem 1rem;
+    }
+    
+    .qsms-density-compact .breadcrumb-item a,
+    .qsms-density-compact .breadcrumb-item.active {
+        font-size: 0.9375rem;
     }
     
     .qsms-density-compact .page-titles {
-        padding-left: 0.5rem;
+        padding: 0.5rem 0 0.5rem 1rem;
     }
     
     /* Nav tabs extra density */
