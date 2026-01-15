@@ -636,12 +636,16 @@ function getWizardCardSchema(cardNum) {
         hostedUrl = rcsMediaData.hostedUrl || null;
         // For preview display, use savedDataUrl first (immediate after save), 
         // then try resolver, then fall back to original url
+        console.log('[RCS Schema] isCurrentCard, checking savedDataUrl:', !!rcsMediaData.savedDataUrl);
         if (rcsMediaData.savedDataUrl) {
             displayUrl = rcsMediaData.savedDataUrl;
+            console.log('[RCS Schema] Using savedDataUrl, length:', displayUrl.length);
         } else if (hostedUrl) {
             displayUrl = resolveRcsMediaUrl(hostedUrl);
+            console.log('[RCS Schema] Using resolved hostedUrl');
         } else {
             displayUrl = rcsMediaData.url;
+            console.log('[RCS Schema] Using original url');
         }
     } else {
         // For other cards, use hostedUrl as source of truth
@@ -1170,6 +1174,7 @@ function generateCroppedImageDataUrl() {
         try {
             var img = document.getElementById('rcsMediaPreviewImg');
             if (!img || !img.src) {
+                console.error('[RCS Crop] No image loaded');
                 reject(new Error('No image loaded'));
                 return;
             }
@@ -1178,13 +1183,14 @@ function generateCroppedImageDataUrl() {
             var ctx = canvas.getContext('2d');
             
             // Use crop frame dimensions
-            canvas.width = rcsCropState.frameWidth * 2; // Higher res for quality
-            canvas.height = rcsCropState.frameHeight * 2;
+            canvas.width = rcsCropState.frameWidth * 2 || 720; // Higher res for quality
+            canvas.height = rcsCropState.frameHeight * 2 || 360;
+            
+            console.log('[RCS Crop] Canvas size:', canvas.width, 'x', canvas.height);
+            console.log('[RCS Crop] Crop state:', JSON.stringify(rcsCropState));
             
             // Calculate source coordinates based on crop state
             var scale = rcsCropState.zoom / 100;
-            var scaledWidth = rcsCropState.imageWidth * scale;
-            var scaledHeight = rcsCropState.imageHeight * scale;
             
             // Draw the cropped region
             ctx.drawImage(
@@ -1199,8 +1205,24 @@ function generateCroppedImageDataUrl() {
                 canvas.height
             );
             
-            resolve(canvas.toDataURL('image/jpeg', 0.9));
+            try {
+                var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                console.log('[RCS Crop] Generated data URL, length:', dataUrl.length);
+                resolve(dataUrl);
+            } catch (canvasError) {
+                console.error('[RCS Crop] Canvas toDataURL failed (CORS?):', canvasError);
+                // For file uploads, the original URL is already a data URL we can use
+                if (rcsMediaData.source === 'upload' && rcsMediaData.url && rcsMediaData.url.startsWith('data:')) {
+                    console.log('[RCS Crop] Using original data URL for file upload');
+                    resolve(rcsMediaData.url);
+                } else {
+                    // For URL sources with CORS issues, we can't crop - use original
+                    console.log('[RCS Crop] Fallback to original URL');
+                    resolve(rcsMediaData.url || rcsMediaData.originalUrl);
+                }
+            }
         } catch (e) {
+            console.error('[RCS Crop] Unexpected error:', e);
             // Fallback to original image URL if canvas fails
             resolve(rcsMediaData.url || rcsMediaData.originalUrl);
         }
@@ -1231,6 +1253,9 @@ function saveRcsImageEdits() {
         rcsMediaData.assetUuid = uuid;
         rcsMediaData.hostedUrl = mockUrl;
         rcsMediaData.savedDataUrl = croppedDataUrl; // Store for preview
+        
+        console.log('[RCS Save] savedDataUrl set, length:', croppedDataUrl ? croppedDataUrl.length : 0);
+        console.log('[RCS Save] rcsMediaData.savedDataUrl exists:', !!rcsMediaData.savedDataUrl);
         
         // Show the hosted URL section
         showRcsHostedUrl(mockUrl);
