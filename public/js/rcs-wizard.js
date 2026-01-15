@@ -2062,7 +2062,7 @@ function resetRcsButtonForm() {
     var startEl = document.getElementById('rcsButtonEventStart');
     var endEl = document.getElementById('rcsButtonEventEnd');
     var descEl = document.getElementById('rcsButtonEventDesc');
-    if (urlEl) urlEl.value = '';
+    if (urlEl) urlEl.value = 'https://';
     if (phoneEl) phoneEl.value = '';
     if (titleEl) titleEl.value = '';
     if (startEl) startEl.value = '';
@@ -2300,7 +2300,151 @@ document.addEventListener('DOMContentLoaded', function() {
             rcsEditingButtonIndex = -1;
         });
     }
+    
+    // Initialize https:// prefill behavior for all URL inputs
+    initRcsHttpsPrefill();
 });
+
+/**
+ * Initialize https:// prefix protection for URL inputs
+ * Prevents deletion of prefix, handles paste sensibly
+ */
+function initRcsHttpsPrefill() {
+    document.querySelectorAll('.rcs-https-prefill').forEach(function(input) {
+        var prefix = input.getAttribute('data-prefix') || 'https://';
+        
+        // Ensure prefix is present on focus
+        input.addEventListener('focus', function() {
+            if (!this.value || this.value.length < prefix.length) {
+                this.value = prefix;
+            }
+            // Position cursor after prefix
+            setTimeout(function() {
+                if (input.value === prefix) {
+                    input.setSelectionRange(prefix.length, prefix.length);
+                }
+            }, 0);
+        });
+        
+        // Protect prefix on input
+        input.addEventListener('input', function() {
+            protectHttpsPrefix(this, prefix);
+        });
+        
+        // Handle paste - strip duplicate https://
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var pastedText = (e.clipboardData || window.clipboardData).getData('text').trim();
+            
+            // Remove any existing http:// or https:// from pasted text
+            var cleanUrl = pastedText.replace(/^https?:\/\//i, '');
+            
+            // Set the full URL with our prefix
+            this.value = prefix + cleanUrl;
+            
+            // Trigger input event for validation
+            this.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        
+        // Prevent selecting/deleting prefix via keyboard
+        input.addEventListener('keydown', function(e) {
+            var selStart = this.selectionStart;
+            var selEnd = this.selectionEnd;
+            
+            // Prevent backspace from deleting into prefix
+            if (e.key === 'Backspace' && selStart <= prefix.length && selEnd <= prefix.length) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Prevent delete from deleting into prefix when cursor is at prefix end
+            if (e.key === 'Delete' && selStart < prefix.length) {
+                e.preventDefault();
+                this.setSelectionRange(prefix.length, prefix.length);
+                return;
+            }
+            
+            // Prevent selecting before prefix
+            if ((e.key === 'Home' || (e.key === 'a' && (e.ctrlKey || e.metaKey)))) {
+                // Allow but we'll fix selection on keyup
+            }
+        });
+        
+        // Fix cursor position after keyboard navigation
+        input.addEventListener('keyup', function() {
+            if (this.selectionStart < prefix.length) {
+                this.setSelectionRange(prefix.length, Math.max(prefix.length, this.selectionEnd));
+            }
+        });
+        
+        // Fix selection on click
+        input.addEventListener('click', function() {
+            if (this.selectionStart < prefix.length) {
+                this.setSelectionRange(prefix.length, Math.max(prefix.length, this.selectionEnd));
+            }
+        });
+    });
+}
+
+/**
+ * Protect the https:// prefix from being deleted
+ */
+function protectHttpsPrefix(input, prefix) {
+    var value = input.value;
+    
+    // If value doesn't start with prefix, restore it
+    if (!value.toLowerCase().startsWith(prefix.toLowerCase())) {
+        // Try to salvage any URL content after the prefix was damaged
+        var cleanValue = value.replace(/^https?:?\/?\/?/i, '');
+        input.value = prefix + cleanValue;
+        input.setSelectionRange(prefix.length, prefix.length + cleanValue.length);
+    }
+}
+
+/**
+ * Validate HTTPS URL and show error
+ */
+function validateRcsHttpsUrl(input) {
+    var value = input.value.trim();
+    var errorEl = input.parentElement.querySelector('.text-danger') || 
+                  document.getElementById(input.id + 'Error') ||
+                  input.parentElement.parentElement.querySelector('.text-danger');
+    
+    // Check if it's just the prefix (empty URL)
+    if (value === 'https://' || value === '') {
+        return false; // Not valid but don't show error yet
+    }
+    
+    // Must start with https://
+    if (!value.toLowerCase().startsWith('https://')) {
+        if (errorEl) {
+            errorEl.classList.remove('d-none');
+            errorEl.textContent = 'URL must start with https://';
+        }
+        input.classList.add('is-invalid');
+        return false;
+    }
+    
+    // Must have something after https://
+    if (value.length <= 8) {
+        return false;
+    }
+    
+    // Valid URL format check
+    try {
+        new URL(value);
+        if (errorEl) errorEl.classList.add('d-none');
+        input.classList.remove('is-invalid');
+        return true;
+    } catch (e) {
+        if (errorEl) {
+            errorEl.classList.remove('d-none');
+            errorEl.textContent = 'Please enter a valid URL';
+        }
+        input.classList.add('is-invalid');
+        return false;
+    }
+}
 
 /**
  * Load RCS payload from a template into the wizard

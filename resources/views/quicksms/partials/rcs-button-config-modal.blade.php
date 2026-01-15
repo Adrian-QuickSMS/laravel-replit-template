@@ -46,8 +46,8 @@
                 <div id="rcsButtonUrlConfig">
                     <div class="mb-3">
                         <label class="form-label small">URL <span class="text-danger">*</span></label>
-                        <input type="url" class="form-control form-control-sm" id="rcsButtonUrl" placeholder="https://example.com">
-                        <small id="rcsButtonUrlError" class="text-danger d-none">Valid URL is required</small>
+                        <input type="url" class="form-control form-control-sm rcs-https-prefill" id="rcsButtonUrl" value="https://" data-prefix="https://">
+                        <small id="rcsButtonUrlError" class="text-danger d-none">Valid URL is required (must start with https://)</small>
                     </div>
                 </div>
                 

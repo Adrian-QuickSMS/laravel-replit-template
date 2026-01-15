@@ -137,14 +137,16 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="fas fa-globe"></i></span>
                     <input type="url" 
-                           class="form-control" 
+                           class="form-control rcs-https-prefill" 
                            id="{{ $editorId }}UrlInput" 
-                           placeholder="https://example.com/image.jpg">
+                           value="https://"
+                           data-prefix="https://">
                     <button type="button" class="btn btn-outline-primary" id="{{ $editorId }}UrlConfirmBtn">
                         <i class="fas fa-check"></i>
                     </button>
                 </div>
                 <small class="text-muted d-block mt-1">Enter a publicly accessible image URL (JPEG, PNG, GIF)</small>
+                <small id="{{ $editorId }}UrlPrefixError" class="text-danger d-none">URL must start with https://</small>
             </div>
             @endif
             
@@ -482,7 +484,7 @@
         loadedImageData = null;
         fileInput.value = '';
         var urlInput = document.getElementById(editorId + 'UrlInput');
-        if (urlInput) urlInput.value = '';
+        if (urlInput) urlInput.value = 'https://';
         uploadPrompt.classList.remove('d-none');
         if (editorWrapper) editorWrapper.classList.add('d-none');
         hideError();
