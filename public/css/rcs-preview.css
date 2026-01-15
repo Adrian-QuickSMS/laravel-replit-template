@@ -47,8 +47,8 @@
 }
 
 .rcs-phone-frame {
-  width: 375px;
-  height: 750px;
+  width: 360px;
+  height: 800px;
   background: var(--rcs-color-surface);
   border-radius: 40px;
   box-shadow: 
@@ -731,55 +731,51 @@
 }
 
 /* Responsive phone frame scaling for smaller screens */
-@media (max-height: 800px) {
+@media (max-height: 850px) {
   .rcs-phone-frame {
     transform: scale(0.8);
     transform-origin: top center;
-    margin-bottom: -150px;
-  }
-}
-
-@media (max-height: 700px) {
-  .rcs-phone-frame {
-    transform: scale(0.7);
-    transform-origin: top center;
-    margin-bottom: -225px;
-  }
-}
-
-@media (max-height: 600px) {
-  .rcs-phone-frame {
-    transform: scale(0.6);
-    transform-origin: top center;
-    margin-bottom: -300px;
-  }
-}
-
-/* RCS Wizard modal responsive preview */
-#rcsWizardModal .rcs-phone-frame {
-  max-height: calc(100vh - 180px);
-}
-
-@media (max-height: 850px) {
-  #rcsWizardModal .rcs-phone-frame {
-    transform: scale(0.85);
-    transform-origin: top center;
-    margin-bottom: -112px;
+    margin-bottom: -160px;
   }
 }
 
 @media (max-height: 750px) {
-  #rcsWizardModal .rcs-phone-frame {
-    transform: scale(0.75);
+  .rcs-phone-frame {
+    transform: scale(0.7);
     transform-origin: top center;
-    margin-bottom: -187px;
+    margin-bottom: -240px;
   }
 }
 
 @media (max-height: 650px) {
+  .rcs-phone-frame {
+    transform: scale(0.6);
+    transform-origin: top center;
+    margin-bottom: -320px;
+  }
+}
+
+/* RCS Wizard modal responsive preview */
+@media (max-height: 900px) {
+  #rcsWizardModal .rcs-phone-frame {
+    transform: scale(0.85);
+    transform-origin: top center;
+    margin-bottom: -120px;
+  }
+}
+
+@media (max-height: 800px) {
+  #rcsWizardModal .rcs-phone-frame {
+    transform: scale(0.75);
+    transform-origin: top center;
+    margin-bottom: -200px;
+  }
+}
+
+@media (max-height: 700px) {
   #rcsWizardModal .rcs-phone-frame {
     transform: scale(0.65);
     transform-origin: top center;
-    margin-bottom: -262px;
+    margin-bottom: -280px;
   }
 }
