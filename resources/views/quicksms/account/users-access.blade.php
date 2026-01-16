@@ -361,6 +361,23 @@ input:checked + .perm-slider:before {
 input:focus + .perm-slider {
     box-shadow: 0 0 0 2px rgba(136, 108, 192, 0.25);
 }
+
+.btn-purple-outline {
+    background: transparent;
+    border: 1px solid #886cc0;
+    color: #886cc0;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    transition: all 0.15s ease;
+}
+.btn-purple-outline:hover {
+    background: #f3e8ff;
+    border-color: #7c3aed;
+    color: #7c3aed;
+}
+.btn-purple-outline:focus {
+    box-shadow: 0 0 0 2px rgba(136, 108, 192, 0.25);
+}
 </style>
 @endpush
 
@@ -975,15 +992,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
                     
                     if (user.role !== 'owner' && isMainAccountAdmin) {
-                        html += '<button class="btn btn-sm btn-outline-secondary ms-2 btn-change-role" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Change Role</button>';
+                        html += '<button class="btn btn-sm ms-2 btn-change-role btn-purple-outline" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '">Change Role</button>';
                         
                         if (hasMessagingRole) {
-                            html += '<button class="btn btn-sm btn-outline-primary ms-1 btn-change-capability" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-capability="' + (user.senderCapability || 'restricted') + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Sender Level</button>';
+                            html += '<button class="btn btn-sm ms-1 btn-change-capability btn-purple-outline" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-capability="' + (user.senderCapability || 'restricted') + '" data-sub-account-id="' + subAccount.id + '">Sender Level</button>';
                         }
                         
                         var overrideCount = user.permissionOverrides ? Object.keys(user.permissionOverrides).length : 0;
-                        var overrideBadge = overrideCount > 0 ? ' <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">' + overrideCount + '</span>' : '';
-                        html += '<button class="btn btn-sm btn-outline-info ms-1 btn-manage-permissions" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Permissions' + overrideBadge + '</button>';
+                        var overrideBadge = overrideCount > 0 ? ' <span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.6rem;">' + overrideCount + '</span>' : '';
+                        html += '<button class="btn btn-sm ms-1 btn-manage-permissions btn-purple-outline" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '">Permissions' + overrideBadge + '</button>';
                     }
                     html += '</div>';
                     html += '</div>';
