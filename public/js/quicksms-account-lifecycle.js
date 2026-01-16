@@ -765,11 +765,271 @@
         },
         
         // =====================================================
-        // AUDIT LOGGING
+        // COMPREHENSIVE AUDIT LOGGING
+        // =====================================================
+        // Logs queryable for compliance and disputes
+        // All entries include: Account ID, User ID, Timestamp, Action, Previous/New state
         // =====================================================
         
-        _auditLog: [],
+        AUDIT_ACTIONS: {
+            // State transitions
+            STATE_TRANSITION: 'state_transition',
+            ACCOUNT_ACTIVATION: 'account_activation',
+            ADMIN_OVERRIDE: 'admin_override_activation',
+            ACCOUNT_SUSPENDED: 'account_suspended',
+            ACCOUNT_CLOSED: 'account_closed',
+            
+            // Test mode actions
+            TEST_SEND: 'test_send',
+            FRAGMENT_USAGE: 'fragment_usage',
+            TEST_LIMIT_REACHED: 'test_limit_reached',
+            
+            // SenderID actions
+            SENDERID_REQUEST: 'senderid_request',
+            SENDERID_APPROVED: 'senderid_approved',
+            SENDERID_REJECTED: 'senderid_rejected',
+            SENDERID_SUSPENDED: 'senderid_suspended',
+            
+            // Payment actions
+            PAYMENT_ENABLED: 'payment_enabled',
+            PAYMENT_ATTEMPTED: 'payment_attempted',
+            PAYMENT_SUCCESS: 'payment_success',
+            PAYMENT_FAILED: 'payment_failed',
+            
+            // Account details
+            ACCOUNT_DETAILS_UPDATED: 'account_details_updated',
+            VAT_STATUS_CHANGED: 'vat_status_changed'
+        },
         
+        _auditLog: [],
+        _currentUserId: null,
+        
+        // Set current user for audit logging
+        setCurrentUser: function(userId) {
+            this._currentUserId = userId;
+        },
+        
+        // Core audit logging function
+        logAudit: function(action, data) {
+            var entry = {
+                id: 'AUDIT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                // Mandatory fields
+                account_id: this._accountId,
+                user_id: data.user_id || this._currentUserId || 'system',
+                timestamp: new Date().toISOString(),
+                action: action,
+                previous_state: data.previous_state || this._currentState,
+                new_state: data.new_state || this._currentState,
+                // Additional context
+                details: data.details || {},
+                metadata: {
+                    ip_address: 'CAPTURED_BY_SERVER',
+                    user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+                    session_id: sessionStorage.getItem('session_id') || null
+                }
+            };
+            
+            this._auditLog.push(entry);
+            console.log('[Audit]', action + ':', JSON.stringify(entry, null, 2));
+            
+            // TODO: Backend - POST /api/audit/log
+            return entry;
+        },
+        
+        // Log test send attempt
+        logTestSend: function(sendData) {
+            return this.logAudit(this.AUDIT_ACTIONS.TEST_SEND, {
+                details: {
+                    recipient: sendData.recipient,
+                    fragments_used: sendData.fragments_used,
+                    fragments_remaining: sendData.fragments_remaining,
+                    message_length: sendData.message_length,
+                    channel: sendData.channel || 'sms',
+                    success: sendData.success
+                }
+            });
+        },
+        
+        // Log fragment usage
+        logFragmentUsage: function(fragmentsUsed, fragmentsRemaining) {
+            return this.logAudit(this.AUDIT_ACTIONS.FRAGMENT_USAGE, {
+                details: {
+                    fragments_used: fragmentsUsed,
+                    fragments_remaining: fragmentsRemaining,
+                    total_limit: 100
+                }
+            });
+        },
+        
+        // Log test limit reached
+        logTestLimitReached: function() {
+            return this.logAudit(this.AUDIT_ACTIONS.TEST_LIMIT_REACHED, {
+                details: {
+                    limit: 100,
+                    action_blocked: true,
+                    recommendation: 'Activate account to continue sending'
+                }
+            });
+        },
+        
+        // Log SenderID request
+        logSenderIdRequest: function(senderIdData) {
+            return this.logAudit(this.AUDIT_ACTIONS.SENDERID_REQUEST, {
+                details: {
+                    sender_id: senderIdData.sender_id,
+                    type: senderIdData.type, // alphanumeric, numeric, shortcode
+                    status: 'pending',
+                    submitted_at: new Date().toISOString()
+                }
+            });
+        },
+        
+        // Log SenderID approval
+        logSenderIdApproval: function(senderIdData, approvedBy) {
+            return this.logAudit(this.AUDIT_ACTIONS.SENDERID_APPROVED, {
+                user_id: approvedBy,
+                details: {
+                    sender_id: senderIdData.sender_id,
+                    type: senderIdData.type,
+                    previous_status: senderIdData.previous_status || 'pending',
+                    new_status: 'approved',
+                    approved_at: new Date().toISOString()
+                }
+            });
+        },
+        
+        // Log SenderID rejection
+        logSenderIdRejection: function(senderIdData, rejectedBy, reason) {
+            return this.logAudit(this.AUDIT_ACTIONS.SENDERID_REJECTED, {
+                user_id: rejectedBy,
+                details: {
+                    sender_id: senderIdData.sender_id,
+                    type: senderIdData.type,
+                    previous_status: senderIdData.previous_status || 'pending',
+                    new_status: 'rejected',
+                    rejection_reason: reason,
+                    rejected_at: new Date().toISOString()
+                }
+            });
+        },
+        
+        // Log payment enablement
+        logPaymentEnabled: function() {
+            return this.logAudit(this.AUDIT_ACTIONS.PAYMENT_ENABLED, {
+                previous_state: this.STATES.TEST,
+                new_state: this._currentState,
+                details: {
+                    requirements_met: true,
+                    enabled_at: new Date().toISOString()
+                }
+            });
+        },
+        
+        // Log payment attempt
+        logPaymentAttempt: function(paymentData) {
+            return this.logAudit(this.AUDIT_ACTIONS.PAYMENT_ATTEMPTED, {
+                details: {
+                    amount: paymentData.amount,
+                    currency: paymentData.currency || 'GBP',
+                    payment_method: paymentData.method || 'card',
+                    reference: paymentData.reference
+                }
+            });
+        },
+        
+        // Log payment success
+        logPaymentSuccess: function(paymentData) {
+            return this.logAudit(this.AUDIT_ACTIONS.PAYMENT_SUCCESS, {
+                details: {
+                    amount: paymentData.amount,
+                    currency: paymentData.currency || 'GBP',
+                    payment_reference: paymentData.reference,
+                    stripe_payment_id: paymentData.stripe_id || null,
+                    credits_added: paymentData.credits_added || null
+                }
+            });
+        },
+        
+        // Log payment failure
+        logPaymentFailure: function(paymentData, errorReason) {
+            return this.logAudit(this.AUDIT_ACTIONS.PAYMENT_FAILED, {
+                details: {
+                    amount: paymentData.amount,
+                    currency: paymentData.currency || 'GBP',
+                    payment_reference: paymentData.reference,
+                    error_code: paymentData.error_code || null,
+                    error_message: errorReason
+                }
+            });
+        },
+        
+        // Log account details update
+        logAccountDetailsUpdate: function(fieldsChanged) {
+            return this.logAudit(this.AUDIT_ACTIONS.ACCOUNT_DETAILS_UPDATED, {
+                details: {
+                    fields_changed: fieldsChanged,
+                    updated_at: new Date().toISOString()
+                }
+            });
+        },
+        
+        // Query audit log (for compliance/disputes)
+        queryAuditLog: function(filters) {
+            var results = this._auditLog.slice();
+            
+            if (filters) {
+                if (filters.action) {
+                    results = results.filter(function(e) { return e.action === filters.action; });
+                }
+                if (filters.account_id) {
+                    results = results.filter(function(e) { return e.account_id === filters.account_id; });
+                }
+                if (filters.user_id) {
+                    results = results.filter(function(e) { return e.user_id === filters.user_id; });
+                }
+                if (filters.from_date) {
+                    var fromDate = new Date(filters.from_date);
+                    results = results.filter(function(e) { return new Date(e.timestamp) >= fromDate; });
+                }
+                if (filters.to_date) {
+                    var toDate = new Date(filters.to_date);
+                    results = results.filter(function(e) { return new Date(e.timestamp) <= toDate; });
+                }
+                if (filters.state) {
+                    results = results.filter(function(e) { 
+                        return e.previous_state === filters.state || e.new_state === filters.state; 
+                    });
+                }
+            }
+            
+            // Sort by timestamp descending (newest first)
+            results.sort(function(a, b) { 
+                return new Date(b.timestamp) - new Date(a.timestamp); 
+            });
+            
+            return {
+                total: results.length,
+                entries: results,
+                query_time: new Date().toISOString()
+            };
+        },
+        
+        // Export audit log for compliance
+        exportAuditLog: function(format) {
+            var log = this.queryAuditLog();
+            
+            if (format === 'csv') {
+                var csv = 'ID,Account ID,User ID,Timestamp,Action,Previous State,New State\n';
+                log.entries.forEach(function(e) {
+                    csv += [e.id, e.account_id, e.user_id, e.timestamp, e.action, e.previous_state, e.new_state].join(',') + '\n';
+                });
+                return csv;
+            }
+            
+            return JSON.stringify(log, null, 2);
+        },
+        
+        // Legacy transition logging (uses new system)
         _logTransition: function(fromState, toState, reason) {
             var entry = {
                 id: 'LIFECYCLE-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
