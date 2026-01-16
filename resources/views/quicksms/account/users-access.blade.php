@@ -1683,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             html += '<div class="col-md-6 mb-3">';
             html += '<div class="card h-100 border-0" style="box-shadow: 0 1px 3px rgba(0,0,0,0.08);">';
-            html += '<div class="card-header py-2 border-0" style="background: linear-gradient(135deg, #f3e8ff 0%, #faf5ff 100%); color: #6b21a8;"><i class="fas ' + cat.icon + ' me-2" style="color: #886cc0;"></i>' + cat.label + '</div>';
+            html += '<div class="card-header py-2 border-0" style="background: #f8f9fa; color: #6b7280;"><i class="fas ' + cat.icon + ' me-2" style="color: #9ca3af;"></i>' + cat.label + '</div>';
             html += '<div class="card-body py-2">';
             
             Object.keys(cat.permissions).forEach(function(permKey) {
@@ -1694,9 +1694,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 var sourceClass = hasOverride ? 'override' : 'inherited';
                 var sourceBadge = hasOverride 
                     ? '<span class="badge ms-2" style="background: #fef3c7; color: #b45309; font-size: 0.65rem; font-weight: 500;">Override</span>' 
-                    : '<span class="badge ms-2" style="background: #f3e8ff; color: #7c3aed; font-size: 0.65rem; font-weight: 500;">Inherited</span>';
+                    : '<span class="badge ms-2" style="background: #f3f4f6; color: #9ca3af; font-size: 0.65rem; font-weight: 500;">Inherited</span>';
                 
-                html += '<div class="d-flex justify-content-between align-items-center py-2 border-bottom perm-row" data-perm="' + permKey + '" data-default="' + defaultValue + '" style="border-color: #f3e8ff !important;">';
+                html += '<div class="d-flex justify-content-between align-items-center py-2 border-bottom perm-row" data-perm="' + permKey + '" data-default="' + defaultValue + '" style="border-color: #e5e7eb !important;">';
                 html += '<div class="d-flex align-items-center flex-wrap">';
                 html += '<span style="font-size: 0.85rem; color: #374151;">' + perm.label + '</span>';
                 html += '<span class="source-badge" data-source="' + sourceClass + '">' + sourceBadge + '</span>';
@@ -1761,7 +1761,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hasOverride) {
             sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #fef3c7; color: #b45309; font-size: 0.65rem; font-weight: 500;">Override</span>';
         } else {
-            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #f3e8ff; color: #7c3aed; font-size: 0.65rem; font-weight: 500;">Inherited</span>';
+            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #f3f4f6; color: #9ca3af; font-size: 0.65rem; font-weight: 500;">Inherited</span>';
         }
     }
     
