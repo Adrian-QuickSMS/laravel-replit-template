@@ -1046,6 +1046,26 @@ class QuickSMSController extends Controller
             'campaigns' => $campaigns,
         ]);
     }
+    
+    public function campaignApprovals()
+    {
+        $pendingApprovals = [
+            ['id' => 'camp_pa001', 'name' => 'January Promo Blast', 'sub_account' => 'Marketing Department', 'created_by' => 'Emma Thompson', 'message_volume' => 5200, 'estimated_cost' => 156.00, 'scheduled_time' => '2026-01-20 09:00', 'status' => 'pending', 'channel' => 'SMS', 'created_at' => '2026-01-15 14:32'],
+            ['id' => 'camp_pa002', 'name' => 'Product Launch RCS', 'sub_account' => 'Marketing Department', 'created_by' => 'Michael Brown', 'message_volume' => 3800, 'estimated_cost' => 228.00, 'scheduled_time' => '2026-01-21 10:00', 'status' => 'pending', 'channel' => 'RCS', 'created_at' => '2026-01-16 09:15'],
+            ['id' => 'camp_pa003', 'name' => 'Flash Sale Alert', 'sub_account' => 'Customer Support', 'created_by' => 'Chris Martinez', 'message_volume' => 1500, 'estimated_cost' => 45.00, 'scheduled_time' => '2026-01-18 12:00', 'status' => 'pending', 'channel' => 'SMS', 'created_at' => '2026-01-16 11:45'],
+        ];
+        
+        $recentDecisions = [
+            ['id' => 'camp_rd001', 'name' => 'Weekend Special', 'sub_account' => 'Marketing Department', 'created_by' => 'Emma Thompson', 'decision' => 'approved', 'approver' => 'Sarah Mitchell', 'decided_at' => '2026-01-14 16:20'],
+            ['id' => 'camp_rd002', 'name' => 'Discount Code SMS', 'sub_account' => 'Marketing Department', 'created_by' => 'Michael Brown', 'decision' => 'rejected', 'approver' => 'James Wilson', 'decided_at' => '2026-01-13 10:05', 'rejection_reason' => 'Content requires compliance review before sending'],
+        ];
+        
+        return view('quicksms.messages.campaign-approvals', [
+            'page_title' => 'Campaign Approvals',
+            'pending_approvals' => $pendingApprovals,
+            'recent_decisions' => $recentDecisions,
+        ]);
+    }
 
     public function contacts()
     {

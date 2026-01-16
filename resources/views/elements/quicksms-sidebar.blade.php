@@ -17,6 +17,7 @@
                     <li data-subnav="send"><a href="{{ route('messages.send') }}" class="{{ request()->routeIs('messages.send') ? 'mm-active' : '' }}">Send Message</a></li>
                     <li data-subnav="inbox"><a href="{{ route('messages.inbox') }}" class="{{ request()->routeIs('messages.inbox') ? 'mm-active' : '' }}">Inbox</a></li>
                     <li data-subnav="campaign-history"><a href="{{ route('messages.campaign-history') }}" class="{{ request()->routeIs('messages.campaign-history') ? 'mm-active' : '' }}">Campaign History</a></li>
+                    <li data-subnav="campaign-approvals" data-requires-role="campaign-approver,admin,owner"><a href="{{ route('messages.campaign-approvals') }}" class="{{ request()->routeIs('messages.campaign-approvals') ? 'mm-active' : '' }}"><i class="fas fa-clipboard-check me-1" style="font-size: 0.7rem;"></i>Campaign Approvals</a></li>
                 </ul>
             </li>
             

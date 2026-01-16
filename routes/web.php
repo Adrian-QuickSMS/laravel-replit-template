@@ -20,6 +20,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/messages/confirm', 'confirmCampaign')->name('messages.confirm');
     Route::get('/messages/inbox', 'inbox')->name('messages.inbox');
     Route::get('/messages/campaign-history', 'campaignHistory')->name('messages.campaign-history');
+    Route::get('/messages/campaign-approvals', 'campaignApprovals')->name('messages.campaign-approvals');
     
     Route::get('/contacts', 'contacts')->name('contacts');
     Route::get('/contacts/all', 'allContacts')->name('contacts.all');
