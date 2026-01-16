@@ -931,7 +931,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.company_type) {
                     selectedCompanyType = data.company_type;
                     document.getElementById('company_type').value = data.company_type;
-                    document.querySelector('.company-type-tile[data-type="' + data.company_type + '"]')?.classList.add('selected');
+                    var tile = document.querySelector('.company-type-tile[data-type="' + data.company_type + '"]');
+                    if (tile) tile.classList.add('selected');
                     updateCompanyTypeFields();
                 }
                 
@@ -947,10 +948,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.vat_registered === 'yes') {
                     document.getElementById('vatCountryGroup').style.display = 'block';
                     document.getElementById('vatNumberGroup').style.display = 'block';
-                    document.getElementById('reverseChargeGroup').style.display = 'block';
+                    document.getElementById('reverseChargesGroup').style.display = 'block';
                 }
                 
-                validateForm();
+                // Validate form and check if complete
+                var isComplete = validateForm();
+                
+                // If all fields are complete, set activation status
+                if (isComplete && lifecycle) {
+                    lifecycle.setActivationStatus('account_details_complete', true);
+                    console.log('[Activate] Loaded saved data - account details complete');
+                }
             } catch (e) {
                 console.error('Error loading saved data:', e);
             }
