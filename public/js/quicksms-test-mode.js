@@ -226,6 +226,42 @@
             };
         },
         
+        // Get message preview info strip HTML for SMS/RCS preview panels
+        // Non-dismissible, pastel purple info style
+        getMessagePreviewInfoStrip: function() {
+            if (!this.isTestMode()) return '';
+            
+            return '<div class="test-mode-preview-strip" style="' +
+                   'background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%); ' +
+                   'border: 1px solid #c4b5fd; ' +
+                   'border-radius: 8px; ' +
+                   'padding: 12px 16px; ' +
+                   'margin-bottom: 12px; ' +
+                   'font-size: 13px;">' +
+                   '<div style="display: flex; align-items: flex-start; gap: 10px;">' +
+                   '<i class="fas fa-info-circle" style="color: #7c3aed; margin-top: 2px;"></i>' +
+                   '<div>' +
+                   '<strong style="color: #5b21b6; display: block; margin-bottom: 4px;">Test Mode</strong>' +
+                   '<span style="color: #6b7280;">A safety disclaimer will be automatically appended to this message. ' +
+                   'This may increase the number of message parts used.</span>' +
+                   '</div>' +
+                   '</div>' +
+                   '</div>';
+        },
+        
+        // Get info strip data for programmatic use
+        getMessagePreviewInfo: function() {
+            if (!this.isTestMode()) return null;
+            
+            return {
+                visible: true,
+                title: 'Test Mode',
+                message: 'A safety disclaimer will be automatically appended to this message. This may increase the number of message parts used.',
+                disclaimer_chars: this.CONFIG.disclaimer_char_count,
+                style: 'info' // Not warning - informational
+            };
+        },
+        
         // =====================================================
         // RECIPIENT VALIDATION
         // =====================================================
