@@ -948,6 +948,35 @@ input:focus + .perm-slider {
     </div>
 </div>
 
+<div class="modal fade" id="genericConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirmModalBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div id="genericToast" class="toast" role="alert">
+        <div class="toast-header">
+            <i class="me-2" id="toastIcon"></i>
+            <strong class="me-auto" id="toastTitle">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
 <div class="offcanvas offcanvas-end" tabindex="-1" id="subAccountDetailDrawer" style="width: 550px;">
     <div class="offcanvas-header border-bottom" style="background: linear-gradient(135deg, #886cc0 0%, #a78bfa 100%);">
         <div class="text-white">
@@ -1383,7 +1412,65 @@ input:focus + .perm-slider {
 
 @push('scripts')
 <script>
+function showToast(type, title, message) {
+    var toast = document.getElementById('genericToast');
+    var toastIcon = document.getElementById('toastIcon');
+    var toastTitle = document.getElementById('toastTitle');
+    var toastMessage = document.getElementById('toastMessage');
+    
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    
+    toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+    toastIcon.className = 'me-2';
+    
+    if (type === 'success') {
+        toast.style.borderLeft = '4px solid #22c55e';
+        toastIcon.classList.add('fas', 'fa-check-circle');
+        toastIcon.style.color = '#22c55e';
+    } else if (type === 'error') {
+        toast.style.borderLeft = '4px solid #ef4444';
+        toastIcon.classList.add('fas', 'fa-exclamation-circle');
+        toastIcon.style.color = '#ef4444';
+    } else if (type === 'warning') {
+        toast.style.borderLeft = '4px solid #f59e0b';
+        toastIcon.classList.add('fas', 'fa-exclamation-triangle');
+        toastIcon.style.color = '#f59e0b';
+    } else {
+        toast.style.borderLeft = '4px solid #886cc0';
+        toastIcon.classList.add('fas', 'fa-info-circle');
+        toastIcon.style.color = '#886cc0';
+    }
+    
+    var bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+    bsToast.show();
+}
+
+var confirmCallback = null;
+
+function showConfirmModal(title, message, buttonText, buttonClass, callback) {
+    document.getElementById('confirmModalTitle').textContent = title;
+    document.getElementById('confirmModalMessage').textContent = message;
+    
+    var btn = document.getElementById('confirmModalBtn');
+    btn.textContent = buttonText;
+    btn.className = 'btn ' + buttonClass;
+    
+    confirmCallback = callback;
+    
+    var modal = new bootstrap.Modal(document.getElementById('genericConfirmModal'));
+    modal.show();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmModalBtn').addEventListener('click', function() {
+        bootstrap.Modal.getInstance(document.getElementById('genericConfirmModal')).hide();
+        if (confirmCallback) {
+            confirmCallback();
+            confirmCallback = null;
+        }
+    });
+    
     var currentUserRole = 'admin';
     var isMainAccountAdmin = true;
     
@@ -2490,13 +2577,22 @@ document.addEventListener('DOMContentLoaded', function() {
         renderHierarchy();
         
         var overrideCount = Object.keys(tempPermissionChanges).length;
-        alert('Permissions saved.\n\n' + overrideCount + ' override(s) active.\n\nChanges have been logged.');
+        showToast('success', 'Permissions saved', overrideCount + ' override(s) active. Changes have been logged.');
     });
     
     document.getElementById('btn-reset-all-overrides').addEventListener('click', function() {
-        if (!confirm('Reset all permissions to role defaults? This will remove all overrides.')) {
-            return;
-        }
+        showConfirmModal(
+            'Reset Permissions',
+            'Reset all permissions to role defaults? This will remove all overrides.',
+            'Reset',
+            'btn-warning',
+            function() {
+                doResetPermissions();
+            }
+        );
+    });
+    
+    function doResetPermissions() {
         
         tempPermissionChanges = {};
         
@@ -2612,26 +2708,32 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!subAccount) return;
         
         var action = newStatus === 'live' ? 'reactivate' : newStatus;
-        if (!confirm('Are you sure you want to ' + action + ' "' + subAccount.name + '"?\n\nThis will affect all users in this sub-account.')) {
-            return;
-        }
+        var btnClass = newStatus === 'suspended' ? 'btn-warning' : (newStatus === 'archived' ? 'btn-danger' : 'btn-success');
         
-        var previousStatus = subAccount.accountStatus;
-        subAccount.accountStatus = newStatus;
-        
-        console.log('[AUDIT] Sub-account status changed:', {
-            action: 'SUB_ACCOUNT_STATUS_CHANGED',
-            subAccountId: subId,
-            subAccountName: subAccount.name,
-            previousStatus: previousStatus,
-            newStatus: newStatus,
-            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-            timestamp: new Date().toISOString()
-        });
-        
-        openSubAccountDrawer(subId);
-        renderHierarchy();
-        alert('Sub-account status changed to ' + capitalise(newStatus));
+        showConfirmModal(
+            capitalise(action) + ' Sub-Account',
+            'Are you sure you want to ' + action + ' "' + subAccount.name + '"? This will affect all users in this sub-account.',
+            capitalise(action),
+            btnClass,
+            function() {
+                var previousStatus = subAccount.accountStatus;
+                subAccount.accountStatus = newStatus;
+                
+                console.log('[AUDIT] Sub-account status changed:', {
+                    action: 'SUB_ACCOUNT_STATUS_CHANGED',
+                    subAccountId: subId,
+                    subAccountName: subAccount.name,
+                    previousStatus: previousStatus,
+                    newStatus: newStatus,
+                    changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+                    timestamp: new Date().toISOString()
+                });
+                
+                openSubAccountDrawer(subId);
+                renderHierarchy();
+                showToast('success', 'Status Changed', 'Sub-account status changed to ' + capitalise(newStatus));
+            }
+        );
     };
     
     function openUserDetailDrawer(userId, subId) {
@@ -2703,27 +2805,33 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!user) return;
         
         var action = newStatus === 'active' ? 'reactivate' : newStatus;
-        if (!confirm('Are you sure you want to ' + action + ' user "' + user.name + '"?')) {
-            return;
-        }
+        var btnClass = newStatus === 'suspended' ? 'btn-warning' : 'btn-success';
         
-        var previousStatus = user.status;
-        user.status = newStatus;
-        
-        console.log('[AUDIT] User status changed:', {
-            action: 'USER_STATUS_CHANGED',
-            userId: userId,
-            userName: user.name,
-            subAccountId: subId,
-            previousStatus: previousStatus,
-            newStatus: newStatus,
-            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-            timestamp: new Date().toISOString()
-        });
-        
-        openUserDetailDrawer(userId, subId);
-        renderHierarchy();
-        alert('User status changed to ' + capitalise(newStatus));
+        showConfirmModal(
+            capitalise(action) + ' User',
+            'Are you sure you want to ' + action + ' user "' + user.name + '"?',
+            capitalise(action),
+            btnClass,
+            function() {
+                var previousStatus = user.status;
+                user.status = newStatus;
+                
+                console.log('[AUDIT] User status changed:', {
+                    action: 'USER_STATUS_CHANGED',
+                    userId: userId,
+                    userName: user.name,
+                    subAccountId: subId,
+                    previousStatus: previousStatus,
+                    newStatus: newStatus,
+                    changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+                    timestamp: new Date().toISOString()
+                });
+                
+                openUserDetailDrawer(userId, subId);
+                renderHierarchy();
+                showToast('success', 'Status Changed', 'User status changed to ' + capitalise(newStatus));
+            }
+        );
     };
     
     document.getElementById('btn-save-limits').addEventListener('click', function() {
@@ -2784,7 +2892,7 @@ document.addEventListener('DOMContentLoaded', function() {
             timestamp: new Date().toISOString()
         });
         
-        alert('Notification settings saved successfully.');
+        showToast('success', 'Settings saved', 'Notification settings have been updated.');
     });
     
     renderHierarchy();
