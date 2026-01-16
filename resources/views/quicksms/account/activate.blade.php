@@ -147,26 +147,6 @@
     .form-label .required {
         color: #ef4444;
     }
-    .field-status {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.875rem;
-    }
-    .field-status.valid {
-        color: #10b981;
-    }
-    .field-status.invalid {
-        color: #ef4444;
-    }
-    .input-with-status {
-        position: relative;
-    }
-    .input-with-status input,
-    .input-with-status select {
-        padding-right: 2.5rem;
-    }
     .progress-indicator {
         display: flex;
         align-items: center;
@@ -191,6 +171,105 @@
         min-width: 60px;
         text-align: right;
     }
+    
+    /* Company Type Tiles */
+    .company-type-tiles {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .company-type-tile {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        position: relative;
+        background: #fff;
+    }
+    .company-type-tile:hover {
+        border-color: rgba(136, 108, 192, 0.4);
+        background: rgba(136, 108, 192, 0.03);
+    }
+    .company-type-tile.selected {
+        border-color: #886cc0;
+        background: rgba(136, 108, 192, 0.08);
+    }
+    .company-type-tile .tile-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-size: 1rem;
+    }
+    .company-type-tile .tile-icon.bg-purple { background: rgba(136, 108, 192, 0.15); color: #886cc0; }
+    .company-type-tile .tile-icon.bg-amber { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+    .company-type-tile .tile-icon.bg-blue { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+    .company-type-tile .tile-check {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        color: #886cc0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .company-type-tile.selected .tile-check {
+        opacity: 1;
+    }
+    .company-type-tile .tile-title {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    .company-type-tile .tile-desc {
+        font-size: 0.7rem;
+        color: #6b7280;
+        line-height: 1.3;
+        margin: 0;
+    }
+    
+    /* Lookup Row */
+    .lookup-row {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .lookup-row .form-control {
+        flex: 1;
+    }
+    .lookup-status {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    .lookup-status.success { color: #10b981; }
+    .lookup-status.error { color: #ef4444; }
+    .lookup-status.loading { color: #886cc0; }
+    
+    .field-hint {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    .validation-error {
+        font-size: 0.75rem;
+        color: #ef4444;
+        margin-top: 0.25rem;
+        display: none;
+    }
+    .is-invalid ~ .validation-error {
+        display: block;
+    }
+    
+    @media (max-width: 576px) {
+        .company-type-tiles {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 @endpush
 
@@ -212,6 +291,7 @@
                     <div class="step-title">Complete Account Details</div>
                     <div class="step-description">Provide your company information for compliance and billing</div>
                     <ul class="requirement-list" id="details-requirements">
+                        <li><i class="fas fa-circle pending" id="req-company-type"></i> Company type</li>
                         <li><i class="fas fa-circle pending" id="req-company"></i> Company name</li>
                         <li><i class="fas fa-circle pending" id="req-address"></i> Business address</li>
                         <li><i class="fas fa-circle pending" id="req-website"></i> Website</li>
@@ -287,7 +367,7 @@
 
 <!-- Complete Details Modal -->
 <div class="modal fade" id="completeDetailsModal" tabindex="-1" aria-labelledby="completeDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <div>
@@ -304,63 +384,128 @@
                     <div class="progress">
                         <div class="progress-bar" role="progressbar" style="width: 0%" id="form-progress"></div>
                     </div>
-                    <span class="progress-text" id="form-progress-text">0 of 5</span>
+                    <span class="progress-text" id="form-progress-text">0 of 6</span>
                 </div>
 
                 <form id="accountDetailsForm">
+                    <!-- Company Type Selector -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-building"></i> Company Type <span class="required">*</span>
+                        </div>
+                        <div class="company-type-tiles" id="companyTypeSelector">
+                            <div class="company-type-tile" data-type="uk_limited">
+                                <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                <div class="tile-icon bg-purple"><i class="fas fa-building"></i></div>
+                                <div class="tile-title">UK Limited</div>
+                                <p class="tile-desc">Private or public limited company registered with Companies House</p>
+                            </div>
+                            <div class="company-type-tile" data-type="sole_trader">
+                                <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                <div class="tile-icon bg-amber"><i class="fas fa-user-tie"></i></div>
+                                <div class="tile-title">Sole Trader</div>
+                                <p class="tile-desc">Self-employed individual trading under their own name</p>
+                            </div>
+                            <div class="company-type-tile" data-type="government">
+                                <div class="tile-check"><i class="fas fa-check-circle"></i></div>
+                                <div class="tile-icon bg-blue"><i class="fas fa-landmark"></i></div>
+                                <div class="tile-title">Government & NHS</div>
+                                <p class="tile-desc">Public sector organisations and health services</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="company_type" name="company_type" value="">
+                        <div class="validation-error" id="companyTypeError">Please select a company type</div>
+                    </div>
+
                     <!-- Company Information -->
                     <div class="form-section">
                         <div class="form-section-title">
-                            <i class="fas fa-building"></i> Company Information
+                            <i class="fas fa-info-circle"></i> Company Information
                         </div>
                         <div class="row g-3">
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <label for="company_name" class="form-label">Company Name <span class="required">*</span></label>
-                                <div class="input-with-status">
-                                    <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Enter your legal company name" required>
-                                    <span class="field-status" id="status-company"></span>
-                                </div>
+                                <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Legal registered company name" required>
+                                <div class="validation-error">Company name is required</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="trading_name" class="form-label">Trading Name <span class="text-muted">(Optional)</span></label>
-                                <input type="text" class="form-control" id="trading_name" name="trading_name" placeholder="If different from company name">
+                                <input type="text" class="form-control" id="trading_name" name="trading_name" placeholder="If different from legal name">
+                            </div>
+                            <div class="col-md-6" id="companyNumberGroup">
+                                <label for="company_number" class="form-label" id="companyNumberLabel">Company Number <span class="required" id="companyNumberRequired">*</span></label>
+                                <div class="lookup-row">
+                                    <input type="text" class="form-control" id="company_number" name="company_number" placeholder="e.g., 12345678">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="lookupCompanyBtn" style="display: none;">
+                                        <i class="fas fa-search me-1"></i>Lookup
+                                    </button>
+                                </div>
+                                <div class="field-hint" id="companyNumberHint">Companies House registration number (8 digits)</div>
+                                <div class="lookup-status" id="companyLookupStatus"></div>
+                                <div class="validation-error" id="companyNumberError">Company number is required</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="company_number" class="form-label">Company Number <span class="text-muted">(Optional)</span></label>
-                                <input type="text" class="form-control" id="company_number" name="company_number" placeholder="e.g. 12345678">
+                                <label for="sector" class="form-label">Business Sector <span class="required">*</span></label>
+                                <select class="form-select" id="sector" name="sector" required>
+                                    <option value="">Select sector...</option>
+                                    <option value="telecommunications">Telecommunications & Media</option>
+                                    <option value="financial">Financial Services</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="retail">Retail & E-commerce</option>
+                                    <option value="travel">Travel & Hospitality</option>
+                                    <option value="education">Education</option>
+                                    <option value="government">Government & Public Sector</option>
+                                    <option value="technology">Technology</option>
+                                    <option value="manufacturing">Manufacturing</option>
+                                    <option value="professional">Professional Services</option>
+                                    <option value="utilities">Utilities & Energy</option>
+                                    <option value="logistics">Logistics & Transport</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <div class="validation-error">Please select a sector</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="website" class="form-label">Website <span class="required">*</span></label>
+                                <input type="url" class="form-control" id="website" name="website" placeholder="https://www.example.com" required>
+                                <div class="field-hint">Must start with https://</div>
+                                <div class="validation-error" id="websiteError">Please enter a valid website URL</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Business Address -->
+                    <!-- Registered Address -->
                     <div class="form-section">
                         <div class="form-section-title">
-                            <i class="fas fa-map-marker-alt"></i> Business Address
+                            <i class="fas fa-map-marker-alt"></i> Registered Address
                         </div>
                         <div class="row g-3">
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <label for="address_line1" class="form-label">Address Line 1 <span class="required">*</span></label>
-                                <div class="input-with-status">
-                                    <input type="text" class="form-control" id="address_line1" name="address_line1" placeholder="Street address" required>
-                                    <span class="field-status" id="status-address"></span>
-                                </div>
+                                <input type="text" class="form-control" id="address_line1" name="address_line1" placeholder="Street address" required>
+                                <div class="validation-error">Address is required</div>
                             </div>
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <label for="address_line2" class="form-label">Address Line 2 <span class="text-muted">(Optional)</span></label>
                                 <input type="text" class="form-control" id="address_line2" name="address_line2" placeholder="Apartment, suite, etc.">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="city" class="form-label">City <span class="required">*</span></label>
                                 <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
+                                <div class="validation-error">City is required</div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
+                                <label for="county" class="form-label">County / Region <span class="text-muted">(Optional)</span></label>
+                                <input type="text" class="form-control" id="county" name="county" placeholder="County">
+                            </div>
+                            <div class="col-md-4">
                                 <label for="postcode" class="form-label">Postcode <span class="required">*</span></label>
                                 <input type="text" class="form-control" id="postcode" name="postcode" placeholder="Postcode" required>
+                                <div class="validation-error">Postcode is required</div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label for="country" class="form-label">Country <span class="required">*</span></label>
                                 <select class="form-select" id="country" name="country" required>
-                                    <option value="">Select...</option>
+                                    <option value="">Select country...</option>
                                     <option value="GB" selected>United Kingdom</option>
                                     <option value="IE">Ireland</option>
                                     <option value="DE">Germany</option>
@@ -373,46 +518,7 @@
                                     <option value="CA">Canada</option>
                                     <option value="AU">Australia</option>
                                 </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Website & Sector -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-globe"></i> Business Details
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="website" class="form-label">Website <span class="required">*</span></label>
-                                <div class="input-with-status">
-                                    <input type="url" class="form-control" id="website" name="website" placeholder="https://www.example.com" required>
-                                    <span class="field-status" id="status-website"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="sector" class="form-label">Business Sector <span class="required">*</span></label>
-                                <div class="input-with-status">
-                                    <select class="form-select" id="sector" name="sector" required>
-                                        <option value="">Select sector...</option>
-                                        <option value="retail">Retail & E-commerce</option>
-                                        <option value="healthcare">Healthcare</option>
-                                        <option value="finance">Finance & Banking</option>
-                                        <option value="technology">Technology</option>
-                                        <option value="education">Education</option>
-                                        <option value="hospitality">Hospitality & Travel</option>
-                                        <option value="manufacturing">Manufacturing</option>
-                                        <option value="logistics">Logistics & Transport</option>
-                                        <option value="professional_services">Professional Services</option>
-                                        <option value="government">Government & Public Sector</option>
-                                        <option value="nhs">NHS & Health Services</option>
-                                        <option value="charity">Charity & Non-profit</option>
-                                        <option value="real_estate">Real Estate</option>
-                                        <option value="utilities">Utilities</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                    <span class="field-status" id="status-sector"></span>
-                                </div>
+                                <div class="validation-error">Country is required</div>
                             </div>
                         </div>
                     </div>
@@ -425,19 +531,46 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="vat_registered" class="form-label">VAT Registered? <span class="required">*</span></label>
-                                <div class="input-with-status">
-                                    <select class="form-select" id="vat_registered" name="vat_registered" required>
-                                        <option value="">Select...</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                    <span class="field-status" id="status-vat"></span>
-                                </div>
+                                <select class="form-select" id="vat_registered" name="vat_registered" required>
+                                    <option value="">Select...</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                                <div class="validation-error">Please select VAT status</div>
                             </div>
-                            <div class="col-md-6" id="vat-number-group" style="display: none;">
+                            <div class="col-md-6" id="vatCountryGroup" style="display: none;">
+                                <label for="vat_country" class="form-label">VAT Country <span class="required">*</span></label>
+                                <select class="form-select" id="vat_country" name="vat_country">
+                                    <option value="GB" selected>United Kingdom (GB)</option>
+                                    <option value="IE">Ireland (IE)</option>
+                                    <option value="DE">Germany (DE)</option>
+                                    <option value="FR">France (FR)</option>
+                                    <option value="NL">Netherlands (NL)</option>
+                                    <option value="BE">Belgium (BE)</option>
+                                    <option value="ES">Spain (ES)</option>
+                                    <option value="IT">Italy (IT)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="vatNumberGroup" style="display: none;">
                                 <label for="vat_number" class="form-label">VAT Number <span class="required">*</span></label>
-                                <input type="text" class="form-control" id="vat_number" name="vat_number" placeholder="e.g. GB123456789">
-                                <div class="form-text">Include country prefix (e.g. GB, IE, DE)</div>
+                                <div class="lookup-row">
+                                    <input type="text" class="form-control" id="vat_number" name="vat_number" placeholder="e.g., GB123456789">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="lookupVatBtn">
+                                        <i class="fas fa-search me-1"></i>Verify
+                                    </button>
+                                </div>
+                                <div class="field-hint">Include country prefix (e.g., GB, IE, DE)</div>
+                                <div class="lookup-status" id="vatLookupStatus"></div>
+                                <div class="validation-error" id="vatNumberError">VAT number is required</div>
+                            </div>
+                            <div class="col-12" id="reverseChargeGroup" style="display: none;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="reverse_charge" name="reverse_charge">
+                                    <label class="form-check-label" for="reverse_charge">
+                                        Apply Reverse Charge (EU B2B transactions only)
+                                        <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" title="If you are a VAT registered business in the EU (excluding UK), reverse charge may apply to your invoices."></i>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -466,29 +599,277 @@ document.addEventListener('DOMContentLoaded', function() {
     var progressBar = document.getElementById('form-progress');
     var progressText = document.getElementById('form-progress-text');
     
-    // Required fields for validation
-    var requiredFields = {
-        company: { field: 'company_name', status: 'status-company', req: 'req-company' },
-        address: { fields: ['address_line1', 'city', 'postcode', 'country'], status: 'status-address', req: 'req-address' },
-        website: { field: 'website', status: 'status-website', req: 'req-website' },
-        sector: { field: 'sector', status: 'status-sector', req: 'req-sector' },
-        vat: { field: 'vat_registered', status: 'status-vat', req: 'req-vat' }
+    // State
+    var selectedCompanyType = '';
+    
+    // Required field groups
+    var requiredGroups = {
+        companyType: { complete: false, reqId: 'req-company-type' },
+        company: { complete: false, reqId: 'req-company' },
+        address: { complete: false, reqId: 'req-address' },
+        website: { complete: false, reqId: 'req-website' },
+        sector: { complete: false, reqId: 'req-sector' },
+        vat: { complete: false, reqId: 'req-vat' }
     };
     
-    // Load existing data from localStorage/sessionStorage
+    // =====================================================
+    // COMPANY TYPE SELECTION
+    // =====================================================
+    document.querySelectorAll('.company-type-tile').forEach(function(tile) {
+        tile.addEventListener('click', function() {
+            document.querySelectorAll('.company-type-tile').forEach(function(t) {
+                t.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            selectedCompanyType = this.getAttribute('data-type');
+            document.getElementById('company_type').value = selectedCompanyType;
+            document.getElementById('companyTypeError').style.display = 'none';
+            
+            updateCompanyTypeFields();
+            validateForm();
+        });
+    });
+    
+    function updateCompanyTypeFields() {
+        var companyNumberGroup = document.getElementById('companyNumberGroup');
+        var companyNumberRequired = document.getElementById('companyNumberRequired');
+        var companyNumberInput = document.getElementById('company_number');
+        var lookupBtn = document.getElementById('lookupCompanyBtn');
+        var hint = document.getElementById('companyNumberHint');
+        
+        switch (selectedCompanyType) {
+            case 'uk_limited':
+                companyNumberGroup.style.display = 'block';
+                companyNumberRequired.style.display = 'inline';
+                companyNumberInput.setAttribute('required', 'required');
+                lookupBtn.style.display = 'inline-block';
+                hint.textContent = 'Companies House registration number (8 digits)';
+                break;
+            case 'sole_trader':
+                companyNumberGroup.style.display = 'none';
+                companyNumberRequired.style.display = 'none';
+                companyNumberInput.removeAttribute('required');
+                companyNumberInput.value = '';
+                lookupBtn.style.display = 'none';
+                break;
+            case 'government':
+                companyNumberGroup.style.display = 'block';
+                companyNumberRequired.style.display = 'none';
+                companyNumberInput.removeAttribute('required');
+                lookupBtn.style.display = 'none';
+                hint.textContent = 'Organisation reference number (optional)';
+                break;
+        }
+    }
+    
+    // =====================================================
+    // COMPANIES HOUSE LOOKUP
+    // =====================================================
+    document.getElementById('lookupCompanyBtn').addEventListener('click', function() {
+        var companyNumber = document.getElementById('company_number').value.trim();
+        var status = document.getElementById('companyLookupStatus');
+        
+        if (!companyNumber || companyNumber.length < 8) {
+            status.className = 'lookup-status error';
+            status.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Please enter a valid 8-digit company number';
+            return;
+        }
+        
+        status.className = 'lookup-status loading';
+        status.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Searching Companies House...';
+        
+        // TODO: Backend - GET /api/companies-house/lookup/{companyNumber}
+        // Simulated lookup for UI demonstration
+        setTimeout(function() {
+            // Simulate API response
+            var mockData = {
+                success: true,
+                company_name: 'Example Ltd',
+                registered_address: {
+                    line1: '123 Business Street',
+                    city: 'London',
+                    postcode: 'EC1A 1BB',
+                    country: 'United Kingdom'
+                }
+            };
+            
+            if (mockData.success) {
+                status.className = 'lookup-status success';
+                status.innerHTML = '<i class="fas fa-check-circle me-1"></i>Company found - details populated';
+                
+                // Auto-fill fields
+                document.getElementById('company_name').value = mockData.company_name;
+                document.getElementById('address_line1').value = mockData.registered_address.line1;
+                document.getElementById('city').value = mockData.registered_address.city;
+                document.getElementById('postcode').value = mockData.registered_address.postcode;
+                
+                validateForm();
+            } else {
+                status.className = 'lookup-status error';
+                status.innerHTML = '<i class="fas fa-times-circle me-1"></i>Company not found';
+            }
+        }, 1500);
+    });
+    
+    // =====================================================
+    // VAT TOGGLE & LOOKUP
+    // =====================================================
+    document.getElementById('vat_registered').addEventListener('change', function() {
+        var isVatRegistered = this.value === 'yes';
+        document.getElementById('vatCountryGroup').style.display = isVatRegistered ? 'block' : 'none';
+        document.getElementById('vatNumberGroup').style.display = isVatRegistered ? 'block' : 'none';
+        document.getElementById('reverseChargeGroup').style.display = isVatRegistered ? 'block' : 'none';
+        
+        var vatInput = document.getElementById('vat_number');
+        if (isVatRegistered) {
+            vatInput.setAttribute('required', 'required');
+        } else {
+            vatInput.removeAttribute('required');
+            vatInput.value = '';
+        }
+        validateForm();
+    });
+    
+    document.getElementById('lookupVatBtn').addEventListener('click', function() {
+        var vatNumber = document.getElementById('vat_number').value.trim();
+        var status = document.getElementById('vatLookupStatus');
+        
+        if (!vatNumber || vatNumber.length < 9) {
+            status.className = 'lookup-status error';
+            status.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Please enter a valid VAT number';
+            return;
+        }
+        
+        status.className = 'lookup-status loading';
+        status.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Verifying VAT number...';
+        
+        // TODO: Backend - GET /api/vat/validate/{vatNumber}
+        // Simulated lookup for UI demonstration
+        setTimeout(function() {
+            var isValid = vatNumber.length >= 9;
+            
+            if (isValid) {
+                status.className = 'lookup-status success';
+                status.innerHTML = '<i class="fas fa-check-circle me-1"></i>VAT number verified';
+            } else {
+                status.className = 'lookup-status error';
+                status.innerHTML = '<i class="fas fa-times-circle me-1"></i>Invalid VAT number';
+            }
+        }, 1200);
+    });
+    
+    // =====================================================
+    // FORM VALIDATION
+    // =====================================================
+    function validateForm() {
+        // Company Type
+        requiredGroups.companyType.complete = selectedCompanyType !== '';
+        
+        // Company Name
+        var companyName = document.getElementById('company_name').value.trim();
+        requiredGroups.company.complete = companyName !== '';
+        
+        // Company Number (conditional)
+        if (selectedCompanyType === 'uk_limited') {
+            var companyNumber = document.getElementById('company_number').value.trim();
+            requiredGroups.company.complete = requiredGroups.company.complete && companyNumber.length >= 8;
+        }
+        
+        // Address
+        var addr1 = document.getElementById('address_line1').value.trim();
+        var cityVal = document.getElementById('city').value.trim();
+        var postcodeVal = document.getElementById('postcode').value.trim();
+        var countryVal = document.getElementById('country').value;
+        requiredGroups.address.complete = addr1 !== '' && cityVal !== '' && postcodeVal !== '' && countryVal !== '';
+        
+        // Website
+        var websiteVal = document.getElementById('website').value.trim();
+        try {
+            if (websiteVal) new URL(websiteVal);
+            requiredGroups.website.complete = websiteVal !== '' && websiteVal.startsWith('https://');
+        } catch (e) {
+            requiredGroups.website.complete = false;
+        }
+        
+        // Sector
+        requiredGroups.sector.complete = document.getElementById('sector').value !== '';
+        
+        // VAT
+        var vatRegistered = document.getElementById('vat_registered').value;
+        if (vatRegistered === 'no') {
+            requiredGroups.vat.complete = true;
+        } else if (vatRegistered === 'yes') {
+            var vatNum = document.getElementById('vat_number').value.trim();
+            requiredGroups.vat.complete = vatNum.length >= 9;
+        } else {
+            requiredGroups.vat.complete = false;
+        }
+        
+        // Update requirement list icons
+        var completedCount = 0;
+        var totalCount = Object.keys(requiredGroups).length;
+        
+        Object.keys(requiredGroups).forEach(function(key) {
+            var group = requiredGroups[key];
+            var reqEl = document.getElementById(group.reqId);
+            if (reqEl) {
+                reqEl.classList.remove('fa-circle', 'fa-check-circle', 'pending', 'complete');
+                if (group.complete) {
+                    reqEl.classList.add('fa-check-circle', 'complete');
+                    completedCount++;
+                } else {
+                    reqEl.classList.add('fa-circle', 'pending');
+                }
+            }
+        });
+        
+        // Update progress bar
+        var percent = Math.round((completedCount / totalCount) * 100);
+        progressBar.style.width = percent + '%';
+        progressText.textContent = completedCount + ' of ' + totalCount;
+        
+        // Enable/disable save button
+        saveBtn.disabled = completedCount < totalCount;
+        
+        return completedCount === totalCount;
+    }
+    
+    // Add validation listeners
+    form.querySelectorAll('input, select').forEach(function(input) {
+        input.addEventListener('input', validateForm);
+        input.addEventListener('change', validateForm);
+    });
+    
+    // =====================================================
+    // LOAD SAVED DATA
+    // =====================================================
     function loadSavedData() {
         var saved = localStorage.getItem('account_details');
         if (saved) {
             try {
                 var data = JSON.parse(saved);
+                
+                // Set company type
+                if (data.company_type) {
+                    selectedCompanyType = data.company_type;
+                    document.getElementById('company_type').value = data.company_type;
+                    document.querySelector('.company-type-tile[data-type="' + data.company_type + '"]')?.classList.add('selected');
+                    updateCompanyTypeFields();
+                }
+                
+                // Set other fields
                 Object.keys(data).forEach(function(key) {
                     var el = document.getElementById(key);
-                    if (el) el.value = data[key] || '';
+                    if (el && key !== 'company_type') {
+                        el.value = data[key] || '';
+                    }
                 });
                 
-                // Handle VAT number visibility
+                // Handle VAT visibility
                 if (data.vat_registered === 'yes') {
-                    document.getElementById('vat-number-group').style.display = 'block';
+                    document.getElementById('vatCountryGroup').style.display = 'block';
+                    document.getElementById('vatNumberGroup').style.display = 'block';
+                    document.getElementById('reverseChargeGroup').style.display = 'block';
                 }
                 
                 validateForm();
@@ -498,96 +879,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Validate a single field group
-    function validateFieldGroup(groupKey) {
-        var group = requiredFields[groupKey];
-        var isValid = false;
-        
-        if (group.fields) {
-            // Multiple fields (address)
-            isValid = group.fields.every(function(fieldId) {
-                var el = document.getElementById(fieldId);
-                return el && el.value.trim() !== '';
-            });
-        } else {
-            // Single field
-            var el = document.getElementById(group.field);
-            isValid = el && el.value.trim() !== '';
-            
-            // Special validation for website
-            if (groupKey === 'website' && isValid) {
-                try {
-                    new URL(el.value);
-                } catch (e) {
-                    isValid = false;
-                }
-            }
-        }
-        
-        // Update status icon in form
-        var statusEl = document.getElementById(group.status);
-        if (statusEl) {
-            statusEl.innerHTML = isValid ? '<i class="fas fa-check-circle valid"></i>' : '';
-        }
-        
-        // Update requirement list icon
-        var reqEl = document.getElementById(group.req);
-        if (reqEl) {
-            reqEl.classList.remove('fa-circle', 'fa-check-circle', 'pending', 'complete');
-            if (isValid) {
-                reqEl.classList.add('fa-check-circle', 'complete');
-            } else {
-                reqEl.classList.add('fa-circle', 'pending');
-            }
-        }
-        
-        return isValid;
-    }
-    
-    // Validate entire form
-    function validateForm() {
-        var validCount = 0;
-        var totalCount = Object.keys(requiredFields).length;
-        
-        Object.keys(requiredFields).forEach(function(key) {
-            if (validateFieldGroup(key)) {
-                validCount++;
-            }
-        });
-        
-        // Update progress
-        var percent = Math.round((validCount / totalCount) * 100);
-        progressBar.style.width = percent + '%';
-        progressText.textContent = validCount + ' of ' + totalCount;
-        
-        // Enable/disable save button
-        saveBtn.disabled = validCount < totalCount;
-        
-        return validCount === totalCount;
-    }
-    
-    // VAT registered toggle
-    document.getElementById('vat_registered').addEventListener('change', function() {
-        var vatGroup = document.getElementById('vat-number-group');
-        vatGroup.style.display = this.value === 'yes' ? 'block' : 'none';
-        
-        var vatInput = document.getElementById('vat_number');
-        if (this.value === 'yes') {
-            vatInput.setAttribute('required', 'required');
-        } else {
-            vatInput.removeAttribute('required');
-            vatInput.value = '';
-        }
-        validateForm();
-    });
-    
-    // Add validation listeners to all form inputs
-    form.querySelectorAll('input, select').forEach(function(input) {
-        input.addEventListener('input', validateForm);
-        input.addEventListener('change', validateForm);
-    });
-    
-    // Save details
+    // =====================================================
+    // SAVE DETAILS
+    // =====================================================
     saveBtn.addEventListener('click', function() {
         if (!validateForm()) return;
         
@@ -596,6 +890,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.forEach(function(value, key) {
             data[key] = value;
         });
+        data.company_type = selectedCompanyType;
         
         // Save to localStorage (syncs with Account Details page)
         localStorage.setItem('account_details', JSON.stringify(data));
@@ -606,8 +901,6 @@ document.addEventListener('DOMContentLoaded', function() {
             lifecycle.onAccountDetailsComplete(function(result) {
                 console.log('Account details saved:', result);
             });
-            
-            // Log audit
             lifecycle.logAccountDetailsUpdate(Object.keys(data));
         }
         
@@ -635,6 +928,9 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { toast.remove(); }, 3000);
     }
     
+    // =====================================================
+    // UPDATE UI
+    // =====================================================
     function updateUI() {
         var activationStatus = lifecycle ? lifecycle.getActivationStatus() : { account_details_complete: false };
         var isLive = lifecycle ? lifecycle.isLive() : false;
@@ -682,14 +978,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '{{ route("purchase.messages") }}';
     });
     
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(el) {
+        new bootstrap.Tooltip(el);
+    });
+    
     // Initialize
     loadSavedData();
     updateUI();
     
-    // Listen for lifecycle changes
-    document.addEventListener('lifecycle:state_changed', function(e) {
-        updateUI();
-    });
+    document.addEventListener('lifecycle:state_changed', updateUI);
 });
 </script>
 @endpush
