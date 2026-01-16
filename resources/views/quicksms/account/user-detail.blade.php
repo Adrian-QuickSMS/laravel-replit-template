@@ -280,6 +280,76 @@
     background: #7c3aed;
 }
 
+.limits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+.limit-card {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+}
+.limit-card.inherited {
+    border-style: dashed;
+    background: #faf8ff;
+}
+.limit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+.limit-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.025em;
+}
+.inheritance-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.inheritance-badge.inherited {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+.inheritance-badge.override {
+    background: #fef3c7;
+    color: #92400e;
+}
+.limit-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+.limit-source {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.limit-source i {
+    font-size: 0.65rem;
+}
+.sub-account-limit {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+.sub-account-limit span {
+    font-weight: 500;
+    color: #374151;
+}
+
 .modal-header {
     border-bottom: 1px solid #e5e7eb;
 }
@@ -446,6 +516,97 @@
         </div>
     </div>
     
+    <div class="section-card" id="limits-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                User-Level Limits
+            </h2>
+            <button class="btn-action primary" data-bs-toggle="modal" data-bs-target="#editLimitsModal">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+        </div>
+        <div class="section-body">
+            @php
+                $userSpendCap = $user['spend_cap'] ?? null;
+                $userMessageCap = $user['message_cap'] ?? null;
+                $userEnforcement = $user['enforcement_type'] ?? null;
+                $subAccountSpendCap = 5000;
+                $subAccountMessageCap = 100000;
+                $subAccountEnforcement = 'soft_stop';
+            @endphp
+            <div class="limits-grid">
+                <div class="limit-card {{ $userSpendCap === null ? 'inherited' : '' }}">
+                    <div class="limit-header">
+                        <span class="limit-label">Monthly Spend Cap</span>
+                        <span class="inheritance-badge {{ $userSpendCap === null ? 'inherited' : 'override' }}">
+                            <i class="fas fa-{{ $userSpendCap === null ? 'link' : 'pen' }}"></i>
+                            {{ $userSpendCap === null ? 'Inherited' : 'Override' }}
+                        </span>
+                    </div>
+                    <div class="limit-value">£{{ number_format($userSpendCap ?? $subAccountSpendCap, 2) }}</div>
+                    <div class="limit-source">
+                        @if($userSpendCap === null)
+                            <i class="fas fa-arrow-up"></i> From Sub-Account
+                        @else
+                            <i class="fas fa-user"></i> User-specific limit
+                        @endif
+                    </div>
+                    <div class="sub-account-limit">
+                        Sub-Account max: <span>£{{ number_format($subAccountSpendCap, 2) }}</span>
+                    </div>
+                </div>
+                
+                <div class="limit-card {{ $userMessageCap === null ? 'inherited' : '' }}">
+                    <div class="limit-header">
+                        <span class="limit-label">Monthly Message Cap</span>
+                        <span class="inheritance-badge {{ $userMessageCap === null ? 'inherited' : 'override' }}">
+                            <i class="fas fa-{{ $userMessageCap === null ? 'link' : 'pen' }}"></i>
+                            {{ $userMessageCap === null ? 'Inherited' : 'Override' }}
+                        </span>
+                    </div>
+                    <div class="limit-value">{{ number_format($userMessageCap ?? $subAccountMessageCap) }}</div>
+                    <div class="limit-source">
+                        @if($userMessageCap === null)
+                            <i class="fas fa-arrow-up"></i> From Sub-Account
+                        @else
+                            <i class="fas fa-user"></i> User-specific limit
+                        @endif
+                    </div>
+                    <div class="sub-account-limit">
+                        Sub-Account max: <span>{{ number_format($subAccountMessageCap) }}</span>
+                    </div>
+                </div>
+                
+                <div class="limit-card {{ $userEnforcement === null ? 'inherited' : '' }}">
+                    <div class="limit-header">
+                        <span class="limit-label">Enforcement Type</span>
+                        <span class="inheritance-badge {{ $userEnforcement === null ? 'inherited' : 'override' }}">
+                            <i class="fas fa-{{ $userEnforcement === null ? 'link' : 'pen' }}"></i>
+                            {{ $userEnforcement === null ? 'Inherited' : 'Override' }}
+                        </span>
+                    </div>
+                    @php
+                        $effectiveEnforcement = $userEnforcement ?? $subAccountEnforcement;
+                        $enforcementLabels = [
+                            'warn_only' => 'Warn Only',
+                            'soft_stop' => 'Soft Stop',
+                            'hard_stop' => 'Hard Stop'
+                        ];
+                    @endphp
+                    <div class="limit-value" style="font-size: 1rem;">{{ $enforcementLabels[$effectiveEnforcement] ?? 'Unknown' }}</div>
+                    <div class="limit-source">
+                        @if($userEnforcement === null)
+                            <i class="fas fa-arrow-up"></i> From Sub-Account
+                        @else
+                            <i class="fas fa-user"></i> User-specific setting
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="section-card" id="activity-section">
         <div class="section-header">
             <h2 class="section-title">
@@ -567,11 +728,99 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editLimitsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tachometer-alt me-2" style="color: #886cc0;"></i>Edit User-Level Limits</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3" style="font-size: 0.8rem; background: #f3e8ff; border-color: #886cc0; color: #5b21b6;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    User limits cannot exceed Sub-Account limits. Leave blank to inherit from Sub-Account.
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size: 0.85rem;">
+                            Monthly Spend Cap
+                            <span class="text-muted">(Sub-Account max: £5,000.00)</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">£</span>
+                            <input type="number" class="form-control" id="edit-spend-cap" placeholder="Inherit from Sub-Account" min="0" max="5000" step="0.01" data-max="5000">
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="inherit-spend-cap" checked>
+                            <label class="form-check-label" for="inherit-spend-cap" style="font-size: 0.8rem;">
+                                Inherit from Sub-Account
+                            </label>
+                        </div>
+                        <div class="invalid-feedback" id="spend-cap-error" style="display: none;">
+                            Value exceeds Sub-Account limit of £5,000.00
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-size: 0.85rem;">
+                            Monthly Message Cap
+                            <span class="text-muted">(Sub-Account max: 100,000)</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="edit-message-cap" placeholder="Inherit from Sub-Account" min="0" max="100000" data-max="100000">
+                            <span class="input-group-text">msgs</span>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="inherit-message-cap" checked>
+                            <label class="form-check-label" for="inherit-message-cap" style="font-size: 0.8rem;">
+                                Inherit from Sub-Account
+                            </label>
+                        </div>
+                        <div class="invalid-feedback" id="message-cap-error" style="display: none;">
+                            Value exceeds Sub-Account limit of 100,000
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" style="font-size: 0.85rem;">
+                        Enforcement Type
+                        <span class="text-muted">(Sub-Account: Soft Stop)</span>
+                    </label>
+                    <select class="form-select" id="edit-enforcement-type">
+                        <option value="" selected>Inherit from Sub-Account</option>
+                        <option value="warn_only">Warn Only - Alert but allow sending</option>
+                        <option value="soft_stop">Soft Stop - Block with admin override</option>
+                        <option value="hard_stop">Hard Stop - Block completely</option>
+                    </select>
+                    <div class="form-text" style="font-size: 0.75rem;">
+                        Enforcement determines what happens when limits are reached.
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" style="font-size: 0.85rem;">Reason for change <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="limits-change-reason" rows="2" placeholder="Required for audit trail..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="btn-save-limits" style="background: #886cc0; color: white;">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const SUB_ACCOUNT_SPEND_CAP = 5000;
+    const SUB_ACCOUNT_MESSAGE_CAP = 100000;
+    
     const messagingRoles = ['messaging-manager', 'admin'];
     const roleSelect = document.getElementById('edit-user-role');
     const capabilitySection = document.getElementById('sender-capability-section');
@@ -636,6 +885,105 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Audit] Role changed', { role, capability, reason, timestamp: new Date().toISOString() });
         bootstrap.Modal.getInstance(document.getElementById('editRoleModal')).hide();
         showToast('Role and permissions updated', 'success');
+        setTimeout(() => location.reload(), 1500);
+    });
+    
+    const inheritSpendCap = document.getElementById('inherit-spend-cap');
+    const inheritMessageCap = document.getElementById('inherit-message-cap');
+    const editSpendCap = document.getElementById('edit-spend-cap');
+    const editMessageCap = document.getElementById('edit-message-cap');
+    const spendCapError = document.getElementById('spend-cap-error');
+    const messageCapError = document.getElementById('message-cap-error');
+    
+    inheritSpendCap?.addEventListener('change', function() {
+        editSpendCap.disabled = this.checked;
+        if (this.checked) {
+            editSpendCap.value = '';
+            spendCapError.style.display = 'none';
+            editSpendCap.classList.remove('is-invalid');
+        }
+    });
+    
+    inheritMessageCap?.addEventListener('change', function() {
+        editMessageCap.disabled = this.checked;
+        if (this.checked) {
+            editMessageCap.value = '';
+            messageCapError.style.display = 'none';
+            editMessageCap.classList.remove('is-invalid');
+        }
+    });
+    
+    editSpendCap?.addEventListener('input', function() {
+        const value = parseFloat(this.value);
+        if (value > SUB_ACCOUNT_SPEND_CAP) {
+            this.classList.add('is-invalid');
+            spendCapError.style.display = 'block';
+        } else {
+            this.classList.remove('is-invalid');
+            spendCapError.style.display = 'none';
+        }
+        if (this.value) {
+            inheritSpendCap.checked = false;
+        }
+    });
+    
+    editMessageCap?.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value > SUB_ACCOUNT_MESSAGE_CAP) {
+            this.classList.add('is-invalid');
+            messageCapError.style.display = 'block';
+        } else {
+            this.classList.remove('is-invalid');
+            messageCapError.style.display = 'none';
+        }
+        if (this.value) {
+            inheritMessageCap.checked = false;
+        }
+    });
+    
+    document.getElementById('btn-save-limits')?.addEventListener('click', function() {
+        const reason = document.getElementById('limits-change-reason').value;
+        if (!reason.trim()) {
+            alert('Please provide a reason for the limit changes.');
+            return;
+        }
+        
+        const spendCap = editSpendCap.value ? parseFloat(editSpendCap.value) : null;
+        const messageCap = editMessageCap.value ? parseInt(editMessageCap.value) : null;
+        const enforcement = document.getElementById('edit-enforcement-type').value || null;
+        
+        if (spendCap !== null && spendCap > SUB_ACCOUNT_SPEND_CAP) {
+            alert('Spend cap cannot exceed Sub-Account limit of £' + SUB_ACCOUNT_SPEND_CAP.toLocaleString());
+            return;
+        }
+        
+        if (messageCap !== null && messageCap > SUB_ACCOUNT_MESSAGE_CAP) {
+            alert('Message cap cannot exceed Sub-Account limit of ' + SUB_ACCOUNT_MESSAGE_CAP.toLocaleString());
+            return;
+        }
+        
+        const changes = {
+            spend_cap: { 
+                value: spendCap, 
+                inherited: inheritSpendCap.checked,
+                sub_account_max: SUB_ACCOUNT_SPEND_CAP
+            },
+            message_cap: { 
+                value: messageCap, 
+                inherited: inheritMessageCap.checked,
+                sub_account_max: SUB_ACCOUNT_MESSAGE_CAP
+            },
+            enforcement_type: { 
+                value: enforcement, 
+                inherited: !enforcement
+            },
+            reason: reason,
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('[Audit] User limits changed', changes);
+        bootstrap.Modal.getInstance(document.getElementById('editLimitsModal')).hide();
+        showToast('User limits updated successfully', 'success');
         setTimeout(() => location.reload(), 1500);
     });
     
