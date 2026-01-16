@@ -1,215 +1,210 @@
 @extends('layouts.fullwidth')
 @section('title', 'Security & Consent')
 @section('content')
-<div class="col-lg-6 col-md-8">
+<div class="col-xl-10 col-lg-11 col-md-12">
     <div class="card mb-0 h-auto">
-        <div class="card-body">
+        <div class="card-body py-4 px-4">
             <div class="text-center mb-3">
-                <a href="{{ url('/') }}"><img class="logo-auth" src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 48px;"></a>
+                <a href="{{ url('/') }}"><img class="logo-auth" src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 40px;"></a>
             </div>
-            <h4 class="text-center mb-2">Set Up Your Account</h4>
-            <p class="text-center text-muted mb-4">Step 2 of 3: Security & Consent</p>
+            <h4 class="text-center mb-1">Set Up Your Account</h4>
+            <p class="text-center text-muted mb-3">Step 2 of 3: Security & Consent</p>
             
-            <div class="alert alert-success mb-4" id="verifiedBadge">
+            <div class="alert alert-success mb-3 py-2" id="verifiedBadge">
                 <i class="fas fa-check-circle me-2"></i>
                 Email verified: <strong id="verifiedEmail"></strong>
             </div>
             
             <form id="securityForm" novalidate>
-                
-                <div class="section-card mb-4">
-                    <h6 class="section-title"><i class="fas fa-lock me-2"></i>A. Password Setup</h6>
-                    <p class="section-helper">Create a strong password to secure your account. Password is hashed using Argon2id before storage.</p>
-                    
-                    <div class="form-group mb-3">
-                        <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-                        <div class="position-relative">
-                            <input type="password" class="form-control" id="password" placeholder="12-128 characters" required autocomplete="new-password" minlength="12" maxlength="128">
-                            <span class="show-pass eye">
-                                <i class="fa fa-eye-slash"></i>
-                                <i class="fa fa-eye"></i>
-                            </span>
-                        </div>
-                        <div class="invalid-feedback" id="passwordError">Password does not meet requirements</div>
-                        
-                        <div class="password-rules mt-2" id="passwordRules">
-                            <div class="rule-item" id="rule-length">
-                                <i class="fas fa-circle rule-icon"></i>
-                                <span>12-128 characters</span>
-                            </div>
-                            <div class="rule-item" id="rule-uppercase">
-                                <i class="fas fa-circle rule-icon"></i>
-                                <span>At least 1 uppercase letter (A-Z)</span>
-                            </div>
-                            <div class="rule-item" id="rule-lowercase">
-                                <i class="fas fa-circle rule-icon"></i>
-                                <span>At least 1 lowercase letter (a-z)</span>
-                            </div>
-                            <div class="rule-item" id="rule-number">
-                                <i class="fas fa-circle rule-icon"></i>
-                                <span>At least 1 number (0-9)</span>
-                            </div>
-                            <div class="rule-item" id="rule-special">
-                                <i class="fas fa-circle rule-icon"></i>
-                                <span>At least 1 special character</span>
-                            </div>
-                        </div>
-                        <small class="form-text text-muted mt-2">Allowed special characters: ! @ £ $ % ^ & * ( ) _ - = + [ ] { } ; : ' " , . &lt; &gt; ? / \ | ~</small>
-                        
-                        <div class="password-check-status mt-2 d-none" id="passwordCheckStatus"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
-                        <div class="invalid-feedback" id="confirmError">Passwords do not match</div>
-                    </div>
-                </div>
-                
-                <div class="section-card mb-4">
-                    <h6 class="section-title"><i class="fas fa-mobile-alt me-2"></i>B. Mobile Number Verification</h6>
-                    <p class="section-helper">Verify your mobile number for account security and two-factor authentication (MFA is mandatory for all accounts).</p>
-                    
-                    <div class="form-group mb-3">
-                        <label class="form-label" for="mobileNumber">Mobile Number <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="tel" class="form-control" id="mobileNumber" placeholder="+44 7700 900123" required>
-                            <button class="btn btn-outline-primary" type="button" id="sendOtpBtn">
-                                <span class="btn-text">Send Code</span>
-                                <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" id="mobileError">Please enter a valid mobile number</div>
-                        <small class="form-text text-muted">E.164 format preferred (e.g., +447700900123)</small>
-                        <div class="otp-status mt-2 d-none" id="otpStatus"></div>
-                    </div>
-                    
-                    <div class="form-group mb-3 d-none" id="otpInputGroup">
-                        <label class="form-label" for="otpCode">Verification Code <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
-                            <button class="btn btn-primary" type="button" id="verifyOtpBtn">
-                                <span class="btn-text">Verify</span>
-                                <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" id="otpError">Invalid verification code</div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
-                            <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
-                        </div>
-                        <div class="alert alert-info small mt-2 d-none" id="testOtpCode">
-                            <strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="verified-badge d-none" id="mobileVerifiedBadge">
-                        <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Mobile number verified</span>
-                    </div>
-                    
-                    <div class="mfa-notice mt-3">
-                        <i class="fas fa-shield-alt text-primary me-2"></i>
-                        <small class="text-muted">Two-factor authentication (MFA) is enabled by default for all accounts. You'll receive a verification code via SMS when signing in.</small>
-                    </div>
-                </div>
-                
-                <div class="section-card mb-4">
-                    <h6 class="section-title"><i class="fas fa-shield-alt me-2"></i>C. Fraud Prevention & Validation Consent</h6>
-                    <p class="section-helper">These agreements are required to protect you and ensure message delivery.</p>
-                    
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="termsConsent" required>
-                        <label class="form-check-label" for="termsConsent">
-                            I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Acceptable Use Policy</a> <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">You must agree to the terms to continue</div>
-                    </div>
-                    
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="privacyConsent" required>
-                        <label class="form-check-label" for="privacyConsent">
-                            I have read and accept the <a href="#" class="text-primary">Privacy Policy</a> <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">You must accept the privacy policy to continue</div>
-                    </div>
-                    
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="fraudConsent" required>
-                        <label class="form-check-label" for="fraudConsent">
-                            I consent to fraud prevention checks and identity validation <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">You must consent to fraud prevention to continue</div>
-                        <small class="d-block text-muted mt-1">We may verify your identity and business details to prevent misuse of our platform.</small>
-                    </div>
-                    
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="thirdPartyConsent" required>
-                        <label class="form-check-label" for="thirdPartyConsent">
-                            I agree that QuickSMS may share my information with trusted third-party fraud prevention, validation, and messaging partners to protect against abuse <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">You must agree to third-party data sharing to continue</div>
-                    </div>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="contentConsent" required>
-                        <label class="form-check-label" for="contentConsent">
-                            I agree that all messages sent will comply with <a href="#" class="text-primary">UK messaging regulations</a> <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">You must agree to messaging compliance</div>
-                    </div>
-                </div>
-                
-                <div class="section-card mb-4">
-                    <h6 class="section-title"><i class="fas fa-envelope me-2"></i>D. Marketing Preferences</h6>
-                    <p class="section-helper">Optional: Stay informed about product updates and offers.</p>
-                    
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="marketingConsent">
-                        <label class="form-check-label" for="marketingConsent">
-                            I agree to receive product updates, tips, and offers from QuickSMS via email, SMS, and RCS. I can opt out at any time.
-                        </label>
-                        <small class="d-block text-muted mt-1">Email updates are sent to your business email. SMS/RCS updates are sent to your verified mobile number.</small>
-                    </div>
-                </div>
-                
-                <div class="section-card mb-4" id="testCreditSection">
-                    <h6 class="section-title"><i class="fas fa-gift me-2"></i>E. Test Credit Eligibility</h6>
-                    
-                    <div id="creditEligibilityStatus">
-                        <div class="credit-status-pending" id="creditPending">
-                            <div class="d-flex align-items-start">
-                                <div class="test-credit-icon me-3">
-                                    <i class="fas fa-coins text-muted"></i>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="section-card mb-3">
+                            <h6 class="section-title"><i class="fas fa-lock me-2"></i>Password Setup</h6>
+                            <p class="section-helper mb-2">Create a strong password. Hashed with Argon2id.</p>
+                            
+                            <div class="form-group mb-2">
+                                <label class="form-label form-label-sm" for="password">Password <span class="text-danger">*</span></label>
+                                <div class="position-relative">
+                                    <input type="password" class="form-control form-control-sm" id="password" placeholder="12-128 characters" required autocomplete="new-password" minlength="12" maxlength="128">
+                                    <span class="show-pass eye">
+                                        <i class="fa fa-eye-slash"></i>
+                                        <i class="fa fa-eye"></i>
+                                    </span>
                                 </div>
-                                <div>
-                                    <p class="mb-2"><strong>Unlock 100 free test SMS credits</strong></p>
-                                    <p class="text-muted mb-0 small">Opt in to marketing above to receive 100 free test SMS credits when your account is created.</p>
-                                    <ul class="eligibility-checklist mt-2 mb-0">
-                                        <li id="checkMobile"><i class="fas fa-circle"></i> Mobile number verified</li>
-                                        <li id="checkMarketing"><i class="fas fa-circle"></i> Marketing consent accepted</li>
-                                    </ul>
+                                <div class="invalid-feedback" id="passwordError">Password does not meet requirements</div>
+                                
+                                <div class="password-rules mt-2" id="passwordRules">
+                                    <div class="rule-item" id="rule-length">
+                                        <i class="fas fa-circle rule-icon"></i>
+                                        <span>12-128 characters</span>
+                                    </div>
+                                    <div class="rule-item" id="rule-uppercase">
+                                        <i class="fas fa-circle rule-icon"></i>
+                                        <span>1 uppercase (A-Z)</span>
+                                    </div>
+                                    <div class="rule-item" id="rule-lowercase">
+                                        <i class="fas fa-circle rule-icon"></i>
+                                        <span>1 lowercase (a-z)</span>
+                                    </div>
+                                    <div class="rule-item" id="rule-number">
+                                        <i class="fas fa-circle rule-icon"></i>
+                                        <span>1 number (0-9)</span>
+                                    </div>
+                                    <div class="rule-item" id="rule-special">
+                                        <i class="fas fa-circle rule-icon"></i>
+                                        <span>1 special character</span>
+                                    </div>
                                 </div>
+                                
+                                <div class="password-check-status mt-2 d-none" id="passwordCheckStatus"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label form-label-sm" for="confirmPassword">Confirm Password <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control form-control-sm" id="confirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
+                                <div class="invalid-feedback" id="confirmError">Passwords do not match</div>
                             </div>
                         </div>
                         
-                        <div class="credit-status-eligible d-none" id="creditEligible">
-                            <div class="d-flex align-items-start">
-                                <div class="test-credit-icon test-credit-icon-success me-3">
-                                    <i class="fas fa-coins text-warning"></i>
+                        <div class="section-card mb-3">
+                            <h6 class="section-title"><i class="fas fa-mobile-alt me-2"></i>Mobile Verification</h6>
+                            <p class="section-helper mb-2">Verify your mobile for MFA (mandatory for all accounts).</p>
+                            
+                            <div class="form-group mb-2">
+                                <label class="form-label form-label-sm" for="mobileNumber">Mobile Number <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-sm">
+                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="+44 7700 900123" required>
+                                    <button class="btn btn-outline-primary" type="button" id="sendOtpBtn">
+                                        <span class="btn-text">Send Code</span>
+                                        <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
+                                    </button>
                                 </div>
-                                <div>
-                                    <p class="mb-2 text-success"><strong><i class="fas fa-check-circle me-1"></i>You're eligible for 100 free test credits!</strong></p>
-                                    <p class="text-muted mb-0 small">Your 100 free SMS credits will be applied when your account is created. No payment required to get started.</p>
+                                <div class="invalid-feedback" id="mobileError">Please enter a valid mobile number</div>
+                                <div class="otp-status mt-2 d-none" id="otpStatus"></div>
+                            </div>
+                            
+                            <div class="form-group mb-2 d-none" id="otpInputGroup">
+                                <label class="form-label form-label-sm" for="otpCode">Verification Code <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
+                                    <button class="btn btn-primary" type="button" id="verifyOtpBtn">
+                                        <span class="btn-text">Verify</span>
+                                        <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="otpError">Invalid verification code</div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small class="text-muted">Expires in <span id="otpCountdown">5:00</span></small>
+                                    <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend</button>
+                                </div>
+                                <div class="alert alert-info small mt-2 py-1 d-none" id="testOtpCode">
+                                    <strong>Test Mode:</strong> Your code is <span class="fw-bold" id="displayOtp"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="verified-badge d-none" id="mobileVerifiedBadge">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Mobile verified</span>
+                            </div>
+                            
+                            <div class="mfa-notice mt-2">
+                                <i class="fas fa-shield-alt text-primary me-1"></i>
+                                <small class="text-muted">MFA is enabled by default. You'll receive a code via SMS when signing in.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="section-card mb-3">
+                            <h6 class="section-title"><i class="fas fa-shield-alt me-2"></i>Required Agreements</h6>
+                            <p class="section-helper mb-2">Required to protect you and ensure message delivery.</p>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="termsConsent" required>
+                                <label class="form-check-label small" for="termsConsent">
+                                    I agree to the <a href="#" class="text-primary">Terms</a> and <a href="#" class="text-primary">Acceptable Use Policy</a> <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="privacyConsent" required>
+                                <label class="form-check-label small" for="privacyConsent">
+                                    I accept the <a href="#" class="text-primary">Privacy Policy</a> <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="fraudConsent" required>
+                                <label class="form-check-label small" for="fraudConsent">
+                                    I consent to fraud prevention checks <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="thirdPartyConsent" required>
+                                <label class="form-check-label small" for="thirdPartyConsent">
+                                    I agree to third-party fraud prevention data sharing <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="contentConsent" required>
+                                <label class="form-check-label small" for="contentConsent">
+                                    I agree to comply with <a href="#" class="text-primary">UK messaging regulations</a> <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card mb-3">
+                            <h6 class="section-title"><i class="fas fa-envelope me-2"></i>Marketing Preferences</h6>
+                            <p class="section-helper mb-2">Optional: Stay informed about updates and offers.</p>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="marketingConsent">
+                                <label class="form-check-label small" for="marketingConsent">
+                                    I agree to receive product updates, tips, and offers via email, SMS, and RCS. I can opt out at any time.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="section-card mb-3" id="testCreditSection">
+                            <h6 class="section-title"><i class="fas fa-gift me-2"></i>Test Credit Eligibility</h6>
+                            
+                            <div id="creditEligibilityStatus">
+                                <div class="credit-status-pending" id="creditPending">
+                                    <div class="d-flex align-items-start">
+                                        <div class="test-credit-icon me-2">
+                                            <i class="fas fa-coins text-muted"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 small"><strong>Unlock 100 free test SMS credits</strong></p>
+                                            <ul class="eligibility-checklist mb-0 small">
+                                                <li id="checkMobile"><i class="fas fa-circle"></i> Mobile verified</li>
+                                                <li id="checkMarketing"><i class="fas fa-circle"></i> Marketing consent</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="credit-status-eligible d-none" id="creditEligible">
+                                    <div class="d-flex align-items-start">
+                                        <div class="test-credit-icon test-credit-icon-success me-2">
+                                            <i class="fas fa-coins text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 text-success small"><strong><i class="fas fa-check-circle me-1"></i>You're eligible for 100 free credits!</strong></p>
+                                            <p class="text-muted mb-0 small">Credits applied on account creation.</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary btn-block" id="continueBtn">
-                        <span class="btn-text">Continue to Step 3 <i class="fas fa-arrow-right ms-2"></i></span>
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-primary px-5" id="continueBtn">
+                        <span class="btn-text">Complete Setup <i class="fas fa-arrow-right ms-2"></i></span>
                         <span class="btn-loading d-none">
                             <span class="spinner-border spinner-border-sm me-2"></span>Processing...
                         </span>
@@ -217,7 +212,7 @@
                 </div>
             </form>
             
-            <div class="text-center mt-3">
+            <div class="text-center mt-2">
                 <small class="text-muted">Need help? <a class="text-primary" href="#">Contact Support</a></small>
             </div>
         </div>
@@ -226,7 +221,7 @@
 
 <style>
 .logo-auth {
-    max-height: 48px;
+    max-height: 40px;
 }
 .form-control:focus, .form-select:focus {
     border-color: rgba(136, 108, 192, 0.5);
@@ -249,8 +244,8 @@
 }
 .section-card {
     background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
+    border-radius: 0.375rem;
+    padding: 0.875rem;
     border-left: 3px solid #886CC0;
 }
 .section-card-highlight {
@@ -258,15 +253,15 @@
     border-left-color: #22c55e;
 }
 .section-title {
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: #2c2c2c;
     margin-bottom: 0.5rem;
 }
 .section-helper {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #6c757d;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 .password-strength {
     font-size: 0.75rem;
@@ -297,14 +292,15 @@
 .show-pass.active .fa-eye { display: inline; }
 .show-pass.active .fa-eye-slash { display: none; }
 .test-credit-icon {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     background: #fef3c7;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 .form-check-input:checked {
     background-color: #886CC0;
@@ -313,16 +309,16 @@
 .password-rules {
     background: #fff;
     border: 1px solid #e9ecef;
-    border-radius: 0.375rem;
-    padding: 0.75rem;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
 }
 .rule-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
+    gap: 0.375rem;
+    font-size: 0.7rem;
     color: #6c757d;
-    padding: 0.25rem 0;
+    padding: 0.125rem 0;
 }
 .rule-item .rule-icon {
     font-size: 0.5rem;
