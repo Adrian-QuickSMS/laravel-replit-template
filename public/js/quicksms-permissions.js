@@ -49,6 +49,18 @@ var PermissionManager = (function() {
                 'manage_email_to_sms': { label: 'Manage Email-to-SMS', description: 'Configure email triggers' }
             }
         },
+        'reporting-access': {
+            label: 'Reporting Access',
+            icon: 'fa-chart-bar',
+            permissions: {
+                'view_kpi_dashboard': { label: 'View KPI Dashboard', description: 'Access main analytics dashboard' },
+                'view_message_logs': { label: 'View Message Logs', description: 'View detailed message delivery logs' },
+                'view_delivery_reports': { label: 'View Delivery Reports', description: 'Access delivery status reports' },
+                'view_campaign_analytics': { label: 'View Campaign Analytics', description: 'Access campaign performance data' },
+                'export_reports': { label: 'Export Reports', description: 'Download reports as CSV/Excel' },
+                'view_usage_stats': { label: 'View Usage Statistics', description: 'View account usage data' }
+            }
+        },
         'financial-access': {
             label: 'Financial Access',
             icon: 'fa-credit-card',
@@ -80,6 +92,7 @@ var PermissionManager = (function() {
             'view_contacts': true, 'create_contacts': true, 'edit_contacts': true, 'delete_contacts': true, 'manage_lists': true, 'upload_csv': true, 'export_contacts': true,
             'create_campaigns': true, 'approve_campaigns': true, 'cancel_campaigns': true, 'view_campaign_reports': true, 'resend_failed': true,
             'manage_sender_ids': true, 'manage_numbers': true, 'manage_api_keys': true, 'manage_webhooks': true, 'manage_email_to_sms': true,
+            'view_kpi_dashboard': true, 'view_message_logs': true, 'view_delivery_reports': true, 'view_campaign_analytics': true, 'export_reports': true, 'view_usage_stats': true,
             'view_balance': true, 'purchase_credits': true, 'view_invoices': true, 'manage_payment_methods': true, 'view_spending_reports': true,
             'view_audit_logs': true, 'manage_users': true, 'manage_roles': true, 'force_password_reset': true, 'manage_mfa_policy': true, 'access_security_settings': true
         },
@@ -88,6 +101,7 @@ var PermissionManager = (function() {
             'view_contacts': true, 'create_contacts': true, 'edit_contacts': true, 'delete_contacts': true, 'manage_lists': true, 'upload_csv': true, 'export_contacts': true,
             'create_campaigns': true, 'approve_campaigns': true, 'cancel_campaigns': true, 'view_campaign_reports': true, 'resend_failed': true,
             'manage_sender_ids': true, 'manage_numbers': true, 'manage_api_keys': true, 'manage_webhooks': true, 'manage_email_to_sms': true,
+            'view_kpi_dashboard': true, 'view_message_logs': true, 'view_delivery_reports': true, 'view_campaign_analytics': true, 'export_reports': true, 'view_usage_stats': true,
             'view_balance': true, 'purchase_credits': true, 'view_invoices': true, 'manage_payment_methods': false, 'view_spending_reports': true,
             'view_audit_logs': true, 'manage_users': true, 'manage_roles': true, 'force_password_reset': true, 'manage_mfa_policy': false, 'access_security_settings': true
         },
@@ -96,6 +110,7 @@ var PermissionManager = (function() {
             'view_contacts': true, 'create_contacts': true, 'edit_contacts': true, 'delete_contacts': false, 'manage_lists': true, 'upload_csv': true, 'export_contacts': true,
             'create_campaigns': true, 'approve_campaigns': false, 'cancel_campaigns': true, 'view_campaign_reports': true, 'resend_failed': true,
             'manage_sender_ids': false, 'manage_numbers': false, 'manage_api_keys': false, 'manage_webhooks': false, 'manage_email_to_sms': false,
+            'view_kpi_dashboard': true, 'view_message_logs': true, 'view_delivery_reports': true, 'view_campaign_analytics': true, 'export_reports': true, 'view_usage_stats': true,
             'view_balance': true, 'purchase_credits': false, 'view_invoices': false, 'manage_payment_methods': false, 'view_spending_reports': false,
             'view_audit_logs': false, 'manage_users': false, 'manage_roles': false, 'force_password_reset': false, 'manage_mfa_policy': false, 'access_security_settings': false
         },
@@ -104,6 +119,7 @@ var PermissionManager = (function() {
             'view_contacts': false, 'create_contacts': false, 'edit_contacts': false, 'delete_contacts': false, 'manage_lists': false, 'upload_csv': false, 'export_contacts': false,
             'create_campaigns': false, 'approve_campaigns': false, 'cancel_campaigns': false, 'view_campaign_reports': true, 'resend_failed': false,
             'manage_sender_ids': false, 'manage_numbers': false, 'manage_api_keys': false, 'manage_webhooks': false, 'manage_email_to_sms': false,
+            'view_kpi_dashboard': true, 'view_message_logs': false, 'view_delivery_reports': false, 'view_campaign_analytics': false, 'export_reports': true, 'view_usage_stats': true,
             'view_balance': true, 'purchase_credits': true, 'view_invoices': true, 'manage_payment_methods': true, 'view_spending_reports': true,
             'view_audit_logs': false, 'manage_users': false, 'manage_roles': false, 'force_password_reset': false, 'manage_mfa_policy': false, 'access_security_settings': false
         },
@@ -112,6 +128,7 @@ var PermissionManager = (function() {
             'view_contacts': false, 'create_contacts': false, 'edit_contacts': false, 'delete_contacts': false, 'manage_lists': false, 'upload_csv': false, 'export_contacts': false,
             'create_campaigns': false, 'approve_campaigns': false, 'cancel_campaigns': false, 'view_campaign_reports': true, 'resend_failed': false,
             'manage_sender_ids': false, 'manage_numbers': false, 'manage_api_keys': true, 'manage_webhooks': true, 'manage_email_to_sms': true,
+            'view_kpi_dashboard': true, 'view_message_logs': true, 'view_delivery_reports': true, 'view_campaign_analytics': false, 'export_reports': false, 'view_usage_stats': true,
             'view_balance': false, 'purchase_credits': false, 'view_invoices': false, 'manage_payment_methods': false, 'view_spending_reports': false,
             'view_audit_logs': true, 'manage_users': false, 'manage_roles': false, 'force_password_reset': false, 'manage_mfa_policy': false, 'access_security_settings': false
         },
@@ -120,6 +137,7 @@ var PermissionManager = (function() {
             'view_contacts': true, 'create_contacts': false, 'edit_contacts': false, 'delete_contacts': false, 'manage_lists': false, 'upload_csv': false, 'export_contacts': true,
             'create_campaigns': false, 'approve_campaigns': false, 'cancel_campaigns': false, 'view_campaign_reports': true, 'resend_failed': false,
             'manage_sender_ids': false, 'manage_numbers': false, 'manage_api_keys': false, 'manage_webhooks': false, 'manage_email_to_sms': false,
+            'view_kpi_dashboard': true, 'view_message_logs': true, 'view_delivery_reports': true, 'view_campaign_analytics': true, 'export_reports': true, 'view_usage_stats': true,
             'view_balance': true, 'purchase_credits': false, 'view_invoices': true, 'manage_payment_methods': false, 'view_spending_reports': true,
             'view_audit_logs': true, 'manage_users': false, 'manage_roles': false, 'force_password_reset': false, 'manage_mfa_policy': false, 'access_security_settings': false
         },
@@ -128,6 +146,7 @@ var PermissionManager = (function() {
             'view_contacts': true, 'create_contacts': false, 'edit_contacts': false, 'delete_contacts': false, 'manage_lists': false, 'upload_csv': false, 'export_contacts': false,
             'create_campaigns': false, 'approve_campaigns': true, 'cancel_campaigns': true, 'view_campaign_reports': true, 'resend_failed': false,
             'manage_sender_ids': false, 'manage_numbers': false, 'manage_api_keys': false, 'manage_webhooks': false, 'manage_email_to_sms': false,
+            'view_kpi_dashboard': true, 'view_message_logs': false, 'view_delivery_reports': true, 'view_campaign_analytics': true, 'export_reports': false, 'view_usage_stats': false,
             'view_balance': false, 'purchase_credits': false, 'view_invoices': false, 'manage_payment_methods': false, 'view_spending_reports': false,
             'view_audit_logs': false, 'manage_users': false, 'manage_roles': false, 'force_password_reset': false, 'manage_mfa_policy': false, 'access_security_settings': false
         },
@@ -136,6 +155,7 @@ var PermissionManager = (function() {
             'view_contacts': false, 'create_contacts': false, 'edit_contacts': false, 'delete_contacts': false, 'manage_lists': false, 'upload_csv': false, 'export_contacts': false,
             'create_campaigns': false, 'approve_campaigns': false, 'cancel_campaigns': false, 'view_campaign_reports': false, 'resend_failed': false,
             'manage_sender_ids': false, 'manage_numbers': false, 'manage_api_keys': false, 'manage_webhooks': false, 'manage_email_to_sms': false,
+            'view_kpi_dashboard': false, 'view_message_logs': false, 'view_delivery_reports': false, 'view_campaign_analytics': false, 'export_reports': false, 'view_usage_stats': false,
             'view_balance': false, 'purchase_credits': false, 'view_invoices': false, 'manage_payment_methods': false, 'view_spending_reports': false,
             'view_audit_logs': true, 'manage_users': true, 'manage_roles': true, 'force_password_reset': true, 'manage_mfa_policy': true, 'access_security_settings': true
         }

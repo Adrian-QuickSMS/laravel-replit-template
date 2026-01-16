@@ -1621,6 +1621,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 'manage_email_to_sms': { label: 'Manage Email-to-SMS' }
             }
         },
+        'reporting-access': {
+            label: 'Reporting Access', icon: 'fa-chart-bar',
+            permissions: {
+                'view_kpi_dashboard': { label: 'View KPI Dashboard' },
+                'view_message_logs': { label: 'View Message Logs' },
+                'view_delivery_reports': { label: 'View Delivery Reports' },
+                'view_campaign_analytics': { label: 'View Campaign Analytics' },
+                'export_reports': { label: 'Export Reports' },
+                'view_usage_stats': { label: 'View Usage Statistics' }
+            }
+        },
         'financial-access': {
             label: 'Financial Access', icon: 'fa-credit-card',
             permissions: {
