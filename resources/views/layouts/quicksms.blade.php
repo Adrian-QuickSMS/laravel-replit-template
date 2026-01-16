@@ -17,6 +17,7 @@
 <script src="{{ asset('js/quicksms-audit-logger.js') }}"></script>
 <script src="{{ asset('js/quicksms-security-controls.js') }}"></script>
 <script src="{{ asset('js/quicksms-hierarchy-enforcement.js') }}"></script>
+<script src="{{ asset('js/quicksms-permission-engine.js') }}"></script>
 <script>
 // Initialize account lifecycle and test mode from session/backend data
 (function() {
