@@ -445,8 +445,8 @@
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
-            <div class="card mb-0">
-                <div class="card-body py-2 px-3">
+            <div class="card mb-0" style="width: 100%;">
+                <div class="card-body py-2 px-3" style="width: 100%;">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0" style="background: transparent; padding: 0;">
                             <li class="breadcrumb-item"><a href="{{ route('account') }}" style="color: #886cc0;">Account</a></li>
