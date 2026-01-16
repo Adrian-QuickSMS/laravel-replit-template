@@ -981,6 +981,10 @@ $(document).ready(function() {
             mobileVerified = true;
             clearInterval(countdownInterval);
             
+            // Store verified mobile for TEST mode restrictions
+            // This becomes the only allowed recipient in TEST mode
+            sessionStorage.setItem('test_mode_verified_mobile', mobile);
+            
             // Hide OTP input, show verified badge
             $('#otpInputGroup').addClass('d-none');
             $('#otpStatus').addClass('d-none');

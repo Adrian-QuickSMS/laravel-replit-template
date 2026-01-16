@@ -7,8 +7,9 @@
 
 @push('scripts')
 <script src="{{ asset('js/quicksms-account-lifecycle.js') }}"></script>
+<script src="{{ asset('js/quicksms-test-mode.js') }}"></script>
 <script>
-// Initialize account lifecycle from session/backend data
+// Initialize account lifecycle and test mode from session/backend data
 (function() {
     // Mock account data - in production, this comes from backend session
     var accountData = {
@@ -20,6 +21,15 @@
     
     if (accountData.account_id && typeof AccountLifecycle !== 'undefined') {
         AccountLifecycle.init(accountData);
+    }
+    
+    // Initialize Test Mode Restrictions
+    if (typeof TestModeRestrictions !== 'undefined') {
+        TestModeRestrictions.init({
+            verified_mobile: sessionStorage.getItem('test_mode_verified_mobile') || null,
+            approved_test_numbers: JSON.parse(sessionStorage.getItem('test_mode_approved_numbers') || '[]'),
+            fragments_used: parseInt(sessionStorage.getItem('test_mode_fragments_used') || '0', 10)
+        });
     }
 })();
 </script>
