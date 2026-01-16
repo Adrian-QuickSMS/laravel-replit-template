@@ -1471,7 +1471,7 @@ $(document).ready(function() {
             }));
             
             // Redirect to Dashboard
-            window.location.href = '/dashboard?onboarding=complete&credits=' + (formData.test_credits.eligible ? '100' : '0');
+            window.location.href = '/?onboarding=complete&credits=' + (formData.test_credits.eligible ? '100' : '0');
         }, 2000);
     });
     
