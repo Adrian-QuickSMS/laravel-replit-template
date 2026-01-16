@@ -387,6 +387,34 @@ input:focus + .perm-slider {
     color: #886cc0;
     text-decoration: underline;
 }
+
+.role-selector-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.role-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #fff;
+}
+.role-card:hover {
+    border-color: #886cc0;
+    background: #faf8ff;
+}
+.role-card.selected {
+    border-color: #886cc0;
+    background: #f3e8ff;
+    box-shadow: 0 0 0 2px rgba(136, 108, 192, 0.2);
+}
+.role-card input[type="radio"] {
+    accent-color: #886cc0;
+}
 </style>
 @endpush
 
@@ -708,19 +736,90 @@ input:focus + .perm-slider {
                 
                 <div class="mb-3">
                     <label class="form-label">New Role <span class="text-danger">*</span></label>
-                    <select class="form-select" id="change-role-new" required>
-                        <option value="">Select New Role...</option>
-                        <option value="admin">Admin</option>
-                        <option value="messaging-manager">Messaging Manager</option>
-                        <option value="finance">Finance / Billing</option>
-                        <option value="developer">Developer / API User</option>
-                        <option value="auditor">Read-Only / Auditor</option>
-                        <optgroup label="Optional Roles">
-                            <option value="campaign-approver">Campaign Approver</option>
-                            <option value="security-officer">Security Officer</option>
-                        </optgroup>
-                    </select>
+                    <div class="role-selector-cards" id="role-selector-cards">
+                        <div class="role-card" data-role="admin">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="admin" class="form-check-input mt-1 me-2" id="role-admin">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-admin">Admin</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Full access within their sub-account scope</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Team leads, department managers</span></div>
+                                </div>
+                                <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.6rem;">High Access</span>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="messaging-manager">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="messaging-manager" class="form-check-input mt-1 me-2" id="role-messaging">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-messaging">Messaging Manager</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Send messages, manage contacts and templates</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Marketing coordinators, campaign managers</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="finance">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="finance" class="form-check-input mt-1 me-2" id="role-finance">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-finance">Finance / Billing</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Access billing, invoices, and purchases only</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Accountants, finance team members</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="developer">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="developer" class="form-check-input mt-1 me-2" id="role-developer">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-developer">Developer / API User</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">API connections and technical integrations</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Software engineers, integration specialists</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="auditor">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="auditor" class="form-check-input mt-1 me-2" id="role-auditor">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-auditor">Read-Only / Auditor</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">View-only access for compliance review</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Compliance officers, external auditors</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="campaign-approver">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="campaign-approver" class="form-check-input mt-1 me-2" id="role-approver">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-approver">Campaign Approver</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Review and approve campaigns before sending</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Senior managers, compliance reviewers</span></div>
+                                </div>
+                                <span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.6rem;">Optional</span>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="security-officer">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="security-officer" class="form-check-input mt-1 me-2" id="role-security">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-security">Security Officer</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Manage security settings and access reviews</div>
+                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">IT security, data protection officers</span></div>
+                                </div>
+                                <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.6rem;">High Access</span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="change-role-new" required>
+                    <div id="high-risk-warning" class="alert alert-warning mt-2 mb-0" style="font-size: 0.8rem; display: none;">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>High-access role:</strong> This role grants significant permissions. Please ensure this user requires this level of access.
+                    </div>
                     <div id="change-role-info" class="mt-2 p-2 rounded" style="background: #f8f9fa; font-size: 0.8rem; display: none;"></div>
+                    <div class="mt-2">
+                        <a href="#" class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-book-open me-1"></i>Learn more about roles</a>
+                    </div>
                 </div>
                 
                 <div class="mb-3">
@@ -1846,10 +1945,47 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('change-role-new').value = '';
             document.getElementById('change-role-reason').value = '';
             document.getElementById('change-role-info').style.display = 'none';
+            document.getElementById('high-risk-warning').style.display = 'none';
+            
+            document.querySelectorAll('.role-card').forEach(function(card) {
+                card.classList.remove('selected');
+                var radio = card.querySelector('input[type="radio"]');
+                if (radio) radio.checked = false;
+            });
             
             var modal = new bootstrap.Modal(document.getElementById('changeRoleModal'));
             modal.show();
         }
+    });
+    
+    document.querySelectorAll('.role-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            var role = this.getAttribute('data-role');
+            var radio = this.querySelector('input[type="radio"]');
+            
+            document.querySelectorAll('.role-card').forEach(function(c) {
+                c.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            if (radio) radio.checked = true;
+            
+            document.getElementById('change-role-new').value = role;
+            
+            var highRiskRoles = ['admin', 'security-officer'];
+            var warningEl = document.getElementById('high-risk-warning');
+            if (highRiskRoles.includes(role)) {
+                warningEl.style.display = 'block';
+            } else {
+                warningEl.style.display = 'none';
+            }
+            
+            var roleInfo = ROLE_NAV_ACCESS[role];
+            if (roleInfo) {
+                var infoDiv = document.getElementById('change-role-info');
+                infoDiv.innerHTML = '<strong>Navigation Access:</strong> ' + roleInfo.nav.join(', ') + '<br><em>' + roleInfo.note + '</em>';
+                infoDiv.style.display = 'block';
+            }
+        });
     });
     
     document.getElementById('btn-confirm-role-change').addEventListener('click', function() {
