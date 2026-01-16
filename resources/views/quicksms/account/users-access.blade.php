@@ -34,6 +34,9 @@
     padding: 1rem 1.25rem;
     margin-bottom: 0;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 .main-account-node .account-name {
     font-weight: 600;
@@ -43,6 +46,34 @@
 .main-account-node .account-info {
     font-size: 0.8rem;
     opacity: 0.9;
+}
+.contextual-btn {
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+}
+.main-account-node:hover .contextual-btn,
+.sub-account-header:hover .contextual-btn {
+    opacity: 1;
+}
+.main-account-node .contextual-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
+.main-account-node .contextual-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.sub-account-header .contextual-btn {
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.3);
+    color: #886cc0;
+}
+.sub-account-header .contextual-btn:hover {
+    background: rgba(136, 108, 192, 0.2);
 }
 
 .tree-connector {
@@ -303,7 +334,6 @@
                     <div class="hierarchy-actions mb-0">
                         <button class="btn btn-sm btn-outline-secondary" id="btn-expand-all">Expand All</button>
                         <button class="btn btn-sm btn-outline-secondary" id="btn-collapse-all">Collapse All</button>
-                        <button class="btn btn-sm btn-primary" id="btn-invite-user">Invite User</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -388,6 +418,33 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="addSubAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Sub-Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-sub-account-form">
+                    <div class="mb-3">
+                        <label class="form-label">Sub-Account Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sub-account-name" placeholder="e.g., Marketing Department" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description <span class="text-muted">(Optional)</span></label>
+                        <textarea class="form-control" id="sub-account-description" rows="2" placeholder="Brief description of this sub-account"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-create-sub-account">Create Sub-Account</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -456,8 +513,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var html = '';
         
         html += '<div class="main-account-node">';
+        html += '<div>';
         html += '<div class="account-name">' + escapeHtml(hierarchyData.mainAccount.name) + '</div>';
         html += '<div class="account-info">Main Account</div>';
+        html += '</div>';
+        html += '<button class="contextual-btn btn-add-sub-account" type="button">+ Add Sub-Account</button>';
         html += '</div>';
         
         html += '<div class="tree-connector"></div>';
@@ -476,12 +536,17 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '<div class="sub-account-branch">';
             html += '<div class="sub-account-node" data-sub-id="' + subAccount.id + '">';
             
-            html += '<div class="sub-account-header" data-toggle-users="' + subAccount.id + '">';
+            html += '<div class="sub-account-header" data-sub-id="' + subAccount.id + '">';
+            html += '<div class="d-flex align-items-center gap-2 flex-grow-1" data-toggle-users="' + subAccount.id + '">';
             html += '<div>';
             html += '<div class="sub-name">' + escapeHtml(subAccount.name) + '</div>';
             html += '<div class="sub-meta">' + subAccount.users.length + ' user' + (subAccount.users.length !== 1 ? 's' : '') + '</div>';
             html += '</div>';
-            html += '<span class="expand-indicator">&#9660;</span>';
+            html += '</div>';
+            html += '<div class="d-flex align-items-center gap-2">';
+            html += '<button class="contextual-btn btn-add-user" data-sub-id="' + subAccount.id + '" type="button">+ Add User</button>';
+            html += '<span class="expand-indicator" data-toggle-users="' + subAccount.id + '">&#9660;</span>';
+            html += '</div>';
             html += '</div>';
             
             html += '<div class="sub-account-users" id="users-' + subAccount.id + '">';
@@ -539,21 +604,54 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function bindToggleEvents() {
-        document.querySelectorAll('[data-toggle-users]').forEach(function(header) {
-            header.addEventListener('click', function() {
+        document.querySelectorAll('[data-toggle-users]').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
                 var subId = this.getAttribute('data-toggle-users');
                 var usersDiv = document.getElementById('users-' + subId);
+                var header = document.querySelector('.sub-account-header[data-sub-id="' + subId + '"]');
                 var isCollapsed = usersDiv.classList.contains('collapsed');
                 
                 if (isCollapsed) {
                     usersDiv.classList.remove('collapsed');
-                    this.classList.remove('collapsed');
+                    if (header) header.classList.remove('collapsed');
                 } else {
                     usersDiv.classList.add('collapsed');
-                    this.classList.add('collapsed');
+                    if (header) header.classList.add('collapsed');
                 }
             });
         });
+        
+        document.querySelectorAll('.btn-add-sub-account').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('sub-account-name').value = '';
+                document.getElementById('sub-account-description').value = '';
+                var modal = new bootstrap.Modal(document.getElementById('addSubAccountModal'));
+                modal.show();
+            });
+        });
+        
+        document.querySelectorAll('.btn-add-user').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var subId = this.getAttribute('data-sub-id');
+                openInviteUserModal(subId);
+            });
+        });
+    }
+    
+    function openInviteUserModal(preSelectedSubId) {
+        document.getElementById('invite-user-form').reset();
+        var select = document.getElementById('invite-sub-account');
+        select.innerHTML = '<option value="">Select Sub-Account...</option>';
+        hierarchyData.subAccounts.forEach(function(sub) {
+            var selected = sub.id === preSelectedSubId ? ' selected' : '';
+            select.innerHTML += '<option value="' + sub.id + '"' + selected + '>' + escapeHtml(sub.name) + '</option>';
+        });
+        
+        var modal = new bootstrap.Modal(document.getElementById('inviteUserModal'));
+        modal.show();
     }
     
     function formatRole(role) {
@@ -596,15 +694,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    document.getElementById('btn-invite-user').addEventListener('click', function() {
-        var select = document.getElementById('invite-sub-account');
-        select.innerHTML = '<option value="">Select Sub-Account...</option>';
-        hierarchyData.subAccounts.forEach(function(sub) {
-            select.innerHTML += '<option value="' + sub.id + '">' + escapeHtml(sub.name) + '</option>';
-        });
+    document.getElementById('btn-create-sub-account').addEventListener('click', function() {
+        var name = document.getElementById('sub-account-name').value.trim();
+        var description = document.getElementById('sub-account-description').value.trim();
         
-        var modal = new bootstrap.Modal(document.getElementById('inviteUserModal'));
-        modal.show();
+        if (!name) {
+            alert('Please enter a sub-account name');
+            return;
+        }
+        
+        var newSubAccount = {
+            id: 'sub-' + Date.now(),
+            name: name,
+            description: description,
+            users: []
+        };
+        
+        hierarchyData.subAccounts.push(newSubAccount);
+        
+        bootstrap.Modal.getInstance(document.getElementById('addSubAccountModal')).hide();
+        
+        renderHierarchy();
+        
+        console.log('[Audit] Sub-Account created:', {
+            id: newSubAccount.id,
+            name: name,
+            createdBy: 'current-user',
+            timestamp: new Date().toISOString()
+        });
     });
     
     document.getElementById('btn-send-invite').addEventListener('click', function() {

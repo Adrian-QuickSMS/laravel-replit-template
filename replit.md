@@ -96,8 +96,11 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **No decorative icons** - clean minimal design
   - **Stats bar** showing Sub-Accounts count, Total Users, Active Users, Pending Invites
   - **Visibility rules:** Main Account Admins see full hierarchy; Sub-Account Admins see only their branch
-  - **Invite User modal** for adding users to specific Sub-Accounts with role assignment
-  - **Audit logging** for all user invitations and permission changes
+  - **Contextual creation actions** (no global Add buttons):
+    - Main Account hover → "+ Add Sub-Account" button
+    - Sub-Account hover → "+ Add User" button
+    - Buttons appear on hover only, using standard Fillow modal patterns
+  - **Audit logging** for all user invitations, sub-account creation, and permission changes
 - **SMS SenderID Registration Module:** UK-compliant SenderID registration system including Alphanumeric, Numeric, and Shortcode types. Features a 5-step registration wizard, lifecycle management (Draft, Pending, Approved, Rejected, Suspended, Archived), usage scopes, approval tracking, and a comprehensive audit trail for all status transitions.
 - **Numbers Management Module:** Library table for managing owned numbers (VMN, Dedicated Shortcode, Shortcode Keyword). Features status pills (Active/Suspended/Pending), capability indicators (API, Portal SenderID, Inbox, Opt-out), filtering by country/type/status/mode/capability/sub-account, sortable columns, and a configuration drawer for viewing number details. Includes actions for suspend/reactivate/release with confirmation modals. Supports bulk actions (Suspend, Reactivate, Assign Sub-Accounts) with row multi-select.
 - **Numbers Mode Selection (Hard Rule):** Each number operates in exactly ONE mutually exclusive mode - Portal Mode (Campaigns, Inbox, Opt-out) or API Mode (REST API only). Mode switching requires explicit confirmation modal showing disabled/enabled features. Changes are logged for audit and propagate immediately across all modules. No silent behavior changes or auto-migration between modes.
