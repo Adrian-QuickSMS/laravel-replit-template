@@ -55,6 +55,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     
     Route::get('/account', 'account')->name('account');
     Route::get('/account/details', 'accountDetails')->name('account.details');
+    Route::get('/account/activate', 'accountActivate')->name('account.activate');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');
@@ -64,6 +65,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/support/dashboard', 'supportDashboard')->name('support.dashboard');
     Route::get('/support/create-ticket', 'createTicket')->name('support.create-ticket');
     Route::get('/support/knowledge-base', 'knowledgeBase')->name('support.knowledge-base');
+    Route::get('/support/knowledge-base/test-mode', 'knowledgeBaseTestMode')->name('support.knowledge-base.test-mode');
     
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
 });

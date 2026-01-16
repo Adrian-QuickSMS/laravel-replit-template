@@ -1767,6 +1767,13 @@ class QuickSMSController extends Controller
             'page_title' => 'Account Details'
         ]);
     }
+    
+    public function accountActivate()
+    {
+        return view('quicksms.account.activate', [
+            'page_title' => 'Activate Your Account'
+        ]);
+    }
 
     public function usersAndAccess()
     {
@@ -1841,6 +1848,13 @@ class QuickSMSController extends Controller
             'page_title' => 'Knowledge Base',
             'purpose' => 'Browse help articles, guides, and FAQs.',
             'sub_modules' => []
+        ]);
+    }
+    
+    public function knowledgeBaseTestMode()
+    {
+        return view('quicksms.support.knowledge-base-test-mode', [
+            'page_title' => 'Understanding Test Mode'
         ]);
     }
 
