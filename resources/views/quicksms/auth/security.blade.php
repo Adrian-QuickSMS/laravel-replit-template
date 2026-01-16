@@ -625,6 +625,32 @@ $(document).ready(function() {
             return this.log('mfa_otp_verified', { mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2), success: success });
         },
         
+        // Comprehensive OTP request audit logging for abuse prevention
+        // Result types: sent, blocked_cooldown, blocked_24h_limit, invalid_number
+        logOtpRequest: function(mobile, result, extraDetails) {
+            var maskedMobile = mobile ? mobile.slice(0, 4) + '****' + mobile.slice(-2) : 'invalid';
+            var details = {
+                mobile_normalized: mobile || null, // Full number for backend (never expose in UI)
+                mobile_masked: maskedMobile,       // Masked for display/frontend logs
+                result: result,                    // sent | blocked_cooldown | blocked_24h_limit | invalid_number
+                ip_address: 'CAPTURED_BY_SERVER',  // Backend captures real IP
+                request_source: 'signup_step2'
+            };
+            
+            // Merge extra details if provided
+            if (extraDetails) {
+                for (var key in extraDetails) {
+                    if (extraDetails.hasOwnProperty(key)) {
+                        details[key] = extraDetails[key];
+                    }
+                }
+            }
+            
+            // NOTE: OTP code is intentionally NOT logged for security
+            console.log('[AUDIT] OTP Request:', result, '| Mobile:', maskedMobile);
+            return this.log('otp_request', details);
+        },
+        
         getRecentLogs: function(count) {
             return this.logs.slice(-count);
         }
@@ -718,8 +744,14 @@ $(document).ready(function() {
             var $status = $('#otpStatus');
             $status.removeClass('d-none sent sending').addClass('error');
             $status.html('<i class="fas fa-clock me-2"></i>Please wait ' + mins + ':' + (secs < 10 ? '0' : '') + secs + ' before requesting a new code.');
-            // In production: Backend returns 429 with { error: 'cooldown_active', next_otp_allowed_at: timestamp }
-            console.log('[OTP] Cooldown enforced. next_otp_allowed_at=' + new Date(nextOtpAllowedAt).toISOString());
+            
+            // Audit log: blocked by cooldown
+            var attemptedMobile = $('#mobileNumber').val().trim();
+            var normalized = normalizeUkMobile(attemptedMobile);
+            AuditService.logOtpRequest(normalized.valid ? normalized.normalized : null, 'blocked_cooldown', {
+                cooldown_remaining_seconds: remainingSecs,
+                next_otp_allowed_at: new Date(nextOtpAllowedAt).toISOString()
+            });
             return;
         }
         
@@ -729,6 +761,12 @@ $(document).ready(function() {
         if (!result.valid) {
             $('#mobileNumber').addClass('is-invalid');
             $('#mobileError').text(result.error);
+            
+            // Audit log: invalid number format
+            AuditService.logOtpRequest(null, 'invalid_number', {
+                raw_input_length: rawMobile.length,
+                validation_error: result.error
+            });
             return;
         }
         
@@ -754,11 +792,11 @@ $(document).ready(function() {
             
             $status.html('<i class="fas fa-exclamation-triangle me-2"></i>Too many code requests. Please try again ' + retryText + '.');
             
-            // Backend would return: { error: 'OTP_RATE_LIMITED', retry_after: seconds }
-            console.log('[OTP] Rate limited. Backend error code: OTP_RATE_LIMITED, retry_after=' + retryAfterSecs);
-            AuditService.log('otp_send_rate_limited', { 
-                mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2),
-                retry_after_seconds: retryAfterSecs
+            // Audit log: blocked by 24h limit
+            AuditService.logOtpRequest(mobile, 'blocked_24h_limit', {
+                retry_after_seconds: retryAfterSecs,
+                limit_max: 4,
+                limit_window_hours: 24
             });
             return;
         }
@@ -781,8 +819,11 @@ $(document).ready(function() {
             // Generate mock 6-digit OTP
             currentOtp = String(Math.floor(100000 + Math.random() * 900000));
             
-            // Audit log OTP sent
-            AuditService.logMfaOtpSent(mobile, true);
+            // Audit log: OTP sent successfully (code NOT logged for security)
+            AuditService.logOtpRequest(mobile, 'sent', {
+                otp_expiry_minutes: 5,
+                delivery_channel: 'sms'
+            });
             otpExpiry = Date.now() + (5 * 60 * 1000); // 5 minutes
             
             console.log('[OTP] Mock code sent to ' + mobile + ': ' + currentOtp);
