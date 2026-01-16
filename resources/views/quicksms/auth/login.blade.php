@@ -67,6 +67,9 @@
                             <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
                             <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
                         </div>
+                        <div class="alert alert-info small mt-2" id="testOtpCode">
+                            <strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
+                        </div>
                     </div>
                     
                     <div class="mfa-status mb-3 d-none" id="mfaStatus"></div>
@@ -383,6 +386,9 @@ $(document).ready(function() {
         
         console.log('[MFA] OTP sent to ' + currentMobile + ': ' + currentOtp);
         AuditService.log('mfa_otp_sent', { mobile_masked: '****' + currentMobile.slice(-4) });
+        
+        // Show test mode OTP code on page
+        $('#displayOtp').text(currentOtp);
         
         startCountdown();
         

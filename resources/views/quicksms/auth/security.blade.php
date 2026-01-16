@@ -98,6 +98,9 @@
                             <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
                             <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
                         </div>
+                        <div class="alert alert-info small mt-2 d-none" id="testOtpCode">
+                            <strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
+                        </div>
                     </div>
                     
                     <div class="verified-badge d-none" id="mobileVerifiedBadge">
@@ -736,6 +739,10 @@ $(document).ready(function() {
             // Show OTP input
             $('#otpInputGroup').removeClass('d-none');
             $('#otpCode').focus();
+            
+            // Show test mode OTP code on page
+            $('#displayOtp').text(currentOtp);
+            $('#testOtpCode').removeClass('d-none');
             
             // Reset button
             $btn.prop('disabled', false);
