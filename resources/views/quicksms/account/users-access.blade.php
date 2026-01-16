@@ -659,7 +659,7 @@ input:focus + .perm-slider {
                                 <h6 class="mb-0">Default Enforcement Rules</h6>
                                 <small class="text-muted">Configure spending and sending limits for this sub-account</small>
                             </div>
-                            <span class="badge bg-secondary">Optional</span>
+                            <span class="badge" style="background: #f3e8ff; color: #6b21a8;">Optional</span>
                         </div>
                         
                         <div class="row g-3">
@@ -695,7 +695,7 @@ input:focus + .perm-slider {
                             </div>
                         </div>
                         
-                        <div class="alert alert-light border mt-3 mb-0" style="font-size: 0.8rem;">
+                        <div class="alert mt-3 mb-0" style="font-size: 0.8rem; background: #f3e8ff; border: 1px solid #ddd6fe; color: #6b21a8;">
                             <strong>Note:</strong> These rules can be modified later in the Sub-Account settings. Users in this sub-account will inherit these defaults.
                         </div>
                     </div>
