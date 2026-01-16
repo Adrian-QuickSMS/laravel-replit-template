@@ -723,7 +723,7 @@ input:focus + .perm-slider {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info mb-4" style="font-size: 0.85rem;">
+                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: 1px solid #e9d5ff; color: #6b21a8;">
                     <strong>Role-Based Navigation:</strong> Roles control which sections of QuickSMS the user can access, not individual feature toggles.
                 </div>
                 
@@ -749,7 +749,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-admin">Admin</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">Full access within their sub-account scope</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Team leads, department managers</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Team leads, department managers</span></div>
                                 </div>
                                 <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.6rem;">High Access</span>
                             </div>
@@ -760,7 +760,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-messaging">Messaging Manager</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">Send messages, manage contacts and templates</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Marketing coordinators, campaign managers</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Marketing coordinators, campaign managers</span></div>
                                 </div>
                             </div>
                         </div>
@@ -770,7 +770,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-finance">Finance / Billing</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">Access billing, invoices, and purchases only</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Accountants, finance team members</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Accountants, finance team members</span></div>
                                 </div>
                             </div>
                         </div>
@@ -780,7 +780,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-developer">Developer / API User</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">API connections and technical integrations</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Software engineers, integration specialists</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Software engineers, integration specialists</span></div>
                                 </div>
                             </div>
                         </div>
@@ -790,7 +790,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-auditor">Read-Only / Auditor</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">View-only access for compliance review</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Compliance officers, external auditors</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Compliance officers, external auditors</span></div>
                                 </div>
                             </div>
                         </div>
@@ -800,7 +800,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-approver">Campaign Approver</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">Review and approve campaigns before sending</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">Senior managers, compliance reviewers</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Senior managers, compliance reviewers</span></div>
                                 </div>
                                 <span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.6rem;">Optional</span>
                             </div>
@@ -811,7 +811,7 @@ input:focus + .perm-slider {
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-security">Security Officer</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">Manage security settings and access reviews</div>
-                                    <div class="mt-1"><span class="badge bg-light text-dark" style="font-size: 0.65rem;">IT security, data protection officers</span></div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">IT security, data protection officers</span></div>
                                 </div>
                                 <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.6rem;">High Access</span>
                             </div>
