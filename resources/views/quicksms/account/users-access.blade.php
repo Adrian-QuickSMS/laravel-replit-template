@@ -644,6 +644,7 @@ input:focus + .perm-slider {
                     <div class="mb-3">
                         <label class="form-label">Sub-Account Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="sub-account-name" placeholder="e.g., Marketing Department" required>
+                        <div class="invalid-feedback" id="sub-account-name-error">Please enter a sub-account name</div>
                         <div class="form-text">This name will appear in the hierarchy and be visible to users</div>
                     </div>
                     <div class="mb-3">
@@ -1733,12 +1734,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    document.getElementById('sub-account-name').addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+    });
+    
+    document.getElementById('addSubAccountModal').addEventListener('show.bs.modal', function() {
+        document.getElementById('add-sub-account-form').reset();
+        document.getElementById('sub-account-name').classList.remove('is-invalid');
+    });
+    
     document.getElementById('btn-create-sub-account').addEventListener('click', function() {
         var name = document.getElementById('sub-account-name').value.trim();
         var description = document.getElementById('sub-account-description').value.trim();
         
+        var nameInput = document.getElementById('sub-account-name');
+        
         if (!name) {
-            alert('Please enter a sub-account name');
+            nameInput.classList.add('is-invalid');
+            nameInput.focus();
             return;
         }
         
