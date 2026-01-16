@@ -137,47 +137,25 @@
                             </div>
                         </div>
                         
-                        <div class="section-card mb-3">
-                            <h6 class="section-title"><i class="fas fa-envelope me-2"></i>Marketing Preferences</h6>
-                            <p class="section-helper mb-2">Optional: Stay informed about updates and offers.</p>
+                        <div class="section-card mb-3" id="testCreditSection">
+                            <h6 class="section-title"><i class="fas fa-gift me-2"></i>Free Test Credits</h6>
                             
-                            <div class="form-check">
+                            <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" id="marketingConsent">
                                 <label class="form-check-label small" for="marketingConsent">
-                                    I agree to receive product updates, tips, and offers via email, SMS, and RCS. I can opt out at any time.
+                                    Receive updates and offers (optional)
                                 </label>
                             </div>
-                        </div>
-                        
-                        <div class="section-card mb-3" id="testCreditSection">
-                            <h6 class="section-title"><i class="fas fa-gift me-2"></i>Test Credit Eligibility</h6>
                             
                             <div id="creditEligibilityStatus">
-                                <div class="credit-status-pending" id="creditPending">
-                                    <div class="d-flex align-items-start">
-                                        <div class="test-credit-icon me-2">
-                                            <i class="fas fa-coins text-muted"></i>
-                                        </div>
-                                        <div>
-                                            <p class="mb-1 small"><strong>Unlock 100 free test SMS credits</strong></p>
-                                            <ul class="eligibility-checklist mb-0 small">
-                                                <li id="checkMobile"><i class="fas fa-circle"></i> Mobile verified</li>
-                                                <li id="checkMarketing"><i class="fas fa-circle"></i> Marketing consent</li>
-                                            </ul>
-                                        </div>
-                                    </div>
+                                <div class="credit-hint small" id="creditPending">
+                                    <i class="fas fa-info-circle text-muted me-1"></i>
+                                    <span class="text-muted">Opt in above + verify mobile = <strong>100 free SMS credits</strong></span>
                                 </div>
                                 
-                                <div class="credit-status-eligible d-none" id="creditEligible">
-                                    <div class="d-flex align-items-start">
-                                        <div class="test-credit-icon test-credit-icon-success me-2">
-                                            <i class="fas fa-coins text-warning"></i>
-                                        </div>
-                                        <div>
-                                            <p class="mb-1 text-success small"><strong><i class="fas fa-check-circle me-1"></i>You're eligible for 100 free credits!</strong></p>
-                                            <p class="text-muted mb-0 small">Credits applied on account creation.</p>
-                                        </div>
-                                    </div>
+                                <div class="credit-eligible d-none" id="creditEligible">
+                                    <i class="fas fa-check-circle text-success me-1"></i>
+                                    <span class="text-success small"><strong>100 free credits unlocked!</strong></span>
                                 </div>
                             </div>
                         </div>
