@@ -166,6 +166,9 @@
     border-radius: 0.375rem;
     cursor: pointer;
     transition: all 0.15s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .enforcement-option:hover {
     border-color: #886cc0;
@@ -199,11 +202,11 @@
 
 .approval-required-banner {
     padding: 0.75rem 1rem;
-    background: #fef3c7;
-    border: 1px solid #fcd34d;
+    background: #f3e8ff;
+    border: 1px solid #ddd6fe;
     border-radius: 0.375rem;
     font-size: 0.8rem;
-    color: #92400e;
+    color: #6b21a8;
     display: none;
 }
 .approval-required-banner.show {
