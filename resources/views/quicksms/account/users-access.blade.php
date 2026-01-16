@@ -925,7 +925,7 @@ input:focus + .perm-slider {
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <strong id="perm-user-display"></strong>
-                        <span class="badge bg-secondary ms-2" id="perm-role-display"></span>
+                        <span class="badge ms-2" id="perm-role-display" style="background: #f3e8ff; color: #6b21a8;"></span>
                     </div>
                     <div class="d-flex align-items-center gap-3" style="font-size: 0.8rem;">
                         <span><span class="badge" style="background: #e5e7eb; color: #374151;">Inherited</span> From role defaults</span>
