@@ -453,7 +453,7 @@ $(document).ready(function() {
             signup_per_ip: { max: 5, window_minutes: 15 },
             login_per_ip: { max: 10, window_minutes: 15 },
             login_per_email: { max: 5, window_minutes: 15 },
-            otp_send_per_mobile: { max: 3, window_minutes: 10 },
+            otp_send_per_mobile_24h: { max: 4, window_minutes: 24 * 60 }, // 4 requests per 24 hours
             otp_verify_attempts: { max: 5, window_minutes: 5 }
         },
         account_lockout: {
@@ -510,7 +510,10 @@ $(document).ready(function() {
         },
         
         checkOtpSendRate: function(mobile) {
-            return this.checkLimit('otp_send:' + mobile, SecurityConfig.rate_limits.otp_send_per_mobile);
+            // Backend-ready: Check 24-hour limit (4 requests per 24h per mobile)
+            // In production: Query DB for otp_request_count_24h, otp_request_window_start_at
+            // Rate limit key includes: email + normalized_msisdn + IP (server-side)
+            return this.checkLimit('otp_send_24h:' + mobile, SecurityConfig.rate_limits.otp_send_per_mobile_24h);
         },
         
         checkOtpVerifyRate: function(mobile) {
@@ -732,18 +735,36 @@ $(document).ready(function() {
         var mobile = result.normalized;
         $('#mobileNumber').val(mobile);
         
-        // Check rate limit for OTP sending (additional protection against abuse)
+        // Check rate limit for OTP sending (max 4 requests per 24 hours)
         var rateCheck = RateLimitService.checkOtpSendRate(mobile);
         if (!rateCheck.allowed) {
             var $status = $('#otpStatus');
             $status.removeClass('d-none sent sending').addClass('error');
-            $status.html('<i class="fas fa-exclamation-triangle me-2"></i>Too many attempts. Please try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
-            AuditService.log('otp_send_rate_limited', { mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2) });
+            
+            // Format retry time (could be hours for 24h limit)
+            var retryAfterSecs = rateCheck.retryAfter;
+            var retryText = '';
+            if (retryAfterSecs >= 3600) {
+                var hours = Math.ceil(retryAfterSecs / 3600);
+                retryText = 'in ' + hours + ' hour' + (hours > 1 ? 's' : '');
+            } else {
+                var mins = Math.ceil(retryAfterSecs / 60);
+                retryText = 'in ' + mins + ' minute' + (mins > 1 ? 's' : '');
+            }
+            
+            $status.html('<i class="fas fa-exclamation-triangle me-2"></i>Too many code requests. Please try again ' + retryText + '.');
+            
+            // Backend would return: { error: 'OTP_RATE_LIMITED', retry_after: seconds }
+            console.log('[OTP] Rate limited. Backend error code: OTP_RATE_LIMITED, retry_after=' + retryAfterSecs);
+            AuditService.log('otp_send_rate_limited', { 
+                mobile_masked: mobile.slice(0, 4) + '****' + mobile.slice(-2),
+                retry_after_seconds: retryAfterSecs
+            });
             return;
         }
         
         $('#mobileNumber').removeClass('is-invalid');
-        RateLimitService.recordAttempt('otp_send:' + mobile);
+        RateLimitService.recordAttempt('otp_send_24h:' + mobile);
         
         var $btn = $(this);
         $btn.prop('disabled', true);
