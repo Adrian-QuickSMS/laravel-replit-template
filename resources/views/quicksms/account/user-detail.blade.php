@@ -524,6 +524,142 @@
     color: #7c3aed;
 }
 
+.role-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+.role-option {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: white;
+}
+.role-option:hover {
+    border-color: #c4b5fd;
+    background: #faf8ff;
+}
+.role-option.selected {
+    border-color: #886cc0;
+    background: #f3e8ff;
+}
+.role-option.high-risk {
+    border-left: 4px solid #f59e0b;
+}
+.role-option.high-risk.selected {
+    border-left-color: #f59e0b;
+}
+.role-option-header {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.375rem;
+}
+.role-option-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+.role-option.selected .role-option-icon {
+    background: #886cc0;
+    color: white;
+}
+.role-option-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    flex: 1;
+}
+.role-option-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.role-option.selected .role-option-check {
+    background: #886cc0;
+    border-color: #886cc0;
+    color: white;
+}
+.role-option-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.4;
+    margin-bottom: 0.375rem;
+}
+.role-option-usecase {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+.role-option-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+.role-option-badge.elevated {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.high-risk-warning {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+.high-risk-warning.show {
+    display: flex;
+}
+.high-risk-warning i {
+    color: #d97706;
+    margin-right: 0.5rem;
+    margin-top: 0.125rem;
+}
+.high-risk-warning-text {
+    font-size: 0.8rem;
+    color: #92400e;
+}
+.high-risk-warning-text strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.kb-footer-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.8rem;
+    color: #886cc0;
+    text-decoration: none;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+.kb-footer-link:hover {
+    text-decoration: underline;
+    color: #7c3aed;
+}
+
 .modal-header {
     border-bottom: 1px solid #e5e7eb;
 }
@@ -1030,34 +1166,102 @@
 </div>
 
 <div class="modal fade" id="editRoleModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-user-cog me-2" style="color: #886cc0;"></i>Edit Role & Permissions</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label" style="font-size: 0.85rem;">Role</label>
-                    <select class="form-select" id="edit-user-role">
-                        <option value="admin" {{ $user['role'] === 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="messaging-manager" {{ $user['role'] === 'messaging-manager' ? 'selected' : '' }}>Messaging Manager</option>
-                        <option value="finance" {{ $user['role'] === 'finance' ? 'selected' : '' }}>Finance/Billing</option>
-                        <option value="developer" {{ $user['role'] === 'developer' ? 'selected' : '' }}>Developer/API User</option>
-                        <option value="read-only" {{ $user['role'] === 'read-only' ? 'selected' : '' }}>Read-Only/Auditor</option>
-                        <option value="campaign-approver" {{ $user['role'] === 'campaign-approver' ? 'selected' : '' }}>Campaign Approver</option>
-                    </select>
-                </div>
-                <div class="mb-3" id="sender-capability-section" style="{{ $user['sender_capability'] ? '' : 'display: none;' }}">
-                    <label class="form-label" style="font-size: 0.85rem;">Sender Capability Level</label>
-                    <select class="form-select" id="edit-sender-capability">
-                        <option value="advanced" {{ $user['sender_capability'] === 'advanced' ? 'selected' : '' }}>Advanced Sender</option>
-                        <option value="restricted" {{ $user['sender_capability'] === 'restricted' ? 'selected' : '' }}>Restricted Sender</option>
-                    </select>
-                    <div class="form-text" style="font-size: 0.75rem;">
-                        Advanced senders can compose free-form messages. Restricted senders can only use approved templates.
+                <input type="hidden" id="edit-user-role" value="{{ $user['role'] }}">
+                
+                <div class="high-risk-warning" id="high-risk-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="high-risk-warning-text">
+                        <strong>Elevated Access Role</strong>
+                        This role grants significant permissions including user management and configuration access. Ensure this user requires these privileges.
                     </div>
                 </div>
+                
+                <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.75rem;">Select Role</label>
+                <div class="role-selector" id="role-selector">
+                    <div class="role-option high-risk {{ $user['role'] === 'admin' ? 'selected' : '' }}" data-role="admin" data-high-risk="true" data-messaging="true">
+                        <div class="role-option-header">
+                            <div class="role-option-icon"><i class="fas fa-user-shield"></i></div>
+                            <div class="role-option-name">Admin<span class="role-option-badge elevated">Elevated</span></div>
+                            <div class="role-option-check"><i class="fas fa-check" style="font-size: 0.65rem;"></i></div>
+                        </div>
+                        <div class="role-option-desc">Full access to all features including user management, messaging, reporting, and configuration.</div>
+                        <div class="role-option-usecase">Best for: Department heads, team leads managing messaging operations</div>
+                    </div>
+                    
+                    <div class="role-option {{ $user['role'] === 'messaging-manager' ? 'selected' : '' }}" data-role="messaging-manager" data-high-risk="false" data-messaging="true">
+                        <div class="role-option-header">
+                            <div class="role-option-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="role-option-name">Messaging Manager</div>
+                            <div class="role-option-check"><i class="fas fa-check" style="font-size: 0.65rem;"></i></div>
+                        </div>
+                        <div class="role-option-desc">Create and send campaigns, manage contacts, view reports. No user management or billing access.</div>
+                        <div class="role-option-usecase">Best for: Marketing coordinators, customer service leads</div>
+                    </div>
+                    
+                    <div class="role-option {{ $user['role'] === 'finance' ? 'selected' : '' }}" data-role="finance" data-high-risk="false" data-messaging="false">
+                        <div class="role-option-header">
+                            <div class="role-option-icon"><i class="fas fa-coins"></i></div>
+                            <div class="role-option-name">Finance/Billing</div>
+                            <div class="role-option-check"><i class="fas fa-check" style="font-size: 0.65rem;"></i></div>
+                        </div>
+                        <div class="role-option-desc">View invoices, payment history, and spend reports. No message content or contact access.</div>
+                        <div class="role-option-usecase">Best for: Accounts payable, finance managers</div>
+                    </div>
+                    
+                    <div class="role-option {{ $user['role'] === 'developer' ? 'selected' : '' }}" data-role="developer" data-high-risk="false" data-messaging="false">
+                        <div class="role-option-header">
+                            <div class="role-option-icon"><i class="fas fa-code"></i></div>
+                            <div class="role-option-name">Developer/API User</div>
+                            <div class="role-option-check"><i class="fas fa-check" style="font-size: 0.65rem;"></i></div>
+                        </div>
+                        <div class="role-option-desc">Access API credentials, webhooks, and integration settings. Technical documentation access.</div>
+                        <div class="role-option-usecase">Best for: IT staff, integration developers</div>
+                    </div>
+                    
+                    <div class="role-option {{ $user['role'] === 'read-only' ? 'selected' : '' }}" data-role="read-only" data-high-risk="false" data-messaging="false">
+                        <div class="role-option-header">
+                            <div class="role-option-icon"><i class="fas fa-eye"></i></div>
+                            <div class="role-option-name">Read-Only/Auditor</div>
+                            <div class="role-option-check"><i class="fas fa-check" style="font-size: 0.65rem;"></i></div>
+                        </div>
+                        <div class="role-option-desc">View reports, audit logs, and campaign history. Cannot send messages or modify settings.</div>
+                        <div class="role-option-usecase">Best for: Compliance officers, auditors, stakeholders</div>
+                    </div>
+                    
+                    <div class="role-option {{ $user['role'] === 'campaign-approver' ? 'selected' : '' }}" data-role="campaign-approver" data-high-risk="false" data-messaging="false">
+                        <div class="role-option-header">
+                            <div class="role-option-icon"><i class="fas fa-check-double"></i></div>
+                            <div class="role-option-name">Campaign Approver</div>
+                            <div class="role-option-check"><i class="fas fa-check" style="font-size: 0.65rem;"></i></div>
+                        </div>
+                        <div class="role-option-desc">Review and approve pending campaigns before sending. Access approval queue with approve/reject actions.</div>
+                        <div class="role-option-usecase">Best for: Brand managers, compliance leads</div>
+                    </div>
+                </div>
+                
+                <a href="https://help.quicksms.io/roles" target="_blank" rel="noopener" class="kb-footer-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    Learn more about roles in our Knowledge Base
+                </a>
+                
+                <div class="mb-3 mt-3" id="sender-capability-section" style="{{ $user['sender_capability'] ? '' : 'display: none;' }}">
+                    <label class="form-label" style="font-size: 0.85rem;">Sender Capability Level</label>
+                    <select class="form-select" id="edit-sender-capability">
+                        <option value="advanced" {{ $user['sender_capability'] === 'advanced' ? 'selected' : '' }}>Advanced Sender - Free-form messages allowed</option>
+                        <option value="restricted" {{ $user['sender_capability'] === 'restricted' ? 'selected' : '' }}>Restricted Sender - Templates only</option>
+                    </select>
+                    <div class="form-text" style="font-size: 0.75rem;">
+                        This setting only applies to roles with messaging capabilities.
+                    </div>
+                </div>
+                
                 <div class="mb-3">
                     <label class="form-label" style="font-size: 0.85rem;">Reason for change <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="role-change-reason" rows="2" placeholder="Required for audit trail..." required></textarea>
@@ -1166,17 +1370,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const SUB_ACCOUNT_MESSAGE_CAP = 100000;
     
     const messagingRoles = ['messaging-manager', 'admin'];
-    const roleSelect = document.getElementById('edit-user-role');
+    const roleInput = document.getElementById('edit-user-role');
     const capabilitySection = document.getElementById('sender-capability-section');
+    const roleSelector = document.getElementById('role-selector');
+    const highRiskWarning = document.getElementById('high-risk-warning');
     
-    if (roleSelect) {
-        roleSelect.addEventListener('change', function() {
-            if (messagingRoles.includes(this.value)) {
-                capabilitySection.style.display = '';
-            } else {
-                capabilitySection.style.display = 'none';
-            }
+    function updateRoleSelection(selectedRole) {
+        roleInput.value = selectedRole;
+        
+        document.querySelectorAll('.role-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.role === selectedRole);
         });
+        
+        const selectedOption = document.querySelector(`.role-option[data-role="${selectedRole}"]`);
+        const isHighRisk = selectedOption?.dataset.highRisk === 'true';
+        const isMessaging = selectedOption?.dataset.messaging === 'true';
+        
+        if (highRiskWarning) {
+            highRiskWarning.classList.toggle('show', isHighRisk);
+        }
+        
+        if (capabilitySection) {
+            capabilitySection.style.display = isMessaging ? '' : 'none';
+        }
+    }
+    
+    if (roleSelector) {
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                updateRoleSelection(this.dataset.role);
+            });
+        });
+        
+        const initialRole = roleInput?.value;
+        if (initialRole) {
+            const initialOption = document.querySelector(`.role-option[data-role="${initialRole}"]`);
+            if (initialOption?.dataset.highRisk === 'true') {
+                highRiskWarning?.classList.add('show');
+            }
+        }
     }
     
     document.getElementById('btn-confirm-suspend-user')?.addEventListener('click', function() {
