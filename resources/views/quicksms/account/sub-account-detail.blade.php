@@ -192,12 +192,11 @@
 .hard-stop-toggle {
     padding: 0.75rem 1rem;
     background: #f3e8ff;
-    border: 1px solid #ddd6fe;
+    border: none;
     border-radius: 0.375rem;
 }
 .hard-stop-toggle.enabled {
     background: #ede9fe;
-    border-color: #c4b5fd;
 }
 
 .approval-required-banner {
@@ -275,19 +274,19 @@
 }
 .enforcement-state.normal {
     background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    border: none;
 }
 .enforcement-state.warning {
     background: #fefce8;
-    border: 1px solid #fef08a;
+    border: none;
 }
 .enforcement-state.blocked {
     background: #fef2f2;
-    border: 1px solid #fecaca;
+    border: none;
 }
 .enforcement-state.approval-required {
     background: #f3e8ff;
-    border: 1px solid #e9d5ff;
+    border: none;
 }
 .enforcement-state .state-icon {
     width: 40px;
