@@ -666,6 +666,78 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="changeCapabilityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Sender Capability Level</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-4" style="font-size: 0.85rem;">
+                    <strong>Sender Capability:</strong> Controls what messaging features a user can access, separate from their role.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">User</label>
+                    <input type="text" class="form-control" id="change-capability-user-name" readonly>
+                    <input type="hidden" id="change-capability-user-id">
+                    <input type="hidden" id="change-capability-sub-account-id">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Current Level</label>
+                    <input type="text" class="form-control" id="change-capability-current" readonly>
+                    <input type="hidden" id="change-capability-current-value">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">New Level <span class="text-danger">*</span></label>
+                    <div class="capability-options">
+                        <div class="form-check mb-3 p-3 border rounded" style="background: linear-gradient(135deg, rgba(136, 108, 192, 0.08) 0%, rgba(167, 139, 250, 0.08) 100%);">
+                            <input class="form-check-input" type="radio" name="new-capability" id="cap-advanced" value="advanced">
+                            <label class="form-check-label" for="cap-advanced">
+                                <strong>Advanced Sender</strong>
+                                <ul class="mb-0 mt-2" style="font-size: 0.8rem; color: #6b7280;">
+                                    <li>Free-form SMS and RCS composition</li>
+                                    <li>Full Contact Book access</li>
+                                    <li>CSV recipient uploads</li>
+                                    <li>Ad-hoc number entry</li>
+                                    <li>Rich RCS media upload</li>
+                                    <li>Template creation</li>
+                                </ul>
+                            </label>
+                        </div>
+                        <div class="form-check p-3 border rounded" style="background: #f9fafb;">
+                            <input class="form-check-input" type="radio" name="new-capability" id="cap-restricted" value="restricted">
+                            <label class="form-check-label" for="cap-restricted">
+                                <strong>Restricted Sender</strong>
+                                <ul class="mb-0 mt-2" style="font-size: 0.8rem; color: #6b7280;">
+                                    <li>Templates only (no free-text editing)</li>
+                                    <li>Predefined lists only</li>
+                                    <li>No CSV uploads</li>
+                                    <li>No ad-hoc numbers</li>
+                                    <li>No template creation</li>
+                                </ul>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Reason for Change <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="change-capability-reason" rows="2" placeholder="e.g., Training completed, security review passed" required></textarea>
+                    <div class="form-text">This will be recorded in the audit log</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-confirm-capability-change">Confirm Change</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -806,6 +878,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += '<div class="empty-users">No users in this Sub-Account</div>';
             } else {
                 subAccount.users.forEach(function(user) {
+                    var hasMessagingRole = ['owner', 'admin', 'messaging-manager', 'campaign-approver'].includes(user.role);
+                    
                     html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="' + subAccount.id + '">';
                     html += '<div class="user-info">';
                     html += '<span class="user-name">' + escapeHtml(user.name) + '</span>';
@@ -813,9 +887,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     html += '</div>';
                     html += '<div class="user-pills">';
                     html += '<span class="role-pill ' + user.role + '">' + formatRole(user.role) + '</span>';
+                    
+                    if (hasMessagingRole && user.senderCapability) {
+                        var capClass = user.senderCapability === 'advanced' ? 'capability-advanced' : 'capability-restricted';
+                        var capLabel = user.senderCapability === 'advanced' ? 'Advanced' : 'Restricted';
+                        html += '<span class="capability-pill ' + capClass + '" style="background: ' + (user.senderCapability === 'advanced' ? 'linear-gradient(135deg, #886cc0 0%, #a78bfa 100%); color: #fff;' : '#f3f4f6; color: #6b7280; border: 1px solid #e5e7eb;') + ' padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px;">' + capLabel + '</span>';
+                    }
+                    
                     html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
+                    
                     if (user.role !== 'owner' && isMainAccountAdmin) {
                         html += '<button class="btn btn-sm btn-outline-secondary ms-2 btn-change-role" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Change Role</button>';
+                        
+                        if (hasMessagingRole) {
+                            html += '<button class="btn btn-sm btn-outline-primary ms-1 btn-change-capability" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-capability="' + (user.senderCapability || 'restricted') + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Sender Level</button>';
+                        }
                     }
                     html += '</div>';
                     html += '</div>';
@@ -1329,6 +1415,84 @@ document.addEventListener('DOMContentLoaded', function() {
         renderHierarchy();
         
         alert('Role changed successfully.\n\n' + userName + ' is now a ' + formatRole(newRole) + '.\n\nThis change has been logged.');
+    });
+    
+    document.getElementById('hierarchy-tree').addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-change-capability');
+        if (btn) {
+            var userId = btn.getAttribute('data-user-id');
+            var userName = btn.getAttribute('data-user-name');
+            var userCapability = btn.getAttribute('data-user-capability');
+            var subAccountId = btn.getAttribute('data-sub-account-id');
+            
+            document.getElementById('change-capability-user-id').value = userId;
+            document.getElementById('change-capability-user-name').value = userName;
+            document.getElementById('change-capability-current').value = userCapability === 'advanced' ? 'Advanced Sender' : 'Restricted Sender';
+            document.getElementById('change-capability-current-value').value = userCapability;
+            document.getElementById('change-capability-sub-account-id').value = subAccountId;
+            document.getElementById('change-capability-reason').value = '';
+            
+            document.querySelectorAll('input[name="new-capability"]').forEach(function(radio) {
+                radio.checked = false;
+            });
+            
+            var modal = new bootstrap.Modal(document.getElementById('changeCapabilityModal'));
+            modal.show();
+        }
+    });
+    
+    document.getElementById('btn-confirm-capability-change').addEventListener('click', function() {
+        var userId = document.getElementById('change-capability-user-id').value;
+        var userName = document.getElementById('change-capability-user-name').value;
+        var previousCapability = document.getElementById('change-capability-current-value').value;
+        var newCapability = document.querySelector('input[name="new-capability"]:checked');
+        var reason = document.getElementById('change-capability-reason').value.trim();
+        var subAccountId = document.getElementById('change-capability-sub-account-id').value;
+        
+        if (!newCapability || !reason) {
+            alert('Please select a new capability level and provide a reason for the change');
+            return;
+        }
+        
+        newCapability = newCapability.value;
+        
+        if (newCapability === previousCapability) {
+            alert('The new capability must be different from the current level');
+            return;
+        }
+        
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
+        if (subAccount) {
+            var user = subAccount.users.find(function(u) { return u.id === userId; });
+            if (user) {
+                user.senderCapability = newCapability;
+            }
+        }
+        
+        var auditEntry = {
+            action: 'SENDER_CAPABILITY_CHANGED',
+            userId: userId,
+            userName: userName,
+            previousCapability: previousCapability,
+            newCapability: newCapability,
+            reason: reason,
+            subAccountId: subAccountId,
+            changedBy: {
+                userId: 'user-001',
+                userName: 'Sarah Mitchell',
+                role: 'admin'
+            },
+            timestamp: new Date().toISOString(),
+            ipAddress: '192.168.1.100'
+        };
+        
+        console.log('[AUDIT] Sender capability changed:', auditEntry);
+        
+        bootstrap.Modal.getInstance(document.getElementById('changeCapabilityModal')).hide();
+        renderHierarchy();
+        
+        var capLabel = newCapability === 'advanced' ? 'Advanced Sender' : 'Restricted Sender';
+        alert('Sender capability changed successfully.\n\n' + userName + ' is now a ' + capLabel + '.\n\nThis change has been logged.');
     });
     
     renderHierarchy();
