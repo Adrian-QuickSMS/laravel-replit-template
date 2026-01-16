@@ -923,46 +923,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // =====================================================
     function loadSavedData() {
         var saved = localStorage.getItem('account_details');
-        if (saved) {
-            try {
-                var data = JSON.parse(saved);
-                
-                // Set company type
-                if (data.company_type) {
-                    selectedCompanyType = data.company_type;
-                    document.getElementById('company_type').value = data.company_type;
-                    var tile = document.querySelector('.company-type-tile[data-type="' + data.company_type + '"]');
-                    if (tile) tile.classList.add('selected');
-                    updateCompanyTypeFields();
-                }
-                
-                // Set other fields
-                Object.keys(data).forEach(function(key) {
-                    var el = document.getElementById(key);
-                    if (el && key !== 'company_type') {
-                        el.value = data[key] || '';
-                    }
-                });
-                
-                // Handle VAT visibility
-                if (data.vat_registered === 'yes') {
-                    document.getElementById('vatCountryGroup').style.display = 'block';
-                    document.getElementById('vatNumberGroup').style.display = 'block';
-                    document.getElementById('reverseChargesGroup').style.display = 'block';
-                }
-                
-                // Validate form and check if complete
-                var isComplete = validateForm();
-                
-                // If all fields are complete, set activation status
-                if (isComplete && lifecycle) {
-                    lifecycle.setActivationStatus('account_details_complete', true);
-                    console.log('[Activate] Loaded saved data - account details complete');
-                }
-            } catch (e) {
-                console.error('Error loading saved data:', e);
-            }
+        if (!saved) {
+            console.log('[Activate] No saved account_details found');
+            return;
         }
+        
+        var data;
+        try {
+            data = JSON.parse(saved);
+            console.log('[Activate] Loading saved data:', Object.keys(data));
+        } catch (e) {
+            console.error('[Activate] Invalid JSON in localStorage:', e);
+            return;
+        }
+        
+        // Set company type
+        if (data.company_type) {
+            selectedCompanyType = data.company_type;
+            var typeInput = document.getElementById('company_type');
+            if (typeInput) typeInput.value = data.company_type;
+            var tile = document.querySelector('.company-type-tile[data-type="' + data.company_type + '"]');
+            if (tile) tile.classList.add('selected');
+            updateCompanyTypeFields();
+        }
+        
+        // Set other fields
+        Object.keys(data).forEach(function(key) {
+            if (key !== 'company_type') {
+                var el = document.getElementById(key);
+                if (el) {
+                    el.value = data[key] || '';
+                }
+            }
+        });
+        
+        // Handle VAT visibility
+        if (data.vat_registered === 'yes') {
+            var vatCountry = document.getElementById('vatCountryGroup');
+            var vatNumber = document.getElementById('vatNumberGroup');
+            var reverseCharges = document.getElementById('reverseChargesGroup');
+            if (vatCountry) vatCountry.style.display = 'block';
+            if (vatNumber) vatNumber.style.display = 'block';
+            if (reverseCharges) reverseCharges.style.display = 'block';
+        }
+        
+        // Validate form
+        validateForm();
     }
     
     // =====================================================
@@ -994,8 +1000,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var modal = bootstrap.Modal.getInstance(document.getElementById('completeDetailsModal'));
         modal.hide();
         
-        // Update UI
-        updateUI();
+        // Update UI with force flag to ensure button is enabled
+        detailsComplete = true;
+        updateUI(true);
         
         // Show success toast
         showToast('Account details saved successfully!', 'success');
@@ -1014,18 +1021,24 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { toast.remove(); }, 3000);
     }
     
+    // Track if details are complete (local state)
+    var detailsComplete = false;
+    
     // =====================================================
     // UPDATE UI
     // =====================================================
-    function updateUI() {
-        var activationStatus = lifecycle ? lifecycle.getActivationStatus() : { account_details_complete: false };
+    function updateUI(forceComplete) {
+        // Check activation status from lifecycle OR local state OR force flag
+        var activationStatus = lifecycle ? lifecycle.getActivationStatus() : {};
+        var isDetailsComplete = forceComplete || detailsComplete || activationStatus.account_details_complete;
         var isLive = lifecycle ? lifecycle.isLive() : false;
         
         var step1 = document.getElementById('step-details');
         var step2 = document.getElementById('step-payment');
         var step3 = document.getElementById('step-activated');
         
-        if (activationStatus.account_details_complete) {
+        if (isDetailsComplete) {
+            detailsComplete = true; // Cache locally
             step1.classList.add('completed');
             step1.classList.remove('current');
             document.getElementById('step1-status').className = 'badge bg-success';
@@ -1070,11 +1083,34 @@ document.addEventListener('DOMContentLoaded', function() {
         new bootstrap.Tooltip(el);
     });
     
-    // Initialize
-    loadSavedData();
-    updateUI();
+    // Check if account_details exists in localStorage on init
+    function checkSavedDetailsComplete() {
+        var saved = localStorage.getItem('account_details');
+        if (saved) {
+            try {
+                var data = JSON.parse(saved);
+                // Check if essential fields exist
+                if (data.company_type && data.company_name && data.address_line1 && 
+                    data.billing_email && data.signatory_name && data.vat_registered) {
+                    detailsComplete = true;
+                    if (lifecycle) {
+                        lifecycle.setActivationStatus('account_details_complete', true);
+                    }
+                    return true;
+                }
+            } catch (e) {
+                console.log('No valid saved data');
+            }
+        }
+        return false;
+    }
     
-    document.addEventListener('lifecycle:state_changed', updateUI);
+    // Initialize
+    var hasSavedData = checkSavedDetailsComplete();
+    loadSavedData();
+    updateUI(hasSavedData);
+    
+    document.addEventListener('lifecycle:state_changed', function() { updateUI(); });
 });
 </script>
 @endpush
