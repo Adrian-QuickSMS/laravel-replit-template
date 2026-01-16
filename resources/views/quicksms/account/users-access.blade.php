@@ -1106,6 +1106,118 @@ input:focus + .perm-slider {
                     </div>
                 </div>
             </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#notificationsSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-bell me-2" style="color: #886cc0;"></i>Enforcement Notifications
+                    </button>
+                </h2>
+                <div id="notificationsSection" class="accordion-collapse collapse" data-bs-parent="#subAccountAccordion">
+                    <div class="accordion-body">
+                        <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem;">Configure when and who receives enforcement alerts for this sub-account.</p>
+                        
+                        <div class="mb-4">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #374151;">Alert Triggers</label>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trigger-threshold-75" checked style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="trigger-threshold-75" style="font-size: 0.8rem;">
+                                        <span class="badge me-1" style="background: #fef3c7; color: #92400e; font-size: 0.65rem;">75%</span>
+                                        Approaching limit threshold
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trigger-threshold-90" checked style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="trigger-threshold-90" style="font-size: 0.8rem;">
+                                        <span class="badge me-1" style="background: #fed7aa; color: #9a3412; font-size: 0.65rem;">90%</span>
+                                        Critical threshold reached
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trigger-threshold-100" checked style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="trigger-threshold-100" style="font-size: 0.8rem;">
+                                        <span class="badge me-1" style="background: #fecaca; color: #991b1b; font-size: 0.65rem;">100%</span>
+                                        Limit exceeded / Enforcement triggered
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="trigger-override" style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="trigger-override" style="font-size: 0.8rem;">
+                                        <span class="badge me-1" style="background: #f3e8ff; color: #7c3aed; font-size: 0.65rem;">Override</span>
+                                        Admin enforcement override used
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #374151;">Notification Recipients</label>
+                            <div class="alert alert-light border-0 p-2 mb-2" style="background: #f8f9fa; font-size: 0.75rem;">
+                                <i class="fas fa-info-circle me-1 text-muted"></i>
+                                Main Account admins always receive enforcement alerts.
+                            </div>
+                            
+                            <div class="d-flex flex-column gap-2" id="notification-recipients-list">
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background: #f9fafb; border: 1px solid #e5e7eb;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-shield me-2" style="color: #886cc0;"></i>
+                                        <div>
+                                            <span style="font-size: 0.8rem; font-weight: 500;">Sub-Account Admin(s)</span>
+                                            <div style="font-size: 0.7rem; color: #6b7280;">All admins of this sub-account</div>
+                                        </div>
+                                    </div>
+                                    <input class="form-check-input" type="checkbox" checked style="border-color: #886cc0;">
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background: #f9fafb; border: 1px solid #e5e7eb;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-tie me-2" style="color: #886cc0;"></i>
+                                        <div>
+                                            <span style="font-size: 0.8rem; font-weight: 500;">Billing Contact</span>
+                                            <div style="font-size: 0.7rem; color: #6b7280;">finance@company.com</div>
+                                        </div>
+                                    </div>
+                                    <input class="form-check-input" type="checkbox" checked style="border-color: #886cc0;">
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-sm btn-link p-0 mt-2" style="color: #886cc0; font-size: 0.8rem;">
+                                <i class="fas fa-plus me-1"></i>Add Custom Recipient
+                            </button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: #374151;">Notification Channels</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="channel-email" checked style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="channel-email" style="font-size: 0.8rem;">
+                                        <i class="fas fa-envelope me-1 text-muted"></i>Email
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="channel-portal" checked style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="channel-portal" style="font-size: 0.8rem;">
+                                        <i class="fas fa-bell me-1 text-muted"></i>Portal
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="channel-sms" style="border-color: #886cc0;">
+                                    <label class="form-check-label" for="channel-sms" style="font-size: 0.8rem;">
+                                        <i class="fas fa-sms me-1 text-muted"></i>SMS
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end pt-3 border-top">
+                            <button type="button" class="btn btn-sm" id="btn-save-notifications" style="background: #886cc0; color: white;">
+                                <i class="fas fa-save me-1"></i>Save Notification Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -2622,6 +2734,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         alert('Limits saved successfully. Changes have been logged.');
+    });
+    
+    document.getElementById('btn-save-notifications').addEventListener('click', function() {
+        var subId = document.getElementById('drawer-subaccount-id').value;
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
+        if (!subAccount) return;
+        
+        var notificationSettings = {
+            triggers: {
+                threshold75: document.getElementById('trigger-threshold-75').checked,
+                threshold90: document.getElementById('trigger-threshold-90').checked,
+                threshold100: document.getElementById('trigger-threshold-100').checked,
+                override: document.getElementById('trigger-override').checked
+            },
+            channels: {
+                email: document.getElementById('channel-email').checked,
+                portal: document.getElementById('channel-portal').checked,
+                sms: document.getElementById('channel-sms').checked
+            }
+        };
+        
+        subAccount.notificationSettings = notificationSettings;
+        
+        console.log('[AUDIT] Enforcement notification settings updated:', {
+            action: 'NOTIFICATION_SETTINGS_UPDATED',
+            subAccountId: subId,
+            subAccountName: subAccount.name,
+            settings: notificationSettings,
+            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+            timestamp: new Date().toISOString()
+        });
+        
+        alert('Notification settings saved successfully.');
     });
     
     renderHierarchy();
