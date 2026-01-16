@@ -292,11 +292,11 @@
                     <div class="step-description">Provide your company information for compliance and billing</div>
                     <ul class="requirement-list" id="details-requirements">
                         <li><i class="fas fa-circle pending" id="req-company-type"></i> Company type</li>
-                        <li><i class="fas fa-circle pending" id="req-company"></i> Company name</li>
-                        <li><i class="fas fa-circle pending" id="req-address"></i> Business address</li>
-                        <li><i class="fas fa-circle pending" id="req-website"></i> Website</li>
-                        <li><i class="fas fa-circle pending" id="req-sector"></i> Business sector</li>
-                        <li><i class="fas fa-circle pending" id="req-vat"></i> VAT information</li>
+                        <li><i class="fas fa-circle pending" id="req-company"></i> Company information</li>
+                        <li><i class="fas fa-circle pending" id="req-address"></i> Registered address</li>
+                        <li><i class="fas fa-circle pending" id="req-support"></i> Support & operations</li>
+                        <li><i class="fas fa-circle pending" id="req-signatory"></i> Contract signatory</li>
+                        <li><i class="fas fa-circle pending" id="req-vat"></i> VAT & tax information</li>
                     </ul>
                     <button type="button" class="btn btn-sm btn-outline-primary mt-3" id="btn-complete-details" data-bs-toggle="modal" data-bs-target="#completeDetailsModal">
                         <i class="fas fa-edit me-1"></i> Complete Details
@@ -523,20 +523,75 @@
                         </div>
                     </div>
 
-                    <!-- VAT Information -->
+                    <!-- Support & Operations -->
                     <div class="form-section">
                         <div class="form-section-title">
-                            <i class="fas fa-receipt"></i> VAT Information
+                            <i class="fas fa-headset"></i> Support & Operations
                         </div>
+                        <p class="text-muted small mb-3">Configure email addresses for billing notifications, support communications, and incident alerts. Shared or group inboxes are accepted.</p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="vat_registered" class="form-label">VAT Registered? <span class="required">*</span></label>
+                                <label for="billing_email" class="form-label">Accounts & Billing Email <span class="required">*</span></label>
+                                <input type="email" class="form-control" id="billing_email" name="billing_email" placeholder="e.g., accounts@company.com" required>
+                                <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
+                                <div class="validation-error">Please enter a valid email address</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="support_email" class="form-label">Support Email Address <span class="required">*</span></label>
+                                <input type="email" class="form-control" id="support_email" name="support_email" placeholder="e.g., support@company.com" required>
+                                <div class="field-hint">Receives support ticket updates and general communications</div>
+                                <div class="validation-error">Please enter a valid email address</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="incident_email" class="form-label">Incident Email Address <span class="required">*</span></label>
+                                <input type="email" class="form-control" id="incident_email" name="incident_email" placeholder="e.g., incidents@company.com" required>
+                                <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
+                                <div class="validation-error">Please enter a valid email address</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Signatory -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-signature"></i> Contract Signatory
+                        </div>
+                        <p class="text-muted small mb-3">The contract signatory is the individual authorised to enter contracts on behalf of your company. This person will receive legal notices and approval requests.</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="signatory_name" class="form-label">Full Name <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="signatory_name" name="signatory_name" placeholder="e.g., John Smith" required>
+                                <div class="validation-error">Full name is required</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="signatory_title" class="form-label">Job Title <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="signatory_title" name="signatory_title" placeholder="e.g., CEO, Managing Director" required>
+                                <div class="validation-error">Job title is required</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="signatory_email" class="form-label">Email Address <span class="required">*</span></label>
+                                <input type="email" class="form-control" id="signatory_email" name="signatory_email" placeholder="e.g., signatory@company.com" required>
+                                <div class="field-hint">Used for contract signing and legal communications</div>
+                                <div class="validation-error">Please enter a valid email address</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VAT & Tax Information -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-receipt"></i> VAT & Tax Information
+                        </div>
+                        <p class="text-muted small mb-3">VAT settings are used for billing and invoice generation. Changes to VAT details are audit-logged.</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="vat_registered" class="form-label">VAT Registered <span class="required">*</span></label>
                                 <select class="form-select" id="vat_registered" name="vat_registered" required>
                                     <option value="">Select...</option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
+                                    <option value="yes">Yes - VAT registered</option>
+                                    <option value="no">No - Not VAT registered</option>
                                 </select>
-                                <div class="validation-error">Please select VAT status</div>
+                                <div class="validation-error">Please select VAT registration status</div>
                             </div>
                             <div class="col-md-6" id="vatCountryGroup" style="display: none;">
                                 <label for="vat_country" class="form-label">VAT Country <span class="required">*</span></label>
@@ -563,14 +618,17 @@
                                 <div class="lookup-status" id="vatLookupStatus"></div>
                                 <div class="validation-error" id="vatNumberError">VAT number is required</div>
                             </div>
-                            <div class="col-12" id="reverseChargeGroup" style="display: none;">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="reverse_charge" name="reverse_charge">
-                                    <label class="form-check-label" for="reverse_charge">
-                                        Apply Reverse Charge (EU B2B transactions only)
-                                        <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" title="If you are a VAT registered business in the EU (excluding UK), reverse charge may apply to your invoices."></i>
-                                    </label>
-                                </div>
+                            <div class="col-md-6" id="reverseChargesGroup" style="display: none;">
+                                <label for="reverse_charges" class="form-label">
+                                    Reverse Charges <span class="required">*</span>
+                                    <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="<strong>No</strong> = You are sending messages to your own customers<br><br><strong>Yes</strong> = You are providing messaging as a service to third parties (reverse charge applies)"></i>
+                                </label>
+                                <select class="form-select" id="reverse_charges" name="reverse_charges">
+                                    <option value="">Select...</option>
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                                <div class="validation-error">Please select reverse charges status</div>
                             </div>
                         </div>
                     </div>
@@ -602,13 +660,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // State
     var selectedCompanyType = '';
     
-    // Required field groups
+    // Required field groups (matches Account > Details sections)
     var requiredGroups = {
         companyType: { complete: false, reqId: 'req-company-type' },
         company: { complete: false, reqId: 'req-company' },
         address: { complete: false, reqId: 'req-address' },
-        website: { complete: false, reqId: 'req-website' },
-        sector: { complete: false, reqId: 'req-sector' },
+        support: { complete: false, reqId: 'req-support' },
+        signatory: { complete: false, reqId: 'req-signatory' },
         vat: { complete: false, reqId: 'req-vat' }
     };
     
@@ -718,14 +776,18 @@ document.addEventListener('DOMContentLoaded', function() {
         var isVatRegistered = this.value === 'yes';
         document.getElementById('vatCountryGroup').style.display = isVatRegistered ? 'block' : 'none';
         document.getElementById('vatNumberGroup').style.display = isVatRegistered ? 'block' : 'none';
-        document.getElementById('reverseChargeGroup').style.display = isVatRegistered ? 'block' : 'none';
+        document.getElementById('reverseChargesGroup').style.display = isVatRegistered ? 'block' : 'none';
         
         var vatInput = document.getElementById('vat_number');
+        var reverseChargesInput = document.getElementById('reverse_charges');
         if (isVatRegistered) {
             vatInput.setAttribute('required', 'required');
+            reverseChargesInput.setAttribute('required', 'required');
         } else {
             vatInput.removeAttribute('required');
             vatInput.value = '';
+            reverseChargesInput.removeAttribute('required');
+            reverseChargesInput.value = '';
         }
         validateForm();
     });
@@ -765,42 +827,58 @@ document.addEventListener('DOMContentLoaded', function() {
         // Company Type
         requiredGroups.companyType.complete = selectedCompanyType !== '';
         
-        // Company Name
+        // Company Information (name, number if UK Limited, sector, website)
         var companyName = document.getElementById('company_name').value.trim();
-        requiredGroups.company.complete = companyName !== '';
+        var sectorVal = document.getElementById('sector').value;
+        var websiteVal = document.getElementById('website').value.trim();
+        var websiteValid = false;
+        try {
+            if (websiteVal) new URL(websiteVal);
+            websiteValid = websiteVal !== '' && websiteVal.startsWith('https://');
+        } catch (e) {
+            websiteValid = false;
+        }
         
-        // Company Number (conditional)
+        requiredGroups.company.complete = companyName !== '' && sectorVal !== '' && websiteValid;
+        
+        // Company Number (conditional for UK Limited)
         if (selectedCompanyType === 'uk_limited') {
             var companyNumber = document.getElementById('company_number').value.trim();
             requiredGroups.company.complete = requiredGroups.company.complete && companyNumber.length >= 8;
         }
         
-        // Address
+        // Registered Address
         var addr1 = document.getElementById('address_line1').value.trim();
         var cityVal = document.getElementById('city').value.trim();
         var postcodeVal = document.getElementById('postcode').value.trim();
         var countryVal = document.getElementById('country').value;
         requiredGroups.address.complete = addr1 !== '' && cityVal !== '' && postcodeVal !== '' && countryVal !== '';
         
-        // Website
-        var websiteVal = document.getElementById('website').value.trim();
-        try {
-            if (websiteVal) new URL(websiteVal);
-            requiredGroups.website.complete = websiteVal !== '' && websiteVal.startsWith('https://');
-        } catch (e) {
-            requiredGroups.website.complete = false;
-        }
+        // Support & Operations (3 email fields)
+        var billingEmail = document.getElementById('billing_email').value.trim();
+        var supportEmail = document.getElementById('support_email').value.trim();
+        var incidentEmail = document.getElementById('incident_email').value.trim();
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        requiredGroups.support.complete = emailRegex.test(billingEmail) && 
+                                          emailRegex.test(supportEmail) && 
+                                          emailRegex.test(incidentEmail);
         
-        // Sector
-        requiredGroups.sector.complete = document.getElementById('sector').value !== '';
+        // Contract Signatory
+        var signatoryName = document.getElementById('signatory_name').value.trim();
+        var signatoryTitle = document.getElementById('signatory_title').value.trim();
+        var signatoryEmail = document.getElementById('signatory_email').value.trim();
+        requiredGroups.signatory.complete = signatoryName !== '' && 
+                                            signatoryTitle !== '' && 
+                                            emailRegex.test(signatoryEmail);
         
-        // VAT
+        // VAT & Tax Information
         var vatRegistered = document.getElementById('vat_registered').value;
         if (vatRegistered === 'no') {
             requiredGroups.vat.complete = true;
         } else if (vatRegistered === 'yes') {
             var vatNum = document.getElementById('vat_number').value.trim();
-            requiredGroups.vat.complete = vatNum.length >= 9;
+            var reverseCharges = document.getElementById('reverse_charges').value;
+            requiredGroups.vat.complete = vatNum.length >= 9 && reverseCharges !== '';
         } else {
             requiredGroups.vat.complete = false;
         }
