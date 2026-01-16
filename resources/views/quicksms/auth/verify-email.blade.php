@@ -23,7 +23,7 @@
                 <h4 class="text-success mb-2">Email Verified!</h4>
                 <p class="text-muted mb-4">Your email address has been successfully verified.</p>
                 <p class="mb-4">Redirecting to complete your registration...</p>
-                <a href="{{ url('/signup/security') }}" class="btn btn-primary">
+                <a href="#" class="btn btn-primary" id="continueToStep2Btn">
                     Continue to Step 2 <i class="fas fa-arrow-right ms-2"></i>
                 </a>
             </div>
@@ -131,13 +131,19 @@ $(document).ready(function() {
         $('#verifyingState').addClass('d-none');
         $('#successState').removeClass('d-none');
         
+        // Build the redirect URL with proper params
+        var redirectUrl = '/signup/security?email=' + encodeURIComponent(email || '') + '&verified=true';
+        
+        // Set the button href so clicking it also works
+        $('#continueToStep2Btn').attr('href', redirectUrl);
+        
         // Mock HubSpot update
         // In production: POST /api/hubspot/contact/update { email, properties: { email_verified: true } }
         console.log('[HubSpot] Updating contact:', email, '{ email_verified: true }');
         
         // Auto-redirect after 3 seconds
         setTimeout(function() {
-            window.location.href = '/signup/security?email=' + encodeURIComponent(email || '') + '&verified=true';
+            window.location.href = redirectUrl;
         }, 3000);
     }
     
