@@ -146,6 +146,112 @@
     color: #374151;
     margin: 0;
 }
+
+.btn-export {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    background: #886cc0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.btn-export:hover {
+    background: #7c3aed;
+    color: white;
+}
+
+.audit-trail {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+.audit-trail-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.audit-trail-title i {
+    color: #886cc0;
+}
+.audit-entry {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+.audit-entry:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.audit-entry:first-child {
+    padding-top: 0;
+}
+.audit-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+.audit-icon.approved { background: #dcfce7; color: #16a34a; }
+.audit-icon.rejected { background: #fee2e2; color: #dc2626; }
+.audit-icon.created { background: #dbeafe; color: #2563eb; }
+.audit-icon.submitted { background: #f3e8ff; color: #7c3aed; }
+.audit-content {
+    flex: 1;
+}
+.audit-action {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+}
+.audit-meta {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.125rem;
+}
+.audit-reason {
+    font-size: 0.8rem;
+    color: #6b7280;
+    background: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    border-left: 3px solid #dc2626;
+}
+
+.campaign-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.detail-item {
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+.detail-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+.detail-value {
+    font-size: 0.9rem;
+    color: #374151;
+    font-weight: 500;
+}
 </style>
 @endpush
 
@@ -252,6 +358,9 @@
         <div class="card-body p-0">
             <div class="section-header px-3 pt-3">
                 <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
+                <button class="btn btn-export" id="btn-export-audit">
+                    <i class="fas fa-download me-1"></i>Export Audit Log
+                </button>
             </div>
             
             <div class="table-responsive">
@@ -321,11 +430,183 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="campaignDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-bullhorn me-2" style="color: #886cc0;"></i>Campaign Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="campaign-detail-grid" id="campaign-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Campaign Name</div>
+                        <div class="detail-value" id="detail-name">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Sub-Account</div>
+                        <div class="detail-value" id="detail-sub-account">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Created By</div>
+                        <div class="detail-value" id="detail-created-by">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Message Volume</div>
+                        <div class="detail-value" id="detail-volume">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Estimated Cost</div>
+                        <div class="detail-value" id="detail-cost">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Scheduled Time</div>
+                        <div class="detail-value" id="detail-scheduled">-</div>
+                    </div>
+                </div>
+                
+                <div class="audit-trail">
+                    <div class="audit-trail-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Approval Audit Trail
+                    </div>
+                    <div id="audit-entries">
+                        <div class="audit-entry">
+                            <div class="audit-icon submitted"><i class="fas fa-paper-plane"></i></div>
+                            <div class="audit-content">
+                                <div class="audit-action">Submitted for Approval</div>
+                                <div class="audit-meta">by Emma Thompson • Jan 19, 2026 14:30</div>
+                            </div>
+                        </div>
+                        <div class="audit-entry">
+                            <div class="audit-icon created"><i class="fas fa-plus"></i></div>
+                            <div class="audit-content">
+                                <div class="audit-action">Campaign Created</div>
+                                <div class="audit-meta">by Emma Thompson • Jan 19, 2026 14:15</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const campaignData = {
+        'camp-001': {
+            name: 'January Promo Blast',
+            subAccount: 'Marketing Department',
+            createdBy: 'Emma Thompson',
+            volume: '5,200 messages',
+            cost: '£156.00',
+            scheduled: 'Jan 20, 09:00',
+            audit: [
+                { type: 'submitted', action: 'Submitted for Approval', by: 'Emma Thompson', date: 'Jan 19, 2026 14:30' },
+                { type: 'created', action: 'Campaign Created', by: 'Emma Thompson', date: 'Jan 19, 2026 14:15' }
+            ]
+        },
+        'camp-002': {
+            name: 'Product Launch RCS',
+            subAccount: 'Marketing Department',
+            createdBy: 'Michael Brown',
+            volume: '3,800 messages',
+            cost: '£228.00',
+            scheduled: 'Jan 21, 10:00',
+            audit: [
+                { type: 'submitted', action: 'Submitted for Approval', by: 'Michael Brown', date: 'Jan 20, 2026 09:15' },
+                { type: 'created', action: 'Campaign Created', by: 'Michael Brown', date: 'Jan 20, 2026 08:45' }
+            ]
+        },
+        'camp-003': {
+            name: 'Flash Sale Alert',
+            subAccount: 'Customer Support',
+            createdBy: 'Chris Martinez',
+            volume: '1,500 messages',
+            cost: '£45.00',
+            scheduled: 'Jan 18, 12:00',
+            audit: [
+                { type: 'submitted', action: 'Submitted for Approval', by: 'Chris Martinez', date: 'Jan 17, 2026 16:20' },
+                { type: 'created', action: 'Campaign Created', by: 'Chris Martinez', date: 'Jan 17, 2026 15:30' }
+            ]
+        }
+    };
+    
+    document.querySelectorAll('.btn-view').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const campaignId = this.getAttribute('data-campaign-id');
+            const data = campaignData[campaignId] || campaignData['camp-001'];
+            
+            document.getElementById('detail-name').textContent = data.name;
+            document.getElementById('detail-sub-account').textContent = data.subAccount;
+            document.getElementById('detail-created-by').textContent = data.createdBy;
+            document.getElementById('detail-volume').textContent = data.volume;
+            document.getElementById('detail-cost').textContent = data.cost;
+            document.getElementById('detail-scheduled').textContent = data.scheduled;
+            
+            const auditHtml = data.audit.map(entry => `
+                <div class="audit-entry">
+                    <div class="audit-icon ${entry.type}"><i class="fas fa-${getAuditIcon(entry.type)}"></i></div>
+                    <div class="audit-content">
+                        <div class="audit-action">${entry.action}</div>
+                        <div class="audit-meta">by ${entry.by} • ${entry.date}</div>
+                        ${entry.reason ? `<div class="audit-reason">"${entry.reason}"</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('audit-entries').innerHTML = auditHtml;
+            
+            new bootstrap.Modal(document.getElementById('campaignDetailModal')).show();
+        });
+    });
+    
+    function getAuditIcon(type) {
+        const icons = {
+            'approved': 'check',
+            'rejected': 'times',
+            'created': 'plus',
+            'submitted': 'paper-plane'
+        };
+        return icons[type] || 'circle';
+    }
+    
+    document.getElementById('btn-export-audit')?.addEventListener('click', function() {
+        const auditData = [
+            { campaign: 'Weekend Special', subAccount: 'Marketing Department', createdBy: 'Emma Thompson', decision: 'Approved', approver: 'Sarah Mitchell', reason: '', timestamp: '2026-01-14T16:20:00Z' },
+            { campaign: 'Discount Code SMS', subAccount: 'Marketing Department', createdBy: 'Michael Brown', decision: 'Rejected', approver: 'James Wilson', reason: 'Content violates brand guidelines - please revise messaging.', timestamp: '2026-01-13T10:05:00Z' },
+            { campaign: 'New Year Blast', subAccount: 'Sales Team', createdBy: 'Sarah Wilson', decision: 'Approved', approver: 'Sarah Mitchell', reason: '', timestamp: '2026-01-12T14:30:00Z' }
+        ];
+        
+        const headers = ['Campaign', 'Sub-Account', 'Created By', 'Decision', 'Approver', 'Reason', 'Timestamp'];
+        const csvContent = [
+            headers.join(','),
+            ...auditData.map(row => [
+                `"${row.campaign}"`,
+                `"${row.subAccount}"`,
+                `"${row.createdBy}"`,
+                row.decision,
+                `"${row.approver}"`,
+                `"${row.reason}"`,
+                row.timestamp
+            ].join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `campaign-approval-audit-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        
+        console.log('[AUDIT] Audit log exported', { timestamp: new Date().toISOString(), records: auditData.length });
+    });
+    
     document.querySelectorAll('.btn-approve').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var campaignId = this.getAttribute('data-campaign-id');
