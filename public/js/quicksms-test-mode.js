@@ -40,9 +40,10 @@
             TM_004: 'Custom SenderID not allowed in TEST mode',
             TM_005: 'Rich RCS content not allowed in TEST mode',
             TM_006: 'URL tracking not allowed in TEST mode',
-            TM_007: 'Message fragment limit exceeded',
+            TM_007: 'Message would exceed remaining fragment allowance',
             TM_008: 'Live API not available in TEST mode',
-            TM_009: 'Account is in TEST mode'
+            TM_009: 'Account is in TEST mode',
+            TM_010: "You've reached the test sending limit. Activate your account to continue."
         },
         
         // =====================================================
@@ -85,6 +86,48 @@
             }
             // Fallback: check session storage
             return sessionStorage.getItem('lifecycle_state') === 'TEST';
+        },
+        
+        // Check if fragment limit is completely exhausted (hard block)
+        // Server-side enforcement is authoritative - UI is informational only
+        isLimitExhausted: function() {
+            if (!this.isTestMode()) return false;
+            return this._fragmentsRemaining <= 0;
+        },
+        
+        // Check if a send would exceed the limit
+        wouldExceedLimit: function(message) {
+            if (!this.isTestMode()) return { exceeds: false };
+            
+            var fragmentsNeeded = this._calculateFragments(message);
+            
+            if (this._fragmentsRemaining <= 0) {
+                return {
+                    exceeds: true,
+                    exhausted: true,
+                    error_code: 'TM_010',
+                    message: this.ERROR_CODES.TM_010,
+                    fragments_needed: fragmentsNeeded,
+                    fragments_remaining: 0
+                };
+            }
+            
+            if (fragmentsNeeded > this._fragmentsRemaining) {
+                return {
+                    exceeds: true,
+                    exhausted: false,
+                    error_code: 'TM_007',
+                    message: this.ERROR_CODES.TM_007 + ' (Need: ' + fragmentsNeeded + ', Have: ' + this._fragmentsRemaining + ')',
+                    fragments_needed: fragmentsNeeded,
+                    fragments_remaining: this._fragmentsRemaining
+                };
+            }
+            
+            return {
+                exceeds: false,
+                fragments_needed: fragmentsNeeded,
+                fragments_remaining: this._fragmentsRemaining - fragmentsNeeded
+            };
         },
         
         // Check if a recipient number is allowed
@@ -168,16 +211,20 @@
                 });
             }
             
-            // Check fragment limit
-            var fragmentsNeeded = this._calculateFragments(request.message);
-            if (fragmentsNeeded > this._fragmentsRemaining) {
+            // Check fragment limit (hard block when exhausted)
+            // Server-side is authoritative - cannot be bypassed by refresh, API, or retries
+            var limitCheck = this.wouldExceedLimit(request.message);
+            if (limitCheck.exceeds) {
                 errors.push({
-                    code: 'TM_007',
-                    message: 'Message requires ' + fragmentsNeeded + ' fragments, but only ' + 
-                             this._fragmentsRemaining + ' remaining. Upgrade to LIVE to remove limits.',
+                    code: limitCheck.error_code,
+                    message: limitCheck.exhausted ? 
+                        this.ERROR_CODES.TM_010 :
+                        'Message requires ' + limitCheck.fragments_needed + ' fragments, but only ' + 
+                        limitCheck.fragments_remaining + ' remaining.',
                     field: 'message',
-                    fragments_needed: fragmentsNeeded,
-                    fragments_remaining: this._fragmentsRemaining
+                    fragments_needed: limitCheck.fragments_needed,
+                    fragments_remaining: limitCheck.fragments_remaining,
+                    limit_exhausted: limitCheck.exhausted
                 });
             }
             
@@ -355,6 +402,19 @@
         
         getRestrictionsBanner: function() {
             if (!this.isTestMode()) return '';
+            
+            // Show exhausted banner if limit reached
+            if (this.isLimitExhausted()) {
+                return '<div class="alert alert-danger test-mode-banner mb-3">' +
+                       '<div class="d-flex align-items-center">' +
+                       '<i class="fas fa-ban me-3" style="font-size: 24px;"></i>' +
+                       '<div>' +
+                       '<strong>TEST LIMIT REACHED</strong>' +
+                       '<p class="mb-0 small">' + this.ERROR_CODES.TM_010 + '</p>' +
+                       '</div>' +
+                       '</div>' +
+                       '</div>';
+            }
             
             return '<div class="alert alert-warning test-mode-banner mb-3">' +
                    '<div class="d-flex align-items-center">' +
