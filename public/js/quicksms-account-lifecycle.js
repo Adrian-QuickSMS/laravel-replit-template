@@ -368,6 +368,214 @@
         },
         
         // =====================================================
+        // ACCOUNT ACTIVATION (SELF-SERVICE)
+        // =====================================================
+        // Trigger: TEST → LIVE_SELF_SERVICE when:
+        //   1. Required account details are complete
+        //   2. A payment is successfully made
+        // System Actions:
+        //   - Remove Test Mode banner (via onStateChange)
+        //   - Remove message disclaimer
+        //   - Enable live SenderIDs
+        //   - Lift fragment limits
+        //   - Enable live API endpoints
+        // =====================================================
+        
+        ACTIVATION_REQUIREMENTS: {
+            account_details_complete: {
+                label: 'Account Details Complete',
+                description: 'Company name, address, website, sector, and VAT information'
+            },
+            payment_made: {
+                label: 'First Payment Completed',
+                description: 'Successfully processed a payment for messaging credits'
+            }
+        },
+        
+        _activationStatus: {
+            account_details_complete: false,
+            payment_made: false
+        },
+        
+        // Set activation status (called by payment flow, account details page)
+        setActivationStatus: function(key, value) {
+            if (this.ACTIVATION_REQUIREMENTS.hasOwnProperty(key)) {
+                this._activationStatus[key] = !!value;
+                console.log('[AccountLifecycle] Activation status updated:', key, '=', value);
+                
+                // Check if ready for activation
+                if (this.canActivate()) {
+                    console.log('[AccountLifecycle] All activation requirements met - ready for activation');
+                }
+            }
+        },
+        
+        // Check if all activation requirements are met
+        canActivate: function() {
+            if (!this.isTest()) return false; // Only TEST accounts can activate
+            
+            return this._activationStatus.account_details_complete && 
+                   this._activationStatus.payment_made;
+        },
+        
+        // Get activation readiness status
+        getActivationStatus: function() {
+            var self = this;
+            var requirements = [];
+            var complete = 0;
+            
+            Object.keys(this.ACTIVATION_REQUIREMENTS).forEach(function(key) {
+                var req = self.ACTIVATION_REQUIREMENTS[key];
+                var met = self._activationStatus[key];
+                requirements.push({
+                    key: key,
+                    label: req.label,
+                    description: req.description,
+                    met: met
+                });
+                if (met) complete++;
+            });
+            
+            return {
+                ready: this.canActivate(),
+                complete: complete,
+                total: requirements.length,
+                requirements: requirements
+            };
+        },
+        
+        // Activate account (TEST → LIVE_SELF_SERVICE)
+        // Called after successful payment when all requirements are met
+        activateAccount: function(paymentReference, callback) {
+            var self = this;
+            
+            if (!this.isTest()) {
+                var error = { 
+                    success: false, 
+                    error: 'NOT_TEST_ACCOUNT',
+                    message: 'Only TEST accounts can be activated' 
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            if (!this.canActivate()) {
+                var status = this.getActivationStatus();
+                var missingReqs = status.requirements.filter(function(r) { return !r.met; });
+                var error = { 
+                    success: false, 
+                    error: 'REQUIREMENTS_NOT_MET',
+                    message: 'Activation requirements not met',
+                    missing: missingReqs
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            var activationData = {
+                account_id: this._accountId,
+                from_state: this.STATES.TEST,
+                to_state: this.STATES.LIVE_SELF_SERVICE,
+                trigger: 'self_service_activation',
+                payment_reference: paymentReference || null,
+                activation_requirements: this._activationStatus,
+                activated_at: new Date().toISOString()
+            };
+            
+            console.log('[AccountLifecycle] Activating account:', activationData);
+            
+            // Atomic transition with logging
+            // In production: POST /api/account/activate
+            this.requestTransition(
+                this.STATES.LIVE_SELF_SERVICE, 
+                'Self-service activation after payment (Ref: ' + (paymentReference || 'N/A') + ')',
+                function(result) {
+                    if (result.success) {
+                        // Log activation event
+                        self._logActivation(activationData);
+                        
+                        // Update sessionStorage
+                        sessionStorage.setItem('lifecycle_state', self.STATES.LIVE_SELF_SERVICE);
+                        sessionStorage.removeItem('test_mode_fragments_used');
+                        
+                        // Emit activation event
+                        self._emitStateEvent('lifecycle:activated', {
+                            previous_state: self.STATES.TEST,
+                            new_state: self.STATES.LIVE_SELF_SERVICE,
+                            payment_reference: paymentReference,
+                            activated_at: activationData.activated_at
+                        });
+                        
+                        console.log('[AccountLifecycle] Account activated successfully');
+                    }
+                    
+                    if (callback) callback(result);
+                }
+            );
+        },
+        
+        // Log activation event (separate from transition log)
+        _logActivation: function(activationData) {
+            var entry = {
+                id: 'ACTIVATION-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                type: 'account_activation',
+                account_id: activationData.account_id,
+                from_state: activationData.from_state,
+                to_state: activationData.to_state,
+                trigger: activationData.trigger,
+                payment_reference: activationData.payment_reference,
+                requirements_met: activationData.activation_requirements,
+                timestamp: activationData.activated_at,
+                actor: 'self_service',
+                ip_address: 'CAPTURED_BY_SERVER'
+            };
+            
+            this._auditLog.push(entry);
+            console.log('[AccountLifecycle] Activation audit:', entry);
+            
+            // TODO: Backend - POST /api/audit/account-activation
+            return entry;
+        },
+        
+        // Called after successful payment to trigger activation
+        onPaymentSuccess: function(paymentReference, callback) {
+            // Mark payment requirement as met
+            this.setActivationStatus('payment_made', true);
+            
+            // If account details are also complete, activate immediately
+            if (this.canActivate()) {
+                this.activateAccount(paymentReference, callback);
+            } else {
+                // Payment made but still waiting for account details
+                console.log('[AccountLifecycle] Payment recorded, awaiting account details completion');
+                if (callback) callback({ 
+                    success: true, 
+                    activated: false,
+                    message: 'Payment recorded. Complete account details to activate.'
+                });
+            }
+        },
+        
+        // Called when account details are completed
+        onAccountDetailsComplete: function(callback) {
+            // Mark account details requirement as met
+            this.setActivationStatus('account_details_complete', true);
+            
+            // If payment is also made, activate immediately
+            if (this.canActivate()) {
+                this.activateAccount(null, callback);
+            } else {
+                // Details complete but still waiting for payment
+                console.log('[AccountLifecycle] Account details complete, awaiting first payment');
+                if (callback) callback({
+                    success: true,
+                    activated: false,
+                    message: 'Account details saved. Make a payment to activate.'
+                });
+            }
+        },
+        
+        // =====================================================
         // AUDIT LOGGING
         // =====================================================
         
