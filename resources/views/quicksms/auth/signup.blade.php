@@ -106,6 +106,12 @@
                 <h5 class="text-success">Verification Email Sent!</h5>
                 <p class="text-muted mb-3">We've sent a verification link to <strong id="sentToEmail"></strong></p>
                 <p class="small text-muted">Please check your inbox and click the link to continue. The link expires in 24 hours.</p>
+                
+                <div class="alert alert-info small mt-3" id="testModeLink">
+                    <strong>Test Mode:</strong> Click the link below to continue<br>
+                    <a href="#" id="verifyLink" class="text-primary fw-bold"></a>
+                </div>
+                
                 <button class="btn btn-outline-primary btn-sm mt-2" id="resendBtn">
                     <i class="fas fa-redo me-1"></i>Resend Email
                 </button>
@@ -277,11 +283,20 @@ $(document).ready(function() {
         console.log('[SignUp] Submitting registration:', formData);
         
         setTimeout(function() {
-            // Simulate success
+            // Generate test token
+            var testToken = 'test_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            var verifyUrl = '/signup/verify?token=' + testToken + '&email=' + encodeURIComponent(email);
+            
             console.log('[SignUp] Verification email sent to:', email);
+            console.log('[SignUp] Test verification URL:', verifyUrl);
+            
+            // Store registration data for next step
+            sessionStorage.setItem('pendingRegistration', JSON.stringify(formData));
+            sessionStorage.setItem('verificationToken', testToken);
             
             $('#signupForm').addClass('d-none');
             $('#sentToEmail').text(email);
+            $('#verifyLink').attr('href', verifyUrl).text(verifyUrl);
             $('#successMessage').removeClass('d-none');
             
         }, 1500);

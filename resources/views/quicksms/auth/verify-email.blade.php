@@ -113,11 +113,11 @@ $(document).ready(function() {
         
         setTimeout(function() {
             // Mock validation logic
-            // Valid tokens: any token starting with 'valid_'
+            // Valid tokens: any token starting with 'valid_' or 'test_'
             // Expired tokens: any token starting with 'expired_'
             // Invalid tokens: anything else
             
-            if (token.startsWith('valid_')) {
+            if (token.startsWith('valid_') || token.startsWith('test_')) {
                 onVerificationSuccess(email);
             } else if (token.startsWith('expired_')) {
                 showError('Link Expired', 'This verification link has expired. Please request a new one.');
