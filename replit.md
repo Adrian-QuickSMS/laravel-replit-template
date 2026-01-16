@@ -38,6 +38,7 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
   - Granular Permission Toggles: Override role defaults per user. Categories: Messaging & Content, Recipients & Contacts, Campaign Controls, Configuration, Financial Access, Security & Governance. UI shows inherited vs overridden status. Each toggle change is logged.
   - Permission Evaluation Order: Account Scope → Role → Sender Capability Level → Permission Toggles. Earlier layers cannot be overridden by later layers. Decision path is auditable.
   - Layered Reporting Access: KPI Dashboard (aggregated, non-sensitive), Campaign Analytics (medium sensitivity), Message Logs (high sensitivity). Phone numbers and message content masked by default. Finance users see cost data only, never message content.
+  - Sub-Account Enforcement Rules: Daily send limits, monthly spend caps, campaign approval workflows, recipient limits. Supports Warn Only, Soft Stop (overridable), and Hard Stop (no override) modes. Alerts sent to Sub-Account and Main Account admins. All triggers logged.
   - Full audit logging for all hierarchy changes
 - **SMS SenderID Registration:** UK-compliant 5-step registration wizard for various SenderID types, including lifecycle management and audit trails.
 - **Numbers Management:** Library table for managing owned numbers (VMN, Dedicated Shortcode, Shortcode Keyword) with status, capability indicators, filtering, sorting, and configuration drawers. Supports bulk actions.
