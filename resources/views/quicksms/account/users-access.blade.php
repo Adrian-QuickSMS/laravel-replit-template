@@ -831,8 +831,10 @@ input:focus + .perm-slider {
                 <div class="mb-3">
                     <label class="form-label">Reason for Change <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="change-role-reason" rows="2" placeholder="e.g., Promotion to team lead, department transfer" required></textarea>
+                    <div class="invalid-feedback" id="change-role-reason-error">Please provide a reason for this change</div>
                     <div class="form-text">This will be recorded in the audit log</div>
                 </div>
+                <div id="change-role-validation-error" class="alert alert-danger mb-0" style="display: none; font-size: 0.85rem;"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -2161,6 +2163,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('change-role-sub-account-id').value = subAccountId;
             document.getElementById('change-role-new').value = '';
             document.getElementById('change-role-reason').value = '';
+            document.getElementById('change-role-reason').classList.remove('is-invalid');
+            document.getElementById('change-role-validation-error').style.display = 'none';
             document.getElementById('change-role-info').style.display = 'none';
             document.getElementById('high-risk-warning').style.display = 'none';
             
@@ -2205,6 +2209,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    document.getElementById('change-role-reason').addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+        document.getElementById('change-role-validation-error').style.display = 'none';
+    });
+    
     document.getElementById('btn-confirm-role-change').addEventListener('click', function() {
         var userId = document.getElementById('change-role-user-id').value;
         var userName = document.getElementById('change-role-user-name').value;
@@ -2213,13 +2222,27 @@ document.addEventListener('DOMContentLoaded', function() {
         var reason = document.getElementById('change-role-reason').value.trim();
         var subAccountId = document.getElementById('change-role-sub-account-id').value;
         
-        if (!newRole || !reason) {
-            alert('Please select a new role and provide a reason for the change');
-            return;
+        var validationError = document.getElementById('change-role-validation-error');
+        var reasonField = document.getElementById('change-role-reason');
+        
+        validationError.style.display = 'none';
+        reasonField.classList.remove('is-invalid');
+        
+        var errors = [];
+        if (!newRole) {
+            errors.push('Please select a new role');
+        }
+        if (!reason) {
+            reasonField.classList.add('is-invalid');
+            errors.push('Please provide a reason for the change');
+        }
+        if (newRole && newRole === previousRole) {
+            errors.push('The new role must be different from the current role');
         }
         
-        if (newRole === previousRole) {
-            alert('The new role must be different from the current role');
+        if (errors.length > 0) {
+            validationError.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + errors.join('. ');
+            validationError.style.display = 'block';
             return;
         }
         
@@ -2253,7 +2276,7 @@ document.addEventListener('DOMContentLoaded', function() {
         bootstrap.Modal.getInstance(document.getElementById('changeRoleModal')).hide();
         renderHierarchy();
         
-        alert('Role changed successfully.\n\n' + userName + ' is now a ' + formatRole(newRole) + '.\n\nThis change has been logged.');
+        showToast('success', 'Role Changed', userName + ' is now a ' + formatRole(newRole) + '. This change has been logged.');
     });
     
     document.getElementById('hierarchy-tree').addEventListener('click', function(e) {
