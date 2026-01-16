@@ -82,7 +82,7 @@
                             <div class="form-group mb-2">
                                 <label class="form-label form-label-sm" for="mobileNumber">Mobile Number <span class="text-danger">*</span></label>
                                 <div class="input-group input-group-sm">
-                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="+44 7700 900123" required>
+                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="07700 900123" required>
                                     <button class="btn btn-outline-primary" type="button" id="sendOtpBtn">
                                         <span class="btn-text">Send Code</span>
                                         <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
@@ -128,39 +128,12 @@
                             <h6 class="section-title"><i class="fas fa-shield-alt me-2"></i>Required Agreements</h6>
                             <p class="section-helper mb-2">Required to protect you and ensure message delivery.</p>
                             
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="termsConsent" required>
-                                <label class="form-check-label small" for="termsConsent">
-                                    I agree to the <a href="#" class="text-primary">Terms</a> and <a href="#" class="text-primary">Acceptable Use Policy</a> <span class="text-danger">*</span>
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="privacyConsent" required>
-                                <label class="form-check-label small" for="privacyConsent">
-                                    I accept the <a href="#" class="text-primary">Privacy Policy</a> <span class="text-danger">*</span>
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
+                            <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="fraudConsent" required>
                                 <label class="form-check-label small" for="fraudConsent">
-                                    I consent to fraud prevention checks <span class="text-danger">*</span>
+                                    I consent to fraud prevention and identity validation, and I agree that QuickSMS may share my information with trusted third-party fraud prevention, validation, and messaging partners to protect against abuse. <span class="text-danger">*</span>
                                 </label>
-                            </div>
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="thirdPartyConsent" required>
-                                <label class="form-check-label small" for="thirdPartyConsent">
-                                    I agree to third-party fraud prevention data sharing <span class="text-danger">*</span>
-                                </label>
-                            </div>
-                            
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="contentConsent" required>
-                                <label class="form-check-label small" for="contentConsent">
-                                    I agree to comply with <a href="#" class="text-primary">UK messaging regulations</a> <span class="text-danger">*</span>
-                                </label>
+                                <div class="invalid-feedback">You must accept this consent to continue</div>
                             </div>
                         </div>
                         
@@ -709,20 +682,38 @@ $(document).ready(function() {
     var resendCooldown = 30; // seconds before resend is enabled
     
     // E.164 format validation (international format)
-    function isValidE164(number) {
-        var cleaned = number.replace(/[\s\-\(\)]/g, '');
-        return /^\+[1-9]\d{6,14}$/.test(cleaned);
+    function normalizeUkMobile(number) {
+        var cleaned = number.replace(/[\s\-\(\)\.]/g, '');
+        
+        if (cleaned.startsWith('07') && cleaned.length === 11) {
+            cleaned = '44' + cleaned.substring(1);
+        } else if (cleaned.startsWith('+447')) {
+            cleaned = cleaned.substring(1);
+        } else if (cleaned.startsWith('447')) {
+            // Already in correct format
+        } else {
+            return null;
+        }
+        
+        if (!/^447\d{9}$/.test(cleaned)) {
+            return null;
+        }
+        
+        return cleaned;
     }
     
     // Send OTP button handler
     $('#sendOtpBtn').on('click', function() {
-        var mobile = $('#mobileNumber').val().trim();
+        var rawMobile = $('#mobileNumber').val().trim();
+        var mobile = normalizeUkMobile(rawMobile);
         
-        if (!mobile || !isValidE164(mobile)) {
+        if (!mobile) {
             $('#mobileNumber').addClass('is-invalid');
-            $('#mobileError').text('Please enter a valid mobile number in E.164 format (e.g., +447700900123)');
+            $('#mobileError').text('Please enter a valid UK mobile number (e.g., 07700900123 or +447700900123)');
             return;
         }
+        
+        $('#mobileNumber').val(mobile);
         
         // Check rate limit for OTP sending
         var rateCheck = RateLimitService.checkOtpSendRate(mobile);
@@ -909,6 +900,12 @@ $(document).ready(function() {
     // Marketing consent change handler
     $('#marketingConsent').on('change', function() {
         updateCreditEligibility();
+    });
+    
+    $('#fraudConsent').on('change', function() {
+        if ($(this).is(':checked')) {
+            $(this).removeClass('is-invalid');
+        }
     });
     
     // Update credit eligibility status
@@ -1111,14 +1108,10 @@ $(document).ready(function() {
             isValid = false;
         }
         
-        var requiredCheckboxes = ['termsConsent', 'privacyConsent', 'fraudConsent', 'thirdPartyConsent', 'contentConsent'];
-        requiredCheckboxes.forEach(function(id) {
-            var $checkbox = $('#' + id);
-            if (!$checkbox.is(':checked')) {
-                $checkbox.addClass('is-invalid');
-                isValid = false;
-            }
-        });
+        if (!$('#fraudConsent').is(':checked')) {
+            $('#fraudConsent').addClass('is-invalid');
+            isValid = false;
+        }
         
         if (!isValid) {
             $('html, body').animate({
@@ -1143,16 +1136,12 @@ $(document).ready(function() {
             mobile_verified: true, // Verified via SMS OTP
             mfa_enabled: true, // MFA is mandatory for all accounts
             consents: {
-                terms: true,
-                privacy: true,
-                fraud_prevention: true,
-                third_party_sharing: true,
-                content_compliance: true
+                fraud_prevention_and_sharing: true
             },
             consent_audit: {
-                third_party_sharing: {
+                fraud_prevention_and_sharing: {
                     consent_given: true,
-                    consent_text: 'I agree that QuickSMS may share my information with trusted third-party fraud prevention, validation, and messaging partners to protect against abuse',
+                    consent_text: 'I consent to fraud prevention and identity validation, and I agree that QuickSMS may share my information with trusted third-party fraud prevention, validation, and messaging partners to protect against abuse.',
                     timestamp: new Date().toISOString(),
                     user_email: email,
                     ip_address: 'CAPTURED_BY_SERVER', // Backend captures IP
