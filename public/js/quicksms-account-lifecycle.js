@@ -576,6 +576,195 @@
         },
         
         // =====================================================
+        // SALES / ADMIN OVERRIDE ACTIVATION
+        // =====================================================
+        // Used for: Enterprise, NHS, Post-paid customers
+        // Who can activate: QuickSMS Sales Admin, QuickSMS Super Admin
+        // Bypasses: Payment requirement, account details requirement
+        // Audit: Fully logged with activating user, reason, billing model
+        // =====================================================
+        
+        ADMIN_ROLES: {
+            SALES_ADMIN: 'sales_admin',
+            SUPER_ADMIN: 'super_admin'
+        },
+        
+        BILLING_MODELS: {
+            PREPAID: { id: 'prepaid', label: 'Pre-paid', description: 'Standard pay-as-you-go' },
+            POSTPAID_30: { id: 'postpaid_30', label: 'Post-paid (Net 30)', description: 'Invoice due in 30 days' },
+            POSTPAID_60: { id: 'postpaid_60', label: 'Post-paid (Net 60)', description: 'Invoice due in 60 days' },
+            CREDIT_LIMIT: { id: 'credit_limit', label: 'Credit Limit', description: 'Spend up to credit limit, then invoice' },
+            ENTERPRISE: { id: 'enterprise', label: 'Enterprise Contract', description: 'Custom enterprise agreement' }
+        },
+        
+        // Check if current user can perform admin override
+        // In production: This is checked server-side, UI is just for display
+        canPerformAdminOverride: function(userRole) {
+            return userRole === this.ADMIN_ROLES.SALES_ADMIN || 
+                   userRole === this.ADMIN_ROLES.SUPER_ADMIN;
+        },
+        
+        // Sales/Admin override activation
+        // Bypasses normal requirements - used for enterprise/NHS/post-paid
+        activateWithOverride: function(options, callback) {
+            var self = this;
+            
+            // Validate required parameters
+            if (!options || !options.admin_user_id || !options.admin_role) {
+                var error = {
+                    success: false,
+                    error: 'MISSING_ADMIN_CREDENTIALS',
+                    message: 'Admin user ID and role are required for override activation'
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            if (!this.canPerformAdminOverride(options.admin_role)) {
+                var error = {
+                    success: false,
+                    error: 'UNAUTHORIZED',
+                    message: 'Only Sales Admin or Super Admin can perform override activation'
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            if (!options.reason || options.reason.trim().length < 10) {
+                var error = {
+                    success: false,
+                    error: 'REASON_REQUIRED',
+                    message: 'A detailed reason (minimum 10 characters) is required for audit purposes'
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            if (!options.billing_model || !this.BILLING_MODELS[options.billing_model.toUpperCase()]) {
+                var error = {
+                    success: false,
+                    error: 'BILLING_MODEL_REQUIRED',
+                    message: 'A valid billing model must be selected'
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            // Only TEST accounts can be activated via override
+            if (!this.isTest()) {
+                var error = {
+                    success: false,
+                    error: 'NOT_TEST_ACCOUNT',
+                    message: 'Override activation is only available for TEST accounts'
+                };
+                if (callback) callback(error);
+                return;
+            }
+            
+            var overrideData = {
+                account_id: this._accountId,
+                from_state: this.STATES.TEST,
+                to_state: this.STATES.LIVE_SALES_OVERRIDE,
+                trigger: 'admin_override',
+                admin_user_id: options.admin_user_id,
+                admin_role: options.admin_role,
+                admin_email: options.admin_email || null,
+                reason: options.reason.trim(),
+                billing_model: options.billing_model,
+                credit_limit: options.credit_limit || null,
+                customer_type: options.customer_type || 'enterprise', // enterprise, nhs, government, other
+                contract_reference: options.contract_reference || null,
+                override_at: new Date().toISOString()
+            };
+            
+            console.log('[AccountLifecycle] Admin override activation:', overrideData);
+            
+            // In production: POST /api/admin/account/activate-override
+            // Server validates admin permissions, logs to secure audit table
+            this.requestTransition(
+                this.STATES.LIVE_SALES_OVERRIDE,
+                'Sales/Admin override: ' + options.reason,
+                function(result) {
+                    if (result.success) {
+                        // Log override activation (separate audit entry)
+                        self._logAdminOverride(overrideData);
+                        
+                        // Update sessionStorage
+                        sessionStorage.setItem('lifecycle_state', self.STATES.LIVE_SALES_OVERRIDE);
+                        sessionStorage.setItem('billing_model', options.billing_model);
+                        sessionStorage.removeItem('test_mode_fragments_used');
+                        
+                        // Emit override event
+                        self._emitStateEvent('lifecycle:admin_override', {
+                            previous_state: self.STATES.TEST,
+                            new_state: self.STATES.LIVE_SALES_OVERRIDE,
+                            admin_user_id: options.admin_user_id,
+                            billing_model: options.billing_model,
+                            activated_at: overrideData.override_at
+                        });
+                        
+                        console.log('[AccountLifecycle] Admin override activation complete');
+                    }
+                    
+                    if (callback) callback(result);
+                }
+            );
+        },
+        
+        // Log admin override (detailed audit entry)
+        _logAdminOverride: function(overrideData) {
+            var entry = {
+                id: 'OVERRIDE-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                type: 'admin_override_activation',
+                account_id: overrideData.account_id,
+                from_state: overrideData.from_state,
+                to_state: overrideData.to_state,
+                trigger: overrideData.trigger,
+                // Mandatory audit fields
+                activating_user: {
+                    user_id: overrideData.admin_user_id,
+                    role: overrideData.admin_role,
+                    email: overrideData.admin_email
+                },
+                timestamp: overrideData.override_at,
+                reason: overrideData.reason,
+                billing_model: overrideData.billing_model,
+                // Additional context
+                credit_limit: overrideData.credit_limit,
+                customer_type: overrideData.customer_type,
+                contract_reference: overrideData.contract_reference,
+                ip_address: 'CAPTURED_BY_SERVER',
+                // Compliance flag
+                requires_review: false,
+                reviewed_by: null,
+                reviewed_at: null
+            };
+            
+            this._auditLog.push(entry);
+            console.log('[AccountLifecycle] Admin override audit:', JSON.stringify(entry, null, 2));
+            
+            // TODO: Backend - POST /api/audit/admin-override
+            // This MUST be stored in a tamper-proof audit table
+            return entry;
+        },
+        
+        // Get billing model info
+        getBillingModel: function(modelId) {
+            var key = (modelId || '').toUpperCase();
+            return this.BILLING_MODELS[key] || null;
+        },
+        
+        // Get all billing models (for dropdown)
+        getAllBillingModels: function() {
+            var models = [];
+            var self = this;
+            Object.keys(this.BILLING_MODELS).forEach(function(key) {
+                models.push(self.BILLING_MODELS[key]);
+            });
+            return models;
+        },
+        
+        // =====================================================
         // AUDIT LOGGING
         // =====================================================
         
