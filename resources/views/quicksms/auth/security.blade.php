@@ -1470,6 +1470,20 @@ $(document).ready(function() {
                 test_credits_amount: formData.test_credits.eligible ? 100 : 0
             }));
             
+            // Store account lifecycle state (all new accounts start in TEST)
+            // Backend: accounts.lifecycle_state = 'TEST', logged to account_lifecycle_audit
+            var stateChangedAt = new Date().toISOString();
+            sessionStorage.setItem('account_id', accountId);
+            sessionStorage.setItem('lifecycle_state', 'TEST');
+            sessionStorage.setItem('state_changed_at', stateChangedAt);
+            
+            AuditService.log('lifecycle_state_set', {
+                account_id: accountId,
+                lifecycle_state: 'TEST',
+                reason: 'new_account_creation',
+                state_changed_at: stateChangedAt
+            });
+            
             // Redirect to Dashboard
             window.location.href = '/?onboarding=complete&credits=' + (formData.test_credits.eligible ? '100' : '0');
         }, 2000);
