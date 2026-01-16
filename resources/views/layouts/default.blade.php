@@ -180,6 +180,8 @@
             <script src="{{ asset($script) }}" type="text/javascript"></script>
         @endforeach
     @endif
+    
+    <script src="{{ asset('js/quicksms-enforcement-notifications.js') }}" type="text/javascript"></script>
         
         @stack('scripts')
 
