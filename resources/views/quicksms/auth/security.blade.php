@@ -105,7 +105,10 @@
                                 <div class="invalid-feedback" id="otpError">Invalid verification code</div>
                                 <div class="d-flex justify-content-between align-items-center mt-1">
                                     <small class="text-muted">Expires in <span id="otpCountdown">5:00</span></small>
-                                    <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend</button>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-muted me-2 d-none" id="resendCooldownText"></small>
+                                        <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend</button>
+                                    </div>
                                 </div>
                                 <div class="alert alert-info small mt-2 py-1 d-none" id="testOtpCode">
                                     <strong>Test Mode:</strong> Your code is <span class="fw-bold" id="displayOtp"></span>
@@ -658,7 +661,10 @@ $(document).ready(function() {
     var currentOtp = null;
     var otpExpiry = null;
     var countdownInterval = null;
-    var resendCooldown = 30; // seconds before resend is enabled
+    var resendCooldownInterval = null;
+    var resendCooldown = 15 * 60; // 15 minutes before resend is enabled
+    var lastOtpSentAt = null;
+    var nextOtpAllowedAt = null;
     
     // E.164 format validation (international format)
     function normalizeUkMobile(number) {
@@ -701,6 +707,19 @@ $(document).ready(function() {
     
     // Send OTP button handler
     $('#sendOtpBtn').on('click', function() {
+        // Check 15-minute cooldown first (backend-ready enforcement)
+        if (nextOtpAllowedAt && Date.now() < nextOtpAllowedAt) {
+            var remainingSecs = Math.ceil((nextOtpAllowedAt - Date.now()) / 1000);
+            var mins = Math.floor(remainingSecs / 60);
+            var secs = remainingSecs % 60;
+            var $status = $('#otpStatus');
+            $status.removeClass('d-none sent sending').addClass('error');
+            $status.html('<i class="fas fa-clock me-2"></i>Please wait ' + mins + ':' + (secs < 10 ? '0' : '') + secs + ' before requesting a new code.');
+            // In production: Backend returns 429 with { error: 'cooldown_active', next_otp_allowed_at: timestamp }
+            console.log('[OTP] Cooldown enforced. next_otp_allowed_at=' + new Date(nextOtpAllowedAt).toISOString());
+            return;
+        }
+        
         var rawMobile = $('#mobileNumber').val().trim();
         var result = normalizeUkMobile(rawMobile);
         
@@ -713,7 +732,7 @@ $(document).ready(function() {
         var mobile = result.normalized;
         $('#mobileNumber').val(mobile);
         
-        // Check rate limit for OTP sending
+        // Check rate limit for OTP sending (additional protection against abuse)
         var rateCheck = RateLimitService.checkOtpSendRate(mobile);
         if (!rateCheck.allowed) {
             var $status = $('#otpStatus');
@@ -766,18 +785,55 @@ $(document).ready(function() {
             // Lock mobile number field
             $('#mobileNumber').prop('readonly', true);
             
-            // Start countdown
+            // Start OTP expiry countdown (5 min)
             startCountdown();
             
-            // Enable resend after cooldown
-            var $resend = $('#resendOtpBtn');
-            $resend.prop('disabled', true);
-            setTimeout(function() {
-                $resend.prop('disabled', false);
-            }, resendCooldown * 1000);
+            // Backend-ready: Record OTP send timestamp
+            // In production: Response includes { last_otp_sent_at, next_otp_allowed_at }
+            lastOtpSentAt = Date.now();
+            nextOtpAllowedAt = lastOtpSentAt + (resendCooldown * 1000);
+            console.log('[OTP] Backend fields: last_otp_sent_at=' + new Date(lastOtpSentAt).toISOString() + 
+                        ', next_otp_allowed_at=' + new Date(nextOtpAllowedAt).toISOString());
+            
+            // Start 15-minute resend cooldown with countdown
+            startResendCooldown();
             
         }, 1500);
     });
+    
+    function startResendCooldown() {
+        var $resend = $('#resendOtpBtn');
+        var $cooldownText = $('#resendCooldownText');
+        
+        $resend.prop('disabled', true);
+        $cooldownText.removeClass('d-none');
+        
+        if (resendCooldownInterval) clearInterval(resendCooldownInterval);
+        
+        var remaining = resendCooldown;
+        
+        function updateCooldownDisplay() {
+            var minutes = Math.floor(remaining / 60);
+            var seconds = remaining % 60;
+            $cooldownText.text('New code in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds);
+        }
+        
+        updateCooldownDisplay();
+        
+        resendCooldownInterval = setInterval(function() {
+            remaining--;
+            
+            if (remaining <= 0) {
+                clearInterval(resendCooldownInterval);
+                $resend.prop('disabled', false);
+                $cooldownText.addClass('d-none');
+                lastOtpSentAt = null;
+                nextOtpAllowedAt = null;
+            } else {
+                updateCooldownDisplay();
+            }
+        }, 1000);
+    }
     
     function startCountdown() {
         var remaining = 5 * 60; // 5 minutes
