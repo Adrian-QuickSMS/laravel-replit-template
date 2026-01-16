@@ -82,13 +82,14 @@
                             <div class="form-group mb-2">
                                 <label class="form-label form-label-sm" for="mobileNumber">Mobile Number <span class="text-danger">*</span></label>
                                 <div class="input-group input-group-sm">
-                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="07700 900123" required>
+                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="07700900123" required>
                                     <button class="btn btn-outline-primary" type="button" id="sendOtpBtn">
                                         <span class="btn-text">Send Code</span>
                                         <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm"></span></span>
                                     </button>
                                 </div>
-                                <div class="invalid-feedback" id="mobileError">Please enter a valid mobile number</div>
+                                <small class="form-text text-muted">UK mobiles only: 07…, +447… or 447…</small>
+                                <div class="invalid-feedback" id="mobileError">Please enter a valid UK mobile number</div>
                                 <div class="otp-status mt-2 d-none" id="otpStatus"></div>
                             </div>
                             
@@ -661,36 +662,55 @@ $(document).ready(function() {
     
     // E.164 format validation (international format)
     function normalizeUkMobile(number) {
-        var cleaned = number.replace(/[\s\-\(\)\.]/g, '');
-        
-        if (cleaned.startsWith('07') && cleaned.length === 11) {
-            cleaned = '44' + cleaned.substring(1);
-        } else if (cleaned.startsWith('+447')) {
-            cleaned = cleaned.substring(1);
-        } else if (cleaned.startsWith('447')) {
-            // Already in correct format
-        } else {
-            return null;
+        // Reject if contains spaces, dashes, parentheses, or any non-digit chars (except leading +)
+        if (/[\s\-\(\)\.]/.test(number)) {
+            return { valid: false, error: 'No spaces, dashes or special characters allowed' };
         }
         
-        if (!/^447\d{9}$/.test(cleaned)) {
-            return null;
+        // Reject invalid patterns: 4407..., +4407...
+        if (/^(\+)?4407/.test(number)) {
+            return { valid: false, error: 'Invalid format. Use 07..., +447... or 447...' };
         }
         
-        return cleaned;
+        var normalized = number;
+        
+        // Format 1: 07xxxxxxxxx (11 digits) -> 447xxxxxxxxx
+        if (/^07\d{9}$/.test(number)) {
+            normalized = '44' + number.substring(1);
+        }
+        // Format 2: +447xxxxxxxxx (13 chars) -> 447xxxxxxxxx
+        else if (/^\+447\d{9}$/.test(number)) {
+            normalized = number.substring(1);
+        }
+        // Format 3: 447xxxxxxxxx (12 digits) -> as-is
+        else if (/^447\d{9}$/.test(number)) {
+            normalized = number;
+        }
+        // Anything else is invalid
+        else {
+            return { valid: false, error: 'UK mobiles only: 07..., +447... or 447...' };
+        }
+        
+        // Final validation: must be exactly 12 digits starting with 447
+        if (!/^447\d{9}$/.test(normalized)) {
+            return { valid: false, error: 'Invalid UK mobile number format' };
+        }
+        
+        return { valid: true, normalized: normalized };
     }
     
     // Send OTP button handler
     $('#sendOtpBtn').on('click', function() {
         var rawMobile = $('#mobileNumber').val().trim();
-        var mobile = normalizeUkMobile(rawMobile);
+        var result = normalizeUkMobile(rawMobile);
         
-        if (!mobile) {
+        if (!result.valid) {
             $('#mobileNumber').addClass('is-invalid');
-            $('#mobileError').text('Please enter a valid UK mobile number (e.g., 07700900123 or +447700900123)');
+            $('#mobileError').text(result.error);
             return;
         }
         
+        var mobile = result.normalized;
         $('#mobileNumber').val(mobile);
         
         // Check rate limit for OTP sending
