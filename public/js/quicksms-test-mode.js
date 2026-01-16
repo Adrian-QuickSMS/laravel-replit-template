@@ -34,7 +34,7 @@
         
         // Error codes for structured responses
         ERROR_CODES: {
-            TM_001: 'Recipient not in approved test list',
+            TM_001: 'Test mode restricts sending to approved test numbers only.',
             TM_002: 'Multiple recipients not allowed in TEST mode',
             TM_003: 'Bulk upload not allowed in TEST mode',
             TM_004: 'Custom SenderID not allowed in TEST mode',
@@ -131,6 +131,8 @@
         },
         
         // Check if a recipient number is allowed
+        // Approved numbers: MFA verified mobile OR admin-approved test numbers
+        // Test numbers are NOT self-service - managed via QuickSMS Admin Console only
         isRecipientAllowed: function(number) {
             if (!this.isTestMode()) return { allowed: true };
             
@@ -141,7 +143,7 @@
                 return { allowed: true, reason: 'verified_mfa_mobile' };
             }
             
-            // Check against admin-approved test numbers
+            // Check against admin-approved test numbers (managed via Admin Console)
             if (this._approvedTestNumbers.indexOf(normalized) !== -1) {
                 return { allowed: true, reason: 'admin_approved_test_number' };
             }
@@ -149,7 +151,7 @@
             return {
                 allowed: false,
                 error_code: 'TM_001',
-                message: 'In TEST mode, you can only send to your verified mobile number or admin-approved test numbers.'
+                message: this.ERROR_CODES.TM_001
             };
         },
         
