@@ -130,6 +130,106 @@
             };
         },
         
+        // =====================================================
+        // SENDERID RULES (TEST MODE)
+        // =====================================================
+        // Allowed:
+        //   - Users may submit SenderID registration requests
+        //   - Sales/Admin may assign SenderIDs for evaluation
+        // Restricted:
+        //   - SenderIDs are NOT presented to handsets in TEST mode
+        //   - All sends use "QuickSMS Test Sender" + mandatory disclaimer
+        // Status Handling:
+        //   - SenderIDs requested in TEST appear as: Pending, Test Approved
+        // Activation:
+        //   - SenderIDs become usable ONLY once account is LIVE
+        // Hard Rule:
+        //   - No test message ever displays a customer SenderID
+        // =====================================================
+        
+        // SenderID status constants for TEST mode
+        SENDERID_STATUS: {
+            PENDING: 'pending',             // Submitted, awaiting review
+            TEST_APPROVED: 'test_approved', // Approved for evaluation only
+            LIVE_APPROVED: 'live_approved', // Available for LIVE accounts
+            REJECTED: 'rejected'
+        },
+        
+        // Check if a SenderID can be used (always false in TEST mode for actual sending)
+        canUseSenderId: function(senderId) {
+            // In TEST mode, no customer SenderID is ever displayed to handsets
+            if (this.isTestMode()) {
+                return {
+                    allowed: false,
+                    reason: 'test_mode_restriction',
+                    message: 'SenderIDs are not displayed to handsets in TEST mode. All messages use "' + 
+                             this.CONFIG.sender_display + '".',
+                    actual_sender: this.CONFIG.sender_display
+                };
+            }
+            
+            // In LIVE mode, check if SenderID is approved
+            // TODO: Backend integration - check SenderID status
+            return { allowed: true, reason: 'live_mode' };
+        },
+        
+        // Get the effective sender for a message
+        getEffectiveSender: function(requestedSenderId) {
+            if (this.isTestMode()) {
+                // Always override to test sender in TEST mode
+                return {
+                    sender: this.CONFIG.sender_display,
+                    original_requested: requestedSenderId || null,
+                    overridden: true,
+                    reason: 'test_mode_enforced'
+                };
+            }
+            
+            // In LIVE mode, use requested SenderID (if approved)
+            return {
+                sender: requestedSenderId,
+                original_requested: requestedSenderId,
+                overridden: false,
+                reason: 'live_mode'
+            };
+        },
+        
+        // Check if SenderID registration is allowed (yes, even in TEST mode)
+        canRegisterSenderId: function() {
+            // SenderID registration requests are allowed in all states
+            // They just won't be usable until LIVE
+            return {
+                allowed: true,
+                note: this.isTestMode() ? 
+                    'SenderID will be available once account is activated to LIVE status.' :
+                    'SenderID will be available once approved.'
+            };
+        },
+        
+        // Get SenderID display info for UI
+        getSenderIdInfo: function() {
+            if (this.isTestMode()) {
+                return {
+                    display_sender: this.CONFIG.sender_display,
+                    custom_allowed: false,
+                    registration_allowed: true,
+                    info_message: 'In TEST mode, all messages display "' + this.CONFIG.sender_display + 
+                                  '". Register SenderIDs now - they become active when your account goes LIVE.'
+                };
+            }
+            
+            return {
+                display_sender: null, // User's choice
+                custom_allowed: true,
+                registration_allowed: true,
+                info_message: null
+            };
+        },
+        
+        // =====================================================
+        // RECIPIENT VALIDATION
+        // =====================================================
+        
         // Check if a recipient number is allowed
         // Approved numbers: MFA verified mobile OR admin-approved test numbers
         // Test numbers are NOT self-service - managed via QuickSMS Admin Console only
