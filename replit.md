@@ -31,6 +31,7 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
   - Contextual creation actions (hover-only): "+ Add Sub-Account" on Main Account, "+ Add User" on Sub-Accounts
   - Create Sub-Account modal with enforcement rules scaffold (Daily Send Limit, Monthly Spend Cap, Campaign Approval, Limit Enforcement)
   - Invite User flow: Email, Role, Sender Capability Level (Advanced/Restricted, hidden for non-messaging roles)
+  - Direct User Creation: Main Account Admins only, elevated-risk warning, temporary password (min 12 chars), mandatory password reset + MFA on first login, reason required, logged as high-risk audit event
   - User statuses: Invited, Active, Suspended, Expired (7-day invite expiry)
   - Full audit logging for all hierarchy changes
 - **SMS SenderID Registration:** UK-compliant 5-step registration wizard for various SenderID types, including lifecycle management and audit trails.

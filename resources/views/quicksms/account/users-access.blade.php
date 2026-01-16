@@ -375,68 +375,151 @@
 </div>
 
 <div class="modal fade" id="inviteUserModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Invite User</h5>
+                <h5 class="modal-title">Add User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-light border mb-4" style="font-size: 0.85rem;">
-                    <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
-                </div>
+                <ul class="nav nav-tabs mb-3" id="addUserTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="invite-tab" data-bs-toggle="tab" data-bs-target="#invite-pane" type="button" role="tab">
+                            Send Invitation
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation" id="direct-create-tab-item">
+                        <button class="nav-link" id="direct-tab" data-bs-toggle="tab" data-bs-target="#direct-pane" type="button" role="tab">
+                            Direct Creation
+                            <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Admin Only</span>
+                        </button>
+                    </li>
+                </ul>
                 
-                <form id="invite-user-form">
-                    <div class="mb-3">
-                        <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="invite-email" placeholder="user@company.com" required>
-                        <div class="form-text">Invitation will be sent to this email address</div>
+                <div class="tab-content" id="addUserTabContent">
+                    <div class="tab-pane fade show active" id="invite-pane" role="tabpanel">
+                        <div class="alert alert-light border mb-4" style="font-size: 0.85rem;">
+                            <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
+                        </div>
+                        
+                        <form id="invite-user-form">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="invite-email" placeholder="user@company.com" required>
+                                <div class="form-text">Invitation will be sent to this email address</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Assign to Sub-Account <span class="text-danger">*</span></label>
+                                <select class="form-select" id="invite-sub-account" required>
+                                    <option value="">Select Sub-Account...</option>
+                                </select>
+                                <div class="form-text">Users belong to exactly one Sub-Account</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Role <span class="text-danger">*</span></label>
+                                <select class="form-select" id="invite-role" required>
+                                    <option value="">Select Role...</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="messaging-manager">Messaging Manager</option>
+                                    <option value="finance">Finance / Billing</option>
+                                    <option value="developer">Developer / API User</option>
+                                    <option value="auditor">Read-Only / Auditor</option>
+                                </select>
+                                <div class="form-text">Determines navigation and feature access</div>
+                            </div>
+                            <div class="mb-3" id="sender-capability-group">
+                                <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
+                                <select class="form-select" id="invite-sender-capability" required>
+                                    <option value="">Select Capability...</option>
+                                    <option value="advanced">Advanced Sender - Full content creation, Contact Book, CSV uploads</option>
+                                    <option value="restricted">Restricted Sender - Templates only, predefined lists only</option>
+                                </select>
+                                <div class="form-text">Controls how messages can be composed and sent</div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Assign to Sub-Account <span class="text-danger">*</span></label>
-                        <select class="form-select" id="invite-sub-account" required>
-                            <option value="">Select Sub-Account...</option>
-                        </select>
-                        <div class="form-text">Users belong to exactly one Sub-Account</div>
+                    
+                    <div class="tab-pane fade" id="direct-pane" role="tabpanel">
+                        <div class="alert alert-warning mb-4" style="font-size: 0.85rem;">
+                            <strong>Elevated Risk Action</strong><br>
+                            Direct user creation bypasses the standard invitation flow. The user will be required to:
+                            <ul class="mb-0 mt-2">
+                                <li>Reset their password on first login</li>
+                                <li>Enrol MFA immediately before accessing the platform</li>
+                            </ul>
+                            This action is logged as a high-risk audit event.
+                        </div>
+                        
+                        <form id="direct-create-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="direct-first-name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="direct-last-name" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="direct-email" placeholder="user@company.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Temporary Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="direct-temp-password" required minlength="12">
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-generate-password">Generate</button>
+                                </div>
+                                <div class="form-text">Minimum 12 characters. User must change this on first login.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Assign to Sub-Account <span class="text-danger">*</span></label>
+                                <select class="form-select" id="direct-sub-account" required>
+                                    <option value="">Select Sub-Account...</option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Role <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="direct-role" required>
+                                        <option value="">Select Role...</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="messaging-manager">Messaging Manager</option>
+                                        <option value="finance">Finance / Billing</option>
+                                        <option value="developer">Developer / API User</option>
+                                        <option value="auditor">Read-Only / Auditor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3" id="direct-sender-capability-group">
+                                    <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="direct-sender-capability" required>
+                                        <option value="">Select Capability...</option>
+                                        <option value="advanced">Advanced Sender</option>
+                                        <option value="restricted">Restricted Sender</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Reason for Direct Creation <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="direct-reason" rows="2" placeholder="e.g., Urgent onboarding required, user has no email access" required></textarea>
+                                <div class="form-text">This will be recorded in the audit log</div>
+                            </div>
+                        </form>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="direct-confirm-risk">
+                            <label class="form-check-label" for="direct-confirm-risk">
+                                I understand this is a high-risk action and accept responsibility for this user account
+                            </label>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Role <span class="text-danger">*</span></label>
-                        <select class="form-select" id="invite-role" required>
-                            <option value="">Select Role...</option>
-                            <option value="admin">Admin</option>
-                            <option value="messaging-manager">Messaging Manager</option>
-                            <option value="finance">Finance / Billing</option>
-                            <option value="developer">Developer / API User</option>
-                            <option value="auditor">Read-Only / Auditor</option>
-                        </select>
-                        <div class="form-text">Determines navigation and feature access</div>
-                    </div>
-                    <div class="mb-3" id="sender-capability-group">
-                        <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
-                        <select class="form-select" id="invite-sender-capability" required>
-                            <option value="">Select Capability...</option>
-                            <option value="advanced">Advanced Sender - Full content creation, Contact Book, CSV uploads</option>
-                            <option value="restricted">Restricted Sender - Templates only, predefined lists only</option>
-                        </select>
-                        <div class="form-text">Controls how messages can be composed and sent</div>
-                    </div>
-                </form>
-                
-                <hr class="my-3">
-                
-                <div class="invite-status-info" style="font-size: 0.8rem; color: #6b7280;">
-                    <strong>User Status Lifecycle:</strong>
-                    <ul class="mb-0 mt-2 ps-3">
-                        <li><span class="badge" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">Invited</span> - Awaiting user to accept and complete setup</li>
-                        <li><span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">Active</span> - User has completed setup and can access the platform</li>
-                        <li><span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">Suspended</span> - Account temporarily disabled</li>
-                        <li><span class="badge" style="background: rgba(107, 114, 128, 0.12); color: #6b7280;">Expired</span> - Invitation not accepted within 7 days</li>
-                    </ul>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="btn-send-invite">Send Invitation</button>
+                <button type="button" class="btn btn-warning" id="btn-direct-create" style="display: none;">Create User Directly</button>
             </div>
         </div>
     </div>
@@ -906,6 +989,173 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Audit] User invited:', auditEntry);
         
         alert('Invitation sent to ' + email + '. The user will receive an email to complete their setup.');
+    });
+    
+    var isMainAccountAdmin = true;
+    var directCreateTabItem = document.getElementById('direct-create-tab-item');
+    var btnSendInvite = document.getElementById('btn-send-invite');
+    var btnDirectCreate = document.getElementById('btn-direct-create');
+    
+    if (!isMainAccountAdmin) {
+        directCreateTabItem.style.display = 'none';
+    }
+    
+    document.querySelectorAll('#addUserTabs button').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            if (e.target.id === 'invite-tab') {
+                btnSendInvite.style.display = 'inline-block';
+                btnDirectCreate.style.display = 'none';
+            } else if (e.target.id === 'direct-tab') {
+                btnSendInvite.style.display = 'none';
+                btnDirectCreate.style.display = 'inline-block';
+            }
+        });
+    });
+    
+    var directRoleSelect = document.getElementById('direct-role');
+    var directSenderCapabilityGroup = document.getElementById('direct-sender-capability-group');
+    
+    directRoleSelect.addEventListener('change', function() {
+        var role = this.value;
+        var nonMessagingRoles = ['finance', 'auditor'];
+        
+        if (nonMessagingRoles.includes(role)) {
+            directSenderCapabilityGroup.style.display = 'none';
+            document.getElementById('direct-sender-capability').removeAttribute('required');
+        } else {
+            directSenderCapabilityGroup.style.display = 'block';
+            document.getElementById('direct-sender-capability').setAttribute('required', 'required');
+        }
+    });
+    
+    document.getElementById('btn-generate-password').addEventListener('click', function() {
+        var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*';
+        var password = '';
+        for (var i = 0; i < 16; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        var passwordInput = document.getElementById('direct-temp-password');
+        passwordInput.type = 'text';
+        passwordInput.value = password;
+        setTimeout(function() { passwordInput.type = 'password'; }, 3000);
+    });
+    
+    document.getElementById('btn-direct-create').addEventListener('click', function() {
+        var firstName = document.getElementById('direct-first-name').value.trim();
+        var lastName = document.getElementById('direct-last-name').value.trim();
+        var email = document.getElementById('direct-email').value.trim();
+        var tempPassword = document.getElementById('direct-temp-password').value;
+        var subAccountId = document.getElementById('direct-sub-account').value;
+        var role = document.getElementById('direct-role').value;
+        var senderCapability = document.getElementById('direct-sender-capability').value;
+        var reason = document.getElementById('direct-reason').value.trim();
+        var confirmRisk = document.getElementById('direct-confirm-risk').checked;
+        
+        var nonMessagingRoles = ['finance', 'auditor'];
+        var requiresCapability = !nonMessagingRoles.includes(role);
+        
+        if (!firstName || !lastName || !email || !tempPassword || !subAccountId || !role || !reason) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        if (requiresCapability && !senderCapability) {
+            alert('Please select a Sender Capability Level');
+            return;
+        }
+        
+        if (tempPassword.length < 12) {
+            alert('Password must be at least 12 characters');
+            return;
+        }
+        
+        if (!confirmRisk) {
+            alert('You must acknowledge the risk before creating a user directly');
+            return;
+        }
+        
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+        
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
+        if (subAccount) {
+            var newUser = {
+                id: 'user-' + Date.now(),
+                name: firstName + ' ' + lastName,
+                email: email,
+                role: role,
+                senderCapability: requiresCapability ? senderCapability : null,
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                mustResetPassword: true,
+                mfaEnforced: true,
+                creationMethod: 'direct'
+            };
+            
+            subAccount.users.push(newUser);
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
+        document.getElementById('direct-create-form').reset();
+        document.getElementById('direct-confirm-risk').checked = false;
+        directSenderCapabilityGroup.style.display = 'block';
+        
+        var inviteTab = document.getElementById('invite-tab');
+        var bsTab = new bootstrap.Tab(inviteTab);
+        bsTab.show();
+        btnSendInvite.style.display = 'inline-block';
+        btnDirectCreate.style.display = 'none';
+        
+        renderHierarchy();
+        
+        var auditEntry = {
+            action: 'USER_CREATED_DIRECT',
+            riskLevel: 'HIGH',
+            user: {
+                name: firstName + ' ' + lastName,
+                email: email,
+                role: role,
+                senderCapability: requiresCapability ? senderCapability : 'N/A'
+            },
+            subAccountId: subAccountId,
+            subAccountName: subAccount ? subAccount.name : null,
+            reason: reason,
+            securityFlags: {
+                mustResetPassword: true,
+                mfaEnforced: true
+            },
+            createdBy: {
+                userId: 'user-001',
+                userName: 'Sarah Mitchell',
+                role: 'main-account-admin'
+            },
+            timestamp: new Date().toISOString(),
+            ipAddress: '192.168.1.100'
+        };
+        
+        console.log('[HIGH-RISK AUDIT] Direct user creation:', auditEntry);
+        
+        alert('User "' + firstName + ' ' + lastName + '" has been created.\n\nThey must:\n• Reset their password on first login\n• Enrol MFA immediately\n\nThis action has been logged.');
+    });
+    
+    document.getElementById('inviteUserModal').addEventListener('show.bs.modal', function() {
+        var subAccounts = hierarchyData.subAccounts;
+        
+        var inviteSelect = document.getElementById('invite-sub-account');
+        var directSelect = document.getElementById('direct-sub-account');
+        
+        [inviteSelect, directSelect].forEach(function(select) {
+            select.innerHTML = '<option value="">Select Sub-Account...</option>';
+            subAccounts.forEach(function(sa) {
+                var option = document.createElement('option');
+                option.value = sa.id;
+                option.textContent = sa.name;
+                select.appendChild(option);
+            });
+        });
     });
     
     renderHierarchy();
