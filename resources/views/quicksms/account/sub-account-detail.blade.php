@@ -1011,13 +1011,13 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-pause-circle text-warning me-2"></i>Suspend Sub-Account</h5>
+                <h5 class="modal-title"><i class="fas fa-pause-circle me-2" style="color: #886cc0;"></i>Suspend Sub-Account</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning mb-3" style="font-size: 0.85rem;">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Warning:</strong> Suspending this sub-account will immediately prevent all users from sending messages.
+                <div class="alert mb-3" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Suspending this sub-account will immediately prevent all users from sending messages.
                 </div>
                 <p style="font-size: 0.9rem;">Are you sure you want to suspend <strong>{{ $sub_account['name'] }}</strong>?</p>
                 <div class="mb-3">
@@ -1027,7 +1027,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" id="btn-confirm-suspend" style="background: #d97706; color: white;">
+                <button type="button" class="btn" id="btn-confirm-suspend" style="background: #886cc0; color: white;">
                     <i class="fas fa-pause me-1"></i>Suspend Sub-Account
                 </button>
             </div>
@@ -1146,8 +1146,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStatusUI('suspended');
         
         var toast = document.createElement('div');
-        toast.className = 'alert alert-warning position-fixed';
-        toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.className = 'alert position-fixed';
+        toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; background: #f3e8ff; border: none; color: #6b21a8;';
         toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>Sub-account suspended successfully.';
         document.body.appendChild(toast);
         setTimeout(function() { toast.remove(); }, 3000);
