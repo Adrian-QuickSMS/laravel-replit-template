@@ -2616,7 +2616,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function doResetPermissions() {
-        
         tempPermissionChanges = {};
         
         var userId = document.getElementById('perm-user-id').value;
@@ -2624,7 +2623,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var roleDefaults = typeof PermissionManager !== 'undefined' ? PermissionManager.getRoleDefaults(userRole) : {};
         
         renderPermissionsUI(roleDefaults, {});
-    });
+    }
     
     function openSubAccountDrawer(subId) {
         var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
