@@ -191,13 +191,13 @@
 
 .hard-stop-toggle {
     padding: 0.75rem 1rem;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: #f3e8ff;
+    border: 1px solid #ddd6fe;
     border-radius: 0.375rem;
 }
 .hard-stop-toggle.enabled {
-    background: #fee2e2;
-    border-color: #f87171;
+    background: #ede9fe;
+    border-color: #c4b5fd;
 }
 
 .approval-required-banner {
@@ -598,7 +598,7 @@
                         <div class="col-md-4">
                             <div class="enforcement-option {{ $sub_account['limits']['enforcement_type'] === 'warn' ? 'selected' : '' }}" data-value="warn">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-bell me-2" style="color: #d97706;"></i>
+                                    <i class="fas fa-bell me-2" style="color: #6b7280;"></i>
                                     <div class="option-title">Warn Only</div>
                                 </div>
                                 <div class="option-desc">Alert admins when limits approach, but allow sends to continue</div>
@@ -607,7 +607,7 @@
                         <div class="col-md-4">
                             <div class="enforcement-option {{ $sub_account['limits']['enforcement_type'] === 'block' ? 'selected' : '' }}" data-value="block">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-ban me-2" style="color: #dc2626;"></i>
+                                    <i class="fas fa-ban me-2" style="color: #6b7280;"></i>
                                     <div class="option-title">Block Sends</div>
                                 </div>
                                 <div class="option-desc">Prevent all sends when limits are reached until next period</div>
@@ -616,7 +616,7 @@
                         <div class="col-md-4">
                             <div class="enforcement-option {{ $sub_account['limits']['enforcement_type'] === 'approval' ? 'selected' : '' }}" data-value="approval">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-clipboard-check me-2" style="color: #886cc0;"></i>
+                                    <i class="fas fa-clipboard-check me-2" style="color: #6b7280;"></i>
                                     <div class="option-title">Require Approval</div>
                                 </div>
                                 <div class="option-desc">Queue sends for admin approval when limits are reached</div>
@@ -628,9 +628,9 @@
                 
                 <div class="hard-stop-toggle {{ $sub_account['limits']['hard_stop'] ? 'enabled' : '' }}" id="hard-stop-container">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="hard-stop" {{ $sub_account['limits']['hard_stop'] ? 'checked' : '' }} data-original="{{ $sub_account['limits']['hard_stop'] ? '1' : '0' }}" style="border-color: #dc2626;">
+                        <input class="form-check-input" type="checkbox" id="hard-stop" {{ $sub_account['limits']['hard_stop'] ? 'checked' : '' }} data-original="{{ $sub_account['limits']['hard_stop'] ? '1' : '0' }}" style="border-color: #886cc0;">
                         <label class="form-check-label" for="hard-stop">
-                            <span style="font-weight: 500; color: #991b1b;">Enable Hard Stop</span>
+                            <span style="font-weight: 500; color: #6b21a8;">Enable Hard Stop</span>
                             <div style="font-size: 0.75rem; color: #6b7280;">When enabled, enforcement cannot be overridden by any user. Use with caution.</div>
                         </label>
                     </div>
