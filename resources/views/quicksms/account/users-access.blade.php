@@ -48,24 +48,22 @@
     opacity: 0.9;
 }
 .contextual-btn {
-    opacity: 0;
-    transition: opacity 0.15s;
     font-size: 0.75rem;
     padding: 0.25rem 0.625rem;
     border-radius: 0.25rem;
     white-space: nowrap;
-}
-.main-account-node:hover .contextual-btn,
-.sub-account-header:hover .contextual-btn {
-    opacity: 1;
+    transition: background 0.15s, border-color 0.15s;
 }
 .main-account-node .contextual-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #fff;
+    background: #fff;
+    border: 1px solid #fff;
+    color: #886cc0;
+    font-weight: 500;
 }
 .main-account-node .contextual-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #f3e8ff;
+    border-color: #f3e8ff;
+    color: #6b21a8;
 }
 .sub-account-header .contextual-btn {
     background: rgba(136, 108, 192, 0.1);
