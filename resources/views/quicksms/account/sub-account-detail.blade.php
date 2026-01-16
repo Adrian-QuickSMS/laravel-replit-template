@@ -227,6 +227,111 @@
     font-weight: 600;
     color: #374151;
 }
+
+.usage-metric {
+    margin-bottom: 1.5rem;
+}
+.usage-metric:last-child {
+    margin-bottom: 0;
+}
+.usage-metric .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.usage-metric .metric-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+}
+.usage-metric .metric-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+.usage-metric .progress {
+    height: 10px;
+    border-radius: 5px;
+    background: #f3f4f6;
+}
+.usage-metric .progress-bar {
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+.usage-metric .progress-bar.normal { background: #886cc0; }
+.usage-metric .progress-bar.warning { background: #f59e0b; }
+.usage-metric .progress-bar.critical { background: #ef4444; }
+
+.enforcement-state {
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.enforcement-state.normal {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+.enforcement-state.warning {
+    background: #fefce8;
+    border: 1px solid #fef08a;
+}
+.enforcement-state.blocked {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+.enforcement-state.approval-required {
+    background: #f3e8ff;
+    border: 1px solid #e9d5ff;
+}
+.enforcement-state .state-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+.enforcement-state.normal .state-icon { background: #dcfce7; color: #16a34a; }
+.enforcement-state.warning .state-icon { background: #fef3c7; color: #d97706; }
+.enforcement-state.blocked .state-icon { background: #fee2e2; color: #dc2626; }
+.enforcement-state.approval-required .state-icon { background: #f3e8ff; color: #7c3aed; }
+.enforcement-state .state-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.enforcement-state.normal .state-title { color: #166534; }
+.enforcement-state.warning .state-title { color: #92400e; }
+.enforcement-state.blocked .state-title { color: #991b1b; }
+.enforcement-state.approval-required .state-title { color: #6b21a8; }
+.enforcement-state .state-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+}
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.7rem;
+    color: #16a34a;
+    font-weight: 500;
+}
+.live-indicator .pulse {
+    width: 8px;
+    height: 8px;
+    background: #16a34a;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
 </style>
 @endpush
 
@@ -430,6 +535,102 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+    
+    @php
+        $spendPercent = $sub_account['limits']['spend_cap'] > 0 
+            ? min(100, ($sub_account['monthly_spend'] / $sub_account['limits']['spend_cap']) * 100) 
+            : 0;
+        $msgPercent = $sub_account['limits']['message_cap'] > 0 
+            ? min(100, ($sub_account['monthly_messages'] / $sub_account['limits']['message_cap']) * 100) 
+            : 0;
+        
+        $spendClass = $spendPercent >= 90 ? 'critical' : ($spendPercent >= 75 ? 'warning' : 'normal');
+        $msgClass = $msgPercent >= 90 ? 'critical' : ($msgPercent >= 75 ? 'warning' : 'normal');
+        
+        $enforcementState = 'normal';
+        if ($spendPercent >= 100 || $msgPercent >= 100) {
+            $enforcementState = $sub_account['limits']['enforcement_type'] === 'approval' ? 'approval-required' : 'blocked';
+        } elseif ($spendPercent >= 75 || $msgPercent >= 75) {
+            $enforcementState = 'warning';
+        }
+    @endphp
+    
+    <div class="section-card" id="usage-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Live Usage & Telemetry
+            </h2>
+            <span class="live-indicator">
+                <span class="pulse"></span>
+                Live
+            </span>
+        </div>
+        <div class="section-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="usage-metric" id="spend-metric">
+                        <div class="metric-header">
+                            <span class="metric-label"><i class="fas fa-pound-sign me-1"></i>Spend vs Cap</span>
+                            <span class="metric-value" id="spend-value">£{{ number_format($sub_account['monthly_spend'], 2) }} / £{{ number_format($sub_account['limits']['spend_cap'], 2) }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar {{ $spendClass }}" id="spend-bar" role="progressbar" style="width: {{ $spendPercent }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="usage-metric" id="msgs-metric">
+                        <div class="metric-header">
+                            <span class="metric-label"><i class="fas fa-envelope me-1"></i>Messages vs Limit</span>
+                            <span class="metric-value" id="msgs-value">{{ number_format($sub_account['monthly_messages']) }} / {{ number_format($sub_account['limits']['message_cap']) }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar {{ $msgClass }}" id="msgs-bar" role="progressbar" style="width: {{ $msgPercent }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="enforcement-state {{ $enforcementState }}" id="enforcement-state-display">
+                <div class="state-icon">
+                    @if($enforcementState === 'normal')
+                        <i class="fas fa-shield-check"></i>
+                    @elseif($enforcementState === 'warning')
+                        <i class="fas fa-exclamation-triangle"></i>
+                    @elseif($enforcementState === 'blocked')
+                        <i class="fas fa-ban"></i>
+                    @else
+                        <i class="fas fa-clock"></i>
+                    @endif
+                </div>
+                <div>
+                    <div class="state-title" id="enforcement-state-title">
+                        @if($enforcementState === 'normal')
+                            Normal
+                        @elseif($enforcementState === 'warning')
+                            Warning
+                        @elseif($enforcementState === 'blocked')
+                            Blocked
+                        @else
+                            Approval Required
+                        @endif
+                    </div>
+                    <div class="state-desc" id="enforcement-state-desc">
+                        @if($enforcementState === 'normal')
+                            All systems operational. Usage is within acceptable limits.
+                        @elseif($enforcementState === 'warning')
+                            Approaching limit threshold. Consider reviewing usage patterns.
+                        @elseif($enforcementState === 'blocked')
+                            Limit exceeded. Sends are blocked until next billing period or limit increase.
+                        @else
+                            Limit exceeded. New campaigns require approval before sending.
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -737,6 +938,70 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('approval-banner').classList.remove('show');
     });
+    
+    // Live Usage & Telemetry - Real-time simulation
+    var usageData = {
+        spend: {{ $sub_account['monthly_spend'] }},
+        messages: {{ $sub_account['monthly_messages'] }},
+        spendCap: {{ $sub_account['limits']['spend_cap'] }},
+        messageCap: {{ $sub_account['limits']['message_cap'] }},
+        enforcementType: '{{ $sub_account['limits']['enforcement_type'] }}'
+    };
+    
+    function updateUsageDisplay() {
+        var spendPercent = usageData.spendCap > 0 ? Math.min(100, (usageData.spend / usageData.spendCap) * 100) : 0;
+        var msgPercent = usageData.messageCap > 0 ? Math.min(100, (usageData.messages / usageData.messageCap) * 100) : 0;
+        
+        document.getElementById('spend-value').textContent = '£' + usageData.spend.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' / £' + usageData.spendCap.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('msgs-value').textContent = usageData.messages.toLocaleString() + ' / ' + usageData.messageCap.toLocaleString();
+        
+        var spendBar = document.getElementById('spend-bar');
+        var msgsBar = document.getElementById('msgs-bar');
+        
+        spendBar.style.width = spendPercent + '%';
+        msgsBar.style.width = msgPercent + '%';
+        
+        spendBar.className = 'progress-bar ' + (spendPercent >= 90 ? 'critical' : (spendPercent >= 75 ? 'warning' : 'normal'));
+        msgsBar.className = 'progress-bar ' + (msgPercent >= 90 ? 'critical' : (msgPercent >= 75 ? 'warning' : 'normal'));
+        
+        updateEnforcementState(spendPercent, msgPercent);
+    }
+    
+    function updateEnforcementState(spendPercent, msgPercent) {
+        var stateDisplay = document.getElementById('enforcement-state-display');
+        var stateTitle = document.getElementById('enforcement-state-title');
+        var stateDesc = document.getElementById('enforcement-state-desc');
+        var stateIcon = stateDisplay.querySelector('.state-icon i');
+        
+        var state = 'normal';
+        if (spendPercent >= 100 || msgPercent >= 100) {
+            state = usageData.enforcementType === 'approval' ? 'approval-required' : 'blocked';
+        } else if (spendPercent >= 75 || msgPercent >= 75) {
+            state = 'warning';
+        }
+        
+        stateDisplay.className = 'enforcement-state ' + state;
+        
+        var states = {
+            'normal': { title: 'Normal', desc: 'All systems operational. Usage is within acceptable limits.', icon: 'fa-shield-check' },
+            'warning': { title: 'Warning', desc: 'Approaching limit threshold. Consider reviewing usage patterns.', icon: 'fa-exclamation-triangle' },
+            'blocked': { title: 'Blocked', desc: 'Limit exceeded. Sends are blocked until next billing period or limit increase.', icon: 'fa-ban' },
+            'approval-required': { title: 'Approval Required', desc: 'Limit exceeded. New campaigns require approval before sending.', icon: 'fa-clock' }
+        };
+        
+        stateTitle.textContent = states[state].title;
+        stateDesc.textContent = states[state].desc;
+        stateIcon.className = 'fas ' + states[state].icon;
+    }
+    
+    // Simulate real-time updates every 10 seconds
+    setInterval(function() {
+        if (usageData.spend < usageData.spendCap * 0.95) {
+            usageData.spend += Math.random() * 5;
+            usageData.messages += Math.floor(Math.random() * 50);
+            updateUsageDisplay();
+        }
+    }, 10000);
 });
 </script>
 @endpush
