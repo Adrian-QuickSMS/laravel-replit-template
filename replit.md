@@ -27,7 +27,12 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
 - **Account Details:** The `Account > Details` page is the single source of truth for customer information, structured into five collapsible accordion cards: Sign Up Details, Company Information, Support & Operations, Contract Signatory, and VAT & Tax Information. It features inline validation, status indicators, usage chips for downstream modules, and robust audit logging. Permissions are restricted to Account Owner/Admin.
 - **Email-to-SMS Module:** Tabbed interface for managing email addresses for SMS triggers, with sections for addresses, setups, contact list mappings, reporting groups, and configuration. Includes multi-step wizards, filtering, and backend integration hooks.
 - **Role-Based Access Control:** JavaScript-based system for UI visibility control based on user roles (viewer, analyst, admin).
-- **Account Hierarchy View:** Vertical tree/flow layout for organizational structure (Main Account, Sub-Accounts, Users) with role and status pills. Features contextual creation actions for sub-accounts and users, with audit logging for changes.
+- **Account Hierarchy View:** Vertical tree/flow layout for organizational structure (Main Account, Sub-Accounts, Users) with role and status pills. Features:
+  - Contextual creation actions (hover-only): "+ Add Sub-Account" on Main Account, "+ Add User" on Sub-Accounts
+  - Create Sub-Account modal with enforcement rules scaffold (Daily Send Limit, Monthly Spend Cap, Campaign Approval, Limit Enforcement)
+  - Invite User flow: Email, Role, Sender Capability Level (Advanced/Restricted, hidden for non-messaging roles)
+  - User statuses: Invited, Active, Suspended, Expired (7-day invite expiry)
+  - Full audit logging for all hierarchy changes
 - **SMS SenderID Registration:** UK-compliant 5-step registration wizard for various SenderID types, including lifecycle management and audit trails.
 - **Numbers Management:** Library table for managing owned numbers (VMN, Dedicated Shortcode, Shortcode Keyword) with status, capability indicators, filtering, sorting, and configuration drawers. Supports bulk actions.
 - **Numbers Mode Selection:** Each number operates in exactly one mutually exclusive mode (Portal Mode or API Mode), with explicit confirmation for mode switching and audit logging.

@@ -254,6 +254,10 @@
     background: rgba(239, 68, 68, 0.12);
     color: #ef4444;
 }
+.status-pill.expired {
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+}
 
 .empty-users {
     padding: 1rem;
@@ -378,18 +382,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-light border mb-4" style="font-size: 0.85rem;">
+                    <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
+                </div>
+                
                 <form id="invite-user-form">
                     <div class="mb-3">
                         <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="invite-email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">First Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="invite-first-name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Last Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="invite-last-name" required>
+                        <input type="email" class="form-control" id="invite-email" placeholder="user@company.com" required>
+                        <div class="form-text">Invitation will be sent to this email address</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Assign to Sub-Account <span class="text-danger">*</span></label>
@@ -408,12 +409,34 @@
                             <option value="developer">Developer / API User</option>
                             <option value="auditor">Read-Only / Auditor</option>
                         </select>
+                        <div class="form-text">Determines navigation and feature access</div>
+                    </div>
+                    <div class="mb-3" id="sender-capability-group">
+                        <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
+                        <select class="form-select" id="invite-sender-capability" required>
+                            <option value="">Select Capability...</option>
+                            <option value="advanced">Advanced Sender - Full content creation, Contact Book, CSV uploads</option>
+                            <option value="restricted">Restricted Sender - Templates only, predefined lists only</option>
+                        </select>
+                        <div class="form-text">Controls how messages can be composed and sent</div>
                     </div>
                 </form>
+                
+                <hr class="my-3">
+                
+                <div class="invite-status-info" style="font-size: 0.8rem; color: #6b7280;">
+                    <strong>User Status Lifecycle:</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        <li><span class="badge" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">Invited</span> - Awaiting user to accept and complete setup</li>
+                        <li><span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">Active</span> - User has completed setup and can access the platform</li>
+                        <li><span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">Suspended</span> - Account temporarily disabled</li>
+                        <li><span class="badge" style="background: rgba(107, 114, 128, 0.12); color: #6b7280;">Expired</span> - Invitation not accepted within 7 days</li>
+                    </ul>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="btn-send-invite">Send Invite</button>
+                <button type="button" class="btn btn-primary" id="btn-send-invite">Send Invitation</button>
             </div>
         </div>
     </div>
@@ -800,41 +823,89 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Audit] Sub-Account created:', auditEntry);
     });
     
+    var roleSelect = document.getElementById('invite-role');
+    var senderCapabilityGroup = document.getElementById('sender-capability-group');
+    
+    roleSelect.addEventListener('change', function() {
+        var role = this.value;
+        var nonMessagingRoles = ['finance', 'auditor'];
+        
+        if (nonMessagingRoles.includes(role)) {
+            senderCapabilityGroup.style.display = 'none';
+            document.getElementById('invite-sender-capability').removeAttribute('required');
+        } else {
+            senderCapabilityGroup.style.display = 'block';
+            document.getElementById('invite-sender-capability').setAttribute('required', 'required');
+        }
+    });
+    
     document.getElementById('btn-send-invite').addEventListener('click', function() {
         var email = document.getElementById('invite-email').value.trim();
-        var firstName = document.getElementById('invite-first-name').value.trim();
-        var lastName = document.getElementById('invite-last-name').value.trim();
         var subAccountId = document.getElementById('invite-sub-account').value;
         var role = document.getElementById('invite-role').value;
+        var senderCapability = document.getElementById('invite-sender-capability').value;
         
-        if (!email || !firstName || !lastName || !subAccountId || !role) {
+        var nonMessagingRoles = ['finance', 'auditor'];
+        var requiresCapability = !nonMessagingRoles.includes(role);
+        
+        if (!email || !subAccountId || !role) {
             alert('Please fill in all required fields');
+            return;
+        }
+        
+        if (requiresCapability && !senderCapability) {
+            alert('Please select a Sender Capability Level');
+            return;
+        }
+        
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Please enter a valid email address');
             return;
         }
         
         var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
         if (subAccount) {
-            subAccount.users.push({
+            var newUser = {
                 id: 'user-' + Date.now(),
-                name: firstName + ' ' + lastName,
+                name: email.split('@')[0],
                 email: email,
                 role: role,
-                status: 'invited'
-            });
+                senderCapability: requiresCapability ? senderCapability : null,
+                status: 'invited',
+                invitedAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            };
+            
+            subAccount.users.push(newUser);
         }
         
         bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
         document.getElementById('invite-user-form').reset();
+        senderCapabilityGroup.style.display = 'block';
         
         renderHierarchy();
         
-        console.log('[Audit] User invited:', {
+        var auditEntry = {
+            action: 'USER_INVITED',
             email: email,
             subAccountId: subAccountId,
+            subAccountName: subAccount ? subAccount.name : null,
             role: role,
-            invitedBy: 'current-user',
-            timestamp: new Date().toISOString()
-        });
+            senderCapability: requiresCapability ? senderCapability : 'N/A',
+            invitedBy: {
+                userId: 'user-001',
+                userName: 'Sarah Mitchell',
+                role: 'admin'
+            },
+            timestamp: new Date().toISOString(),
+            inviteExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            ipAddress: '192.168.1.100'
+        };
+        
+        console.log('[Audit] User invited:', auditEntry);
+        
+        alert('Invitation sent to ' + email + '. The user will receive an email to complete their setup.');
     });
     
     renderHierarchy();
