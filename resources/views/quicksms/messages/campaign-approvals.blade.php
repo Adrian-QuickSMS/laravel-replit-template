@@ -109,6 +109,31 @@
 .decision-badge.approved { background: #dcfce7; color: #166534; }
 .decision-badge.rejected { background: #fee2e2; color: #991b1b; }
 
+.status-badge {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+.status-badge.pending .dot {
+    width: 6px;
+    height: 6px;
+    background: #f59e0b;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
 .section-header {
     display: flex;
     align-items: center;
@@ -176,10 +201,10 @@
                             <th>Campaign</th>
                             <th>Sub-Account</th>
                             <th>Created By</th>
-                            <th>Channel</th>
-                            <th>Recipients</th>
+                            <th>Message Volume</th>
                             <th>Est. Cost</th>
                             <th>Scheduled</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -192,13 +217,18 @@
                             </td>
                             <td>{{ $approval['sub_account'] }}</td>
                             <td>{{ $approval['created_by'] }}</td>
-                            <td><span class="channel-badge {{ strtolower($approval['channel']) }}">{{ $approval['channel'] }}</span></td>
-                            <td>{{ number_format($approval['message_volume']) }}</td>
+                            <td>{{ number_format($approval['message_volume']) }} messages</td>
                             <td>£{{ number_format($approval['estimated_cost'], 2) }}</td>
                             <td>{{ \Carbon\Carbon::parse($approval['scheduled_time'])->format('M j, H:i') }}</td>
                             <td>
+                                <span class="status-badge pending">
+                                    <span class="dot"></span>
+                                    Pending Approval
+                                </span>
+                            </td>
+                            <td>
                                 <div class="d-flex gap-1">
-                                    <button class="btn action-btn btn-view" data-campaign-id="{{ $approval['id'] }}"><i class="fas fa-eye"></i></button>
+                                    <button class="btn action-btn btn-view" data-campaign-id="{{ $approval['id'] }}" title="View Campaign"><i class="fas fa-eye"></i></button>
                                     <button class="btn action-btn btn-approve" data-campaign-id="{{ $approval['id'] }}"><i class="fas fa-check me-1"></i>Approve</button>
                                     <button class="btn action-btn btn-reject" data-campaign-id="{{ $approval['id'] }}" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="fas fa-times me-1"></i>Reject</button>
                                 </div>
