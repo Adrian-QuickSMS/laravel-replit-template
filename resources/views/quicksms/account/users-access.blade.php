@@ -378,6 +378,15 @@ input:focus + .perm-slider {
 .btn-purple-outline:focus {
     box-shadow: 0 0 0 2px rgba(136, 108, 192, 0.25);
 }
+
+.sub-name-clickable:hover {
+    color: #886cc0;
+    text-decoration: underline;
+}
+.user-name-clickable:hover {
+    color: #886cc0;
+    text-decoration: underline;
+}
 </style>
 @endpush
 
@@ -833,6 +842,326 @@ input:focus + .perm-slider {
         </div>
     </div>
 </div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="subAccountDetailDrawer" style="width: 550px;">
+    <div class="offcanvas-header border-bottom" style="background: linear-gradient(135deg, #886cc0 0%, #a78bfa 100%);">
+        <div class="text-white">
+            <h5 class="offcanvas-title mb-1" id="drawer-subaccount-name">Sub-Account Name</h5>
+            <small class="opacity-75">Sub-Account Details</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <input type="hidden" id="drawer-subaccount-id">
+        
+        <div class="accordion accordion-flush" id="subAccountAccordion">
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#statusSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-circle-check me-2" style="color: #886cc0;"></i>Status & Actions
+                    </button>
+                </h2>
+                <div id="statusSection" class="accordion-collapse collapse show" data-bs-parent="#subAccountAccordion">
+                    <div class="accordion-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="text-muted" style="font-size: 0.8rem;">Current Status</span>
+                                <div id="drawer-status-pill" class="mt-1"></div>
+                            </div>
+                            <div id="drawer-status-actions" class="d-flex gap-2"></div>
+                        </div>
+                        <div class="alert alert-light border-0 mb-0" style="background: #f8f9fa; font-size: 0.8rem;">
+                            <i class="fas fa-info-circle me-1 text-muted"></i>
+                            Status changes are logged and may affect all users within this sub-account.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#limitsSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-sliders me-2" style="color: #886cc0;"></i>Limits & Enforcement
+                    </button>
+                </h2>
+                <div id="limitsSection" class="accordion-collapse collapse" data-bs-parent="#subAccountAccordion">
+                    <div class="accordion-body">
+                        <form id="sub-limits-form">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size: 0.8rem;">Monthly Spend Cap</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">£</span>
+                                        <input type="number" class="form-control" id="drawer-spend-cap" placeholder="No limit" min="0" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size: 0.8rem;">Monthly Message Cap</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="drawer-message-cap" placeholder="No limit" min="0">
+                                        <span class="input-group-text">parts</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size: 0.8rem;">Daily Send Limit <span class="text-muted">(optional)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="drawer-daily-limit" placeholder="No limit" min="0">
+                                        <span class="input-group-text">msgs</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size: 0.8rem;">Enforcement Type</label>
+                                    <select class="form-select form-select-sm" id="drawer-enforcement-type">
+                                        <option value="warn">Warn only</option>
+                                        <option value="block">Block sends</option>
+                                        <option value="approval">Require approval</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="drawer-hard-stop" style="border-color: #886cc0;">
+                                        <label class="form-check-label" for="drawer-hard-stop" style="font-size: 0.8rem;">
+                                            Enable Hard Stop <span class="text-muted">(no override possible)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3 pt-3 border-top">
+                                <button type="button" class="btn btn-sm btn-purple-outline me-2" id="btn-reset-limits">Reset</button>
+                                <button type="button" class="btn btn-sm" id="btn-save-limits" style="background: #886cc0; color: white;">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#usageSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-chart-line me-2" style="color: #886cc0;"></i>Live Usage & Telemetry
+                    </button>
+                </h2>
+                <div id="usageSection" class="accordion-collapse collapse" data-bs-parent="#subAccountAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span style="font-size: 0.8rem; color: #6b7280;">Spend vs Cap</span>
+                                <span style="font-size: 0.8rem; font-weight: 600;" id="drawer-spend-display">£125.50 / £500.00</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" id="drawer-spend-bar" role="progressbar" style="width: 25%; background: #886cc0;"></div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span style="font-size: 0.8rem; color: #6b7280;">Messages vs Limit</span>
+                                <span style="font-size: 0.8rem; font-weight: 600;" id="drawer-msgs-display">1,234 / 10,000</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" id="drawer-msgs-bar" role="progressbar" style="width: 12%; background: #886cc0;"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center p-3 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <i class="fas fa-shield-check me-2" style="color: #22c55e;"></i>
+                            <div>
+                                <span style="font-size: 0.85rem; font-weight: 500; color: #166534;">Enforcement State</span>
+                                <div style="font-size: 0.8rem; color: #15803d;" id="drawer-enforcement-state">Normal - All systems operational</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#assetsSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-cube me-2" style="color: #886cc0;"></i>Assigned Assets
+                    </button>
+                </h2>
+                <div id="assetsSection" class="accordion-collapse collapse" data-bs-parent="#subAccountAccordion">
+                    <div class="accordion-body p-0">
+                        <div class="nav nav-tabs nav-fill" role="tablist" style="border-bottom: 1px solid #e5e7eb;">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#assets-senderids" style="font-size: 0.75rem; padding: 0.5rem;">SenderIDs</button>
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assets-numbers" style="font-size: 0.75rem; padding: 0.5rem;">Numbers</button>
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assets-rcs" style="font-size: 0.75rem; padding: 0.5rem;">RCS</button>
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assets-templates" style="font-size: 0.75rem; padding: 0.5rem;">Templates</button>
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assets-api" style="font-size: 0.75rem; padding: 0.5rem;">API</button>
+                        </div>
+                        <div class="tab-content p-3">
+                            <div class="tab-pane fade show active" id="assets-senderids">
+                                <div class="list-group list-group-flush" id="assets-senderids-list"></div>
+                            </div>
+                            <div class="tab-pane fade" id="assets-numbers">
+                                <div class="list-group list-group-flush" id="assets-numbers-list"></div>
+                            </div>
+                            <div class="tab-pane fade" id="assets-rcs">
+                                <div class="list-group list-group-flush" id="assets-rcs-list"></div>
+                            </div>
+                            <div class="tab-pane fade" id="assets-templates">
+                                <div class="list-group list-group-flush" id="assets-templates-list"></div>
+                            </div>
+                            <div class="tab-pane fade" id="assets-api">
+                                <div class="list-group list-group-flush" id="assets-api-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="userDetailDrawer" style="width: 500px;">
+    <div class="offcanvas-header border-bottom" style="background: linear-gradient(135deg, #886cc0 0%, #a78bfa 100%);">
+        <div class="text-white">
+            <h5 class="offcanvas-title mb-1" id="drawer-user-name">User Name</h5>
+            <small class="opacity-75" id="drawer-user-email">user@email.com</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <input type="hidden" id="drawer-user-id">
+        <input type="hidden" id="drawer-user-subaccount-id">
+        
+        <div class="accordion accordion-flush" id="userDetailAccordion">
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#userStatusSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-user-check me-2" style="color: #886cc0;"></i>User Status
+                    </button>
+                </h2>
+                <div id="userStatusSection" class="accordion-collapse collapse show" data-bs-parent="#userDetailAccordion">
+                    <div class="accordion-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="text-muted" style="font-size: 0.8rem;">Current Status</span>
+                                <div id="drawer-user-status-pill" class="mt-1"></div>
+                            </div>
+                            <div id="drawer-user-status-actions" class="d-flex gap-2"></div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-6">
+                                <div class="p-2 rounded text-center" style="background: #f3e8ff;">
+                                    <small class="text-muted d-block">Role</small>
+                                    <strong id="drawer-user-role" style="color: #7c3aed; font-size: 0.85rem;">Admin</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded text-center" style="background: #f3e8ff;">
+                                    <small class="text-muted d-block">Sender Level</small>
+                                    <strong id="drawer-user-sender" style="color: #7c3aed; font-size: 0.85rem;">Advanced</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userLimitsSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-gauge me-2" style="color: #886cc0;"></i>User-Level Limits <span class="badge bg-secondary ms-2" style="font-size: 0.65rem;">Optional</span>
+                    </button>
+                </h2>
+                <div id="userLimitsSection" class="accordion-collapse collapse" data-bs-parent="#userDetailAccordion">
+                    <div class="accordion-body">
+                        <div class="alert alert-light border mb-3" style="font-size: 0.8rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            User limits must be less than or equal to their sub-account limits.
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.8rem;">Monthly Spend Cap</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">£</span>
+                                    <input type="number" class="form-control" id="drawer-user-spend-cap" placeholder="Inherit">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.8rem;">Monthly Message Cap</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" id="drawer-user-message-cap" placeholder="Inherit">
+                                    <span class="input-group-text">parts</span>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 0.8rem;">Enforcement Type</label>
+                                <select class="form-select form-select-sm" id="drawer-user-enforcement">
+                                    <option value="inherit">Inherit from Sub-Account</option>
+                                    <option value="warn">Warn only</option>
+                                    <option value="block">Block sends</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3 pt-3 border-top">
+                            <button type="button" class="btn btn-sm" style="background: #886cc0; color: white;">Save User Limits</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userUsageSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-chart-bar me-2" style="color: #886cc0;"></i>Live Usage
+                    </button>
+                </h2>
+                <div id="userUsageSection" class="accordion-collapse collapse" data-bs-parent="#userDetailAccordion">
+                    <div class="accordion-body">
+                        <div class="row g-3 text-center">
+                            <div class="col-4">
+                                <div class="p-3 rounded" style="background: #f8f9fa;">
+                                    <div style="font-size: 1.25rem; font-weight: 700; color: #886cc0;" id="drawer-user-spend">£45.20</div>
+                                    <small class="text-muted">Spend This Month</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 rounded" style="background: #f8f9fa;">
+                                    <div style="font-size: 1.25rem; font-weight: 700; color: #886cc0;" id="drawer-user-msgs">342</div>
+                                    <small class="text-muted">Messages Sent</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                                    <div style="font-size: 0.9rem; font-weight: 600; color: #22c55e;" id="drawer-user-enforce-state">Normal</div>
+                                    <small class="text-muted">Enforcement</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#roleExplainSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-shield-halved me-2" style="color: #886cc0;"></i>Role Explanation
+                    </button>
+                </h2>
+                <div id="roleExplainSection" class="accordion-collapse collapse" data-bs-parent="#userDetailAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge me-2" style="background: #886cc0;" id="drawer-role-badge">Admin</span>
+                                <span class="text-muted" style="font-size: 0.8rem;">Current Role</span>
+                            </div>
+                            <p style="font-size: 0.85rem; color: #374151;" id="drawer-role-description">
+                                Admins have full access to all portal features within their sub-account scope.
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <span style="font-size: 0.8rem; font-weight: 500;">Navigation Access:</span>
+                            <div class="d-flex flex-wrap gap-1 mt-1" id="drawer-role-nav-access"></div>
+                        </div>
+                        <a href="#" class="btn btn-sm btn-purple-outline w-100">
+                            <i class="fas fa-book-open me-1"></i>Learn more about roles
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -889,38 +1218,78 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: 'sub-001',
                 name: 'Marketing Department',
                 description: 'Marketing and communications team',
+                accountStatus: 'live',
+                limits: { spendCap: 500, messageCap: 10000, dailyLimit: null, enforcementType: 'warn', hardStop: false },
+                usage: { spend: 125.50, messages: 1234, enforcementState: 'normal' },
+                assets: {
+                    senderIds: [{ id: 'sid-001', name: 'ACME_MKT', type: 'Alpha', status: 'active' }],
+                    numbers: [{ id: 'num-001', name: '+44 7700 900123', type: 'VMN', status: 'active' }],
+                    rcs: [{ id: 'rcs-001', name: 'ACME Marketing', type: 'Agent', status: 'verified' }],
+                    templates: [{ id: 'tpl-001', name: 'Welcome Message', type: 'SMS', status: 'approved' }, { id: 'tpl-002', name: 'Promo Offer', type: 'RCS', status: 'approved' }],
+                    api: [{ id: 'api-001', name: 'Marketing API', type: 'REST', status: 'active' }]
+                },
                 users: [
-                    { id: 'user-002', name: 'James Wilson', email: 'james.wilson@acme.co.uk', role: 'admin', status: 'active' },
-                    { id: 'user-003', name: 'Emma Thompson', email: 'emma.t@acme.co.uk', role: 'messaging-manager', status: 'active' },
-                    { id: 'user-004', name: 'Michael Brown', email: 'michael.b@acme.co.uk', role: 'messaging-manager', status: 'active' },
-                    { id: 'user-005', name: 'Lisa Chen', email: 'lisa.chen@acme.co.uk', role: 'auditor', status: 'invited' }
+                    { id: 'user-002', name: 'James Wilson', email: 'james.wilson@acme.co.uk', role: 'admin', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 45.20, messages: 342 } },
+                    { id: 'user-003', name: 'Emma Thompson', email: 'emma.t@acme.co.uk', role: 'messaging-manager', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 32.10, messages: 256 } },
+                    { id: 'user-004', name: 'Michael Brown', email: 'michael.b@acme.co.uk', role: 'messaging-manager', status: 'active', senderCapability: 'restricted', userLimits: { spendCap: 100 }, usage: { spend: 28.40, messages: 198 } },
+                    { id: 'user-005', name: 'Lisa Chen', email: 'lisa.chen@acme.co.uk', role: 'auditor', status: 'invited', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } }
                 ]
             },
             {
                 id: 'sub-002',
                 name: 'Finance Team',
                 description: 'Finance and billing department',
+                accountStatus: 'live',
+                limits: { spendCap: 200, messageCap: 2000, dailyLimit: 100, enforcementType: 'block', hardStop: false },
+                usage: { spend: 45.00, messages: 320, enforcementState: 'normal' },
+                assets: {
+                    senderIds: [{ id: 'sid-002', name: 'ACME_FIN', type: 'Alpha', status: 'active' }],
+                    numbers: [],
+                    rcs: [],
+                    templates: [{ id: 'tpl-003', name: 'Invoice Reminder', type: 'SMS', status: 'approved' }],
+                    api: []
+                },
                 users: [
-                    { id: 'user-006', name: 'Robert Taylor', email: 'robert.t@acme.co.uk', role: 'admin', status: 'active' },
-                    { id: 'user-007', name: 'Jennifer Adams', email: 'jennifer.a@acme.co.uk', role: 'finance', status: 'active' }
+                    { id: 'user-006', name: 'Robert Taylor', email: 'robert.t@acme.co.uk', role: 'admin', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 25.00, messages: 180 } },
+                    { id: 'user-007', name: 'Jennifer Adams', email: 'jennifer.a@acme.co.uk', role: 'finance', status: 'active', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } }
                 ]
             },
             {
                 id: 'sub-003',
                 name: 'IT & Development',
                 description: 'Technical and API integration team',
+                accountStatus: 'live',
+                limits: { spendCap: 1000, messageCap: 50000, dailyLimit: 5000, enforcementType: 'warn', hardStop: false },
+                usage: { spend: 890.25, messages: 42150, enforcementState: 'warning' },
+                assets: {
+                    senderIds: [],
+                    numbers: [{ id: 'num-002', name: '+44 7700 900456', type: 'VMN', status: 'active' }],
+                    rcs: [],
+                    templates: [],
+                    api: [{ id: 'api-002', name: 'Dev API Key', type: 'REST', status: 'active' }, { id: 'api-003', name: 'Test Webhook', type: 'Webhook', status: 'active' }]
+                },
                 users: [
-                    { id: 'user-008', name: 'David Park', email: 'david.park@acme.co.uk', role: 'admin', status: 'active' },
-                    { id: 'user-009', name: 'Alex Johnson', email: 'alex.j@acme.co.uk', role: 'developer', status: 'active' },
-                    { id: 'user-010', name: 'Sophie Williams', email: 'sophie.w@acme.co.uk', role: 'developer', status: 'suspended' }
+                    { id: 'user-008', name: 'David Park', email: 'david.park@acme.co.uk', role: 'admin', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 450.00, messages: 21000 } },
+                    { id: 'user-009', name: 'Alex Johnson', email: 'alex.j@acme.co.uk', role: 'developer', status: 'active', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } },
+                    { id: 'user-010', name: 'Sophie Williams', email: 'sophie.w@acme.co.uk', role: 'developer', status: 'suspended', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } }
                 ]
             },
             {
                 id: 'sub-004',
                 name: 'Customer Support',
                 description: 'Customer service and support',
+                accountStatus: 'suspended',
+                limits: { spendCap: 300, messageCap: 5000, dailyLimit: null, enforcementType: 'approval', hardStop: true },
+                usage: { spend: 0, messages: 0, enforcementState: 'blocked' },
+                assets: {
+                    senderIds: [{ id: 'sid-003', name: 'ACME_SUP', type: 'Alpha', status: 'suspended' }],
+                    numbers: [],
+                    rcs: [],
+                    templates: [{ id: 'tpl-004', name: 'Support Response', type: 'SMS', status: 'approved' }],
+                    api: []
+                },
                 users: [
-                    { id: 'user-011', name: 'Chris Martinez', email: 'chris.m@acme.co.uk', role: 'messaging-manager', status: 'active' }
+                    { id: 'user-011', name: 'Chris Martinez', email: 'chris.m@acme.co.uk', role: 'messaging-manager', status: 'active', senderCapability: 'restricted', userLimits: null, usage: { spend: 0, messages: 0 } }
                 ]
             }
         ]
@@ -955,10 +1324,11 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '<div class="sub-account-node" data-sub-id="' + subAccount.id + '">';
             
             html += '<div class="sub-account-header" data-sub-id="' + subAccount.id + '">';
-            html += '<div class="d-flex align-items-center gap-2 flex-grow-1" data-toggle-users="' + subAccount.id + '">';
+            html += '<div class="d-flex align-items-center gap-2 flex-grow-1">';
             html += '<div>';
-            html += '<div class="sub-name">' + escapeHtml(subAccount.name) + '</div>';
-            html += '<div class="sub-meta">' + subAccount.users.length + ' user' + (subAccount.users.length !== 1 ? 's' : '') + '</div>';
+            html += '<div class="sub-name sub-name-clickable" data-sub-detail="' + subAccount.id + '" style="cursor: pointer;">' + escapeHtml(subAccount.name) + '</div>';
+            var statusClass = subAccount.accountStatus === 'live' ? 'bg-success' : (subAccount.accountStatus === 'suspended' ? 'bg-warning' : 'bg-secondary');
+            html += '<div class="sub-meta"><span class="badge ' + statusClass + ' me-1" style="font-size: 0.6rem;">' + capitalise(subAccount.accountStatus) + '</span>' + subAccount.users.length + ' user' + (subAccount.users.length !== 1 ? 's' : '') + '</div>';
             html += '</div>';
             html += '</div>';
             html += '<div class="d-flex align-items-center gap-2">';
@@ -977,7 +1347,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="' + subAccount.id + '">';
                     html += '<div class="user-info">';
-                    html += '<span class="user-name">' + escapeHtml(user.name) + '</span>';
+                    html += '<span class="user-name user-name-clickable" data-user-detail="' + user.id + '" data-sub-id="' + subAccount.id + '" style="cursor: pointer;">' + escapeHtml(user.name) + '</span>';
                     html += '<span class="user-email">' + escapeHtml(user.email) + '</span>';
                     html += '</div>';
                     html += '<div class="user-pills">';
@@ -1076,6 +1446,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 var subId = this.getAttribute('data-sub-id');
                 openInviteUserModal(subId);
+            });
+        });
+        
+        document.querySelectorAll('[data-sub-detail]').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var subId = this.getAttribute('data-sub-detail');
+                openSubAccountDrawer(subId);
+            });
+        });
+        
+        document.querySelectorAll('[data-user-detail]').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var userId = this.getAttribute('data-user-detail');
+                var subId = this.getAttribute('data-sub-id');
+                openUserDetailDrawer(userId, subId);
             });
         });
     }
@@ -1852,6 +2239,253 @@ document.addEventListener('DOMContentLoaded', function() {
         var roleDefaults = typeof PermissionManager !== 'undefined' ? PermissionManager.getRoleDefaults(userRole) : {};
         
         renderPermissionsUI(roleDefaults, {});
+    });
+    
+    function openSubAccountDrawer(subId) {
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
+        if (!subAccount) return;
+        
+        document.getElementById('drawer-subaccount-id').value = subId;
+        document.getElementById('drawer-subaccount-name').textContent = subAccount.name;
+        
+        var statusPillHtml = '';
+        var actionsHtml = '';
+        var status = subAccount.accountStatus;
+        
+        if (status === 'live') {
+            statusPillHtml = '<span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.8rem; padding: 6px 12px;">Live</span>';
+            actionsHtml = '<button class="btn btn-sm btn-warning" onclick="changeSubAccountStatus(\'' + subId + '\', \'suspended\')">Suspend</button>';
+        } else if (status === 'suspended') {
+            statusPillHtml = '<span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.8rem; padding: 6px 12px;">Suspended</span>';
+            actionsHtml = '<button class="btn btn-sm btn-success me-1" onclick="changeSubAccountStatus(\'' + subId + '\', \'live\')">Reactivate</button>';
+            actionsHtml += '<button class="btn btn-sm btn-secondary" onclick="changeSubAccountStatus(\'' + subId + '\', \'archived\')">Archive</button>';
+        } else {
+            statusPillHtml = '<span class="badge" style="background: #f3f4f6; color: #6b7280; font-size: 0.8rem; padding: 6px 12px;">Archived</span>';
+            actionsHtml = '<button class="btn btn-sm btn-success" onclick="changeSubAccountStatus(\'' + subId + '\', \'live\')">Reactivate</button>';
+        }
+        
+        document.getElementById('drawer-status-pill').innerHTML = statusPillHtml;
+        document.getElementById('drawer-status-actions').innerHTML = actionsHtml;
+        
+        var limits = subAccount.limits;
+        document.getElementById('drawer-spend-cap').value = limits.spendCap || '';
+        document.getElementById('drawer-message-cap').value = limits.messageCap || '';
+        document.getElementById('drawer-daily-limit').value = limits.dailyLimit || '';
+        document.getElementById('drawer-enforcement-type').value = limits.enforcementType || 'warn';
+        document.getElementById('drawer-hard-stop').checked = limits.hardStop || false;
+        
+        var usage = subAccount.usage;
+        var spendPercent = limits.spendCap ? Math.min(100, (usage.spend / limits.spendCap) * 100) : 0;
+        var msgsPercent = limits.messageCap ? Math.min(100, (usage.messages / limits.messageCap) * 100) : 0;
+        
+        document.getElementById('drawer-spend-display').textContent = '£' + usage.spend.toFixed(2) + ' / £' + (limits.spendCap || '∞');
+        document.getElementById('drawer-spend-bar').style.width = spendPercent + '%';
+        document.getElementById('drawer-spend-bar').style.background = spendPercent >= 80 ? '#ef4444' : (spendPercent >= 50 ? '#f59e0b' : '#886cc0');
+        
+        document.getElementById('drawer-msgs-display').textContent = usage.messages.toLocaleString() + ' / ' + (limits.messageCap ? limits.messageCap.toLocaleString() : '∞');
+        document.getElementById('drawer-msgs-bar').style.width = msgsPercent + '%';
+        document.getElementById('drawer-msgs-bar').style.background = msgsPercent >= 80 ? '#ef4444' : (msgsPercent >= 50 ? '#f59e0b' : '#886cc0');
+        
+        var enforceState = usage.enforcementState;
+        var enforceContainer = document.getElementById('drawer-enforcement-state').parentElement.parentElement;
+        if (enforceState === 'normal') {
+            enforceContainer.style.background = '#f0fdf4';
+            enforceContainer.style.borderColor = '#bbf7d0';
+            enforceContainer.querySelector('i').style.color = '#22c55e';
+            document.getElementById('drawer-enforcement-state').innerHTML = 'Normal - All systems operational';
+        } else if (enforceState === 'warning') {
+            enforceContainer.style.background = '#fefce8';
+            enforceContainer.style.borderColor = '#fef08a';
+            enforceContainer.querySelector('i').className = 'fas fa-exclamation-triangle me-2';
+            enforceContainer.querySelector('i').style.color = '#eab308';
+            document.getElementById('drawer-enforcement-state').innerHTML = 'Warning - Approaching limits';
+        } else {
+            enforceContainer.style.background = '#fef2f2';
+            enforceContainer.style.borderColor = '#fecaca';
+            enforceContainer.querySelector('i').className = 'fas fa-ban me-2';
+            enforceContainer.querySelector('i').style.color = '#ef4444';
+            document.getElementById('drawer-enforcement-state').innerHTML = 'Blocked - Limits exceeded';
+        }
+        
+        renderAssetsList('senderIds', subAccount.assets.senderIds);
+        renderAssetsList('numbers', subAccount.assets.numbers);
+        renderAssetsList('rcs', subAccount.assets.rcs);
+        renderAssetsList('templates', subAccount.assets.templates);
+        renderAssetsList('api', subAccount.assets.api);
+        
+        var offcanvas = new bootstrap.Offcanvas(document.getElementById('subAccountDetailDrawer'));
+        offcanvas.show();
+    }
+    
+    function renderAssetsList(type, assets) {
+        var container = document.getElementById('assets-' + type + '-list');
+        if (assets.length === 0) {
+            container.innerHTML = '<div class="text-muted text-center py-3" style="font-size: 0.8rem;">No ' + type + ' assigned</div>';
+            return;
+        }
+        
+        var html = '';
+        assets.forEach(function(asset) {
+            var statusColor = asset.status === 'active' || asset.status === 'approved' || asset.status === 'verified' ? '#22c55e' : (asset.status === 'suspended' ? '#f59e0b' : '#6b7280');
+            html += '<div class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 border-0 border-bottom">';
+            html += '<div>';
+            html += '<div style="font-size: 0.85rem; font-weight: 500;">' + escapeHtml(asset.name) + '</div>';
+            html += '<small class="text-muted">' + asset.type + '</small>';
+            html += '</div>';
+            html += '<div class="d-flex align-items-center gap-2">';
+            html += '<span class="badge" style="background: ' + statusColor + '20; color: ' + statusColor + '; font-size: 0.65rem;">' + capitalise(asset.status) + '</span>';
+            html += '<button class="btn btn-sm btn-purple-outline" style="font-size: 0.65rem; padding: 2px 6px;">Manage</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+        container.innerHTML = html;
+    }
+    
+    window.changeSubAccountStatus = function(subId, newStatus) {
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
+        if (!subAccount) return;
+        
+        var action = newStatus === 'live' ? 'reactivate' : newStatus;
+        if (!confirm('Are you sure you want to ' + action + ' "' + subAccount.name + '"?\n\nThis will affect all users in this sub-account.')) {
+            return;
+        }
+        
+        var previousStatus = subAccount.accountStatus;
+        subAccount.accountStatus = newStatus;
+        
+        console.log('[AUDIT] Sub-account status changed:', {
+            action: 'SUB_ACCOUNT_STATUS_CHANGED',
+            subAccountId: subId,
+            subAccountName: subAccount.name,
+            previousStatus: previousStatus,
+            newStatus: newStatus,
+            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+            timestamp: new Date().toISOString()
+        });
+        
+        openSubAccountDrawer(subId);
+        renderHierarchy();
+        alert('Sub-account status changed to ' + capitalise(newStatus));
+    };
+    
+    function openUserDetailDrawer(userId, subId) {
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
+        if (!subAccount) return;
+        
+        var user = subAccount.users.find(function(u) { return u.id === userId; });
+        if (!user) return;
+        
+        document.getElementById('drawer-user-id').value = userId;
+        document.getElementById('drawer-user-subaccount-id').value = subId;
+        document.getElementById('drawer-user-name').textContent = user.name;
+        document.getElementById('drawer-user-email').textContent = user.email;
+        
+        var statusPillHtml = '';
+        var actionsHtml = '';
+        var status = user.status;
+        
+        if (status === 'active') {
+            statusPillHtml = '<span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.8rem; padding: 6px 12px;">Active</span>';
+            actionsHtml = '<button class="btn btn-sm btn-warning" onclick="changeUserStatus(\'' + userId + '\', \'' + subId + '\', \'suspended\')">Suspend</button>';
+        } else if (status === 'suspended') {
+            statusPillHtml = '<span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.8rem; padding: 6px 12px;">Suspended</span>';
+            actionsHtml = '<button class="btn btn-sm btn-success me-1" onclick="changeUserStatus(\'' + userId + '\', \'' + subId + '\', \'active\')">Reactivate</button>';
+            actionsHtml += '<button class="btn btn-sm btn-secondary" onclick="changeUserStatus(\'' + userId + '\', \'' + subId + '\', \'archived\')">Archive</button>';
+        } else if (status === 'invited') {
+            statusPillHtml = '<span class="badge" style="background: #dbeafe; color: #1e40af; font-size: 0.8rem; padding: 6px 12px;">Invited</span>';
+            actionsHtml = '<button class="btn btn-sm btn-purple-outline">Resend Invite</button>';
+        } else {
+            statusPillHtml = '<span class="badge" style="background: #f3f4f6; color: #6b7280; font-size: 0.8rem; padding: 6px 12px;">Archived</span>';
+            actionsHtml = '<button class="btn btn-sm btn-success" onclick="changeUserStatus(\'' + userId + '\', \'' + subId + '\', \'active\')">Reactivate</button>';
+        }
+        
+        document.getElementById('drawer-user-status-pill').innerHTML = statusPillHtml;
+        document.getElementById('drawer-user-status-actions').innerHTML = actionsHtml;
+        
+        document.getElementById('drawer-user-role').textContent = formatRole(user.role);
+        document.getElementById('drawer-user-sender').textContent = user.senderCapability ? capitalise(user.senderCapability) : 'N/A';
+        
+        var userLimits = user.userLimits || {};
+        document.getElementById('drawer-user-spend-cap').value = userLimits.spendCap || '';
+        document.getElementById('drawer-user-message-cap').value = userLimits.messageCap || '';
+        document.getElementById('drawer-user-enforcement').value = userLimits.enforcementType || 'inherit';
+        
+        var usage = user.usage || { spend: 0, messages: 0 };
+        document.getElementById('drawer-user-spend').textContent = '£' + usage.spend.toFixed(2);
+        document.getElementById('drawer-user-msgs').textContent = usage.messages.toLocaleString();
+        document.getElementById('drawer-user-enforce-state').textContent = 'Normal';
+        
+        var roleInfo = ROLE_NAV_ACCESS[user.role] || {};
+        document.getElementById('drawer-role-badge').textContent = roleInfo.label || formatRole(user.role);
+        document.getElementById('drawer-role-description').textContent = roleInfo.note || 'No description available.';
+        
+        var navHtml = '';
+        (roleInfo.nav || []).forEach(function(nav) {
+            navHtml += '<span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.7rem;">' + nav + '</span>';
+        });
+        document.getElementById('drawer-role-nav-access').innerHTML = navHtml;
+        
+        var offcanvas = new bootstrap.Offcanvas(document.getElementById('userDetailDrawer'));
+        offcanvas.show();
+    }
+    
+    window.changeUserStatus = function(userId, subId, newStatus) {
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
+        if (!subAccount) return;
+        
+        var user = subAccount.users.find(function(u) { return u.id === userId; });
+        if (!user) return;
+        
+        var action = newStatus === 'active' ? 'reactivate' : newStatus;
+        if (!confirm('Are you sure you want to ' + action + ' user "' + user.name + '"?')) {
+            return;
+        }
+        
+        var previousStatus = user.status;
+        user.status = newStatus;
+        
+        console.log('[AUDIT] User status changed:', {
+            action: 'USER_STATUS_CHANGED',
+            userId: userId,
+            userName: user.name,
+            subAccountId: subId,
+            previousStatus: previousStatus,
+            newStatus: newStatus,
+            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+            timestamp: new Date().toISOString()
+        });
+        
+        openUserDetailDrawer(userId, subId);
+        renderHierarchy();
+        alert('User status changed to ' + capitalise(newStatus));
+    };
+    
+    document.getElementById('btn-save-limits').addEventListener('click', function() {
+        var subId = document.getElementById('drawer-subaccount-id').value;
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
+        if (!subAccount) return;
+        
+        var previousLimits = JSON.parse(JSON.stringify(subAccount.limits));
+        
+        subAccount.limits = {
+            spendCap: parseFloat(document.getElementById('drawer-spend-cap').value) || null,
+            messageCap: parseInt(document.getElementById('drawer-message-cap').value) || null,
+            dailyLimit: parseInt(document.getElementById('drawer-daily-limit').value) || null,
+            enforcementType: document.getElementById('drawer-enforcement-type').value,
+            hardStop: document.getElementById('drawer-hard-stop').checked
+        };
+        
+        console.log('[AUDIT] Sub-account limits changed:', {
+            action: 'SUB_ACCOUNT_LIMITS_CHANGED',
+            subAccountId: subId,
+            subAccountName: subAccount.name,
+            previousLimits: previousLimits,
+            newLimits: subAccount.limits,
+            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+            timestamp: new Date().toISOString()
+        });
+        
+        alert('Limits saved successfully. Changes have been logged.');
     });
     
     renderHierarchy();

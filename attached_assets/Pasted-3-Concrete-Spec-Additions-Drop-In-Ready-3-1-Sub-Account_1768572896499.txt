@@ -1,0 +1,225 @@
+3. Concrete Spec Additions (Drop-In Ready)
+3.1 Sub-Account Management (Expanded Spec)
+Sub-Account Detail Page (New – Mandatory)
+
+Sections
+
+A. Sub-Account Status
+
+Status pill:
+
+Live
+
+Suspended
+
+Archived
+
+Actions:
+
+Suspend
+
+Reactivate
+
+Archive (only if suspended)
+
+B. Limits & Enforcement (Editable Post-Creation)
+
+Fields
+
+Monthly spend cap (£)
+
+Monthly message cap (parts)
+
+Daily send limit (optional)
+
+Enforcement type:
+
+Warn only
+
+Block sends
+
+Require approval
+
+Hard stop toggle (optional)
+
+Rules
+
+Changes apply immediately
+
+All changes logged in audit log
+
+Main Account Admin override required for increases
+
+C. Live Usage & Telemetry (Read-Only)
+
+Display
+
+Current spend vs cap (progress bar)
+
+Messages sent vs limit
+
+Current enforcement state:
+
+Normal
+
+Warning
+
+Blocked
+
+Approval required
+
+D. Assigned Assets (Read-Only with Manage CTA)
+
+Show tables with:
+
+SMS SenderIDs
+
+Numbers
+
+RCS Agents
+
+Templates
+
+Email-to-SMS configs
+
+API connections
+
+Each row:
+
+Name / ID
+
+Type
+
+Status
+
+“Manage assignment” action
+
+3.2 User Management (Expanded)
+User Detail Page
+A. User Status
+
+Active
+
+Suspended
+
+Archived
+
+Actions:
+
+Suspend
+
+Reactivate
+
+Archive
+
+B. User-Level Limits (Optional Overrides)
+
+Fields
+
+Monthly spend cap
+
+Monthly message cap
+
+Enforcement type (inherits by default)
+
+Rules
+
+User limits must be ≤ sub-account limits
+
+Validation enforced at save time
+
+C. Live Usage
+
+Spend this month
+
+Messages sent
+
+Enforcement state
+
+D. Role Explanation
+
+Role name
+
+Short description
+
+“Learn more” → Knowledge Base link
+
+3.3 Roles UX Improvement
+Role Selector Enhancements
+
+Each role shows:
+
+Short description
+
+Typical use case
+
+“Learn more about roles” link to KB
+
+Warning banner when assigning high-risk roles
+
+3.4 Campaign Approval Workflow (New Module)
+Campaign Approval Inbox (New Navigation Item)
+
+Visible to:
+
+Campaign Approver
+
+Admin
+
+Account Owner
+
+List View
+
+Campaign name
+
+Sub-account
+
+Created by
+
+Message volume
+
+Estimated cost
+
+Scheduled time
+
+Status: Pending Approval
+
+Actions
+
+View campaign
+
+Approve
+
+Reject (with reason)
+
+Audit
+
+Approver name
+
+Timestamp
+
+Decision
+
+3.5 Enforcement Notifications
+
+Triggers
+
+80% of spend cap
+
+100% of spend cap
+
+Enforcement triggered
+
+Campaign blocked
+
+Recipients
+
+Sub-Account Admins
+
+Main Account Admins
+
+Channels:
+
+Email (mandatory)
+
+In-portal notification
