@@ -1664,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', function() {
             el.addEventListener('click', function(e) {
                 e.stopPropagation();
                 var subId = this.getAttribute('data-sub-detail');
-                openSubAccountDrawer(subId);
+                window.location.href = '/account/sub-accounts/' + subId;
             });
         });
         

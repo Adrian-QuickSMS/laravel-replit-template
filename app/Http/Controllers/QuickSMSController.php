@@ -1810,6 +1810,71 @@ class QuickSMSController extends Controller
             'sub_modules' => []
         ]);
     }
+    
+    public function subAccountDetail($id)
+    {
+        $subAccounts = [
+            'sub-001' => [
+                'id' => 'sub-001',
+                'name' => 'Marketing Department',
+                'status' => 'live',
+                'created_at' => '2024-06-15',
+                'user_count' => 8,
+                'monthly_spend' => 1250.00,
+                'monthly_messages' => 42500,
+                'limits' => [
+                    'spend_cap' => 5000.00,
+                    'message_cap' => 100000,
+                    'daily_limit' => 5000,
+                    'enforcement_type' => 'block',
+                    'hard_stop' => false
+                ]
+            ],
+            'sub-002' => [
+                'id' => 'sub-002',
+                'name' => 'Customer Support',
+                'status' => 'live',
+                'created_at' => '2024-08-22',
+                'user_count' => 5,
+                'monthly_spend' => 875.50,
+                'monthly_messages' => 28000,
+                'limits' => [
+                    'spend_cap' => 2000.00,
+                    'message_cap' => 50000,
+                    'daily_limit' => 2000,
+                    'enforcement_type' => 'warn',
+                    'hard_stop' => false
+                ]
+            ],
+            'sub-003' => [
+                'id' => 'sub-003',
+                'name' => 'Sales Team',
+                'status' => 'suspended',
+                'created_at' => '2024-09-10',
+                'user_count' => 3,
+                'monthly_spend' => 0,
+                'monthly_messages' => 0,
+                'limits' => [
+                    'spend_cap' => 1000.00,
+                    'message_cap' => 25000,
+                    'daily_limit' => 1000,
+                    'enforcement_type' => 'approval',
+                    'hard_stop' => true
+                ]
+            ]
+        ];
+        
+        $subAccount = $subAccounts[$id] ?? null;
+        
+        if (!$subAccount) {
+            abort(404, 'Sub-Account not found');
+        }
+        
+        return view('quicksms.account.sub-account-detail', [
+            'page_title' => $subAccount['name'],
+            'sub_account' => $subAccount
+        ]);
+    }
 
     public function auditLogs()
     {

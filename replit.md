@@ -48,6 +48,15 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
 - **Numbers Management:** Library table for managing owned numbers (VMN, Dedicated Shortcode, Shortcode Keyword) with status, capability indicators, filtering, sorting, and configuration drawers. Supports bulk actions.
 - **Numbers Mode Selection:** Each number operates in exactly one mutually exclusive mode (Portal Mode or API Mode), with explicit confirmation for mode switching and audit logging.
 - **Numbers Portal/API Configuration:** Mode-specific configuration options, including sub-account assignment, capability toggles, default number settings for Portal Mode, and single sub-account attribution with inbound forwarding for API Mode.
+- **Sub-Account Detail Page:** Dedicated full-page view for managing individual sub-accounts accessed via `/account/sub-accounts/{id}`. Features:
+  - Breadcrumb navigation: Account > Sub-Accounts > {Sub-Account Name}
+  - Status section with Live/Suspended/Archived status pills
+  - Contextual actions: Live→Suspend, Suspended→Reactivate/Archive
+  - Archive requires suspended status first (safety rule)
+  - Confirmation modals with Fillow styling for all status changes
+  - Immediate status updates with visual feedback (toast notifications)
+  - Full audit logging for all status transitions
+- **Campaign Approval Inbox:** Role-restricted page (campaign-approver, admin, owner) for reviewing pending campaigns with approve/reject workflow, rejection reason capture, and recent decisions history.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

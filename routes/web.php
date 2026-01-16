@@ -59,6 +59,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/account/activate', 'accountActivate')->name('account.activate');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
+    Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');
     Route::get('/account/audit-logs', 'auditLogs')->name('account.audit-logs');
     Route::get('/account/security', 'securitySettings')->name('account.security');
     
