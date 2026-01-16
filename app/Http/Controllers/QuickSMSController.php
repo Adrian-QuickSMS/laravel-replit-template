@@ -1777,10 +1777,8 @@ class QuickSMSController extends Controller
 
     public function usersAndAccess()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Users and Access',
-            'purpose' => 'Manage user accounts and access permissions.',
-            'sub_modules' => []
+        return view('quicksms.account.users-access', [
+            'page_title' => 'Users and Access'
         ]);
     }
 

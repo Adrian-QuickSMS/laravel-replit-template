@@ -88,6 +88,16 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **CSS Architecture:** Module-specific CSS uses inline `@push('styles')`; shared badge classes are centralized in `public/css/quicksms-pastel.css`.
 - **Email-to-SMS Module:** Tabbed interface for managing email addresses that trigger SMS to Contact Lists. Includes sections for Email-to-SMS Addresses, Standard setups, Contact List Mappings, Reporting Groups, and a Configuration panel. Features multi-step wizards for creation, filter bars, detailed views, and global settings for email processing, message settings, delivery receipts, and content processing. Provides tools for SenderID resolution preview and email parsing tests. Includes hooks for backend integration with a dedicated service layer.
 - **Role-Based Access Control:** JavaScript-based system for controlling UI visibility based on viewer, analyst, and admin roles, enforced for features like Purchase, RCS Agent Registration, and delete actions.
+- **Account Hierarchy View (Users and Access):** Vertical tree/flow layout displaying the organization structure:
+  - **Main Account** at top with purple gradient header
+  - **Sub-Accounts** branching beneath with expand/collapse functionality
+  - **Users** listed under exactly one Sub-Account (hard rule: users cannot belong to multiple sub-accounts)
+  - **Pills only** for role (Account Owner, Admin, Messaging Manager, Finance, Developer, Auditor) and status (Active, Invited, Suspended)
+  - **No decorative icons** - clean minimal design
+  - **Stats bar** showing Sub-Accounts count, Total Users, Active Users, Pending Invites
+  - **Visibility rules:** Main Account Admins see full hierarchy; Sub-Account Admins see only their branch
+  - **Invite User modal** for adding users to specific Sub-Accounts with role assignment
+  - **Audit logging** for all user invitations and permission changes
 - **SMS SenderID Registration Module:** UK-compliant SenderID registration system including Alphanumeric, Numeric, and Shortcode types. Features a 5-step registration wizard, lifecycle management (Draft, Pending, Approved, Rejected, Suspended, Archived), usage scopes, approval tracking, and a comprehensive audit trail for all status transitions.
 - **Numbers Management Module:** Library table for managing owned numbers (VMN, Dedicated Shortcode, Shortcode Keyword). Features status pills (Active/Suspended/Pending), capability indicators (API, Portal SenderID, Inbox, Opt-out), filtering by country/type/status/mode/capability/sub-account, sortable columns, and a configuration drawer for viewing number details. Includes actions for suspend/reactivate/release with confirmation modals. Supports bulk actions (Suspend, Reactivate, Assign Sub-Accounts) with row multi-select.
 - **Numbers Mode Selection (Hard Rule):** Each number operates in exactly ONE mutually exclusive mode - Portal Mode (Campaigns, Inbox, Opt-out) or API Mode (REST API only). Mode switching requires explicit confirmation modal showing disabled/enabled features. Changes are logged for audit and propagate immediately across all modules. No silent behavior changes or auto-migration between modes.
