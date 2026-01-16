@@ -420,7 +420,7 @@
 </div>
 
 <div class="modal fade" id="addSubAccountModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Add Sub-Account</h5>
@@ -431,10 +431,60 @@
                     <div class="mb-3">
                         <label class="form-label">Sub-Account Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="sub-account-name" placeholder="e.g., Marketing Department" required>
+                        <div class="form-text">This name will appear in the hierarchy and be visible to users</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description <span class="text-muted">(Optional)</span></label>
-                        <textarea class="form-control" id="sub-account-description" rows="2" placeholder="Brief description of this sub-account"></textarea>
+                        <textarea class="form-control" id="sub-account-description" rows="2" placeholder="Brief description of this sub-account's purpose"></textarea>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="enforcement-rules-section">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h6 class="mb-0">Default Enforcement Rules</h6>
+                                <small class="text-muted">Configure spending and sending limits for this sub-account</small>
+                            </div>
+                            <span class="badge bg-secondary">Optional</span>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Daily Send Limit</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="sub-daily-limit" placeholder="No limit" min="0">
+                                    <span class="input-group-text">messages</span>
+                                </div>
+                                <div class="form-text">Maximum messages per day (leave empty for unlimited)</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Monthly Spend Cap</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">£</span>
+                                    <input type="number" class="form-control" id="sub-monthly-cap" placeholder="No limit" min="0" step="0.01">
+                                </div>
+                                <div class="form-text">Maximum spend per month (leave empty for unlimited)</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Campaign Approval Required</label>
+                                <select class="form-select" id="sub-approval-required">
+                                    <option value="no" selected>No - Send immediately</option>
+                                    <option value="yes">Yes - Require approval before sending</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Limit Enforcement</label>
+                                <select class="form-select" id="sub-limit-enforcement">
+                                    <option value="soft" selected>Soft - Alert only</option>
+                                    <option value="hard">Hard - Block sends when exceeded</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light border mt-3 mb-0" style="font-size: 0.8rem;">
+                            <strong>Note:</strong> These rules can be modified later in the Sub-Account settings. Users in this sub-account will inherit these defaults.
+                        </div>
                     </div>
                 </form>
             </div>
@@ -703,25 +753,51 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        var dailyLimit = document.getElementById('sub-daily-limit').value;
+        var monthlyCap = document.getElementById('sub-monthly-cap').value;
+        var approvalRequired = document.getElementById('sub-approval-required').value;
+        var limitEnforcement = document.getElementById('sub-limit-enforcement').value;
+        
+        var enforcementRules = {
+            dailySendLimit: dailyLimit ? parseInt(dailyLimit) : null,
+            monthlySpendCap: monthlyCap ? parseFloat(monthlyCap) : null,
+            campaignApprovalRequired: approvalRequired === 'yes',
+            limitEnforcement: limitEnforcement
+        };
+        
         var newSubAccount = {
             id: 'sub-' + Date.now(),
             name: name,
             description: description,
-            users: []
+            users: [],
+            enforcementRules: enforcementRules,
+            createdAt: new Date().toISOString(),
+            createdBy: 'current-user'
         };
         
         hierarchyData.subAccounts.push(newSubAccount);
         
         bootstrap.Modal.getInstance(document.getElementById('addSubAccountModal')).hide();
+        document.getElementById('add-sub-account-form').reset();
         
         renderHierarchy();
         
-        console.log('[Audit] Sub-Account created:', {
-            id: newSubAccount.id,
-            name: name,
-            createdBy: 'current-user',
-            timestamp: new Date().toISOString()
-        });
+        var auditEntry = {
+            action: 'SUB_ACCOUNT_CREATED',
+            subAccountId: newSubAccount.id,
+            subAccountName: name,
+            description: description || null,
+            enforcementRules: enforcementRules,
+            createdBy: {
+                userId: 'user-001',
+                userName: 'Sarah Mitchell',
+                role: 'admin'
+            },
+            timestamp: new Date().toISOString(),
+            ipAddress: '192.168.1.100'
+        };
+        
+        console.log('[Audit] Sub-Account created:', auditEntry);
     });
     
     document.getElementById('btn-send-invite').addEventListener('click', function() {
