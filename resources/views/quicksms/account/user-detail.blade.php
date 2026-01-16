@@ -458,6 +458,72 @@
     50% { opacity: 0.5; transform: scale(0.8); }
 }
 
+.role-explanation {
+    background: #faf8ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+.role-explanation .role-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.role-explanation .role-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #886cc0, #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+}
+.role-explanation .role-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+}
+.role-explanation .role-desc {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+.role-explanation .use-case {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+.role-explanation .use-case-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+.role-explanation .use-case-text {
+    font-size: 0.85rem;
+    color: #374151;
+}
+.role-explanation .kb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8rem;
+    color: #886cc0;
+    text-decoration: none;
+    font-weight: 500;
+}
+.role-explanation .kb-link:hover {
+    text-decoration: underline;
+    color: #7c3aed;
+}
+
 .modal-header {
     border-bottom: 1px solid #e5e7eb;
 }
@@ -620,6 +686,87 @@
                         {{ $user['mfa_enabled'] ? 'Enabled' : 'Not Enabled' }}
                     </span>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-card" id="role-explanation-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Role Explanation
+            </h2>
+        </div>
+        <div class="section-body">
+            @php
+                $roleData = [
+                    'admin' => [
+                        'icon' => 'user-shield',
+                        'name' => 'Admin',
+                        'description' => 'Admins have full access to all features within their assigned sub-account, including user management, messaging, reporting, and configuration. They can invite users, change roles, and manage limits.',
+                        'use_case' => 'Ideal for department heads or team leads who need to manage their team\'s messaging operations and oversee user permissions.',
+                        'kb_slug' => 'admin-role'
+                    ],
+                    'messaging-manager' => [
+                        'icon' => 'envelope',
+                        'name' => 'Messaging Manager',
+                        'description' => 'Messaging Managers can create and send campaigns, manage contacts, and view messaging reports. They cannot manage users or access billing information.',
+                        'use_case' => 'Perfect for marketing coordinators or customer service leads who run day-to-day messaging campaigns without needing admin privileges.',
+                        'kb_slug' => 'messaging-manager-role'
+                    ],
+                    'finance' => [
+                        'icon' => 'coins',
+                        'name' => 'Finance/Billing',
+                        'description' => 'Finance users can view invoices, payment history, and spend reports. They cannot access message content, contact lists, or send messages.',
+                        'use_case' => 'Suitable for accounts payable staff or finance managers who need to track messaging costs and process invoices.',
+                        'kb_slug' => 'finance-role'
+                    ],
+                    'developer' => [
+                        'icon' => 'code',
+                        'name' => 'Developer/API User',
+                        'description' => 'Developers can access API credentials, webhooks, and integration settings. They can view technical documentation and manage API connections.',
+                        'use_case' => 'Designed for IT staff or developers integrating QuickSMS with internal systems via API.',
+                        'kb_slug' => 'developer-role'
+                    ],
+                    'read-only' => [
+                        'icon' => 'eye',
+                        'name' => 'Read-Only/Auditor',
+                        'description' => 'Read-only users can view reports, audit logs, and campaign history without making changes. They cannot send messages or modify settings.',
+                        'use_case' => 'Best for compliance officers, auditors, or stakeholders who need visibility into messaging operations.',
+                        'kb_slug' => 'read-only-role'
+                    ],
+                    'campaign-approver' => [
+                        'icon' => 'check-double',
+                        'name' => 'Campaign Approver',
+                        'description' => 'Campaign Approvers review and approve pending campaigns before they are sent. They see the approval queue and can approve or reject with feedback.',
+                        'use_case' => 'Useful for brand managers or compliance leads who must review content before customer communication.',
+                        'kb_slug' => 'campaign-approver-role'
+                    ],
+                ];
+                $currentRole = $roleData[$user['role']] ?? $roleData['messaging-manager'];
+            @endphp
+            
+            <div class="role-explanation">
+                <div class="role-header">
+                    <div class="role-icon">
+                        <i class="fas fa-{{ $currentRole['icon'] }}"></i>
+                    </div>
+                    <div class="role-name">{{ $currentRole['name'] }}</div>
+                </div>
+                
+                <div class="role-desc">
+                    {{ $currentRole['description'] }}
+                </div>
+                
+                <div class="use-case">
+                    <div class="use-case-label">Typical Use Case</div>
+                    <div class="use-case-text">{{ $currentRole['use_case'] }}</div>
+                </div>
+                
+                <a href="https://help.quicksms.io/roles/{{ $currentRole['kb_slug'] }}" target="_blank" rel="noopener" class="kb-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    Learn more about this role in our Knowledge Base
+                </a>
             </div>
         </div>
     </div>
