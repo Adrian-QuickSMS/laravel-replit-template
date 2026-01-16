@@ -8,6 +8,7 @@
 @push('scripts')
 <script src="{{ asset('js/quicksms-account-lifecycle.js') }}"></script>
 <script src="{{ asset('js/quicksms-test-mode.js') }}"></script>
+<script src="{{ asset('js/quicksms-role-navigation.js') }}"></script>
 <script>
 // Initialize account lifecycle and test mode from session/backend data
 (function() {

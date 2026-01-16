@@ -424,8 +424,13 @@
                                     <option value="finance">Finance / Billing</option>
                                     <option value="developer">Developer / API User</option>
                                     <option value="auditor">Read-Only / Auditor</option>
+                                    <optgroup label="Optional Roles">
+                                        <option value="campaign-approver">Campaign Approver</option>
+                                        <option value="security-officer">Security Officer</option>
+                                    </optgroup>
                                 </select>
                                 <div class="form-text">Determines navigation and feature access</div>
+                                <div id="invite-role-info" class="mt-2 p-2 rounded" style="background: #f8f9fa; font-size: 0.8rem; display: none;"></div>
                             </div>
                             <div class="mb-3" id="sender-capability-group">
                                 <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
@@ -489,6 +494,10 @@
                                         <option value="finance">Finance / Billing</option>
                                         <option value="developer">Developer / API User</option>
                                         <option value="auditor">Read-Only / Auditor</option>
+                                        <optgroup label="Optional Roles">
+                                            <option value="campaign-approver">Campaign Approver</option>
+                                            <option value="security-officer">Security Officer</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3" id="direct-sender-capability-group">
@@ -601,6 +610,62 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="changeRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change User Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-4" style="font-size: 0.85rem;">
+                    <strong>Role-Based Navigation:</strong> Roles control which sections of QuickSMS the user can access, not individual feature toggles.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">User</label>
+                    <input type="text" class="form-control" id="change-role-user-name" readonly>
+                    <input type="hidden" id="change-role-user-id">
+                    <input type="hidden" id="change-role-sub-account-id">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Current Role</label>
+                    <input type="text" class="form-control" id="change-role-current" readonly>
+                    <input type="hidden" id="change-role-current-value">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">New Role <span class="text-danger">*</span></label>
+                    <select class="form-select" id="change-role-new" required>
+                        <option value="">Select New Role...</option>
+                        <option value="admin">Admin</option>
+                        <option value="messaging-manager">Messaging Manager</option>
+                        <option value="finance">Finance / Billing</option>
+                        <option value="developer">Developer / API User</option>
+                        <option value="auditor">Read-Only / Auditor</option>
+                        <optgroup label="Optional Roles">
+                            <option value="campaign-approver">Campaign Approver</option>
+                            <option value="security-officer">Security Officer</option>
+                        </optgroup>
+                    </select>
+                    <div id="change-role-info" class="mt-2 p-2 rounded" style="background: #f8f9fa; font-size: 0.8rem; display: none;"></div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Reason for Change <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="change-role-reason" rows="2" placeholder="e.g., Promotion to team lead, department transfer" required></textarea>
+                    <div class="form-text">This will be recorded in the audit log</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-confirm-role-change">Confirm Role Change</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -608,6 +673,36 @@
 document.addEventListener('DOMContentLoaded', function() {
     var currentUserRole = 'admin';
     var isMainAccountAdmin = true;
+    
+    var ROLE_NAV_ACCESS = {
+        'owner': { label: 'Account Owner', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Purchase', 'Management', 'Account', 'Support'], note: 'Full access. One per Main Account.' },
+        'admin': { label: 'Admin', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Purchase', 'Management', 'Account', 'Support'], note: 'Full access within their scope.' },
+        'messaging-manager': { label: 'Messaging Manager', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Management', 'Support'], note: 'Can send messages, manage contacts and templates.' },
+        'finance': { label: 'Finance / Billing', nav: ['Dashboard', 'Reporting', 'Purchase', 'Support'], note: 'Access to billing, invoices, and purchases.' },
+        'developer': { label: 'Developer / API User', nav: ['Dashboard', 'Management', 'Reporting', 'Support'], note: 'Access to API connections and technical settings.' },
+        'auditor': { label: 'Read-Only / Auditor', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Management', 'Account', 'Support'], note: 'View-only access for compliance.' },
+        'campaign-approver': { label: 'Campaign Approver', nav: ['Dashboard', 'Messages', 'Reporting', 'Support'], note: 'Can review and approve campaigns.' },
+        'security-officer': { label: 'Security Officer', nav: ['Dashboard', 'Account', 'Reporting', 'Support'], note: 'Manages security and access reviews.' }
+    };
+    
+    function showRoleInfo(selectId, infoId) {
+        var select = document.getElementById(selectId);
+        var infoDiv = document.getElementById(infoId);
+        
+        select.addEventListener('change', function() {
+            var role = this.value;
+            if (role && ROLE_NAV_ACCESS[role]) {
+                var info = ROLE_NAV_ACCESS[role];
+                infoDiv.innerHTML = '<strong>Navigation Access:</strong> ' + info.nav.join(', ') + '<br><em>' + info.note + '</em>';
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        });
+    }
+    
+    showRoleInfo('invite-role', 'invite-role-info');
+    showRoleInfo('change-role-new', 'change-role-info');
     
     var hierarchyData = {
         mainAccount: {
@@ -711,7 +806,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += '<div class="empty-users">No users in this Sub-Account</div>';
             } else {
                 subAccount.users.forEach(function(user) {
-                    html += '<div class="user-row" data-user-id="' + user.id + '">';
+                    html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="' + subAccount.id + '">';
                     html += '<div class="user-info">';
                     html += '<span class="user-name">' + escapeHtml(user.name) + '</span>';
                     html += '<span class="user-email">' + escapeHtml(user.email) + '</span>';
@@ -719,6 +814,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     html += '<div class="user-pills">';
                     html += '<span class="role-pill ' + user.role + '">' + formatRole(user.role) + '</span>';
                     html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
+                    if (user.role !== 'owner' && isMainAccountAdmin) {
+                        html += '<button class="btn btn-sm btn-outline-secondary ms-2 btn-change-role" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Change Role</button>';
+                    }
                     html += '</div>';
                     html += '</div>';
                 });
@@ -817,7 +915,9 @@ document.addEventListener('DOMContentLoaded', function() {
             'messaging-manager': 'Messaging Manager',
             'finance': 'Finance',
             'developer': 'Developer',
-            'auditor': 'Auditor'
+            'auditor': 'Auditor',
+            'campaign-approver': 'Campaign Approver',
+            'security-officer': 'Security Officer'
         };
         return roleMap[role] || role;
     }
@@ -1156,6 +1256,79 @@ document.addEventListener('DOMContentLoaded', function() {
                 select.appendChild(option);
             });
         });
+    });
+    
+    document.getElementById('hierarchy-tree').addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-change-role');
+        if (btn) {
+            var userId = btn.getAttribute('data-user-id');
+            var userName = btn.getAttribute('data-user-name');
+            var userRole = btn.getAttribute('data-user-role');
+            var subAccountId = btn.getAttribute('data-sub-account-id');
+            
+            document.getElementById('change-role-user-id').value = userId;
+            document.getElementById('change-role-user-name').value = userName;
+            document.getElementById('change-role-current').value = formatRole(userRole);
+            document.getElementById('change-role-current-value').value = userRole;
+            document.getElementById('change-role-sub-account-id').value = subAccountId;
+            document.getElementById('change-role-new').value = '';
+            document.getElementById('change-role-reason').value = '';
+            document.getElementById('change-role-info').style.display = 'none';
+            
+            var modal = new bootstrap.Modal(document.getElementById('changeRoleModal'));
+            modal.show();
+        }
+    });
+    
+    document.getElementById('btn-confirm-role-change').addEventListener('click', function() {
+        var userId = document.getElementById('change-role-user-id').value;
+        var userName = document.getElementById('change-role-user-name').value;
+        var previousRole = document.getElementById('change-role-current-value').value;
+        var newRole = document.getElementById('change-role-new').value;
+        var reason = document.getElementById('change-role-reason').value.trim();
+        var subAccountId = document.getElementById('change-role-sub-account-id').value;
+        
+        if (!newRole || !reason) {
+            alert('Please select a new role and provide a reason for the change');
+            return;
+        }
+        
+        if (newRole === previousRole) {
+            alert('The new role must be different from the current role');
+            return;
+        }
+        
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
+        if (subAccount) {
+            var user = subAccount.users.find(function(u) { return u.id === userId; });
+            if (user) {
+                user.role = newRole;
+            }
+        }
+        
+        var auditEntry = {
+            action: 'ROLE_CHANGED',
+            userId: userId,
+            userName: userName,
+            previousRole: previousRole,
+            newRole: newRole,
+            reason: reason,
+            subAccountId: subAccountId,
+            changedBy: {
+                userId: 'user-001',
+                userName: 'Sarah Mitchell',
+                role: 'admin'
+            },
+            timestamp: new Date().toISOString(),
+            ipAddress: '192.168.1.100'
+        };
+        
+        console.log('[AUDIT] Role changed:', auditEntry);
+        
+        bootstrap.Modal.getInstance(document.getElementById('changeRoleModal')).hide();
+        renderHierarchy();
+        
+        alert('Role changed successfully.\n\n' + userName + ' is now a ' + formatRole(newRole) + '.\n\nThis change has been logged.');
     });
     
     renderHierarchy();
