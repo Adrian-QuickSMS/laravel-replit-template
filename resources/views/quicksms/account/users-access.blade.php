@@ -738,6 +738,40 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="managePermissionsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Permissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <strong id="perm-user-display"></strong>
+                        <span class="badge bg-secondary ms-2" id="perm-role-display"></span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3" style="font-size: 0.8rem;">
+                        <span><span class="badge" style="background: #e5e7eb; color: #374151;">Inherited</span> From role defaults</span>
+                        <span><span class="badge" style="background: #fef3c7; color: #92400e;">Override</span> Custom setting</span>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="perm-user-id">
+                <input type="hidden" id="perm-user-role">
+                <input type="hidden" id="perm-sub-account-id">
+                
+                <div id="permissions-container"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="btn-reset-all-overrides">Reset All to Role Defaults</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btn-save-permissions">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -902,6 +936,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (hasMessagingRole) {
                             html += '<button class="btn btn-sm btn-outline-primary ms-1 btn-change-capability" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-capability="' + (user.senderCapability || 'restricted') + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Sender Level</button>';
                         }
+                        
+                        var overrideCount = user.permissionOverrides ? Object.keys(user.permissionOverrides).length : 0;
+                        var overrideBadge = overrideCount > 0 ? ' <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">' + overrideCount + '</span>' : '';
+                        html += '<button class="btn btn-sm btn-outline-info ms-1 btn-manage-permissions" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '" style="font-size: 0.7rem; padding: 2px 8px;">Permissions' + overrideBadge + '</button>';
                     }
                     html += '</div>';
                     html += '</div>';
@@ -1493,6 +1531,252 @@ document.addEventListener('DOMContentLoaded', function() {
         
         var capLabel = newCapability === 'advanced' ? 'Advanced Sender' : 'Restricted Sender';
         alert('Sender capability changed successfully.\n\n' + userName + ' is now a ' + capLabel + '.\n\nThis change has been logged.');
+    });
+    
+    var PERMISSION_CATEGORIES = {
+        'messaging-content': {
+            label: 'Messaging & Content', icon: 'fa-envelope',
+            permissions: {
+                'send_sms': { label: 'Send SMS Messages' },
+                'send_rcs': { label: 'Send RCS Messages' },
+                'create_templates': { label: 'Create Templates' },
+                'use_templates': { label: 'Use Templates' },
+                'schedule_messages': { label: 'Schedule Messages' },
+                'use_ai_assist': { label: 'Use AI Assistant' }
+            }
+        },
+        'recipients-contacts': {
+            label: 'Recipients & Contacts', icon: 'fa-address-book',
+            permissions: {
+                'view_contacts': { label: 'View Contacts' },
+                'create_contacts': { label: 'Create Contacts' },
+                'edit_contacts': { label: 'Edit Contacts' },
+                'delete_contacts': { label: 'Delete Contacts' },
+                'manage_lists': { label: 'Manage Lists' },
+                'upload_csv': { label: 'Upload CSV' },
+                'export_contacts': { label: 'Export Contacts' }
+            }
+        },
+        'campaign-controls': {
+            label: 'Campaign Controls', icon: 'fa-bullhorn',
+            permissions: {
+                'create_campaigns': { label: 'Create Campaigns' },
+                'approve_campaigns': { label: 'Approve Campaigns' },
+                'cancel_campaigns': { label: 'Cancel Campaigns' },
+                'view_campaign_reports': { label: 'View Campaign Reports' },
+                'resend_failed': { label: 'Resend Failed Messages' }
+            }
+        },
+        'configuration': {
+            label: 'Configuration', icon: 'fa-cogs',
+            permissions: {
+                'manage_sender_ids': { label: 'Manage Sender IDs' },
+                'manage_numbers': { label: 'Manage Numbers' },
+                'manage_api_keys': { label: 'Manage API Keys' },
+                'manage_webhooks': { label: 'Manage Webhooks' },
+                'manage_email_to_sms': { label: 'Manage Email-to-SMS' }
+            }
+        },
+        'financial-access': {
+            label: 'Financial Access', icon: 'fa-credit-card',
+            permissions: {
+                'view_balance': { label: 'View Balance' },
+                'purchase_credits': { label: 'Purchase Credits' },
+                'view_invoices': { label: 'View Invoices' },
+                'manage_payment_methods': { label: 'Manage Payment Methods' },
+                'view_spending_reports': { label: 'View Spending Reports' }
+            }
+        },
+        'security-governance': {
+            label: 'Security & Governance', icon: 'fa-shield-alt',
+            permissions: {
+                'view_audit_logs': { label: 'View Audit Logs' },
+                'manage_users': { label: 'Manage Users' },
+                'manage_roles': { label: 'Manage Roles' },
+                'force_password_reset': { label: 'Force Password Reset' },
+                'manage_mfa_policy': { label: 'Manage MFA Policy' },
+                'access_security_settings': { label: 'Access Security Settings' }
+            }
+        }
+    };
+    
+    var tempPermissionChanges = {};
+    
+    document.getElementById('hierarchy-tree').addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-manage-permissions');
+        if (btn) {
+            var userId = btn.getAttribute('data-user-id');
+            var userName = btn.getAttribute('data-user-name');
+            var userRole = btn.getAttribute('data-user-role');
+            var subAccountId = btn.getAttribute('data-sub-account-id');
+            
+            document.getElementById('perm-user-id').value = userId;
+            document.getElementById('perm-user-role').value = userRole;
+            document.getElementById('perm-sub-account-id').value = subAccountId;
+            document.getElementById('perm-user-display').textContent = userName;
+            document.getElementById('perm-role-display').textContent = formatRole(userRole);
+            
+            var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
+            var user = subAccount ? subAccount.users.find(function(u) { return u.id === userId; }) : null;
+            var userOverrides = user && user.permissionOverrides ? user.permissionOverrides : {};
+            var roleDefaults = typeof PermissionManager !== 'undefined' ? PermissionManager.getRoleDefaults(userRole) : {};
+            
+            tempPermissionChanges = JSON.parse(JSON.stringify(userOverrides));
+            
+            renderPermissionsUI(roleDefaults, userOverrides);
+            
+            var modal = new bootstrap.Modal(document.getElementById('managePermissionsModal'));
+            modal.show();
+        }
+    });
+    
+    function renderPermissionsUI(roleDefaults, userOverrides) {
+        var container = document.getElementById('permissions-container');
+        var html = '<div class="row">';
+        
+        Object.keys(PERMISSION_CATEGORIES).forEach(function(catKey, idx) {
+            var cat = PERMISSION_CATEGORIES[catKey];
+            
+            html += '<div class="col-md-6 mb-3">';
+            html += '<div class="card h-100">';
+            html += '<div class="card-header py-2" style="background: #f8f9fa;"><i class="fas ' + cat.icon + ' me-2"></i>' + cat.label + '</div>';
+            html += '<div class="card-body py-2">';
+            
+            Object.keys(cat.permissions).forEach(function(permKey) {
+                var perm = cat.permissions[permKey];
+                var defaultValue = roleDefaults[permKey] === true;
+                var hasOverride = userOverrides[permKey] !== undefined;
+                var effectiveValue = hasOverride ? userOverrides[permKey] : defaultValue;
+                var sourceClass = hasOverride ? 'override' : 'inherited';
+                var sourceBadge = hasOverride ? '<span class="badge ms-2" style="background: #fef3c7; color: #92400e; font-size: 0.65rem;">Override</span>' : '<span class="badge ms-2" style="background: #e5e7eb; color: #374151; font-size: 0.65rem;">Inherited</span>';
+                
+                html += '<div class="d-flex justify-content-between align-items-center py-1 border-bottom perm-row" data-perm="' + permKey + '" data-default="' + defaultValue + '">';
+                html += '<div class="d-flex align-items-center">';
+                html += '<span style="font-size: 0.85rem;">' + perm.label + '</span>';
+                html += '<span class="source-badge" data-source="' + sourceClass + '">' + sourceBadge + '</span>';
+                html += '</div>';
+                html += '<div class="btn-group btn-group-sm" role="group">';
+                html += '<button type="button" class="btn perm-toggle-btn ' + (effectiveValue ? 'btn-success' : 'btn-outline-secondary') + '" data-perm="' + permKey + '" data-value="true" style="font-size: 0.7rem; padding: 2px 8px;">Allow</button>';
+                html += '<button type="button" class="btn perm-toggle-btn ' + (!effectiveValue ? 'btn-danger' : 'btn-outline-secondary') + '" data-perm="' + permKey + '" data-value="false" style="font-size: 0.7rem; padding: 2px 8px;">Deny</button>';
+                html += '<button type="button" class="btn btn-outline-secondary perm-reset-btn" data-perm="' + permKey + '" style="font-size: 0.7rem; padding: 2px 6px;" title="Reset to inherited"' + (hasOverride ? '' : ' disabled') + '><i class="fas fa-undo"></i></button>';
+                html += '</div>';
+                html += '</div>';
+            });
+            
+            html += '</div></div></div>';
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+        
+        container.querySelectorAll('.perm-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var permKey = this.getAttribute('data-perm');
+                var newValue = this.getAttribute('data-value') === 'true';
+                var row = this.closest('.perm-row');
+                var defaultValue = row.getAttribute('data-default') === 'true';
+                
+                if (newValue === defaultValue) {
+                    delete tempPermissionChanges[permKey];
+                } else {
+                    tempPermissionChanges[permKey] = newValue;
+                }
+                
+                updatePermRowUI(row, permKey, defaultValue, tempPermissionChanges[permKey]);
+            });
+        });
+        
+        container.querySelectorAll('.perm-reset-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var permKey = this.getAttribute('data-perm');
+                var row = this.closest('.perm-row');
+                var defaultValue = row.getAttribute('data-default') === 'true';
+                
+                delete tempPermissionChanges[permKey];
+                updatePermRowUI(row, permKey, defaultValue, undefined);
+            });
+        });
+    }
+    
+    function updatePermRowUI(row, permKey, defaultValue, overrideValue) {
+        var hasOverride = overrideValue !== undefined;
+        var effectiveValue = hasOverride ? overrideValue : defaultValue;
+        
+        var allowBtn = row.querySelector('[data-value="true"]');
+        var denyBtn = row.querySelector('[data-value="false"]');
+        var resetBtn = row.querySelector('.perm-reset-btn');
+        var sourceBadge = row.querySelector('.source-badge');
+        
+        allowBtn.className = 'btn perm-toggle-btn ' + (effectiveValue ? 'btn-success' : 'btn-outline-secondary');
+        denyBtn.className = 'btn perm-toggle-btn ' + (!effectiveValue ? 'btn-danger' : 'btn-outline-secondary');
+        resetBtn.disabled = !hasOverride;
+        
+        if (hasOverride) {
+            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #fef3c7; color: #92400e; font-size: 0.65rem;">Override</span>';
+        } else {
+            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #e5e7eb; color: #374151; font-size: 0.65rem;">Inherited</span>';
+        }
+    }
+    
+    document.getElementById('btn-save-permissions').addEventListener('click', function() {
+        var userId = document.getElementById('perm-user-id').value;
+        var subAccountId = document.getElementById('perm-sub-account-id').value;
+        
+        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
+        if (subAccount) {
+            var user = subAccount.users.find(function(u) { return u.id === userId; });
+            if (user) {
+                var previousOverrides = user.permissionOverrides || {};
+                user.permissionOverrides = JSON.parse(JSON.stringify(tempPermissionChanges));
+                
+                var changedPerms = [];
+                Object.keys(tempPermissionChanges).forEach(function(k) {
+                    if (previousOverrides[k] !== tempPermissionChanges[k]) {
+                        changedPerms.push(k);
+                    }
+                });
+                Object.keys(previousOverrides).forEach(function(k) {
+                    if (tempPermissionChanges[k] === undefined) {
+                        changedPerms.push(k + ' (reset)');
+                    }
+                });
+                
+                if (changedPerms.length > 0) {
+                    var auditEntry = {
+                        action: 'PERMISSIONS_UPDATED',
+                        userId: userId,
+                        userName: user.name,
+                        changesCount: changedPerms.length,
+                        changes: changedPerms,
+                        newOverrides: tempPermissionChanges,
+                        changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+                        timestamp: new Date().toISOString(),
+                        ipAddress: '192.168.1.100'
+                    };
+                    console.log('[AUDIT] Permissions updated:', auditEntry);
+                }
+            }
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('managePermissionsModal')).hide();
+        renderHierarchy();
+        
+        var overrideCount = Object.keys(tempPermissionChanges).length;
+        alert('Permissions saved.\n\n' + overrideCount + ' override(s) active.\n\nChanges have been logged.');
+    });
+    
+    document.getElementById('btn-reset-all-overrides').addEventListener('click', function() {
+        if (!confirm('Reset all permissions to role defaults? This will remove all overrides.')) {
+            return;
+        }
+        
+        tempPermissionChanges = {};
+        
+        var userId = document.getElementById('perm-user-id').value;
+        var userRole = document.getElementById('perm-user-role').value;
+        var roleDefaults = typeof PermissionManager !== 'undefined' ? PermissionManager.getRoleDefaults(userRole) : {};
+        
+        renderPermissionsUI(roleDefaults, {});
     });
     
     renderHierarchy();

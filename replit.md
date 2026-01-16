@@ -35,6 +35,7 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
   - User statuses: Invited, Active, Suspended, Expired (7-day invite expiry)
   - Roles as Navigation Controls: Account Owner (unique), Admin, Messaging Manager, Finance/Billing, Developer/API User, Read-Only/Auditor, Campaign Approver (optional), Security Officer (optional). Roles define navigation access, not granular toggles. Role changes are auditable.
   - Sender Capability Levels (separate from roles): Advanced Sender (free-form SMS/RCS, full Contact Book, CSV uploads, ad-hoc numbers, rich media, template creation) vs Restricted Sender (templates only, predefined lists only, no free-text editing). Applies only to messaging roles. Enforced across Send Message, Campaigns, Inbox, and Email-to-SMS.
+  - Granular Permission Toggles: Override role defaults per user. Categories: Messaging & Content, Recipients & Contacts, Campaign Controls, Configuration, Financial Access, Security & Governance. UI shows inherited vs overridden status. Each toggle change is logged.
   - Full audit logging for all hierarchy changes
 - **SMS SenderID Registration:** UK-compliant 5-step registration wizard for various SenderID types, including lifecycle management and audit trails.
 - **Numbers Management:** Library table for managing owned numbers (VMN, Dedicated Shortcode, Shortcode Keyword) with status, capability indicators, filtering, sorting, and configuration drawers. Supports bulk actions.

@@ -10,6 +10,7 @@
 <script src="{{ asset('js/quicksms-test-mode.js') }}"></script>
 <script src="{{ asset('js/quicksms-role-navigation.js') }}"></script>
 <script src="{{ asset('js/quicksms-sender-capability.js') }}"></script>
+<script src="{{ asset('js/quicksms-permissions.js') }}"></script>
 <script>
 // Initialize account lifecycle and test mode from session/backend data
 (function() {
