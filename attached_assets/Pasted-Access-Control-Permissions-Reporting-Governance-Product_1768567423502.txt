@@ -1,0 +1,272 @@
+Access Control, Permissions & Reporting Governance
+Product Requirements Specification
+________________________________________
+1. Purpose
+This section defines how users, roles, sender capabilities, permissions, and reporting access are managed within the QuickSMS platform.
+It ensures:
+•	Secure delegation of messaging capabilities
+•	Prevention of unauthorised spend or compliance breaches
+•	Clear separation of duties (operations, finance, technical, audit)
+•	Granular access aligned with enterprise and NHS requirements
+•	Full auditability of all permission-sensitive actions
+This model applies consistently across:
+•	Send Message / Campaigns
+•	Inbox
+•	Templates
+•	Reporting
+•	Message Logs
+•	API Connections
+•	Email-to-SMS
+________________________________________
+2. Access Control Model Overview
+QuickSMS uses a four-layer access control model:
+1.	Account Scope – Main Account vs Sub-Account boundary
+2.	Role – Defines where a user can go
+3.	Sender Capability Level – Defines how messages can be composed and sent
+4.	Permission Toggles – Fine-grained feature controls
+Permissions are evaluated in the following order:
+Account Scope → Role → Sender Capability Level → Permission Toggles
+This avoids role explosion while allowing precise, auditable control.
+________________________________________
+3. Account & Sub-Account Scope Rules
+3.1 Main Account
+•	Represents the legal / billing entity
+•	Owns:
+o	Billing configuration
+o	Global limits
+o	Security enforcement defaults
+•	Can view and administer all sub-accounts
+3.2 Sub-Accounts
+•	Represent departments, brands, regions, or business units
+•	Have:
+o	Their own users
+o	Their own permissions
+o	Optional enforcement rules (send limits, approvals, hard stops)
+•	Users belong to exactly one sub-account
+Users cannot belong to multiple sub-accounts.
+3.3 Cross-Account Visibility
+•	Main Account Admins may:
+o	View all sub-accounts
+o	Override enforcement (fully audited)
+•	Sub-Account Admins may not:
+o	View other sub-accounts
+o	Modify Main Account settings
+________________________________________
+4. User Roles (Who the user is)
+4.1 Account Owner
+Description
+Primary contract holder and ultimate authority.
+Key Rules
+•	Only one per Main Account
+•	Cannot be removed (only transferred)
+Permissions
+•	Full platform access
+•	Billing & payments
+•	User & permission management
+•	Security configuration (MFA, IP allowlists)
+•	Approve RCS Agents and Sender IDs
+•	View all audit logs
+•	Close or suspend account
+________________________________________
+4.2 Admin
+Description
+Operational administrator.
+Permissions
+•	Manage users (excluding Account Owner)
+•	Create and manage sub-accounts
+•	Configure:
+o	Sender IDs
+o	Templates
+o	RCS Agents
+o	API Connections
+o	Numbers
+•	Access reporting and message logs
+Restrictions
+•	Cannot manage payment methods
+•	Cannot close the account
+________________________________________
+4.3 Messaging Manager
+Description
+Creates and sends messages and campaigns.
+Permissions
+•	Send SMS and RCS (subject to sender capability level)
+•	Create and manage campaigns
+•	Access inbox
+•	View delivery reports
+•	Manage contacts and lists (if enabled)
+Restrictions
+•	No billing access
+•	No user or security management
+________________________________________
+4.4 Finance / Billing
+Description
+Finance and procurement users.
+Permissions
+•	View balance and usage
+•	Make payments
+•	Download invoices
+•	View cost and spend reports
+Restrictions
+•	Cannot send messages
+•	Cannot view message content
+•	Cannot access contacts
+________________________________________
+4.5 Developer / API User
+Description
+Technical users integrating via API.
+Permissions
+•	Create and manage API connections (if enabled)
+•	Access API credentials
+•	View API logs and delivery receipts
+•	Use Email-to-SMS
+Restrictions
+•	No UI message sending
+•	No contact book access
+•	No billing access
+________________________________________
+4.6 Read-Only / Auditor
+Description
+Audit, compliance, or internal review users.
+Permissions
+•	Read-only dashboards
+•	View message logs (restricted)
+•	View audit logs
+•	View support tickets
+Restrictions
+•	No sending
+•	No configuration
+•	No billing actions
+________________________________________
+4.7 Optional Enterprise / NHS Roles
+Campaign Approver
+•	Reviews and approves campaigns before sending
+Security Officer
+•	Enforces MFA
+•	Manages IP allowlists
+•	Receives security alerts
+________________________________________
+5. Sender Capability Levels (How messages can be sent)
+Sender capability levels apply only to users with messaging permissions.
+5.1 Advanced Sender
+Capabilities
+•	Free-form SMS and RCS content
+•	Full Contact Book access
+•	CSV uploads
+•	Manual ad-hoc numbers
+•	RCS rich content upload
+Typical Users
+•	Marketing teams
+•	NHS digital comms leads
+________________________________________
+5.2 Restricted Sender
+Purpose
+Controlled sending for compliance-sensitive users.
+Capabilities
+•	Templates only
+•	Predefined lists only
+•	View delivery status for own sends
+Restrictions
+•	No free-text editing
+•	No template creation
+•	No full Contact Book access
+________________________________________
+6. Granular Permission Toggles
+Admins may override defaults per user.
+6.1 Messaging & Content
+•	⬜ Create free-form content
+•	⬜ Edit template variables
+•	⬜ Use SMS templates
+•	⬜ Use RCS templates
+•	⬜ Upload RCS media
+•	⬜ Send 1-to-1 messages
+•	⬜ Send bulk campaigns
+6.2 Recipients & Contacts
+•	⬜ Access full Contact Book
+•	⬜ Access selected lists only
+•	⬜ Create/edit lists
+•	⬜ CSV uploads
+•	⬜ Ad-hoc number entry
+•	⬜ View sensitive fields
+6.3 Campaign Controls
+•	⬜ Schedule campaigns
+•	⬜ Save drafts
+•	⬜ A/B testing
+•	⬜ Daily send limits
+•	⬜ Monthly spend caps
+6.4 Configuration
+•	⬜ Manage Sender IDs
+•	⬜ Manage RCS Agents
+•	⬜ Manage Templates
+•	⬜ Manage API Connections
+•	⬜ Manage Numbers
+6.5 Financial
+•	⬜ View balance
+•	⬜ Make payments
+•	⬜ Download invoices
+•	⬜ View pricing
+6.6 Security & Governance
+•	⬜ Manage users
+•	⬜ Assign roles
+•	⬜ View audit logs
+•	⬜ Configure MFA
+•	⬜ Manage IP allowlists
+________________________________________
+7. Reporting & Data Access Governance
+7.1 Reporting Layers
+1.	KPI Dashboard (aggregated, non-sensitive)
+2.	Campaign Analytics (campaign-level)
+3.	Message Logs (sensitive, per-message)
+Each layer has independent access controls.
+________________________________________
+7.2 KPI Dashboard Access
+Contains
+•	Volume trends
+•	Delivery rates
+•	SMS vs RCS split
+•	Optional spend trends
+Available To
+•	Account Owner
+•	Admin
+•	Messaging Manager
+•	Read-Only / Auditor
+•	Finance (cost only)
+________________________________________
+7.3 Campaign Analytics Access
+Contains
+•	Campaign performance
+•	Error breakdowns
+•	RCS interaction metrics
+Excludes by Default
+•	Message content
+•	Phone numbers
+________________________________________
+7.4 Message Logs (Sensitive)
+Default Access
+•	Full: Account Owner, Admin
+•	Restricted: Messaging Manager
+•	Masked: Auditor
+•	None: Finance
+Granular Controls
+•	View content
+•	View phone numbers
+•	Export logs
+•	Sub-account visibility
+________________________________________
+8. Enforcement, Alerts & Hard Stops
+•	Enforcement rules are configurable per sub-account
+•	Options include:
+o	Soft alerts
+o	Approval workflows
+o	Hard stops (optional)
+•	Alerts sent to:
+o	Sub-Account Admins
+o	Main Account Admins
+________________________________________
+9. Audit & Compliance
+All permission-sensitive actions must log:
+•	User ID
+•	Role
+•	Sender capability level
+•	Action performed
+•	Timestamp
+•	IP address
