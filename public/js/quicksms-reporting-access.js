@@ -1,6 +1,101 @@
 var ReportingAccess = (function() {
     'use strict';
 
+    var MESSAGE_LOG_PERMISSIONS = {
+        'view_message_content': {
+            label: 'View Message Content',
+            description: 'See full message text in logs',
+            sensitivity: 'high'
+        },
+        'view_phone_numbers': {
+            label: 'View Phone Numbers',
+            description: 'See unmasked recipient phone numbers',
+            sensitivity: 'high'
+        },
+        'export_logs': {
+            label: 'Export Logs',
+            description: 'Download message logs as CSV/Excel',
+            sensitivity: 'medium'
+        },
+        'view_all_subaccounts': {
+            label: 'View All Sub-Accounts',
+            description: 'Access logs from all sub-accounts',
+            sensitivity: 'medium'
+        },
+        'view_own_subaccount': {
+            label: 'View Own Sub-Account',
+            description: 'Access logs from assigned sub-account only',
+            sensitivity: 'low'
+        }
+    };
+
+    var MESSAGE_LOG_ROLE_DEFAULTS = {
+        'owner': {
+            view_message_content: true,
+            view_phone_numbers: true,
+            export_logs: true,
+            view_all_subaccounts: true,
+            view_own_subaccount: true,
+            accessLevel: 'full'
+        },
+        'admin': {
+            view_message_content: true,
+            view_phone_numbers: true,
+            export_logs: true,
+            view_all_subaccounts: true,
+            view_own_subaccount: true,
+            accessLevel: 'full'
+        },
+        'messaging-manager': {
+            view_message_content: false,
+            view_phone_numbers: false,
+            export_logs: true,
+            view_all_subaccounts: false,
+            view_own_subaccount: true,
+            accessLevel: 'restricted'
+        },
+        'auditor': {
+            view_message_content: false,
+            view_phone_numbers: false,
+            export_logs: true,
+            view_all_subaccounts: true,
+            view_own_subaccount: true,
+            accessLevel: 'masked'
+        },
+        'finance': {
+            view_message_content: false,
+            view_phone_numbers: false,
+            export_logs: false,
+            view_all_subaccounts: false,
+            view_own_subaccount: false,
+            accessLevel: 'none'
+        },
+        'developer': {
+            view_message_content: false,
+            view_phone_numbers: false,
+            export_logs: false,
+            view_all_subaccounts: false,
+            view_own_subaccount: false,
+            accessLevel: 'none'
+        },
+        'campaign-approver': {
+            view_message_content: true,
+            view_phone_numbers: false,
+            export_logs: false,
+            view_all_subaccounts: false,
+            view_own_subaccount: true,
+            accessLevel: 'restricted'
+        },
+        'security-officer': {
+            view_message_content: false,
+            view_phone_numbers: false,
+            export_logs: false,
+            view_all_subaccounts: false,
+            view_own_subaccount: false,
+            accessLevel: 'none'
+        }
+    };
+
     var REPORTING_LAYERS = {
         'kpi-dashboard': {
             level: 1,
@@ -337,6 +432,140 @@ var ReportingAccess = (function() {
         return result;
     }
 
+    function getMessageLogAccess(role, userSubAccountId, overrides) {
+        var defaults = MESSAGE_LOG_ROLE_DEFAULTS[role] || MESSAGE_LOG_ROLE_DEFAULTS['security-officer'];
+        var effective = { ...defaults };
+
+        if (overrides) {
+            Object.keys(MESSAGE_LOG_PERMISSIONS).forEach(function(perm) {
+                if (overrides['msglog_' + perm] !== undefined) {
+                    effective[perm] = overrides['msglog_' + perm];
+                }
+            });
+        }
+
+        effective.userSubAccountId = userSubAccountId;
+        effective.role = role;
+
+        return effective;
+    }
+
+    function canViewMessageContent(role, overrides) {
+        var access = getMessageLogAccess(role, null, overrides);
+        return access.view_message_content === true;
+    }
+
+    function canViewPhoneNumbers(role, overrides) {
+        var access = getMessageLogAccess(role, null, overrides);
+        return access.view_phone_numbers === true;
+    }
+
+    function canExportLogs(role, overrides) {
+        var access = getMessageLogAccess(role, null, overrides);
+        return access.export_logs === true;
+    }
+
+    function getSubAccountVisibility(role, userSubAccountId, overrides) {
+        var access = getMessageLogAccess(role, userSubAccountId, overrides);
+
+        if (access.view_all_subaccounts) {
+            return { scope: 'all', subAccountIds: null };
+        }
+
+        if (access.view_own_subaccount && userSubAccountId) {
+            return { scope: 'own', subAccountIds: [userSubAccountId] };
+        }
+
+        return { scope: 'none', subAccountIds: [] };
+    }
+
+    function filterLogsBySubAccount(logs, role, userSubAccountId, overrides) {
+        var visibility = getSubAccountVisibility(role, userSubAccountId, overrides);
+
+        if (visibility.scope === 'all') {
+            return logs;
+        }
+
+        if (visibility.scope === 'own') {
+            return logs.filter(function(log) {
+                return visibility.subAccountIds.includes(log.subAccountId);
+            });
+        }
+
+        return [];
+    }
+
+    function applyMessageLogMasking(logs, role, overrides) {
+        var canSeeContent = canViewMessageContent(role, overrides);
+        var canSeePhones = canViewPhoneNumbers(role, overrides);
+
+        return logs.map(function(log) {
+            var masked = { ...log };
+
+            if (!canSeePhones) {
+                if (masked.recipient) masked.recipient = maskPhoneNumber(masked.recipient);
+                if (masked.sender) masked.sender = maskPhoneNumber(masked.sender);
+                if (masked.phoneNumber) masked.phoneNumber = maskPhoneNumber(masked.phoneNumber);
+            }
+
+            if (!canSeeContent) {
+                if (masked.content) masked.content = maskMessageContent(masked.content);
+                if (masked.messageBody) masked.messageBody = maskMessageContent(masked.messageBody);
+            }
+
+            return masked;
+        });
+    }
+
+    function evaluateMessageLogAccess(context) {
+        var result = {
+            userId: context.userId,
+            role: context.role,
+            userSubAccountId: context.userSubAccountId,
+            requestedLogId: context.logId,
+            requestedSubAccountId: context.subAccountId,
+            allowed: false,
+            permissions: {},
+            decisionPath: []
+        };
+
+        result.decisionPath.push({ step: 'START', role: context.role });
+
+        var access = getMessageLogAccess(context.role, context.userSubAccountId, context.overrides);
+        result.permissions = access;
+        result.decisionPath.push({ step: 'ROLE_DEFAULTS', accessLevel: access.accessLevel });
+
+        if (access.accessLevel === 'none') {
+            result.allowed = false;
+            result.reason = 'Role does not have message log access';
+            result.decisionPath.push({ step: 'DENIED', reason: result.reason });
+            return result;
+        }
+
+        var visibility = getSubAccountVisibility(context.role, context.userSubAccountId, context.overrides);
+        result.subAccountVisibility = visibility;
+        result.decisionPath.push({ step: 'SUBACCOUNT_CHECK', visibility: visibility.scope });
+
+        if (context.subAccountId && visibility.scope === 'own') {
+            if (!visibility.subAccountIds.includes(context.subAccountId)) {
+                result.allowed = false;
+                result.reason = 'Cannot access logs from other sub-accounts';
+                result.decisionPath.push({ step: 'DENIED', reason: result.reason });
+                return result;
+            }
+        }
+
+        result.allowed = true;
+        result.masking = {
+            contentMasked: !access.view_message_content,
+            phonesMasked: !access.view_phone_numbers
+        };
+        result.canExport = access.export_logs;
+        result.decisionPath.push({ step: 'GRANTED', masking: result.masking });
+
+        return result;
+    }
+
     return {
         canAccessLayer: canAccessLayer,
         getAccessibleLayers: getAccessibleLayers,
@@ -352,8 +581,18 @@ var ReportingAccess = (function() {
         canSeeMessageContent: canSeeMessageContent,
         getDataVisibility: getDataVisibility,
         evaluateReportingAccess: evaluateReportingAccess,
+        getMessageLogAccess: getMessageLogAccess,
+        canViewMessageContent: canViewMessageContent,
+        canViewPhoneNumbers: canViewPhoneNumbers,
+        canExportLogs: canExportLogs,
+        getSubAccountVisibility: getSubAccountVisibility,
+        filterLogsBySubAccount: filterLogsBySubAccount,
+        applyMessageLogMasking: applyMessageLogMasking,
+        evaluateMessageLogAccess: evaluateMessageLogAccess,
         LAYERS: REPORTING_LAYERS,
-        ROLE_ACCESS: ROLE_LAYER_ACCESS
+        ROLE_ACCESS: ROLE_LAYER_ACCESS,
+        MESSAGE_LOG_PERMISSIONS: MESSAGE_LOG_PERMISSIONS,
+        MESSAGE_LOG_ROLE_DEFAULTS: MESSAGE_LOG_ROLE_DEFAULTS
     };
 })();
 
