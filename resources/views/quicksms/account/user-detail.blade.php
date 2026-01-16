@@ -350,6 +350,114 @@
     color: #374151;
 }
 
+.usage-metric {
+    margin-bottom: 1.5rem;
+}
+.usage-metric:last-child {
+    margin-bottom: 0;
+}
+.usage-metric .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.usage-metric .metric-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+}
+.usage-metric .metric-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+.usage-metric .progress {
+    height: 10px;
+    border-radius: 5px;
+    background: #f3f4f6;
+}
+.usage-metric .progress-bar {
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+.usage-metric .progress-bar.normal { background: #886cc0; }
+.usage-metric .progress-bar.warning { background: #f59e0b; }
+.usage-metric .progress-bar.critical { background: #ef4444; }
+
+.enforcement-state {
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.enforcement-state.normal {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+.enforcement-state.warning {
+    background: #fefce8;
+    border: 1px solid #fef08a;
+}
+.enforcement-state.blocked {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+.enforcement-state.approval-required {
+    background: #f3e8ff;
+    border: 1px solid #e9d5ff;
+}
+.enforcement-state .state-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+.enforcement-state.normal .state-icon { background: #dcfce7; color: #16a34a; }
+.enforcement-state.warning .state-icon { background: #fef3c7; color: #d97706; }
+.enforcement-state.blocked .state-icon { background: #fee2e2; color: #dc2626; }
+.enforcement-state.approval-required .state-icon { background: #f3e8ff; color: #7c3aed; }
+.enforcement-state .state-content {
+    flex: 1;
+}
+.enforcement-state .state-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.enforcement-state.normal .state-title { color: #166534; }
+.enforcement-state.warning .state-title { color: #92400e; }
+.enforcement-state.blocked .state-title { color: #991b1b; }
+.enforcement-state.approval-required .state-title { color: #6b21a8; }
+.enforcement-state .state-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.7rem;
+    color: #16a34a;
+    font-weight: 500;
+}
+.live-indicator .pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: #16a34a;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
 .modal-header {
     border-bottom: 1px solid #e5e7eb;
 }
@@ -607,22 +715,111 @@
         </div>
     </div>
     
-    <div class="section-card" id="activity-section">
+    <div class="section-card" id="usage-section">
         <div class="section-header">
             <h2 class="section-title">
-                <i class="fas fa-chart-bar"></i>
-                Monthly Activity
+                <i class="fas fa-chart-line"></i>
+                Live Usage & Telemetry
             </h2>
+            <span class="live-indicator">
+                <span class="pulse-dot"></span>
+                Live
+            </span>
         </div>
         <div class="section-body">
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Messages Sent</span>
-                    <span class="info-value" style="font-size: 1.25rem; color: #886cc0;">{{ number_format($user['monthly_messages']) }}</span>
+            @php
+                $userSpendCap = $user['spend_cap'] ?? 5000;
+                $userMessageCap = $user['message_cap'] ?? 100000;
+                $spendPercent = round(($user['monthly_spend'] / $userSpendCap) * 100, 1);
+                $messagePercent = round(($user['monthly_messages'] / $userMessageCap) * 100, 1);
+                
+                $spendClass = $spendPercent >= 90 ? 'critical' : ($spendPercent >= 75 ? 'warning' : 'normal');
+                $messageClass = $messagePercent >= 90 ? 'critical' : ($messagePercent >= 75 ? 'warning' : 'normal');
+                
+                $enforcementState = 'normal';
+                if ($spendPercent >= 100 || $messagePercent >= 100) {
+                    $enforcementState = 'blocked';
+                } elseif ($spendPercent >= 90 || $messagePercent >= 90) {
+                    $enforcementState = 'warning';
+                }
+            @endphp
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="usage-metric">
+                        <div class="metric-header">
+                            <span class="metric-label">Monthly Spend</span>
+                            <span class="metric-value">
+                                £<span id="user-spend-value">{{ number_format($user['monthly_spend'], 2) }}</span> / £{{ number_format($userSpendCap, 2) }}
+                            </span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar {{ $spendClass }}" id="user-spend-bar" role="progressbar" style="width: {{ min($spendPercent, 100) }}%"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">
+                            <span id="user-spend-percent">{{ $spendPercent }}</span>% of limit used
+                        </div>
+                    </div>
+                    
+                    <div class="usage-metric">
+                        <div class="metric-header">
+                            <span class="metric-label">Messages Sent</span>
+                            <span class="metric-value">
+                                <span id="user-message-value">{{ number_format($user['monthly_messages']) }}</span> / {{ number_format($userMessageCap) }}
+                            </span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar {{ $messageClass }}" id="user-message-bar" role="progressbar" style="width: {{ min($messagePercent, 100) }}%"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">
+                            <span id="user-message-percent">{{ $messagePercent }}</span>% of limit used
+                        </div>
+                    </div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Spend</span>
-                    <span class="info-value" style="font-size: 1.25rem; color: #886cc0;">£{{ number_format($user['monthly_spend'], 2) }}</span>
+                
+                <div class="col-md-6">
+                    <div class="enforcement-state {{ $enforcementState }}" id="user-enforcement-state">
+                        <div class="state-icon">
+                            @if($enforcementState === 'normal')
+                                <i class="fas fa-check-circle"></i>
+                            @elseif($enforcementState === 'warning')
+                                <i class="fas fa-exclamation-triangle"></i>
+                            @elseif($enforcementState === 'blocked')
+                                <i class="fas fa-ban"></i>
+                            @else
+                                <i class="fas fa-hourglass-half"></i>
+                            @endif
+                        </div>
+                        <div class="state-content">
+                            <div class="state-title" id="user-enforcement-title">
+                                @if($enforcementState === 'normal')
+                                    Normal Operation
+                                @elseif($enforcementState === 'warning')
+                                    Approaching Limit
+                                @elseif($enforcementState === 'blocked')
+                                    Limit Exceeded
+                                @else
+                                    Approval Required
+                                @endif
+                            </div>
+                            <div class="state-desc" id="user-enforcement-desc">
+                                @if($enforcementState === 'normal')
+                                    User is within acceptable usage limits.
+                                @elseif($enforcementState === 'warning')
+                                    User is approaching limit threshold. Review usage.
+                                @elseif($enforcementState === 'blocked')
+                                    User has exceeded their limit. Sends are blocked.
+                                @else
+                                    Campaigns require approval before sending.
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: #f9fafb; border-radius: 6px; font-size: 0.8rem; color: #6b7280;">
+                        <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
+                        This data reflects the current billing period. Usage resets on the 1st of each month.
+                    </div>
                 </div>
             </div>
         </div>
