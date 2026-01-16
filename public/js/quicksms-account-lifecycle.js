@@ -123,6 +123,7 @@
         _accountId: null,
         _suspensionReason: null,
         _stateChangedAt: null,
+        _stateChangeCallbacks: [],
         
         // =====================================================
         // INITIALIZATION
@@ -176,6 +177,35 @@
         getStateMeta: function(state) {
             state = state || this._currentState;
             return this.STATE_META[state] || null;
+        },
+        
+        // Register a callback to be notified of state changes
+        onStateChange: function(callback) {
+            if (typeof callback === 'function') {
+                this._stateChangeCallbacks.push(callback);
+            }
+            return this; // Allow chaining
+        },
+        
+        // Remove a state change callback
+        offStateChange: function(callback) {
+            var index = this._stateChangeCallbacks.indexOf(callback);
+            if (index > -1) {
+                this._stateChangeCallbacks.splice(index, 1);
+            }
+            return this;
+        },
+        
+        // Internal: notify all state change listeners
+        _notifyStateChange: function(newState, oldState, transitionData) {
+            var self = this;
+            this._stateChangeCallbacks.forEach(function(callback) {
+                try {
+                    callback.call(self, newState, oldState, transitionData);
+                } catch (e) {
+                    console.error('[AccountLifecycle] State change callback error:', e);
+                }
+            });
         },
         
         isValidState: function(state) {
@@ -317,6 +347,12 @@
                     to: newState,
                     reason: reason,
                     meta: self.getStateMeta()
+                });
+                
+                // Notify registered state change callbacks
+                self._notifyStateChange(newState, previousState, {
+                    reason: reason,
+                    transitioned_at: self._stateChangedAt
                 });
                 
                 var result = {

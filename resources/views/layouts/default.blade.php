@@ -101,6 +101,30 @@
             if($page == 'ui_badge'){ $body_class = 'badge-demo';}
         @endphp
         <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
+            <!-- TEST MODE BANNER - Non-dismissible, visible on all pages -->
+            <div id="test-mode-activation-banner" class="alert alert-warning alert-dismissible fade show mb-0" role="alert" style="display: none; border-radius: 0; border-left: none; border-right: none; border-top: none;">
+                <div class="container-fluid">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-lock me-3" style="font-size: 20px; color: #886cc0;"></i>
+                            <div>
+                                <strong class="d-block">Your account is in Test Mode</strong>
+                                <span class="text-muted small">You can send test messages to approved numbers using QuickSMS test settings. To send live messages, complete your account details and activate your account.</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ url('/account/activate') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-rocket me-1"></i> Activate Account
+                            </a>
+                            <a href="{{ url('/support/knowledge-base/test-mode') }}" class="btn btn-outline-secondary btn-sm">
+                                Learn More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END TEST MODE BANNER -->
+            
             <div class="qsms-main">
                 <div class="qsms-content-wrap">
                     @yield('content')

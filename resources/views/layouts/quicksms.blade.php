@@ -31,6 +31,34 @@
             fragments_used: parseInt(sessionStorage.getItem('test_mode_fragments_used') || '0', 10)
         });
     }
+    
+    // Show/hide TEST mode activation banner based on account state
+    // Default: Show banner if no lifecycle state is set (new accounts default to TEST)
+    var testModeBanner = document.getElementById('test-mode-activation-banner');
+    if (testModeBanner) {
+        var lifecycleState = sessionStorage.getItem('lifecycle_state');
+        var isTestMode = false;
+        
+        // Check AccountLifecycle if initialized
+        if (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.getCurrentState()) {
+            isTestMode = AccountLifecycle.isTest();
+        } else if (lifecycleState) {
+            // Fallback to sessionStorage
+            isTestMode = lifecycleState === 'TEST';
+        } else {
+            // Default: New accounts are TEST mode, show banner
+            isTestMode = true;
+        }
+        
+        testModeBanner.style.display = isTestMode ? 'block' : 'none';
+        
+        // Listen for state changes to update banner visibility
+        if (typeof AccountLifecycle !== 'undefined') {
+            AccountLifecycle.onStateChange(function(newState, oldState) {
+                testModeBanner.style.display = (newState === 'TEST') ? 'block' : 'none';
+            });
+        }
+    }
 })();
 </script>
 @endpush
