@@ -22,8 +22,9 @@
             max_fragments: 100,              // Total fragments per account
             sender_id: 'QuickSMS Test',      // Fixed sender for TEST accounts
             sender_display: 'QuickSMS Test Sender',
-            disclaimer_text: '[TEST] ',      // Prepended to all messages
-            disclaimer_fragments: 1,         // Fragments consumed by disclaimer
+            // Full disclaimer appended to ALL test messages (cannot be edited/removed)
+            disclaimer_text: '\n\nThis is a test message sent using QuickSMS.\nIf you were not expecting this message, please ignore it and do not click on any links or call any numbers.',
+            disclaimer_char_count: 168,      // Pre-calculated for fragment math
             max_recipients_per_send: 1,      // No bulk sends
             allow_rcs_rich: false,           // No live RCS rich content
             allow_url_tracking: false,       // No URL tracking
@@ -237,19 +238,24 @@
         // =====================================================
         
         // Transform message for TEST mode sending
+        // Disclaimer is APPENDED at send-time, never stored in user content
         transformMessage: function(message) {
             if (!this.isTestMode()) {
                 return { message: message, transformed: false };
             }
             
-            // Prepend disclaimer
-            var transformedMessage = this.CONFIG.disclaimer_text + message;
+            // Append disclaimer (cannot be edited or removed)
+            var transformedMessage = message + this.CONFIG.disclaimer_text;
             
             return {
                 message: transformedMessage,
                 transformed: true,
-                disclaimer_added: this.CONFIG.disclaimer_text,
-                original_message: message
+                disclaimer_appended: true,
+                disclaimer_text: this.CONFIG.disclaimer_text,
+                disclaimer_char_count: this.CONFIG.disclaimer_char_count,
+                original_message: message,
+                original_length: message.length,
+                total_length: transformedMessage.length
             };
         },
         
@@ -265,8 +271,8 @@
         _calculateFragments: function(message) {
             if (!message) return 0;
             
-            // Add disclaimer for TEST mode
-            var fullMessage = this.CONFIG.disclaimer_text + message;
+            // Add disclaimer for TEST mode (appended at send-time)
+            var fullMessage = message + this.CONFIG.disclaimer_text;
             var length = fullMessage.length;
             
             // Standard SMS fragment calculation (GSM-7)
@@ -275,6 +281,24 @@
                 return 1;
             }
             return Math.ceil(length / 153);
+        },
+        
+        // Calculate fragments with breakdown for UI display
+        calculateFragmentsWithBreakdown: function(message) {
+            var userLength = message ? message.length : 0;
+            var disclaimerLength = this.CONFIG.disclaimer_char_count;
+            var totalLength = userLength + disclaimerLength;
+            var fragments = this._calculateFragments(message);
+            
+            return {
+                user_content_length: userLength,
+                disclaimer_length: disclaimerLength,
+                total_length: totalLength,
+                fragments: fragments,
+                chars_remaining_in_fragment: fragments === 1 ? 
+                    (160 - totalLength) : 
+                    ((fragments * 153) - totalLength)
+            };
         },
         
         getFragmentsRemaining: function() {
@@ -337,11 +361,24 @@
                    '<i class="fas fa-flask me-3" style="font-size: 24px;"></i>' +
                    '<div>' +
                    '<strong>TEST MODE</strong>' +
-                   '<p class="mb-0 small">Messages can only be sent to your verified mobile. ' +
+                   '<p class="mb-1 small">Messages can only be sent to your verified mobile. ' +
                    'Sender shows as "' + this.CONFIG.sender_display + '". ' +
                    this._fragmentsRemaining + ' of ' + this.CONFIG.max_fragments + ' fragments remaining.</p>' +
+                   '<p class="mb-0 small text-muted"><i class="fas fa-info-circle me-1"></i>' +
+                   'A disclaimer (' + this.CONFIG.disclaimer_char_count + ' chars) will be appended to all messages.</p>' +
                    '</div>' +
                    '</div>' +
+                   '</div>';
+        },
+        
+        // Get disclaimer preview for message compose UI
+        getDisclaimerPreview: function() {
+            if (!this.isTestMode()) return '';
+            
+            return '<div class="disclaimer-preview mt-2 p-2 bg-light border rounded small">' +
+                   '<strong class="text-muted">Disclaimer (auto-appended):</strong>' +
+                   '<div class="text-muted" style="white-space: pre-wrap;">' + 
+                   this.CONFIG.disclaimer_text.trim() + '</div>' +
                    '</div>';
         },
         
