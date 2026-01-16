@@ -317,6 +317,50 @@
         align-self: flex-start;
     }
 }
+
+.perm-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+.perm-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.perm-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e5e7eb;
+    transition: 0.2s;
+    border-radius: 20px;
+}
+.perm-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+input:checked + .perm-slider {
+    background: linear-gradient(135deg, #886cc0 0%, #a78bfa 100%);
+}
+input:checked + .perm-slider:before {
+    transform: translateX(16px);
+}
+input:focus + .perm-slider {
+    box-shadow: 0 0 0 2px rgba(136, 108, 192, 0.25);
+}
 </style>
 @endpush
 
@@ -1638,8 +1682,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var cat = PERMISSION_CATEGORIES[catKey];
             
             html += '<div class="col-md-6 mb-3">';
-            html += '<div class="card h-100">';
-            html += '<div class="card-header py-2" style="background: #f8f9fa;"><i class="fas ' + cat.icon + ' me-2"></i>' + cat.label + '</div>';
+            html += '<div class="card h-100 border-0" style="box-shadow: 0 1px 3px rgba(0,0,0,0.08);">';
+            html += '<div class="card-header py-2 border-0" style="background: linear-gradient(135deg, #f3e8ff 0%, #faf5ff 100%); color: #6b21a8;"><i class="fas ' + cat.icon + ' me-2" style="color: #886cc0;"></i>' + cat.label + '</div>';
             html += '<div class="card-body py-2">';
             
             Object.keys(cat.permissions).forEach(function(permKey) {
@@ -1648,17 +1692,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 var hasOverride = userOverrides[permKey] !== undefined;
                 var effectiveValue = hasOverride ? userOverrides[permKey] : defaultValue;
                 var sourceClass = hasOverride ? 'override' : 'inherited';
-                var sourceBadge = hasOverride ? '<span class="badge ms-2" style="background: #fef3c7; color: #92400e; font-size: 0.65rem;">Override</span>' : '<span class="badge ms-2" style="background: #e5e7eb; color: #374151; font-size: 0.65rem;">Inherited</span>';
+                var sourceBadge = hasOverride 
+                    ? '<span class="badge ms-2" style="background: #fef3c7; color: #b45309; font-size: 0.65rem; font-weight: 500;">Override</span>' 
+                    : '<span class="badge ms-2" style="background: #f3e8ff; color: #7c3aed; font-size: 0.65rem; font-weight: 500;">Inherited</span>';
                 
-                html += '<div class="d-flex justify-content-between align-items-center py-1 border-bottom perm-row" data-perm="' + permKey + '" data-default="' + defaultValue + '">';
-                html += '<div class="d-flex align-items-center">';
-                html += '<span style="font-size: 0.85rem;">' + perm.label + '</span>';
+                html += '<div class="d-flex justify-content-between align-items-center py-2 border-bottom perm-row" data-perm="' + permKey + '" data-default="' + defaultValue + '" style="border-color: #f3e8ff !important;">';
+                html += '<div class="d-flex align-items-center flex-wrap">';
+                html += '<span style="font-size: 0.85rem; color: #374151;">' + perm.label + '</span>';
                 html += '<span class="source-badge" data-source="' + sourceClass + '">' + sourceBadge + '</span>';
                 html += '</div>';
-                html += '<div class="btn-group btn-group-sm" role="group">';
-                html += '<button type="button" class="btn perm-toggle-btn ' + (effectiveValue ? 'btn-success' : 'btn-outline-secondary') + '" data-perm="' + permKey + '" data-value="true" style="font-size: 0.7rem; padding: 2px 8px;">Allow</button>';
-                html += '<button type="button" class="btn perm-toggle-btn ' + (!effectiveValue ? 'btn-danger' : 'btn-outline-secondary') + '" data-perm="' + permKey + '" data-value="false" style="font-size: 0.7rem; padding: 2px 8px;">Deny</button>';
-                html += '<button type="button" class="btn btn-outline-secondary perm-reset-btn" data-perm="' + permKey + '" style="font-size: 0.7rem; padding: 2px 6px;" title="Reset to inherited"' + (hasOverride ? '' : ' disabled') + '><i class="fas fa-undo"></i></button>';
+                html += '<div class="d-flex align-items-center gap-2">';
+                html += '<label class="perm-switch" style="margin-bottom: 0;">';
+                html += '<input type="checkbox" class="perm-toggle-input" data-perm="' + permKey + '"' + (effectiveValue ? ' checked' : '') + '>';
+                html += '<span class="perm-slider"></span>';
+                html += '</label>';
+                html += '<button type="button" class="btn btn-link p-0 perm-reset-btn" data-perm="' + permKey + '" style="font-size: 0.75rem; color: #886cc0; opacity: ' + (hasOverride ? '1' : '0.3') + ';" title="Reset to inherited"' + (hasOverride ? '' : ' disabled') + '><i class="fas fa-undo"></i></button>';
                 html += '</div>';
                 html += '</div>';
             });
@@ -1669,10 +1717,10 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '</div>';
         container.innerHTML = html;
         
-        container.querySelectorAll('.perm-toggle-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        container.querySelectorAll('.perm-toggle-input').forEach(function(input) {
+            input.addEventListener('change', function() {
                 var permKey = this.getAttribute('data-perm');
-                var newValue = this.getAttribute('data-value') === 'true';
+                var newValue = this.checked;
                 var row = this.closest('.perm-row');
                 var defaultValue = row.getAttribute('data-default') === 'true';
                 
@@ -1702,19 +1750,18 @@ document.addEventListener('DOMContentLoaded', function() {
         var hasOverride = overrideValue !== undefined;
         var effectiveValue = hasOverride ? overrideValue : defaultValue;
         
-        var allowBtn = row.querySelector('[data-value="true"]');
-        var denyBtn = row.querySelector('[data-value="false"]');
+        var toggleInput = row.querySelector('.perm-toggle-input');
         var resetBtn = row.querySelector('.perm-reset-btn');
         var sourceBadge = row.querySelector('.source-badge');
         
-        allowBtn.className = 'btn perm-toggle-btn ' + (effectiveValue ? 'btn-success' : 'btn-outline-secondary');
-        denyBtn.className = 'btn perm-toggle-btn ' + (!effectiveValue ? 'btn-danger' : 'btn-outline-secondary');
+        toggleInput.checked = effectiveValue;
         resetBtn.disabled = !hasOverride;
+        resetBtn.style.opacity = hasOverride ? '1' : '0.3';
         
         if (hasOverride) {
-            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #fef3c7; color: #92400e; font-size: 0.65rem;">Override</span>';
+            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #fef3c7; color: #b45309; font-size: 0.65rem; font-weight: 500;">Override</span>';
         } else {
-            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #e5e7eb; color: #374151; font-size: 0.65rem;">Inherited</span>';
+            sourceBadge.innerHTML = '<span class="badge ms-2" style="background: #f3e8ff; color: #7c3aed; font-size: 0.65rem; font-weight: 500;">Inherited</span>';
         }
     }
     
