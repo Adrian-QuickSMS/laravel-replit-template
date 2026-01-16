@@ -372,10 +372,15 @@ input:focus + .perm-slider {
 }
 .btn-purple-outline:hover {
     background: #f3e8ff;
-    border-color: #7c3aed;
-    color: #7c3aed;
+    border-color: #886cc0;
+    color: #6b21a8;
 }
-.btn-purple-outline:focus {
+.btn-purple-outline:focus,
+.btn-purple-outline:active,
+.btn-purple-outline.active {
+    background: #886cc0;
+    border-color: #886cc0;
+    color: #fff;
     box-shadow: 0 0 0 2px rgba(136, 108, 192, 0.25);
 }
 
