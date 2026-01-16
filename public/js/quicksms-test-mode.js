@@ -609,6 +609,360 @@
         },
         
         // =====================================================
+        // PAYMENT GATING (TEST MODE)
+        // =====================================================
+        // Users cannot make purchases until required account details are complete.
+        // Required fields: Company name, Registered address, Primary website, Sector, VAT details
+        // =====================================================
+        
+        REQUIRED_ACCOUNT_FIELDS: {
+            company_name: {
+                label: 'Company Name',
+                section: 'Company Information',
+                placeholder: 'Enter your legal company name',
+                type: 'text',
+                required: true
+            },
+            registered_address: {
+                label: 'Registered Address',
+                section: 'Company Information',
+                placeholder: 'Enter your registered business address',
+                type: 'textarea',
+                required: true
+            },
+            primary_website: {
+                label: 'Primary Website',
+                section: 'Company Information',
+                placeholder: 'https://www.example.com',
+                type: 'url',
+                required: true
+            },
+            sector: {
+                label: 'Business Sector',
+                section: 'Company Information',
+                placeholder: 'Select your sector',
+                type: 'select',
+                options: [
+                    'Financial Services',
+                    'Healthcare',
+                    'Retail & E-commerce',
+                    'Technology',
+                    'Education',
+                    'Government & Public Sector',
+                    'Hospitality & Travel',
+                    'Manufacturing',
+                    'Professional Services',
+                    'Telecommunications',
+                    'Other'
+                ],
+                required: true
+            },
+            vat_registered: {
+                label: 'VAT Registered',
+                section: 'VAT & Tax Information',
+                type: 'boolean',
+                required: true
+            },
+            vat_number: {
+                label: 'VAT Number',
+                section: 'VAT & Tax Information',
+                placeholder: 'GB123456789',
+                type: 'text',
+                required: false, // Required only if vat_registered = true
+                conditional: 'vat_registered'
+            }
+        },
+        
+        // Account details storage (mock - in production from backend)
+        _accountDetails: {},
+        
+        // Set account details (called on page load from backend data)
+        setAccountDetails: function(details) {
+            this._accountDetails = details || {};
+        },
+        
+        // Check if all required fields are complete
+        arePaymentRequirementsMet: function() {
+            var missing = this.getMissingPaymentFields();
+            return missing.length === 0;
+        },
+        
+        // Get list of missing required fields
+        getMissingPaymentFields: function() {
+            var self = this;
+            var missing = [];
+            
+            Object.keys(this.REQUIRED_ACCOUNT_FIELDS).forEach(function(fieldKey) {
+                var field = self.REQUIRED_ACCOUNT_FIELDS[fieldKey];
+                
+                // Check conditional fields
+                if (field.conditional) {
+                    var conditionMet = self._accountDetails[field.conditional] === true;
+                    if (!conditionMet) return; // Skip if condition not met
+                }
+                
+                if (field.required || field.conditional) {
+                    var value = self._accountDetails[fieldKey];
+                    if (!value || (typeof value === 'string' && value.trim() === '')) {
+                        missing.push({
+                            key: fieldKey,
+                            label: field.label,
+                            section: field.section,
+                            type: field.type,
+                            placeholder: field.placeholder,
+                            options: field.options
+                        });
+                    }
+                }
+            });
+            
+            return missing;
+        },
+        
+        // Get completion status summary
+        getPaymentReadinessStatus: function() {
+            var total = Object.keys(this.REQUIRED_ACCOUNT_FIELDS).filter(function(k) {
+                return this.REQUIRED_ACCOUNT_FIELDS[k].required;
+            }.bind(this)).length;
+            
+            var missing = this.getMissingPaymentFields();
+            var complete = total - missing.length;
+            
+            return {
+                complete: complete,
+                total: total,
+                percentage: Math.round((complete / total) * 100),
+                missing: missing,
+                ready: missing.length === 0
+            };
+        },
+        
+        // Handle purchase attempt - returns true if allowed, false if blocked
+        attemptPurchase: function(callback) {
+            if (this.arePaymentRequirementsMet()) {
+                // All requirements met, proceed with purchase
+                if (callback) callback({ allowed: true });
+                return true;
+            }
+            
+            // Show modal with missing fields
+            this.showPaymentGatingModal(callback);
+            return false;
+        },
+        
+        // Show payment gating modal with missing fields
+        showPaymentGatingModal: function(onComplete) {
+            var self = this;
+            var missing = this.getMissingPaymentFields();
+            var status = this.getPaymentReadinessStatus();
+            
+            // Build modal HTML
+            var modalHtml = 
+                '<div class="modal fade" id="paymentGatingModal" tabindex="-1" data-bs-backdrop="static">' +
+                '<div class="modal-dialog modal-lg">' +
+                '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%); border-bottom: 1px solid #c4b5fd;">' +
+                '<div class="d-flex align-items-center">' +
+                '<i class="fas fa-clipboard-check me-3" style="font-size: 24px; color: #7c3aed;"></i>' +
+                '<div>' +
+                '<h5 class="modal-title mb-0" style="color: #5b21b6;">Complete Your Account Details</h5>' +
+                '<small class="text-muted">Required before you can make purchases</small>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                '<div class="mb-4">' +
+                '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                '<span class="text-muted">Completion Progress</span>' +
+                '<span class="badge bg-primary">' + status.complete + ' of ' + status.total + ' complete</span>' +
+                '</div>' +
+                '<div class="progress" style="height: 8px;">' +
+                '<div class="progress-bar bg-primary" style="width: ' + status.percentage + '%"></div>' +
+                '</div>' +
+                '</div>' +
+                '<form id="paymentGatingForm">' +
+                this._buildMissingFieldsForm(missing) +
+                '</form>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                '<button type="button" class="btn btn-primary" id="savePaymentDetailsBtn" disabled>' +
+                '<i class="fas fa-save me-1"></i> Save & Continue to Payment' +
+                '</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            
+            // Remove existing modal if present
+            var existingModal = document.getElementById('paymentGatingModal');
+            if (existingModal) existingModal.remove();
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            var modalEl = document.getElementById('paymentGatingModal');
+            var modal = new bootstrap.Modal(modalEl);
+            
+            // Form validation and save handling
+            var form = document.getElementById('paymentGatingForm');
+            var saveBtn = document.getElementById('savePaymentDetailsBtn');
+            
+            // Validate on input
+            form.addEventListener('input', function() {
+                var isValid = self._validatePaymentForm(form, missing);
+                saveBtn.disabled = !isValid;
+            });
+            
+            // Save handler
+            saveBtn.addEventListener('click', function() {
+                var formData = self._collectFormData(form, missing);
+                
+                // Update local account details
+                Object.assign(self._accountDetails, formData);
+                
+                // Save to sessionStorage for persistence
+                sessionStorage.setItem('account_details', JSON.stringify(self._accountDetails));
+                
+                // Log for backend integration
+                console.log('[PaymentGating] Account details updated:', formData);
+                
+                // TODO: Backend integration - POST /api/account/details
+                
+                modal.hide();
+                
+                // Check if now complete
+                if (self.arePaymentRequirementsMet()) {
+                    if (onComplete) onComplete({ allowed: true, details_updated: true });
+                } else {
+                    // Still missing fields (shouldn't happen)
+                    if (onComplete) onComplete({ allowed: false, missing: self.getMissingPaymentFields() });
+                }
+            });
+            
+            // Clean up on hide
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                modalEl.remove();
+            });
+            
+            modal.show();
+        },
+        
+        // Build form fields for missing items
+        _buildMissingFieldsForm: function(missingFields) {
+            var self = this;
+            var html = '<div class="row g-3">';
+            
+            // Group by section
+            var sections = {};
+            missingFields.forEach(function(field) {
+                if (!sections[field.section]) sections[field.section] = [];
+                sections[field.section].push(field);
+            });
+            
+            Object.keys(sections).forEach(function(sectionName) {
+                html += '<div class="col-12"><h6 class="text-muted border-bottom pb-2 mb-3">' + 
+                        '<i class="fas fa-folder-open me-2"></i>' + sectionName + '</h6></div>';
+                
+                sections[sectionName].forEach(function(field) {
+                    html += '<div class="col-md-6">';
+                    html += '<label class="form-label">' + field.label + ' <span class="text-danger">*</span></label>';
+                    
+                    if (field.type === 'select') {
+                        html += '<select class="form-select" name="' + field.key + '" required>';
+                        html += '<option value="">Select...</option>';
+                        (field.options || []).forEach(function(opt) {
+                            html += '<option value="' + opt + '">' + opt + '</option>';
+                        });
+                        html += '</select>';
+                    } else if (field.type === 'textarea') {
+                        html += '<textarea class="form-control" name="' + field.key + '" rows="2" ' +
+                                'placeholder="' + (field.placeholder || '') + '" required></textarea>';
+                    } else if (field.type === 'boolean') {
+                        html += '<div class="form-check form-switch mt-2">' +
+                                '<input class="form-check-input" type="checkbox" name="' + field.key + '" id="field_' + field.key + '">' +
+                                '<label class="form-check-label" for="field_' + field.key + '">Yes</label>' +
+                                '</div>';
+                    } else {
+                        html += '<input type="' + (field.type || 'text') + '" class="form-control" name="' + field.key + '" ' +
+                                'placeholder="' + (field.placeholder || '') + '" required>';
+                    }
+                    
+                    html += '</div>';
+                });
+            });
+            
+            html += '</div>';
+            return html;
+        },
+        
+        // Validate payment form
+        _validatePaymentForm: function(form, missingFields) {
+            var isValid = true;
+            
+            missingFields.forEach(function(field) {
+                var input = form.querySelector('[name="' + field.key + '"]');
+                if (!input) return;
+                
+                if (field.type === 'boolean') {
+                    // Booleans are always valid (can be true or false)
+                    return;
+                }
+                
+                var value = input.value.trim();
+                if (!value) {
+                    isValid = false;
+                }
+                
+                // URL validation
+                if (field.type === 'url' && value) {
+                    try {
+                        new URL(value);
+                    } catch (e) {
+                        isValid = false;
+                    }
+                }
+            });
+            
+            return isValid;
+        },
+        
+        // Collect form data
+        _collectFormData: function(form, missingFields) {
+            var data = {};
+            
+            missingFields.forEach(function(field) {
+                var input = form.querySelector('[name="' + field.key + '"]');
+                if (!input) return;
+                
+                if (field.type === 'boolean') {
+                    data[field.key] = input.checked;
+                } else {
+                    data[field.key] = input.value.trim();
+                }
+            });
+            
+            return data;
+        },
+        
+        // Get purchase button state (for disabling buttons)
+        getPurchaseButtonState: function() {
+            if (this.arePaymentRequirementsMet()) {
+                return {
+                    enabled: true,
+                    tooltip: null
+                };
+            }
+            
+            var missing = this.getMissingPaymentFields();
+            return {
+                enabled: false,
+                tooltip: 'Complete ' + missing.length + ' required field(s) in Account Details before purchasing',
+                missing_count: missing.length
+            };
+        },
+        
+        // =====================================================
         // UTILITIES
         // =====================================================
         
