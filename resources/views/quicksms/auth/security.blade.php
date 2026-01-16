@@ -33,26 +33,35 @@
                                 </div>
                                 <div class="invalid-feedback" id="passwordError">Password does not meet requirements</div>
                                 
-                                <div class="password-rules mt-2" id="passwordRules">
-                                    <div class="rule-item" id="rule-length">
-                                        <i class="fas fa-circle rule-icon"></i>
-                                        <span>12-128 characters</span>
-                                    </div>
-                                    <div class="rule-item" id="rule-uppercase">
-                                        <i class="fas fa-circle rule-icon"></i>
-                                        <span>1 uppercase (A-Z)</span>
-                                    </div>
-                                    <div class="rule-item" id="rule-lowercase">
-                                        <i class="fas fa-circle rule-icon"></i>
-                                        <span>1 lowercase (a-z)</span>
-                                    </div>
-                                    <div class="rule-item" id="rule-number">
-                                        <i class="fas fa-circle rule-icon"></i>
-                                        <span>1 number (0-9)</span>
-                                    </div>
-                                    <div class="rule-item" id="rule-special">
-                                        <i class="fas fa-circle rule-icon"></i>
-                                        <span>1 special character</span>
+                                <div class="password-requirements-toggle mt-2">
+                                    <a href="#" class="password-toggle-link collapsed" data-bs-toggle="collapse" data-bs-target="#passwordRulesCollapse" aria-expanded="false" aria-controls="passwordRulesCollapse" id="passwordToggleLink">
+                                        <i class="fas fa-chevron-right toggle-chevron me-1"></i>
+                                        <span class="toggle-text">Show password requirements</span>
+                                    </a>
+                                </div>
+                                
+                                <div class="collapse" id="passwordRulesCollapse">
+                                    <div class="password-rules mt-2" id="passwordRules">
+                                        <div class="rule-item" id="rule-length">
+                                            <i class="fas fa-circle rule-icon"></i>
+                                            <span>12-128 characters</span>
+                                        </div>
+                                        <div class="rule-item" id="rule-uppercase">
+                                            <i class="fas fa-circle rule-icon"></i>
+                                            <span>1 uppercase (A-Z)</span>
+                                        </div>
+                                        <div class="rule-item" id="rule-lowercase">
+                                            <i class="fas fa-circle rule-icon"></i>
+                                            <span>1 lowercase (a-z)</span>
+                                        </div>
+                                        <div class="rule-item" id="rule-number">
+                                            <i class="fas fa-circle rule-icon"></i>
+                                            <span>1 number (0-9)</span>
+                                        </div>
+                                        <div class="rule-item" id="rule-special">
+                                            <i class="fas fa-circle rule-icon"></i>
+                                            <span>1 special character</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -305,6 +314,26 @@
 .form-check-input:checked {
     background-color: #886CC0;
     border-color: #886CC0;
+}
+.password-requirements-toggle {
+    font-size: 0.75rem;
+}
+.password-toggle-link {
+    color: #886CC0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+.password-toggle-link:hover {
+    color: #7358a8;
+    text-decoration: none;
+}
+.password-toggle-link .toggle-chevron {
+    font-size: 0.6rem;
+    transition: transform 0.2s ease;
+}
+.password-toggle-link:not(.collapsed) .toggle-chevron {
+    transform: rotate(90deg);
 }
 .password-rules {
     background: #fff;
@@ -930,6 +959,11 @@ $(document).ready(function() {
         // Check if all rules pass
         passwordIsValid = rules.length && rules.uppercase && rules.lowercase && rules.number && rules.special;
         
+        // Auto-expand requirements panel if password is invalid and has content
+        if (password.length > 0 && !passwordIsValid) {
+            expandPasswordRequirements();
+        }
+        
         if (passwordIsValid) {
             $(this).removeClass('is-invalid');
             // Debounce backend checks
@@ -938,6 +972,38 @@ $(document).ready(function() {
                 checkPasswordBackend(password);
             }, 500);
         }
+    });
+    
+    // Auto-expand on blur if password is invalid
+    $('#password').on('blur', function() {
+        var password = $(this).val();
+        if (password.length > 0) {
+            var rules = validatePasswordRules(password);
+            passwordIsValid = rules.length && rules.uppercase && rules.lowercase && rules.number && rules.special;
+            if (!passwordIsValid) {
+                expandPasswordRequirements();
+            }
+        }
+    });
+    
+    // Helper to expand password requirements panel
+    function expandPasswordRequirements() {
+        var $collapse = $('#passwordRulesCollapse');
+        if (!$collapse.hasClass('show')) {
+            var bsCollapse = new bootstrap.Collapse($collapse, { toggle: false });
+            bsCollapse.show();
+        }
+    }
+    
+    // Sync toggle link state with collapse events
+    $('#passwordRulesCollapse').on('show.bs.collapse', function() {
+        $('#passwordToggleLink').removeClass('collapsed').attr('aria-expanded', 'true');
+        $('#passwordToggleLink .toggle-text').text('Hide password requirements');
+    });
+    
+    $('#passwordRulesCollapse').on('hide.bs.collapse', function() {
+        $('#passwordToggleLink').addClass('collapsed').attr('aria-expanded', 'false');
+        $('#passwordToggleLink .toggle-text').text('Show password requirements');
     });
     
     function validatePasswordRules(password) {
