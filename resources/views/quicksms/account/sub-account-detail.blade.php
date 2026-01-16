@@ -141,6 +141,92 @@
     color: #9ca3af;
     margin-top: 0.125rem;
 }
+
+.limits-form .form-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.375rem;
+}
+.limits-form .form-control,
+.limits-form .form-select {
+    font-size: 0.85rem;
+}
+.limits-form .input-group-text {
+    font-size: 0.8rem;
+    background: #f9fafb;
+}
+.limits-form .form-text {
+    font-size: 0.75rem;
+}
+
+.enforcement-option {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.enforcement-option:hover {
+    border-color: #886cc0;
+    background: #faf8ff;
+}
+.enforcement-option.selected {
+    border-color: #886cc0;
+    background: #f3e8ff;
+}
+.enforcement-option .option-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+}
+.enforcement-option .option-desc {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.hard-stop-toggle {
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.375rem;
+}
+.hard-stop-toggle.enabled {
+    background: #fee2e2;
+    border-color: #f87171;
+}
+
+.approval-required-banner {
+    padding: 0.75rem 1rem;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 0.375rem;
+    font-size: 0.8rem;
+    color: #92400e;
+    display: none;
+}
+.approval-required-banner.show {
+    display: flex;
+}
+
+.current-values {
+    background: #f9fafb;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+.current-values .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.025em;
+}
+.current-values .value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+}
 </style>
 @endpush
 
@@ -215,6 +301,135 @@
                     @endif
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <div class="section-card" id="limits-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-sliders"></i>
+                Limits & Enforcement
+            </h2>
+        </div>
+        <div class="section-body">
+            <div class="current-values">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="label">Current Spend</div>
+                        <div class="value">£{{ number_format($sub_account['monthly_spend'], 2) }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="label">Current Messages</div>
+                        <div class="value">{{ number_format($sub_account['monthly_messages']) }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="label">Spend Cap</div>
+                        <div class="value">£{{ number_format($sub_account['limits']['spend_cap'], 2) }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="label">Message Cap</div>
+                        <div class="value">{{ number_format($sub_account['limits']['message_cap']) }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="approval-required-banner mb-3" id="approval-banner">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>
+                    <strong>Approval Required:</strong> Increasing limits requires Main Account Admin approval. Your request will be submitted for review.
+                </div>
+            </div>
+            
+            <form class="limits-form" id="limits-form">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Monthly Spend Cap</label>
+                        <div class="input-group">
+                            <span class="input-group-text">£</span>
+                            <input type="number" class="form-control" id="spend-cap" 
+                                   value="{{ $sub_account['limits']['spend_cap'] }}" 
+                                   data-original="{{ $sub_account['limits']['spend_cap'] }}"
+                                   min="0" step="0.01" placeholder="No limit">
+                        </div>
+                        <div class="form-text">Maximum monthly spend allowed for this sub-account</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Monthly Message Cap</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="message-cap" 
+                                   value="{{ $sub_account['limits']['message_cap'] }}"
+                                   data-original="{{ $sub_account['limits']['message_cap'] }}"
+                                   min="0" placeholder="No limit">
+                            <span class="input-group-text">parts</span>
+                        </div>
+                        <div class="form-text">Maximum message parts allowed per month</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Daily Send Limit <span class="text-muted">(optional)</span></label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="daily-limit" 
+                                   value="{{ $sub_account['limits']['daily_limit'] }}"
+                                   data-original="{{ $sub_account['limits']['daily_limit'] }}"
+                                   min="0" placeholder="No limit">
+                            <span class="input-group-text">msgs/day</span>
+                        </div>
+                        <div class="form-text">Leave empty for unlimited daily sends</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label mb-2">Enforcement Type</label>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <div class="enforcement-option {{ $sub_account['limits']['enforcement_type'] === 'warn' ? 'selected' : '' }}" data-value="warn">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-bell me-2" style="color: #d97706;"></i>
+                                    <div class="option-title">Warn Only</div>
+                                </div>
+                                <div class="option-desc">Alert admins when limits approach, but allow sends to continue</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="enforcement-option {{ $sub_account['limits']['enforcement_type'] === 'block' ? 'selected' : '' }}" data-value="block">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-ban me-2" style="color: #dc2626;"></i>
+                                    <div class="option-title">Block Sends</div>
+                                </div>
+                                <div class="option-desc">Prevent all sends when limits are reached until next period</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="enforcement-option {{ $sub_account['limits']['enforcement_type'] === 'approval' ? 'selected' : '' }}" data-value="approval">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-clipboard-check me-2" style="color: #886cc0;"></i>
+                                    <div class="option-title">Require Approval</div>
+                                </div>
+                                <div class="option-desc">Queue sends for admin approval when limits are reached</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="enforcement-type" value="{{ $sub_account['limits']['enforcement_type'] }}" data-original="{{ $sub_account['limits']['enforcement_type'] }}">
+                </div>
+                
+                <div class="hard-stop-toggle {{ $sub_account['limits']['hard_stop'] ? 'enabled' : '' }}" id="hard-stop-container">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="hard-stop" {{ $sub_account['limits']['hard_stop'] ? 'checked' : '' }} data-original="{{ $sub_account['limits']['hard_stop'] ? '1' : '0' }}" style="border-color: #dc2626;">
+                        <label class="form-check-label" for="hard-stop">
+                            <span style="font-weight: 500; color: #991b1b;">Enable Hard Stop</span>
+                            <div style="font-size: 0.75rem; color: #6b7280;">When enabled, enforcement cannot be overridden by any user. Use with caution.</div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <button type="button" class="btn btn-link text-muted" id="btn-reset-limits" style="font-size: 0.85rem;">
+                        <i class="fas fa-undo me-1"></i>Reset to Original
+                    </button>
+                    <button type="button" class="btn" id="btn-save-limits" style="background: #886cc0; color: white;">
+                        <i class="fas fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -401,6 +616,126 @@ document.addEventListener('DOMContentLoaded', function() {
         toast.innerHTML = '<i class="fas fa-archive me-2"></i>Sub-account archived permanently.';
         document.body.appendChild(toast);
         setTimeout(function() { toast.remove(); }, 3000);
+    });
+    
+    // Limits & Enforcement handlers
+    var originalLimits = {
+        spendCap: parseFloat(document.getElementById('spend-cap').dataset.original) || 0,
+        messageCap: parseInt(document.getElementById('message-cap').dataset.original) || 0,
+        dailyLimit: parseInt(document.getElementById('daily-limit').dataset.original) || 0,
+        enforcementType: document.getElementById('enforcement-type').dataset.original,
+        hardStop: document.getElementById('hard-stop').dataset.original === '1'
+    };
+    
+    function checkForIncreases() {
+        var spendCap = parseFloat(document.getElementById('spend-cap').value) || 0;
+        var messageCap = parseInt(document.getElementById('message-cap').value) || 0;
+        var dailyLimit = parseInt(document.getElementById('daily-limit').value) || 0;
+        
+        var hasIncrease = spendCap > originalLimits.spendCap || 
+                          messageCap > originalLimits.messageCap || 
+                          dailyLimit > originalLimits.dailyLimit;
+        
+        var banner = document.getElementById('approval-banner');
+        if (hasIncrease) {
+            banner.classList.add('show');
+        } else {
+            banner.classList.remove('show');
+        }
+        
+        return hasIncrease;
+    }
+    
+    document.getElementById('spend-cap').addEventListener('input', checkForIncreases);
+    document.getElementById('message-cap').addEventListener('input', checkForIncreases);
+    document.getElementById('daily-limit').addEventListener('input', checkForIncreases);
+    
+    document.querySelectorAll('.enforcement-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.enforcement-option').forEach(function(o) {
+                o.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            document.getElementById('enforcement-type').value = this.dataset.value;
+        });
+    });
+    
+    document.getElementById('hard-stop').addEventListener('change', function() {
+        var container = document.getElementById('hard-stop-container');
+        if (this.checked) {
+            container.classList.add('enabled');
+        } else {
+            container.classList.remove('enabled');
+        }
+    });
+    
+    document.getElementById('btn-reset-limits').addEventListener('click', function() {
+        document.getElementById('spend-cap').value = originalLimits.spendCap;
+        document.getElementById('message-cap').value = originalLimits.messageCap;
+        document.getElementById('daily-limit').value = originalLimits.dailyLimit;
+        document.getElementById('enforcement-type').value = originalLimits.enforcementType;
+        document.getElementById('hard-stop').checked = originalLimits.hardStop;
+        
+        document.querySelectorAll('.enforcement-option').forEach(function(o) {
+            o.classList.remove('selected');
+            if (o.dataset.value === originalLimits.enforcementType) {
+                o.classList.add('selected');
+            }
+        });
+        
+        var container = document.getElementById('hard-stop-container');
+        if (originalLimits.hardStop) {
+            container.classList.add('enabled');
+        } else {
+            container.classList.remove('enabled');
+        }
+        
+        checkForIncreases();
+    });
+    
+    document.getElementById('btn-save-limits').addEventListener('click', function() {
+        var newLimits = {
+            spendCap: parseFloat(document.getElementById('spend-cap').value) || 0,
+            messageCap: parseInt(document.getElementById('message-cap').value) || 0,
+            dailyLimit: parseInt(document.getElementById('daily-limit').value) || 0,
+            enforcementType: document.getElementById('enforcement-type').value,
+            hardStop: document.getElementById('hard-stop').checked
+        };
+        
+        var requiresApproval = checkForIncreases();
+        
+        console.log('[AUDIT] Sub-account limits changed:', {
+            action: requiresApproval ? 'LIMITS_INCREASE_REQUESTED' : 'LIMITS_UPDATED',
+            subAccountId: subAccountId,
+            subAccountName: subAccountName,
+            previousLimits: originalLimits,
+            newLimits: newLimits,
+            requiresApproval: requiresApproval,
+            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+            timestamp: new Date().toISOString(),
+            ipAddress: '192.168.1.100',
+            sessionId: 'sess_abc123'
+        });
+        
+        if (requiresApproval) {
+            var toast = document.createElement('div');
+            toast.className = 'alert position-fixed';
+            toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 350px; background: #fef3c7; border-color: #fcd34d; color: #92400e;';
+            toast.innerHTML = '<i class="fas fa-clock me-2"></i>Limit increase request submitted for approval.';
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 4000);
+        } else {
+            originalLimits = JSON.parse(JSON.stringify(newLimits));
+            
+            var toast = document.createElement('div');
+            toast.className = 'alert position-fixed';
+            toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; background: #dcfce7; border-color: #bbf7d0; color: #166534;';
+            toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>Limits saved successfully.';
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+        }
+        
+        document.getElementById('approval-banner').classList.remove('show');
     });
 });
 </script>
