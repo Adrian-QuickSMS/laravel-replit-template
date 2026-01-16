@@ -1875,6 +1875,91 @@ class QuickSMSController extends Controller
             'sub_account' => $subAccount
         ]);
     }
+    
+    public function userDetail($subId, $userId)
+    {
+        $subAccounts = [
+            'sub-001' => ['id' => 'sub-001', 'name' => 'Marketing Department'],
+            'sub-002' => ['id' => 'sub-002', 'name' => 'Customer Support'],
+            'sub-003' => ['id' => 'sub-003', 'name' => 'Sales Team'],
+        ];
+        
+        $users = [
+            'user-001' => [
+                'id' => 'user-001',
+                'name' => 'Emma Thompson',
+                'email' => 'emma.thompson@company.com',
+                'role' => 'messaging-manager',
+                'role_label' => 'Messaging Manager',
+                'status' => 'active',
+                'sender_capability' => 'advanced',
+                'created_at' => '2024-06-20',
+                'last_login' => '2026-01-16 09:45',
+                'mfa_enabled' => true,
+                'monthly_spend' => 450.00,
+                'monthly_messages' => 15200,
+                'sub_account_id' => 'sub-001'
+            ],
+            'user-002' => [
+                'id' => 'user-002',
+                'name' => 'Michael Brown',
+                'email' => 'michael.brown@company.com',
+                'role' => 'admin',
+                'role_label' => 'Admin',
+                'status' => 'active',
+                'sender_capability' => 'advanced',
+                'created_at' => '2024-07-15',
+                'last_login' => '2026-01-15 14:20',
+                'mfa_enabled' => true,
+                'monthly_spend' => 320.50,
+                'monthly_messages' => 10800,
+                'sub_account_id' => 'sub-001'
+            ],
+            'user-003' => [
+                'id' => 'user-003',
+                'name' => 'Sarah Wilson',
+                'email' => 'sarah.wilson@company.com',
+                'role' => 'finance',
+                'role_label' => 'Finance/Billing',
+                'status' => 'active',
+                'sender_capability' => null,
+                'created_at' => '2024-08-01',
+                'last_login' => '2026-01-14 11:30',
+                'mfa_enabled' => true,
+                'monthly_spend' => 0,
+                'monthly_messages' => 0,
+                'sub_account_id' => 'sub-002'
+            ],
+            'user-004' => [
+                'id' => 'user-004',
+                'name' => 'Chris Martinez',
+                'email' => 'chris.martinez@company.com',
+                'role' => 'messaging-manager',
+                'role_label' => 'Messaging Manager',
+                'status' => 'suspended',
+                'sender_capability' => 'restricted',
+                'created_at' => '2024-09-10',
+                'last_login' => '2026-01-10 08:15',
+                'mfa_enabled' => false,
+                'monthly_spend' => 0,
+                'monthly_messages' => 0,
+                'sub_account_id' => 'sub-002'
+            ],
+        ];
+        
+        $subAccount = $subAccounts[$subId] ?? null;
+        $user = $users[$userId] ?? null;
+        
+        if (!$subAccount || !$user) {
+            abort(404, 'User not found');
+        }
+        
+        return view('quicksms.account.user-detail', [
+            'page_title' => $user['name'],
+            'sub_account' => $subAccount,
+            'user' => $user
+        ]);
+    }
 
     public function auditLogs()
     {
