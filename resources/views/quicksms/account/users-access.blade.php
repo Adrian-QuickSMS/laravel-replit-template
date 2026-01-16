@@ -1660,23 +1660,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     html += '<span class="role-pill ' + user.role + '">' + formatRole(user.role) + '</span>';
                     
                     if (hasMessagingRole && user.senderCapability) {
-                        var capClass = user.senderCapability === 'advanced' ? 'capability-advanced' : 'capability-restricted';
                         var capLabel = user.senderCapability === 'advanced' ? 'Advanced' : 'Restricted';
-                        html += '<span class="capability-pill ' + capClass + '" style="background: ' + (user.senderCapability === 'advanced' ? 'linear-gradient(135deg, #886cc0 0%, #a78bfa 100%); color: #fff;' : '#f3f4f6; color: #6b7280; border: 1px solid #e5e7eb;') + ' padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 4px;">' + capLabel + '</span>';
+                        var capStyle = user.senderCapability === 'advanced' ? 'background: #f3e8ff; color: #6b21a8;' : 'background: #f3f4f6; color: #6b7280;';
+                        html += '<span class="badge ms-1" style="' + capStyle + ' font-size: 0.7rem;">' + capLabel + '</span>';
                     }
                     
                     html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
                     
                     if (user.role !== 'owner' && isMainAccountAdmin) {
-                        html += '<button class="btn btn-sm ms-2 btn-change-role btn-purple-outline" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '">Change Role</button>';
+                        html += '<button class="btn btn-outline-secondary btn-sm ms-2 btn-change-role" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '">Change Role</button>';
                         
                         if (hasMessagingRole) {
-                            html += '<button class="btn btn-sm ms-1 btn-change-capability btn-purple-outline" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-capability="' + (user.senderCapability || 'restricted') + '" data-sub-account-id="' + subAccount.id + '">Sender Level</button>';
+                            html += '<button class="btn btn-outline-secondary btn-sm ms-1 btn-change-capability" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-capability="' + (user.senderCapability || 'restricted') + '" data-sub-account-id="' + subAccount.id + '">Sender Level</button>';
                         }
                         
                         var overrideCount = user.permissionOverrides ? Object.keys(user.permissionOverrides).length : 0;
                         var overrideBadge = overrideCount > 0 ? ' <span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.6rem;">' + overrideCount + '</span>' : '';
-                        html += '<button class="btn btn-sm ms-1 btn-manage-permissions btn-purple-outline" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '">Permissions' + overrideBadge + '</button>';
+                        html += '<button class="btn btn-outline-secondary btn-sm ms-1 btn-manage-permissions" data-user-id="' + user.id + '" data-user-name="' + escapeHtml(user.name) + '" data-user-role="' + user.role + '" data-sub-account-id="' + subAccount.id + '">Permissions' + overrideBadge + '</button>';
                     }
                     html += '</div>';
                     html += '</div>';
