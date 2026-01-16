@@ -248,12 +248,24 @@
     transition: all 0.15s;
 }
 .btn-action.warning {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fcd34d;
+    background: transparent;
+    color: #886cc0;
+    border: 1px solid #886cc0;
 }
 .btn-action.warning:hover {
-    background: #fcd34d;
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+.optional-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    background: #f3e8ff;
+    color: #6b21a8;
+    font-size: 0.65rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    margin-left: 0.5rem;
 }
 .btn-action.success {
     background: #dcfce7;
@@ -912,6 +924,7 @@
             <h2 class="section-title">
                 <i class="fas fa-tachometer-alt"></i>
                 User-Level Limits
+                <span class="optional-badge">Optional</span>
             </h2>
             <button class="btn-action primary" data-bs-toggle="modal" data-bs-target="#editLimitsModal">
                 <i class="fas fa-edit"></i> Edit
