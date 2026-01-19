@@ -988,65 +988,65 @@
     <div class="section-card" id="delivery-overview-section">
         <div class="section-header">
             <h6><i class="fas fa-paper-plane"></i> Delivery Overview</h6>
-            <span class="text-muted" style="font-size: 0.75rem;">Values respect active filters</span>
+            <span class="text-muted" style="font-size: 0.75rem;">Matches customer reporting logic exactly</span>
         </div>
         <div class="section-body">
             <div class="kpi-grid">
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="messages">
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="sent-parts">
                     <div class="kpi-tooltip">
-                        <div class="tooltip-title">Messages Submitted</div>
-                        <div>Total messages submitted</div>
-                        <div class="tooltip-formula">COUNT(*) WHERE status IN ('submitted','delivered','failed')</div>
+                        <div class="tooltip-title">Sent (Parts)</div>
+                        <div>Total message parts sent to network</div>
+                        <div class="tooltip-formula">SUM(parts) WHERE status IN ('sent','delivered','failed','rejected')</div>
                         <div class="tooltip-note">Click to view Message Logs</div>
                     </div>
-                    <div class="kpi-icon blue"><i class="fas fa-envelope"></i></div>
-                    <div class="kpi-label">Messages Submitted</div>
-                    <div class="kpi-value">892,145</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 10.3% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.submitted</div>
+                    <div class="kpi-icon blue"><i class="fas fa-paper-plane"></i></div>
+                    <div class="kpi-label">Sent (Parts)</div>
+                    <div class="kpi-value">1,247,832</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.sent_parts</div>
                     <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="delivered">
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="delivered-parts">
                     <div class="kpi-tooltip">
-                        <div class="tooltip-title">Delivered</div>
-                        <div>Successfully delivered messages</div>
-                        <div class="tooltip-formula">COUNT(*) WHERE status = 'delivered'</div>
+                        <div class="tooltip-title">Delivered (Parts)</div>
+                        <div>Message parts successfully delivered</div>
+                        <div class="tooltip-formula">SUM(parts) WHERE status = 'delivered'</div>
                         <div class="tooltip-note">Click to view Message Logs</div>
                     </div>
                     <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
-                    <div class="kpi-label">Delivered</div>
-                    <div class="kpi-value">880,567</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 10.5% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.delivered</div>
+                    <div class="kpi-label">Delivered (Parts)</div>
+                    <div class="kpi-value">1,231,654</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.6% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.delivered_parts</div>
                     <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="delivery-rate">
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="undelivered-parts">
                     <div class="kpi-tooltip">
-                        <div class="tooltip-title">Delivery Rate</div>
-                        <div>Percentage of successful deliveries</div>
-                        <div class="tooltip-formula">delivered / (delivered + failed) * 100</div>
-                        <div class="tooltip-note">Click to view Client Reporting</div>
-                    </div>
-                    <div class="kpi-icon purple"><i class="fas fa-percentage"></i></div>
-                    <div class="kpi-label">Delivery Rate</div>
-                    <div class="kpi-value">98.7%</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 0.3% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> delivered / (delivered + failed)</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
-                </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="failed">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Failed</div>
-                        <div>Failed message deliveries</div>
-                        <div class="tooltip-formula">COUNT(*) WHERE status = 'failed'</div>
-                        <div class="tooltip-note">Click to view Message Logs (filtered)</div>
+                        <div class="tooltip-title">Undelivered (Parts)</div>
+                        <div>Parts that failed or were rejected</div>
+                        <div class="tooltip-formula">SUM(parts) WHERE status IN ('failed','rejected')</div>
+                        <div class="tooltip-note">Includes: rejected + failed per warehouse mapping</div>
                     </div>
                     <div class="kpi-icon amber"><i class="fas fa-times-circle"></i></div>
-                    <div class="kpi-label">Failed</div>
-                    <div class="kpi-value">11,578</div>
-                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 2.1% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.failed</div>
+                    <div class="kpi-label">Undelivered (Parts)</div>
+                    <div class="kpi-value">16,178</div>
+                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 3.2% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.undelivered_parts</div>
                     <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
+                </div>
+                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="delivery-pct">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Delivery %</div>
+                        <div>Percentage of parts successfully delivered</div>
+                        <div class="tooltip-formula">delivered_parts / sent_parts * 100</div>
+                        <div class="tooltip-note">Same calculation as customer reporting</div>
+                    </div>
+                    <div class="kpi-icon purple"><i class="fas fa-percentage"></i></div>
+                    <div class="kpi-label">Delivery %</div>
+                    <div class="kpi-value">98.7%</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 0.2% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> delivered_parts / sent_parts</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
             </div>
         </div>
