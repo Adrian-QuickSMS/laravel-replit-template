@@ -492,7 +492,7 @@ input:focus + .perm-slider {
                     <li class="nav-item" role="presentation" id="direct-create-tab-item">
                         <button class="nav-link" id="direct-tab" data-bs-toggle="tab" data-bs-target="#direct-pane" type="button" role="tab">
                             Direct Creation
-                            <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Admin Only</span>
+                            <span class="badge ms-1" style="font-size: 0.65rem; background: #f3e8ff; color: #6b21a8;">Admin Only</span>
                         </button>
                     </li>
                 </ul>
@@ -546,7 +546,7 @@ input:focus + .perm-slider {
                     </div>
                     
                     <div class="tab-pane fade" id="direct-pane" role="tabpanel">
-                        <div class="alert alert-warning mb-4" style="font-size: 0.85rem;">
+                        <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
                             <strong>Elevated Risk Action</strong><br>
                             Direct user creation bypasses the standard invitation flow. The user will be required to:
                             <ul class="mb-0 mt-2">
@@ -629,7 +629,7 @@ input:focus + .perm-slider {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="btn-send-invite">Send Invitation</button>
-                <button type="button" class="btn btn-warning" id="btn-direct-create" style="display: none;">Create User Directly</button>
+                <button type="button" class="btn" id="btn-direct-create" style="display: none; background: #886cc0; color: white;">Create User Directly</button>
             </div>
         </div>
     </div>
