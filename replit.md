@@ -72,6 +72,7 @@ A separate internal interface for QuickSMS employees with a hard security bounda
   - Performance: Heavy queries server-side, aggregations indexed, caching read-only only
   - Query Limits: Max 365-day date range, required pagination (50 default, 100 max), date range required
   - Client-side: Max 1000 records, server-side filtering required
+- **Final Guardrails:** Any admin sub-module that invents new definitions, duplicates customer logic, redesigns instead of extends, bypasses audit logging, or exposes PII by default is INVALID and must be reworked. Admin Control Plane is a governed superset, not a redesign.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

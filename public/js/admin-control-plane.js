@@ -273,6 +273,142 @@ var AdminControlPlane = (function() {
         }
     }
 
+    var FINAL_GUARDRAILS = {
+        violations: {
+            INVENTS_NEW_DEFINITIONS: 'invents_new_definitions',
+            DUPLICATES_LOGIC: 'duplicates_logic',
+            REDESIGNS_INSTEAD_OF_EXTENDS: 'redesigns_instead_of_extends',
+            BYPASSES_AUDIT: 'bypasses_audit',
+            EXPOSES_PII_BY_DEFAULT: 'exposes_pii_by_default'
+        },
+        message: 'Admin Control Plane is a governed superset, not a redesign.'
+    };
+
+    function validateImplementation(context) {
+        var violations = [];
+
+        if (context.definesNewStatus || context.definesNewBillingUnit || context.definesNewMessagePart) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.INVENTS_NEW_DEFINITIONS,
+                message: 'Cannot invent new definitions - must use SHARED_DEFINITIONS'
+            });
+        }
+
+        if (context.duplicatesCustomerLogic) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.DUPLICATES_LOGIC,
+                message: 'Cannot duplicate logic already defined in customer portal'
+            });
+        }
+
+        if (context.redesignsInsteadOfExtends) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.REDESIGNS_INSTEAD_OF_EXTENDS,
+                message: 'Must extend customer functionality, not redesign it'
+            });
+        }
+
+        if (context.mutatesWithoutAudit) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.BYPASSES_AUDIT,
+                message: 'All state mutations must be audit logged'
+            });
+        }
+
+        if (context.exposesPiiByDefault) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.EXPOSES_PII_BY_DEFAULT,
+                message: 'PII must be masked by default - explicit reveal required'
+            });
+        }
+
+        if (violations.length > 0) {
+            console.error('[AdminControlPlane] GUARDRAIL VIOLATIONS DETECTED:');
+            violations.forEach(function(v) {
+                console.error('  - ' + v.type + ': ' + v.message);
+            });
+            console.error('[AdminControlPlane] ' + FINAL_GUARDRAILS.message);
+
+            logAdminAction('GUARDRAIL_VIOLATION', 'implementation', {
+                violations: violations,
+                context: context
+            });
+
+            return { valid: false, violations: violations };
+        }
+
+        return { valid: true, violations: [] };
+    }
+
+    function assertSuperset(adminFeature, customerFeature) {
+        if (!customerFeature) {
+            console.warn('[AdminControlPlane] Admin feature has no customer equivalent - ensure this is intentional');
+            return true;
+        }
+
+        var adminKeys = Object.keys(adminFeature);
+        var customerKeys = Object.keys(customerFeature);
+
+        var missingFromAdmin = customerKeys.filter(function(key) {
+            return adminKeys.indexOf(key) === -1;
+        });
+
+        if (missingFromAdmin.length > 0) {
+            console.error('[AdminControlPlane] Admin feature missing customer properties:', missingFromAdmin);
+            return false;
+        }
+
+        return true;
+    }
+
+    function wrapWithAudit(fn, actionName) {
+        return function() {
+            var args = Array.prototype.slice.call(arguments);
+            var beforeState = args[0] && args[0].beforeState ? args[0].beforeState : null;
+            
+            var result = fn.apply(this, args);
+            
+            var afterState = result && result.afterState ? result.afterState : null;
+            logAdminAction(actionName, args[0] && args[0].target, {}, beforeState, afterState);
+            
+            return result;
+        };
+    }
+
+    function ensurePiiMasked(data, fields) {
+        fields = fields || ['phone', 'mobile', 'email', 'content', 'message'];
+        var masked = JSON.parse(JSON.stringify(data));
+
+        function maskValue(obj, key) {
+            if (typeof obj[key] === 'string') {
+                if (key.toLowerCase().indexOf('phone') !== -1 || key.toLowerCase().indexOf('mobile') !== -1) {
+                    obj[key] = maskPhoneNumber(obj[key]);
+                } else if (key.toLowerCase().indexOf('content') !== -1 || key.toLowerCase().indexOf('message') !== -1) {
+                    obj[key] = maskMessageContent(obj[key]);
+                } else if (key.toLowerCase().indexOf('email') !== -1) {
+                    var parts = obj[key].split('@');
+                    obj[key] = parts[0].substring(0, 2) + '***@' + (parts[1] || '***');
+                }
+            }
+        }
+
+        function traverse(obj) {
+            if (!obj || typeof obj !== 'object') return;
+            
+            Object.keys(obj).forEach(function(key) {
+                if (fields.some(function(f) { return key.toLowerCase().indexOf(f) !== -1; })) {
+                    maskValue(obj, key);
+                }
+                if (typeof obj[key] === 'object') {
+                    traverse(obj[key]);
+                }
+            });
+        }
+
+        traverse(masked);
+        return masked;
+    }
+
     var pendingFilters = {};
     var appliedFilters = {};
     var currentDrillDepth = 0;
@@ -895,6 +1031,7 @@ var AdminControlPlane = (function() {
         ENFORCEMENT_MATRIX: ENFORCEMENT_MATRIX,
         SHARED_DEFINITIONS: SHARED_DEFINITIONS,
         NFR_CONSTRAINTS: NFR_CONSTRAINTS,
+        FINAL_GUARDRAILS: FINAL_GUARDRAILS,
 
         hasPermission: hasPermission,
         hasResponsibility: hasResponsibility,
@@ -909,6 +1046,11 @@ var AdminControlPlane = (function() {
         getSharedDefinition: getSharedDefinition,
         isAdminCapability: isAdminCapability,
         isCustomerCapability: isCustomerCapability,
+
+        validateImplementation: validateImplementation,
+        assertSuperset: assertSuperset,
+        wrapWithAudit: wrapWithAudit,
+        ensurePiiMasked: ensurePiiMasked,
 
         validateQueryParams: validateQueryParams,
         serverSideQuery: serverSideQuery,
