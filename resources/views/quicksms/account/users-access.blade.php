@@ -499,8 +499,13 @@ input:focus + .perm-slider {
                 
                 <div class="tab-content" id="addUserTabContent">
                     <div class="tab-pane fade show active" id="invite-pane" role="tabpanel">
-                        <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
-                            <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
+                        <div class="alert alert-pastel-primary mb-4">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
+                                </div>
+                            </div>
                         </div>
                         
                         <form id="invite-user-form">
@@ -546,14 +551,19 @@ input:focus + .perm-slider {
                     </div>
                     
                     <div class="tab-pane fade" id="direct-pane" role="tabpanel">
-                        <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
-                            <strong>Elevated Risk Action</strong><br>
-                            Direct user creation bypasses the standard invitation flow. The user will be required to:
-                            <ul class="mb-0 mt-2">
-                                <li>Reset their password on first login</li>
-                                <li>Enrol MFA immediately before accessing the platform</li>
-                            </ul>
-                            This action is logged as a high-risk audit event.
+                        <div class="alert alert-pastel-primary mb-4">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Elevated Risk Action</strong><br>
+                                    Direct user creation bypasses the standard invitation flow. The user will be required to:
+                                    <ul class="mb-0 mt-2">
+                                        <li>Reset their password on first login</li>
+                                        <li>Enrol MFA immediately before accessing the platform</li>
+                                    </ul>
+                                    This action is logged as a high-risk audit event.
+                                </div>
+                            </div>
                         </div>
                         
                         <form id="direct-create-form">
@@ -699,8 +709,13 @@ input:focus + .perm-slider {
                             </div>
                         </div>
                         
-                        <div class="alert mt-3 mb-0" style="font-size: 0.8rem; background: #f3e8ff; border: 1px solid #ddd6fe; color: #6b21a8;">
-                            <strong>Note:</strong> These rules can be modified later in the Sub-Account settings. Users in this sub-account will inherit these defaults.
+                        <div class="alert alert-pastel-primary mt-3 mb-0">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Note:</strong> These rules can be modified later in the Sub-Account settings. Users in this sub-account will inherit these defaults.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -721,8 +736,13 @@ input:focus + .perm-slider {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
-                    <strong>Role-Based Navigation:</strong> Roles control which sections of QuickSMS the user can access, not individual feature toggles.
+                <div class="alert alert-pastel-primary mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                        <div>
+                            <strong>Role-Based Navigation:</strong> Roles control which sections of QuickSMS the user can access, not individual feature toggles.
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="mb-3">
@@ -850,8 +870,13 @@ input:focus + .perm-slider {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
-                    <strong>Sender Capability:</strong> Controls what messaging features a user can access, separate from their role.
+                <div class="alert alert-pastel-primary mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                        <div>
+                            <strong>Sender Capability:</strong> Controls what messaging features a user can access, separate from their role.
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="mb-3">
