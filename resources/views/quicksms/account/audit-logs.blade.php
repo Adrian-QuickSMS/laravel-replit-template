@@ -654,33 +654,6 @@
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-shopping-cart me-2"></i>Purchases (30d)</h6>
-                            <div class="compliance-stat" id="purchasesCount">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-file-invoice me-2"></i>Invoices (30d)</h6>
-                            <div class="compliance-stat" id="invoicesCount">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-coins me-2"></i>Credits Applied (30d)</h6>
-                            <div class="compliance-stat" id="creditsCount">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-undo me-2"></i>Refunds (30d)</h6>
-                            <div class="compliance-stat" id="refundsCount">0</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="table-responsive">
                     <table class="table table-hover mb-0" id="financialLogsTable">
                         <thead>
