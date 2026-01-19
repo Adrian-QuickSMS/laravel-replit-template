@@ -1114,15 +1114,92 @@ var AuditLogger = (function() {
 
     var APPROVED_EVENT_CODES = Object.keys(EVENT_CATALOGUE);
 
+    var SECURITY_CONTROLS = Object.freeze({
+        HTTPS_REQUIRED: true,
+        ROLE_BASED_ACCESS: true,
+        AUDIT_ACCESS_AUDITABLE: true,
+        CREDENTIALS_NEVER_LOGGED: true,
+        SESSION_VALIDATION_REQUIRED: true,
+        IP_LOGGING_ENABLED: true,
+        ENCRYPTION_AT_REST: true,
+        ENCRYPTION_IN_TRANSIT: true
+    });
+
+    var AUDIT_ACCESS_ROLES = Object.freeze({
+        FULL_ACCESS: ['owner', 'admin', 'security_officer'],
+        READ_ONLY: ['read_only', 'auditor'],
+        SCOPED_ACCESS: ['messaging_manager'],
+        NO_ACCESS: ['finance', 'developer', 'api_user']
+    });
+
+    var ROLE_PERMISSIONS = Object.freeze({
+        owner: { canView: true, canExport: true, canConfigure: true, scope: 'all' },
+        admin: { canView: true, canExport: true, canConfigure: true, scope: 'all' },
+        security_officer: { canView: true, canExport: true, canConfigure: false, scope: 'all' },
+        read_only: { canView: true, canExport: false, canConfigure: false, scope: 'all' },
+        auditor: { canView: true, canExport: true, canConfigure: false, scope: 'all' },
+        messaging_manager: { canView: true, canExport: false, canConfigure: false, scope: 'messaging' },
+        finance: { canView: false, canExport: false, canConfigure: false, scope: 'none' },
+        developer: { canView: false, canExport: false, canConfigure: false, scope: 'none' },
+        api_user: { canView: false, canExport: false, canConfigure: false, scope: 'none' },
+        campaign_approver: { canView: true, canExport: false, canConfigure: false, scope: 'messaging' }
+    });
+
     var SENSITIVE_PATTERNS = [
         { pattern: /password/i, replacement: '[CREDENTIAL_REDACTED]' },
+        { pattern: /passwd/i, replacement: '[CREDENTIAL_REDACTED]' },
+        { pattern: /pwd/i, replacement: '[CREDENTIAL_REDACTED]' },
         { pattern: /token/i, replacement: '[TOKEN_REDACTED]' },
+        { pattern: /bearer/i, replacement: '[TOKEN_REDACTED]' },
+        { pattern: /jwt/i, replacement: '[TOKEN_REDACTED]' },
         { pattern: /secret/i, replacement: '[SECRET_REDACTED]' },
         { pattern: /apiKey/i, replacement: '[API_KEY_REDACTED]' },
         { pattern: /api_key/i, replacement: '[API_KEY_REDACTED]' },
+        { pattern: /apiSecret/i, replacement: '[SECRET_REDACTED]' },
+        { pattern: /api_secret/i, replacement: '[SECRET_REDACTED]' },
+        { pattern: /accessKey/i, replacement: '[ACCESS_KEY_REDACTED]' },
+        { pattern: /access_key/i, replacement: '[ACCESS_KEY_REDACTED]' },
+        { pattern: /privateKey/i, replacement: '[PRIVATE_KEY_REDACTED]' },
+        { pattern: /private_key/i, replacement: '[PRIVATE_KEY_REDACTED]' },
         { pattern: /creditCard/i, replacement: '[CARD_REDACTED]' },
+        { pattern: /credit_card/i, replacement: '[CARD_REDACTED]' },
+        { pattern: /cardNumber/i, replacement: '[CARD_REDACTED]' },
+        { pattern: /card_number/i, replacement: '[CARD_REDACTED]' },
         { pattern: /cvv/i, replacement: '[CVV_REDACTED]' },
-        { pattern: /pin/i, replacement: '[PIN_REDACTED]' }
+        { pattern: /cvc/i, replacement: '[CVV_REDACTED]' },
+        { pattern: /pin/i, replacement: '[PIN_REDACTED]' },
+        { pattern: /ssn/i, replacement: '[SSN_REDACTED]' },
+        { pattern: /socialSecurity/i, replacement: '[SSN_REDACTED]' },
+        { pattern: /auth/i, replacement: '[AUTH_REDACTED]' },
+        { pattern: /credential/i, replacement: '[CREDENTIAL_REDACTED]' },
+        { pattern: /encryption/i, replacement: '[ENCRYPTION_REDACTED]' },
+        { pattern: /hash/i, replacement: '[HASH_REDACTED]' },
+        { pattern: /salt/i, replacement: '[SALT_REDACTED]' },
+        { pattern: /otp/i, replacement: '[OTP_REDACTED]' },
+        { pattern: /mfaCode/i, replacement: '[MFA_REDACTED]' },
+        { pattern: /mfa_code/i, replacement: '[MFA_REDACTED]' },
+        { pattern: /recoveryCode/i, replacement: '[RECOVERY_REDACTED]' },
+        { pattern: /recovery_code/i, replacement: '[RECOVERY_REDACTED]' },
+        { pattern: /backupCode/i, replacement: '[BACKUP_CODE_REDACTED]' },
+        { pattern: /backup_code/i, replacement: '[BACKUP_CODE_REDACTED]' },
+        { pattern: /sessionId/i, replacement: '[SESSION_REDACTED]' },
+        { pattern: /session_id/i, replacement: '[SESSION_REDACTED]' },
+        { pattern: /refreshToken/i, replacement: '[TOKEN_REDACTED]' },
+        { pattern: /refresh_token/i, replacement: '[TOKEN_REDACTED]' },
+        { pattern: /idToken/i, replacement: '[TOKEN_REDACTED]' },
+        { pattern: /id_token/i, replacement: '[TOKEN_REDACTED]' }
+    ];
+
+    var BLOCKED_VALUE_PATTERNS = [
+        /^Bearer\s+[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/i,
+        /^eyJ[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/,
+        /^sk_live_[A-Za-z0-9]+$/,
+        /^sk_test_[A-Za-z0-9]+$/,
+        /^pk_live_[A-Za-z0-9]+$/,
+        /^pk_test_[A-Za-z0-9]+$/,
+        /^[A-Za-z0-9]{32,}$/,
+        /^-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----/,
+        /^\$2[aby]?\$\d{1,2}\$[./A-Za-z0-9]{53}$/
     ];
 
     var PHONE_PATTERN = /(\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g;
@@ -2184,7 +2261,216 @@ var AuditLogger = (function() {
             severities: Object.keys(SEVERITIES),
             eventCount: APPROVED_EVENT_CODES.length,
             systemComponents: Object.keys(SYSTEM_COMPONENTS),
-            retentionPolicy: RETENTION_POLICY
+            retentionPolicy: RETENTION_POLICY,
+            securityControls: SECURITY_CONTROLS
+        };
+    }
+
+
+    function enforceHttps() {
+        if (SECURITY_CONTROLS.HTTPS_REQUIRED) {
+            if (typeof window !== 'undefined' && window.location && window.location.protocol === 'http:') {
+                if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                    console.error('[AuditLogger] SECURITY: HTTPS is required for audit log access');
+                    return {
+                        allowed: false,
+                        error: 'HTTPS_REQUIRED',
+                        message: 'Audit logs can only be accessed over HTTPS'
+                    };
+                }
+            }
+        }
+        return { allowed: true, protocol: typeof window !== 'undefined' ? window.location.protocol : 'https:' };
+    }
+
+    function checkRoleAccess(userRole, action) {
+        if (!SECURITY_CONTROLS.ROLE_BASED_ACCESS) {
+            return { allowed: true, reason: 'RBAC_DISABLED' };
+        }
+
+        var normalizedRole = (userRole || '').toLowerCase().replace(/[\s-]/g, '_');
+        var permissions = ROLE_PERMISSIONS[normalizedRole];
+
+        if (!permissions) {
+            return {
+                allowed: false,
+                error: 'UNKNOWN_ROLE',
+                message: 'Role "' + userRole + '" is not recognized',
+                role: userRole
+            };
+        }
+
+        var allowed = false;
+        var reason = '';
+
+        switch (action) {
+            case 'view':
+                allowed = permissions.canView;
+                reason = allowed ? 'VIEW_PERMITTED' : 'VIEW_DENIED';
+                break;
+            case 'export':
+                allowed = permissions.canExport;
+                reason = allowed ? 'EXPORT_PERMITTED' : 'EXPORT_DENIED';
+                break;
+            case 'configure':
+                allowed = permissions.canConfigure;
+                reason = allowed ? 'CONFIGURE_PERMITTED' : 'CONFIGURE_DENIED';
+                break;
+            default:
+                allowed = false;
+                reason = 'UNKNOWN_ACTION';
+        }
+
+        return {
+            allowed: allowed,
+            reason: reason,
+            role: normalizedRole,
+            action: action,
+            scope: permissions.scope,
+            permissions: permissions
+        };
+    }
+
+    function getAccessibleCategories(userRole) {
+        var normalizedRole = (userRole || '').toLowerCase().replace(/[\s-]/g, '_');
+        var permissions = ROLE_PERMISSIONS[normalizedRole];
+
+        if (!permissions || !permissions.canView) {
+            return [];
+        }
+
+        if (permissions.scope === 'all') {
+            return Object.values(CATEGORIES);
+        }
+
+        if (permissions.scope === 'messaging') {
+            return [CATEGORIES.MESSAGING, CATEGORIES.CONTACTS];
+        }
+
+        return [];
+    }
+
+    function auditAccessCheck(userId, userRole, action, result) {
+        if (!SECURITY_CONTROLS.AUDIT_ACCESS_AUDITABLE) {
+            return;
+        }
+
+        log('AUDIT_LOG_ACCESSED', {
+            actor: {
+                actorType: ACTOR_TYPES.USER,
+                actorId: userId || 'unknown',
+                actorName: 'Audit Access Check',
+                actorRole: userRole || 'unknown'
+            },
+            data: {
+                action: action,
+                result: result.allowed ? 'granted' : 'denied',
+                reason: result.reason || result.error,
+                scope: result.scope
+            },
+            result: result.allowed ? 'success' : 'denied'
+        });
+    }
+
+    function secureAccess(userId, userRole, action) {
+        var httpsCheck = enforceHttps();
+        if (!httpsCheck.allowed) {
+            auditAccessCheck(userId, userRole, action, httpsCheck);
+            return httpsCheck;
+        }
+
+        var roleCheck = checkRoleAccess(userRole, action);
+        auditAccessCheck(userId, userRole, action, roleCheck);
+
+        return roleCheck;
+    }
+
+    function validateNoCredentials(data) {
+        if (!data || typeof data !== 'object') {
+            return { safe: true, redactedFields: [] };
+        }
+
+        var redactedFields = [];
+
+        function checkValue(value, path) {
+            if (typeof value === 'string') {
+                for (var i = 0; i < BLOCKED_VALUE_PATTERNS.length; i++) {
+                    if (BLOCKED_VALUE_PATTERNS[i].test(value)) {
+                        redactedFields.push({ path: path, reason: 'CREDENTIAL_PATTERN_DETECTED' });
+                        return '[CREDENTIAL_REDACTED]';
+                    }
+                }
+            }
+            return value;
+        }
+
+        function deepCheck(obj, path) {
+            if (!obj || typeof obj !== 'object') {
+                return checkValue(obj, path);
+            }
+
+            var result = Array.isArray(obj) ? [] : {};
+            for (var key in obj) {
+                if (!obj.hasOwnProperty(key)) continue;
+
+                var currentPath = path ? path + '.' + key : key;
+                var isSensitiveKey = false;
+
+                for (var i = 0; i < SENSITIVE_PATTERNS.length; i++) {
+                    if (SENSITIVE_PATTERNS[i].pattern.test(key)) {
+                        result[key] = SENSITIVE_PATTERNS[i].replacement;
+                        redactedFields.push({ path: currentPath, reason: 'SENSITIVE_KEY' });
+                        isSensitiveKey = true;
+                        break;
+                    }
+                }
+
+                if (!isSensitiveKey) {
+                    if (typeof obj[key] === 'object' && obj[key] !== null) {
+                        result[key] = deepCheck(obj[key], currentPath);
+                    } else {
+                        result[key] = checkValue(obj[key], currentPath);
+                    }
+                }
+            }
+            return result;
+        }
+
+        var sanitized = deepCheck(data, '');
+
+        return {
+            safe: redactedFields.length === 0,
+            sanitizedData: sanitized,
+            redactedFields: redactedFields,
+            redactedCount: redactedFields.length
+        };
+    }
+
+    function getSecurityControls() {
+        return Object.assign({}, SECURITY_CONTROLS);
+    }
+
+    function getRolePermissions(role) {
+        var normalizedRole = (role || '').toLowerCase().replace(/[\s-]/g, '_');
+        return ROLE_PERMISSIONS[normalizedRole] || null;
+    }
+
+    function getAllRolePermissions() {
+        return Object.assign({}, ROLE_PERMISSIONS);
+    }
+
+    function getSecurityReport() {
+        return {
+            controls: SECURITY_CONTROLS,
+            httpsEnforced: SECURITY_CONTROLS.HTTPS_REQUIRED,
+            roleBasedAccess: SECURITY_CONTROLS.ROLE_BASED_ACCESS,
+            auditAccessAuditable: SECURITY_CONTROLS.AUDIT_ACCESS_AUDITABLE,
+            credentialsNeverLogged: SECURITY_CONTROLS.CREDENTIALS_NEVER_LOGGED,
+            sensitivePatternCount: SENSITIVE_PATTERNS.length,
+            blockedValuePatternCount: BLOCKED_VALUE_PATTERNS.length,
+            roleCount: Object.keys(ROLE_PERMISSIONS).length,
+            accessLevels: AUDIT_ACCESS_ROLES,
+            complianceStandards: ['ISO 27001', 'NHS DSP Toolkit', 'GDPR', 'SOC 2']
         };
     }
 
@@ -2231,6 +2517,16 @@ var AuditLogger = (function() {
         validateEventSchema: validateEventSchema,
         getSpecification: getSpecification,
 
+        enforceHttps: enforceHttps,
+        checkRoleAccess: checkRoleAccess,
+        getAccessibleCategories: getAccessibleCategories,
+        secureAccess: secureAccess,
+        validateNoCredentials: validateNoCredentials,
+        getSecurityControls: getSecurityControls,
+        getRolePermissions: getRolePermissions,
+        getAllRolePermissions: getAllRolePermissions,
+        getSecurityReport: getSecurityReport,
+
         getCatalogue: getCatalogue,
         getApprovedEventTypes: getApprovedEventTypes,
         getEventDefinition: getEventDefinition,
@@ -2251,7 +2547,10 @@ var AuditLogger = (function() {
         RETENTION_POLICY: RETENTION_POLICY,
         APPROVED_EVENT_CODES: APPROVED_EVENT_CODES,
         MODULE_COMPLIANCE_STATEMENT: MODULE_COMPLIANCE_STATEMENT,
-        SPECIFICATION_VERSION: SPECIFICATION_VERSION
+        SPECIFICATION_VERSION: SPECIFICATION_VERSION,
+        SECURITY_CONTROLS: SECURITY_CONTROLS,
+        ROLE_PERMISSIONS: ROLE_PERMISSIONS,
+        AUDIT_ACCESS_ROLES: AUDIT_ACCESS_ROLES
     };
 })();
 
