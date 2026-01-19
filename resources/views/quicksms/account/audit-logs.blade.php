@@ -232,6 +232,9 @@
                     <small class="text-muted">Centralised, chronological record of all platform activity</small>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#auditFiltersPanel">
+                        <i class="fas fa-filter me-1"></i>Filters
+                    </button>
                     <div class="dropdown" id="exportDropdown">
                         <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="exportBtn">
                             <i class="fas fa-download me-1"></i>Export
@@ -261,154 +264,142 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <div class="d-flex flex-wrap">
-                            <button type="button" class="btn btn-outline-secondary quick-filter-btn" data-filter="all">All Events</button>
-                            <button type="button" class="btn btn-outline-secondary quick-filter-btn" data-filter="high-severity">High Severity</button>
-                            <button type="button" class="btn btn-outline-secondary quick-filter-btn" data-filter="login-activity">Login Activity</button>
-                            <button type="button" class="btn btn-outline-secondary quick-filter-btn" data-filter="data-access">Data Access</button>
-                            <button type="button" class="btn btn-outline-secondary quick-filter-btn" data-filter="user-changes">User Changes</button>
-                            <button type="button" class="btn btn-outline-secondary quick-filter-btn" data-filter="permission-changes">Permission Changes</button>
-                        </div>
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search by description, target ID, or user name...">
+                        <button class="btn btn-primary" type="button" id="searchBtn"><i class="fas fa-search"></i></button>
                     </div>
                 </div>
 
-                <div class="filter-panel mb-4 p-3 bg-light rounded">
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label small fw-medium text-muted mb-2">Search</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                                <input type="text" class="form-control" id="searchInput" placeholder="Search by description, target ID, or user name...">
+                <div class="collapse mb-3" id="auditFiltersPanel">
+                    <div class="card card-body border-0 rounded-3" style="background-color: #f0ebf8;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Date From</label>
+                                <input type="date" class="form-control form-control-sm" id="dateFromFilter">
                             </div>
-                            <small class="text-muted">Searches event description, target reference ID, and user names</small>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Date To</label>
+                                <input type="date" class="form-control form-control-sm" id="dateToFilter">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Module</label>
+                                <select class="form-select form-select-sm" id="moduleFilter">
+                                    <option value="">All Modules</option>
+                                    <option value="account">Account</option>
+                                    <option value="users">Users</option>
+                                    <option value="sub_accounts">Sub-Accounts</option>
+                                    <option value="permissions">Permissions</option>
+                                    <option value="security">Security</option>
+                                    <option value="authentication">Authentication</option>
+                                    <option value="messaging">Messaging</option>
+                                    <option value="campaigns">Campaigns</option>
+                                    <option value="contacts">Contacts</option>
+                                    <option value="reporting">Reporting</option>
+                                    <option value="financial">Financial</option>
+                                    <option value="compliance">Compliance</option>
+                                    <option value="api">API</option>
+                                    <option value="system">System</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Event Type</label>
+                                <select class="form-select form-select-sm" id="eventTypeFilter">
+                                    <option value="">All Event Types</option>
+                                    <optgroup label="User Management">
+                                        <option value="USER_CREATED">User Created</option>
+                                        <option value="USER_INVITED">User Invited</option>
+                                        <option value="USER_SUSPENDED">User Suspended</option>
+                                        <option value="USER_REACTIVATED">User Reactivated</option>
+                                    </optgroup>
+                                    <optgroup label="Access Control">
+                                        <option value="ROLE_CHANGED">Role Changed</option>
+                                        <option value="PERMISSION_GRANTED">Permission Granted</option>
+                                        <option value="PERMISSION_REVOKED">Permission Revoked</option>
+                                    </optgroup>
+                                    <optgroup label="Authentication">
+                                        <option value="LOGIN_SUCCESS">Login Success</option>
+                                        <option value="LOGIN_FAILED">Login Failed</option>
+                                        <option value="LOGIN_BLOCKED">Login Blocked</option>
+                                        <option value="PASSWORD_CHANGED">Password Changed</option>
+                                    </optgroup>
+                                    <optgroup label="Security">
+                                        <option value="MFA_ENABLED">MFA Enabled</option>
+                                        <option value="MFA_DISABLED">MFA Disabled</option>
+                                        <option value="MFA_RESET">MFA Reset</option>
+                                    </optgroup>
+                                    <optgroup label="Data Access">
+                                        <option value="DATA_EXPORTED">Data Exported</option>
+                                        <option value="DATA_UNMASKED">Data Unmasked</option>
+                                    </optgroup>
+                                    <optgroup label="Messaging">
+                                        <option value="CAMPAIGN_SUBMITTED">Campaign Submitted</option>
+                                        <option value="CAMPAIGN_APPROVED">Campaign Approved</option>
+                                        <option value="CAMPAIGN_REJECTED">Campaign Rejected</option>
+                                        <option value="CAMPAIGN_SENT">Campaign Sent</option>
+                                    </optgroup>
+                                    <optgroup label="Financial">
+                                        <option value="PURCHASE_COMPLETED">Purchase Completed</option>
+                                        <option value="INVOICE_GENERATED">Invoice Generated</option>
+                                    </optgroup>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Date From</label>
-                            <input type="date" class="form-control" id="dateFromFilter">
+                        <div class="row g-3 align-items-end mt-2">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Sub-Account</label>
+                                <select class="form-select form-select-sm" id="subAccountFilter">
+                                    <option value="">All Sub-Accounts</option>
+                                    <option value="main">Main Account</option>
+                                    <option value="sa-001">Marketing Department</option>
+                                    <option value="sa-002">Customer Support</option>
+                                    <option value="sa-003">Sales Team</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">User</label>
+                                <select class="form-select form-select-sm" id="userFilter">
+                                    <option value="">All Users</option>
+                                    <option value="usr-001">Sarah Johnson</option>
+                                    <option value="usr-002">James Wilson</option>
+                                    <option value="usr-003">Emily Chen</option>
+                                    <option value="usr-004">Michael Brown</option>
+                                    <option value="usr-005">Lisa Anderson</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Actor Type</label>
+                                <select class="form-select form-select-sm" id="actorTypeFilter">
+                                    <option value="">All Actor Types</option>
+                                    <option value="user">User</option>
+                                    <option value="system">System</option>
+                                    <option value="api">API</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Severity</label>
+                                <select class="form-select form-select-sm" id="severityFilter">
+                                    <option value="">All Severities</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Date To</label>
-                            <input type="date" class="form-control" id="dateToFilter">
-                        </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Module</label>
-                            <select class="form-select" id="moduleFilter">
-                                <option value="">All Modules</option>
-                                <option value="account">Account</option>
-                                <option value="users">Users</option>
-                                <option value="sub_accounts">Sub-Accounts</option>
-                                <option value="permissions">Permissions</option>
-                                <option value="security">Security</option>
-                                <option value="authentication">Authentication</option>
-                                <option value="messaging">Messaging</option>
-                                <option value="campaigns">Campaigns</option>
-                                <option value="contacts">Contacts</option>
-                                <option value="reporting">Reporting</option>
-                                <option value="financial">Financial</option>
-                                <option value="compliance">Compliance</option>
-                                <option value="api">API</option>
-                                <option value="system">System</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Event Type</label>
-                            <select class="form-select" id="eventTypeFilter">
-                                <option value="">All Event Types</option>
-                                <optgroup label="User Management">
-                                    <option value="USER_CREATED">User Created</option>
-                                    <option value="USER_INVITED">User Invited</option>
-                                    <option value="USER_SUSPENDED">User Suspended</option>
-                                    <option value="USER_REACTIVATED">User Reactivated</option>
-                                </optgroup>
-                                <optgroup label="Access Control">
-                                    <option value="ROLE_CHANGED">Role Changed</option>
-                                    <option value="PERMISSION_GRANTED">Permission Granted</option>
-                                    <option value="PERMISSION_REVOKED">Permission Revoked</option>
-                                </optgroup>
-                                <optgroup label="Authentication">
-                                    <option value="LOGIN_SUCCESS">Login Success</option>
-                                    <option value="LOGIN_FAILED">Login Failed</option>
-                                    <option value="LOGIN_BLOCKED">Login Blocked</option>
-                                    <option value="PASSWORD_CHANGED">Password Changed</option>
-                                </optgroup>
-                                <optgroup label="Security">
-                                    <option value="MFA_ENABLED">MFA Enabled</option>
-                                    <option value="MFA_DISABLED">MFA Disabled</option>
-                                    <option value="MFA_RESET">MFA Reset</option>
-                                </optgroup>
-                                <optgroup label="Data Access">
-                                    <option value="DATA_EXPORTED">Data Exported</option>
-                                    <option value="DATA_UNMASKED">Data Unmasked</option>
-                                </optgroup>
-                                <optgroup label="Messaging">
-                                    <option value="CAMPAIGN_SUBMITTED">Campaign Submitted</option>
-                                    <option value="CAMPAIGN_APPROVED">Campaign Approved</option>
-                                    <option value="CAMPAIGN_REJECTED">Campaign Rejected</option>
-                                    <option value="CAMPAIGN_SENT">Campaign Sent</option>
-                                </optgroup>
-                                <optgroup label="Financial">
-                                    <option value="PURCHASE_COMPLETED">Purchase Completed</option>
-                                    <option value="INVOICE_GENERATED">Invoice Generated</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Sub-Account</label>
-                            <select class="form-select" id="subAccountFilter">
-                                <option value="">All Sub-Accounts</option>
-                                <option value="main">Main Account</option>
-                                <option value="sa-001">Marketing Department</option>
-                                <option value="sa-002">Customer Support</option>
-                                <option value="sa-003">Sales Team</option>
-                            </select>
+                        <div class="row mt-3">
+                            <div class="col-12 d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
+                                    <i class="fas fa-check me-1"></i>Apply Filters
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                                    <i class="fas fa-undo me-1"></i>Reset Filters
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">User</label>
-                            <select class="form-select" id="userFilter">
-                                <option value="">All Users</option>
-                                <option value="usr-001">Sarah Johnson</option>
-                                <option value="usr-002">James Wilson</option>
-                                <option value="usr-003">Emily Chen</option>
-                                <option value="usr-004">Michael Brown</option>
-                                <option value="usr-005">Lisa Anderson</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Actor Type</label>
-                            <select class="form-select" id="actorTypeFilter">
-                                <option value="">All Actor Types</option>
-                                <option value="user">User</option>
-                                <option value="system">System</option>
-                                <option value="api">API</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <label class="form-label small fw-medium text-muted mb-1">Severity</label>
-                            <select class="form-select" id="severityFilter">
-                                <option value="">All Severities</option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end align-items-center pt-3">
-                        <a href="#" class="text-primary small me-3" id="clearFilters">
-                            <i class="fas fa-undo me-1"></i>Reset Filters
-                        </a>
-                        <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
-                            <i class="fas fa-filter me-1"></i>Apply Filters
-                        </button>
                     </div>
                 </div>
 
