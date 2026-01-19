@@ -1826,8 +1826,8 @@
                                 <span class="legend-item" style="--color: #6b7280;"><span class="legend-dot"></span> Expired</span>
                             </div>
                         </div>
-                        <div class="chart-body">
-                            <div id="adminSupplierStackedBarChart" style="min-height: 180px;"></div>
+                        <div class="chart-body" style="padding: 0.5rem;">
+                            <div id="adminSupplierStackedBarChart" style="min-height: 160px; width: 100%;"></div>
                         </div>
                         <div class="chart-footer">
                             <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY supplier, status</span>
@@ -1909,8 +1909,8 @@
                             <span class="legend-item" style="--color: #6b7280;"><span class="legend-dot"></span> Expired</span>
                         </div>
                     </div>
-                    <div class="chart-body" id="chart-delivery-by-network">
-                        <div id="adminMnoStackedBarChart" style="min-height: 220px;"></div>
+                    <div class="chart-body" id="chart-delivery-by-network" style="padding: 0.5rem;">
+                        <div id="adminMnoStackedBarChart" style="min-height: 200px; width: 100%;"></div>
                     </div>
                     <div class="chart-footer">
                         <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY network, status</span>
@@ -2231,13 +2231,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ],
                 chart: { type: 'bar', height: 180, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
                 colors: ['#10b981', '#ef4444', '#f59e0b', '#64748b', '#6b7280'],
-                plotOptions: { bar: { horizontal: true, barHeight: '85%' } },
+                plotOptions: { bar: { horizontal: true, barHeight: '90%' } },
                 dataLabels: { enabled: false },
                 xaxis: { categories: ['Infobip', 'Sinch', 'BT'], labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } } },
-                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 }, offsetX: -5 }, axisBorder: { show: false }, axisTicks: { show: false } },
+                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 }, minWidth: 60 } },
                 legend: { show: false },
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
-                grid: { padding: { top: -15, bottom: -15, left: -10, right: 0 } }
+                grid: { padding: { top: -15, bottom: -15, left: 0, right: 0 } }
             };
             new ApexCharts(supplierChartEl, supplierOptions).render();
             console.log('[Admin Charts] Supplier chart rendered');
@@ -2257,13 +2257,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ],
                 chart: { type: 'bar', height: 220, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
                 colors: ['#10b981', '#ef4444', '#f59e0b', '#64748b', '#6b7280'],
-                plotOptions: { bar: { horizontal: true, barHeight: '85%' } },
+                plotOptions: { bar: { horizontal: true, barHeight: '90%' } },
                 dataLabels: { enabled: false },
                 xaxis: { categories: ['EE', 'Vodafone', 'O2', 'Three', 'MVNO'], labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } } },
-                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 }, offsetX: -5 }, axisBorder: { show: false }, axisTicks: { show: false } },
+                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 }, minWidth: 60 } },
                 legend: { show: false },
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
-                grid: { padding: { top: -15, bottom: -15, left: -10, right: 0 } }
+                grid: { padding: { top: -15, bottom: -15, left: 0, right: 0 } }
             };
             new ApexCharts(mnoChartEl, mnoOptions).render();
             console.log('[Admin Charts] MNO chart rendered');
