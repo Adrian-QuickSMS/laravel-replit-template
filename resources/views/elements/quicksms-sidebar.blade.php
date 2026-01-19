@@ -81,8 +81,7 @@
                 </a>
                 <ul aria-expanded="false">
                     <li data-subnav="details"><a href="{{ route('account.details') }}" class="{{ request()->routeIs('account.details') ? 'mm-active' : '' }}">Details</a></li>
-                    <li data-subnav="users"><a href="{{ route('account.users') }}" class="{{ request()->routeIs('account.users') ? 'mm-active' : '' }}">Users and Access</a></li>
-                    <li data-subnav="sub-accounts"><a href="{{ route('account.sub-accounts') }}" class="{{ request()->routeIs('account.sub-accounts') ? 'mm-active' : '' }}">Sub Accounts</a></li>
+                    <li data-subnav="users"><a href="{{ route('account.users') }}" class="{{ request()->routeIs('account.users') || request()->routeIs('account.sub-accounts') || request()->routeIs('account.sub-accounts.*') ? 'mm-active' : '' }}">Sub Accounts, Users and Permissions</a></li>
                     <li data-subnav="audit-logs"><a href="{{ route('account.audit-logs') }}" class="{{ request()->routeIs('account.audit-logs') ? 'mm-active' : '' }}">Audit Logs</a></li>
                     <li data-subnav="security"><a href="{{ route('account.security') }}" class="{{ request()->routeIs('account.security') ? 'mm-active' : '' }}">Security Settings</a></li>
                 </ul>

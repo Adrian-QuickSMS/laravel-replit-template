@@ -1,6 +1,6 @@
 @extends('layouts.quicksms')
 
-@section('title', 'Users and Access')
+@section('title', 'Sub Accounts, Users and Permissions')
 
 @push('styles')
 <style>
@@ -427,7 +427,7 @@ input:focus + .perm-slider {
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="#">Account</a></li>
-            <li class="breadcrumb-item active">Users and Access</li>
+            <li class="breadcrumb-item active">Sub Accounts, Users and Permissions</li>
         </ol>
     </div>
 
