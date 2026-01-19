@@ -95,9 +95,9 @@
         @endforeach
     @endif
     
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="{{ asset('js/admin-control-plane.js') }}"></script>
     <script src="{{ asset('js/quicksms-audit-logger.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     
     @stack('scripts')
 

@@ -2537,8 +2537,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Initialize Charts with Mock Data
-    initializeAdminCharts();
+    // Initialize Charts with Mock Data - wait for ApexCharts to be available
+    function waitForApexCharts() {
+        if (typeof ApexCharts !== 'undefined') {
+            initializeAdminCharts();
+        } else {
+            setTimeout(waitForApexCharts, 100);
+        }
+    }
+    waitForApexCharts();
     
     function initializeAdminCharts() {
         // Messages Sent Over Time - Line Chart
