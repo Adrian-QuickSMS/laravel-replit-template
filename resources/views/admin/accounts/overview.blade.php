@@ -250,13 +250,12 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')">View Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-1234')">Impersonate</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#">Edit Pricing</a></li>
-                                        <li><a class="dropdown-item" href="#">View Invoices</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-warning" href="#">Suspend Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -283,13 +282,12 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')">View Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-5678')">Impersonate</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#">Edit Pricing</a></li>
-                                        <li><a class="dropdown-item" href="#">View Invoices</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-warning" href="#">Suspend Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -316,10 +314,12 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')">View Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-7890')">Impersonate</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-success" href="#">Activate Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -346,10 +346,12 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')">View Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-4567')">Impersonate</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-success" href="#">Reactivate Account</a></li>
+                                        <li><a class="dropdown-item text-success" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'reactivate')"><i class="fas fa-play-circle me-2"></i>Reactivate Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -436,6 +438,25 @@
                     <li class="page-item"><a class="page-link" href="#">Next</a></li>
                 </ul>
             </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Row Action Confirmation Modal -->
+<div class="modal fade" id="rowActionModal" tabindex="-1" aria-labelledby="rowActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rowActionModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="rowActionModalBody">
+                <!-- Content populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="rowActionConfirmBtn">Confirm</button>
+            </div>
         </div>
     </div>
 </div>
@@ -808,6 +829,156 @@ window.inviteUser = function() {
     }
     alert('Open Invite User modal for: ' + (accountId || 'Unknown'));
 };
+
+var rowActionModal = null;
+var pendingRowAction = null;
+
+window.rowAction = function(accountId, accountName, action) {
+    if (!rowActionModal) {
+        rowActionModal = new bootstrap.Modal(document.getElementById('rowActionModal'));
+    }
+
+    pendingRowAction = { accountId: accountId, accountName: accountName, action: action };
+
+    var actionConfig = {
+        add_credit: {
+            title: 'Add Credit',
+            body: '<p>Add credit to <strong>' + accountName + '</strong></p>' +
+                  '<div class="mb-3"><label class="form-label">Credit Amount (£)</label>' +
+                  '<input type="number" class="form-control" id="creditAmount" placeholder="Enter amount" min="1" step="0.01"></div>' +
+                  '<div class="mb-3"><label class="form-label">Reason</label>' +
+                  '<input type="text" class="form-control" id="creditReason" placeholder="e.g., Manual top-up, Goodwill credit"></div>',
+            btnClass: 'btn-success',
+            btnText: 'Add Credit',
+            auditEvent: 'ACCOUNT_CREDIT_ADDED'
+        },
+        change_name: {
+            title: 'Change Account Name',
+            body: '<p>Change name for <strong>' + accountName + '</strong> (' + accountId + ')</p>' +
+                  '<div class="mb-3"><label class="form-label">New Account Name</label>' +
+                  '<input type="text" class="form-control" id="newAccountName" value="' + accountName + '"></div>',
+            btnClass: 'btn-primary',
+            btnText: 'Save Changes',
+            auditEvent: 'ACCOUNT_NAME_CHANGED'
+        },
+        view_pricing: {
+            title: 'View Pricing',
+            body: '<p>Pricing details for <strong>' + accountName + '</strong></p>' +
+                  '<table class="table table-sm">' +
+                  '<tr><th class="text-muted">Pricing Model</th><td>Delivered</td></tr>' +
+                  '<tr><th class="text-muted">UK SMS Rate</th><td>£0.032</td></tr>' +
+                  '<tr><th class="text-muted">International Rate</th><td>From £0.045</td></tr>' +
+                  '<tr><th class="text-muted">RCS Rate</th><td>£0.015</td></tr>' +
+                  '</table>',
+            btnClass: 'btn-secondary',
+            btnText: 'Close',
+            isViewOnly: true,
+            auditEvent: 'ACCOUNT_PRICING_VIEWED'
+        },
+        suspend: {
+            title: 'Suspend Account',
+            body: '<div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-2"></i>This will immediately stop all messaging for this account.</div>' +
+                  '<p>You are about to suspend <strong>' + accountName + '</strong> (' + accountId + ')</p>' +
+                  '<div class="mb-3"><label class="form-label">Suspension Reason <span class="text-danger">*</span></label>' +
+                  '<select class="form-select" id="suspendReason">' +
+                  '<option value="">Select reason...</option>' +
+                  '<option value="payment">Payment Issues</option>' +
+                  '<option value="abuse">Policy Violation / Abuse</option>' +
+                  '<option value="fraud">Fraud Investigation</option>' +
+                  '<option value="request">Customer Request</option>' +
+                  '<option value="other">Other</option>' +
+                  '</select></div>',
+            btnClass: 'btn-warning',
+            btnText: 'Suspend Account',
+            auditEvent: 'ACCOUNT_SUSPENDED'
+        },
+        reactivate: {
+            title: 'Reactivate Account',
+            body: '<div class="alert alert-info mb-3"><i class="fas fa-info-circle me-2"></i>This will restore messaging capabilities for this account.</div>' +
+                  '<p>You are about to reactivate <strong>' + accountName + '</strong> (' + accountId + ')</p>' +
+                  '<div class="mb-3"><label class="form-label">Reactivation Notes</label>' +
+                  '<input type="text" class="form-control" id="reactivateNotes" placeholder="Optional notes"></div>',
+            btnClass: 'btn-success',
+            btnText: 'Reactivate Account',
+            auditEvent: 'ACCOUNT_REACTIVATED'
+        }
+    };
+
+    var config = actionConfig[action];
+    if (!config) return;
+
+    document.getElementById('rowActionModalLabel').textContent = config.title;
+    document.getElementById('rowActionModalBody').innerHTML = config.body;
+
+    var confirmBtn = document.getElementById('rowActionConfirmBtn');
+    confirmBtn.className = 'btn ' + config.btnClass;
+    confirmBtn.textContent = config.btnText;
+
+    if (config.isViewOnly) {
+        confirmBtn.onclick = function() { rowActionModal.hide(); };
+    } else {
+        confirmBtn.onclick = function() { executeRowAction(config.auditEvent); };
+    }
+
+    // Log that the action modal was opened
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction(config.auditEvent + '_INITIATED', 'ACCOUNTS', { 
+            accountId: accountId, 
+            accountName: accountName 
+        });
+    }
+
+    rowActionModal.show();
+};
+
+function executeRowAction(auditEvent) {
+    var action = pendingRowAction;
+    if (!action) return;
+
+    var additionalData = {};
+
+    // Collect form data based on action type
+    if (action.action === 'add_credit') {
+        var amount = document.getElementById('creditAmount')?.value;
+        var reason = document.getElementById('creditReason')?.value;
+        if (!amount || parseFloat(amount) <= 0) {
+            alert('Please enter a valid credit amount.');
+            return;
+        }
+        additionalData = { amount: amount, reason: reason };
+    } else if (action.action === 'change_name') {
+        var newName = document.getElementById('newAccountName')?.value;
+        if (!newName || newName.trim() === '') {
+            alert('Please enter a valid account name.');
+            return;
+        }
+        additionalData = { oldName: action.accountName, newName: newName };
+    } else if (action.action === 'suspend') {
+        var reason = document.getElementById('suspendReason')?.value;
+        if (!reason) {
+            alert('Please select a suspension reason.');
+            return;
+        }
+        additionalData = { reason: reason };
+    } else if (action.action === 'reactivate') {
+        var notes = document.getElementById('reactivateNotes')?.value;
+        additionalData = { notes: notes };
+    }
+
+    // Log the action
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction(auditEvent, 'ACCOUNTS', { 
+            accountId: action.accountId, 
+            accountName: action.accountName,
+            ...additionalData
+        });
+    }
+
+    // Show confirmation
+    alert('Action completed: ' + auditEvent + ' for ' + action.accountName);
+    rowActionModal.hide();
+    pendingRowAction = null;
+}
 
 function filterTable(filter) {
     var rows = document.querySelectorAll('#accountsTable tbody tr');
