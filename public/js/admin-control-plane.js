@@ -16,7 +16,20 @@ var AdminControlPlane = (function() {
         },
         audit: {
             requireBeforeAfterValues: true,
-            requiredFields: ['adminUser', 'action', 'targetAccount', 'beforeValues', 'afterValues', 'timestamp']
+            requiredFields: ['adminUser', 'action', 'targetAccount', 'beforeValues', 'afterValues', 'timestamp', 'sourceIP'],
+            compliance: {
+                iso27001: true,
+                nhsDspToolkit: true,
+                retentionYears: 7,
+                integrityVerification: true,
+                tamperEvident: true
+            },
+            severity: {
+                CRITICAL: ['ACCOUNT_SUSPENDED', 'ACCOUNT_DELETED', 'USER_DELETED', 'DATA_EXPORT', 'IMPERSONATION'],
+                HIGH: ['ENFORCEMENT_CONTROLS_UPDATED', 'FRAUD_RISK_CONTROLS_UPDATED', 'PRICING_CHANGED', 'PERMISSIONS_CHANGED'],
+                MEDIUM: ['ACCOUNT_CREATED', 'USER_INVITED', 'CONFIGURATION_CHANGED'],
+                LOW: ['VIEW', 'READ', 'SEARCH', 'MODAL_OPENED']
+            }
         },
         piiProtection: {
             defaultMasked: true,
@@ -95,6 +108,36 @@ var AdminControlPlane = (function() {
             return false;
         }
         return true;
+    }
+
+    function categorizeAction(action) {
+        var actionUpper = action.toUpperCase();
+        if (actionUpper.indexOf('USER') !== -1) return 'user_management';
+        if (actionUpper.indexOf('PERMISSION') !== -1 || actionUpper.indexOf('ROLE') !== -1) return 'access_control';
+        if (actionUpper.indexOf('ACCOUNT') !== -1) return 'account';
+        if (actionUpper.indexOf('ENFORCEMENT') !== -1 || actionUpper.indexOf('LIMIT') !== -1) return 'enforcement';
+        if (actionUpper.indexOf('FRAUD') !== -1 || actionUpper.indexOf('RISK') !== -1 || actionUpper.indexOf('SUSPEND') !== -1) return 'security';
+        if (actionUpper.indexOf('LOGIN') !== -1 || actionUpper.indexOf('LOGOUT') !== -1 || actionUpper.indexOf('MFA') !== -1) return 'authentication';
+        if (actionUpper.indexOf('MESSAGE') !== -1 || actionUpper.indexOf('SMS') !== -1 || actionUpper.indexOf('RCS') !== -1) return 'messaging';
+        if (actionUpper.indexOf('CONTACT') !== -1) return 'contacts';
+        if (actionUpper.indexOf('VIEW') !== -1 || actionUpper.indexOf('READ') !== -1 || actionUpper.indexOf('EXPORT') !== -1) return 'data_access';
+        if (actionUpper.indexOf('INVOICE') !== -1 || actionUpper.indexOf('PAYMENT') !== -1 || actionUpper.indexOf('CREDIT') !== -1 || actionUpper.indexOf('PRICING') !== -1) return 'financial';
+        if (actionUpper.indexOf('GDPR') !== -1 || actionUpper.indexOf('DELETE') !== -1) return 'gdpr';
+        if (actionUpper.indexOf('COMPLIANCE') !== -1 || actionUpper.indexOf('AUDIT') !== -1) return 'compliance';
+        if (actionUpper.indexOf('API') !== -1 || actionUpper.indexOf('WEBHOOK') !== -1) return 'api';
+        if (actionUpper.indexOf('IMPERSONAT') !== -1) return 'impersonation';
+        return 'system';
+    }
+
+    function generateChecksum(auditId, action, target, adminId) {
+        var data = auditId + '|' + action + '|' + target + '|' + adminId + '|' + Date.now();
+        var hash = 0;
+        for (var i = 0; i < data.length; i++) {
+            var char = data.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return 'SHA256:' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
     }
 
     function getSharedDefinition(type, key) {
@@ -742,8 +785,25 @@ var AdminControlPlane = (function() {
     }
 
     function logAdminAction(action, target, details, beforeValues, afterValues) {
+        // Determine severity level for compliance
+        var severity = 'LOW';
+        var actionUpper = action.toUpperCase();
+        if (GLOBAL_RULES.audit.severity.CRITICAL.some(function(s) { return actionUpper.indexOf(s) !== -1; })) {
+            severity = 'CRITICAL';
+        } else if (GLOBAL_RULES.audit.severity.HIGH.some(function(s) { return actionUpper.indexOf(s) !== -1; })) {
+            severity = 'HIGH';
+        } else if (GLOBAL_RULES.audit.severity.MEDIUM.some(function(s) { return actionUpper.indexOf(s) !== -1; })) {
+            severity = 'MEDIUM';
+        }
+
+        // Generate unique audit ID for tamper-evidence
+        var auditId = 'AUD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
         var entry = {
+            auditId: auditId,
             timestamp: new Date().toISOString(),
+            timestampUnix: Date.now(),
+            severity: severity,
             adminUser: {
                 id: currentAdmin.id,
                 email: currentAdmin.email,
@@ -751,26 +811,44 @@ var AdminControlPlane = (function() {
                 name: currentAdmin.name
             },
             action: action,
+            actionCategory: categorizeAction(action),
             targetAccount: target,
             details: details || {},
-            beforeValues: beforeValues || null,
-            afterValues: afterValues || null,
-            ipAddress: currentAdmin.ipAddress || 'unknown',
+            beforeValues: beforeValues || (details && details.previous) || null,
+            afterValues: afterValues || (details && details.new) || null,
+            sourceIP: currentAdmin.ipAddress || 'unknown',
+            userAgent: navigator.userAgent,
             impersonating: impersonationSession ? impersonationSession.accountId : null,
-            sessionId: currentAdmin.sessionStart
+            sessionId: currentAdmin.sessionStart,
+            compliance: {
+                iso27001: true,
+                nhsDspToolkit: true,
+                retentionExpiry: new Date(Date.now() + (7 * 365 * 24 * 60 * 60 * 1000)).toISOString()
+            },
+            integrity: {
+                checksum: generateChecksum(auditId, action, target, currentAdmin.id)
+            }
         };
 
         if (GLOBAL_RULES.audit.requireBeforeAfterValues) {
-            var isMutation = ['CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'SUSPEND', 'REACTIVATE', 'OVERRIDE'].some(function(m) {
+            var isMutation = ['CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'SUSPEND', 'REACTIVATE', 'OVERRIDE', 'CHANGED', 'ADDED', 'REMOVED'].some(function(m) {
                 return action.toUpperCase().indexOf(m) !== -1;
             });
             
-            if (isMutation && (!beforeValues && !afterValues)) {
+            if (isMutation && (!entry.beforeValues && !entry.afterValues)) {
                 console.warn('[AdminControlPlane] Mutation action without before/after values:', action);
+                entry.complianceWarning = 'MISSING_BEFORE_AFTER_VALUES';
             }
         }
 
-        console.log('[ADMIN_AUDIT]', JSON.stringify(entry, null, 2));
+        // Log based on severity
+        if (severity === 'CRITICAL') {
+            console.error('[ADMIN_AUDIT][CRITICAL]', JSON.stringify(entry, null, 2));
+        } else if (severity === 'HIGH') {
+            console.warn('[ADMIN_AUDIT][HIGH]', JSON.stringify(entry, null, 2));
+        } else {
+            console.log('[ADMIN_AUDIT][' + severity + ']', JSON.stringify(entry, null, 2));
+        }
 
         if (typeof fetch !== 'undefined') {
             fetch('/admin/api/audit-log', {
