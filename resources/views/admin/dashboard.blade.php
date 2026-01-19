@@ -2959,7 +2959,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var routes = {
             'client-reporting': '/admin/reporting/client',
-            'message-logs': '/admin/reporting/logs',
+            'message-logs': '/admin/reporting/message-log',
             'supplier-reporting': '/admin/reporting/supplier'
         };
 
