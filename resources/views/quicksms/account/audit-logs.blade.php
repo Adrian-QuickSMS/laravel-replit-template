@@ -50,6 +50,13 @@
 
 .quick-filter-btn { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 1rem; margin-right: 0.5rem; margin-bottom: 0.5rem; }
 .quick-filter-btn.active { background-color: #886CC0; color: #fff; border-color: #886CC0; }
+
+.access-denied-container { padding: 4rem 2rem; text-align: center; background: #fff; border-radius: 0.5rem; }
+.access-denied-container .access-icon { font-size: 4rem; color: #dee2e6; margin-bottom: 1.5rem; }
+.access-denied-container h4 { color: #495057; margin-bottom: 0.75rem; }
+
+.scope-indicator { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+.export-restricted { opacity: 0.5; pointer-events: none; }
 </style>
 @endpush
 
@@ -62,6 +69,20 @@
     </ol>
 </div>
 
+<div id="accessDeniedState" class="access-denied-container" style="display: none;">
+    <div class="access-icon">
+        <i class="fas fa-lock"></i>
+    </div>
+    <h4>Access Restricted</h4>
+    <p class="text-muted mb-3">You do not have permission to view Audit Logs.</p>
+    <p class="small text-muted mb-0">Audit Logs are available to Account Owners, Administrators, and Security Officers only.</p>
+    <p class="small text-muted">Finance and Developer/API users do not have access to this module.</p>
+    <a href="{{ route('dashboard') }}" class="btn btn-primary mt-3">
+        <i class="fas fa-arrow-left me-2"></i>Return to Dashboard
+    </a>
+</div>
+
+<div id="auditLogsContent">
 <ul class="nav nav-tabs" id="auditTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="all-logs-tab" data-bs-toggle="tab" data-bs-target="#allLogs" type="button" role="tab">
@@ -591,6 +612,7 @@
         </div>
     </div>
 </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -602,6 +624,105 @@ $(document).ready(function() {
     var filteredLogs = [];
     var allLogs = [];
     var activeQuickFilter = 'all';
+
+    var AUDIT_LOG_ACCESS = {
+        FULL_ACCESS: ['owner', 'admin', 'security_officer'],
+        READ_ONLY: ['read_only', 'auditor'],
+        LIMITED_SCOPE: ['messaging_manager'],
+        NO_ACCESS: ['finance', 'developer', 'api_user']
+    };
+
+    var ROLE_SCOPE_CATEGORIES = {
+        messaging_manager: ['messaging'],
+        read_only: null,
+        auditor: null
+    };
+
+    var currentUserRole = window.QUICKSMS_USER?.role || 'admin';
+    var userAccessLevel = 'none';
+    var userScopeCategories = null;
+    var canExport = false;
+
+    function checkAccessPermissions() {
+        if (AUDIT_LOG_ACCESS.FULL_ACCESS.includes(currentUserRole)) {
+            userAccessLevel = 'full';
+            canExport = true;
+            userScopeCategories = null;
+        } else if (AUDIT_LOG_ACCESS.READ_ONLY.includes(currentUserRole)) {
+            userAccessLevel = 'read_only';
+            canExport = false;
+            userScopeCategories = null;
+        } else if (AUDIT_LOG_ACCESS.LIMITED_SCOPE.includes(currentUserRole)) {
+            userAccessLevel = 'limited';
+            canExport = true;
+            userScopeCategories = ROLE_SCOPE_CATEGORIES[currentUserRole] || null;
+        } else if (AUDIT_LOG_ACCESS.NO_ACCESS.includes(currentUserRole)) {
+            userAccessLevel = 'none';
+            canExport = false;
+            userScopeCategories = null;
+        } else {
+            userAccessLevel = 'full';
+            canExport = true;
+        }
+
+        return userAccessLevel !== 'none';
+    }
+
+    function applyAccessRestrictions() {
+        if (userAccessLevel === 'none') {
+            $('#accessDeniedState').show();
+            $('#auditLogsContent').hide();
+            return false;
+        }
+
+        $('#accessDeniedState').hide();
+        $('#auditLogsContent').show();
+
+        if (!canExport) {
+            $('#exportCsvBtn, #exportJsonBtn').addClass('export-restricted').attr('title', 'Export not available for your role');
+        }
+
+        if (userAccessLevel === 'limited') {
+            $('.nav-link[data-bs-target="#securityLogs"]').parent().hide();
+            $('.nav-link[data-bs-target="#financialLogs"]').parent().hide();
+            $('.nav-link[data-bs-target="#complianceLogs"]').parent().hide();
+
+            $('#verifyIntegrityBtn').hide();
+
+            addScopeIndicator();
+        }
+
+        if (userAccessLevel === 'read_only') {
+            $('#verifyIntegrityBtn').hide();
+            addReadOnlyIndicator();
+        }
+
+        return true;
+    }
+
+    function addScopeIndicator() {
+        var scopeText = userScopeCategories ? userScopeCategories.map(function(c) {
+            return c.charAt(0).toUpperCase() + c.slice(1);
+        }).join(', ') + ' only' : 'Limited scope';
+
+        var indicator = $('<span class="scope-indicator ms-2"><i class="fas fa-filter me-1"></i>' + scopeText + '</span>');
+        $('.card-header h5.card-title').first().after(indicator);
+    }
+
+    function addReadOnlyIndicator() {
+        var indicator = $('<span class="scope-indicator ms-2"><i class="fas fa-eye me-1"></i>Read-only access</span>');
+        $('.card-header h5.card-title').first().after(indicator);
+    }
+
+    function filterLogsByScope(logs) {
+        if (!userScopeCategories || userScopeCategories.length === 0) {
+            return logs;
+        }
+
+        return logs.filter(function(log) {
+            return userScopeCategories.includes(log.category);
+        });
+    }
 
     var EXTENDED_ACTION_TYPES = {
         ...AuditLogger.ACTION_TYPES,
@@ -752,7 +873,19 @@ $(document).ready(function() {
     }
 
     function init() {
+        if (!checkAccessPermissions()) {
+            applyAccessRestrictions();
+            return;
+        }
+
+        applyAccessRestrictions();
+
         allLogs = generateMockAuditData();
+
+        if (userScopeCategories) {
+            allLogs = filterLogsByScope(allLogs);
+        }
+
         applyFilters();
         updateStats();
         updateSecurityStats();
@@ -761,6 +894,15 @@ $(document).ready(function() {
         updateComplianceStats();
         renderCategoryTables();
         bindEvents();
+
+        AuditLogger.log('DATA_EXPORTED', {
+            data: {
+                action: 'AUDIT_LOG_ACCESSED',
+                userRole: currentUserRole,
+                accessLevel: userAccessLevel,
+                scopeCategories: userScopeCategories
+            }
+        });
     }
 
     function updateStats() {
@@ -1221,11 +1363,22 @@ $(document).ready(function() {
     }
 
     function exportLogs(format) {
+        if (!canExport) {
+            showToast('Export not permitted for your role', 'error');
+            return;
+        }
+
         var data = filteredLogs.length > 0 ? filteredLogs : allLogs;
         var content, filename, mimeType;
 
         AuditLogger.log('DATA_EXPORTED', {
-            data: { exportType: 'audit_log', format: format, recordCount: data.length }
+            data: { 
+                exportType: 'audit_log', 
+                format: format, 
+                recordCount: data.length,
+                userRole: currentUserRole,
+                scopeRestricted: userScopeCategories !== null
+            }
         });
 
         if (format === 'csv') {
