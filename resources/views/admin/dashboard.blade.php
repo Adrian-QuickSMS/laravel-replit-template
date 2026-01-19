@@ -1652,18 +1652,20 @@
         </div>
     </div>
 
-    <!-- Global Filters - Collapsible card -->
+    <!-- Global Filters - Using same pattern as customer portal -->
     <div class="card" id="global-filters-section">
-        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-                <a href="javascript:void(0);" class="text-dark d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#globalFiltersBody" aria-expanded="false" aria-controls="globalFiltersBody">
-                    <i class="fas fa-filter me-2 text-primary"></i>Global Filters
-                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 0.75rem; transition: transform 0.3s;"></i>
-                </a>
-            </h5>
-            <span class="text-muted" style="font-size: 0.75rem;">Filters apply only when you click "Apply Filters"</span>
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <h5 class="card-title mb-2 mb-md-0">Global Filters</h5>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted" style="font-size: 0.75rem;">Filters apply only when you click "Apply Filters"</span>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#globalFiltersBody">
+                    <i class="fas fa-filter me-1"></i> Filters
+                </button>
+            </div>
         </div>
-        <div class="card-body collapse" id="globalFiltersBody">
+        <div class="card-body">
+            <div class="collapse" id="globalFiltersBody">
+            <div class="card card-body border-0 rounded-3" style="background-color: #e8f4fc;">
             <div class="global-filters-grid">
                 <div class="filter-group">
                     <label>Date Range <span class="required">*</span></label>
@@ -1773,6 +1775,8 @@
             <div class="filter-pending-notice" id="filter-pending-notice">
                 <i class="fas fa-exclamation-circle"></i>
                 <span>You have pending filter changes. Click "Apply Filters" to update the dashboard.</span>
+            </div>
+            </div>
             </div>
         </div>
 
