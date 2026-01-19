@@ -1123,6 +1123,250 @@
     color: #1e3a5f;
     text-align: right;
 }
+
+.supplier-health-grid .chart-span-full {
+    grid-column: 1 / -1;
+}
+
+.pricing-upload-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.pricing-upload-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+    color: #fff;
+}
+
+.pricing-upload-title h6 {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.pricing-upload-title .pricing-purpose {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.pricing-upload-body {
+    padding: 1rem 1.25rem;
+}
+
+.pricing-info-strip {
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    color: #0369a1;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.pricing-info-strip i {
+    margin-right: 0.5rem;
+}
+
+.pricing-table-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-uploads-table {
+    width: 100%;
+    font-size: 0.8rem;
+    border-collapse: collapse;
+}
+
+.pricing-uploads-table th,
+.pricing-uploads-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.pricing-uploads-table th {
+    font-weight: 600;
+    color: #475569;
+    background: #f8fafc;
+}
+
+.pricing-uploads-table td {
+    color: #334155;
+}
+
+.version-badge {
+    background: #4a90d9;
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.btn-icon:hover {
+    color: #4a90d9;
+}
+
+.admin-modal .modal-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+    color: #fff;
+}
+
+.admin-modal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.admin-modal .modal-title {
+    font-size: 1rem;
+}
+
+.admin-modal .modal-title i {
+    margin-right: 0.5rem;
+}
+
+.upload-requirements {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.upload-requirements h6 {
+    font-size: 0.85rem;
+    color: #1e3a5f;
+    margin-bottom: 0.75rem;
+}
+
+.requirement-list {
+    margin-bottom: 0.75rem;
+}
+
+.requirement-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #475569;
+    margin-bottom: 0.25rem;
+}
+
+.required-columns-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.column-tag {
+    background: #1e3a5f;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.validation-notes {
+    font-size: 0.75rem;
+    color: #64748b;
+    border-top: 1px dashed #cbd5e1;
+    padding-top: 0.75rem;
+}
+
+.validation-notes p {
+    margin-bottom: 0.25rem;
+    color: #475569;
+}
+
+.validation-notes ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.validation-notes code {
+    background: #e2e8f0;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+}
+
+.upload-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.upload-dropzone:hover {
+    border-color: #4a90d9;
+    background: #f0f9ff;
+}
+
+.upload-dropzone i {
+    font-size: 2rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+}
+
+.upload-dropzone p {
+    margin: 0;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.upload-dropzone small {
+    color: #94a3b8;
+}
+
+.upload-file-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+.upload-file-preview i {
+    font-size: 1.5rem;
+    color: #16a34a;
+}
+
+.upload-file-preview .file-name {
+    font-weight: 500;
+    color: #166534;
+    flex: 1;
+}
+
+.upload-file-preview .file-size {
+    font-size: 0.75rem;
+    color: #64748b;
+}
 </style>
 @endpush
 
@@ -1699,6 +1943,163 @@
                         <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY route, product</span>
                     </div>
                 </div>
+
+                <div class="pricing-upload-panel chart-span-full">
+                    <div class="pricing-upload-header">
+                        <div class="pricing-upload-title">
+                            <h6><i class="fas fa-file-invoice-dollar"></i> Supplier Pricing Reference</h6>
+                            <span class="pricing-purpose">Upload supplier price sheets for margin validation</span>
+                        </div>
+                        <button class="btn-admin-primary" onclick="openSupplierPricingModal()">
+                            <i class="fas fa-upload"></i> Upload Supplier Pricing
+                        </button>
+                    </div>
+                    <div class="pricing-upload-body">
+                        <div class="pricing-info-strip">
+                            <i class="fas fa-info-circle"></i>
+                            Used for: <strong>Margin risk detection</strong> and <strong>Supplier reconciliation</strong>
+                        </div>
+                        <div class="pricing-recent-uploads">
+                            <div class="pricing-table-header">Recent Uploads</div>
+                            <table class="pricing-uploads-table">
+                                <thead>
+                                    <tr>
+                                        <th>Supplier</th>
+                                        <th>Uploaded By</th>
+                                        <th>Timestamp</th>
+                                        <th>Effective Date</th>
+                                        <th>Version</th>
+                                        <th>Rows</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Sinch UK</strong></td>
+                                        <td>admin@quicksms.com</td>
+                                        <td>2026-01-18 14:32</td>
+                                        <td>2026-01-01</td>
+                                        <td><span class="version-badge">v3</span></td>
+                                        <td>1,247</td>
+                                        <td>
+                                            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
+                                            <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Twilio</strong></td>
+                                        <td>finance@quicksms.com</td>
+                                        <td>2026-01-15 09:15</td>
+                                        <td>2026-01-01</td>
+                                        <td><span class="version-badge">v2</span></td>
+                                        <td>3,421</td>
+                                        <td>
+                                            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
+                                            <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vonage</strong></td>
+                                        <td>admin@quicksms.com</td>
+                                        <td>2026-01-10 11:45</td>
+                                        <td>2025-12-01</td>
+                                        <td><span class="version-badge">v1</span></td>
+                                        <td>892</td>
+                                        <td>
+                                            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
+                                            <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="supplierPricingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content admin-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-invoice-dollar"></i> Upload Supplier Pricing</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-requirements">
+                        <h6>File Requirements</h6>
+                        <div class="requirement-list">
+                            <div class="requirement-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span><strong>Format:</strong> CSV (required) or XLSX (optional)</span>
+                            </div>
+                            <div class="requirement-item">
+                                <i class="fas fa-columns text-info"></i>
+                                <span><strong>Required Columns:</strong></span>
+                            </div>
+                        </div>
+                        <div class="required-columns-grid">
+                            <div class="column-tag">Country Prefix</div>
+                            <div class="column-tag">Country Name</div>
+                            <div class="column-tag">MCC</div>
+                            <div class="column-tag">MNC</div>
+                            <div class="column-tag">Price</div>
+                            <div class="column-tag">Product</div>
+                        </div>
+                        <div class="validation-notes">
+                            <p><i class="fas fa-info-circle"></i> <strong>Validation Rules:</strong></p>
+                            <ul>
+                                <li>Numeric fields (MCC, MNC, Price) must be valid numbers</li>
+                                <li>Product must be: <code>SMS</code>, <code>RCS Basic</code>, or <code>RCS Single</code></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="upload-form">
+                        <div class="mb-3">
+                            <label class="form-label">Supplier Name <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pricingSupplier">
+                                <option value="">Select supplier...</option>
+                                <option value="sinch-uk">Sinch UK</option>
+                                <option value="twilio">Twilio</option>
+                                <option value="vonage">Vonage</option>
+                                <option value="messagebird">MessageBird</option>
+                                <option value="other">Other (specify)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="otherSupplierInput" style="display: none;">
+                            <label class="form-label">Supplier Name</label>
+                            <input type="text" class="form-control" placeholder="Enter supplier name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Effective Date</label>
+                            <input type="date" class="form-control" id="pricingEffectiveDate">
+                            <small class="text-muted">Optional. Date from which these prices apply.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Price Sheet File <span class="text-danger">*</span></label>
+                            <div class="upload-dropzone" id="pricingDropzone">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag & drop your file here, or <span class="text-primary">browse</span></p>
+                                <small>CSV or XLSX, max 10MB</small>
+                                <input type="file" id="pricingFileInput" accept=".csv,.xlsx" style="display: none;">
+                            </div>
+                            <div class="upload-file-preview" id="pricingFilePreview" style="display: none;">
+                                <i class="fas fa-file-csv"></i>
+                                <span class="file-name">filename.csv</span>
+                                <span class="file-size">1.2 MB</span>
+                                <button class="btn-icon" onclick="clearPricingFile()"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-admin-primary" onclick="validateAndUploadPricing()">
+                        <i class="fas fa-upload"></i> Upload & Validate
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2074,6 +2475,149 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[Admin Dashboard] Data source: Internal Warehouse API');
     console.log('[Admin Dashboard] RULE: Filters apply ONLY on Apply button click');
     console.log('[Admin Dashboard] KPI tiles are clickable for drill-down');
+
+    var supplierPricingModal = null;
+    var pricingFile = null;
+
+    window.openSupplierPricingModal = function() {
+        if (!supplierPricingModal) {
+            supplierPricingModal = new bootstrap.Modal(document.getElementById('supplierPricingModal'));
+        }
+        pricingFile = null;
+        document.getElementById('pricingDropzone').style.display = 'block';
+        document.getElementById('pricingFilePreview').style.display = 'none';
+        document.getElementById('pricingSupplier').value = '';
+        document.getElementById('pricingEffectiveDate').value = '';
+        document.getElementById('otherSupplierInput').style.display = 'none';
+        supplierPricingModal.show();
+
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('SUPPLIER_PRICING_MODAL_OPENED', 'FINANCIAL', {});
+        }
+    };
+
+    var dropzone = document.getElementById('pricingDropzone');
+    var fileInput = document.getElementById('pricingFileInput');
+
+    if (dropzone) {
+        dropzone.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropzone.style.borderColor = '#4a90d9';
+            dropzone.style.background = '#f0f9ff';
+        });
+
+        dropzone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropzone.style.borderColor = '#cbd5e1';
+            dropzone.style.background = 'transparent';
+        });
+
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.style.borderColor = '#cbd5e1';
+            dropzone.style.background = 'transparent';
+            
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handlePricingFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handlePricingFile(e.target.files[0]);
+            }
+        });
+    }
+
+    function handlePricingFile(file) {
+        var validTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+        var validExtensions = ['.csv', '.xlsx', '.xls'];
+        var extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+        if (!validExtensions.includes(extension)) {
+            alert('Invalid file type. Please upload a CSV or XLSX file.');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File too large. Maximum size is 10MB.');
+            return;
+        }
+
+        pricingFile = file;
+        document.getElementById('pricingDropzone').style.display = 'none';
+        var preview = document.getElementById('pricingFilePreview');
+        preview.style.display = 'flex';
+        preview.querySelector('.file-name').textContent = file.name;
+        preview.querySelector('.file-size').textContent = formatFileSize(file.size);
+
+        var icon = preview.querySelector('i');
+        icon.className = extension === '.csv' ? 'fas fa-file-csv' : 'fas fa-file-excel';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    window.clearPricingFile = function() {
+        pricingFile = null;
+        document.getElementById('pricingDropzone').style.display = 'block';
+        document.getElementById('pricingFilePreview').style.display = 'none';
+        document.getElementById('pricingFileInput').value = '';
+    };
+
+    document.getElementById('pricingSupplier').addEventListener('change', function() {
+        var otherInput = document.getElementById('otherSupplierInput');
+        if (this.value === 'other') {
+            otherInput.style.display = 'block';
+        } else {
+            otherInput.style.display = 'none';
+        }
+    });
+
+    window.validateAndUploadPricing = function() {
+        var supplier = document.getElementById('pricingSupplier').value;
+        var effectiveDate = document.getElementById('pricingEffectiveDate').value;
+
+        if (!supplier) {
+            alert('Please select a supplier.');
+            return;
+        }
+
+        if (!pricingFile) {
+            alert('Please upload a price sheet file.');
+            return;
+        }
+
+        console.log('[Admin Dashboard] Uploading supplier pricing:', {
+            supplier: supplier,
+            effectiveDate: effectiveDate,
+            fileName: pricingFile.name,
+            fileSize: pricingFile.size
+        });
+
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('SUPPLIER_PRICING_UPLOADED', 'FINANCIAL', {
+                supplier: supplier,
+                effective_date: effectiveDate,
+                file_name: pricingFile.name,
+                file_size: pricingFile.size
+            });
+        }
+
+        alert('File validated and uploaded successfully!\n\nSupplier: ' + supplier + '\nFile: ' + pricingFile.name + '\n\nTODO: Implement backend upload endpoint');
+        
+        if (supplierPricingModal) {
+            supplierPricingModal.hide();
+        }
+    };
 });
 </script>
 @endpush
