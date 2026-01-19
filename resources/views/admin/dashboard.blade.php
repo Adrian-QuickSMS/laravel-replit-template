@@ -752,6 +752,174 @@
     font-size: 0.7rem;
     font-weight: 600;
 }
+
+.reporting-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.reporting-charts-grid .chart-wide {
+    grid-column: span 2;
+}
+
+@media (max-width: 1100px) {
+    .reporting-charts-grid {
+        grid-template-columns: 1fr;
+    }
+    .reporting-charts-grid .chart-wide {
+        grid-column: span 1;
+    }
+}
+
+.chart-legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #64748b;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--color);
+}
+
+.chart-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid #f1f5f9;
+    background: #fafbfc;
+}
+
+.chart-source {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.chart-source i {
+    font-size: 0.6rem;
+}
+
+.chart-note {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+}
+
+.chart-toggle-group {
+    display: flex;
+    gap: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.chart-toggle {
+    background: #fff;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.7rem;
+    color: #64748b;
+    cursor: pointer;
+    border-right: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.chart-toggle:last-child {
+    border-right: none;
+}
+
+.chart-toggle.active {
+    background: #1e3a5f;
+    color: #fff;
+}
+
+.chart-toggle:hover:not(.active) {
+    background: #f8fafc;
+}
+
+.top-items-table {
+    width: 100%;
+    font-size: 0.8rem;
+}
+
+.top-items-table th {
+    font-weight: 500;
+    color: #64748b;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.top-items-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e3a5f;
+}
+
+.top-items-table tr:last-child td {
+    border-bottom: none;
+}
+
+.top-items-table code {
+    background: rgba(74, 144, 217, 0.1);
+    color: #1e3a5f;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+}
+
+.horizontal-bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.bar-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 80px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.bar-label {
+    font-size: 0.8rem;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bar-track {
+    height: 20px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a90d9, #2d5a87);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.bar-value {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1e3a5f;
+    text-align: right;
+}
 </style>
 @endpush
 
@@ -1052,36 +1220,149 @@
         </div>
     </div>
 
-    <div class="section-card">
+    <div class="section-card" id="platform-reporting-section">
         <div class="section-header">
-            <h6><i class="fas fa-chart-area"></i> Platform Reporting</h6>
+            <h6><i class="fas fa-chart-area"></i> Traffic & Performance</h6>
+            <span class="text-muted" style="font-size: 0.75rem;">Mirrors customer reporting charts (all clients)</span>
         </div>
         <div class="section-body">
-            <div class="charts-grid">
-                <div class="chart-container">
+            <div class="reporting-charts-grid">
+                <div class="chart-container chart-wide">
                     <div class="chart-header">
-                        <h6>Message Volume (24 Hours)</h6>
-                        <div class="d-flex gap-2">
-                            <span class="badge" style="background: rgba(74, 144, 217, 0.1); color: #4a90d9;">SMS</span>
-                            <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">RCS</span>
+                        <h6>Messages Sent Over Time</h6>
+                        <div class="chart-legend">
+                            <span class="legend-item" style="--color: #4a90d9;"><span class="legend-dot"></span> Sent</span>
+                            <span class="legend-item" style="--color: #059669;"><span class="legend-dot"></span> Delivered</span>
+                            <span class="legend-item" style="--color: #dc2626;"><span class="legend-dot"></span> Undelivered</span>
+                            <span class="legend-item" style="--color: #f59e0b;"><span class="legend-dot"></span> Pending</span>
+                            <span class="legend-item" style="--color: #8b5cf6;"><span class="legend-dot"></span> Rejected</span>
                         </div>
                     </div>
-                    <div class="chart-body">
+                    <div class="chart-body" id="chart-messages-over-time">
                         <div class="chart-placeholder">
-                            <i class="fas fa-chart-area d-block"></i>
-                            <span>Hourly volume chart</span>
+                            <i class="fas fa-chart-line d-block"></i>
+                            <div>Line chart: X = date/hour, Y = parts</div>
+                            <div class="chart-note">Uses same component as customer reporting</div>
                         </div>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery (aggregated by hour)</span>
                     </div>
                 </div>
+
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h6>Channel Split</h6>
+                        <h6>Delivery Status Breakdown</h6>
                     </div>
-                    <div class="chart-body">
+                    <div class="chart-body" id="chart-delivery-status-pie">
                         <div class="chart-placeholder">
                             <i class="fas fa-chart-pie d-block"></i>
-                            <span>SMS vs RCS breakdown</span>
+                            <div>Pie chart: status distribution</div>
                         </div>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery.status</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h6>Top SenderIDs</h6>
+                        <div class="chart-toggle-group">
+                            <button class="chart-toggle active" data-view="volume">Volume</button>
+                            <button class="chart-toggle" data-view="revenue">Revenue</button>
+                            <button class="chart-toggle" data-view="margin">Margin</button>
+                        </div>
+                    </div>
+                    <div class="chart-body" id="chart-top-senderids">
+                        <table class="top-items-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>SenderID</th>
+                                    <th>Client</th>
+                                    <th class="text-end">Parts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td><code>ALERTS24</code></td><td>Acme Corp</td><td class="text-end">124,832</td></tr>
+                                <tr><td>2</td><td><code>MYBANK</code></td><td>Finance Ltd</td><td class="text-end">98,421</td></tr>
+                                <tr><td>3</td><td><code>RETAILCO</code></td><td>Retail Co</td><td class="text-end">76,234</td></tr>
+                                <tr><td>4</td><td><code>HEALTH+</code></td><td>HealthCare+</td><td class="text-end">54,102</td></tr>
+                                <tr><td>5</td><td><code>PROMO</code></td><td>MarketingPro</td><td class="text-end">43,876</td></tr>
+                                <tr><td>6</td><td><code>DELIVERY</code></td><td>LogiTech</td><td class="text-end">38,234</td></tr>
+                                <tr><td>7</td><td><code>VERIFY</code></td><td>SecureAuth</td><td class="text-end">32,109</td></tr>
+                                <tr><td>8</td><td><code>BOOKING</code></td><td>TravelMax</td><td class="text-end">28,765</td></tr>
+                                <tr><td>9</td><td><code>SERVICE</code></td><td>UtilityCo</td><td class="text-end">21,432</td></tr>
+                                <tr><td>10</td><td><code>REMINDER</code></td><td>AppointBot</td><td class="text-end">18,987</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> fact_messages GROUP BY sender_id LIMIT 10</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h6>Top Destination Countries</h6>
+                    </div>
+                    <div class="chart-body" id="chart-top-countries">
+                        <div class="horizontal-bar-chart">
+                            <div class="bar-row">
+                                <span class="bar-label">United Kingdom</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div>
+                                <span class="bar-value">892,456</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Ireland</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 18%;"></div></div>
+                                <span class="bar-value">160,642</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Germany</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 12%;"></div></div>
+                                <span class="bar-value">107,094</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">France</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 8%;"></div></div>
+                                <span class="bar-value">71,396</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Spain</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 5%;"></div></div>
+                                <span class="bar-value">44,622</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Netherlands</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 4%;"></div></div>
+                                <span class="bar-value">35,698</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Belgium</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 3%;"></div></div>
+                                <span class="bar-value">26,773</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Italy</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 2.5%;"></div></div>
+                                <span class="bar-value">22,311</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Poland</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 2%;"></div></div>
+                                <span class="bar-value">17,849</span>
+                            </div>
+                            <div class="bar-row">
+                                <span class="bar-label">Portugal</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 1.5%;"></div></div>
+                                <span class="bar-value">13,387</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY country LIMIT 10</span>
                     </div>
                 </div>
             </div>
