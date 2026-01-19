@@ -61,6 +61,17 @@ A separate internal interface for QuickSMS employees with a hard security bounda
 - **Impersonation:** Requires a reason, has a 5-minute session limit, and logs all actions to the ADMIN audit.
 - **Admin Responsibility Model:** Observe (READ), Control (WRITE), Investigate (SUPPORT), Govern (COMPLIANCE).
 - **Global Admin Module Rules:** Single source of truth for data, filtering applies only on explicit action, maximum drill depth of 1, comprehensive audit logging for state mutations, and PII protection (masking by default, explicit reveal with logging).
+- **Admin vs Customer Enforcement Matrix:**
+  - Admin sees all clients; customers see only themselves
+  - Admin approves; customers request
+  - Admin overrides; customers configure within limits
+  - **FORBIDDEN:** Admin cannot redefine delivery statuses, billing logic, or message parts
+  - Shared definitions (delivery statuses, message parts, billing units) are immutable
+- **Non-Functional Requirements:**
+  - Scale: Full platform traffic, millions of records/day, multi-year historical queries
+  - Performance: Heavy queries server-side, aggregations indexed, caching read-only only
+  - Query Limits: Max 365-day date range, required pagination (50 default, 100 max), date range required
+  - Client-side: Max 1000 records, server-side filtering required
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

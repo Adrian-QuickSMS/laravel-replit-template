@@ -29,6 +29,250 @@ var AdminControlPlane = (function() {
         }
     };
 
+    var ENFORCEMENT_MATRIX = {
+        scope: {
+            admin: 'all_clients',
+            customer: 'self_only'
+        },
+        capabilities: {
+            admin: {
+                seesAllClients: true,
+                approves: true,
+                overrides: true,
+                configuresLimits: true
+            },
+            customer: {
+                seesAllClients: false,
+                requests: true,
+                configuresWithinLimits: true
+            }
+        },
+        forbidden: {
+            redefineDeliveryStatuses: true,
+            redefineBillingLogic: true,
+            redefineMessageParts: true
+        },
+        immutableDefinitions: [
+            'DELIVERY_STATUS_SUBMITTED',
+            'DELIVERY_STATUS_DELIVERED',
+            'DELIVERY_STATUS_FAILED',
+            'DELIVERY_STATUS_EXPIRED',
+            'DELIVERY_STATUS_REJECTED',
+            'BILLING_CHARGE_PER_PART',
+            'BILLING_CURRENCY',
+            'MESSAGE_PART_SIZE_SMS',
+            'MESSAGE_PART_SIZE_UNICODE'
+        ]
+    };
+
+    var SHARED_DEFINITIONS = {
+        deliveryStatuses: {
+            SUBMITTED: { code: 'submitted', label: 'Submitted', final: false },
+            DELIVERED: { code: 'delivered', label: 'Delivered', final: true },
+            FAILED: { code: 'failed', label: 'Failed', final: true },
+            EXPIRED: { code: 'expired', label: 'Expired', final: true },
+            REJECTED: { code: 'rejected', label: 'Rejected', final: true },
+            PENDING: { code: 'pending', label: 'Pending', final: false },
+            QUEUED: { code: 'queued', label: 'Queued', final: false }
+        },
+        messageParts: {
+            SMS_STANDARD: 160,
+            SMS_UNICODE: 70,
+            SMS_MULTIPART_STANDARD: 153,
+            SMS_MULTIPART_UNICODE: 67
+        },
+        billingUnits: {
+            currency: 'GBP',
+            chargePerPart: true,
+            minimumCharge: 0.01
+        }
+    };
+
+    function validateNotRedefining(action, target) {
+        if (ENFORCEMENT_MATRIX.immutableDefinitions.indexOf(target) !== -1) {
+            console.error('[AdminControlPlane] FORBIDDEN: Cannot redefine immutable definition:', target);
+            logAdminAction('FORBIDDEN_REDEFINE_ATTEMPT', target, { action: action });
+            return false;
+        }
+        return true;
+    }
+
+    function getSharedDefinition(type, key) {
+        if (SHARED_DEFINITIONS[type] && SHARED_DEFINITIONS[type][key]) {
+            return SHARED_DEFINITIONS[type][key];
+        }
+        console.warn('[AdminControlPlane] Unknown shared definition:', type, key);
+        return null;
+    }
+
+    function isAdminCapability(capability) {
+        return ENFORCEMENT_MATRIX.capabilities.admin[capability] === true;
+    }
+
+    function isCustomerCapability(capability) {
+        return ENFORCEMENT_MATRIX.capabilities.customer[capability] === true;
+    }
+
+    var NFR_CONSTRAINTS = {
+        scale: {
+            fullPlatformTraffic: true,
+            millionsOfRecordsPerDay: true,
+            multiYearHistoricalQueries: true,
+            responsiveUnderWideFilters: true
+        },
+        performance: {
+            heavyQueriesServerSide: true,
+            aggregationsIndexed: true,
+            cachingReadOnlyOnly: true,
+            maxClientSideRecords: 1000,
+            paginationRequired: true,
+            serverSideFilteringRequired: true
+        },
+        queryLimits: {
+            maxDateRangeDays: 365,
+            defaultPageSize: 50,
+            maxPageSize: 100,
+            warnOnWideFilter: true,
+            requireDateRange: true
+        }
+    };
+
+    var queryCache = {};
+    var CACHE_TTL_MS = 60000;
+
+    function validateQueryParams(params) {
+        var warnings = [];
+        var errors = [];
+
+        if (NFR_CONSTRAINTS.queryLimits.requireDateRange && !params.dateFrom) {
+            errors.push('Date range is required for historical queries');
+        }
+
+        if (params.dateFrom && params.dateTo) {
+            var daysDiff = Math.ceil((new Date(params.dateTo) - new Date(params.dateFrom)) / (1000 * 60 * 60 * 24));
+            if (daysDiff > NFR_CONSTRAINTS.queryLimits.maxDateRangeDays) {
+                warnings.push('Date range exceeds ' + NFR_CONSTRAINTS.queryLimits.maxDateRangeDays + ' days. Query may be slow.');
+            }
+        }
+
+        if (!params.accountId && !params.subAccountId) {
+            warnings.push('No account filter applied. Query will scan all clients.');
+        }
+
+        if (params.limit && params.limit > NFR_CONSTRAINTS.queryLimits.maxPageSize) {
+            params.limit = NFR_CONSTRAINTS.queryLimits.maxPageSize;
+            warnings.push('Page size reduced to maximum: ' + NFR_CONSTRAINTS.queryLimits.maxPageSize);
+        }
+
+        return { 
+            valid: errors.length === 0, 
+            errors: errors, 
+            warnings: warnings,
+            params: params
+        };
+    }
+
+    function getCacheKey(endpoint, params) {
+        return endpoint + ':' + JSON.stringify(params);
+    }
+
+    function getCached(endpoint, params) {
+        if (!NFR_CONSTRAINTS.performance.cachingReadOnlyOnly) return null;
+
+        var key = getCacheKey(endpoint, params);
+        var cached = queryCache[key];
+
+        if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
+            console.log('[AdminControlPlane] Cache hit:', key);
+            return cached.data;
+        }
+
+        return null;
+    }
+
+    function setCache(endpoint, params, data) {
+        if (!NFR_CONSTRAINTS.performance.cachingReadOnlyOnly) return;
+
+        var key = getCacheKey(endpoint, params);
+        queryCache[key] = {
+            data: data,
+            timestamp: Date.now()
+        };
+    }
+
+    function clearCache(pattern) {
+        if (pattern) {
+            Object.keys(queryCache).forEach(function(key) {
+                if (key.indexOf(pattern) !== -1) {
+                    delete queryCache[key];
+                }
+            });
+        } else {
+            queryCache = {};
+        }
+        console.log('[AdminControlPlane] Cache cleared:', pattern || 'all');
+    }
+
+    function serverSideQuery(endpoint, params, callback) {
+        var validation = validateQueryParams(params);
+
+        if (!validation.valid) {
+            console.error('[AdminControlPlane] Query validation failed:', validation.errors);
+            if (callback) callback({ error: validation.errors.join('; '), data: null });
+            return;
+        }
+
+        if (validation.warnings.length > 0) {
+            console.warn('[AdminControlPlane] Query warnings:', validation.warnings);
+        }
+
+        var cached = getCached(endpoint, params);
+        if (cached) {
+            if (callback) callback({ error: null, data: cached, fromCache: true });
+            return;
+        }
+
+        var queryParams = Object.assign({
+            page: 1,
+            limit: NFR_CONSTRAINTS.queryLimits.defaultPageSize
+        }, validation.params);
+
+        console.log('[AdminControlPlane] Server-side query:', endpoint, queryParams);
+
+        fetch('/admin/api/' + endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(queryParams)
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            setCache(endpoint, params, data);
+            if (callback) callback({ error: null, data: data, fromCache: false });
+        })
+        .catch(function(err) {
+            console.error('[AdminControlPlane] Query failed:', err);
+            if (callback) callback({ error: err.message, data: null });
+        });
+    }
+
+    function showPerformanceWarning(message) {
+        var existingWarning = document.querySelector('.admin-perf-warning');
+        if (existingWarning) existingWarning.remove();
+
+        var warning = document.createElement('div');
+        warning.className = 'admin-perf-warning';
+        warning.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + message +
+            '<button class="btn-close-warning" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+
+        var container = document.querySelector('.admin-dashboard') || document.querySelector('.content-body');
+        if (container) {
+            container.insertBefore(warning, container.firstChild);
+        }
+    }
+
     var pendingFilters = {};
     var appliedFilters = {};
     var currentDrillDepth = 0;
@@ -648,6 +892,9 @@ var AdminControlPlane = (function() {
     return {
         init: init,
         GLOBAL_RULES: GLOBAL_RULES,
+        ENFORCEMENT_MATRIX: ENFORCEMENT_MATRIX,
+        SHARED_DEFINITIONS: SHARED_DEFINITIONS,
+        NFR_CONSTRAINTS: NFR_CONSTRAINTS,
 
         hasPermission: hasPermission,
         hasResponsibility: hasResponsibility,
@@ -657,6 +904,16 @@ var AdminControlPlane = (function() {
         canGovern: canGovern,
         getActiveResponsibilities: getActiveResponsibilities,
         renderResponsibilityBadges: renderResponsibilityBadges,
+
+        validateNotRedefining: validateNotRedefining,
+        getSharedDefinition: getSharedDefinition,
+        isAdminCapability: isAdminCapability,
+        isCustomerCapability: isCustomerCapability,
+
+        validateQueryParams: validateQueryParams,
+        serverSideQuery: serverSideQuery,
+        clearCache: clearCache,
+        showPerformanceWarning: showPerformanceWarning,
 
         setPendingFilter: setPendingFilter,
         applyFilters: applyFilters,

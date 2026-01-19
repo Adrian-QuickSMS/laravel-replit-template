@@ -797,6 +797,135 @@ body.admin-control-plane {
     font-size: 0.75rem;
 }
 
+.admin-perf-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--admin-warning);
+    border-left: 4px solid var(--admin-warning);
+    color: #92400e;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.admin-perf-warning i {
+    color: var(--admin-warning);
+}
+
+.admin-perf-warning .btn-close-warning {
+    background: transparent;
+    border: none;
+    color: #92400e;
+    cursor: pointer;
+    padding: 0.25rem;
+    opacity: 0.7;
+}
+
+.admin-perf-warning .btn-close-warning:hover {
+    opacity: 1;
+}
+
+.admin-query-stats {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+    padding: 0.5rem 0;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+}
+
+.admin-query-stats .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.admin-query-stats .stat i {
+    font-size: 0.65rem;
+}
+
+.admin-query-stats .stat.cached {
+    color: var(--admin-success);
+}
+
+.admin-query-stats .stat.slow {
+    color: var(--admin-warning);
+}
+
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.admin-pagination .page-info {
+    font-size: 0.8rem;
+    color: var(--admin-text-muted);
+}
+
+.admin-pagination .page-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.admin-pagination .page-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--admin-border);
+    background: #fff;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.admin-pagination .page-btn:hover:not(:disabled) {
+    background: var(--admin-accent);
+    color: #fff;
+    border-color: var(--admin-accent);
+}
+
+.admin-pagination .page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-pagination .page-btn.active {
+    background: var(--admin-accent);
+    color: #fff;
+    border-color: var(--admin-accent);
+}
+
+.nfr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.nfr-badge.server-side {
+    background: rgba(74, 144, 217, 0.1);
+    color: #4a90d9;
+}
+
+.nfr-badge.indexed {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.nfr-badge.cached {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
 .admin-warehouse-badge {
     display: inline-flex;
     align-items: center;
