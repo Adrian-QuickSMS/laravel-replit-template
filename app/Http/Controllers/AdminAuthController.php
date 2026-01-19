@@ -162,6 +162,32 @@ class AdminAuthController extends Controller
         return redirect()->route('admin.dashboard')->with('success', 'MFA has been enabled for your account');
     }
     
+    public function skipMfaSetup(Request $request)
+    {
+        if (config('app.env') === 'production') {
+            abort(403, 'MFA skip is not allowed in production');
+        }
+
+        $adminSession = session('admin_auth');
+        
+        if (!$adminSession) {
+            return redirect()->route('admin.login');
+        }
+
+        $adminSession['mfa_verified'] = true;
+        $adminSession['mfa_setup_required'] = false;
+        $adminSession['mfa_enabled'] = false;
+        session()->put('admin_auth', $adminSession);
+        session()->forget('admin_mfa_setup_secret');
+
+        AdminAuditService::log('admin_mfa_skipped_dev', [
+            'admin_id' => $adminSession['admin_id'] ?? null,
+            'reason' => 'development_bypass'
+        ]);
+
+        return redirect()->route('admin.dashboard')->with('warning', 'MFA skipped for development. Enable MFA before going to production.');
+    }
+
     public function showMfaVerify()
     {
         $adminSession = session('admin_auth');

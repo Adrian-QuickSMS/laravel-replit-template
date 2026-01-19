@@ -94,6 +94,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/logout', 'logout')->name('admin.logout');
         Route::get('/mfa/setup', 'showMfaSetup')->name('admin.mfa.setup');
         Route::post('/mfa/setup', 'completeMfaSetup')->name('admin.mfa.setup.complete');
+        Route::post('/mfa/setup/skip', 'skipMfaSetup')->name('admin.mfa.setup.skip');
         Route::get('/mfa/verify', 'showMfaVerify')->name('admin.mfa.verify');
         Route::post('/mfa/verify', 'verifyMfa')->name('admin.mfa.verify.submit');
     });

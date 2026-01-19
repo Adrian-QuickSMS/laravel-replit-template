@@ -165,6 +165,21 @@
                                 <strong>Important:</strong> Save your secret key in a secure location. 
                                 You will need it to recover your account if you lose access to your authenticator app.
                             </div>
+
+                            @if(config('app.env') !== 'production')
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="alert alert-warning mb-3">
+                                    <i class="fas fa-flask me-2"></i>
+                                    <strong>Development Mode</strong> - MFA can be skipped for testing purposes only.
+                                </div>
+                                <form action="{{ route('admin.mfa.setup.skip') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-forward me-2"></i>Skip MFA Setup (Development Only)
+                                    </button>
+                                </form>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
