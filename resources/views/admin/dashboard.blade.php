@@ -1389,20 +1389,21 @@
         </div>
     </div>
 
-    <!-- Global Filters - Using same pattern as customer portal -->
-    <div class="card" id="global-filters-section">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-            <h5 class="card-title mb-2 mb-md-0">Global Filters</h5>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted" style="font-size: 0.75rem;">Filters apply only when you click "Apply Filters"</span>
-                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#globalFiltersBody">
+    <!-- Global Filters - Matching customer portal pattern: button only, no card wrapper -->
+    <div class="row mb-3" id="global-filters-section">
+        <div class="col-12">
+            <div class="d-flex justify-content-end align-items-center">
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#globalFiltersBody" id="btnToggleFilters">
                     <i class="fas fa-filter me-1"></i> Filters
+                    <span class="badge bg-primary ms-1" id="filterCountBadge" style="display: none;">0</span>
                 </button>
             </div>
         </div>
-        <div class="card-body">
-            <div class="collapse" id="globalFiltersBody">
-            <div class="card card-body border-0 rounded-3" style="background-color: #e8f4fc;">
+    </div>
+
+    <!-- Collapsible Filters Panel -->
+    <div class="collapse mb-3" id="globalFiltersBody">
+        <div class="card card-body border-0 rounded-3" style="background-color: #e8f4fc;">
             <div class="global-filters-grid">
                 <div class="filter-group">
                     <label>Date Range <span class="required">*</span></label>
@@ -1513,20 +1514,23 @@
                 <i class="fas fa-exclamation-circle"></i>
                 <span>You have pending filter changes. Click "Apply Filters" to update the dashboard.</span>
             </div>
-            </div>
-            </div>
         </div>
+    </div>
 
-        <div class="filter-summary-bar" id="filter-summary-bar">
-            <div class="filter-chips" id="filter-chips">
-                <span class="filter-chip">
-                    <span class="chip-label">Date:</span> Today
-                </span>
-                <span class="filter-chip">
-                    <span class="chip-label">Country:</span> UK
-                </span>
+    <!-- Active Filters Summary Bar -->
+    <div class="mb-3" id="activeFiltersContainer">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <div class="d-flex flex-wrap align-items-center">
+                <span class="small text-muted me-2">Active filters:</span>
+                <div id="filter-chips">
+                    <span class="badge bg-light text-dark me-1">Date: Today</span>
+                    <span class="badge bg-light text-dark me-1">Country: UK</span>
+                </div>
+                <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 ms-2" id="btnClearAllFilters" onclick="resetFilters()">
+                    Clear all
+                </button>
             </div>
-            <div class="filter-summary-text">
+            <div class="filter-summary-text text-muted small">
                 <strong>1,247,832</strong> parts | <strong>892,145</strong> messages | <strong>847</strong> clients
             </div>
         </div>
