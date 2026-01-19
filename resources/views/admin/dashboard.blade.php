@@ -2013,75 +2013,97 @@
                         </tr>
                     </thead>
                     <tbody id="margin-table-body">
-                        <tr class="margin-row danger" onclick="drillToReport('message-logs', {country: 'NG'})">
-                            <td><span class="dimension-flag">🇳🇬</span> Nigeria</td>
-                            <td class="text-end">8,234</td>
-                            <td class="text-end">£1,234.56</td>
-                            <td class="text-end">£1,264.12</td>
-                            <td class="text-end margin-loss">-£29.56</td>
-                            <td class="text-end"><span class="margin-badge danger">-2.4%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
-                        <tr class="margin-row warning" onclick="drillToReport('message-logs', {country: 'PH'})">
-                            <td><span class="dimension-flag">🇵🇭</span> Philippines</td>
-                            <td class="text-end">12,456</td>
-                            <td class="text-end">£2,867.34</td>
-                            <td class="text-end">£2,724.98</td>
-                            <td class="text-end">£142.36</td>
-                            <td class="text-end"><span class="margin-badge warning">4.9%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
-                        <tr class="margin-row warning" onclick="drillToReport('message-logs', {country: 'IN'})">
-                            <td><span class="dimension-flag">🇮🇳</span> India</td>
-                            <td class="text-end">34,892</td>
-                            <td class="text-end">£4,186.70</td>
-                            <td class="text-end">£3,894.43</td>
-                            <td class="text-end">£292.27</td>
-                            <td class="text-end"><span class="margin-badge warning">6.9%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
-                        <tr class="margin-row" onclick="drillToReport('message-logs', {country: 'ZA'})">
-                            <td><span class="dimension-flag">🇿🇦</span> South Africa</td>
-                            <td class="text-end">6,789</td>
-                            <td class="text-end">£1,086.24</td>
-                            <td class="text-end">£978.75</td>
-                            <td class="text-end">£107.49</td>
-                            <td class="text-end"><span class="margin-badge amber">9.9%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
-                        <tr class="margin-row" onclick="drillToReport('message-logs', {country: 'BR'})">
-                            <td><span class="dimension-flag">🇧🇷</span> Brazil</td>
-                            <td class="text-end">15,234</td>
-                            <td class="text-end">£3,046.80</td>
-                            <td class="text-end">£2,589.78</td>
-                            <td class="text-end">£457.02</td>
-                            <td class="text-end"><span class="margin-badge">15.0%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
-                        <tr class="margin-row" onclick="drillToReport('message-logs', {country: 'DE'})">
-                            <td><span class="dimension-flag">🇩🇪</span> Germany</td>
-                            <td class="text-end">45,678</td>
-                            <td class="text-end">£6,851.70</td>
-                            <td class="text-end">£5,481.36</td>
-                            <td class="text-end">£1,370.34</td>
-                            <td class="text-end"><span class="margin-badge">20.0%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
-                        <tr class="margin-row" onclick="drillToReport('message-logs', {country: 'GB'})">
-                            <td><span class="dimension-flag">🇬🇧</span> United Kingdom</td>
-                            <td class="text-end">892,456</td>
-                            <td class="text-end">£44,622.80</td>
-                            <td class="text-end">£31,235.96</td>
-                            <td class="text-end">£13,386.84</td>
-                            <td class="text-end"><span class="margin-badge success">30.0%</span></td>
-                            <td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>
-                        </tr>
+                        <!-- Data populated by JavaScript based on selected tab -->
                     </tbody>
                 </table>
             </div>
             <div class="margin-table-footer">
                 <span class="table-info">Sorted by: Lowest margin % first</span>
                 <span class="chart-source"><i class="fas fa-database"></i> fact_delivery + fact_billing GROUP BY country</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messages Sent Modal -->
+<div class="modal fade" id="adminMessagesSentModal" tabindex="-1" aria-labelledby="adminMessagesSentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="adminMessagesSentModalLabel">Messages Sent - All Clients</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="adminMessagesSentModalChart" style="min-height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Status Modal -->
+<div class="modal fade" id="adminDeliveryStatusModal" tabindex="-1" aria-labelledby="adminDeliveryStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="adminDeliveryStatusModalLabel">Delivery Status Breakdown - All Clients</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="adminDeliveryStatusModalChart" style="min-height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top SenderIDs Modal -->
+<div class="modal fade" id="adminTopSenderIdsModal" tabindex="-1" aria-labelledby="adminTopSenderIdsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="adminTopSenderIdsModalLabel">Top 10 SenderIDs - All Clients</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>SenderID</th>
+                                <th>Client</th>
+                                <th class="text-end">Messages</th>
+                                <th class="text-end">Delivery Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTopSenderIdsModalTable">
+                            <tr><td>1</td><td>QUICKSMS</td><td>QuickSMS Ltd</td><td class="text-end">45,234</td><td class="text-end">98.2%</td></tr>
+                            <tr><td>2</td><td>BANK</td><td>Metro Bank</td><td class="text-end">34,567</td><td class="text-end">97.8%</td></tr>
+                            <tr><td>3</td><td>DELIVERY</td><td>Logistics Co</td><td class="text-end">28,901</td><td class="text-end">96.5%</td></tr>
+                            <tr><td>4</td><td>NHS</td><td>NHS Trust</td><td class="text-end">23,456</td><td class="text-end">99.1%</td></tr>
+                            <tr><td>5</td><td>ALERTS</td><td>Security Inc</td><td class="text-end">19,876</td><td class="text-end">97.3%</td></tr>
+                            <tr><td>6</td><td>PROMO</td><td>Retail Corp</td><td class="text-end">16,543</td><td class="text-end">94.2%</td></tr>
+                            <tr><td>7</td><td>APPT</td><td>Dental Care</td><td class="text-end">14,321</td><td class="text-end">98.7%</td></tr>
+                            <tr><td>8</td><td>CONFIRM</td><td>E-Commerce Ltd</td><td class="text-end">12,789</td><td class="text-end">97.9%</td></tr>
+                            <tr><td>9</td><td>OTP</td><td>FinTech App</td><td class="text-end">11,234</td><td class="text-end">99.4%</td></tr>
+                            <tr><td>10</td><td>REMIND</td><td>Gym Plus</td><td class="text-end">9,876</td><td class="text-end">96.8%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Countries Modal -->
+<div class="modal fade" id="adminTopCountriesModal" tabindex="-1" aria-labelledby="adminTopCountriesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="adminTopCountriesModalLabel">Top 10 Countries - All Clients</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="adminTopCountriesModalChart" style="min-height: 400px;"></div>
             </div>
         </div>
     </div>
@@ -2551,6 +2573,75 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Margin Risk data for each view
+    var marginData = {
+        country: [
+            { dimension: 'Nigeria', parts: '8,234', revenue: '£1,234.56', cost: '£1,264.12', margin: '-£29.56', marginPct: '-2.4%', status: 'danger', isLoss: true, filter: {country: 'NG'} },
+            { dimension: 'Philippines', parts: '12,456', revenue: '£2,867.34', cost: '£2,724.98', margin: '£142.36', marginPct: '4.9%', status: 'warning', filter: {country: 'PH'} },
+            { dimension: 'India', parts: '34,892', revenue: '£4,186.70', cost: '£3,894.43', margin: '£292.27', marginPct: '6.9%', status: 'warning', filter: {country: 'IN'} },
+            { dimension: 'South Africa', parts: '6,789', revenue: '£1,086.24', cost: '£978.75', margin: '£107.49', marginPct: '9.9%', status: 'amber', filter: {country: 'ZA'} },
+            { dimension: 'Brazil', parts: '15,234', revenue: '£3,046.80', cost: '£2,589.78', margin: '£457.02', marginPct: '15.0%', status: '', filter: {country: 'BR'} },
+            { dimension: 'Germany', parts: '45,678', revenue: '£6,851.70', cost: '£5,481.36', margin: '£1,370.34', marginPct: '20.0%', status: '', filter: {country: 'DE'} },
+            { dimension: 'United Kingdom', parts: '892,456', revenue: '£44,622.80', cost: '£31,235.96', margin: '£13,386.84', marginPct: '30.0%', status: 'success', filter: {country: 'GB'} }
+        ],
+        'uk-network': [
+            { dimension: 'O2', parts: '245,678', revenue: '£12,283.90', cost: '£10,800.00', margin: '£1,483.90', marginPct: '12.1%', status: 'warning', filter: {network: 'O2'} },
+            { dimension: 'Vodafone', parts: '312,456', revenue: '£15,622.80', cost: '£12,185.78', margin: '£3,437.02', marginPct: '22.0%', status: '', filter: {network: 'VOD'} },
+            { dimension: 'EE', parts: '198,234', revenue: '£9,911.70', cost: '£7,531.29', margin: '£2,380.41', marginPct: '24.0%', status: '', filter: {network: 'EE'} },
+            { dimension: 'Three', parts: '136,088', revenue: '£6,804.40', cost: '£4,762.98', margin: '£2,041.42', marginPct: '30.0%', status: 'success', filter: {network: 'THREE'} }
+        ],
+        supplier: [
+            { dimension: 'Sinch', parts: '456,234', revenue: '£22,811.70', cost: '£21,785.23', margin: '£1,026.47', marginPct: '4.5%', status: 'warning', filter: {supplier: 'SINCH'} },
+            { dimension: 'Twilio', parts: '234,567', revenue: '£11,728.35', cost: '£9,969.10', margin: '£1,759.25', marginPct: '15.0%', status: '', filter: {supplier: 'TWILIO'} },
+            { dimension: 'MessageBird', parts: '178,456', revenue: '£8,922.80', cost: '£6,692.10', margin: '£2,230.70', marginPct: '25.0%', status: '', filter: {supplier: 'MSGBIRD'} },
+            { dimension: 'Vonage', parts: '145,678', revenue: '£7,283.90', cost: '£5,099.73', margin: '£2,184.17', marginPct: '30.0%', status: 'success', filter: {supplier: 'VONAGE'} }
+        ],
+        client: [
+            { dimension: 'Retail Corp Ltd', parts: '89,234', revenue: '£4,461.70', cost: '£4,638.17', margin: '-£176.47', marginPct: '-3.9%', status: 'danger', isLoss: true, filter: {client: 'RC001'} },
+            { dimension: 'Finance Plus', parts: '156,789', revenue: '£7,839.45', cost: '£7,290.69', margin: '£548.76', marginPct: '7.0%', status: 'warning', filter: {client: 'FP002'} },
+            { dimension: 'Healthcare Group', parts: '234,567', revenue: '£11,728.35', cost: '£9,382.68', margin: '£2,345.67', marginPct: '20.0%', status: '', filter: {client: 'HG003'} },
+            { dimension: 'Tech Solutions', parts: '312,456', revenue: '£15,622.80', cost: '£10,935.96', margin: '£4,686.84', marginPct: '30.0%', status: 'success', filter: {client: 'TS004'} },
+            { dimension: 'Media Partners', parts: '198,456', revenue: '£9,922.80', cost: '£7,939.04', margin: '£1,983.76', marginPct: '20.0%', status: '', filter: {client: 'MP005'} }
+        ]
+    };
+
+    var marginFooterText = {
+        country: 'fact_delivery + fact_billing GROUP BY country',
+        'uk-network': 'fact_delivery + fact_billing WHERE country=GB GROUP BY network',
+        supplier: 'fact_delivery + fact_billing GROUP BY supplier',
+        client: 'fact_delivery + fact_billing GROUP BY client_id'
+    };
+
+    function renderMarginTable(view) {
+        var tbody = document.getElementById('margin-table-body');
+        var data = marginData[view] || marginData.country;
+        var html = '';
+
+        data.forEach(function(row) {
+            var rowClass = row.status ? 'margin-row ' + row.status : 'margin-row';
+            var marginClass = row.isLoss ? 'margin-loss' : '';
+            var badgeClass = row.status ? 'margin-badge ' + row.status : 'margin-badge';
+
+            html += '<tr class="' + rowClass + '" onclick="drillToReport(\'message-logs\', ' + JSON.stringify(row.filter) + ')">';
+            html += '<td>' + row.dimension + '</td>';
+            html += '<td class="text-end">' + row.parts + '</td>';
+            html += '<td class="text-end">' + row.revenue + '</td>';
+            html += '<td class="text-end">' + row.cost + '</td>';
+            html += '<td class="text-end ' + marginClass + '">' + row.margin + '</td>';
+            html += '<td class="text-end"><span class="' + badgeClass + '">' + row.marginPct + '</span></td>';
+            html += '<td class="text-center"><button class="btn-icon" title="View Details"><i class="fas fa-external-link-alt"></i></button></td>';
+            html += '</tr>';
+        });
+
+        tbody.innerHTML = html;
+
+        // Update footer source text
+        var footerSource = document.querySelector('.margin-table-footer .chart-source');
+        if (footerSource) {
+            footerSource.innerHTML = '<i class="fas fa-database"></i> ' + marginFooterText[view];
+        }
+    }
+
     window.switchMarginView = function(view) {
         var tabs = document.querySelectorAll('.margin-tab');
         tabs.forEach(function(tab) {
@@ -2560,6 +2651,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        renderMarginTable(view);
+
         console.log('[Admin Dashboard] Margin view switched to:', view);
 
         if (typeof AdminControlPlane !== 'undefined') {
@@ -2568,6 +2661,67 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     };
+
+    // Initialize margin table with default view
+    renderMarginTable('country');
+
+    // Modal chart instances
+    var modalCharts = {};
+
+    // Messages Sent Modal
+    document.getElementById('adminMessagesSentModal').addEventListener('shown.bs.modal', function() {
+        if (modalCharts.messagesSent) {
+            modalCharts.messagesSent.destroy();
+        }
+        modalCharts.messagesSent = new ApexCharts(document.getElementById('adminMessagesSentModalChart'), {
+            series: [{
+                name: 'Total',
+                data: [3200, 4100, 3800, 4500, 4800, 5200, 4900, 5500, 5100, 5800, 6100, 5700, 6200, 6500]
+            }, {
+                name: 'SMS',
+                data: [2800, 3500, 3300, 3900, 4100, 4500, 4200, 4700, 4400, 5000, 5200, 4900, 5300, 5600]
+            }, {
+                name: 'RCS',
+                data: [400, 600, 500, 600, 700, 700, 700, 800, 700, 800, 900, 800, 900, 900]
+            }],
+            chart: { type: 'line', height: 400, toolbar: { show: true } },
+            colors: ['#1e3a5f', '#09BD3C', '#3065D0'],
+            stroke: { width: 2, curve: 'smooth' },
+            xaxis: { categories: ['Jan 6', 'Jan 7', 'Jan 8', 'Jan 9', 'Jan 10', 'Jan 11', 'Jan 12', 'Jan 13', 'Jan 14', 'Jan 15', 'Jan 16', 'Jan 17', 'Jan 18', 'Jan 19'] },
+            legend: { position: 'top' }
+        });
+        modalCharts.messagesSent.render();
+    });
+
+    // Delivery Status Modal
+    document.getElementById('adminDeliveryStatusModal').addEventListener('shown.bs.modal', function() {
+        if (modalCharts.deliveryStatus) {
+            modalCharts.deliveryStatus.destroy();
+        }
+        modalCharts.deliveryStatus = new ApexCharts(document.getElementById('adminDeliveryStatusModalChart'), {
+            series: [78, 8, 7, 4, 3],
+            chart: { type: 'pie', height: 400 },
+            labels: ['Delivered', 'Pending', 'Undelivered', 'Expired', 'Rejected'],
+            colors: ['#09BD3C', '#FFA500', '#dc3545', '#6c757d', '#343a40'],
+            legend: { position: 'bottom' }
+        });
+        modalCharts.deliveryStatus.render();
+    });
+
+    // Top Countries Modal
+    document.getElementById('adminTopCountriesModal').addEventListener('shown.bs.modal', function() {
+        if (modalCharts.topCountries) {
+            modalCharts.topCountries.destroy();
+        }
+        modalCharts.topCountries = new ApexCharts(document.getElementById('adminTopCountriesModalChart'), {
+            series: [{ name: 'Messages', data: [892456, 234567, 156789, 98234, 78456, 65432, 54321, 43210, 32109, 21098] }],
+            chart: { type: 'bar', height: 400 },
+            plotOptions: { bar: { horizontal: true, barHeight: '70%' } },
+            colors: ['#1e3a5f'],
+            xaxis: { categories: ['United Kingdom', 'Germany', 'India', 'Philippines', 'Brazil', 'South Africa', 'Nigeria', 'France', 'Spain', 'Italy'] }
+        });
+        modalCharts.topCountries.render();
+    });
 
     window.dismissAnomaly = function(btn) {
         var banner = btn.closest('.anomaly-banner');
