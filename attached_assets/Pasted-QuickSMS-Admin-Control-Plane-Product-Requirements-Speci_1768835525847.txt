@@ -1,0 +1,307 @@
+QuickSMS Admin Control Plane
+Product Requirements Specification (Initial / Overarching Module)
+1. Purpose & Positioning
+1.1 What this module is
+
+The QuickSMS Admin Control Plane is an internal-only, employee-facing super-module that provides global visibility, control, and governance across the entire QuickSMS platform.
+
+It is designed as a superset of the customer portal, not a parallel system.
+
+Every customer-facing module (Campaigns, Reporting, Contacts, Billing, RCS, Sender IDs, Numbers, APIs) has a corresponding admin view, but with:
+
+Cross-client scope
+
+Supplier-level insight
+
+Compliance and fraud controls
+
+Financial margin visibility
+
+Operational override capability
+
+1.2 What this module is NOT
+
+❌ Not accessible to customers under any circumstance
+
+❌ Not a duplicate UI of the customer portal
+
+❌ Not a free-form support sandbox
+
+❌ Not allowed to leak PII or customer audit trails unintentionally
+
+1.3 Design philosophy (critical)
+
+Admin is a superset, not a sibling.
+
+This means:
+
+Same data models
+
+Same definitions (delivery, parts, billable, cost)
+
+Same warehouse as source of truth
+
+Same filters and drill logic
+
+Extended permissions, never different logic
+
+2. Access & Security Boundary
+2.1 Hard separation
+
+Separate authentication boundary from customer portal
+
+Separate navigation and routing
+
+Mandatory MFA
+
+IP allow-listing recommended (admin-only)
+
+2.2 Initial access model
+
+All users are effectively Super Admin in v1
+
+Internal RBAC is designed for, but not enforced initially
+
+Future roles (Support, Finance, Compliance, Sales) must be structurally supported
+
+3. Core Responsibilities of the Admin Control Plane
+
+The Admin Control Plane must allow QuickSMS employees to:
+
+3.1 Observe (Read)
+
+All client traffic
+
+All delivery outcomes
+
+All supplier routing
+
+All financial metrics (revenue, cost, margin)
+
+All configuration state
+
+3.2 Control (Write)
+
+Approve or block:
+
+Sender IDs
+
+Countries
+
+RCS Agents
+
+Set or override:
+
+Account status (Test / Live)
+
+Credit limits
+
+Dynamic sender rules
+
+Test number allowances
+
+Suspend / reactivate:
+
+Accounts
+
+APIs
+
+Numbers
+
+Email-to-SMS groups
+
+3.3 Investigate (Support)
+
+View customer configuration safely
+
+Reproduce issues without mutating customer state
+
+Impersonate customer UI without generating customer audit logs
+
+Access restricted data only when explicitly allowed
+
+3.4 Govern (Compliance)
+
+Maintain audit logs (admin + customer-impacting)
+
+Enforce country restrictions
+
+Enforce anti-spam and fraud policies
+
+Track approvals and submissions to third parties
+
+4. Admin Module Structure (Superset Navigation)
+
+The Admin Control Plane is composed of first-class sub-modules, each of which maps to customer functionality but extends it.
+
+4.1 Top-Level Navigation
+Admin Control Plane
+├── Dashboard
+├── Accounts
+│   ├── Account Overview
+│   ├── Sub Accounts
+│   ├── Balances & Credit
+│   └── Account Details (Customer-submitted)
+├── Reporting
+│   ├── Message Log (Global)
+│   ├── Client Reporting
+│   ├── Supplier Reporting
+│   └── Finance Reports
+├── Campaign Oversight
+│   ├── Active / Scheduled Campaigns
+│   ├── Approvals Queue
+│   └── Blocked / Failed Campaigns
+├── Messaging Assets
+│   ├── Sender ID Approvals
+│   ├── RCS Agent Registration
+│   ├── Templates
+│   ├── Numbers
+│   └── Email-to-SMS
+├── API & Integrations
+│   ├── API Connections
+│   ├── Delivery Callbacks
+│   └── Integration Health
+├── Invoices & Payments
+│   ├── Invoices (All Clients)
+│   ├── Payments
+│   └── Credit Adjustments
+├── Security & Compliance
+│   ├── Audit Logs
+│   ├── Country Controls
+│   ├── Anti-Spam Rules
+│   └── IP Allow Lists
+└── System Settings
+    ├── Supplier Pricing
+    ├── Routing Rules
+    └── Platform Flags
+
+5. Shared Principles Across ALL Admin Sub-Modules
+
+These rules apply everywhere and should be used as Replit guardrails.
+
+5.1 Single Source of Truth
+
+All data must come from:
+
+Master data warehouse
+
+Reference configuration tables
+
+No derived metrics in UI
+
+No local calculations beyond formatting
+
+5.2 Filters & Drill Behaviour
+
+Admin modules use Apply button (never auto-filter)
+
+Every chart/table must support:
+
+Click → drill to next-level module
+
+No infinite nesting (max 1 level deep)
+
+5.3 Audit Rules
+
+Every admin action that changes customer state must log:
+
+Admin user
+
+Action
+
+Target account
+
+Before / after values
+
+Timestamp
+
+Support impersonation:
+
+Logs to admin audit only
+
+Never appears in customer audit logs
+
+5.4 PII Protection
+
+By default:
+
+Phone numbers masked
+
+Message content hidden
+
+Personalisation fields redacted
+
+Reveal only when:
+
+Explicit permission
+
+Explicit action
+
+Explicit audit record
+
+6. Admin Dashboard (Entry Point)
+
+The Dashboard is the landing page and operational heartbeat.
+
+High-level purpose:
+
+Platform health
+
+Revenue and margin
+
+Delivery performance
+
+Risk and anomaly detection
+
+(You already have the detailed dashboard spec — this module simply owns it.)
+
+7. Relationship to Customer Portal
+Capability	Customer Portal	Admin Control Plane
+Campaigns	Own only	All clients
+Reporting	Own data	Cross-client + supplier
+Billing	Own invoices	All invoices
+Sender IDs	Request only	Approve / submit
+RCS Agents	Register	Validate / submit
+Numbers	Configure	Override / reassign
+Audit Logs	Own	Global + internal
+8. Non-Functional Requirements
+
+Must scale to entire platform traffic
+
+Must support:
+
+Millions of records/day
+
+Multi-year historical views
+
+Must remain responsive under wide filters
+
+All expensive queries:
+
+Server-side aggregation
+
+Indexed dimensions
+
+Cached where safe
+
+9. Replit Prompting Guidance (Important)
+
+When breaking this into prompts:
+
+Treat each sub-module as a child of Admin Control Plane
+
+Enforce:
+
+Shared filters
+
+Shared audit model
+
+Shared permissions model
+
+Never allow a sub-module to invent:
+
+New metric definitions
+
+New delivery statuses
+
+New billing logic
