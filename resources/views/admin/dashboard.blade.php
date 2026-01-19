@@ -1919,69 +1919,14 @@
                         <h6>Delivery by Network</h6>
                         <div class="chart-legend">
                             <span class="legend-item" style="--color: #10b981;"><span class="legend-dot"></span> Delivered</span>
-                            <span class="legend-item" style="--color: #ef4444;"><span class="legend-dot"></span> Undelivered</span>
+                            <span class="legend-item" style="--color: #ef4444;"><span class="legend-dot"></span> Undeliverable</span>
                             <span class="legend-item" style="--color: #f59e0b;"><span class="legend-dot"></span> Pending</span>
                             <span class="legend-item" style="--color: #64748b;"><span class="legend-dot"></span> Rejected</span>
+                            <span class="legend-item" style="--color: #6b7280;"><span class="legend-dot"></span> Expired</span>
                         </div>
                     </div>
                     <div class="chart-body" id="chart-delivery-by-network">
-                        <div class="network-stacked-chart">
-                            <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'EE'})">
-                                <span class="network-bar-label"><span class="network-badge ee">EE</span></span>
-                                <div class="network-bar-track">
-                                    <div class="status-segment delivered" style="width: 94%;" title="Delivered: 293,709"></div>
-                                    <div class="status-segment undelivered" style="width: 3%;" title="Undelivered: 9,374"></div>
-                                    <div class="status-segment pending" style="width: 2%;" title="Pending: 6,249"></div>
-                                    <div class="status-segment rejected" style="width: 1%;" title="Rejected: 3,124"></div>
-                                </div>
-                                <span class="network-bar-total">312,456</span>
-                                <div class="network-mini-chart" id="network-mini-chart-ee" style="width:120px;height:30px;"></div>
-                            </div>
-                            <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'Vodafone'})">
-                                <span class="network-bar-label"><span class="network-badge vodafone">Vodafone</span></span>
-                                <div class="network-bar-track">
-                                    <div class="status-segment delivered" style="width: 93%;" title="Delivered: 267,024"></div>
-                                    <div class="status-segment undelivered" style="width: 4%;" title="Undelivered: 11,485"></div>
-                                    <div class="status-segment pending" style="width: 2%;" title="Pending: 5,743"></div>
-                                    <div class="status-segment rejected" style="width: 1%;" title="Rejected: 2,871"></div>
-                                </div>
-                                <span class="network-bar-total">287,123</span>
-                                <div class="network-mini-chart" id="network-mini-chart-vodafone" style="width:120px;height:30px;"></div>
-                            </div>
-                            <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'O2'})">
-                                <span class="network-bar-label"><span class="network-badge o2">O2</span></span>
-                                <div class="network-bar-track">
-                                    <div class="status-segment delivered" style="width: 92%;" title="Delivered: 182,864"></div>
-                                    <div class="status-segment undelivered" style="width: 4%;" title="Undelivered: 7,951"></div>
-                                    <div class="status-segment pending" style="width: 3%;" title="Pending: 5,963"></div>
-                                    <div class="status-segment rejected" style="width: 1%;" title="Rejected: 1,987"></div>
-                                </div>
-                                <span class="network-bar-total">198,765</span>
-                                <div class="network-mini-chart" id="network-mini-chart-o2" style="width:120px;height:30px;"></div>
-                            </div>
-                            <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'Three'})">
-                                <span class="network-bar-label"><span class="network-badge three">Three</span></span>
-                                <div class="network-bar-track">
-                                    <div class="status-segment delivered" style="width: 89%;" title="Delivered: 139,224"></div>
-                                    <div class="status-segment undelivered" style="width: 6%;" title="Undelivered: 9,386"></div>
-                                    <div class="status-segment pending" style="width: 3%;" title="Pending: 4,693"></div>
-                                    <div class="status-segment rejected" style="width: 2%;" title="Rejected: 3,129"></div>
-                                </div>
-                                <span class="network-bar-total">156,432</span>
-                                <div class="network-mini-chart" id="network-mini-chart-three" style="width:120px;height:30px;"></div>
-                            </div>
-                            <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'MVNO'})">
-                                <span class="network-bar-label"><span class="network-badge mvno">MVNO/Other</span></span>
-                                <div class="network-bar-track">
-                                    <div class="status-segment delivered" style="width: 87%;" title="Delivered: 39,429"></div>
-                                    <div class="status-segment undelivered" style="width: 7%;" title="Undelivered: 3,172"></div>
-                                    <div class="status-segment pending" style="width: 4%;" title="Pending: 1,813"></div>
-                                    <div class="status-segment rejected" style="width: 2%;" title="Rejected: 907"></div>
-                                </div>
-                                <span class="network-bar-total">45,321</span>
-                                <div class="network-mini-chart" id="network-mini-chart-mvno" style="width:120px;height:30px;"></div>
-                            </div>
-                        </div>
+                        <div id="adminMnoStackedBarChart" style="min-height: 280px;"></div>
                     </div>
                     <div class="chart-footer">
                         <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY network, status</span>
@@ -2703,6 +2648,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
             };
             new ApexCharts(countriesChartEl, countriesOptions).render();
+        }
+
+        // UK MNO Stacked Bar Chart - Delivery Status by Network
+        var mnoChartEl = document.getElementById('adminMnoStackedBarChart');
+        if (mnoChartEl && typeof ApexCharts !== 'undefined') {
+            mnoChartEl.innerHTML = '';
+            var mnoOptions = {
+                series: [
+                    { name: 'Delivered', data: [293709, 267024, 182864, 139224, 39429] },
+                    { name: 'Pending', data: [6249, 5743, 5963, 4693, 1813] },
+                    { name: 'Expired', data: [4687, 4307, 4472, 3520, 1360] },
+                    { name: 'Rejected', data: [3124, 2871, 2984, 3129, 907] },
+                    { name: 'Undeliverable', data: [4687, 7178, 2482, 5866, 1812] }
+                ],
+                chart: { 
+                    type: 'bar', 
+                    height: 280, 
+                    stacked: true,
+                    stackType: '100%',
+                    toolbar: { show: false }, 
+                    fontFamily: 'inherit',
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            var networks = ['EE', 'Vodafone', 'O2', 'Three', 'MVNO'];
+                            var statuses = ['Delivered', 'Pending', 'Expired', 'Rejected', 'Undeliverable'];
+                            drillToReport('message-logs', { 
+                                network: networks[config.dataPointIndex],
+                                status: statuses[config.seriesIndex]
+                            });
+                        }
+                    }
+                },
+                colors: ['#10b981', '#f59e0b', '#6b7280', '#64748b', '#ef4444'],
+                plotOptions: { 
+                    bar: { 
+                        horizontal: true, 
+                        borderRadius: 2, 
+                        barHeight: '70%'
+                    } 
+                },
+                dataLabels: { enabled: false },
+                xaxis: { 
+                    categories: ['EE', 'Vodafone', 'O2', 'Three', 'MVNO/Other'],
+                    labels: { show: false }
+                },
+                yaxis: { 
+                    labels: { 
+                        style: { fontSize: '12px', fontWeight: 600 }
+                    } 
+                },
+                legend: { show: false },
+                tooltip: { 
+                    y: { 
+                        formatter: function(val, opts) { 
+                            var total = opts.w.globals.stackedSeriesTotals[opts.dataPointIndex];
+                            var pct = ((val / total) * 100).toFixed(1);
+                            return val.toLocaleString() + ' (' + pct + '%)'; 
+                        } 
+                    } 
+                },
+                grid: { padding: { left: 0, right: 10 } }
+            };
+            new ApexCharts(mnoChartEl, mnoOptions).render();
         }
 
         console.log('[Admin Dashboard] All charts initialized with mock data');
