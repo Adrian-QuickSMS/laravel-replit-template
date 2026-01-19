@@ -743,279 +743,7 @@
     text-align: right;
 }
 
-.supplier-health-grid {
-    display: grid;
-    grid-template-columns: 280px 1fr 1fr;
-    gap: 1rem;
-}
-
-.supplier-health-grid .chart-span-2 {
-    grid-column: span 2;
-}
-
-@media (max-width: 1200px) {
-    .supplier-health-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .supplier-health-grid .route-health-tile {
-        grid-column: span 2;
-    }
-    .supplier-health-grid .chart-span-2 {
-        grid-column: span 2;
-    }
-}
-
-@media (max-width: 768px) {
-    .supplier-health-grid {
-        grid-template-columns: 1fr;
-    }
-    .supplier-health-grid .route-health-tile,
-    .supplier-health-grid .chart-span-2 {
-        grid-column: span 1;
-    }
-}
-
-.route-health-tile {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.2s ease;
-}
-
-.route-health-tile.clickable:hover {
-    border-color: #4a90d9;
-    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
-}
-
-.route-health-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 1rem;
-}
-
-.route-health-status.healthy {
-    background: rgba(5, 150, 105, 0.1);
-    color: #059669;
-}
-
-.route-health-status.degraded {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-
-.route-health-status.critical {
-    background: rgba(220, 38, 38, 0.1);
-    color: #dc2626;
-}
-
-.route-health-title {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 1rem;
-}
-
-.route-health-counts {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.route-count {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.route-count .count-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.route-count .count-value.success { color: #059669; }
-.route-count .count-value.warning { color: #f59e0b; }
-.route-count .count-value.danger { color: #dc2626; }
-
-.route-count .count-label {
-    font-size: 0.7rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.route-health-footer {
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 0.75rem;
-    border-top: 1px solid #f1f5f9;
-}
-
-.drill-hint {
-    font-size: 0.7rem;
-    color: #4a90d9;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.response-time-metrics {
-    display: flex;
-    justify-content: space-around;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.response-metric {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.response-metric .metric-label {
-    font-size: 0.7rem;
-    color: #64748b;
-    text-transform: uppercase;
-}
-
-.response-metric .metric-value {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1e3a5f;
-}
-
-.response-metric .metric-value.warning { color: #f59e0b; }
-.response-metric .metric-value.danger { color: #dc2626; }
-
-.stacked-bar-chart {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.stacked-bar-row {
-    display: grid;
-    grid-template-columns: 100px 1fr 80px;
-    gap: 0.75rem;
-    align-items: center;
-    padding: 0.35rem 0;
-    border-radius: 4px;
-    transition: background 0.2s ease;
-}
-
-.stacked-bar-row.clickable:hover {
-    background: #f8fafc;
-}
-
-.stacked-bar-label {
-    font-size: 0.8rem;
-    color: #475569;
-    font-weight: 500;
-}
-
-.stacked-bar-track {
-    height: 24px;
-    background: #f1f5f9;
-    border-radius: 4px;
-    overflow: hidden;
-    display: flex;
-}
-
-.stacked-segment {
-    height: 100%;
-    transition: width 0.3s ease;
-}
-
-.stacked-segment.sms { background: #4a90d9; }
-.stacked-segment.rcs-basic { background: #10b981; }
-.stacked-segment.rcs-single { background: #8b5cf6; }
-
-.stacked-bar-total {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #1e3a5f;
-    text-align: right;
-}
-
-.supplier-health-grid .chart-span-full {
-    grid-column: 1 / -1;
-}
-
-.pricing-upload-panel {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.pricing-upload-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.25rem;
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-    color: #fff;
-}
-
-.pricing-upload-title h6 {
-    margin: 0;
-    font-size: 1rem;
-    color: #fff;
-}
-
-.pricing-upload-title .pricing-purpose {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.pricing-upload-body {
-    padding: 1rem 1.25rem;
-}
-
-.pricing-info-strip {
-    background: #e0f2fe;
-    border: 1px solid #7dd3fc;
-    color: #0369a1;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
-}
-
-.pricing-info-strip i {
-    margin-right: 0.5rem;
-}
-
-.pricing-table-header {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
-}
-
-.pricing-uploads-table {
-    width: 100%;
-    font-size: 0.8rem;
-    border-collapse: collapse;
-}
-
-.pricing-uploads-table th,
-.pricing-uploads-table td {
-    padding: 0.5rem 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #f1f5f9;
-}
+/* Legacy supplier-health-grid, route-health-*, stacked-bar-*, pricing-upload-* CSS REMOVED - replaced with Fillow widget-stat pattern */
 
 .pricing-uploads-table th {
     font-weight: 600;
@@ -1964,440 +1692,218 @@
         </div>
     </div>
 
-    <!-- Traffic & Performance - Using Fillow card structure -->
+    <!-- Traffic & Performance - Using SAME component structure as customer dashboard -->
     <div class="card" id="platform-reporting-section">
         <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
             <h5 class="card-title"><i class="fas fa-chart-area me-2 text-primary"></i>Traffic & Performance</h5>
-            <span class="text-muted" style="font-size: 0.75rem;">Mirrors customer reporting charts (all clients)</span>
+            <span class="text-muted" style="font-size: 0.75rem;">Uses same components as customer reporting (all clients)</span>
         </div>
         <div class="card-body">
-            <div class="reporting-charts-grid">
-                <div class="chart-container chart-wide">
-                    <div class="chart-header">
-                        <h6>Messages Sent Over Time</h6>
-                        <div class="chart-legend">
-                            <span class="legend-item" style="--color: #4a90d9;"><span class="legend-dot"></span> Sent</span>
-                            <span class="legend-item" style="--color: #059669;"><span class="legend-dot"></span> Delivered</span>
-                            <span class="legend-item" style="--color: #dc2626;"><span class="legend-dot"></span> Undelivered</span>
-                            <span class="legend-item" style="--color: #f59e0b;"><span class="legend-dot"></span> Pending</span>
-                            <span class="legend-item" style="--color: #8b5cf6;"><span class="legend-dot"></span> Rejected</span>
+            <div class="row">
+                <!-- Messages Sent Chart - SAME as customer dashboard (8 cols) -->
+                <div class="col-xl-8 col-lg-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Messages Sent</h4>
+                            <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#adminMessagesSentModal" title="Expand">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="chart-body" id="chart-messages-over-time">
-                        <div class="chart-placeholder">
-                            <i class="fas fa-chart-line d-block"></i>
-                            <div>Line chart: X = date/hour, Y = parts</div>
-                            <div class="chart-note">Uses same component as customer reporting</div>
+                        <div class="card-body">
+                            <div id="adminVolumeLineChart" style="min-height: 280px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="text-center text-muted">
+                                        <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                        <div class="small">Loading chart data...</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="chart-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery (aggregated by hour)</span>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h6>Delivery Status Breakdown</h6>
-                    </div>
-                    <div class="chart-body" id="chart-delivery-status-pie">
-                        <div class="chart-placeholder">
-                            <i class="fas fa-chart-pie d-block"></i>
-                            <div>Pie chart: status distribution</div>
+                <!-- Delivery Status Breakdown - SAME as customer dashboard (4 cols) -->
+                <div class="col-xl-4 col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Delivery Status Breakdown</h4>
+                            <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#adminDeliveryStatusModal" title="Expand">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="chart-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery.status</span>
+                        <div class="card-body">
+                            <div id="adminDeliveryStatusPieChart" style="min-height: 200px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="text-center text-muted">
+                                        <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                        <div class="small">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h6>Top SenderIDs</h6>
-                        <div class="chart-toggle-group">
-                            <button class="chart-toggle active" data-view="volume">Volume</button>
-                            <button class="chart-toggle" data-view="revenue">Revenue</button>
-                            <button class="chart-toggle" data-view="margin">Margin</button>
+                <!-- Top SenderIDs - SAME layout as customer dashboard (6 cols) -->
+                <div class="col-xl-6 col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Top SenderIDs</h4>
+                            <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#adminTopSenderIdsModal" title="View Top 10">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="chart-body" id="chart-top-senderids">
-                        <table class="top-items-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>SenderID</th>
-                                    <th>Client</th>
-                                    <th class="text-end">Parts</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>1</td><td><code>ALERTS24</code></td><td>Acme Corp</td><td class="text-end">124,832</td></tr>
-                                <tr><td>2</td><td><code>MYBANK</code></td><td>Finance Ltd</td><td class="text-end">98,421</td></tr>
-                                <tr><td>3</td><td><code>RETAILCO</code></td><td>Retail Co</td><td class="text-end">76,234</td></tr>
-                                <tr><td>4</td><td><code>HEALTH+</code></td><td>HealthCare+</td><td class="text-end">54,102</td></tr>
-                                <tr><td>5</td><td><code>PROMO</code></td><td>MarketingPro</td><td class="text-end">43,876</td></tr>
-                                <tr><td>6</td><td><code>DELIVERY</code></td><td>LogiTech</td><td class="text-end">38,234</td></tr>
-                                <tr><td>7</td><td><code>VERIFY</code></td><td>SecureAuth</td><td class="text-end">32,109</td></tr>
-                                <tr><td>8</td><td><code>BOOKING</code></td><td>TravelMax</td><td class="text-end">28,765</td></tr>
-                                <tr><td>9</td><td><code>SERVICE</code></td><td>UtilityCo</td><td class="text-end">21,432</td></tr>
-                                <tr><td>10</td><td><code>REMINDER</code></td><td>AppointBot</td><td class="text-end">18,987</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="chart-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> fact_messages GROUP BY sender_id LIMIT 10</span>
+                        <div class="card-body pt-3">
+                            <div id="adminTopSenderIdsList">
+                                <div class="d-flex justify-content-between py-2 border-bottom">
+                                    <span class="text-muted small">Loading...</span>
+                                </div>
+                            </div>
+                            <div id="adminTopSenderIdsStats" class="border-top mt-3 pt-3 d-none">
+                                <div class="d-flex justify-content-between text-center">
+                                    <div class="flex-fill">
+                                        <h4 class="mb-0 text-primary" id="adminSenderIdStatSent">-</h4>
+                                        <small class="text-muted">Messages Sent</small>
+                                    </div>
+                                    <div class="flex-fill border-start border-end">
+                                        <h4 class="mb-0 text-primary" id="adminSenderIdStatDelivered">-</h4>
+                                        <small class="text-muted">Delivered</small>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <h4 class="mb-0 text-primary" id="adminSenderIdStatRate">-</h4>
+                                        <small class="text-muted">Delivery Rate</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h6>Top Destination Countries</h6>
-                    </div>
-                    <div class="chart-body" id="chart-top-countries">
-                        <div class="horizontal-bar-chart">
-                            <div class="bar-row">
-                                <span class="bar-label">United Kingdom</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div>
-                                <span class="bar-value">892,456</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Ireland</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 18%;"></div></div>
-                                <span class="bar-value">160,642</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Germany</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 12%;"></div></div>
-                                <span class="bar-value">107,094</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">France</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 8%;"></div></div>
-                                <span class="bar-value">71,396</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Spain</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 5%;"></div></div>
-                                <span class="bar-value">44,622</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Netherlands</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 4%;"></div></div>
-                                <span class="bar-value">35,698</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Belgium</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 3%;"></div></div>
-                                <span class="bar-value">26,773</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Italy</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 2.5%;"></div></div>
-                                <span class="bar-value">22,311</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Poland</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 2%;"></div></div>
-                                <span class="bar-value">17,849</span>
-                            </div>
-                            <div class="bar-row">
-                                <span class="bar-label">Portugal</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 1.5%;"></div></div>
-                                <span class="bar-value">13,387</span>
+                <!-- Top 10 Countries - SAME as customer dashboard (6 cols) -->
+                <div class="col-xl-6 col-lg-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Top 10 Countries</h4>
+                            <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#adminTopCountriesModal" title="View Top 10">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="adminTopCountriesBarChart" style="min-height: 280px;">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="text-center text-muted">
+                                        <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                        <div class="small">Loading...</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="chart-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY country LIMIT 10</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Supplier Route Health - Using Fillow card structure -->
+    <!-- Supplier Route Health - Single full-width tile (simplified per spec) -->
     <div class="card" id="supplier-route-health-section">
         <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
             <h5 class="card-title"><i class="fas fa-route me-2 text-primary"></i>Supplier Route Health</h5>
             <span class="badge badge-primary light">Admin Only</span>
         </div>
         <div class="card-body">
-            <div class="supplier-health-grid">
-                <div class="route-health-tile clickable" onclick="drillToReport('supplier-reporting')">
-                    <div class="route-health-status healthy">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Healthy</span>
-                    </div>
-                    <div class="route-health-title">Overall Route Health</div>
-                    <div class="route-health-counts">
-                        <div class="route-count">
-                            <span class="count-value success">5</span>
-                            <span class="count-label">Active</span>
-                        </div>
-                        <div class="route-count">
-                            <span class="count-value warning">1</span>
-                            <span class="count-label">Degraded</span>
-                        </div>
-                        <div class="route-count">
-                            <span class="count-value danger">0</span>
-                            <span class="count-label">Failed</span>
-                        </div>
-                    </div>
-                    <div class="route-health-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> dim_routes.status</span>
-                        <span class="drill-hint"><i class="fas fa-external-link-alt"></i> View Supplier Reporting</span>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h6>Supplier Response Time</h6>
-                        <div class="chart-toggle-group">
-                            <button class="chart-toggle active" data-window="1h">1h</button>
-                            <button class="chart-toggle" data-window="24h">24h</button>
-                            <button class="chart-toggle" data-window="7d">7d</button>
-                        </div>
-                    </div>
-                    <div class="chart-body" id="chart-supplier-response-time">
-                        <div class="response-time-metrics">
-                            <div class="response-metric">
-                                <span class="metric-label">Avg</span>
-                                <span class="metric-value">142ms</span>
-                            </div>
-                            <div class="response-metric">
-                                <span class="metric-label">P95</span>
-                                <span class="metric-value warning">287ms</span>
-                            </div>
-                            <div class="response-metric">
-                                <span class="metric-label">Max</span>
-                                <span class="metric-value danger">892ms</span>
-                            </div>
-                        </div>
-                        <div class="chart-placeholder" style="margin-top: 1rem;">
-                            <i class="fas fa-chart-line d-block"></i>
-                            <div>Response time over selected window</div>
-                            <div class="chart-note">Click spike → Message Log (filtered by timestamp)</div>
-                        </div>
-                    </div>
-                    <div class="chart-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery.response_time_ms</span>
-                    </div>
-                </div>
-
-                <div class="chart-container chart-span-2">
-                    <div class="chart-header">
-                        <h6>Route Distribution</h6>
-                        <div class="chart-legend">
-                            <span class="legend-item" style="--color: #4a90d9;"><span class="legend-dot"></span> SMS</span>
-                            <span class="legend-item" style="--color: #10b981;"><span class="legend-dot"></span> RCS Basic</span>
-                            <span class="legend-item" style="--color: #8b5cf6;"><span class="legend-dot"></span> RCS Single</span>
-                        </div>
-                    </div>
-                    <div class="chart-body" id="chart-route-distribution">
-                        <div class="stacked-bar-chart">
-                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
-                                <span class="stacked-bar-label">UK Tier 1</span>
-                                <div class="stacked-bar-track">
-                                    <div class="stacked-segment sms" style="width: 75%;" title="SMS: 361,756"></div>
-                                    <div class="stacked-segment rcs-basic" style="width: 18%;" title="RCS Basic: 86,821"></div>
-                                    <div class="stacked-segment rcs-single" style="width: 7%;" title="RCS Single: 33,764"></div>
+            <div class="row">
+                <!-- Delivery Status Volumes & Percentages -->
+                <div class="col-lg-8">
+                    <h6 class="mb-3">Delivery Status by Supplier</h6>
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="widget-stat card">
+                                <div class="card-body p-3">
+                                    <div class="media ai-icon">
+                                        <span class="me-3 bgl-success text-success" style="width:40px;height:40px;">
+                                            <i class="fas fa-check" style="font-size:1rem;"></i>
+                                        </span>
+                                        <div class="media-body">
+                                            <p class="mb-1 small">Delivered</p>
+                                            <h4 class="mb-0" id="supplierDeliveredCount">1,231,654</h4>
+                                            <span class="badge badge-success light small" id="supplierDeliveredPct">98.7%</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="stacked-bar-total">482,341</span>
                             </div>
-                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
-                                <span class="stacked-bar-label">UK Tier 2</span>
-                                <div class="stacked-bar-track">
-                                    <div class="stacked-segment sms" style="width: 92%;" title="SMS: 182,557"></div>
-                                    <div class="stacked-segment rcs-basic" style="width: 6%;" title="RCS Basic: 11,906"></div>
-                                    <div class="stacked-segment rcs-single" style="width: 2%;" title="RCS Single: 3,969"></div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="widget-stat card">
+                                <div class="card-body p-3">
+                                    <div class="media ai-icon">
+                                        <span class="me-3 bgl-warning text-warning" style="width:40px;height:40px;">
+                                            <i class="fas fa-clock" style="font-size:1rem;"></i>
+                                        </span>
+                                        <div class="media-body">
+                                            <p class="mb-1 small">Pending</p>
+                                            <h4 class="mb-0" id="supplierPendingCount">8,234</h4>
+                                            <span class="badge badge-warning light small" id="supplierPendingPct">0.7%</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="stacked-bar-total">198,432</span>
                             </div>
-                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
-                                <span class="stacked-bar-label">EU Primary</span>
-                                <div class="stacked-bar-track">
-                                    <div class="stacked-segment sms" style="width: 88%;" title="SMS: 76,766"></div>
-                                    <div class="stacked-segment rcs-basic" style="width: 10%;" title="RCS Basic: 8,723"></div>
-                                    <div class="stacked-segment rcs-single" style="width: 2%;" title="RCS Single: 1,745"></div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="widget-stat card">
+                                <div class="card-body p-3">
+                                    <div class="media ai-icon">
+                                        <span class="me-3 bgl-secondary text-secondary" style="width:40px;height:40px;">
+                                            <i class="fas fa-hourglass-end" style="font-size:1rem;"></i>
+                                        </span>
+                                        <div class="media-body">
+                                            <p class="mb-1 small">Expired</p>
+                                            <h4 class="mb-0" id="supplierExpiredCount">4,567</h4>
+                                            <span class="badge badge-secondary light small" id="supplierExpiredPct">0.4%</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="stacked-bar-total">87,234</span>
                             </div>
-                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
-                                <span class="stacked-bar-label">International</span>
-                                <div class="stacked-bar-track">
-                                    <div class="stacked-segment sms" style="width: 100%;" title="SMS: 23,892"></div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="widget-stat card">
+                                <div class="card-body p-3">
+                                    <div class="media ai-icon">
+                                        <span class="me-3 bgl-danger text-danger" style="width:40px;height:40px;">
+                                            <i class="fas fa-times" style="font-size:1rem;"></i>
+                                        </span>
+                                        <div class="media-body">
+                                            <p class="mb-1 small">Rejected</p>
+                                            <h4 class="mb-0" id="supplierRejectedCount">3,377</h4>
+                                            <span class="badge badge-danger light small" id="supplierRejectedPct">0.3%</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="stacked-bar-total">23,892</span>
-                            </div>
-                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
-                                <span class="stacked-bar-label">RCS Google</span>
-                                <div class="stacked-bar-track">
-                                    <div class="stacked-segment rcs-basic" style="width: 65%;" title="RCS Basic: 27,422"></div>
-                                    <div class="stacked-segment rcs-single" style="width: 35%;" title="RCS Single: 14,765"></div>
-                                </div>
-                                <span class="stacked-bar-total">42,187</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chart-footer">
-                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY route, product</span>
-                    </div>
-                </div>
-
-                <div class="pricing-upload-panel chart-span-full">
-                    <div class="pricing-upload-header">
-                        <div class="pricing-upload-title">
-                            <h6><i class="fas fa-file-invoice-dollar"></i> Supplier Pricing Reference</h6>
-                            <span class="pricing-purpose">Upload supplier price sheets for margin validation</span>
-                        </div>
-                        <button class="btn-admin-primary" onclick="openSupplierPricingModal()">
-                            <i class="fas fa-upload"></i> Upload Supplier Pricing
-                        </button>
-                    </div>
-                    <div class="pricing-upload-body">
-                        <div class="pricing-info-strip">
-                            <i class="fas fa-info-circle"></i>
-                            Used for: <strong>Margin risk detection</strong> and <strong>Supplier reconciliation</strong>
-                        </div>
-                        <div class="pricing-recent-uploads">
-                            <div class="pricing-table-header">Recent Uploads</div>
-                            <table class="pricing-uploads-table">
-                                <thead>
-                                    <tr>
-                                        <th>Supplier</th>
-                                        <th>Uploaded By</th>
-                                        <th>Timestamp</th>
-                                        <th>Effective Date</th>
-                                        <th>Version</th>
-                                        <th>Rows</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>Sinch UK</strong></td>
-                                        <td>admin@quicksms.com</td>
-                                        <td>2026-01-18 14:32</td>
-                                        <td>2026-01-01</td>
-                                        <td><span class="version-badge">v3</span></td>
-                                        <td>1,247</td>
-                                        <td>
-                                            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
-                                            <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Twilio</strong></td>
-                                        <td>finance@quicksms.com</td>
-                                        <td>2026-01-15 09:15</td>
-                                        <td>2026-01-01</td>
-                                        <td><span class="version-badge">v2</span></td>
-                                        <td>3,421</td>
-                                        <td>
-                                            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
-                                            <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Vonage</strong></td>
-                                        <td>admin@quicksms.com</td>
-                                        <td>2026-01-10 11:45</td>
-                                        <td>2025-12-01</td>
-                                        <td><span class="version-badge">v1</span></td>
-                                        <td>892</td>
-                                        <td>
-                                            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
-                                            <button class="btn-icon" title="View"><i class="fas fa-eye"></i></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="supplierPricingModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content admin-modal">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-file-invoice-dollar"></i> Upload Supplier Pricing</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="upload-requirements">
-                        <h6>File Requirements</h6>
-                        <div class="requirement-list">
-                            <div class="requirement-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <span><strong>Format:</strong> CSV (required) or XLSX (optional)</span>
-                            </div>
-                            <div class="requirement-item">
-                                <i class="fas fa-columns text-info"></i>
-                                <span><strong>Required Columns:</strong></span>
-                            </div>
-                        </div>
-                        <div class="required-columns-grid">
-                            <div class="column-tag">Country Prefix</div>
-                            <div class="column-tag">Country Name</div>
-                            <div class="column-tag">MCC</div>
-                            <div class="column-tag">MNC</div>
-                            <div class="column-tag">Price</div>
-                            <div class="column-tag">Product</div>
-                        </div>
-                        <div class="validation-notes">
-                            <p><i class="fas fa-info-circle"></i> <strong>Validation Rules:</strong></p>
-                            <ul>
-                                <li>Numeric fields (MCC, MNC, Price) must be valid numbers</li>
-                                <li>Product must be: <code>SMS</code>, <code>RCS Basic</code>, or <code>RCS Single</code></li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="upload-form">
-                        <div class="mb-3">
-                            <label class="form-label">Supplier Name <span class="text-danger">*</span></label>
-                            <select class="form-select" id="pricingSupplier">
-                                <option value="">Select supplier...</option>
-                                <option value="sinch-uk">Sinch UK</option>
-                                <option value="twilio">Twilio</option>
-                                <option value="vonage">Vonage</option>
-                                <option value="messagebird">MessageBird</option>
-                                <option value="other">Other (specify)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3" id="otherSupplierInput" style="display: none;">
-                            <label class="form-label">Supplier Name</label>
-                            <input type="text" class="form-control" placeholder="Enter supplier name">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Effective Date</label>
-                            <input type="date" class="form-control" id="pricingEffectiveDate">
-                            <small class="text-muted">Optional. Date from which these prices apply.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Price Sheet File <span class="text-danger">*</span></label>
-                            <div class="upload-dropzone" id="pricingDropzone">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Drag & drop your file here, or <span class="text-primary">browse</span></p>
-                                <small>CSV or XLSX, max 10MB</small>
-                                <input type="file" id="pricingFileInput" accept=".csv,.xlsx" style="display: none;">
-                            </div>
-                            <div class="upload-file-preview" id="pricingFilePreview" style="display: none;">
-                                <i class="fas fa-file-csv"></i>
-                                <span class="file-name">filename.csv</span>
-                                <span class="file-size">1.2 MB</span>
-                                <button class="btn-icon" onclick="clearPricingFile()"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn-admin-primary" onclick="validateAndUploadPricing()">
-                        <i class="fas fa-upload"></i> Upload & Validate
-                    </button>
+                <!-- Response Time Stats -->
+                <div class="col-lg-4">
+                    <h6 class="mb-3">Response Time</h6>
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="text-center flex-fill">
+                                    <p class="mb-1 small text-muted">Average</p>
+                                    <h4 class="mb-0 text-primary" id="supplierAvgResponse">142ms</h4>
+                                </div>
+                                <div class="text-center flex-fill border-start border-end">
+                                    <p class="mb-1 small text-muted">Min</p>
+                                    <h4 class="mb-0 text-success" id="supplierMinResponse">23ms</h4>
+                                </div>
+                                <div class="text-center flex-fill">
+                                    <p class="mb-1 small text-muted">Max</p>
+                                    <h4 class="mb-0 text-danger" id="supplierMaxResponse">892ms</h4>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block text-center"><i class="fas fa-database me-1"></i>fact_delivery.response_time_ms</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2439,6 +1945,7 @@
                                     <div class="status-segment rejected" style="width: 1%;" title="Rejected: 3,124"></div>
                                 </div>
                                 <span class="network-bar-total">312,456</span>
+                                <div class="network-mini-chart" id="network-mini-chart-ee" style="width:120px;height:30px;"></div>
                             </div>
                             <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'Vodafone'})">
                                 <span class="network-bar-label"><span class="network-badge vodafone">Vodafone</span></span>
@@ -2449,6 +1956,7 @@
                                     <div class="status-segment rejected" style="width: 1%;" title="Rejected: 2,871"></div>
                                 </div>
                                 <span class="network-bar-total">287,123</span>
+                                <div class="network-mini-chart" id="network-mini-chart-vodafone" style="width:120px;height:30px;"></div>
                             </div>
                             <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'O2'})">
                                 <span class="network-bar-label"><span class="network-badge o2">O2</span></span>
@@ -2459,6 +1967,7 @@
                                     <div class="status-segment rejected" style="width: 1%;" title="Rejected: 1,987"></div>
                                 </div>
                                 <span class="network-bar-total">198,765</span>
+                                <div class="network-mini-chart" id="network-mini-chart-o2" style="width:120px;height:30px;"></div>
                             </div>
                             <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'Three'})">
                                 <span class="network-bar-label"><span class="network-badge three">Three</span></span>
@@ -2469,6 +1978,7 @@
                                     <div class="status-segment rejected" style="width: 2%;" title="Rejected: 3,129"></div>
                                 </div>
                                 <span class="network-bar-total">156,432</span>
+                                <div class="network-mini-chart" id="network-mini-chart-three" style="width:120px;height:30px;"></div>
                             </div>
                             <div class="network-bar-row clickable" onclick="drillToReport('message-logs', {network: 'MVNO'})">
                                 <span class="network-bar-label"><span class="network-badge mvno">MVNO/Other</span></span>
@@ -2479,6 +1989,7 @@
                                     <div class="status-segment rejected" style="width: 2%;" title="Rejected: 907"></div>
                                 </div>
                                 <span class="network-bar-total">45,321</span>
+                                <div class="network-mini-chart" id="network-mini-chart-mvno" style="width:120px;height:30px;"></div>
                             </div>
                         </div>
                     </div>
