@@ -57,6 +57,13 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
   - Immediate status updates with visual feedback (toast notifications)
   - Full audit logging for all status transitions
 - **Campaign Approval Inbox:** Role-restricted page (campaign-approver, admin, owner) for reviewing pending campaigns with approve/reject workflow, rejection reason capture, and recent decisions history.
+- **Audit Logs Module:** Enterprise-grade audit trail with tabbed interface (All Logs, Security, Messaging, Financial, Compliance), role-based access control, 7-year retention, and cryptographic integrity verification. Features:
+  - **Normalized Event Catalogue:** Frozen, versioned catalogue of 60+ approved event types. ONLY approved events can be logged - strict validation enforced.
+  - **Event Categories:** user_management, access_control, account, enforcement, security, authentication, messaging, contacts, data_access, financial, gdpr, compliance, api, system
+  - **Event Structure:** Each event includes code, module, category, severity, description, and requiredFields
+  - **Data Sanitization:** Message content, phone numbers, and credentials NEVER logged in audit trail
+  - **Export:** CSV and Excel formats with read-only protection, permission checks, async processing for large datasets
+  - **Filters:** Date range, module, event type, sub-account, user, actor type, severity with Apply button workflow
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

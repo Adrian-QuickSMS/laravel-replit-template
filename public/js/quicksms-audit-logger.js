@@ -1,13 +1,13 @@
 var AuditLogger = (function() {
     'use strict';
 
-    var ACTOR_TYPES = {
+    var ACTOR_TYPES = Object.freeze({
         USER: 'user',
         SYSTEM: 'system',
         API: 'api'
-    };
+    });
 
-    var MODULES = {
+    var MODULES = Object.freeze({
         ACCOUNT: 'account',
         USERS: 'users',
         SUB_ACCOUNTS: 'sub_accounts',
@@ -22,102 +22,852 @@ var AuditLogger = (function() {
         COMPLIANCE: 'compliance',
         API: 'api',
         SYSTEM: 'system'
-    };
+    });
 
-    var EVENT_TYPES = {
-        USER_CREATED: { module: MODULES.USERS, category: 'user_management', severity: 'high', description: 'New user account created' },
-        USER_INVITED: { module: MODULES.USERS, category: 'user_management', severity: 'medium', description: 'User invitation sent' },
-        USER_SUSPENDED: { module: MODULES.USERS, category: 'user_management', severity: 'high', description: 'User account suspended' },
-        USER_REACTIVATED: { module: MODULES.USERS, category: 'user_management', severity: 'high', description: 'User account reactivated' },
-        USER_DELETED: { module: MODULES.USERS, category: 'user_management', severity: 'critical', description: 'User account deleted' },
-        USER_UPDATED: { module: MODULES.USERS, category: 'user_management', severity: 'low', description: 'User details updated' },
+    var CATEGORIES = Object.freeze({
+        USER_MANAGEMENT: 'user_management',
+        ACCESS_CONTROL: 'access_control',
+        ACCOUNT: 'account',
+        ENFORCEMENT: 'enforcement',
+        SECURITY: 'security',
+        AUTHENTICATION: 'authentication',
+        MESSAGING: 'messaging',
+        CONTACTS: 'contacts',
+        DATA_ACCESS: 'data_access',
+        FINANCIAL: 'financial',
+        GDPR: 'gdpr',
+        COMPLIANCE: 'compliance',
+        API: 'api',
+        SYSTEM: 'system'
+    });
 
-        ROLE_CHANGED: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'high', description: 'User role modified' },
-        ROLE_ASSIGNED: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'high', description: 'Role assigned to user' },
-        PERMISSION_GRANTED: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'medium', description: 'Permission granted' },
-        PERMISSION_REVOKED: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'medium', description: 'Permission revoked' },
-        PERMISSION_OVERRIDE_SET: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'medium', description: 'Permission override configured' },
-        PERMISSION_OVERRIDE_REMOVED: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'medium', description: 'Permission override removed' },
-        PERMISSIONS_RESET: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'high', description: 'Permissions reset to defaults' },
-        SENDER_CAPABILITY_CHANGED: { module: MODULES.PERMISSIONS, category: 'access_control', severity: 'medium', description: 'Sender capability level modified' },
+    var SEVERITIES = Object.freeze({
+        LOW: 'low',
+        MEDIUM: 'medium',
+        HIGH: 'high',
+        CRITICAL: 'critical'
+    });
 
-        SUB_ACCOUNT_CREATED: { module: MODULES.SUB_ACCOUNTS, category: 'account', severity: 'high', description: 'Sub-account created' },
-        SUB_ACCOUNT_SUSPENDED: { module: MODULES.SUB_ACCOUNTS, category: 'account', severity: 'high', description: 'Sub-account suspended' },
-        SUB_ACCOUNT_REACTIVATED: { module: MODULES.SUB_ACCOUNTS, category: 'account', severity: 'high', description: 'Sub-account reactivated' },
-        SUB_ACCOUNT_ARCHIVED: { module: MODULES.SUB_ACCOUNTS, category: 'account', severity: 'high', description: 'Sub-account archived' },
+    var EVENT_CATALOGUE = Object.freeze({
 
-        ENFORCEMENT_OVERRIDE_REQUESTED: { module: MODULES.SUB_ACCOUNTS, category: 'enforcement', severity: 'high', description: 'Enforcement override requested' },
-        ENFORCEMENT_OVERRIDE_APPROVED: { module: MODULES.SUB_ACCOUNTS, category: 'enforcement', severity: 'high', description: 'Enforcement override approved' },
-        ENFORCEMENT_OVERRIDE_DENIED: { module: MODULES.SUB_ACCOUNTS, category: 'enforcement', severity: 'medium', description: 'Enforcement override denied' },
-        ENFORCEMENT_RULE_CHANGED: { module: MODULES.SUB_ACCOUNTS, category: 'enforcement', severity: 'medium', description: 'Enforcement rule modified' },
-        ENFORCEMENT_TRIGGERED: { module: MODULES.SUB_ACCOUNTS, category: 'enforcement', severity: 'medium', description: 'Enforcement limit triggered' },
+        USER_CREATED: Object.freeze({
+            code: 'USER_CREATED',
+            module: MODULES.USERS,
+            category: CATEGORIES.USER_MANAGEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'New user account created',
+            requiredFields: ['targetUserId', 'assignedRole']
+        }),
+        USER_INVITED: Object.freeze({
+            code: 'USER_INVITED',
+            module: MODULES.USERS,
+            category: CATEGORIES.USER_MANAGEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'User invitation sent',
+            requiredFields: ['inviteeEmail', 'assignedRole']
+        }),
+        USER_SUSPENDED: Object.freeze({
+            code: 'USER_SUSPENDED',
+            module: MODULES.USERS,
+            category: CATEGORIES.USER_MANAGEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'User account suspended',
+            requiredFields: ['targetUserId']
+        }),
+        USER_REACTIVATED: Object.freeze({
+            code: 'USER_REACTIVATED',
+            module: MODULES.USERS,
+            category: CATEGORIES.USER_MANAGEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'User account reactivated',
+            requiredFields: ['targetUserId']
+        }),
+        USER_DELETED: Object.freeze({
+            code: 'USER_DELETED',
+            module: MODULES.USERS,
+            category: CATEGORIES.USER_MANAGEMENT,
+            severity: SEVERITIES.CRITICAL,
+            description: 'User account deleted',
+            requiredFields: ['targetUserId']
+        }),
+        USER_UPDATED: Object.freeze({
+            code: 'USER_UPDATED',
+            module: MODULES.USERS,
+            category: CATEGORIES.USER_MANAGEMENT,
+            severity: SEVERITIES.LOW,
+            description: 'User details updated',
+            requiredFields: ['targetUserId']
+        }),
 
-        MFA_ENABLED: { module: MODULES.SECURITY, category: 'security', severity: 'medium', description: 'Multi-factor authentication enabled' },
-        MFA_DISABLED: { module: MODULES.SECURITY, category: 'security', severity: 'high', description: 'Multi-factor authentication disabled' },
-        MFA_RESET: { module: MODULES.SECURITY, category: 'security', severity: 'high', description: 'Multi-factor authentication reset' },
-        MFA_RECOVERY_USED: { module: MODULES.SECURITY, category: 'security', severity: 'high', description: 'MFA recovery code used' },
-        IP_ALLOWLIST_UPDATED: { module: MODULES.SECURITY, category: 'security', severity: 'medium', description: 'IP allowlist configuration updated' },
-        PASSWORD_POLICY_CHANGED: { module: MODULES.SECURITY, category: 'security', severity: 'high', description: 'Password policy modified' },
+        ROLE_CHANGED: Object.freeze({
+            code: 'ROLE_CHANGED',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.HIGH,
+            description: 'User role modified',
+            requiredFields: ['targetUserId', 'previousRole', 'newRole']
+        }),
+        ROLE_ASSIGNED: Object.freeze({
+            code: 'ROLE_ASSIGNED',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.HIGH,
+            description: 'Role assigned to user',
+            requiredFields: ['targetUserId', 'assignedRole']
+        }),
+        PERMISSION_GRANTED: Object.freeze({
+            code: 'PERMISSION_GRANTED',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Permission granted',
+            requiredFields: ['targetUserId', 'permission']
+        }),
+        PERMISSION_REVOKED: Object.freeze({
+            code: 'PERMISSION_REVOKED',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Permission revoked',
+            requiredFields: ['targetUserId', 'permission']
+        }),
+        PERMISSION_OVERRIDE_SET: Object.freeze({
+            code: 'PERMISSION_OVERRIDE_SET',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Permission override configured',
+            requiredFields: ['targetUserId']
+        }),
+        PERMISSION_OVERRIDE_REMOVED: Object.freeze({
+            code: 'PERMISSION_OVERRIDE_REMOVED',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Permission override removed',
+            requiredFields: ['targetUserId']
+        }),
+        PERMISSIONS_RESET: Object.freeze({
+            code: 'PERMISSIONS_RESET',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.HIGH,
+            description: 'Permissions reset to defaults',
+            requiredFields: ['targetUserId']
+        }),
+        SENDER_CAPABILITY_CHANGED: Object.freeze({
+            code: 'SENDER_CAPABILITY_CHANGED',
+            module: MODULES.PERMISSIONS,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Sender capability level modified',
+            requiredFields: ['targetUserId', 'previousCapability', 'newCapability']
+        }),
 
-        LOGIN_SUCCESS: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'low', description: 'User logged in successfully' },
-        LOGIN_FAILED: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'medium', description: 'Login attempt failed' },
-        LOGIN_FAILED_MFA: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'medium', description: 'Login failed - MFA verification' },
-        LOGIN_BLOCKED: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'high', description: 'Login blocked due to security policy' },
-        LOGOUT: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'low', description: 'User logged out' },
-        SESSION_EXPIRED: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'low', description: 'User session expired' },
-        PASSWORD_CHANGED: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'medium', description: 'Password changed' },
-        PASSWORD_RESET_REQUESTED: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'medium', description: 'Password reset requested' },
-        PASSWORD_RESET_FORCED: { module: MODULES.AUTHENTICATION, category: 'authentication', severity: 'high', description: 'Forced password reset initiated' },
+        SUB_ACCOUNT_CREATED: Object.freeze({
+            code: 'SUB_ACCOUNT_CREATED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Sub-account created',
+            requiredFields: ['subAccountId', 'subAccountName']
+        }),
+        SUB_ACCOUNT_UPDATED: Object.freeze({
+            code: 'SUB_ACCOUNT_UPDATED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Sub-account details updated',
+            requiredFields: ['subAccountId']
+        }),
+        SUB_ACCOUNT_SUSPENDED: Object.freeze({
+            code: 'SUB_ACCOUNT_SUSPENDED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Sub-account suspended',
+            requiredFields: ['subAccountId']
+        }),
+        SUB_ACCOUNT_REACTIVATED: Object.freeze({
+            code: 'SUB_ACCOUNT_REACTIVATED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Sub-account reactivated',
+            requiredFields: ['subAccountId']
+        }),
+        SUB_ACCOUNT_ARCHIVED: Object.freeze({
+            code: 'SUB_ACCOUNT_ARCHIVED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Sub-account archived',
+            requiredFields: ['subAccountId']
+        }),
 
-        CAMPAIGN_SUBMITTED: { module: MODULES.CAMPAIGNS, category: 'messaging', severity: 'low', description: 'Campaign submitted for approval' },
-        CAMPAIGN_APPROVED: { module: MODULES.CAMPAIGNS, category: 'messaging', severity: 'medium', description: 'Campaign approved' },
-        CAMPAIGN_REJECTED: { module: MODULES.CAMPAIGNS, category: 'messaging', severity: 'medium', description: 'Campaign rejected' },
-        CAMPAIGN_SENT: { module: MODULES.CAMPAIGNS, category: 'messaging', severity: 'low', description: 'Campaign dispatched' },
-        CAMPAIGN_SCHEDULED: { module: MODULES.CAMPAIGNS, category: 'messaging', severity: 'low', description: 'Campaign scheduled' },
-        CAMPAIGN_CANCELLED: { module: MODULES.CAMPAIGNS, category: 'messaging', severity: 'medium', description: 'Campaign cancelled' },
+        ENFORCEMENT_OVERRIDE_REQUESTED: Object.freeze({
+            code: 'ENFORCEMENT_OVERRIDE_REQUESTED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'Enforcement override requested',
+            requiredFields: ['subAccountId', 'ruleType']
+        }),
+        ENFORCEMENT_OVERRIDE_APPROVED: Object.freeze({
+            code: 'ENFORCEMENT_OVERRIDE_APPROVED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'Enforcement override approved',
+            requiredFields: ['subAccountId', 'ruleType', 'approvedBy']
+        }),
+        ENFORCEMENT_OVERRIDE_DENIED: Object.freeze({
+            code: 'ENFORCEMENT_OVERRIDE_DENIED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Enforcement override denied',
+            requiredFields: ['subAccountId', 'ruleType']
+        }),
+        ENFORCEMENT_RULE_CHANGED: Object.freeze({
+            code: 'ENFORCEMENT_RULE_CHANGED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Enforcement rule modified',
+            requiredFields: ['subAccountId', 'ruleType']
+        }),
+        ENFORCEMENT_TRIGGERED: Object.freeze({
+            code: 'ENFORCEMENT_TRIGGERED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Enforcement limit triggered',
+            requiredFields: ['subAccountId', 'ruleType', 'triggerValue']
+        }),
 
-        TEMPLATE_CREATED: { module: MODULES.MESSAGING, category: 'messaging', severity: 'low', description: 'Message template created' },
-        TEMPLATE_UPDATED: { module: MODULES.MESSAGING, category: 'messaging', severity: 'low', description: 'Message template updated' },
-        TEMPLATE_DELETED: { module: MODULES.MESSAGING, category: 'messaging', severity: 'medium', description: 'Message template deleted' },
-        TEMPLATE_APPROVED: { module: MODULES.MESSAGING, category: 'messaging', severity: 'medium', description: 'Message template approved' },
+        MFA_ENABLED: Object.freeze({
+            code: 'MFA_ENABLED',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Multi-factor authentication enabled',
+            requiredFields: ['targetUserId', 'mfaMethod']
+        }),
+        MFA_DISABLED: Object.freeze({
+            code: 'MFA_DISABLED',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.HIGH,
+            description: 'Multi-factor authentication disabled',
+            requiredFields: ['targetUserId']
+        }),
+        MFA_RESET: Object.freeze({
+            code: 'MFA_RESET',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.HIGH,
+            description: 'Multi-factor authentication reset',
+            requiredFields: ['targetUserId']
+        }),
+        MFA_RECOVERY_USED: Object.freeze({
+            code: 'MFA_RECOVERY_USED',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.HIGH,
+            description: 'MFA recovery code used',
+            requiredFields: ['targetUserId']
+        }),
+        IP_ALLOWLIST_UPDATED: Object.freeze({
+            code: 'IP_ALLOWLIST_UPDATED',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.MEDIUM,
+            description: 'IP allowlist configuration updated',
+            requiredFields: ['changeType']
+        }),
+        PASSWORD_POLICY_CHANGED: Object.freeze({
+            code: 'PASSWORD_POLICY_CHANGED',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.HIGH,
+            description: 'Password policy modified',
+            requiredFields: ['policyTier']
+        }),
 
-        CONTACT_IMPORTED: { module: MODULES.CONTACTS, category: 'contacts', severity: 'low', description: 'Contacts imported' },
-        CONTACT_EXPORTED: { module: MODULES.CONTACTS, category: 'contacts', severity: 'medium', description: 'Contacts exported' },
-        LIST_CREATED: { module: MODULES.CONTACTS, category: 'contacts', severity: 'low', description: 'Contact list created' },
-        OPT_OUT_RECEIVED: { module: MODULES.CONTACTS, category: 'contacts', severity: 'medium', description: 'Opt-out request processed' },
-        OPT_IN_RECEIVED: { module: MODULES.CONTACTS, category: 'contacts', severity: 'low', description: 'Opt-in consent recorded' },
+        LOGIN_SUCCESS: Object.freeze({
+            code: 'LOGIN_SUCCESS',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.LOW,
+            description: 'User logged in successfully',
+            requiredFields: []
+        }),
+        LOGIN_FAILED: Object.freeze({
+            code: 'LOGIN_FAILED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Login attempt failed',
+            requiredFields: ['failureReason']
+        }),
+        LOGIN_FAILED_MFA: Object.freeze({
+            code: 'LOGIN_FAILED_MFA',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Login failed - MFA verification',
+            requiredFields: []
+        }),
+        LOGIN_BLOCKED: Object.freeze({
+            code: 'LOGIN_BLOCKED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.HIGH,
+            description: 'Login blocked due to security policy',
+            requiredFields: ['blockReason']
+        }),
+        LOGOUT: Object.freeze({
+            code: 'LOGOUT',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.LOW,
+            description: 'User logged out',
+            requiredFields: []
+        }),
+        SESSION_EXPIRED: Object.freeze({
+            code: 'SESSION_EXPIRED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.LOW,
+            description: 'User session expired',
+            requiredFields: []
+        }),
+        PASSWORD_CHANGED: Object.freeze({
+            code: 'PASSWORD_CHANGED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Password changed',
+            requiredFields: ['targetUserId']
+        }),
+        PASSWORD_RESET_REQUESTED: Object.freeze({
+            code: 'PASSWORD_RESET_REQUESTED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Password reset requested',
+            requiredFields: []
+        }),
+        PASSWORD_RESET_FORCED: Object.freeze({
+            code: 'PASSWORD_RESET_FORCED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.AUTHENTICATION,
+            severity: SEVERITIES.HIGH,
+            description: 'Forced password reset initiated',
+            requiredFields: ['targetUserId']
+        }),
 
-        DATA_UNMASKED: { module: MODULES.REPORTING, category: 'data_access', severity: 'high', description: 'Sensitive data unmasked' },
-        DATA_EXPORTED: { module: MODULES.REPORTING, category: 'data_access', severity: 'medium', description: 'Data exported' },
-        REPORT_GENERATED: { module: MODULES.REPORTING, category: 'data_access', severity: 'low', description: 'Report generated' },
-        AUDIT_LOG_ACCESSED: { module: MODULES.COMPLIANCE, category: 'data_access', severity: 'low', description: 'Audit logs accessed' },
+        CAMPAIGN_CREATED: Object.freeze({
+            code: 'CAMPAIGN_CREATED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.LOW,
+            description: 'Campaign created',
+            requiredFields: ['campaignId']
+        }),
+        CAMPAIGN_SUBMITTED: Object.freeze({
+            code: 'CAMPAIGN_SUBMITTED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.LOW,
+            description: 'Campaign submitted for approval',
+            requiredFields: ['campaignId']
+        }),
+        CAMPAIGN_APPROVED: Object.freeze({
+            code: 'CAMPAIGN_APPROVED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Campaign approved',
+            requiredFields: ['campaignId', 'approvedBy']
+        }),
+        CAMPAIGN_REJECTED: Object.freeze({
+            code: 'CAMPAIGN_REJECTED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Campaign rejected',
+            requiredFields: ['campaignId', 'rejectedBy', 'rejectionReason']
+        }),
+        CAMPAIGN_SENT: Object.freeze({
+            code: 'CAMPAIGN_SENT',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.LOW,
+            description: 'Campaign dispatched',
+            requiredFields: ['campaignId', 'recipientCount']
+        }),
+        CAMPAIGN_SCHEDULED: Object.freeze({
+            code: 'CAMPAIGN_SCHEDULED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.LOW,
+            description: 'Campaign scheduled',
+            requiredFields: ['campaignId', 'scheduledTime']
+        }),
+        CAMPAIGN_CANCELLED: Object.freeze({
+            code: 'CAMPAIGN_CANCELLED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Campaign cancelled',
+            requiredFields: ['campaignId']
+        }),
 
-        PURCHASE_COMPLETED: { module: MODULES.FINANCIAL, category: 'financial', severity: 'medium', description: 'Purchase completed' },
-        INVOICE_GENERATED: { module: MODULES.FINANCIAL, category: 'financial', severity: 'low', description: 'Invoice generated' },
-        PAYMENT_RECEIVED: { module: MODULES.FINANCIAL, category: 'financial', severity: 'medium', description: 'Payment received' },
-        CREDIT_APPLIED: { module: MODULES.FINANCIAL, category: 'financial', severity: 'medium', description: 'Credit applied to account' },
-        REFUND_ISSUED: { module: MODULES.FINANCIAL, category: 'financial', severity: 'high', description: 'Refund issued' },
+        TEMPLATE_CREATED: Object.freeze({
+            code: 'TEMPLATE_CREATED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.LOW,
+            description: 'Message template created',
+            requiredFields: ['templateId']
+        }),
+        TEMPLATE_UPDATED: Object.freeze({
+            code: 'TEMPLATE_UPDATED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.LOW,
+            description: 'Message template updated',
+            requiredFields: ['templateId']
+        }),
+        TEMPLATE_DELETED: Object.freeze({
+            code: 'TEMPLATE_DELETED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Message template deleted',
+            requiredFields: ['templateId']
+        }),
+        TEMPLATE_APPROVED: Object.freeze({
+            code: 'TEMPLATE_APPROVED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Message template approved',
+            requiredFields: ['templateId', 'approvedBy']
+        }),
+        TEMPLATE_REJECTED: Object.freeze({
+            code: 'TEMPLATE_REJECTED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Message template rejected',
+            requiredFields: ['templateId', 'rejectedBy']
+        }),
 
-        ACCOUNT_ACTIVATED: { module: MODULES.ACCOUNT, category: 'account', severity: 'high', description: 'Account activated' },
-        ACCOUNT_SUSPENDED: { module: MODULES.ACCOUNT, category: 'account', severity: 'critical', description: 'Account suspended' },
-        ACCOUNT_DETAILS_UPDATED: { module: MODULES.ACCOUNT, category: 'account', severity: 'medium', description: 'Account details updated' },
+        CONTACT_CREATED: Object.freeze({
+            code: 'CONTACT_CREATED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.LOW,
+            description: 'Contact created',
+            requiredFields: []
+        }),
+        CONTACT_UPDATED: Object.freeze({
+            code: 'CONTACT_UPDATED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.LOW,
+            description: 'Contact updated',
+            requiredFields: []
+        }),
+        CONTACT_DELETED: Object.freeze({
+            code: 'CONTACT_DELETED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Contact deleted',
+            requiredFields: []
+        }),
+        CONTACT_IMPORTED: Object.freeze({
+            code: 'CONTACT_IMPORTED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.LOW,
+            description: 'Contacts imported',
+            requiredFields: ['importCount']
+        }),
+        CONTACT_EXPORTED: Object.freeze({
+            code: 'CONTACT_EXPORTED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Contacts exported',
+            requiredFields: ['exportCount']
+        }),
+        LIST_CREATED: Object.freeze({
+            code: 'LIST_CREATED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.LOW,
+            description: 'Contact list created',
+            requiredFields: ['listId']
+        }),
+        LIST_UPDATED: Object.freeze({
+            code: 'LIST_UPDATED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.LOW,
+            description: 'Contact list updated',
+            requiredFields: ['listId']
+        }),
+        LIST_DELETED: Object.freeze({
+            code: 'LIST_DELETED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Contact list deleted',
+            requiredFields: ['listId']
+        }),
+        OPT_OUT_RECEIVED: Object.freeze({
+            code: 'OPT_OUT_RECEIVED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Opt-out request processed',
+            requiredFields: []
+        }),
+        OPT_IN_RECEIVED: Object.freeze({
+            code: 'OPT_IN_RECEIVED',
+            module: MODULES.CONTACTS,
+            category: CATEGORIES.CONTACTS,
+            severity: SEVERITIES.LOW,
+            description: 'Opt-in consent recorded',
+            requiredFields: []
+        }),
 
-        SAR_REQUEST: { module: MODULES.COMPLIANCE, category: 'gdpr', severity: 'high', description: 'Subject access request received' },
-        DATA_DELETION: { module: MODULES.COMPLIANCE, category: 'gdpr', severity: 'critical', description: 'Data deletion request processed' },
-        CONSENT_UPDATED: { module: MODULES.COMPLIANCE, category: 'gdpr', severity: 'medium', description: 'Consent preferences updated' },
-        PROCESSING_RECORD: { module: MODULES.COMPLIANCE, category: 'gdpr', severity: 'low', description: 'Processing activity recorded' },
-        SECURITY_INCIDENT: { module: MODULES.COMPLIANCE, category: 'compliance', severity: 'critical', description: 'Security incident reported' },
-        POLICY_UPDATED: { module: MODULES.COMPLIANCE, category: 'compliance', severity: 'high', description: 'Security policy updated' },
-        ACCESS_REVIEW: { module: MODULES.COMPLIANCE, category: 'compliance', severity: 'medium', description: 'Access review completed' },
+        DATA_VIEWED: Object.freeze({
+            code: 'DATA_VIEWED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.DATA_ACCESS,
+            severity: SEVERITIES.LOW,
+            description: 'Data viewed',
+            requiredFields: ['dataType']
+        }),
+        DATA_UNMASKED: Object.freeze({
+            code: 'DATA_UNMASKED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.DATA_ACCESS,
+            severity: SEVERITIES.HIGH,
+            description: 'Sensitive data unmasked',
+            requiredFields: ['dataType']
+        }),
+        DATA_EXPORTED: Object.freeze({
+            code: 'DATA_EXPORTED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.DATA_ACCESS,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Data exported',
+            requiredFields: ['exportType', 'format']
+        }),
+        REPORT_GENERATED: Object.freeze({
+            code: 'REPORT_GENERATED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.DATA_ACCESS,
+            severity: SEVERITIES.LOW,
+            description: 'Report generated',
+            requiredFields: ['reportType']
+        }),
+        AUDIT_LOG_ACCESSED: Object.freeze({
+            code: 'AUDIT_LOG_ACCESSED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.DATA_ACCESS,
+            severity: SEVERITIES.LOW,
+            description: 'Audit logs accessed',
+            requiredFields: []
+        }),
+        AUDIT_LOG_EXPORTED: Object.freeze({
+            code: 'AUDIT_LOG_EXPORTED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.DATA_ACCESS,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Audit logs exported',
+            requiredFields: ['format', 'recordCount']
+        }),
 
-        API_KEY_CREATED: { module: MODULES.API, category: 'api', severity: 'high', description: 'API key created' },
-        API_KEY_REVOKED: { module: MODULES.API, category: 'api', severity: 'high', description: 'API key revoked' },
-        API_REQUEST: { module: MODULES.API, category: 'api', severity: 'low', description: 'API request processed' },
-        WEBHOOK_CONFIGURED: { module: MODULES.API, category: 'api', severity: 'medium', description: 'Webhook endpoint configured' },
+        PURCHASE_INITIATED: Object.freeze({
+            code: 'PURCHASE_INITIATED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.LOW,
+            description: 'Purchase initiated',
+            requiredFields: ['purchaseType']
+        }),
+        PURCHASE_COMPLETED: Object.freeze({
+            code: 'PURCHASE_COMPLETED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Purchase completed',
+            requiredFields: ['purchaseId', 'purchaseType']
+        }),
+        PURCHASE_FAILED: Object.freeze({
+            code: 'PURCHASE_FAILED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Purchase failed',
+            requiredFields: ['failureReason']
+        }),
+        INVOICE_GENERATED: Object.freeze({
+            code: 'INVOICE_GENERATED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.LOW,
+            description: 'Invoice generated',
+            requiredFields: ['invoiceId']
+        }),
+        INVOICE_PAID: Object.freeze({
+            code: 'INVOICE_PAID',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Invoice paid',
+            requiredFields: ['invoiceId']
+        }),
+        PAYMENT_RECEIVED: Object.freeze({
+            code: 'PAYMENT_RECEIVED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Payment received',
+            requiredFields: ['paymentId']
+        }),
+        CREDIT_APPLIED: Object.freeze({
+            code: 'CREDIT_APPLIED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Credit applied to account',
+            requiredFields: ['creditType']
+        }),
+        REFUND_ISSUED: Object.freeze({
+            code: 'REFUND_ISSUED',
+            module: MODULES.FINANCIAL,
+            category: CATEGORIES.FINANCIAL,
+            severity: SEVERITIES.HIGH,
+            description: 'Refund issued',
+            requiredFields: ['refundId']
+        }),
 
-        SYSTEM_MAINTENANCE: { module: MODULES.SYSTEM, category: 'system', severity: 'low', description: 'System maintenance performed' },
-        CONFIG_CHANGED: { module: MODULES.SYSTEM, category: 'system', severity: 'high', description: 'System configuration changed' }
-    };
+        ACCOUNT_CREATED: Object.freeze({
+            code: 'ACCOUNT_CREATED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Account created',
+            requiredFields: []
+        }),
+        ACCOUNT_ACTIVATED: Object.freeze({
+            code: 'ACCOUNT_ACTIVATED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Account activated',
+            requiredFields: []
+        }),
+        ACCOUNT_SUSPENDED: Object.freeze({
+            code: 'ACCOUNT_SUSPENDED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.CRITICAL,
+            description: 'Account suspended',
+            requiredFields: ['suspensionReason']
+        }),
+        ACCOUNT_REACTIVATED: Object.freeze({
+            code: 'ACCOUNT_REACTIVATED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.HIGH,
+            description: 'Account reactivated',
+            requiredFields: []
+        }),
+        ACCOUNT_DETAILS_UPDATED: Object.freeze({
+            code: 'ACCOUNT_DETAILS_UPDATED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCOUNT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Account details updated',
+            requiredFields: ['fieldsUpdated']
+        }),
+
+        SAR_REQUEST: Object.freeze({
+            code: 'SAR_REQUEST',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.HIGH,
+            description: 'Subject access request received',
+            requiredFields: ['requestId']
+        }),
+        SAR_COMPLETED: Object.freeze({
+            code: 'SAR_COMPLETED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.HIGH,
+            description: 'Subject access request completed',
+            requiredFields: ['requestId']
+        }),
+        DATA_DELETION_REQUESTED: Object.freeze({
+            code: 'DATA_DELETION_REQUESTED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.HIGH,
+            description: 'Data deletion request received',
+            requiredFields: ['requestId']
+        }),
+        DATA_DELETION_COMPLETED: Object.freeze({
+            code: 'DATA_DELETION_COMPLETED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.CRITICAL,
+            description: 'Data deletion request processed',
+            requiredFields: ['requestId']
+        }),
+        CONSENT_UPDATED: Object.freeze({
+            code: 'CONSENT_UPDATED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Consent preferences updated',
+            requiredFields: ['consentType']
+        }),
+        PROCESSING_RECORD: Object.freeze({
+            code: 'PROCESSING_RECORD',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.LOW,
+            description: 'Processing activity recorded',
+            requiredFields: ['processingType']
+        }),
+
+        SECURITY_INCIDENT: Object.freeze({
+            code: 'SECURITY_INCIDENT',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.COMPLIANCE,
+            severity: SEVERITIES.CRITICAL,
+            description: 'Security incident reported',
+            requiredFields: ['incidentType']
+        }),
+        POLICY_UPDATED: Object.freeze({
+            code: 'POLICY_UPDATED',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.COMPLIANCE,
+            severity: SEVERITIES.HIGH,
+            description: 'Security policy updated',
+            requiredFields: ['policyType']
+        }),
+        ACCESS_REVIEW: Object.freeze({
+            code: 'ACCESS_REVIEW',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.COMPLIANCE,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Access review completed',
+            requiredFields: ['reviewScope']
+        }),
+        COMPLIANCE_CHECK: Object.freeze({
+            code: 'COMPLIANCE_CHECK',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.COMPLIANCE,
+            severity: SEVERITIES.LOW,
+            description: 'Compliance check performed',
+            requiredFields: ['checkType']
+        }),
+
+        API_KEY_CREATED: Object.freeze({
+            code: 'API_KEY_CREATED',
+            module: MODULES.API,
+            category: CATEGORIES.API,
+            severity: SEVERITIES.HIGH,
+            description: 'API key created',
+            requiredFields: ['keyId']
+        }),
+        API_KEY_REVOKED: Object.freeze({
+            code: 'API_KEY_REVOKED',
+            module: MODULES.API,
+            category: CATEGORIES.API,
+            severity: SEVERITIES.HIGH,
+            description: 'API key revoked',
+            requiredFields: ['keyId']
+        }),
+        API_KEY_ROTATED: Object.freeze({
+            code: 'API_KEY_ROTATED',
+            module: MODULES.API,
+            category: CATEGORIES.API,
+            severity: SEVERITIES.MEDIUM,
+            description: 'API key rotated',
+            requiredFields: ['keyId']
+        }),
+        WEBHOOK_CONFIGURED: Object.freeze({
+            code: 'WEBHOOK_CONFIGURED',
+            module: MODULES.API,
+            category: CATEGORIES.API,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Webhook endpoint configured',
+            requiredFields: ['webhookId']
+        }),
+        WEBHOOK_DELETED: Object.freeze({
+            code: 'WEBHOOK_DELETED',
+            module: MODULES.API,
+            category: CATEGORIES.API,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Webhook endpoint deleted',
+            requiredFields: ['webhookId']
+        }),
+
+        SYSTEM_STARTUP: Object.freeze({
+            code: 'SYSTEM_STARTUP',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'System started',
+            requiredFields: []
+        }),
+        SYSTEM_SHUTDOWN: Object.freeze({
+            code: 'SYSTEM_SHUTDOWN',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'System shutdown',
+            requiredFields: []
+        }),
+        SYSTEM_MAINTENANCE: Object.freeze({
+            code: 'SYSTEM_MAINTENANCE',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'System maintenance performed',
+            requiredFields: ['maintenanceType']
+        }),
+        CONFIG_CHANGED: Object.freeze({
+            code: 'CONFIG_CHANGED',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.HIGH,
+            description: 'System configuration changed',
+            requiredFields: ['configKey']
+        }),
+        SCHEDULED_TASK_RUN: Object.freeze({
+            code: 'SCHEDULED_TASK_RUN',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'Scheduled task executed',
+            requiredFields: ['taskName']
+        })
+    });
+
+    var APPROVED_EVENT_CODES = Object.keys(EVENT_CATALOGUE);
 
     var SENSITIVE_PATTERNS = [
         { pattern: /password/i, replacement: '[CREDENTIAL_REDACTED]' },
@@ -131,10 +881,21 @@ var AuditLogger = (function() {
     ];
 
     var PHONE_PATTERN = /(\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g;
-    var EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 
     var auditLog = [];
     var maxLogSize = 10000;
+    var strictMode = true;
+
+    function isValidEventType(eventType) {
+        return APPROVED_EVENT_CODES.includes(eventType);
+    }
+
+    function getEventDefinition(eventType) {
+        if (!isValidEventType(eventType)) {
+            return null;
+        }
+        return EVENT_CATALOGUE[eventType];
+    }
 
     function generateEventId() {
         var timestamp = Date.now().toString(36);
@@ -176,13 +937,7 @@ var AuditLogger = (function() {
         if (typeof value !== 'string') {
             return value;
         }
-
-        var sanitized = value;
-
-        sanitized = sanitized.replace(PHONE_PATTERN, '[PHONE_REDACTED]');
-        sanitized = sanitized.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
-
-        return sanitized;
+        return value.replace(PHONE_PATTERN, '[PHONE_REDACTED]');
     }
 
     function sanitizeDetails(data) {
@@ -233,56 +988,53 @@ var AuditLogger = (function() {
     function log(eventType, options) {
         options = options || {};
 
-        var eventInfo = EVENT_TYPES[eventType];
-        if (!eventInfo) {
-            console.warn('[AuditLogger] Unknown event type:', eventType);
-            eventInfo = { 
-                module: MODULES.SYSTEM, 
-                category: 'unknown', 
-                severity: 'medium', 
-                description: eventType.replace(/_/g, ' ') 
-            };
+        if (!isValidEventType(eventType)) {
+            if (strictMode) {
+                console.error('[AuditLogger] REJECTED: Event type "' + eventType + '" is not in the approved catalogue.');
+                console.error('[AuditLogger] Approved event types:', APPROVED_EVENT_CODES.join(', '));
+                return null;
+            } else {
+                console.warn('[AuditLogger] WARNING: Event type "' + eventType + '" is not in the approved catalogue.');
+            }
         }
+
+        var eventDef = getEventDefinition(eventType) || {
+            code: eventType,
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.MEDIUM,
+            description: eventType.replace(/_/g, ' '),
+            requiredFields: []
+        };
 
         var actor = options.actor || getCurrentActor();
         var target = options.target || null;
 
         var entry = {
             eventId: generateEventId(),
-
-            eventType: eventType,
-
-            module: options.module || eventInfo.module,
-
+            eventType: eventDef.code,
+            eventTypeRef: 'CATALOGUE:' + eventDef.code,
+            module: options.module || eventDef.module,
             actorType: actor.actorType || ACTOR_TYPES.USER,
             actorId: actor.actorId || actor.userId || 'unknown',
-
             subAccountId: actor.subAccountId || options.subAccountId || null,
-
             targetRef: target ? {
                 entityType: target.resourceType || target.entityType || 'unknown',
                 entityId: target.resourceId || target.entityId || target.userId || null
             } : null,
-
-            description: options.description || eventInfo.description,
-
+            description: options.description || eventDef.description,
             timestamp: getCurrentTimestampUTC(),
-
             ipAddress: options.ipAddress || getClientIP(),
-
-            category: eventInfo.category,
-            severity: eventInfo.severity,
-
+            category: eventDef.category,
+            severity: eventDef.severity,
             actorName: actor.actorName || actor.userName || null,
             actorRole: actor.actorRole || actor.role || null,
-
             metadata: sanitizeDetails(options.data || {}),
-
             sessionId: getSessionId(),
             requestId: options.requestId || generateRequestId(),
-
             result: options.result || 'success',
-            reason: options.reason || null
+            reason: options.reason || null,
+            catalogueVersion: '1.0.0'
         };
 
         auditLog.unshift(entry);
@@ -293,7 +1045,7 @@ var AuditLogger = (function() {
 
         console.log('[AUDIT]', formatLogEntry(entry));
 
-        if (eventInfo.severity === 'critical' || eventInfo.severity === 'high') {
+        if (eventDef.severity === 'critical' || eventDef.severity === 'high') {
             notifySecurityTeam(entry);
         }
 
@@ -307,8 +1059,7 @@ var AuditLogger = (function() {
             action: entry.description,
             severity: entry.severity,
             actor: entry.actorName + ' (' + entry.actorRole + ')',
-            target: entry.targetRef ? entry.targetRef.entityType + ':' + entry.targetRef.entityId : 'N/A',
-            ip: entry.ipAddress
+            ref: entry.eventTypeRef
         };
     }
 
@@ -316,161 +1067,34 @@ var AuditLogger = (function() {
         console.log('[SECURITY ALERT]', entry.description, '-', entry.severity.toUpperCase());
     }
 
-    function logUserCreated(targetUser, options) {
-        options = options || {};
-        return log('USER_CREATED', {
-            target: { entityType: 'user', entityId: targetUser.userId },
-            data: {
-                creationType: options.creationType || 'direct',
-                requiresPasswordReset: options.requiresPasswordReset !== false,
-                requiresMFA: options.requiresMFA !== false,
-                assignedSubAccount: options.subAccountId,
-                assignedRole: targetUser.role
-            },
-            reason: options.reason
+    function getCatalogue() {
+        return Object.assign({}, EVENT_CATALOGUE);
+    }
+
+    function getApprovedEventTypes() {
+        return APPROVED_EVENT_CODES.slice();
+    }
+
+    function getEventsByCategory(category) {
+        return APPROVED_EVENT_CODES.filter(function(code) {
+            return EVENT_CATALOGUE[code].category === category;
         });
     }
 
-    function logUserInvited(targetUser, options) {
-        options = options || {};
-        return log('USER_INVITED', {
-            target: { entityType: 'user', entityId: targetUser.userId || 'pending' },
-            data: {
-                assignedRole: targetUser.role,
-                expiresAt: options.expiresAt
-            }
+    function getEventsByModule(module) {
+        return APPROVED_EVENT_CODES.filter(function(code) {
+            return EVENT_CATALOGUE[code].module === module;
         });
     }
 
-    function logRoleChanged(targetUser, previousRole, newRole, reason) {
-        return log('ROLE_CHANGED', {
-            target: { entityType: 'user', entityId: targetUser.userId },
-            data: {
-                previousRole: previousRole,
-                newRole: newRole
-            },
-            reason: reason
+    function getEventsBySeverity(severity) {
+        return APPROVED_EVENT_CODES.filter(function(code) {
+            return EVENT_CATALOGUE[code].severity === severity;
         });
     }
 
-    function logPermissionChanged(targetUser, permission, granted, isOverride) {
-        var eventType = granted ? 'PERMISSION_GRANTED' : 'PERMISSION_REVOKED';
-        if (isOverride) {
-            eventType = 'PERMISSION_OVERRIDE_SET';
-        }
-
-        return log(eventType, {
-            target: { entityType: 'user', entityId: targetUser.userId },
-            data: {
-                permission: permission,
-                granted: granted,
-                isOverride: isOverride
-            }
-        });
-    }
-
-    function logPermissionsUpdated(targetUser, changes) {
-        return log('PERMISSION_OVERRIDE_SET', {
-            target: { entityType: 'user', entityId: targetUser.userId },
-            data: {
-                changesCount: Object.keys(changes).length,
-                permissionsModified: Object.keys(changes)
-            }
-        });
-    }
-
-    function logSenderCapabilityChanged(targetUser, previousLevel, newLevel, reason) {
-        return log('SENDER_CAPABILITY_CHANGED', {
-            target: { entityType: 'user', entityId: targetUser.userId },
-            data: {
-                previousCapability: previousLevel,
-                newCapability: newLevel
-            },
-            reason: reason
-        });
-    }
-
-    function logEnforcementOverride(subAccountId, ruleType, action, details) {
-        var eventType = 'ENFORCEMENT_OVERRIDE_' + action.toUpperCase();
-        return log(eventType, {
-            target: { entityType: 'sub_account', entityId: subAccountId },
-            subAccountId: subAccountId,
-            data: {
-                ruleType: ruleType,
-                overrideType: action
-            },
-            reason: details.reason
-        });
-    }
-
-    function logMFAChange(targetUser, action, details) {
-        var eventType = 'MFA_' + action.toUpperCase();
-        return log(eventType, {
-            target: { entityType: 'user', entityId: targetUser.userId },
-            data: details || {}
-        });
-    }
-
-    function logLoginAttempt(userId, success, failureReason) {
-        var eventType = success ? 'LOGIN_SUCCESS' : 'LOGIN_FAILED';
-
-        return log(eventType, {
-            actor: {
-                actorType: ACTOR_TYPES.USER,
-                actorId: userId,
-                actorName: userId,
-                actorRole: 'authenticating'
-            },
-            data: {
-                success: success
-            },
-            result: success ? 'success' : 'failure',
-            reason: failureReason
-        });
-    }
-
-    function logLoginBlocked(userId, reason, attempts) {
-        return log('LOGIN_BLOCKED', {
-            actor: {
-                actorType: ACTOR_TYPES.USER,
-                actorId: userId,
-                actorName: userId,
-                actorRole: 'blocked'
-            },
-            data: {
-                failedAttempts: attempts
-            },
-            result: 'blocked',
-            reason: reason
-        });
-    }
-
-    function logSystemEvent(eventType, details, options) {
-        options = options || {};
-        return log(eventType, {
-            actor: {
-                actorType: ACTOR_TYPES.SYSTEM,
-                actorId: 'system',
-                actorName: 'System',
-                actorRole: 'system'
-            },
-            data: details,
-            description: options.description
-        });
-    }
-
-    function logAPIEvent(eventType, apiKeyId, details, options) {
-        options = options || {};
-        return log(eventType, {
-            actor: {
-                actorType: ACTOR_TYPES.API,
-                actorId: apiKeyId,
-                actorName: 'API Client',
-                actorRole: 'api'
-            },
-            data: details,
-            description: options.description
-        });
+    function setStrictMode(enabled) {
+        strictMode = enabled;
     }
 
     function query(filters) {
@@ -479,36 +1103,28 @@ var AuditLogger = (function() {
         if (filters.eventType) {
             results = results.filter(function(e) { return e.eventType === filters.eventType; });
         }
-
         if (filters.module) {
             results = results.filter(function(e) { return e.module === filters.module; });
         }
-
         if (filters.category) {
             results = results.filter(function(e) { return e.category === filters.category; });
         }
-
         if (filters.severity) {
             results = results.filter(function(e) { return e.severity === filters.severity; });
         }
-
         if (filters.actorId) {
             results = results.filter(function(e) { return e.actorId === filters.actorId; });
         }
-
         if (filters.actorType) {
             results = results.filter(function(e) { return e.actorType === filters.actorType; });
         }
-
         if (filters.subAccountId) {
             results = results.filter(function(e) { return e.subAccountId === filters.subAccountId; });
         }
-
         if (filters.startDate) {
             var start = new Date(filters.startDate);
             results = results.filter(function(e) { return new Date(e.timestamp) >= start; });
         }
-
         if (filters.endDate) {
             var end = new Date(filters.endDate);
             results = results.filter(function(e) { return new Date(e.timestamp) <= end; });
@@ -529,99 +1145,29 @@ var AuditLogger = (function() {
         });
     }
 
-    function exportAuditLog(filters, format) {
-        var data = filters ? query(filters) : auditLog;
-
-        log('DATA_EXPORTED', {
-            data: {
-                exportType: 'audit_log',
-                format: format || 'json',
-                recordCount: data.length
-            }
-        });
-
-        if (format === 'csv') {
-            return convertToCSV(data);
-        }
-
-        return JSON.stringify(data, null, 2);
-    }
-
-    function convertToCSV(data) {
-        if (data.length === 0) return '';
-
-        var headers = [
-            'event_id', 'event_type', 'module', 'actor_type', 'actor_id', 
-            'sub_account_id', 'target_ref', 'description', 'timestamp', 
-            'ip_address', 'category', 'severity', 'result'
-        ];
-
-        var rows = data.map(function(e) {
-            return [
-                e.eventId,
-                e.eventType,
-                e.module,
-                e.actorType,
-                e.actorId,
-                e.subAccountId || '',
-                e.targetRef ? e.targetRef.entityType + ':' + e.targetRef.entityId : '',
-                e.description,
-                e.timestamp,
-                e.ipAddress,
-                e.category,
-                e.severity,
-                e.result
-            ].map(function(v) { return '"' + String(v || '').replace(/"/g, '""') + '"'; }).join(',');
-        });
-
-        return headers.join(',') + '\n' + rows.join('\n');
-    }
-
-    function getSchema() {
-        return {
-            eventId: 'string (system-generated, format: EVT-XXXXXX-XXXXXXXXX)',
-            eventType: 'string (normalised event type from EVENT_TYPES)',
-            module: 'string (source module from MODULES)',
-            actorType: 'string (User | System | API)',
-            actorId: 'string (user ID, system, or API key ID)',
-            subAccountId: 'string | null (sub-account context if applicable)',
-            targetRef: 'object | null ({ entityType, entityId })',
-            description: 'string (human-readable description)',
-            timestamp: 'string (ISO 8601 UTC)',
-            ipAddress: 'string (client IP where applicable)',
-            category: 'string (event category)',
-            severity: 'string (low | medium | high | critical)',
-            metadata: 'object (sanitized additional data)',
-            sessionId: 'string (session identifier)',
-            requestId: 'string (request correlation ID)',
-            result: 'string (success | failure | blocked)',
-            reason: 'string | null (reason for action if applicable)'
-        };
-    }
-
     return {
         log: log,
-        logUserCreated: logUserCreated,
-        logUserInvited: logUserInvited,
-        logRoleChanged: logRoleChanged,
-        logPermissionChanged: logPermissionChanged,
-        logPermissionsUpdated: logPermissionsUpdated,
-        logSenderCapabilityChanged: logSenderCapabilityChanged,
-        logEnforcementOverride: logEnforcementOverride,
-        logMFAChange: logMFAChange,
-        logLoginAttempt: logLoginAttempt,
-        logLoginBlocked: logLoginBlocked,
-        logSystemEvent: logSystemEvent,
-        logAPIEvent: logAPIEvent,
         query: query,
         getRecentActivity: getRecentActivity,
         getSecurityAlerts: getSecurityAlerts,
-        exportAuditLog: exportAuditLog,
-        getSchema: getSchema,
-        EVENT_TYPES: EVENT_TYPES,
-        ACTION_TYPES: EVENT_TYPES,
+
+        getCatalogue: getCatalogue,
+        getApprovedEventTypes: getApprovedEventTypes,
+        getEventDefinition: getEventDefinition,
+        isValidEventType: isValidEventType,
+        getEventsByCategory: getEventsByCategory,
+        getEventsByModule: getEventsByModule,
+        getEventsBySeverity: getEventsBySeverity,
+        setStrictMode: setStrictMode,
+
+        EVENT_CATALOGUE: EVENT_CATALOGUE,
+        EVENT_TYPES: EVENT_CATALOGUE,
+        ACTION_TYPES: EVENT_CATALOGUE,
         ACTOR_TYPES: ACTOR_TYPES,
-        MODULES: MODULES
+        MODULES: MODULES,
+        CATEGORIES: CATEGORIES,
+        SEVERITIES: SEVERITIES,
+        APPROVED_EVENT_CODES: APPROVED_EVENT_CODES
     };
 })();
 
