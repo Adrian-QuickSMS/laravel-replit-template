@@ -32,6 +32,41 @@ var AdminControlPlane = (function() {
 
     var impersonationSession = null;
 
+    var RESPONSIBILITIES = {
+        observe: {
+            name: 'Observe',
+            description: 'View-only access to traffic, outcomes, routing, and financials',
+            icon: 'fa-eye',
+            color: '#4a90d9'
+        },
+        control: {
+            name: 'Control',
+            description: 'Approve, block, suspend, and override system state',
+            icon: 'fa-sliders-h',
+            color: '#f59e0b'
+        },
+        investigate: {
+            name: 'Investigate',
+            description: 'Support access for troubleshooting and impersonation',
+            icon: 'fa-search',
+            color: '#10b981'
+        },
+        govern: {
+            name: 'Govern',
+            description: 'Compliance enforcement and audit management',
+            icon: 'fa-gavel',
+            color: '#8b5cf6'
+        }
+    };
+
+    var ROLE_RESPONSIBILITIES = {
+        'super_admin': ['observe', 'control', 'investigate', 'govern'],
+        'support': ['observe', 'investigate'],
+        'finance': ['observe'],
+        'compliance': ['observe', 'control', 'govern'],
+        'sales': ['observe']
+    };
+
     var ADMIN_PERMISSIONS = {
         'super_admin': {
             canApprove: true,
@@ -41,7 +76,8 @@ var AdminControlPlane = (function() {
             canViewFinancials: true,
             canModifyPricing: true,
             canAccessAudit: true,
-            canExportData: true
+            canExportData: true,
+            canRevealData: true
         },
         'support': {
             canApprove: false,
@@ -51,7 +87,8 @@ var AdminControlPlane = (function() {
             canViewFinancials: false,
             canModifyPricing: false,
             canAccessAudit: true,
-            canExportData: false
+            canExportData: false,
+            canRevealData: true
         },
         'finance': {
             canApprove: false,
@@ -61,7 +98,8 @@ var AdminControlPlane = (function() {
             canViewFinancials: true,
             canModifyPricing: false,
             canAccessAudit: true,
-            canExportData: true
+            canExportData: true,
+            canRevealData: false
         },
         'compliance': {
             canApprove: true,
@@ -71,7 +109,19 @@ var AdminControlPlane = (function() {
             canViewFinancials: false,
             canModifyPricing: false,
             canAccessAudit: true,
-            canExportData: true
+            canExportData: true,
+            canRevealData: false
+        },
+        'sales': {
+            canApprove: false,
+            canSuspend: false,
+            canOverride: false,
+            canImpersonate: false,
+            canViewFinancials: false,
+            canModifyPricing: false,
+            canAccessAudit: false,
+            canExportData: false,
+            canRevealData: false
         }
     };
 
@@ -97,6 +147,57 @@ var AdminControlPlane = (function() {
     function hasPermission(permission) {
         var perms = ADMIN_PERMISSIONS[currentAdmin.role];
         return perms ? perms[permission] === true : false;
+    }
+
+    function hasResponsibility(responsibility) {
+        var roleResps = ROLE_RESPONSIBILITIES[currentAdmin.role];
+        return roleResps ? roleResps.indexOf(responsibility) !== -1 : false;
+    }
+
+    function canObserve() {
+        return hasResponsibility('observe');
+    }
+
+    function canControl() {
+        return hasResponsibility('control');
+    }
+
+    function canInvestigate() {
+        return hasResponsibility('investigate');
+    }
+
+    function canGovern() {
+        return hasResponsibility('govern');
+    }
+
+    function getActiveResponsibilities() {
+        var roleResps = ROLE_RESPONSIBILITIES[currentAdmin.role] || [];
+        var result = [];
+        roleResps.forEach(function(respId) {
+            if (RESPONSIBILITIES[respId]) {
+                result.push({
+                    id: respId,
+                    name: RESPONSIBILITIES[respId].name,
+                    icon: RESPONSIBILITIES[respId].icon,
+                    color: RESPONSIBILITIES[respId].color
+                });
+            }
+        });
+        return result;
+    }
+
+    function renderResponsibilityBadges(containerId) {
+        var container = document.getElementById(containerId);
+        if (!container) return;
+
+        var responsibilities = getActiveResponsibilities();
+        var html = responsibilities.map(function(resp) {
+            return '<span class="admin-responsibility-badge" style="background-color: ' + resp.color + '20; color: ' + resp.color + '; border: 1px solid ' + resp.color + '40;">' +
+                   '<i class="fas ' + resp.icon + ' me-1"></i>' + resp.name +
+                   '</span>';
+        }).join(' ');
+
+        container.innerHTML = html;
     }
 
     function logAdminAction(action, target, details) {
@@ -349,6 +450,13 @@ var AdminControlPlane = (function() {
     return {
         init: init,
         hasPermission: hasPermission,
+        hasResponsibility: hasResponsibility,
+        canObserve: canObserve,
+        canControl: canControl,
+        canInvestigate: canInvestigate,
+        canGovern: canGovern,
+        getActiveResponsibilities: getActiveResponsibilities,
+        renderResponsibilityBadges: renderResponsibilityBadges,
         logAdminAction: logAdminAction,
         startImpersonation: startImpersonation,
         endImpersonation: endImpersonation,
@@ -362,7 +470,9 @@ var AdminControlPlane = (function() {
         suspendAccount: suspendAccount,
         reactivateAccount: reactivateAccount,
         getSupplierRoutes: getSupplierRoutes,
-        getCurrentAdmin: function() { return currentAdmin; }
+        getCurrentAdmin: function() { return currentAdmin; },
+        RESPONSIBILITIES: RESPONSIBILITIES,
+        ROLE_RESPONSIBILITIES: ROLE_RESPONSIBILITIES
     };
 })();
 

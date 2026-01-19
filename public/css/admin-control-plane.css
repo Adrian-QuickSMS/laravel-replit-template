@@ -509,3 +509,109 @@ body.admin-control-plane {
     font-size: 0.75rem;
     font-weight: 600;
 }
+
+.admin-responsibility-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-right: 6px;
+}
+
+.admin-responsibility-badge i {
+    font-size: 0.65rem;
+}
+
+.admin-responsibility-observe {
+    background: rgba(74, 144, 217, 0.15);
+    color: #4a90d9;
+    border: 1px solid rgba(74, 144, 217, 0.3);
+}
+
+.admin-responsibility-control {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.admin-responsibility-investigate {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.admin-responsibility-govern {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.admin-responsibilities-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 1rem;
+}
+
+.admin-action-section {
+    border-left: 3px solid;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+.admin-action-section.observe {
+    border-color: #4a90d9;
+}
+
+.admin-action-section.control {
+    border-color: #f59e0b;
+}
+
+.admin-action-section.investigate {
+    border-color: #10b981;
+}
+
+.admin-action-section.govern {
+    border-color: #8b5cf6;
+}
+
+.admin-action-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.admin-action-header .responsibility-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.admin-action-header .responsibility-icon.observe {
+    background: rgba(74, 144, 217, 0.15);
+    color: #4a90d9;
+}
+
+.admin-action-header .responsibility-icon.control {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.admin-action-header .responsibility-icon.investigate {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.admin-action-header .responsibility-icon.govern {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+}
