@@ -221,9 +221,6 @@
                     <span class="retention-indicator retention-active">
                         <i class="fas fa-clock me-1"></i>Retention: 7 years
                     </span>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="verifyIntegrityBtn">
-                        <i class="fas fa-check-circle me-1"></i>Verify Integrity
-                    </button>
                     <div class="dropdown" id="exportDropdown">
                         <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="exportBtn">
                             <i class="fas fa-download me-1"></i>Export
@@ -258,7 +255,7 @@
                         <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
                         <div>
                             <strong>Tamper-proof audit trail for compliance and accountability.</strong>
-                            <p class="mb-0 mt-1 small">All logs are cryptographically signed, immutable, and retained for 7 years. Supports ISO 27001, NHS DSP Toolkit, and GDPR requirements. Each entry includes a verification hash for integrity checking.</p>
+                            <p class="mb-0 mt-1 small">All logs are immutable and retained for 7 years. Supports ISO 27001, NHS DSP Toolkit, and GDPR requirements.</p>
                         </div>
                     </div>
                 </div>
@@ -409,11 +406,11 @@
                             <span class="text-muted small">No filters applied</span>
                         </div>
                         <div class="filter-actions">
-                            <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="clearFilters">
+                            <button type="button" class="btn btn-outline-primary btn-sm me-2" id="clearFilters">
                                 <i class="fas fa-times me-1"></i>Clear All
                             </button>
                             <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
-                                <i class="fas fa-filter me-1"></i>Apply Filters
+                                <i class="fas fa-check me-1"></i>Apply Filters
                             </button>
                         </div>
                     </div>
@@ -1694,7 +1691,7 @@ $(document).ready(function() {
         var timestamp = new Date(log.timestamp);
         var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-        var eventId = log.id.length > 16 ? log.id.substring(0, 16) + '...' : log.id;
+        var eventId = log.id.length > 18 ? log.id.substring(0, 18) + '...' : log.id;
 
         var targetDisplay = '-';
         if (log.target) {
@@ -1705,9 +1702,9 @@ $(document).ready(function() {
 
         var row = $('<tr class="audit-log-row" data-log-id="' + log.id + '">' +
             '<td class="small text-muted">' + formattedDate + '</td>' +
-            '<td class="small"><code class="text-muted" title="' + log.id + '">' + eventId + '</code></td>' +
+            '<td class="small text-muted" title="' + log.id + '">' + eventId + '</td>' +
             '<td><span class="fw-medium">' + log.actionLabel + '</span></td>' +
-            '<td><span class="badge category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
+            '<td class="small text-muted">' + formatCategory(log.category) + '</td>' +
             '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
             '<td class="small">' + log.actor.userName + '</td>' +
             '<td class="small">' + targetDisplay + '</td>' +
@@ -1789,7 +1786,7 @@ $(document).ready(function() {
             '<div class="log-detail-row"><span class="log-detail-label">Log ID</span><span class="log-detail-value"><code>' + log.id + '</code></span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Timestamp</span><span class="log-detail-value">' + timestamp.toISOString() + '</span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Action</span><span class="log-detail-value">' + log.actionLabel + ' <code class="ms-2">(' + log.action + ')</code></span></div>' +
-            '<div class="log-detail-row"><span class="log-detail-label">Category</span><span class="log-detail-value"><span class="badge category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></span></div>' +
+            '<div class="log-detail-row"><span class="log-detail-label">Category</span><span class="log-detail-value">' + formatCategory(log.category) + '</span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Severity</span><span class="log-detail-value"><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></span></div>' +
             '<div class="log-detail-row"><span class="log-detail-label">Result</span><span class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'badge-pastel-success' : 'badge-pastel-danger') + '">' + capitalizeFirst(log.result) + '</span></span></div>' +
         '</div>';
