@@ -253,7 +253,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
@@ -285,7 +285,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
@@ -317,7 +317,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
@@ -349,7 +349,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'view_pricing')"><i class="fas fa-tags me-2"></i>View Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-success" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'reactivate')"><i class="fas fa-play-circle me-2"></i>Reactivate Account</a></li>
                                     </ul>
@@ -862,18 +862,32 @@ window.rowAction = function(accountId, accountName, action) {
             auditEvent: 'ACCOUNT_NAME_CHANGED'
         },
         view_pricing: {
-            title: 'View Pricing',
-            body: '<p>Pricing details for <strong>' + accountName + '</strong></p>' +
-                  '<table class="table table-sm">' +
-                  '<tr><th class="text-muted">Pricing Model</th><td>Delivered</td></tr>' +
+            title: 'Pricing Model',
+            body: '<p>Pricing configuration for <strong>' + accountName + '</strong></p>' +
+                  '<div class="alert alert-info small mb-3"><i class="fas fa-info-circle me-2"></i>Pricing data synced from HubSpot. Changes here update HubSpot records.</div>' +
+                  '<table class="table table-sm mb-3">' +
+                  '<tr><th class="text-muted" style="width:45%">Current Model</th><td><span class="badge light badge-primary" id="currentPricingBadge">Delivered</span></td></tr>' +
                   '<tr><th class="text-muted">UK SMS Rate</th><td>£0.032</td></tr>' +
                   '<tr><th class="text-muted">International Rate</th><td>From £0.045</td></tr>' +
                   '<tr><th class="text-muted">RCS Rate</th><td>£0.015</td></tr>' +
-                  '</table>',
-            btnClass: 'btn-secondary',
-            btnText: 'Close',
-            isViewOnly: true,
-            auditEvent: 'ACCOUNT_PRICING_VIEWED'
+                  '</table>' +
+                  '<hr>' +
+                  '<h6 class="mb-2">Change Pricing Model</h6>' +
+                  '<div class="mb-3">' +
+                  '<div class="form-check mb-2">' +
+                  '<input class="form-check-input" type="radio" name="pricingModel" id="pricingSubmitted" value="Submitted">' +
+                  '<label class="form-check-label" for="pricingSubmitted"><strong>Submitted</strong> - Charge for all messages sent</label>' +
+                  '</div>' +
+                  '<div class="form-check">' +
+                  '<input class="form-check-input" type="radio" name="pricingModel" id="pricingDelivered" value="Delivered" checked>' +
+                  '<label class="form-check-label" for="pricingDelivered"><strong>Delivered</strong> - Charge only for successfully delivered messages</label>' +
+                  '</div>' +
+                  '</div>' +
+                  '<div class="alert alert-secondary small"><i class="fas fa-lock me-2"></i>Only Admin and Super Admin roles can modify pricing models.</div>',
+            btnClass: 'btn-primary',
+            btnText: 'Save Pricing Model',
+            isViewOnly: false,
+            auditEvent: 'ACCOUNT_PRICING_CHANGED'
         },
         suspend: {
             title: 'Suspend Account',
@@ -953,6 +967,19 @@ function executeRowAction(auditEvent) {
             return;
         }
         additionalData = { oldName: action.accountName, newName: newName };
+    } else if (action.action === 'view_pricing') {
+        var selectedModel = document.querySelector('input[name="pricingModel"]:checked')?.value;
+        var currentModel = document.getElementById('currentPricingBadge')?.textContent || 'Delivered';
+        if (selectedModel === currentModel) {
+            alert('No changes made to pricing model.');
+            rowActionModal.hide();
+            return;
+        }
+        additionalData = { 
+            previousModel: currentModel, 
+            newModel: selectedModel,
+            hubspotSyncRequired: true
+        };
     } else if (action.action === 'suspend') {
         var reason = document.getElementById('suspendReason')?.value;
         if (!reason) {
