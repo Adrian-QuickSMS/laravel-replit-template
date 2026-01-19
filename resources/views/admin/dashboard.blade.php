@@ -2111,60 +2111,74 @@ document.addEventListener('DOMContentLoaded', function() {
     function initAdminCharts() {
         console.log('[Admin Charts] initAdminCharts called');
         
-        // Messages Sent Over Time - Line Chart
+        // Messages Sent Over Time - Line Chart (Total, SMS, RCS - matching customer portal)
         var volumeChartEl = document.getElementById('adminVolumeLineChart');
         if (volumeChartEl) {
             volumeChartEl.innerHTML = '';
             var volumeOptions = {
                 series: [
-                    { name: 'Sent', data: [45000, 52000, 48000, 61000, 58000, 72000, 68000, 75000, 82000, 78000, 85000, 92000] },
-                    { name: 'Delivered', data: [44100, 50960, 47040, 59780, 56840, 70560, 66640, 73500, 80360, 76440, 83300, 90160] },
-                    { name: 'Undelivered', data: [900, 1040, 960, 1220, 1160, 1440, 1360, 1500, 1640, 1560, 1700, 1840] }
+                    { name: 'Total', data: [45000, 52000, 48000, 61000, 58000, 72000, 68000, 75000, 82000, 78000, 85000, 92000] },
+                    { name: 'SMS', data: [38000, 44000, 40000, 51000, 48000, 60000, 56000, 62000, 68000, 65000, 71000, 76000] },
+                    { name: 'RCS', data: [7000, 8000, 8000, 10000, 10000, 12000, 12000, 13000, 14000, 13000, 14000, 16000] }
                 ],
-                chart: { type: 'area', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
-                colors: ['#4a90d9', '#10b981', '#ef4444'],
-                stroke: { curve: 'smooth', width: 2 },
-                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.1 } },
+                chart: { type: 'line', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+                colors: ['#1e3a5f', '#09BD3C', '#3065D0'],
                 dataLabels: { enabled: false },
-                xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
-                yaxis: { labels: { formatter: function(val) { return (val / 1000).toFixed(0) + 'K'; } } },
+                stroke: { curve: 'smooth', width: 2 },
                 legend: { position: 'top', horizontalAlign: 'right' },
-                tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
+                xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+                yaxis: { title: { text: 'Messages' } },
+                tooltip: { shared: true, intersect: false },
+                markers: { size: 5, hover: { size: 7 } }
             };
             new ApexCharts(volumeChartEl, volumeOptions).render();
             console.log('[Admin Charts] Volume chart rendered');
         }
 
-        // Delivery Status Breakdown - Donut Chart
+        // Delivery Status Breakdown - Pie Chart (5 statuses matching customer portal)
         var deliveryChartEl = document.getElementById('adminDeliveryStatusPieChart');
         if (deliveryChartEl) {
             deliveryChartEl.innerHTML = '';
             var deliveryOptions = {
-                series: [1231654, 8234, 4567, 3377],
-                chart: { type: 'donut', height: 200, fontFamily: 'inherit' },
-                labels: ['Delivered', 'Pending', 'Expired', 'Rejected'],
-                colors: ['#10b981', '#f59e0b', '#6b7280', '#ef4444'],
-                plotOptions: { pie: { donut: { size: '60%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return w.globals.seriesTotals.reduce(function(a, b) { return a + b; }, 0).toLocaleString(); } } } } } },
-                dataLabels: { enabled: false },
+                series: [1231654, 8234, 3456, 4567, 3377],
+                chart: { type: 'pie', height: 280, fontFamily: 'inherit' },
+                labels: ['Delivered', 'Pending', 'Undelivered', 'Expired', 'Rejected'],
+                colors: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#64748b'],
+                dataLabels: { enabled: true, formatter: function(val) { return val.toFixed(1) + '%'; } },
                 legend: { position: 'bottom', fontSize: '11px' }
             };
             new ApexCharts(deliveryChartEl, deliveryOptions).render();
             console.log('[Admin Charts] Delivery chart rendered');
         }
 
-        // Top Countries Bar Chart
+        // Top Countries Bar Chart (matching customer portal design)
         var countriesChartEl = document.getElementById('adminTopCountriesBarChart');
         if (countriesChartEl) {
             countriesChartEl.innerHTML = '';
+            var seriesData = [
+                { x: 'United Kingdom', y: 892145 },
+                { x: 'Ireland', y: 124567 },
+                { x: 'Germany', y: 89234 },
+                { x: 'France', y: 56789 },
+                { x: 'Spain', y: 45123 },
+                { x: 'Italy', y: 34567 },
+                { x: 'Netherlands', y: 23456 },
+                { x: 'Belgium', y: 18234 },
+                { x: 'Portugal', y: 12345 },
+                { x: 'Poland', y: 9876 }
+            ];
             var countriesOptions = {
-                series: [{ name: 'Messages', data: [892145, 124567, 89234, 56789, 45123, 34567, 23456, 18234, 12345, 9876] }],
+                series: [{ name: 'Messages', data: seriesData }],
                 chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
-                colors: ['#4a90d9'],
-                plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
-                dataLabels: { enabled: true, formatter: function(val) { return (val / 1000).toFixed(0) + 'K'; }, style: { fontSize: '11px' }, offsetX: 5 },
-                xaxis: { categories: ['United Kingdom', 'Ireland', 'Germany', 'France', 'Spain', 'Italy', 'Netherlands', 'Belgium', 'Portugal', 'Poland'] },
-                yaxis: { labels: { style: { fontSize: '11px' } } },
-                tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
+                colors: ['#1e3a5f'],
+                plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '60%' } },
+                dataLabels: { enabled: false },
+                xaxis: { 
+                    title: { text: 'Messages' },
+                    labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } }
+                },
+                yaxis: { labels: { style: { fontSize: '12px' } } },
+                states: { hover: { filter: { type: 'darken', value: 0.9 } } }
             };
             new ApexCharts(countriesChartEl, countriesOptions).render();
             console.log('[Admin Charts] Countries chart rendered');
@@ -2220,23 +2234,37 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Admin Charts] MNO chart rendered');
         }
 
-        // Top SenderIDs List
+        // Top SenderIDs List (matching customer portal design - About Me style)
         var senderIdsList = document.getElementById('adminTopSenderIdsList');
         if (senderIdsList) {
             var mockSenderIds = [
-                { name: 'ACME Corp', sent: 245892, delivered: 98.2 },
-                { name: 'TechStart', sent: 189234, delivered: 97.8 },
-                { name: 'HealthPlus', sent: 156789, delivered: 99.1 },
-                { name: 'BankSecure', sent: 134567, delivered: 98.9 },
-                { name: 'RetailMax', sent: 98234, delivered: 97.5 }
+                { senderId: 'ACME Corp', messages: 245892, delivered: 241894, deliveryRate: 98.4 },
+                { senderId: 'TechStart', messages: 189234, delivered: 185449, deliveryRate: 98.0 },
+                { senderId: 'HealthPlus', messages: 156789, delivered: 155378, deliveryRate: 99.1 },
+                { senderId: 'BankSecure', messages: 134567, delivered: 133086, deliveryRate: 98.9 },
+                { senderId: 'RetailMax', messages: 98234, delivered: 95777, deliveryRate: 97.5 }
             ];
-            var html = mockSenderIds.map(function(s, i) {
-                var statusClass = s.delivered >= 98 ? 'badge-success' : (s.delivered >= 95 ? 'badge-warning' : 'badge-danger');
-                return '<div class="d-flex justify-content-between align-items-center py-2 ' + (i < mockSenderIds.length - 1 ? 'border-bottom' : '') + '">' +
-                    '<div><span class="badge bg-light text-dark me-2">' + (i + 1) + '</span><strong>' + s.name + '</strong></div>' +
-                    '<div class="text-end"><span class="text-muted me-3">' + s.sent.toLocaleString() + '</span><span class="badge ' + statusClass + ' light">' + s.delivered + '%</span></div></div>';
+            var html = mockSenderIds.map(function(item, index) {
+                return '<div class="d-flex justify-content-between py-2 ' + (index < mockSenderIds.length - 1 ? 'border-bottom' : '') + ' cursor-pointer sender-id-row" data-index="' + index + '" onclick="window.selectAdminSenderId(' + index + ')" style="transition: background-color 0.2s;">' +
+                    '<span class="fw-bold">' + item.senderId + '</span>' +
+                    '<span class="text-muted">' + item.messages.toLocaleString() + '</span>' +
+                '</div>';
             }).join('');
             senderIdsList.innerHTML = html;
+            
+            window.adminSenderIdsData = mockSenderIds;
+            window.selectAdminSenderId = function(index) {
+                var item = window.adminSenderIdsData[index];
+                if (!item) return;
+                document.getElementById('adminSenderIdStatSent').textContent = item.messages.toLocaleString();
+                document.getElementById('adminSenderIdStatDelivered').textContent = item.delivered.toLocaleString();
+                document.getElementById('adminSenderIdStatRate').textContent = item.deliveryRate + '%';
+                document.getElementById('adminTopSenderIdsStats').classList.remove('d-none');
+                document.querySelectorAll('.sender-id-row').forEach(function(row, i) {
+                    row.style.backgroundColor = (i === index) ? 'rgba(30, 58, 95, 0.1)' : '';
+                });
+            };
+            window.selectAdminSenderId(0);
             console.log('[Admin Charts] SenderIDs list rendered');
         }
 
