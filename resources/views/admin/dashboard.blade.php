@@ -999,7 +999,7 @@
 }
 
 .chart-wide {
-    min-height: 300px;
+    min-height: 240px;
 }
 
 .network-stacked-chart {
@@ -1056,14 +1056,14 @@
 .network-kpi-tiles {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.35rem;
 }
 
 .network-kpi-tile {
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -1816,7 +1816,7 @@
                             </div>
                         </div>
                         <div class="chart-body">
-                            <div id="adminSupplierStackedBarChart" style="min-height: 200px;"></div>
+                            <div id="adminSupplierStackedBarChart" style="min-height: 180px;"></div>
                         </div>
                         <div class="chart-footer">
                             <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY supplier, status</span>
@@ -1899,7 +1899,7 @@
                         </div>
                     </div>
                     <div class="chart-body" id="chart-delivery-by-network">
-                        <div id="adminMnoStackedBarChart" style="min-height: 280px;"></div>
+                        <div id="adminMnoStackedBarChart" style="min-height: 220px;"></div>
                     </div>
                     <div class="chart-footer">
                         <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY network, status</span>
@@ -2191,19 +2191,20 @@ document.addEventListener('DOMContentLoaded', function() {
             var supplierOptions = {
                 series: [
                     { name: 'Delivered', data: [523456, 412345, 295853] },
+                    { name: 'Undeliverable', data: [987, 654, 321] },
                     { name: 'Pending', data: [3124, 2891, 2219] },
-                    { name: 'Expired', data: [2345, 1987, 1235] },
                     { name: 'Rejected', data: [1567, 1234, 576] },
-                    { name: 'Undeliverable', data: [987, 654, 321] }
+                    { name: 'Expired', data: [2345, 1987, 1235] }
                 ],
-                chart: { type: 'bar', height: 200, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
-                colors: ['#10b981', '#f59e0b', '#6b7280', '#ef4444', '#8b5cf6'],
-                plotOptions: { bar: { horizontal: true, barHeight: '70%' } },
+                chart: { type: 'bar', height: 180, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
+                colors: ['#10b981', '#ef4444', '#f59e0b', '#64748b', '#6b7280'],
+                plotOptions: { bar: { horizontal: true, barHeight: '80%' } },
                 dataLabels: { enabled: false },
-                xaxis: { categories: ['Infobip', 'Sinch', 'BT'] },
-                yaxis: { labels: { style: { fontSize: '11px' } } },
-                legend: { position: 'bottom', fontSize: '10px' },
-                tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } }
+                xaxis: { categories: ['Infobip', 'Sinch', 'BT'], labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } } },
+                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 } } },
+                legend: { show: false },
+                tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
+                grid: { padding: { top: -10, bottom: -10 } }
             };
             new ApexCharts(supplierChartEl, supplierOptions).render();
             console.log('[Admin Charts] Supplier chart rendered');
@@ -2216,19 +2217,20 @@ document.addEventListener('DOMContentLoaded', function() {
             var mnoOptions = {
                 series: [
                     { name: 'Delivered', data: [312456, 298765, 256789, 234567, 98234] },
+                    { name: 'Undeliverable', data: [234, 198, 167, 145, 87] },
                     { name: 'Pending', data: [1234, 1456, 987, 876, 543] },
-                    { name: 'Expired', data: [876, 765, 654, 543, 234] },
                     { name: 'Rejected', data: [543, 432, 321, 234, 123] },
-                    { name: 'Undeliverable', data: [234, 198, 167, 145, 87] }
+                    { name: 'Expired', data: [876, 765, 654, 543, 234] }
                 ],
                 chart: { type: 'bar', height: 220, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
-                colors: ['#10b981', '#f59e0b', '#6b7280', '#ef4444', '#8b5cf6'],
-                plotOptions: { bar: { horizontal: true, barHeight: '70%' } },
+                colors: ['#10b981', '#ef4444', '#f59e0b', '#64748b', '#6b7280'],
+                plotOptions: { bar: { horizontal: true, barHeight: '80%' } },
                 dataLabels: { enabled: false },
-                xaxis: { categories: ['EE', 'Vodafone', 'O2', 'Three', 'MVNO'] },
-                yaxis: { labels: { style: { fontSize: '11px' } } },
-                legend: { position: 'bottom', fontSize: '10px' },
-                tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } }
+                xaxis: { categories: ['EE', 'Vodafone', 'O2', 'Three', 'MVNO'], labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } } },
+                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 } } },
+                legend: { show: false },
+                tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
+                grid: { padding: { top: -10, bottom: -10 } }
             };
             new ApexCharts(mnoChartEl, mnoOptions).render();
             console.log('[Admin Charts] MNO chart rendered');
