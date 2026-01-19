@@ -406,11 +406,17 @@
 }
 
 .chart-body {
-    padding: 1.25rem;
-    min-height: 280px;
+    padding: 0.75rem 1rem;
+    min-height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+#supplier-route-health-section .chart-body,
+#uk-network-health-section .chart-body {
+    padding: 0.5rem 0.75rem;
+    min-height: auto;
 }
 
 .chart-placeholder {
@@ -999,7 +1005,12 @@
 }
 
 .chart-wide {
-    min-height: 240px;
+    min-height: 180px;
+}
+
+#supplier-route-health-section .card-body,
+#uk-network-health-section .card-body {
+    padding: 0.75rem 1rem;
 }
 
 .network-stacked-chart {
@@ -2220,13 +2231,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ],
                 chart: { type: 'bar', height: 180, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
                 colors: ['#10b981', '#ef4444', '#f59e0b', '#64748b', '#6b7280'],
-                plotOptions: { bar: { horizontal: true, barHeight: '80%' } },
+                plotOptions: { bar: { horizontal: true, barHeight: '85%' } },
                 dataLabels: { enabled: false },
                 xaxis: { categories: ['Infobip', 'Sinch', 'BT'], labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } } },
-                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 } } },
+                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 }, offsetX: -5 }, axisBorder: { show: false }, axisTicks: { show: false } },
                 legend: { show: false },
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
-                grid: { padding: { top: -10, bottom: -10 } }
+                grid: { padding: { top: -15, bottom: -15, left: -10, right: 0 } }
             };
             new ApexCharts(supplierChartEl, supplierOptions).render();
             console.log('[Admin Charts] Supplier chart rendered');
@@ -2246,13 +2257,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ],
                 chart: { type: 'bar', height: 220, stacked: true, toolbar: { show: false }, fontFamily: 'inherit' },
                 colors: ['#10b981', '#ef4444', '#f59e0b', '#64748b', '#6b7280'],
-                plotOptions: { bar: { horizontal: true, barHeight: '80%' } },
+                plotOptions: { bar: { horizontal: true, barHeight: '85%' } },
                 dataLabels: { enabled: false },
                 xaxis: { categories: ['EE', 'Vodafone', 'O2', 'Three', 'MVNO'], labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } } },
-                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 } } },
+                yaxis: { labels: { style: { fontSize: '12px', fontWeight: 600 }, offsetX: -5 }, axisBorder: { show: false }, axisTicks: { show: false } },
                 legend: { show: false },
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
-                grid: { padding: { top: -10, bottom: -10 } }
+                grid: { padding: { top: -15, bottom: -15, left: -10, right: 0 } }
             };
             new ApexCharts(mnoChartEl, mnoOptions).render();
             console.log('[Admin Charts] MNO chart rendered');
