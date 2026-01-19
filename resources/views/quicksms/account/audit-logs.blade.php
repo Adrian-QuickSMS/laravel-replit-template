@@ -224,12 +224,32 @@
                     <button type="button" class="btn btn-outline-primary btn-sm" id="verifyIntegrityBtn">
                         <i class="fas fa-check-circle me-1"></i>Verify Integrity
                     </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="exportCsvBtn">
-                        <i class="fas fa-download me-1"></i>Export CSV
-                    </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="exportJsonBtn">
-                        <i class="fas fa-code me-1"></i>Export JSON
-                    </button>
+                    <div class="dropdown" id="exportDropdown">
+                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="exportBtn">
+                            <i class="fas fa-download me-1"></i>Export
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Export Format</h6></li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="exportCsvBtn">
+                                    <i class="fas fa-file-csv me-2 text-success"></i>CSV (.csv)
+                                    <small class="d-block text-muted">Comma-separated values</small>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="exportExcelBtn">
+                                    <i class="fas fa-file-excel me-2 text-success"></i>Excel (.xlsx)
+                                    <small class="d-block text-muted">Microsoft Excel format</small>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <span class="dropdown-item-text small text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>Exports current filtered view
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -916,7 +936,8 @@ $(document).ready(function() {
         $('#auditLogsContent').show();
 
         if (!canExport) {
-            $('#exportCsvBtn, #exportJsonBtn').addClass('export-restricted').attr('title', 'Export not available for your role');
+            $('#exportDropdown').addClass('export-restricted').attr('title', 'Export not available for your role');
+            $('#exportBtn').prop('disabled', true);
         }
 
         if (userAccessLevel === 'limited') {
@@ -1847,8 +1868,14 @@ $(document).ready(function() {
             applyFilters();
         });
 
-        $('#exportCsvBtn').on('click', function() { exportLogs('csv'); });
-        $('#exportJsonBtn').on('click', function() { exportLogs('json'); });
+        $('#exportCsvBtn').on('click', function(e) { 
+            e.preventDefault();
+            exportLogs('csv'); 
+        });
+        $('#exportExcelBtn').on('click', function(e) { 
+            e.preventDefault();
+            exportLogs('excel'); 
+        });
 
         $('#verifyIntegrityBtn').on('click', function() {
             $('#integrityChecking').show();
@@ -1889,58 +1916,331 @@ $(document).ready(function() {
         });
     }
 
+    var isExporting = false;
+
     function exportLogs(format) {
         if (!canExport) {
             showToast('Export not permitted for your role', 'error');
             return;
         }
 
+        if (isExporting) {
+            showToast('Export already in progress...', 'warning');
+            return;
+        }
+
         var data = filteredLogs.length > 0 ? filteredLogs : allLogs;
-        var content, filename, mimeType;
+        var sanitizedData = sanitizeExportData(data);
 
         AuditLogger.log('DATA_EXPORTED', {
             data: { 
                 exportType: 'audit_log', 
                 format: format, 
-                recordCount: data.length,
+                recordCount: sanitizedData.length,
                 userRole: currentUserRole,
                 scopeRestricted: userScopeCategories !== null
             }
         });
 
-        if (format === 'csv') {
-            content = convertToCSV(data);
-            filename = 'audit-logs-' + new Date().toISOString().split('T')[0] + '.csv';
-            mimeType = 'text/csv';
+        if (sanitizedData.length > 500) {
+            exportLargeDataset(sanitizedData, format);
         } else {
-            content = JSON.stringify(data, null, 2);
-            filename = 'audit-logs-' + new Date().toISOString().split('T')[0] + '.json';
-            mimeType = 'application/json';
+            performExport(sanitizedData, format);
+        }
+    }
+
+    function sanitizeExportData(data) {
+        return data.map(function(log) {
+            var sanitizedLog = JSON.parse(JSON.stringify(log));
+
+            if (sanitizedLog.details) {
+                var sensitiveKeys = ['password', 'token', 'secret', 'apiKey', 'creditCard', 'cvv', 'pin'];
+                Object.keys(sanitizedLog.details).forEach(function(key) {
+                    var lowerKey = key.toLowerCase();
+                    if (sensitiveKeys.some(function(s) { return lowerKey.includes(s.toLowerCase()); })) {
+                        sanitizedLog.details[key] = '[REDACTED]';
+                    }
+                });
+            }
+
+            if (sanitizedLog.context && sanitizedLog.context.userAgent) {
+                sanitizedLog.context.userAgent = sanitizedLog.context.userAgent.substring(0, 50) + '...';
+            }
+
+            return sanitizedLog;
+        });
+    }
+
+    function exportLargeDataset(data, format) {
+        isExporting = true;
+        showExportProgress(0, data.length);
+
+        var chunkSize = 100;
+        var chunks = [];
+        for (var i = 0; i < data.length; i += chunkSize) {
+            chunks.push(data.slice(i, i + chunkSize));
         }
 
-        var blob = new Blob([content], { type: mimeType });
+        var processedRows = [];
+        var currentChunk = 0;
+
+        function processNextChunk() {
+            if (currentChunk >= chunks.length) {
+                finishLargeExport(processedRows, format, data.length);
+                return;
+            }
+
+            var chunk = chunks[currentChunk];
+            
+            if (format === 'csv') {
+                chunk.forEach(function(log) {
+                    processedRows.push(convertLogToRow(log));
+                });
+            } else if (format === 'excel') {
+                chunk.forEach(function(log) {
+                    processedRows.push(convertLogToExcelRow(log));
+                });
+            }
+
+            currentChunk++;
+            var progress = Math.round((currentChunk / chunks.length) * 100);
+            updateExportProgress(progress);
+
+            setTimeout(processNextChunk, 10);
+        }
+
+        processNextChunk();
+    }
+
+    function finishLargeExport(rows, format, totalCount) {
+        hideExportProgress();
+        isExporting = false;
+
+        var content, filename, mimeType;
+        var dateStr = new Date().toISOString().split('T')[0];
+
+        if (format === 'csv') {
+            var headers = getExportHeaders();
+            content = headers.join(',') + '\n' + rows.join('\n');
+            filename = 'audit-logs-' + dateStr + '.csv';
+            mimeType = 'text/csv;charset=utf-8;';
+        } else if (format === 'excel') {
+            content = generateExcelXML(rows);
+            filename = 'audit-logs-' + dateStr + '.xlsx';
+            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+
+        downloadFile(content, filename, mimeType);
+        showToast('Exported ' + totalCount + ' records as ' + format.toUpperCase(), 'success');
+    }
+
+    function performExport(data, format) {
+        var content, filename, mimeType;
+        var dateStr = new Date().toISOString().split('T')[0];
+
+        if (format === 'csv') {
+            content = convertToCSV(data);
+            filename = 'audit-logs-' + dateStr + '.csv';
+            mimeType = 'text/csv;charset=utf-8;';
+        } else if (format === 'excel') {
+            content = convertToExcel(data);
+            filename = 'audit-logs-' + dateStr + '.xlsx';
+            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+
+        downloadFile(content, filename, mimeType);
+        showToast('Exported ' + data.length + ' records as ' + format.toUpperCase(), 'success');
+    }
+
+    function downloadFile(content, filename, mimeType) {
+        var blob;
+        if (mimeType.includes('spreadsheetml')) {
+            blob = new Blob([content], { type: mimeType });
+        } else {
+            var BOM = '\uFEFF';
+            blob = new Blob([BOM + content], { type: mimeType });
+        }
+
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
         a.download = filename;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
 
-        showToast('Exported ' + data.length + ' records as ' + format.toUpperCase(), 'success');
+    function getExportHeaders() {
+        return [
+            'Event ID', 'Timestamp (UTC)', 'Event Type', 'Description', 'Module', 'Category', 
+            'Severity', 'Actor Type', 'Actor ID', 'Actor Name', 'Actor Role', 'Sub-Account',
+            'Target Type', 'Target ID', 'Target Name', 'IP Address', 'Session ID', 
+            'Result', 'Integrity Hash', 'Retention Until'
+        ];
+    }
+
+    function convertLogToRow(log) {
+        var values = [
+            log.id,
+            log.timestamp,
+            log.action,
+            log.actionLabel || log.description || '',
+            log.module || mapCategoryToModule(log.category),
+            log.category,
+            log.severity,
+            log.actorType || 'user',
+            log.actor.userId,
+            log.actor.userName,
+            log.actor.role,
+            log.actor.subAccountId || 'Main Account',
+            log.target ? (log.target.resourceType || log.target.entityType || 'user') : '',
+            log.target ? (log.target.resourceId || log.target.entityId || log.target.userId || '') : '',
+            log.target ? (log.target.name || log.target.userName || '') : '',
+            log.context ? log.context.ipAddress : '',
+            log.context ? log.context.sessionId : '',
+            log.result || 'success',
+            log.integrityHash || '',
+            log.retentionExpiry || ''
+        ];
+
+        return values.map(function(v) { 
+            return '"' + String(v || '').replace(/"/g, '""') + '"'; 
+        }).join(',');
+    }
+
+    function convertLogToExcelRow(log) {
+        return [
+            log.id,
+            log.timestamp,
+            log.action,
+            log.actionLabel || log.description || '',
+            log.module || mapCategoryToModule(log.category),
+            log.category,
+            log.severity,
+            log.actorType || 'user',
+            log.actor.userId,
+            log.actor.userName,
+            log.actor.role,
+            log.actor.subAccountId || 'Main Account',
+            log.target ? (log.target.resourceType || log.target.entityType || 'user') : '',
+            log.target ? (log.target.resourceId || log.target.entityId || log.target.userId || '') : '',
+            log.target ? (log.target.name || log.target.userName || '') : '',
+            log.context ? log.context.ipAddress : '',
+            log.context ? log.context.sessionId : '',
+            log.result || 'success',
+            log.integrityHash || '',
+            log.retentionExpiry || ''
+        ];
     }
 
     function convertToCSV(data) {
-        var headers = ['id', 'timestamp', 'action', 'action_label', 'category', 'severity', 'actor_id', 'actor_name', 'actor_role', 'target_id', 'target_name', 'ip_address', 'session_id', 'result', 'integrity_hash', 'retention_expiry'];
+        var headers = getExportHeaders();
         var rows = data.map(function(log) {
-            return [
-                log.id, log.timestamp, log.action, log.actionLabel, log.category, log.severity,
-                log.actor.userId, log.actor.userName, log.actor.role,
-                log.target ? (log.target.userId || log.target.resourceId) : '',
-                log.target ? (log.target.userName || log.target.name || '') : '',
-                log.context.ipAddress, log.context.sessionId, log.result, log.integrityHash, log.retentionExpiry
-            ].map(function(v) { return '"' + String(v || '').replace(/"/g, '""') + '"'; }).join(',');
+            return convertLogToRow(log);
         });
         return headers.join(',') + '\n' + rows.join('\n');
+    }
+
+    function convertToExcel(data) {
+        var headers = getExportHeaders();
+        var rows = data.map(function(log) {
+            return convertLogToExcelRow(log);
+        });
+
+        return generateExcelXML([headers].concat(rows));
+    }
+
+    function generateExcelXML(allRows) {
+        var xml = '<' + '?xml version="1.0" encoding="UTF-8"?' + '>\n';
+        xml += '<' + '?mso-application progid="Excel.Sheet"?' + '>\n';
+        xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n';
+        xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
+        xml += '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">\n';
+        xml += '<Title>Audit Logs Export</Title>\n';
+        xml += '<Author>QuickSMS</Author>\n';
+        xml += '<Created>' + new Date().toISOString() + '</Created>\n';
+        xml += '<Company>QuickSMS</Company>\n';
+        xml += '</DocumentProperties>\n';
+
+        xml += '<Styles>\n';
+        xml += '<Style ss:ID="Header"><Font ss:Bold="1"/><Interior ss:Color="#E8E8E8" ss:Pattern="Solid"/></Style>\n';
+        xml += '<Style ss:ID="Data"><Protection ss:Protected="1"/></Style>\n';
+        xml += '</Styles>\n';
+
+        xml += '<Worksheet ss:Name="Audit Logs" ss:Protected="1">\n';
+        xml += '<Table>\n';
+
+        if (allRows.length > 0) {
+            xml += '<Row ss:StyleID="Header">\n';
+            (Array.isArray(allRows[0]) ? allRows[0] : getExportHeaders()).forEach(function(header) {
+                xml += '<Cell><Data ss:Type="String">' + escapeXML(String(header)) + '</Data></Cell>\n';
+            });
+            xml += '</Row>\n';
+        }
+
+        var dataRows = Array.isArray(allRows[0]) && typeof allRows[0][0] === 'string' && allRows[0][0].includes('Event ID') 
+            ? allRows.slice(1) 
+            : allRows;
+
+        dataRows.forEach(function(row) {
+            xml += '<Row ss:StyleID="Data">\n';
+            var cells = Array.isArray(row) ? row : [row];
+            cells.forEach(function(cell) {
+                var value = String(cell || '');
+                var type = isNaN(cell) || cell === '' ? 'String' : 'Number';
+                xml += '<Cell><Data ss:Type="' + type + '">' + escapeXML(value) + '</Data></Cell>\n';
+            });
+            xml += '</Row>\n';
+        });
+
+        xml += '</Table>\n';
+        xml += '<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">\n';
+        xml += '<ProtectObjects>True</ProtectObjects>\n';
+        xml += '<ProtectScenarios>True</ProtectScenarios>\n';
+        xml += '</WorksheetOptions>\n';
+        xml += '</Worksheet>\n';
+        xml += '</Workbook>';
+
+        return xml;
+    }
+
+    function escapeXML(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+
+    function showExportProgress(current, total) {
+        if (!$('#exportProgressModal').length) {
+            var modal = $('<div class="modal fade" id="exportProgressModal" tabindex="-1" data-bs-backdrop="static">' +
+                '<div class="modal-dialog modal-sm modal-dialog-centered">' +
+                '<div class="modal-content">' +
+                '<div class="modal-body text-center p-4">' +
+                '<div class="spinner-border text-primary mb-3" role="status"></div>' +
+                '<h6 class="mb-2">Exporting Audit Logs</h6>' +
+                '<div class="progress" style="height: 6px;">' +
+                '<div class="progress-bar bg-primary" id="exportProgressBar" style="width: 0%"></div>' +
+                '</div>' +
+                '<p class="small text-muted mt-2 mb-0" id="exportProgressText">Preparing export...</p>' +
+                '</div></div></div></div>');
+            $('body').append(modal);
+        }
+        $('#exportProgressBar').css('width', '0%');
+        $('#exportProgressText').text('Preparing ' + total + ' records...');
+        $('#exportProgressModal').modal('show');
+    }
+
+    function updateExportProgress(percent) {
+        $('#exportProgressBar').css('width', percent + '%');
+        $('#exportProgressText').text('Processing... ' + percent + '%');
+    }
+
+    function hideExportProgress() {
+        $('#exportProgressModal').modal('hide');
     }
 
     function formatCategory(category) { return category.split('_').map(capitalizeFirst).join(' '); }
