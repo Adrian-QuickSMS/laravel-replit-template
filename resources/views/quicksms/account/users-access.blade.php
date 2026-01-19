@@ -850,7 +850,7 @@ input:focus + .perm-slider {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: 1px solid #ddd6fe; color: #6b21a8;">
+                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
                     <strong>Sender Capability:</strong> Controls what messaging features a user can access, separate from their role.
                 </div>
                 
