@@ -416,33 +416,6 @@
                     </div>
                 </div>
 
-                <div class="row mb-4" id="statsRow">
-                    <div class="col-md-3">
-                        <div class="stats-card p-3">
-                            <div class="stat-value" id="totalLogsCount">0</div>
-                            <div class="stat-label">Total Events</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card p-3">
-                            <div class="stat-value" id="todayLogsCount">0</div>
-                            <div class="stat-label">Today</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card p-3">
-                            <div class="stat-value text-danger" id="highSeverityCount">0</div>
-                            <div class="stat-label">High/Critical (24h)</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card p-3">
-                            <div class="stat-value" id="uniqueActorsCount">0</div>
-                            <div class="stat-label">Unique Actors (24h)</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="text-muted small">
                         <span id="totalFilteredInfo"><span id="totalFiltered">0</span> events</span>
@@ -471,7 +444,6 @@
                                 <th>Actor</th>
                                 <th>Target</th>
                                 <th style="width: 110px;">IP Address</th>
-                                <th style="width: 80px;">Hash</th>
                             </tr>
                         </thead>
                         <tbody id="auditLogsTableBody">
@@ -1655,7 +1627,6 @@ $(document).ready(function() {
             '<td class="small">' + log.actor.userName + '</td>' +
             '<td class="small">' + targetDisplay + '</td>' +
             '<td class="small text-muted">' + log.context.ipAddress + '</td>' +
-            '<td><span class="integrity-badge" title="Integrity Hash: ' + log.integrityHash + '">' + log.integrityHash + '</span></td>' +
         '</tr>');
 
         row.on('click', function() { showLogDetail(log); });
