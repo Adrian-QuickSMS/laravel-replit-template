@@ -8,6 +8,132 @@
     padding: 1.5rem;
 }
 
+.dashboard-ownership-banner {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dashboard-ownership-banner .rule-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.75rem;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.dashboard-ownership-banner .rule-item:last-child {
+    border-right: none;
+}
+
+.dashboard-ownership-banner i {
+    opacity: 0.7;
+}
+
+.metric-definition {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+.warehouse-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6rem;
+    color: #059669;
+    background: rgba(5, 150, 105, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+}
+
+.warehouse-source i {
+    font-size: 0.55rem;
+}
+
+.operational-section {
+    border-left: 3px solid #4a90d9;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.operational-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.operational-section-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.operational-section-header .section-type {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.risk-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.risk-indicator.critical {
+    background: rgba(220, 38, 38, 0.1);
+    border-left: 3px solid #dc2626;
+}
+
+.risk-indicator.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid #f59e0b;
+}
+
+.risk-indicator.info {
+    background: rgba(74, 144, 217, 0.1);
+    border-left: 3px solid #4a90d9;
+}
+
+.risk-indicator .risk-icon {
+    font-size: 1rem;
+}
+
+.risk-indicator.critical .risk-icon { color: #dc2626; }
+.risk-indicator.warning .risk-icon { color: #f59e0b; }
+.risk-indicator.info .risk-icon { color: #4a90d9; }
+
+.risk-indicator .risk-content {
+    flex: 1;
+}
+
+.risk-indicator .risk-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #1e3a5f;
+}
+
+.risk-indicator .risk-meta {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
 .admin-kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -190,6 +316,26 @@
 
 @section('content')
 <div class="admin-dashboard">
+    <div class="dashboard-ownership-banner">
+        <span style="font-weight: 600;"><i class="fas fa-cog me-1"></i> OPERATIONAL DASHBOARD</span>
+        <div class="rule-item">
+            <i class="fas fa-database"></i>
+            <span>Warehouse-backed</span>
+        </div>
+        <div class="rule-item">
+            <i class="fas fa-equals"></i>
+            <span>Identical to customer metrics</span>
+        </div>
+        <div class="rule-item">
+            <i class="fas fa-layer-group"></i>
+            <span>Aggregated only</span>
+        </div>
+        <div class="rule-item">
+            <i class="fas fa-ban"></i>
+            <span>No per-client recalculation</span>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1" style="color: #1e3a5f; font-weight: 600;">Platform Overview</h4>
@@ -205,6 +351,13 @@
         </div>
     </div>
 
+    <div class="operational-section">
+        <div class="operational-section-header">
+            <h6><i class="fas fa-heartbeat me-2" style="color: #4a90d9;"></i>Platform Health Monitoring</h6>
+            <span class="section-type">Real-time</span>
+        </div>
+    </div>
+
     <div class="admin-kpi-grid">
         <div class="admin-stat-tile">
             <div class="d-flex justify-content-between align-items-start">
@@ -214,6 +367,8 @@
                     <div class="stat-trend up">
                         <i class="fas fa-arrow-up"></i> 12.4% vs yesterday
                     </div>
+                    <div class="metric-definition">SUM(messages.submitted) WHERE date = TODAY</div>
+                    <div class="warehouse-source"><i class="fas fa-database"></i> fact_messages</div>
                 </div>
                 <div class="stat-icon primary">
                     <i class="fas fa-paper-plane"></i>
@@ -229,6 +384,8 @@
                     <div class="stat-trend up">
                         <i class="fas fa-arrow-up"></i> 8.2% vs yesterday
                     </div>
+                    <div class="metric-definition">SUM(billing.charged_amount) WHERE date = TODAY</div>
+                    <div class="warehouse-source"><i class="fas fa-database"></i> fact_billing</div>
                 </div>
                 <div class="stat-icon success">
                     <i class="fas fa-pound-sign"></i>
@@ -244,6 +401,8 @@
                     <div class="stat-trend down">
                         <i class="fas fa-arrow-down"></i> 1.1% vs yesterday
                     </div>
+                    <div class="metric-definition">(revenue - cost) / revenue * 100</div>
+                    <div class="warehouse-source"><i class="fas fa-database"></i> fact_billing</div>
                 </div>
                 <div class="stat-icon warning">
                     <i class="fas fa-percentage"></i>
@@ -259,6 +418,8 @@
                     <div class="stat-trend up">
                         <i class="fas fa-arrow-up"></i> 0.3% vs yesterday
                     </div>
+                    <div class="metric-definition">delivered / (delivered + failed) * 100</div>
+                    <div class="warehouse-source"><i class="fas fa-database"></i> fact_delivery</div>
                 </div>
                 <div class="stat-icon primary">
                     <i class="fas fa-check-circle"></i>
@@ -267,36 +428,55 @@
         </div>
     </div>
 
+    <div class="operational-section" style="border-color: #f59e0b;">
+        <div class="operational-section-header">
+            <h6><i class="fas fa-exclamation-triangle me-2" style="color: #f59e0b;"></i>Risk & Anomaly Detection</h6>
+            <span class="section-type">Monitoring</span>
+        </div>
+    </div>
+
     <div class="admin-kpi-grid" style="grid-template-columns: repeat(5, 1fr);">
         <div class="admin-stat-tile">
             <div class="text-center">
                 <div class="stat-value" style="font-size: 1.5rem;">847</div>
                 <div class="stat-label">Active Accounts</div>
+                <div class="warehouse-source"><i class="fas fa-database"></i> dim_accounts</div>
             </div>
         </div>
         <div class="admin-stat-tile">
             <div class="text-center">
                 <div class="stat-value" style="font-size: 1.5rem;">12</div>
                 <div class="stat-label">Test Mode</div>
+                <div class="warehouse-source"><i class="fas fa-database"></i> dim_accounts</div>
             </div>
         </div>
         <div class="admin-stat-tile">
             <div class="text-center">
                 <div class="stat-value" style="font-size: 1.5rem; color: #dc2626;">3</div>
                 <div class="stat-label">Suspended</div>
+                <div class="warehouse-source"><i class="fas fa-database"></i> dim_accounts</div>
             </div>
         </div>
         <div class="admin-stat-tile">
             <div class="text-center">
                 <div class="stat-value" style="font-size: 1.5rem; color: #f59e0b;">7</div>
                 <div class="stat-label">Pending Approvals</div>
+                <div class="warehouse-source"><i class="fas fa-database"></i> fact_approvals</div>
             </div>
         </div>
         <div class="admin-stat-tile">
             <div class="text-center">
-                <div class="stat-value" style="font-size: 1.5rem;">2</div>
+                <div class="stat-value" style="font-size: 1.5rem; color: #dc2626;">2</div>
                 <div class="stat-label">Fraud Alerts</div>
+                <div class="warehouse-source"><i class="fas fa-database"></i> fact_alerts</div>
             </div>
+        </div>
+    </div>
+
+    <div class="operational-section" style="border-color: #10b981;">
+        <div class="operational-section-header">
+            <h6><i class="fas fa-chart-line me-2" style="color: #10b981;"></i>Delivery Performance</h6>
+            <span class="section-type">Performance</span>
         </div>
     </div>
 
@@ -373,6 +553,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="operational-section" style="border-color: #8b5cf6;">
+        <div class="operational-section-header">
+            <h6><i class="fas fa-pound-sign me-2" style="color: #8b5cf6;"></i>Revenue, Cost & Margin</h6>
+            <span class="section-type">Financial</span>
         </div>
     </div>
 
