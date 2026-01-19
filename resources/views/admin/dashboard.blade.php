@@ -467,6 +467,88 @@
     font-size: 0.55rem;
 }
 
+.kpi-tile.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.kpi-tile.clickable:hover {
+    border-color: #4a90d9;
+    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
+    transform: translateY(-2px);
+}
+
+.kpi-tile.clickable:hover .kpi-drill-hint {
+    opacity: 1;
+}
+
+.kpi-tile .kpi-drill-hint {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.65rem;
+    color: #4a90d9;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.kpi-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e3a5f;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 8px;
+}
+
+.kpi-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1e3a5f;
+}
+
+.kpi-tile:hover .kpi-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.kpi-tooltip .tooltip-title {
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: #93c5fd;
+}
+
+.kpi-tooltip .tooltip-formula {
+    font-family: monospace;
+    background: rgba(255,255,255,0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    margin-top: 0.35rem;
+}
+
+.kpi-tooltip .tooltip-note {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-top: 0.35rem;
+}
+
 .charts-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -836,77 +918,135 @@
         </div>
     </div>
 
-    <div class="section-card">
+    <div class="section-card" id="financial-overview-section">
         <div class="section-header">
-            <h6><i class="fas fa-pound-sign"></i> Financial KPIs</h6>
+            <h6><i class="fas fa-pound-sign"></i> Financial Overview</h6>
+            <span class="text-muted" style="font-size: 0.75rem;">Values respect active filters</span>
         </div>
         <div class="section-body">
             <div class="kpi-grid">
-                <div class="kpi-tile">
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="volume">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Volume (Parts)</div>
+                        <div>Total message parts submitted</div>
+                        <div class="tooltip-formula">SUM(parts) WHERE billable = true</div>
+                        <div class="tooltip-note">Click to view Message Logs</div>
+                    </div>
+                    <div class="kpi-icon blue"><i class="fas fa-puzzle-piece"></i></div>
+                    <div class="kpi-label">Volume (Parts)</div>
+                    <div class="kpi-value">1,247,832</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.parts</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
+                </div>
+                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="revenue">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Revenue (£)</div>
+                        <div>Total customer charges</div>
+                        <div class="tooltip-formula">SUM(customer_cost) WHERE billable = true</div>
+                        <div class="tooltip-note">Click to view Client Reporting</div>
+                    </div>
                     <div class="kpi-icon green"><i class="fas fa-pound-sign"></i></div>
-                    <div class="kpi-label">Revenue</div>
+                    <div class="kpi-label">Revenue (£)</div>
                     <div class="kpi-value">£18,492</div>
                     <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 8.2% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_billing.charged_amount</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_billing.customer_cost</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon amber"><i class="fas fa-coins"></i></div>
-                    <div class="kpi-label">Supplier Cost</div>
-                    <div class="kpi-value">£12,164</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 6.1% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_billing.supplier_cost</div>
-                </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon blue"><i class="fas fa-chart-line"></i></div>
-                    <div class="kpi-label">Gross Margin</div>
+                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="margin">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Gross Margin (£)</div>
+                        <div>Revenue minus supplier cost</div>
+                        <div class="tooltip-formula">SUM(customer_cost) - SUM(supplier_cost)</div>
+                        <div class="tooltip-note">Click to view Client Reporting</div>
+                    </div>
+                    <div class="kpi-icon purple"><i class="fas fa-chart-line"></i></div>
+                    <div class="kpi-label">Gross Margin (£)</div>
                     <div class="kpi-value">£6,328</div>
                     <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> revenue - cost</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> revenue - supplier_cost</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon purple"><i class="fas fa-percentage"></i></div>
+                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="margin-pct">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Margin %</div>
+                        <div>Margin as percentage of revenue</div>
+                        <div class="tooltip-formula">(revenue - cost) / revenue * 100</div>
+                        <div class="tooltip-note">Click to view Client Reporting</div>
+                    </div>
+                    <div class="kpi-icon amber"><i class="fas fa-percentage"></i></div>
                     <div class="kpi-label">Margin %</div>
                     <div class="kpi-value">34.2%</div>
                     <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 1.1% vs yesterday</div>
                     <div class="kpi-source"><i class="fas fa-database"></i> (revenue - cost) / revenue</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="section-card">
+    <div class="section-card" id="delivery-overview-section">
         <div class="section-header">
-            <h6><i class="fas fa-paper-plane"></i> Delivery KPIs</h6>
+            <h6><i class="fas fa-paper-plane"></i> Delivery Overview</h6>
+            <span class="text-muted" style="font-size: 0.75rem;">Values respect active filters</span>
         </div>
         <div class="section-body">
             <div class="kpi-grid">
-                <div class="kpi-tile">
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="messages">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Messages Submitted</div>
+                        <div>Total messages submitted</div>
+                        <div class="tooltip-formula">COUNT(*) WHERE status IN ('submitted','delivered','failed')</div>
+                        <div class="tooltip-note">Click to view Message Logs</div>
+                    </div>
                     <div class="kpi-icon blue"><i class="fas fa-envelope"></i></div>
                     <div class="kpi-label">Messages Submitted</div>
                     <div class="kpi-value">892,145</div>
                     <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 10.3% vs yesterday</div>
                     <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.submitted</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon blue"><i class="fas fa-puzzle-piece"></i></div>
-                    <div class="kpi-label">Parts Submitted</div>
-                    <div class="kpi-value">1,247,832</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.parts</div>
-                </div>
-                <div class="kpi-tile">
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="delivered">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Delivered</div>
+                        <div>Successfully delivered messages</div>
+                        <div class="tooltip-formula">COUNT(*) WHERE status = 'delivered'</div>
+                        <div class="tooltip-note">Click to view Message Logs</div>
+                    </div>
                     <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="kpi-label">Delivered</div>
+                    <div class="kpi-value">880,567</div>
+                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 10.5% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.delivered</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
+                </div>
+                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="delivery-rate">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Delivery Rate</div>
+                        <div>Percentage of successful deliveries</div>
+                        <div class="tooltip-formula">delivered / (delivered + failed) * 100</div>
+                        <div class="tooltip-note">Click to view Client Reporting</div>
+                    </div>
+                    <div class="kpi-icon purple"><i class="fas fa-percentage"></i></div>
                     <div class="kpi-label">Delivery Rate</div>
                     <div class="kpi-value">98.7%</div>
                     <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 0.3% vs yesterday</div>
                     <div class="kpi-source"><i class="fas fa-database"></i> delivered / (delivered + failed)</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon amber"><i class="fas fa-clock"></i></div>
-                    <div class="kpi-label">Avg Latency</div>
-                    <div class="kpi-value">142ms</div>
-                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 8ms vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.avg_latency</div>
+                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="failed">
+                    <div class="kpi-tooltip">
+                        <div class="tooltip-title">Failed</div>
+                        <div>Failed message deliveries</div>
+                        <div class="tooltip-formula">COUNT(*) WHERE status = 'failed'</div>
+                        <div class="tooltip-note">Click to view Message Logs (filtered)</div>
+                    </div>
+                    <div class="kpi-icon amber"><i class="fas fa-times-circle"></i></div>
+                    <div class="kpi-label">Failed</div>
+                    <div class="kpi-value">11,578</div>
+                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 2.1% vs yesterday</div>
+                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.failed</div>
+                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
             </div>
         </div>
@@ -1353,8 +1493,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1500);
     };
 
+    window.drillToReport = function(reportType) {
+        var routes = {
+            'client-reporting': '{{ route("admin.reporting.client") }}',
+            'message-logs': '{{ route("admin.reporting.logs") }}'
+        };
+
+        var url = routes[reportType];
+        if (!url) {
+            console.warn('[Admin Dashboard] Unknown report type:', reportType);
+            return;
+        }
+
+        var queryParams = [];
+        if (appliedFilters.dateRange) {
+            queryParams.push('date_range=' + encodeURIComponent(appliedFilters.dateRange));
+        }
+        if (appliedFilters.client) {
+            queryParams.push('client=' + encodeURIComponent(appliedFilters.client));
+        }
+        if (appliedFilters.senderId) {
+            queryParams.push('sender_id=' + encodeURIComponent(appliedFilters.senderId));
+        }
+
+        if (queryParams.length > 0) {
+            url += '?' + queryParams.join('&');
+        }
+
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('KPI_DRILL_DOWN', 'SYSTEM', {
+                report_type: reportType,
+                filters: appliedFilters
+            });
+        }
+
+        console.log('[Admin Dashboard] Drilling to:', url);
+        window.location.href = url;
+    };
+
     console.log('[Admin Dashboard] Data source: Internal Warehouse API');
     console.log('[Admin Dashboard] RULE: Filters apply ONLY on Apply button click');
+    console.log('[Admin Dashboard] KPI tiles are clickable for drill-down');
 });
 </script>
 @endpush
