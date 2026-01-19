@@ -211,8 +211,13 @@
                     <tbody>
                         <tr>
                             <td>
-                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-1234')">Acme Corporation</a>
-                                <div class="text-muted small">ACC-1234</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div>
+                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-1234')">Acme Corporation</a>
+                                        <div class="text-muted small">ACC-1234</div>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-1234', 'Acme Corporation')">View Structure</button>
+                                </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">14,892,456</td>
@@ -239,8 +244,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-5678')">Finance Ltd</a>
-                                <div class="text-muted small">ACC-5678</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div>
+                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-5678')">Finance Ltd</a>
+                                        <div class="text-muted small">ACC-5678</div>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-5678', 'Finance Ltd')">View Structure</button>
+                                </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">10,456,234</td>
@@ -267,8 +277,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-7890')">NewClient</a>
-                                <div class="text-muted small">ACC-7890</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div>
+                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-7890')">NewClient</a>
+                                        <div class="text-muted small">ACC-7890</div>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-7890', 'NewClient')">View Structure</button>
+                                </div>
                             </td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
@@ -292,8 +307,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-4567')">TestCo</a>
-                                <div class="text-muted small">ACC-4567</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div>
+                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-4567')">TestCo</a>
+                                        <div class="text-muted small">ACC-4567</div>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4567', 'TestCo')">View Structure</button>
+                                </div>
                             </td>
                             <td><span class="badge light badge-danger">Suspended</span></td>
                             <td class="text-end">234,567</td>
@@ -317,8 +337,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-9012')">HighRisk Corp</a>
-                                <div class="text-muted small">ACC-9012</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div>
+                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-9012')">HighRisk Corp</a>
+                                        <div class="text-muted small">ACC-9012</div>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-9012', 'HighRisk Corp')">View Structure</button>
+                                </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">5,678,901</td>
@@ -346,8 +371,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-3456')">MedTech Solutions</a>
-                                <div class="text-muted small">ACC-3456</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div>
+                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-3456')">MedTech Solutions</a>
+                                        <div class="text-muted small">ACC-3456</div>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-3456', 'MedTech Solutions')">View Structure</button>
+                                </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">8,901,234</td>
@@ -387,6 +417,25 @@
                     <li class="page-item"><a class="page-link" href="#">Next</a></li>
                 </ul>
             </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Account Structure Modal -->
+<div class="modal fade" id="accountStructureModal" tabindex="-1" aria-labelledby="accountStructureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accountStructureModalLabel">Account Hierarchy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="accountStructureContent">
+                <!-- Content populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto">Read-only view</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -454,6 +503,119 @@ window.impersonateAccount = function(accountId) {
             });
         }
         alert('Impersonation session started for ' + accountId + ' (5-minute limit)');
+    }
+};
+
+var accountStructureModal = null;
+
+window.openAccountStructure = function(accountId, accountName) {
+    if (!accountStructureModal) {
+        accountStructureModal = new bootstrap.Modal(document.getElementById('accountStructureModal'));
+    }
+
+    // Update modal title
+    document.getElementById('accountStructureModalLabel').textContent = 'Account Hierarchy: ' + accountName;
+
+    // Mock hierarchy data - in production would come from API
+    var hierarchyData = {
+        'ACC-1234': {
+            main: { name: 'Acme Corporation', id: 'ACC-1234', status: 'Live', type: 'Enterprise' },
+            subAccounts: [
+                { name: 'Acme Marketing', id: 'SUB-001', status: 'Active', users: 5 },
+                { name: 'Acme Sales', id: 'SUB-002', status: 'Active', users: 12 },
+                { name: 'Acme Support', id: 'SUB-003', status: 'Active', users: 8 }
+            ],
+            users: [
+                { name: 'John Smith', email: 'j.smith@acme.com', role: 'Account Owner', status: 'Active' },
+                { name: 'Jane Doe', email: 'j.doe@acme.com', role: 'Admin', status: 'Active' }
+            ]
+        },
+        'ACC-5678': {
+            main: { name: 'Finance Ltd', id: 'ACC-5678', status: 'Live', type: 'Enterprise' },
+            subAccounts: [
+                { name: 'Finance Retail', id: 'SUB-101', status: 'Active', users: 3 }
+            ],
+            users: [
+                { name: 'Mike Johnson', email: 'm.johnson@finance.com', role: 'Account Owner', status: 'Active' }
+            ]
+        }
+    };
+
+    var data = hierarchyData[accountId] || {
+        main: { name: accountName, id: accountId, status: 'Live', type: 'SMB' },
+        subAccounts: [],
+        users: [{ name: 'Primary User', email: 'user@example.com', role: 'Account Owner', status: 'Active' }]
+    };
+
+    var html = '<div class="account-hierarchy">';
+    
+    // Main Account
+    html += '<div class="hierarchy-section mb-4">';
+    html += '<h6 class="text-muted mb-3">Main Account</h6>';
+    html += '<div class="card bg-light">';
+    html += '<div class="card-body py-3">';
+    html += '<div class="d-flex justify-content-between align-items-center">';
+    html += '<div>';
+    html += '<strong>' + data.main.name + '</strong>';
+    html += '<div class="text-muted small">' + data.main.id + '</div>';
+    html += '</div>';
+    html += '<div>';
+    html += '<span class="badge light badge-' + (data.main.status === 'Live' ? 'success' : 'info') + '">' + data.main.status + '</span> ';
+    html += '<span class="badge light badge-secondary">' + data.main.type + '</span>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Sub-Accounts
+    html += '<div class="hierarchy-section mb-4">';
+    html += '<h6 class="text-muted mb-3">Sub-Accounts (' + data.subAccounts.length + ')</h6>';
+    if (data.subAccounts.length > 0) {
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-sm table-bordered mb-0">';
+        html += '<thead><tr><th>Name</th><th>ID</th><th>Status</th><th>Users</th></tr></thead>';
+        html += '<tbody>';
+        data.subAccounts.forEach(function(sub) {
+            html += '<tr>';
+            html += '<td>' + sub.name + '</td>';
+            html += '<td class="text-muted">' + sub.id + '</td>';
+            html += '<td><span class="badge light badge-success">' + sub.status + '</span></td>';
+            html += '<td>' + sub.users + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+    } else {
+        html += '<p class="text-muted mb-0">No sub-accounts</p>';
+    }
+    html += '</div>';
+
+    // Users
+    html += '<div class="hierarchy-section">';
+    html += '<h6 class="text-muted mb-3">Users (' + data.users.length + ')</h6>';
+    html += '<div class="table-responsive">';
+    html += '<table class="table table-sm table-bordered mb-0">';
+    html += '<thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>';
+    html += '<tbody>';
+    data.users.forEach(function(user) {
+        html += '<tr>';
+        html += '<td>' + user.name + '</td>';
+        html += '<td class="text-muted">' + user.email + '</td>';
+        html += '<td><span class="badge light badge-primary">' + user.role + '</span></td>';
+        html += '<td><span class="badge light badge-success">' + user.status + '</span></td>';
+        html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    document.getElementById('accountStructureContent').innerHTML = html;
+    accountStructureModal.show();
+
+    // Audit log
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ACCOUNT_STRUCTURE_VIEWED', 'ACCOUNTS', { accountId: accountId });
     }
 };
 
