@@ -29,7 +29,7 @@
     justify-content: center;
     font-size: 1.25rem;
 }
-.stat-card .stat-icon.pending { background: #fef3c7; color: #d97706; }
+.stat-card .stat-icon.pending { background: #f3e8ff; color: #886cc0; }
 .stat-card .stat-icon.approved { background: #dcfce7; color: #16a34a; }
 .stat-card .stat-icon.rejected { background: #fee2e2; color: #dc2626; }
 .stat-card .stat-value { font-size: 1.5rem; font-weight: 700; color: #374151; }
@@ -120,13 +120,13 @@
     gap: 0.375rem;
 }
 .status-badge.pending {
-    background: #fef3c7;
-    color: #92400e;
+    background: #f3e8ff;
+    color: #6b21a8;
 }
 .status-badge.pending .dot {
     width: 6px;
     height: 6px;
-    background: #f59e0b;
+    background: #886cc0;
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
@@ -318,7 +318,7 @@
     <div class="card mb-4">
         <div class="card-body p-0">
             <div class="section-header px-3 pt-3">
-                <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #d97706;"></i>Pending Approvals</h5>
+                <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
             </div>
             
             @if(count($pending_approvals) > 0)
@@ -433,8 +433,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning mb-3" style="font-size: 0.85rem;">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                <div class="alert mb-3" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
+                    <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
                     This campaign will be returned to the creator for revision.
                 </div>
                 <div class="mb-3">

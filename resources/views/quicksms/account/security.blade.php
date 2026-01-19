@@ -88,8 +88,8 @@
     border-color: #886cc0;
 }
 .warning-banner {
-    background: #fef3c7;
-    border: 1px solid #fbbf24;
+    background: #f3e8ff;
+    border: none;
     border-radius: 0.375rem;
     padding: 0.75rem 1rem;
     margin-top: 0.75rem;
@@ -97,10 +97,10 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.8rem;
-    color: #92400e;
+    color: #6b21a8;
 }
 .warning-banner i {
-    color: #d97706;
+    color: #886cc0;
 }
 .form-select-sm {
     font-size: 0.85rem;
@@ -143,8 +143,8 @@
     color: #166534;
 }
 .country-pill.pending {
-    background: #fef3c7;
-    color: #92400e;
+    background: #f3e8ff;
+    color: #6b21a8;
 }
 .country-pill.rejected {
     background: #fee2e2;
@@ -185,7 +185,7 @@
     display: inline-block;
 }
 .status-dot.approved { background: #16a34a; }
-.status-dot.pending { background: #f59e0b; }
+.status-dot.pending { background: #886cc0; }
 .status-dot.rejected { background: #dc2626; }
 .save-indicator {
     display: flex;
@@ -242,7 +242,7 @@
                             <div class="setting-label">Require MFA for All Users</div>
                             <div class="setting-description">When enabled, all users must complete multi-factor authentication at login. This significantly improves account security.</div>
                             <div class="warning-banner" id="mfaWarning" style="display: none;">
-                                <i class="fas fa-exclamation-triangle"></i>
+                                <i class="fas fa-info-circle"></i>
                                 <span>Disabling MFA reduces account security and is not recommended.</span>
                             </div>
                         </div>

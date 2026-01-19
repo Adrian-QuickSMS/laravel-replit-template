@@ -1970,7 +1970,9 @@ class QuickSMSController extends Controller
 
     public function securitySettings()
     {
-        return view('quicksms.account.security');
+        return view('quicksms.account.security', [
+            'page_title' => 'Security Settings'
+        ]);
     }
 
     public function support()
