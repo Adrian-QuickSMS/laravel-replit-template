@@ -48,6 +48,23 @@ var AuditLogger = (function() {
         CRITICAL: 'critical'
     });
 
+    var SYSTEM_COMPONENTS = Object.freeze({
+        ENFORCEMENT_ENGINE: { id: 'SYS:ENFORCEMENT', name: 'Enforcement Engine' },
+        SCHEDULER: { id: 'SYS:SCHEDULER', name: 'Task Scheduler' },
+        REPORT_GENERATOR: { id: 'SYS:REPORT_GEN', name: 'Report Generator' },
+        CAMPAIGN_MONITOR: { id: 'SYS:CAMPAIGN_MON', name: 'Campaign Monitor' },
+        TEST_MODE_GUARD: { id: 'SYS:TEST_GUARD', name: 'Test Mode Guard' },
+        FRAUD_DETECTOR: { id: 'SYS:FRAUD_DET', name: 'Fraud Detector' },
+        RATE_LIMITER: { id: 'SYS:RATE_LIMIT', name: 'Rate Limiter' },
+        SESSION_MANAGER: { id: 'SYS:SESSION_MGR', name: 'Session Manager' },
+        DATA_RETENTION: { id: 'SYS:DATA_RET', name: 'Data Retention Service' },
+        BACKUP_SERVICE: { id: 'SYS:BACKUP', name: 'Backup Service' },
+        HEALTH_MONITOR: { id: 'SYS:HEALTH', name: 'Health Monitor' },
+        COMPLIANCE_ENGINE: { id: 'SYS:COMPLIANCE', name: 'Compliance Engine' },
+        NOTIFICATION_SERVICE: { id: 'SYS:NOTIFY', name: 'Notification Service' },
+        ADMIN_CONSOLE: { id: 'SYS:ADMIN', name: 'Admin Console' }
+    });
+
     var EVENT_CATALOGUE = Object.freeze({
 
         USER_CREATED: Object.freeze({
@@ -864,6 +881,213 @@ var AuditLogger = (function() {
             severity: SEVERITIES.LOW,
             description: 'Scheduled task executed',
             requiredFields: ['taskName']
+        }),
+
+        ENFORCEMENT_AUTO_TRIGGERED: Object.freeze({
+            code: 'ENFORCEMENT_AUTO_TRIGGERED',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Automated enforcement triggered',
+            requiredFields: ['subAccountId', 'ruleType', 'triggerValue', 'action']
+        }),
+        ENFORCEMENT_LIMIT_WARNING: Object.freeze({
+            code: 'ENFORCEMENT_LIMIT_WARNING',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.LOW,
+            description: 'Enforcement limit warning issued',
+            requiredFields: ['subAccountId', 'ruleType', 'thresholdPercent']
+        }),
+        ENFORCEMENT_SOFT_STOP: Object.freeze({
+            code: 'ENFORCEMENT_SOFT_STOP',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Enforcement soft stop applied',
+            requiredFields: ['subAccountId', 'ruleType']
+        }),
+        ENFORCEMENT_HARD_STOP: Object.freeze({
+            code: 'ENFORCEMENT_HARD_STOP',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'Enforcement hard stop applied',
+            requiredFields: ['subAccountId', 'ruleType']
+        }),
+
+        SCHEDULED_REPORT_EXECUTED: Object.freeze({
+            code: 'SCHEDULED_REPORT_EXECUTED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'Scheduled report executed',
+            requiredFields: ['reportId', 'reportType']
+        }),
+        SCHEDULED_REPORT_FAILED: Object.freeze({
+            code: 'SCHEDULED_REPORT_FAILED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Scheduled report execution failed',
+            requiredFields: ['reportId', 'errorReason']
+        }),
+        SCHEDULED_REPORT_DELIVERED: Object.freeze({
+            code: 'SCHEDULED_REPORT_DELIVERED',
+            module: MODULES.REPORTING,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'Scheduled report delivered',
+            requiredFields: ['reportId', 'deliveryMethod']
+        }),
+
+        CAMPAIGN_AUTO_BLOCKED: Object.freeze({
+            code: 'CAMPAIGN_AUTO_BLOCKED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Campaign automatically blocked',
+            requiredFields: ['campaignId', 'blockReason']
+        }),
+        CAMPAIGN_AUTO_PAUSED: Object.freeze({
+            code: 'CAMPAIGN_AUTO_PAUSED',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.MESSAGING,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Campaign automatically paused',
+            requiredFields: ['campaignId', 'pauseReason']
+        }),
+        CAMPAIGN_COMPLIANCE_CHECK: Object.freeze({
+            code: 'CAMPAIGN_COMPLIANCE_CHECK',
+            module: MODULES.CAMPAIGNS,
+            category: CATEGORIES.COMPLIANCE,
+            severity: SEVERITIES.LOW,
+            description: 'Campaign compliance check performed',
+            requiredFields: ['campaignId', 'checkResult']
+        }),
+
+        TEST_MODE_RESTRICTION_APPLIED: Object.freeze({
+            code: 'TEST_MODE_RESTRICTION_APPLIED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Test mode restriction applied',
+            requiredFields: ['restrictionType', 'action']
+        }),
+        TEST_MODE_MESSAGE_BLOCKED: Object.freeze({
+            code: 'TEST_MODE_MESSAGE_BLOCKED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.LOW,
+            description: 'Message blocked due to test mode',
+            requiredFields: ['reason']
+        }),
+        TEST_MODE_NUMBER_REJECTED: Object.freeze({
+            code: 'TEST_MODE_NUMBER_REJECTED',
+            module: MODULES.MESSAGING,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.LOW,
+            description: 'Number rejected - not in approved list',
+            requiredFields: ['reason']
+        }),
+        TEST_MODE_LIMIT_REACHED: Object.freeze({
+            code: 'TEST_MODE_LIMIT_REACHED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Test mode limit reached',
+            requiredFields: ['limitType', 'currentValue', 'maxValue']
+        }),
+
+        ADMIN_OVERRIDE_APPLIED: Object.freeze({
+            code: 'ADMIN_OVERRIDE_APPLIED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.HIGH,
+            description: 'Admin override applied',
+            requiredFields: ['overrideType', 'targetId']
+        }),
+        ADMIN_FORCE_ACTIVATION: Object.freeze({
+            code: 'ADMIN_FORCE_ACTIVATION',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.ACCESS_CONTROL,
+            severity: SEVERITIES.HIGH,
+            description: 'Admin force-activated account',
+            requiredFields: ['targetAccountId']
+        }),
+        ADMIN_BYPASS_ENFORCEMENT: Object.freeze({
+            code: 'ADMIN_BYPASS_ENFORCEMENT',
+            module: MODULES.SUB_ACCOUNTS,
+            category: CATEGORIES.ENFORCEMENT,
+            severity: SEVERITIES.HIGH,
+            description: 'Admin bypassed enforcement rule',
+            requiredFields: ['subAccountId', 'ruleType', 'bypassReason']
+        }),
+        ADMIN_EMERGENCY_SUSPENSION: Object.freeze({
+            code: 'ADMIN_EMERGENCY_SUSPENSION',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.CRITICAL,
+            description: 'Admin emergency suspension applied',
+            requiredFields: ['targetId', 'suspensionReason']
+        }),
+
+        AUTO_SUSPENSION_APPLIED: Object.freeze({
+            code: 'AUTO_SUSPENSION_APPLIED',
+            module: MODULES.ACCOUNT,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.HIGH,
+            description: 'Automatic suspension applied',
+            requiredFields: ['targetId', 'suspensionReason']
+        }),
+        SESSION_AUTO_TERMINATED: Object.freeze({
+            code: 'SESSION_AUTO_TERMINATED',
+            module: MODULES.AUTHENTICATION,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Session automatically terminated',
+            requiredFields: ['sessionId', 'terminationReason']
+        }),
+        FRAUD_DETECTION_ALERT: Object.freeze({
+            code: 'FRAUD_DETECTION_ALERT',
+            module: MODULES.SECURITY,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.HIGH,
+            description: 'Fraud detection alert triggered',
+            requiredFields: ['alertType', 'riskScore']
+        }),
+        RATE_LIMIT_EXCEEDED: Object.freeze({
+            code: 'RATE_LIMIT_EXCEEDED',
+            module: MODULES.API,
+            category: CATEGORIES.SECURITY,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Rate limit exceeded',
+            requiredFields: ['endpoint', 'limitType']
+        }),
+
+        DATA_RETENTION_CLEANUP: Object.freeze({
+            code: 'DATA_RETENTION_CLEANUP',
+            module: MODULES.COMPLIANCE,
+            category: CATEGORIES.GDPR,
+            severity: SEVERITIES.MEDIUM,
+            description: 'Data retention cleanup executed',
+            requiredFields: ['dataType', 'recordsProcessed']
+        }),
+        AUTOMATED_BACKUP: Object.freeze({
+            code: 'AUTOMATED_BACKUP',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.LOW,
+            description: 'Automated backup completed',
+            requiredFields: ['backupType']
+        }),
+        HEALTH_CHECK_FAILED: Object.freeze({
+            code: 'HEALTH_CHECK_FAILED',
+            module: MODULES.SYSTEM,
+            category: CATEGORIES.SYSTEM,
+            severity: SEVERITIES.HIGH,
+            description: 'System health check failed',
+            requiredFields: ['componentName', 'failureReason']
         })
     });
 
@@ -1145,11 +1369,262 @@ var AuditLogger = (function() {
         });
     }
 
+    function logSystemEvent(eventType, systemComponent, options) {
+        options = options || {};
+
+        var component = typeof systemComponent === 'string' 
+            ? { id: systemComponent, name: systemComponent }
+            : systemComponent;
+
+        return log(eventType, {
+            actor: {
+                actorType: ACTOR_TYPES.SYSTEM,
+                actorId: component.id,
+                actorName: component.name,
+                actorRole: 'system'
+            },
+            description: options.description,
+            subAccountId: options.subAccountId,
+            target: options.target,
+            data: options.data,
+            result: options.result,
+            reason: options.reason,
+            ipAddress: '127.0.0.1'
+        });
+    }
+
+    function logEnforcement(subAccountId, ruleType, action, options) {
+        options = options || {};
+        var eventType = 'ENFORCEMENT_AUTO_TRIGGERED';
+        
+        if (action === 'warning') {
+            eventType = 'ENFORCEMENT_LIMIT_WARNING';
+        } else if (action === 'soft_stop') {
+            eventType = 'ENFORCEMENT_SOFT_STOP';
+        } else if (action === 'hard_stop') {
+            eventType = 'ENFORCEMENT_HARD_STOP';
+        }
+
+        return logSystemEvent(eventType, SYSTEM_COMPONENTS.ENFORCEMENT_ENGINE, {
+            subAccountId: subAccountId,
+            target: { entityType: 'sub_account', entityId: subAccountId },
+            data: Object.assign({
+                subAccountId: subAccountId,
+                ruleType: ruleType,
+                action: action,
+                triggerValue: options.triggerValue,
+                thresholdPercent: options.thresholdPercent,
+                currentValue: options.currentValue,
+                limitValue: options.limitValue
+            }, options.data || {}),
+            result: options.result || 'success'
+        });
+    }
+
+    function logScheduledReport(reportId, reportType, status, options) {
+        options = options || {};
+        var eventType = 'SCHEDULED_REPORT_EXECUTED';
+        
+        if (status === 'failed') {
+            eventType = 'SCHEDULED_REPORT_FAILED';
+        } else if (status === 'delivered') {
+            eventType = 'SCHEDULED_REPORT_DELIVERED';
+        }
+
+        return logSystemEvent(eventType, SYSTEM_COMPONENTS.REPORT_GENERATOR, {
+            target: { entityType: 'report', entityId: reportId },
+            data: Object.assign({
+                reportId: reportId,
+                reportType: reportType,
+                errorReason: options.errorReason,
+                deliveryMethod: options.deliveryMethod
+            }, options.data || {}),
+            result: status === 'failed' ? 'failure' : 'success'
+        });
+    }
+
+    function logCampaignAutoAction(campaignId, action, reason, options) {
+        options = options || {};
+        var eventType = 'CAMPAIGN_AUTO_BLOCKED';
+        
+        if (action === 'paused') {
+            eventType = 'CAMPAIGN_AUTO_PAUSED';
+        } else if (action === 'compliance_check') {
+            eventType = 'CAMPAIGN_COMPLIANCE_CHECK';
+        }
+
+        return logSystemEvent(eventType, SYSTEM_COMPONENTS.CAMPAIGN_MONITOR, {
+            subAccountId: options.subAccountId,
+            target: { entityType: 'campaign', entityId: campaignId },
+            data: Object.assign({
+                campaignId: campaignId,
+                blockReason: reason,
+                pauseReason: reason,
+                checkResult: options.checkResult
+            }, options.data || {}),
+            result: options.result || 'success'
+        });
+    }
+
+    function logTestModeRestriction(restrictionType, action, options) {
+        options = options || {};
+        var eventType = 'TEST_MODE_RESTRICTION_APPLIED';
+        
+        if (action === 'message_blocked') {
+            eventType = 'TEST_MODE_MESSAGE_BLOCKED';
+        } else if (action === 'number_rejected') {
+            eventType = 'TEST_MODE_NUMBER_REJECTED';
+        } else if (action === 'limit_reached') {
+            eventType = 'TEST_MODE_LIMIT_REACHED';
+        }
+
+        return logSystemEvent(eventType, SYSTEM_COMPONENTS.TEST_MODE_GUARD, {
+            subAccountId: options.subAccountId,
+            target: options.target,
+            data: Object.assign({
+                restrictionType: restrictionType,
+                action: action,
+                reason: options.reason,
+                limitType: options.limitType,
+                currentValue: options.currentValue,
+                maxValue: options.maxValue
+            }, options.data || {}),
+            result: 'blocked'
+        });
+    }
+
+    function logAdminOverride(overrideType, targetId, options) {
+        options = options || {};
+        var adminUser = options.adminUser || getCurrentActor();
+        var eventType = 'ADMIN_OVERRIDE_APPLIED';
+        
+        if (overrideType === 'force_activation') {
+            eventType = 'ADMIN_FORCE_ACTIVATION';
+        } else if (overrideType === 'bypass_enforcement') {
+            eventType = 'ADMIN_BYPASS_ENFORCEMENT';
+        } else if (overrideType === 'emergency_suspension') {
+            eventType = 'ADMIN_EMERGENCY_SUSPENSION';
+        }
+
+        return log(eventType, {
+            actor: {
+                actorType: ACTOR_TYPES.USER,
+                actorId: adminUser.actorId || adminUser.userId,
+                actorName: adminUser.actorName || adminUser.userName,
+                actorRole: adminUser.actorRole || adminUser.role
+            },
+            subAccountId: options.subAccountId,
+            target: { entityType: options.targetType || 'entity', entityId: targetId },
+            description: options.description,
+            data: Object.assign({
+                overrideType: overrideType,
+                targetId: targetId,
+                targetAccountId: targetId,
+                subAccountId: options.subAccountId,
+                ruleType: options.ruleType,
+                bypassReason: options.bypassReason,
+                suspensionReason: options.suspensionReason
+            }, options.data || {}),
+            reason: options.reason,
+            result: options.result || 'success'
+        });
+    }
+
+    function logFraudAlert(alertType, riskScore, options) {
+        options = options || {};
+        return logSystemEvent('FRAUD_DETECTION_ALERT', SYSTEM_COMPONENTS.FRAUD_DETECTOR, {
+            subAccountId: options.subAccountId,
+            target: options.target,
+            data: Object.assign({
+                alertType: alertType,
+                riskScore: riskScore,
+                indicators: options.indicators
+            }, options.data || {}),
+            result: 'alert'
+        });
+    }
+
+    function logRateLimitExceeded(endpoint, limitType, options) {
+        options = options || {};
+        return logSystemEvent('RATE_LIMIT_EXCEEDED', SYSTEM_COMPONENTS.RATE_LIMITER, {
+            subAccountId: options.subAccountId,
+            target: { entityType: 'endpoint', entityId: endpoint },
+            data: Object.assign({
+                endpoint: endpoint,
+                limitType: limitType,
+                requestCount: options.requestCount,
+                limitValue: options.limitValue,
+                windowSeconds: options.windowSeconds
+            }, options.data || {}),
+            result: 'blocked'
+        });
+    }
+
+    function logAutoSuspension(targetId, reason, options) {
+        options = options || {};
+        return logSystemEvent('AUTO_SUSPENSION_APPLIED', SYSTEM_COMPONENTS.FRAUD_DETECTOR, {
+            subAccountId: options.subAccountId,
+            target: { entityType: options.targetType || 'account', entityId: targetId },
+            data: Object.assign({
+                targetId: targetId,
+                suspensionReason: reason
+            }, options.data || {}),
+            result: 'success'
+        });
+    }
+
+    function logSessionTerminated(sessionId, reason, options) {
+        options = options || {};
+        return logSystemEvent('SESSION_AUTO_TERMINATED', SYSTEM_COMPONENTS.SESSION_MANAGER, {
+            subAccountId: options.subAccountId,
+            target: { entityType: 'session', entityId: sessionId },
+            data: Object.assign({
+                sessionId: sessionId,
+                terminationReason: reason,
+                userId: options.userId
+            }, options.data || {}),
+            result: 'success'
+        });
+    }
+
+    function logDataRetentionCleanup(dataType, recordsProcessed, options) {
+        options = options || {};
+        return logSystemEvent('DATA_RETENTION_CLEANUP', SYSTEM_COMPONENTS.DATA_RETENTION, {
+            data: Object.assign({
+                dataType: dataType,
+                recordsProcessed: recordsProcessed,
+                retentionPeriodDays: options.retentionPeriodDays
+            }, options.data || {}),
+            result: 'success'
+        });
+    }
+
+    function getSystemEvents(hours) {
+        var since = new Date(Date.now() - (hours || 24) * 60 * 60 * 1000);
+        return auditLog.filter(function(e) {
+            return e.actorType === ACTOR_TYPES.SYSTEM &&
+                   new Date(e.timestamp) >= since;
+        });
+    }
+
     return {
         log: log,
         query: query,
         getRecentActivity: getRecentActivity,
         getSecurityAlerts: getSecurityAlerts,
+        getSystemEvents: getSystemEvents,
+
+        logSystemEvent: logSystemEvent,
+        logEnforcement: logEnforcement,
+        logScheduledReport: logScheduledReport,
+        logCampaignAutoAction: logCampaignAutoAction,
+        logTestModeRestriction: logTestModeRestriction,
+        logAdminOverride: logAdminOverride,
+        logFraudAlert: logFraudAlert,
+        logRateLimitExceeded: logRateLimitExceeded,
+        logAutoSuspension: logAutoSuspension,
+        logSessionTerminated: logSessionTerminated,
+        logDataRetentionCleanup: logDataRetentionCleanup,
 
         getCatalogue: getCatalogue,
         getApprovedEventTypes: getApprovedEventTypes,
@@ -1167,6 +1642,7 @@ var AuditLogger = (function() {
         MODULES: MODULES,
         CATEGORIES: CATEGORIES,
         SEVERITIES: SEVERITIES,
+        SYSTEM_COMPONENTS: SYSTEM_COMPONENTS,
         APPROVED_EVENT_CODES: APPROVED_EVENT_CODES
     };
 })();
