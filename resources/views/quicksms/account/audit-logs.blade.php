@@ -202,11 +202,6 @@
             <i class="fas fa-pound-sign me-2"></i>Financial
         </button>
     </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="compliance-tab" data-bs-toggle="tab" data-bs-target="#complianceLogs" type="button" role="tab">
-            <i class="fas fa-clipboard-check me-2"></i>Compliance
-        </button>
-    </li>
 </ul>
 
 <div class="tab-content" id="auditTabsContent">
@@ -620,99 +615,6 @@
         </div>
     </div>
 
-    <div class="tab-pane fade" id="complianceLogs" role="tabpanel">
-        <div class="card border-top-0 rounded-top-0">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Compliance Dashboard</h5>
-                <small class="text-muted">GDPR, ISO 27001, and NHS DSP Toolkit compliance monitoring</small>
-            </div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="compliance-card">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-0"><i class="fas fa-user-shield me-2"></i>GDPR Accountability</h6>
-                                <span class="badge badge-pastel-success">Compliant</span>
-                            </div>
-                            <p class="small text-muted mb-2">Data subject requests, consent changes, and processing activities.</p>
-                            <div class="d-flex justify-content-between small">
-                                <span>SAR Requests (30d)</span>
-                                <strong id="sarRequestsCount">0</strong>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span>Consent Changes (30d)</span>
-                                <strong id="consentChangesCount">0</strong>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span>Data Exports (30d)</span>
-                                <strong id="gdprExportsCount">0</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="compliance-card">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-0"><i class="fas fa-shield-alt me-2"></i>ISO 27001</h6>
-                                <span class="badge badge-pastel-success">Compliant</span>
-                            </div>
-                            <p class="small text-muted mb-2">Information security controls and access management.</p>
-                            <div class="d-flex justify-content-between small">
-                                <span>Access Reviews (30d)</span>
-                                <strong id="accessReviewsCount">0</strong>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span>Security Events (30d)</span>
-                                <strong id="securityEventsCount">0</strong>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span>Policy Changes (30d)</span>
-                                <strong id="policyChangesCount">0</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="compliance-card">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-0"><i class="fas fa-hospital me-2"></i>NHS DSP Toolkit</h6>
-                                <span class="badge badge-pastel-success">Compliant</span>
-                            </div>
-                            <p class="small text-muted mb-2">Data security and protection requirements for NHS suppliers.</p>
-                            <div class="d-flex justify-content-between small">
-                                <span>User Training Status</span>
-                                <strong>100%</strong>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span>Incident Reports (30d)</span>
-                                <strong id="incidentReportsCount">0</strong>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span>Last Assessment</span>
-                                <strong>{{ date('d/m/Y', strtotime('-45 days')) }}</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <h6 class="mb-3"><i class="fas fa-history me-2 text-primary"></i>Recent Compliance Events</h6>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="complianceLogsTable">
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>Framework</th>
-                                <th>Event</th>
-                                <th>Actor</th>
-                                <th>Details</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="complianceLogsTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="modal fade" id="logDetailModal" tabindex="-1">
