@@ -57,6 +57,62 @@
 
 .scope-indicator { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
 .export-restricted { opacity: 0.5; pointer-events: none; }
+
+.audit-table-container { max-height: 600px; overflow-y: auto; }
+.audit-table-container.infinite-scroll-enabled { max-height: none; }
+
+.audit-log-row { 
+    cursor: default; 
+    user-select: text;
+    transition: background-color 0.15s ease;
+}
+.audit-log-row:hover { background-color: rgba(111, 66, 193, 0.03); }
+.audit-log-row td { vertical-align: middle; padding: 0.75rem; }
+
+.table-read-only th { 
+    background-color: #fafafa; 
+    border-bottom: 2px solid #dee2e6; 
+    font-weight: 600; 
+    font-size: 0.8125rem; 
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.loading-more { 
+    text-align: center; 
+    padding: 1.5rem; 
+    color: #6c757d; 
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(111, 66, 193, 0.02) 100%);
+}
+.loading-more .spinner-border { width: 1.25rem; height: 1.25rem; border-width: 0.15em; color: #886CC0; }
+
+.load-more-btn {
+    background-color: #fff;
+    border: 1px solid #886CC0;
+    color: #886CC0;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: all 0.15s ease;
+}
+.load-more-btn:hover {
+    background-color: #f3e8ff;
+    border-color: #886CC0;
+    color: #886CC0;
+}
+
+.view-mode-toggle { font-size: 0.75rem; }
+.view-mode-toggle .btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.view-mode-toggle .btn.active { background-color: #886CC0; color: #fff; border-color: #886CC0; }
+
+.end-of-list { 
+    text-align: center; 
+    padding: 1rem; 
+    color: #6c757d; 
+    font-size: 0.8125rem;
+    border-top: 1px dashed #dee2e6;
+}
 </style>
 @endpush
 
@@ -229,24 +285,59 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="auditLogsTable">
-                        <thead>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted small">
+                        <span id="totalFilteredInfo"><span id="totalFiltered">0</span> events</span>
+                        <span class="ms-2 text-muted">|</span>
+                        <span class="ms-2">Sorted: <strong>Newest first</strong></span>
+                    </div>
+                    <div class="view-mode-toggle btn-group" role="group" aria-label="View mode">
+                        <button type="button" class="btn btn-outline-secondary active" id="paginationModeBtn" title="Pagination view">
+                            <i class="fas fa-list"></i> Paginated
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="infiniteScrollModeBtn" title="Infinite scroll view">
+                            <i class="fas fa-stream"></i> Scroll
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive audit-table-container" id="auditTableContainer">
+                    <table class="table table-hover mb-0 table-read-only" id="auditLogsTable">
+                        <thead class="sticky-top bg-white">
                             <tr>
-                                <th style="width: 160px;">Timestamp</th>
+                                <th style="width: 150px;">Timestamp</th>
+                                <th style="width: 100px;">Event ID</th>
                                 <th>Action</th>
-                                <th>Category</th>
-                                <th>Severity</th>
+                                <th style="width: 120px;">Category</th>
+                                <th style="width: 90px;">Severity</th>
                                 <th>Actor</th>
                                 <th>Target</th>
-                                <th>IP Address</th>
+                                <th style="width: 110px;">IP Address</th>
                                 <th style="width: 80px;">Hash</th>
-                                <th style="width: 40px;"></th>
                             </tr>
                         </thead>
                         <tbody id="auditLogsTableBody">
                         </tbody>
                     </table>
+
+                    <div class="loading-more" id="loadingMore" style="display: none;">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2">Loading more events...</span>
+                    </div>
+
+                    <div class="text-center py-3" id="loadMoreContainer" style="display: none;">
+                        <button type="button" class="load-more-btn" id="loadMoreBtn">
+                            <i class="fas fa-plus-circle me-2"></i>Load More
+                        </button>
+                        <div class="small text-muted mt-2" id="loadMoreInfo"></div>
+                    </div>
+
+                    <div class="end-of-list" id="endOfList" style="display: none;">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        All events loaded
+                    </div>
                 </div>
 
                 <div class="empty-state" id="emptyState" style="display: none;">
@@ -257,7 +348,7 @@
 
                 <div class="d-flex justify-content-between align-items-center mt-4" id="paginationRow">
                     <div class="text-muted small">
-                        Showing <span id="showingStart">0</span>-<span id="showingEnd">0</span> of <span id="totalFiltered">0</span> events
+                        Showing <span id="showingStart">0</span>-<span id="showingEnd">0</span> of <span id="paginationTotal">0</span> events
                     </div>
                     <nav>
                         <ul class="pagination pagination-sm mb-0" id="paginationControls">
@@ -642,6 +733,11 @@ $(document).ready(function() {
     var userAccessLevel = 'none';
     var userScopeCategories = null;
     var canExport = false;
+
+    var viewMode = 'pagination';
+    var displayedCount = 0;
+    var batchSize = 50;
+    var isLoadingMore = false;
 
     function checkAccessPermissions() {
         if (AUDIT_LOG_ACCESS.FULL_ACCESS.includes(currentUserRole)) {
@@ -1160,6 +1256,14 @@ $(document).ready(function() {
     }
 
     function renderTable() {
+        if (viewMode === 'infinite') {
+            renderInfiniteScrollTable();
+        } else {
+            renderPaginatedTable();
+        }
+    }
+
+    function renderPaginatedTable() {
         var tbody = $('#auditLogsTableBody');
         tbody.empty();
 
@@ -1171,43 +1275,138 @@ $(document).ready(function() {
             $('#auditLogsTable').hide();
             $('#emptyState').show();
             $('#paginationRow').hide();
+            $('#loadMoreContainer').hide();
+            $('#endOfList').hide();
             return;
         }
 
         $('#auditLogsTable').show();
         $('#emptyState').hide();
         $('#paginationRow').show();
+        $('#loadMoreContainer').hide();
+        $('#endOfList').hide();
+        $('#auditTableContainer').removeClass('infinite-scroll-enabled');
 
         pageData.forEach(function(log) {
-            var timestamp = new Date(log.timestamp);
-            var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-
-            var targetDisplay = '-';
-            if (log.target) {
-                if (log.target.userName) targetDisplay = log.target.userName;
-                else if (log.target.name) targetDisplay = log.target.name;
-                else if (log.target.resourceId) targetDisplay = log.target.resourceType + ': ' + log.target.resourceId;
-            }
-
-            var row = $('<tr class="audit-log-row" data-log-id="' + log.id + '">' +
-                '<td class="small">' + formattedDate + '</td>' +
-                '<td><span class="fw-medium">' + log.actionLabel + '</span></td>' +
-                '<td><span class="badge category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
-                '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
-                '<td>' + log.actor.userName + '</td>' +
-                '<td>' + targetDisplay + '</td>' +
-                '<td class="small text-muted">' + log.context.ipAddress + '</td>' +
-                '<td><span class="integrity-badge" title="Integrity Hash">' + log.integrityHash + '</span></td>' +
-                '<td><i class="fas fa-chevron-right text-muted"></i></td>' +
-            '</tr>');
-
-            row.on('click', function() { showLogDetail(log); });
-            tbody.append(row);
+            tbody.append(createLogRow(log));
         });
 
         $('#showingStart').text(startIndex + 1);
         $('#showingEnd').text(endIndex);
+        $('#paginationTotal').text(filteredLogs.length);
         $('#totalFiltered').text(filteredLogs.length);
+    }
+
+    function renderInfiniteScrollTable() {
+        var tbody = $('#auditLogsTableBody');
+        tbody.empty();
+
+        displayedCount = 0;
+
+        if (filteredLogs.length === 0) {
+            $('#auditLogsTable').hide();
+            $('#emptyState').show();
+            $('#paginationRow').hide();
+            $('#loadMoreContainer').hide();
+            $('#endOfList').hide();
+            return;
+        }
+
+        $('#auditLogsTable').show();
+        $('#emptyState').hide();
+        $('#paginationRow').hide();
+        $('#auditTableContainer').addClass('infinite-scroll-enabled');
+
+        loadMoreLogs();
+    }
+
+    function loadMoreLogs() {
+        if (isLoadingMore) return;
+        if (displayedCount >= filteredLogs.length) {
+            $('#loadMoreContainer').hide();
+            $('#endOfList').show();
+            return;
+        }
+
+        isLoadingMore = true;
+        $('#loadingMore').show();
+        $('#loadMoreContainer').hide();
+
+        setTimeout(function() {
+            var tbody = $('#auditLogsTableBody');
+            var endIndex = Math.min(displayedCount + batchSize, filteredLogs.length);
+            var batchData = filteredLogs.slice(displayedCount, endIndex);
+
+            batchData.forEach(function(log) {
+                tbody.append(createLogRow(log));
+            });
+
+            displayedCount = endIndex;
+
+            $('#loadingMore').hide();
+            isLoadingMore = false;
+
+            if (displayedCount < filteredLogs.length) {
+                var remaining = filteredLogs.length - displayedCount;
+                $('#loadMoreInfo').text(remaining + ' more events to load');
+                $('#loadMoreContainer').show();
+                $('#endOfList').hide();
+            } else {
+                $('#loadMoreContainer').hide();
+                $('#endOfList').show();
+            }
+
+            $('#totalFiltered').text(filteredLogs.length);
+        }, 300);
+    }
+
+    function createLogRow(log) {
+        var timestamp = new Date(log.timestamp);
+        var formattedDate = timestamp.toLocaleDateString('en-GB') + ' ' + timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+        var eventId = log.id.length > 16 ? log.id.substring(0, 16) + '...' : log.id;
+
+        var targetDisplay = '-';
+        if (log.target) {
+            if (log.target.userName) targetDisplay = log.target.userName;
+            else if (log.target.name) targetDisplay = log.target.name;
+            else if (log.target.resourceId) targetDisplay = log.target.resourceType + ': ' + log.target.resourceId;
+        }
+
+        var row = $('<tr class="audit-log-row" data-log-id="' + log.id + '">' +
+            '<td class="small text-muted">' + formattedDate + '</td>' +
+            '<td class="small"><code class="text-muted" title="' + log.id + '">' + eventId + '</code></td>' +
+            '<td><span class="fw-medium">' + log.actionLabel + '</span></td>' +
+            '<td><span class="badge category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
+            '<td><span class="badge severity-badge-' + log.severity + '">' + capitalizeFirst(log.severity) + '</span></td>' +
+            '<td class="small">' + log.actor.userName + '</td>' +
+            '<td class="small">' + targetDisplay + '</td>' +
+            '<td class="small text-muted">' + log.context.ipAddress + '</td>' +
+            '<td><span class="integrity-badge" title="Integrity Hash: ' + log.integrityHash + '">' + log.integrityHash + '</span></td>' +
+        '</tr>');
+
+        row.on('click', function() { showLogDetail(log); });
+
+        return row;
+    }
+
+    function setViewMode(mode) {
+        viewMode = mode;
+
+        if (mode === 'pagination') {
+            $('#paginationModeBtn').addClass('active');
+            $('#infiniteScrollModeBtn').removeClass('active');
+        } else {
+            $('#paginationModeBtn').removeClass('active');
+            $('#infiniteScrollModeBtn').addClass('active');
+        }
+
+        currentPage = 1;
+        displayedCount = 0;
+        renderTable();
+        if (viewMode === 'pagination') {
+            renderPagination();
+        }
     }
 
     function renderPagination() {
@@ -1359,6 +1558,31 @@ $(document).ready(function() {
                 $('#recordsVerified').text(allLogs.length);
                 $('#verificationTime').text(Math.floor(Math.random() * 200 + 50) + 'ms');
             }, 1500);
+        });
+
+        $('#paginationModeBtn').on('click', function() {
+            setViewMode('pagination');
+        });
+
+        $('#infiniteScrollModeBtn').on('click', function() {
+            setViewMode('infinite');
+        });
+
+        $('#loadMoreBtn').on('click', function() {
+            loadMoreLogs();
+        });
+
+        $('#auditTableContainer').on('scroll', function() {
+            if (viewMode !== 'infinite') return;
+
+            var container = $(this);
+            var scrollTop = container.scrollTop();
+            var scrollHeight = container[0].scrollHeight;
+            var clientHeight = container.height();
+
+            if (scrollTop + clientHeight >= scrollHeight - 100) {
+                loadMoreLogs();
+            }
         });
     }
 
