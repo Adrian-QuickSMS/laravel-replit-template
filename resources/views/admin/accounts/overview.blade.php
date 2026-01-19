@@ -255,6 +255,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-1234', 'Acme Corporation')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
@@ -287,6 +288,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-5678', 'Finance Ltd')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
@@ -319,6 +321,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-7890', 'NewClient')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
@@ -351,6 +354,7 @@
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-4567', 'TestCo')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-success" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'reactivate')"><i class="fas fa-play-circle me-2"></i>Reactivate Account</a></li>
                                     </ul>
                                 </div>
@@ -438,6 +442,101 @@
                     <li class="page-item"><a class="page-link" href="#">Next</a></li>
                 </ul>
             </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Fraud & Risk Modal -->
+<div class="modal fade" id="fraudRiskModal" tabindex="-1" aria-labelledby="fraudRiskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fraudRiskModalLabel">Fraud & Risk Controls</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="fraudAccountId">
+                <input type="hidden" id="fraudAccountName">
+                
+                <!-- Suspicion Flag -->
+                <div class="card mb-3">
+                    <div class="card-header py-2 bg-light">
+                        <strong>Account Status</strong>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="flagSuspicious">
+                            <label class="form-check-label" for="flagSuspicious">
+                                <strong class="text-danger">Flag as Suspicious</strong>
+                            </label>
+                        </div>
+                        <small class="text-muted">Flagged accounts appear in the Fraud/Risk KPI tile and are marked in the accounts table.</small>
+                    </div>
+                </div>
+
+                <!-- Restrictions -->
+                <div class="card mb-3">
+                    <div class="card-header py-2 bg-light">
+                        <strong>Sending Restrictions</strong>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="mb-3">
+                            <label class="form-label">Restricted Countries</label>
+                            <select class="form-select" id="restrictedCountries" multiple size="4">
+                                <option value="NG">Nigeria</option>
+                                <option value="PH">Philippines</option>
+                                <option value="IN">India</option>
+                                <option value="PK">Pakistan</option>
+                                <option value="BD">Bangladesh</option>
+                                <option value="GH">Ghana</option>
+                                <option value="KE">Kenya</option>
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple. Messages to these countries will be blocked.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Allowed Sender IDs</label>
+                            <input type="text" class="form-control" id="allowedSenderIds" placeholder="e.g., ACME, AcmeCorp (comma-separated)">
+                            <small class="text-muted">Leave blank for no restriction. Only these Sender IDs will be permitted.</small>
+                        </div>
+                        
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="blockDynamicSenderId">
+                            <label class="form-check-label" for="blockDynamicSenderId">
+                                Block Dynamic Sender ID Usage
+                            </label>
+                        </div>
+                        <small class="text-muted">Prevents account from using dynamic/custom sender IDs per message.</small>
+                    </div>
+                </div>
+
+                <!-- Test Mode -->
+                <div class="card">
+                    <div class="card-header py-2 bg-light">
+                        <strong>Test Mode</strong>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="enableTestMode">
+                            <label class="form-check-label" for="enableTestMode">
+                                Enable Test Mode
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mb-3">When enabled, messages can only be sent to approved test numbers.</small>
+                        
+                        <div class="mb-0" id="testNumbersSection" style="display:none;">
+                            <label class="form-label">Approved Test Numbers</label>
+                            <textarea class="form-control" id="testNumbers" rows="3" placeholder="Enter numbers, one per line&#10;e.g., +447700900123"></textarea>
+                            <small class="text-muted">Only these numbers can receive messages while Test Mode is active.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto"><i class="fas fa-lock me-1"></i>All changes logged to audit trail</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="saveFraudRisk()">Save Risk Controls</button>
+            </div>
         </div>
     </div>
 </div>
@@ -877,6 +976,86 @@ window.manageSubAccount = function(subId) {
         AdminControlPlane.logAdminAction('SUB_ACCOUNT_MANAGE_CLICKED', 'ACCOUNTS', { subAccountId: subId });
     }
     alert('Navigate to Sub-account management: ' + subId);
+};
+
+// Fraud & Risk Controls
+var fraudRiskModal = null;
+
+window.openFraudRisk = function(accountId, accountName) {
+    if (!fraudRiskModal) {
+        fraudRiskModal = new bootstrap.Modal(document.getElementById('fraudRiskModal'));
+        
+        // Toggle test numbers section visibility
+        document.getElementById('enableTestMode').addEventListener('change', function() {
+            document.getElementById('testNumbersSection').style.display = this.checked ? 'block' : 'none';
+        });
+    }
+
+    document.getElementById('fraudRiskModalLabel').textContent = 'Fraud & Risk Controls — ' + accountName;
+    document.getElementById('fraudAccountId').value = accountId;
+    document.getElementById('fraudAccountName').value = accountName;
+
+    // Reset form (in production, would load current settings)
+    document.getElementById('flagSuspicious').checked = (accountId === 'ACC-4567'); // TestCo is flagged
+    document.getElementById('restrictedCountries').selectedIndex = -1;
+    document.getElementById('allowedSenderIds').value = '';
+    document.getElementById('blockDynamicSenderId').checked = false;
+    document.getElementById('enableTestMode').checked = false;
+    document.getElementById('testNumbers').value = '';
+    document.getElementById('testNumbersSection').style.display = 'none';
+
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('FRAUD_RISK_MODAL_OPENED', 'ACCOUNTS', { 
+            accountId: accountId, 
+            accountName: accountName,
+            accessType: 'admin_only',
+            piiAccess: false
+        });
+    }
+
+    fraudRiskModal.show();
+};
+
+window.saveFraudRisk = function() {
+    var accountId = document.getElementById('fraudAccountId').value;
+    var accountName = document.getElementById('fraudAccountName').value;
+
+    var isSuspicious = document.getElementById('flagSuspicious').checked;
+    var restrictedCountries = Array.from(document.getElementById('restrictedCountries').selectedOptions).map(o => o.value);
+    var allowedSenderIds = document.getElementById('allowedSenderIds').value.split(',').map(s => s.trim()).filter(s => s);
+    var blockDynamic = document.getElementById('blockDynamicSenderId').checked;
+    var testMode = document.getElementById('enableTestMode').checked;
+    var testNumbers = testMode ? document.getElementById('testNumbers').value.split('\n').map(n => n.trim()).filter(n => n) : [];
+
+    var changes = {
+        accountId: accountId,
+        accountName: accountName,
+        flaggedSuspicious: isSuspicious,
+        restrictedCountries: restrictedCountries,
+        allowedSenderIds: allowedSenderIds,
+        blockDynamicSenderId: blockDynamic,
+        testModeEnabled: testMode,
+        testNumbers: testNumbers.length
+    };
+
+    // Log to ADMIN audit only (not customer-visible)
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('FRAUD_RISK_CONTROLS_UPDATED', 'ACCOUNTS', {
+            ...changes,
+            auditScope: 'admin_only',
+            customerVisible: false
+        });
+    }
+
+    var summary = [];
+    if (isSuspicious) summary.push('Account flagged as Suspicious');
+    if (restrictedCountries.length) summary.push('Restricted countries: ' + restrictedCountries.join(', '));
+    if (allowedSenderIds.length) summary.push('Allowed Sender IDs: ' + allowedSenderIds.join(', '));
+    if (blockDynamic) summary.push('Dynamic Sender ID blocked');
+    if (testMode) summary.push('Test Mode enabled with ' + testNumbers.length + ' approved numbers');
+
+    alert('Fraud & Risk controls saved for ' + accountName + '.\n\n' + (summary.length ? summary.join('\n') : 'All restrictions cleared.'));
+    fraudRiskModal.hide();
 };
 
 var enforcementModal = null;
