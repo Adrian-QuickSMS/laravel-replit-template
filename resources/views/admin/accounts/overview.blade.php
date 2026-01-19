@@ -470,7 +470,13 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <span class="text-muted small me-auto">Read-only view - No inline editing</span>
+                <span class="text-muted small me-auto">Read-only view</span>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSubAccount()">
+                    <i class="fa fa-plus me-1"></i>Add Sub-account
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="inviteUser()">
+                    <i class="fa fa-user-plus me-1"></i>Invite User
+                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -785,6 +791,22 @@ window.viewUserDetails = function(email) {
         AdminControlPlane.logAdminAction('USER_DETAILS_CLICKED', 'ACCOUNTS', { userEmail: email });
     }
     alert('Navigate to User details: ' + email);
+};
+
+window.addSubAccount = function() {
+    var accountId = currentHierarchyData ? currentHierarchyData.main.id : null;
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ADD_SUB_ACCOUNT_INITIATED', 'ACCOUNTS', { parentAccountId: accountId });
+    }
+    alert('Open Add Sub-account wizard for: ' + (accountId || 'Unknown'));
+};
+
+window.inviteUser = function() {
+    var accountId = currentHierarchyData ? currentHierarchyData.main.id : null;
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('INVITE_USER_INITIATED', 'ACCOUNTS', { accountId: accountId });
+    }
+    alert('Open Invite User modal for: ' + (accountId || 'Unknown'));
 };
 
 function filterTable(filter) {
