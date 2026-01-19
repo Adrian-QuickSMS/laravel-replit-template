@@ -1,0 +1,55 @@
+STRONG GUARDRAIL PROMPT — QUICKSMS ADMIN PORTAL (READ CAREFULLY)
+
+You are building the QuickSMS Admin Portal (internal employee console). The Admin Portal is a SUPERSET of the customer portal, NOT a sibling UI and NOT a parallel system.
+
+NON-NEGOTIABLE PRINCIPLES (DO NOT VIOLATE):
+1) DO NOT rebuild modules, pages, components, or logic that already exist in the customer portal.
+   - Admin must REUSE the exact same components and rendering logic wherever possible.
+   - Admin may only “wrap” existing components with admin-only scope, filters, and permissions.
+
+2) SINGLE SOURCE OF TRUTH:
+   - All definitions and calculations (parts, delivery, pending, rejected, billable, cost, revenue, margin, status mappings) MUST match the customer portal EXACTLY.
+   - Admin has broader visibility (cross-client), but MUST NOT invent new metric definitions, new statuses, new delivery mappings, or new billing logic.
+   - Any server-side aggregates must use the same warehouse definitions used by customer reporting.
+
+3) DESIGN SYSTEM:
+   - Use ONLY the Fillow template components, spacing, typography, table styling, pills/badges, modals, and cards.
+   - Do NOT introduce new UI patterns, iconography, table styles, button styles, headers, or colour systems.
+   - The ONLY permitted design change is theme colour: Admin uses BLUE tones (instead of customer purple) to visually distinguish admin vs customer.
+   - All other styling must remain Fillow-standard.
+
+4) SHARED COMPONENT RULE:
+   - If a component exists in customer portal (tables, filters with Apply, drill-down behaviour, preview components, etc.), import/reuse it.
+   - If changes are required, refactor the shared component ONCE and ensure BOTH admin + customer portals inherit the improvement automatically.
+
+5) FILTER & DRILL BEHAVIOUR:
+   - Filters MUST NOT auto-apply. Every filter panel must have “Apply Filters” and “Reset”.
+   - Drill-down must pass the active filters into the target module (Message Log / Client Reporting / Supplier Reporting).
+   - Maximum drill depth: 1 level deep from the dashboard (no infinite nested drill trees).
+
+6) SECURITY / DATA PROTECTION:
+   - Admin portal is INTERNAL ONLY. It must be impossible to access from customer routes.
+   - Phone numbers and message content are masked by default.
+   - Any “reveal” of sensitive data must be an explicit action and must create an admin audit log entry.
+   - Supplier pricing, supplier cost, and margin data must NEVER be exposed to customer views or shared components that can render in customer routes.
+
+IMPLEMENTATION EXPECTATION:
+- Before creating any new UI, search the codebase for an existing equivalent in the customer portal (Reporting dashboard, KPI tiles, tables, filters, status pills, drill behaviour).
+- Reuse and compose existing components first.
+- Only create new components when there is no existing equivalent AND the UI is admin-only (e.g., Supplier Route Health tiles, Margin Risk tables) — and even then, build them using Fillow components and the same styling rules.
+
+DELIVERABLE FOR THIS ITERATION:
+- Admin Dashboard page using Fillow layout and existing reporting components:
+  - Global Filters (Apply/Reset, no auto-filter)
+  - Financial KPI tiles
+  - Delivery KPI tiles
+  - Platform Reporting charts (reuse the same components as customer reporting, but scoped cross-client)
+  - Admin-only sections (Supplier Route Health, UK Network & Porting Health, Margin Risk)
+- Admin uses BLUE theme, but keeps Fillow UI patterns unchanged.
+
+ACCEPTANCE CRITERIA (MUST PASS):
+- No duplicated logic for delivery statuses, parts, billing, margin, or reporting metrics.
+- No new table styles, header styles, badge styles, or button patterns introduced.
+- Filters only apply on “Apply Filters”.
+- Drill-down passes filter state correctly.
+- Admin-only data (supplier cost/margin) cannot appear in customer routes under any circumstances.

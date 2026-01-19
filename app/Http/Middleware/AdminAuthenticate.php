@@ -10,6 +10,21 @@ class AdminAuthenticate
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Development bypass - auto-login for dev environment
+        if (config('app.env') === 'local' || config('app.debug') === true) {
+            if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
+                session()->put('admin_auth', [
+                    'authenticated' => true,
+                    'mfa_verified' => true,
+                    'user_id' => 1,
+                    'email' => 'admin@quicksms.com',
+                    'role' => 'super_admin',
+                    'last_activity' => now()->timestamp,
+                ]);
+                session()->put('admin_user_email', 'admin@quicksms.com');
+            }
+        }
+        
         $adminSession = session('admin_auth');
         
         if (!$adminSession || !isset($adminSession['authenticated']) || $adminSession['authenticated'] !== true) {

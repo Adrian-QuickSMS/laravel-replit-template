@@ -4,20 +4,37 @@
 
 @push('styles')
 <style>
+/* ==============================================
+   ADMIN DASHBOARD - FILLOW COMPONENT OVERRIDES
+   Uses Fillow base classes with admin blue theme
+   ============================================== */
+
+/* Admin blue theme color overrides for Fillow */
 .admin-dashboard {
-    padding: 1.5rem;
+    --admin-primary: #1e3a5f;
+    --admin-secondary: #2d5a87;
+    --admin-accent: #4a90d9;
 }
 
-.dashboard-header {
+/* Override Fillow primary colors in admin context */
+.admin-dashboard .bgl-primary {
+    background: rgba(74, 144, 217, 0.1) !important;
+}
+.admin-dashboard .text-primary {
+    color: #4a90d9 !important;
+}
+
+/* Dashboard header - uses Fillow row utilities */
+.admin-dashboard .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
 
-.dashboard-header h4 {
+.admin-dashboard .dashboard-header h4 {
     margin: 0;
-    color: #1e3a5f;
+    color: var(--admin-primary);
     font-weight: 600;
 }
 
@@ -27,8 +44,9 @@
     gap: 1rem;
 }
 
+/* Platform status badge - uses Fillow badge pattern */
 .platform-status {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.35rem 0.75rem;
@@ -49,6 +67,34 @@
     border-radius: 50%;
     background: currentColor;
     animation: pulse 2s infinite;
+}
+
+/* Admin KPI tile hover effects - follows Fillow widget-stat pattern */
+.admin-kpi-tile.cursor-pointer {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-kpi-tile.cursor-pointer:hover {
+    border-color: var(--admin-accent, #4a90d9) !important;
+    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Ensure proper card spacing for widget-stat inside row */
+.admin-dashboard .row .widget-stat.card {
+    margin-bottom: 1rem;
+}
+
+/* Admin theme colors for Fillow badges */
+.admin-dashboard .badge.badge-primary {
+    background: rgba(74, 144, 217, 0.1);
+    color: #4a90d9;
+}
+
+/* Cursor pointer utility */
+.cursor-pointer {
+    cursor: pointer;
 }
 
 @keyframes pulse {
@@ -137,48 +183,7 @@
     color: #475569;
 }
 
-.section-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-}
-
-.section-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.section-header h6 {
-    margin: 0;
-    font-weight: 600;
-    color: #1e3a5f;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.section-header h6 i {
-    color: #4a90d9;
-}
-
-.section-header .badge-admin-only {
-    background: rgba(30, 58, 95, 0.1);
-    color: #1e3a5f;
-    font-size: 0.65rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 3px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.section-body {
-    padding: 1.25rem;
-}
+/* Legacy section-card/header/body classes REMOVED - now using Fillow card classes */
 
 .global-filters-grid {
     display: grid;
@@ -366,188 +371,7 @@
     font-weight: 500;
 }
 
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
-
-@media (max-width: 1200px) {
-    .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.kpi-tile {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.25rem;
-    position: relative;
-}
-
-.kpi-tile .kpi-icon {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-}
-
-.kpi-tile .kpi-icon.blue {
-    background: rgba(74, 144, 217, 0.1);
-    color: #4a90d9;
-}
-
-.kpi-tile .kpi-icon.green {
-    background: rgba(5, 150, 105, 0.1);
-    color: #059669;
-}
-
-.kpi-tile .kpi-icon.amber {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-
-.kpi-tile .kpi-icon.purple {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
-}
-
-.kpi-tile .kpi-label {
-    font-size: 0.8rem;
-    color: #64748b;
-    margin-bottom: 0.25rem;
-}
-
-.kpi-tile .kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #1e3a5f;
-    line-height: 1.2;
-}
-
-.kpi-tile .kpi-trend {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    margin-top: 0.35rem;
-}
-
-.kpi-tile .kpi-trend.up {
-    color: #059669;
-}
-
-.kpi-tile .kpi-trend.down {
-    color: #dc2626;
-}
-
-.kpi-tile .kpi-source {
-    font-size: 0.6rem;
-    color: #94a3b8;
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.kpi-tile .kpi-source i {
-    font-size: 0.55rem;
-}
-
-.kpi-tile.clickable {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.kpi-tile.clickable:hover {
-    border-color: #4a90d9;
-    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
-    transform: translateY(-2px);
-}
-
-.kpi-tile.clickable:hover .kpi-drill-hint {
-    opacity: 1;
-}
-
-.kpi-tile .kpi-drill-hint {
-    position: absolute;
-    bottom: 0.75rem;
-    right: 0.75rem;
-    font-size: 0.65rem;
-    color: #4a90d9;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.kpi-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e3a5f;
-    color: #fff;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    z-index: 100;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    margin-bottom: 8px;
-}
-
-.kpi-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: #1e3a5f;
-}
-
-.kpi-tile:hover .kpi-tooltip {
-    opacity: 1;
-    visibility: visible;
-}
-
-.kpi-tooltip .tooltip-title {
-    font-weight: 600;
-    margin-bottom: 0.35rem;
-    color: #93c5fd;
-}
-
-.kpi-tooltip .tooltip-formula {
-    font-family: monospace;
-    background: rgba(255,255,255,0.1);
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    margin-top: 0.35rem;
-}
-
-.kpi-tooltip .tooltip-note {
-    font-size: 0.65rem;
-    color: #94a3b8;
-    margin-top: 0.35rem;
-}
+/* Legacy kpi-grid/kpi-tile/kpi-tooltip classes REMOVED - now using Fillow widget-stat with Bootstrap tooltips */
 
 .charts-grid {
     display: grid;
@@ -1831,12 +1655,13 @@
         </div>
     </div>
 
-    <div class="section-card" id="global-filters-section">
-        <div class="section-header">
-            <h6><i class="fas fa-filter"></i> Global Filters</h6>
+    <!-- Global Filters - Using Fillow card structure -->
+    <div class="card" id="global-filters-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-filter me-2 text-primary"></i>Global Filters</h5>
             <span class="text-muted" style="font-size: 0.75rem;">Filters apply only when you click "Apply Filters"</span>
         </div>
-        <div class="section-body">
+        <div class="card-body">
             <div class="global-filters-grid">
                 <div class="filter-group">
                     <label>Date Range <span class="required">*</span></label>
@@ -1964,146 +1789,173 @@
         </div>
     </div>
 
-    <div class="section-card" id="financial-overview-section">
-        <div class="section-header">
-            <h6><i class="fas fa-pound-sign"></i> Financial Overview</h6>
+    <!-- Financial Overview - Using Fillow card structure -->
+    <div class="card" id="financial-overview-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-pound-sign me-2 text-primary"></i>Financial Overview</h5>
             <span class="text-muted" style="font-size: 0.75rem;">Values respect active filters</span>
         </div>
-        <div class="section-body">
-            <div class="kpi-grid">
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="volume">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Volume (Parts)</div>
-                        <div>Total message parts submitted</div>
-                        <div class="tooltip-formula">SUM(parts) WHERE billable = true</div>
-                        <div class="tooltip-note">Click to view Message Logs</div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Volume KPI - Using Fillow widget-stat pattern -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="volume" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE billable = true">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-primary text-primary">
+                                    <i class="fas fa-puzzle-piece"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Volume (Parts)</p>
+                                    <h4 class="mb-0">1,247,832</h4>
+                                    <span class="badge badge-success light mt-1"><i class="fas fa-arrow-up me-1"></i>12.4%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon blue"><i class="fas fa-puzzle-piece"></i></div>
-                    <div class="kpi-label">Volume (Parts)</div>
-                    <div class="kpi-value">1,247,832</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_messages.parts</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="revenue">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Revenue (£)</div>
-                        <div>Total customer charges</div>
-                        <div class="tooltip-formula">SUM(customer_cost) WHERE billable = true</div>
-                        <div class="tooltip-note">Click to view Client Reporting</div>
+                <!-- Revenue KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('client-reporting')" data-kpi="revenue" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(customer_cost) WHERE billable = true">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-success text-success">
+                                    <i class="fas fa-pound-sign"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Revenue</p>
+                                    <h4 class="mb-0">£18,492</h4>
+                                    <span class="badge badge-success light mt-1"><i class="fas fa-arrow-up me-1"></i>8.2%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon green"><i class="fas fa-pound-sign"></i></div>
-                    <div class="kpi-label">Revenue (£)</div>
-                    <div class="kpi-value">£18,492</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 8.2% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_billing.customer_cost</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="margin">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Gross Margin (£)</div>
-                        <div>Revenue minus supplier cost</div>
-                        <div class="tooltip-formula">SUM(customer_cost) - SUM(supplier_cost)</div>
-                        <div class="tooltip-note">Click to view Client Reporting</div>
+                <!-- Gross Margin KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('client-reporting')" data-kpi="margin" data-bs-toggle="tooltip" data-bs-placement="top" title="revenue - supplier_cost">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-info text-info">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Gross Margin</p>
+                                    <h4 class="mb-0">£6,328</h4>
+                                    <span class="badge badge-success light mt-1"><i class="fas fa-arrow-up me-1"></i>12.4%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon purple"><i class="fas fa-chart-line"></i></div>
-                    <div class="kpi-label">Gross Margin (£)</div>
-                    <div class="kpi-value">£6,328</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> revenue - supplier_cost</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="margin-pct">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Margin %</div>
-                        <div>Margin as percentage of revenue</div>
-                        <div class="tooltip-formula">(revenue - cost) / revenue * 100</div>
-                        <div class="tooltip-note">Click to view Client Reporting</div>
+                <!-- Margin % KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('client-reporting')" data-kpi="margin-pct" data-bs-toggle="tooltip" data-bs-placement="top" title="(revenue - cost) / revenue * 100">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-warning text-warning">
+                                    <i class="fas fa-percentage"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Margin %</p>
+                                    <h4 class="mb-0">34.2%</h4>
+                                    <span class="badge badge-danger light mt-1"><i class="fas fa-arrow-down me-1"></i>1.1%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon amber"><i class="fas fa-percentage"></i></div>
-                    <div class="kpi-label">Margin %</div>
-                    <div class="kpi-value">34.2%</div>
-                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 1.1% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> (revenue - cost) / revenue</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="section-card" id="delivery-overview-section">
-        <div class="section-header">
-            <h6><i class="fas fa-paper-plane"></i> Delivery Overview</h6>
+    <!-- Delivery Overview - Using Fillow card structure -->
+    <div class="card" id="delivery-overview-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-paper-plane me-2 text-primary"></i>Delivery Overview</h5>
             <span class="text-muted" style="font-size: 0.75rem;">Matches customer reporting logic exactly</span>
         </div>
-        <div class="section-body">
-            <div class="kpi-grid">
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="sent-parts">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Sent (Parts)</div>
-                        <div>Total message parts sent to network</div>
-                        <div class="tooltip-formula">SUM(parts) WHERE status IN ('sent','delivered','failed','rejected')</div>
-                        <div class="tooltip-note">Click to view Message Logs</div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Sent Parts KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="sent-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status IN (sent,delivered,failed,rejected)">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-primary text-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Sent (Parts)</p>
+                                    <h4 class="mb-0">1,247,832</h4>
+                                    <span class="badge badge-success light mt-1"><i class="fas fa-arrow-up me-1"></i>12.4%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon blue"><i class="fas fa-paper-plane"></i></div>
-                    <div class="kpi-label">Sent (Parts)</div>
-                    <div class="kpi-value">1,247,832</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.4% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.sent_parts</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="delivered-parts">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Delivered (Parts)</div>
-                        <div>Message parts successfully delivered</div>
-                        <div class="tooltip-formula">SUM(parts) WHERE status = 'delivered'</div>
-                        <div class="tooltip-note">Click to view Message Logs</div>
+                <!-- Delivered Parts KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="delivered-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status = delivered">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-success text-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Delivered (Parts)</p>
+                                    <h4 class="mb-0">1,231,654</h4>
+                                    <span class="badge badge-success light mt-1"><i class="fas fa-arrow-up me-1"></i>12.6%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
-                    <div class="kpi-label">Delivered (Parts)</div>
-                    <div class="kpi-value">1,231,654</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12.6% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.delivered_parts</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('message-logs')" data-kpi="undelivered-parts">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Undelivered (Parts)</div>
-                        <div>Parts that failed or were rejected</div>
-                        <div class="tooltip-formula">SUM(parts) WHERE status IN ('failed','rejected')</div>
-                        <div class="tooltip-note">Includes: rejected + failed per warehouse mapping</div>
+                <!-- Undelivered Parts KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="undelivered-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status IN (failed,rejected)">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-warning text-warning">
+                                    <i class="fas fa-times-circle"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Undelivered (Parts)</p>
+                                    <h4 class="mb-0">16,178</h4>
+                                    <span class="badge badge-danger light mt-1"><i class="fas fa-arrow-down me-1"></i>3.2%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon amber"><i class="fas fa-times-circle"></i></div>
-                    <div class="kpi-label">Undelivered (Parts)</div>
-                    <div class="kpi-value">16,178</div>
-                    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> 3.2% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> fact_delivery.undelivered_parts</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View logs</div>
                 </div>
-                <div class="kpi-tile clickable" onclick="drillToReport('client-reporting')" data-kpi="delivery-pct">
-                    <div class="kpi-tooltip">
-                        <div class="tooltip-title">Delivery %</div>
-                        <div>Percentage of parts successfully delivered</div>
-                        <div class="tooltip-formula">delivered_parts / sent_parts * 100</div>
-                        <div class="tooltip-note">Same calculation as customer reporting</div>
+                <!-- Delivery % KPI -->
+                <div class="col-xl-3 col-lg-6 col-sm-6">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('client-reporting')" data-kpi="delivery-pct" data-bs-toggle="tooltip" data-bs-placement="top" title="delivered_parts / sent_parts * 100">
+                        <div class="card-body p-4">
+                            <div class="media ai-icon">
+                                <span class="me-3 bgl-info text-info">
+                                    <i class="fas fa-percentage"></i>
+                                </span>
+                                <div class="media-body">
+                                    <p class="mb-1">Delivery %</p>
+                                    <h4 class="mb-0">98.7%</h4>
+                                    <span class="badge badge-success light mt-1"><i class="fas fa-arrow-up me-1"></i>0.2%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="kpi-icon purple"><i class="fas fa-percentage"></i></div>
-                    <div class="kpi-label">Delivery %</div>
-                    <div class="kpi-value">98.7%</div>
-                    <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 0.2% vs yesterday</div>
-                    <div class="kpi-source"><i class="fas fa-database"></i> delivered_parts / sent_parts</div>
-                    <div class="kpi-drill-hint"><i class="fas fa-external-link-alt"></i> View report</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="section-card" id="platform-reporting-section">
-        <div class="section-header">
-            <h6><i class="fas fa-chart-area"></i> Traffic & Performance</h6>
+    <!-- Traffic & Performance - Using Fillow card structure -->
+    <div class="card" id="platform-reporting-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-chart-area me-2 text-primary"></i>Traffic & Performance</h5>
             <span class="text-muted" style="font-size: 0.75rem;">Mirrors customer reporting charts (all clients)</span>
         </div>
-        <div class="section-body">
+        <div class="card-body">
             <div class="reporting-charts-grid">
                 <div class="chart-container chart-wide">
                     <div class="chart-header">
@@ -2247,12 +2099,13 @@
         </div>
     </div>
 
-    <div class="section-card" id="supplier-route-health-section">
-        <div class="section-header">
-            <h6><i class="fas fa-route"></i> Supplier Route Health</h6>
-            <span class="badge-admin-only">Admin Only</span>
+    <!-- Supplier Route Health - Using Fillow card structure -->
+    <div class="card" id="supplier-route-health-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-route me-2 text-primary"></i>Supplier Route Health</h5>
+            <span class="badge badge-primary light">Admin Only</span>
         </div>
-        <div class="section-body">
+        <div class="card-body">
             <div class="supplier-health-grid">
                 <div class="route-health-tile clickable" onclick="drillToReport('supplier-reporting')">
                     <div class="route-health-status healthy">
@@ -2535,22 +2388,20 @@
         </div>
     </div>
 
-    <div class="section-card" id="uk-network-health-section">
-        <div class="section-header">
-            <h6><i class="fas fa-broadcast-tower"></i> UK Network & Porting Health</h6>
-            <div class="section-header-controls">
-                <div class="porting-toggle-inline">
-                    <span class="toggle-label" id="network-porting-label-original">Original Network</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="network-porting-toggle" onchange="onNetworkPortingToggle()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-label" id="network-porting-label-ported">Ported Network</span>
+    <!-- UK Network & Porting Health - Using Fillow card structure -->
+    <div class="card" id="uk-network-health-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-broadcast-tower me-2 text-primary"></i>UK Network & Porting Health</h5>
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch d-flex align-items-center gap-2">
+                    <span class="text-muted small" id="network-porting-label-original">Original Network</span>
+                    <input class="form-check-input" type="checkbox" id="network-porting-toggle" onchange="onNetworkPortingToggle()">
+                    <span class="text-muted small" id="network-porting-label-ported">Ported Network</span>
                 </div>
-                <span class="badge-admin-only">Admin Only</span>
+                <span class="badge badge-primary light">Admin Only</span>
             </div>
         </div>
-        <div class="section-body">
+        <div class="card-body">
             <div class="uk-network-grid">
                 <div class="chart-container chart-wide">
                     <div class="chart-header">
@@ -2687,12 +2538,13 @@
         </div>
     </div>
 
-    <div class="section-card" id="margin-risk-section">
-        <div class="section-header">
-            <h6><i class="fas fa-exclamation-triangle"></i> Margin Risk & Margin Loss</h6>
-            <span class="badge-admin-only">Admin Only</span>
+    <!-- Margin Risk & Loss - Using Fillow card structure -->
+    <div class="card" id="margin-risk-section">
+        <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="card-title"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Margin Risk & Margin Loss</h5>
+            <span class="badge badge-primary light">Admin Only</span>
         </div>
-        <div class="section-body">
+        <div class="card-body">
             <div class="anomaly-banners" id="margin-anomaly-banners">
                 <div class="anomaly-banner warning">
                     <i class="fas fa-exclamation-triangle"></i>
