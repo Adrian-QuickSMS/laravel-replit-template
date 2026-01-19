@@ -589,33 +589,6 @@
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-paper-plane me-2"></i>Campaigns Sent (7d)</h6>
-                            <div class="compliance-stat" id="campaignsSentCount">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-check-circle me-2"></i>Approved (7d)</h6>
-                            <div class="compliance-stat" id="campaignsApprovedCount">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-times-circle me-2"></i>Rejected (7d)</h6>
-                            <div class="compliance-stat" id="campaignsRejectedCount">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="compliance-card">
-                            <h6><i class="fas fa-user-slash me-2"></i>Opt-outs (7d)</h6>
-                            <div class="compliance-stat" id="optOutsCount">0</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="table-responsive">
                     <table class="table table-hover mb-0" id="messagingLogsTable">
                         <thead>
