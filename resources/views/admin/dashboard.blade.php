@@ -44,17 +44,15 @@
     gap: 1rem;
 }
 
-/* Platform status badge - uses Fillow badge pattern */
-.platform-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
+/* Collapse icon rotation for collapsible sections */
+.collapse-icon {
+    transition: transform 0.3s ease;
+}
+[aria-expanded="true"] .collapse-icon {
+    transform: rotate(180deg);
 }
 
+/* Platform status badge REMOVED - no longer displayed */
 .platform-status.healthy {
     background: rgba(5, 150, 105, 0.1);
     color: #059669;
@@ -1630,7 +1628,6 @@
     <div class="dashboard-header">
         <h4><i class="fas fa-tachometer-alt me-2" style="color: #4a90d9;"></i>Admin Dashboard</h4>
         <div class="dashboard-meta">
-            <div class="platform-status healthy">Platform Healthy</div>
             <div class="refresh-control">
                 <span>Last updated: <span id="last-update-time">Just now</span></span>
                 <button type="button" class="btn btn-refresh" onclick="refreshDashboard()" title="Refresh data">
@@ -1655,13 +1652,18 @@
         </div>
     </div>
 
-    <!-- Global Filters - Using Fillow card structure -->
+    <!-- Global Filters - Collapsible card -->
     <div class="card" id="global-filters-section">
         <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-            <h5 class="card-title"><i class="fas fa-filter me-2 text-primary"></i>Global Filters</h5>
+            <h5 class="card-title mb-0">
+                <a href="javascript:void(0);" class="text-dark d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#globalFiltersBody" aria-expanded="false" aria-controls="globalFiltersBody">
+                    <i class="fas fa-filter me-2 text-primary"></i>Global Filters
+                    <i class="fas fa-chevron-down ms-2 collapse-icon" style="font-size: 0.75rem; transition: transform 0.3s;"></i>
+                </a>
+            </h5>
             <span class="text-muted" style="font-size: 0.75rem;">Filters apply only when you click "Apply Filters"</span>
         </div>
-        <div class="card-body">
+        <div class="card-body collapse" id="globalFiltersBody">
             <div class="global-filters-grid">
                 <div class="filter-group">
                     <label>Date Range <span class="required">*</span></label>

@@ -68,22 +68,7 @@
         @yield('sidebar', View::make('elements.admin-sidebar'))
         
         <div class="content-body default-height qsms-density-compact @yield('body_class')">
-            <div class="admin-mode-banner">
-                <div class="container-fluid">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-shield-alt me-2"></i>
-                        <span><strong>Admin Control Plane</strong> — Internal Use Only. All actions are logged.</span>
-                        <span class="ms-auto admin-user-info">
-                            <i class="fas fa-user-shield me-1"></i>
-                            <span id="admin-user-name">{{ $adminName }}</span>
-                            <span class="admin-role-badge">{{ $adminRoleLabel }}</span>
-                            <a href="{{ route('admin.logout') }}" class="btn btn-sm btn-outline-light ms-3" title="Logout">
-                                <i class="fas fa-sign-out-alt"></i>
-                            </a>
-                        </span>
-                    </div>
-                </div>
-            </div>
+            <!-- Admin Control Plane banner hidden per user request -->
             
             <div class="qsms-main">
                 <div class="qsms-content-wrap">
