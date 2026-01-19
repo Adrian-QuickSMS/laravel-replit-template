@@ -499,7 +499,7 @@ input:focus + .perm-slider {
                 
                 <div class="tab-content" id="addUserTabContent">
                     <div class="tab-pane fade show active" id="invite-pane" role="tabpanel">
-                        <div class="alert alert-light border mb-4" style="font-size: 0.85rem;">
+                        <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
                             <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
                         </div>
                         
