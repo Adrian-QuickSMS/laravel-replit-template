@@ -1106,7 +1106,26 @@ var AuditLogger = (function() {
 
     var PHONE_PATTERN = /(\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g;
 
+    var RETENTION_POLICY = {
+        DEFAULT_RETENTION_YEARS: 7,
+        MIN_RETENTION_YEARS: 7,
+        MAX_RETENTION_YEARS: 25,
+        IMMUTABLE: true,
+        DELETION_PROHIBITED: true,
+        MODIFICATION_PROHIBITED: true,
+        METADATA_RETAINED_AFTER_EXPIRY: true
+    };
+
+    var enterpriseRetentionConfig = {
+        retentionYears: RETENTION_POLICY.DEFAULT_RETENTION_YEARS,
+        customRetentionByCategory: {},
+        metadataRetentionYears: 99,
+        archiveAfterYears: 3,
+        complianceMode: 'strict'
+    };
+
     var auditLog = [];
+    var archivedMetadata = [];
     var maxLogSize = 10000;
     var strictMode = true;
 
@@ -1607,6 +1626,284 @@ var AuditLogger = (function() {
         });
     }
 
+
+    function configureRetention(config) {
+        if (!config || typeof config !== 'object') {
+            console.error('[AuditLogger] Invalid retention configuration');
+            return false;
+        }
+
+        if (config.retentionYears !== undefined) {
+            var years = parseInt(config.retentionYears, 10);
+            if (years < RETENTION_POLICY.MIN_RETENTION_YEARS) {
+                console.error('[AuditLogger] Retention period cannot be less than ' + 
+                    RETENTION_POLICY.MIN_RETENTION_YEARS + ' years (compliance requirement)');
+                return false;
+            }
+            if (years > RETENTION_POLICY.MAX_RETENTION_YEARS) {
+                console.warn('[AuditLogger] Retention period capped at ' + 
+                    RETENTION_POLICY.MAX_RETENTION_YEARS + ' years');
+                years = RETENTION_POLICY.MAX_RETENTION_YEARS;
+            }
+            enterpriseRetentionConfig.retentionYears = years;
+        }
+
+        if (config.customRetentionByCategory) {
+            for (var category in config.customRetentionByCategory) {
+                var catYears = parseInt(config.customRetentionByCategory[category], 10);
+                if (catYears >= RETENTION_POLICY.MIN_RETENTION_YEARS) {
+                    enterpriseRetentionConfig.customRetentionByCategory[category] = catYears;
+                }
+            }
+        }
+
+        if (config.archiveAfterYears !== undefined) {
+            enterpriseRetentionConfig.archiveAfterYears = Math.max(1, parseInt(config.archiveAfterYears, 10));
+        }
+
+        if (config.complianceMode) {
+            if (['strict', 'standard', 'extended'].includes(config.complianceMode)) {
+                enterpriseRetentionConfig.complianceMode = config.complianceMode;
+            }
+        }
+
+        logSystemEvent('CONFIG_CHANGED', SYSTEM_COMPONENTS.COMPLIANCE_ENGINE, {
+            description: 'Audit log retention configuration updated',
+            data: {
+                configKey: 'retention_policy',
+                newRetentionYears: enterpriseRetentionConfig.retentionYears,
+                complianceMode: enterpriseRetentionConfig.complianceMode
+            }
+        });
+
+        return true;
+    }
+
+    function getRetentionConfig() {
+        return {
+            policy: Object.assign({}, RETENTION_POLICY),
+            enterprise: Object.assign({}, enterpriseRetentionConfig),
+            effectiveRetentionYears: enterpriseRetentionConfig.retentionYears,
+            expiryDate: function(timestamp) {
+                var logDate = new Date(timestamp);
+                logDate.setFullYear(logDate.getFullYear() + enterpriseRetentionConfig.retentionYears);
+                return logDate.toISOString();
+            }
+        };
+    }
+
+    function getRetentionForCategory(category) {
+        if (enterpriseRetentionConfig.customRetentionByCategory[category]) {
+            return enterpriseRetentionConfig.customRetentionByCategory[category];
+        }
+        return enterpriseRetentionConfig.retentionYears;
+    }
+
+    function isLogExpired(logEntry) {
+        var timestamp = new Date(logEntry.timestamp);
+        var retentionYears = getRetentionForCategory(logEntry.category);
+        var expiryDate = new Date(timestamp);
+        expiryDate.setFullYear(expiryDate.getFullYear() + retentionYears);
+        return new Date() > expiryDate;
+    }
+
+    function getLogRetentionStatus(logEntry) {
+        var timestamp = new Date(logEntry.timestamp);
+        var retentionYears = getRetentionForCategory(logEntry.category);
+        var expiryDate = new Date(timestamp);
+        expiryDate.setFullYear(expiryDate.getFullYear() + retentionYears);
+        
+        var archiveDate = new Date(timestamp);
+        archiveDate.setFullYear(archiveDate.getFullYear() + enterpriseRetentionConfig.archiveAfterYears);
+
+        var now = new Date();
+        var daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+        var daysUntilArchive = Math.ceil((archiveDate - now) / (1000 * 60 * 60 * 24));
+
+        return {
+            eventId: logEntry.eventId,
+            createdAt: logEntry.timestamp,
+            retentionYears: retentionYears,
+            expiryDate: expiryDate.toISOString(),
+            archiveDate: archiveDate.toISOString(),
+            isExpired: now > expiryDate,
+            isArchived: now > archiveDate,
+            daysUntilExpiry: Math.max(0, daysUntilExpiry),
+            daysUntilArchive: Math.max(0, daysUntilArchive),
+            status: now > expiryDate ? 'expired' : (now > archiveDate ? 'archived' : 'active')
+        };
+    }
+
+    function deleteLog() {
+        if (RETENTION_POLICY.DELETION_PROHIBITED) {
+            console.error('[AuditLogger] PROHIBITED: Audit logs cannot be deleted. ' +
+                'Logs are immutable for compliance (ISO 27001, NHS DSP Toolkit, GDPR).');
+            
+            logSystemEvent('SECURITY_INCIDENT', SYSTEM_COMPONENTS.COMPLIANCE_ENGINE, {
+                data: {
+                    incidentType: 'attempted_log_deletion',
+                    severity: 'critical'
+                }
+            });
+            
+            return {
+                success: false,
+                error: 'DELETION_PROHIBITED',
+                message: 'Audit logs cannot be deleted. This action has been logged as a security incident.'
+            };
+        }
+        return { success: false, error: 'DELETION_PROHIBITED' };
+    }
+
+    function modifyLog() {
+        if (RETENTION_POLICY.MODIFICATION_PROHIBITED) {
+            console.error('[AuditLogger] PROHIBITED: Audit logs cannot be modified. ' +
+                'Logs are immutable for compliance (ISO 27001, NHS DSP Toolkit, GDPR).');
+            
+            logSystemEvent('SECURITY_INCIDENT', SYSTEM_COMPONENTS.COMPLIANCE_ENGINE, {
+                data: {
+                    incidentType: 'attempted_log_modification',
+                    severity: 'critical'
+                }
+            });
+            
+            return {
+                success: false,
+                error: 'MODIFICATION_PROHIBITED',
+                message: 'Audit logs cannot be modified. This action has been logged as a security incident.'
+            };
+        }
+        return { success: false, error: 'MODIFICATION_PROHIBITED' };
+    }
+
+    function archiveExpiredLogs() {
+        var now = new Date();
+        var archived = [];
+        var remaining = [];
+
+        auditLog.forEach(function(entry) {
+            var archiveDate = new Date(entry.timestamp);
+            archiveDate.setFullYear(archiveDate.getFullYear() + enterpriseRetentionConfig.archiveAfterYears);
+
+            if (now > archiveDate) {
+                var metadata = {
+                    eventId: entry.eventId,
+                    eventType: entry.eventType,
+                    eventTypeRef: entry.eventTypeRef,
+                    module: entry.module,
+                    category: entry.category,
+                    severity: entry.severity,
+                    actorType: entry.actorType,
+                    actorId: entry.actorId,
+                    subAccountId: entry.subAccountId,
+                    timestamp: entry.timestamp,
+                    archivedAt: now.toISOString(),
+                    retentionExpiryDate: getLogRetentionStatus(entry).expiryDate,
+                    catalogueVersion: entry.catalogueVersion
+                };
+                archivedMetadata.push(metadata);
+                archived.push(entry.eventId);
+            } else {
+                remaining.push(entry);
+            }
+        });
+
+        if (archived.length > 0) {
+            auditLog = remaining;
+            
+            logSystemEvent('DATA_RETENTION_CLEANUP', SYSTEM_COMPONENTS.DATA_RETENTION, {
+                data: {
+                    dataType: 'audit_logs',
+                    recordsProcessed: archived.length,
+                    action: 'archived_to_metadata'
+                }
+            });
+        }
+
+        return {
+            archivedCount: archived.length,
+            archivedEventIds: archived,
+            remainingCount: remaining.length
+        };
+    }
+
+    function queryArchivedMetadata(filters) {
+        var results = archivedMetadata;
+
+        if (filters.eventType) {
+            results = results.filter(function(e) { return e.eventType === filters.eventType; });
+        }
+        if (filters.module) {
+            results = results.filter(function(e) { return e.module === filters.module; });
+        }
+        if (filters.category) {
+            results = results.filter(function(e) { return e.category === filters.category; });
+        }
+        if (filters.severity) {
+            results = results.filter(function(e) { return e.severity === filters.severity; });
+        }
+        if (filters.actorId) {
+            results = results.filter(function(e) { return e.actorId === filters.actorId; });
+        }
+        if (filters.subAccountId) {
+            results = results.filter(function(e) { return e.subAccountId === filters.subAccountId; });
+        }
+        if (filters.startDate) {
+            var start = new Date(filters.startDate);
+            results = results.filter(function(e) { return new Date(e.timestamp) >= start; });
+        }
+        if (filters.endDate) {
+            var end = new Date(filters.endDate);
+            results = results.filter(function(e) { return new Date(e.timestamp) <= end; });
+        }
+
+        return results;
+    }
+
+    function getRetentionStatistics() {
+        var stats = {
+            totalLogs: auditLog.length,
+            archivedMetadata: archivedMetadata.length,
+            byStatus: { active: 0, archived: 0, expired: 0 },
+            byCategory: {},
+            retentionConfig: getRetentionConfig(),
+            oldestLog: null,
+            newestLog: null
+        };
+
+        auditLog.forEach(function(entry) {
+            var status = getLogRetentionStatus(entry);
+            stats.byStatus[status.status]++;
+
+            if (!stats.byCategory[entry.category]) {
+                stats.byCategory[entry.category] = { count: 0, retentionYears: getRetentionForCategory(entry.category) };
+            }
+            stats.byCategory[entry.category].count++;
+        });
+
+        if (auditLog.length > 0) {
+            var sorted = auditLog.slice().sort(function(a, b) {
+                return new Date(a.timestamp) - new Date(b.timestamp);
+            });
+            stats.oldestLog = sorted[0].timestamp;
+            stats.newestLog = sorted[sorted.length - 1].timestamp;
+        }
+
+        return stats;
+    }
+
+    function validateImmutability() {
+        return {
+            immutable: RETENTION_POLICY.IMMUTABLE,
+            deletionProhibited: RETENTION_POLICY.DELETION_PROHIBITED,
+            modificationProhibited: RETENTION_POLICY.MODIFICATION_PROHIBITED,
+            metadataRetainedAfterExpiry: RETENTION_POLICY.METADATA_RETAINED_AFTER_EXPIRY,
+            complianceStandards: ['ISO 27001', 'NHS DSP Toolkit', 'GDPR'],
+            minRetentionYears: RETENTION_POLICY.MIN_RETENTION_YEARS,
+            currentRetentionYears: enterpriseRetentionConfig.retentionYears
+        };
+    }
+
     return {
         log: log,
         query: query,
@@ -1626,6 +1923,19 @@ var AuditLogger = (function() {
         logSessionTerminated: logSessionTerminated,
         logDataRetentionCleanup: logDataRetentionCleanup,
 
+        configureRetention: configureRetention,
+        getRetentionConfig: getRetentionConfig,
+        getRetentionForCategory: getRetentionForCategory,
+        isLogExpired: isLogExpired,
+        getLogRetentionStatus: getLogRetentionStatus,
+        archiveExpiredLogs: archiveExpiredLogs,
+        queryArchivedMetadata: queryArchivedMetadata,
+        getRetentionStatistics: getRetentionStatistics,
+        validateImmutability: validateImmutability,
+
+        deleteLog: deleteLog,
+        modifyLog: modifyLog,
+
         getCatalogue: getCatalogue,
         getApprovedEventTypes: getApprovedEventTypes,
         getEventDefinition: getEventDefinition,
@@ -1643,6 +1953,7 @@ var AuditLogger = (function() {
         CATEGORIES: CATEGORIES,
         SEVERITIES: SEVERITIES,
         SYSTEM_COMPONENTS: SYSTEM_COMPONENTS,
+        RETENTION_POLICY: RETENTION_POLICY,
         APPROVED_EVENT_CODES: APPROVED_EVENT_CODES
     };
 })();
