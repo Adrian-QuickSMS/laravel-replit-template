@@ -113,6 +113,48 @@
     font-size: 0.8125rem;
     border-top: 1px dashed #dee2e6;
 }
+
+.filter-panel { 
+    background-color: #fafafa !important; 
+    border: 1px solid #e9ecef;
+}
+.filter-panel .form-label { 
+    margin-bottom: 0.25rem; 
+}
+.filter-panel .form-control,
+.filter-panel .form-select { 
+    font-size: 0.875rem; 
+}
+
+.active-filters-display .filter-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(111, 66, 193, 0.1);
+    color: #6f42c1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.active-filters-display .filter-tag .remove-filter {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.active-filters-display .filter-tag .remove-filter:hover {
+    opacity: 1;
+}
+
+.filters-pending-indicator {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #856404;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+}
 </style>
 @endpush
 
@@ -214,47 +256,146 @@
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="searchInput" placeholder="Search logs...">
+                <div class="filter-panel mb-4 p-3 bg-light rounded">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-medium text-muted mb-2">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search by description, target ID, or user name...">
+                            </div>
+                            <small class="text-muted">Searches event description, target reference ID, and user names</small>
                         </div>
                     </div>
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <select class="form-select" id="categoryFilter">
-                            <option value="">All Categories</option>
-                            <option value="user_management">User Management</option>
-                            <option value="access_control">Access Control</option>
-                            <option value="security">Security</option>
-                            <option value="authentication">Authentication</option>
-                            <option value="enforcement">Enforcement</option>
-                            <option value="data_access">Data Access</option>
-                            <option value="messaging">Messaging</option>
-                            <option value="financial">Financial</option>
-                            <option value="gdpr">GDPR</option>
-                            <option value="account">Account</option>
-                        </select>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Date From</label>
+                            <input type="date" class="form-control" id="dateFromFilter">
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Date To</label>
+                            <input type="date" class="form-control" id="dateToFilter">
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Module</label>
+                            <select class="form-select" id="moduleFilter">
+                                <option value="">All Modules</option>
+                                <option value="account">Account</option>
+                                <option value="users">Users</option>
+                                <option value="sub_accounts">Sub-Accounts</option>
+                                <option value="permissions">Permissions</option>
+                                <option value="security">Security</option>
+                                <option value="authentication">Authentication</option>
+                                <option value="messaging">Messaging</option>
+                                <option value="campaigns">Campaigns</option>
+                                <option value="contacts">Contacts</option>
+                                <option value="reporting">Reporting</option>
+                                <option value="financial">Financial</option>
+                                <option value="compliance">Compliance</option>
+                                <option value="api">API</option>
+                                <option value="system">System</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Event Type</label>
+                            <select class="form-select" id="eventTypeFilter">
+                                <option value="">All Event Types</option>
+                                <optgroup label="User Management">
+                                    <option value="USER_CREATED">User Created</option>
+                                    <option value="USER_INVITED">User Invited</option>
+                                    <option value="USER_SUSPENDED">User Suspended</option>
+                                    <option value="USER_REACTIVATED">User Reactivated</option>
+                                </optgroup>
+                                <optgroup label="Access Control">
+                                    <option value="ROLE_CHANGED">Role Changed</option>
+                                    <option value="PERMISSION_GRANTED">Permission Granted</option>
+                                    <option value="PERMISSION_REVOKED">Permission Revoked</option>
+                                </optgroup>
+                                <optgroup label="Authentication">
+                                    <option value="LOGIN_SUCCESS">Login Success</option>
+                                    <option value="LOGIN_FAILED">Login Failed</option>
+                                    <option value="LOGIN_BLOCKED">Login Blocked</option>
+                                    <option value="PASSWORD_CHANGED">Password Changed</option>
+                                </optgroup>
+                                <optgroup label="Security">
+                                    <option value="MFA_ENABLED">MFA Enabled</option>
+                                    <option value="MFA_DISABLED">MFA Disabled</option>
+                                    <option value="MFA_RESET">MFA Reset</option>
+                                </optgroup>
+                                <optgroup label="Data Access">
+                                    <option value="DATA_EXPORTED">Data Exported</option>
+                                    <option value="DATA_UNMASKED">Data Unmasked</option>
+                                </optgroup>
+                                <optgroup label="Messaging">
+                                    <option value="CAMPAIGN_SUBMITTED">Campaign Submitted</option>
+                                    <option value="CAMPAIGN_APPROVED">Campaign Approved</option>
+                                    <option value="CAMPAIGN_REJECTED">Campaign Rejected</option>
+                                    <option value="CAMPAIGN_SENT">Campaign Sent</option>
+                                </optgroup>
+                                <optgroup label="Financial">
+                                    <option value="PURCHASE_COMPLETED">Purchase Completed</option>
+                                    <option value="INVOICE_GENERATED">Invoice Generated</option>
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <select class="form-select" id="severityFilter">
-                            <option value="">All Severities</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="critical">Critical</option>
-                        </select>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Sub-Account</label>
+                            <select class="form-select" id="subAccountFilter">
+                                <option value="">All Sub-Accounts</option>
+                                <option value="main">Main Account</option>
+                                <option value="sa-001">Marketing Department</option>
+                                <option value="sa-002">Customer Support</option>
+                                <option value="sa-003">Sales Team</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">User</label>
+                            <select class="form-select" id="userFilter">
+                                <option value="">All Users</option>
+                                <option value="usr-001">Sarah Johnson</option>
+                                <option value="usr-002">James Wilson</option>
+                                <option value="usr-003">Emily Chen</option>
+                                <option value="usr-004">Michael Brown</option>
+                                <option value="usr-005">Lisa Anderson</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Actor Type</label>
+                            <select class="form-select" id="actorTypeFilter">
+                                <option value="">All Actor Types</option>
+                                <option value="user">User</option>
+                                <option value="system">System</option>
+                                <option value="api">API</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label small fw-medium text-muted mb-1">Severity</label>
+                            <select class="form-select" id="severityFilter">
+                                <option value="">All Severities</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <input type="date" class="form-control" id="dateFromFilter" placeholder="From date">
-                    </div>
-                    <div class="col-md-2 mb-3 mb-md-0">
-                        <input type="date" class="form-control" id="dateToFilter" placeholder="To date">
-                    </div>
-                    <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-secondary w-100" id="clearFilters" title="Clear all filters">
-                            <i class="fas fa-times"></i>
-                        </button>
+
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <div class="active-filters-display" id="activeFiltersDisplay">
+                            <span class="text-muted small">No filters applied</span>
+                        </div>
+                        <div class="filter-actions">
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="clearFilters">
+                                <i class="fas fa-times me-1"></i>Clear All
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
+                                <i class="fas fa-filter me-1"></i>Apply Filters
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1212,12 +1353,44 @@ $(document).ready(function() {
         });
     }
 
+    var appliedFilters = {
+        search: '',
+        dateFrom: '',
+        dateTo: '',
+        module: '',
+        eventType: '',
+        subAccount: '',
+        user: '',
+        actorType: '',
+        severity: ''
+    };
+
+    function getFilterValues() {
+        return {
+            search: $('#searchInput').val().trim(),
+            dateFrom: $('#dateFromFilter').val(),
+            dateTo: $('#dateToFilter').val(),
+            module: $('#moduleFilter').val(),
+            eventType: $('#eventTypeFilter').val(),
+            subAccount: $('#subAccountFilter').val(),
+            user: $('#userFilter').val(),
+            actorType: $('#actorTypeFilter').val(),
+            severity: $('#severityFilter').val()
+        };
+    }
+
     function applyFilters() {
-        var search = $('#searchInput').val().toLowerCase();
-        var category = $('#categoryFilter').val();
-        var severity = $('#severityFilter').val();
-        var dateFrom = $('#dateFromFilter').val();
-        var dateTo = $('#dateToFilter').val();
+        appliedFilters = getFilterValues();
+
+        var search = appliedFilters.search.toLowerCase();
+        var dateFrom = appliedFilters.dateFrom;
+        var dateTo = appliedFilters.dateTo;
+        var module = appliedFilters.module;
+        var eventType = appliedFilters.eventType;
+        var subAccount = appliedFilters.subAccount;
+        var user = appliedFilters.user;
+        var actorType = appliedFilters.actorType;
+        var severity = appliedFilters.severity;
 
         filteredLogs = allLogs.filter(function(log) {
             if (activeQuickFilter !== 'all') {
@@ -1229,30 +1402,166 @@ $(document).ready(function() {
             }
 
             if (search && !matchesSearch(log, search)) return false;
-            if (category && log.category !== category) return false;
-            if (severity && log.severity !== severity) return false;
+
             if (dateFrom && new Date(log.timestamp) < new Date(dateFrom)) return false;
             if (dateTo) {
                 var toDate = new Date(dateTo);
                 toDate.setHours(23, 59, 59, 999);
                 if (new Date(log.timestamp) > toDate) return false;
             }
+
+            if (module) {
+                var logModule = log.module || mapCategoryToModule(log.category);
+                if (logModule !== module) return false;
+            }
+
+            if (eventType && log.action !== eventType) return false;
+
+            if (subAccount) {
+                if (subAccount === 'main') {
+                    if (log.actor.subAccountId) return false;
+                } else {
+                    if (log.actor.subAccountId !== subAccount) return false;
+                }
+            }
+
+            if (user && log.actor.userId !== user) return false;
+
+            if (actorType) {
+                var logActorType = log.actorType || (log.actor.role === 'system' ? 'system' : 'user');
+                if (logActorType !== actorType) return false;
+            }
+
+            if (severity && log.severity !== severity) return false;
+
             return true;
         });
 
         currentPage = 1;
+        displayedCount = 0;
         renderTable();
         renderPagination();
+        updateActiveFiltersDisplay();
+
+        AuditLogger.log('DATA_EXPORTED', {
+            data: {
+                action: 'AUDIT_LOG_FILTERED',
+                filtersApplied: Object.keys(appliedFilters).filter(function(k) { return appliedFilters[k]; }).length,
+                resultsCount: filteredLogs.length
+            }
+        });
+    }
+
+    function mapCategoryToModule(category) {
+        var mapping = {
+            'user_management': 'users',
+            'access_control': 'permissions',
+            'security': 'security',
+            'authentication': 'authentication',
+            'enforcement': 'sub_accounts',
+            'data_access': 'reporting',
+            'messaging': 'messaging',
+            'financial': 'financial',
+            'gdpr': 'compliance',
+            'compliance': 'compliance',
+            'account': 'account'
+        };
+        return mapping[category] || category;
     }
 
     function matchesSearch(log, search) {
-        return log.actionLabel.toLowerCase().indexOf(search) !== -1 ||
-               log.actor.userName.toLowerCase().indexOf(search) !== -1 ||
-               (log.target && log.target.userName && log.target.userName.toLowerCase().indexOf(search) !== -1) ||
-               (log.target && log.target.name && log.target.name.toLowerCase().indexOf(search) !== -1) ||
-               log.context.ipAddress.indexOf(search) !== -1 ||
-               log.id.toLowerCase().indexOf(search) !== -1 ||
-               log.integrityHash.indexOf(search) !== -1;
+        if (log.actionLabel.toLowerCase().indexOf(search) !== -1) return true;
+
+        if (log.actor.userName.toLowerCase().indexOf(search) !== -1) return true;
+
+        if (log.target) {
+            if (log.target.userName && log.target.userName.toLowerCase().indexOf(search) !== -1) return true;
+            if (log.target.name && log.target.name.toLowerCase().indexOf(search) !== -1) return true;
+            if (log.target.resourceId && log.target.resourceId.toLowerCase().indexOf(search) !== -1) return true;
+            if (log.target.entityId && log.target.entityId.toLowerCase().indexOf(search) !== -1) return true;
+        }
+
+        if (log.id.toLowerCase().indexOf(search) !== -1) return true;
+
+        if (log.description && log.description.toLowerCase().indexOf(search) !== -1) return true;
+
+        return false;
+    }
+
+    function updateActiveFiltersDisplay() {
+        var container = $('#activeFiltersDisplay');
+        container.empty();
+
+        var activeCount = 0;
+        var filterLabels = {
+            search: 'Search',
+            dateFrom: 'From Date',
+            dateTo: 'To Date',
+            module: 'Module',
+            eventType: 'Event Type',
+            subAccount: 'Sub-Account',
+            user: 'User',
+            actorType: 'Actor Type',
+            severity: 'Severity'
+        };
+
+        for (var key in appliedFilters) {
+            if (appliedFilters[key]) {
+                activeCount++;
+                var displayValue = appliedFilters[key];
+
+                if (key === 'module') displayValue = $('#moduleFilter option[value="' + appliedFilters[key] + '"]').text();
+                else if (key === 'eventType') displayValue = $('#eventTypeFilter option[value="' + appliedFilters[key] + '"]').text();
+                else if (key === 'subAccount') displayValue = $('#subAccountFilter option[value="' + appliedFilters[key] + '"]').text();
+                else if (key === 'user') displayValue = $('#userFilter option[value="' + appliedFilters[key] + '"]').text();
+                else if (key === 'actorType') displayValue = $('#actorTypeFilter option[value="' + appliedFilters[key] + '"]').text();
+                else if (key === 'severity') displayValue = capitalizeFirst(appliedFilters[key]);
+
+                var tag = $('<span class="filter-tag">' + filterLabels[key] + ': ' + displayValue + 
+                    '<span class="remove-filter" data-filter="' + key + '"><i class="fas fa-times"></i></span></span>');
+                container.append(tag);
+            }
+        }
+
+        if (activeCount === 0) {
+            container.html('<span class="text-muted small">No filters applied</span>');
+        }
+
+        container.find('.remove-filter').on('click', function() {
+            var filterKey = $(this).data('filter');
+            clearSingleFilter(filterKey);
+        });
+    }
+
+    function clearSingleFilter(filterKey) {
+        switch(filterKey) {
+            case 'search': $('#searchInput').val(''); break;
+            case 'dateFrom': $('#dateFromFilter').val(''); break;
+            case 'dateTo': $('#dateToFilter').val(''); break;
+            case 'module': $('#moduleFilter').val(''); break;
+            case 'eventType': $('#eventTypeFilter').val(''); break;
+            case 'subAccount': $('#subAccountFilter').val(''); break;
+            case 'user': $('#userFilter').val(''); break;
+            case 'actorType': $('#actorTypeFilter').val(''); break;
+            case 'severity': $('#severityFilter').val(''); break;
+        }
+        applyFilters();
+    }
+
+    function clearAllFilters() {
+        $('#searchInput').val('');
+        $('#dateFromFilter').val('');
+        $('#dateToFilter').val('');
+        $('#moduleFilter').val('');
+        $('#eventTypeFilter').val('');
+        $('#subAccountFilter').val('');
+        $('#userFilter').val('');
+        $('#actorTypeFilter').val('');
+        $('#severityFilter').val('');
+        activeQuickFilter = 'all';
+        $('.quick-filter-btn').removeClass('active');
+        $('.quick-filter-btn[data-filter="all"]').addClass('active');
+        applyFilters();
     }
 
     function renderTable() {
@@ -1517,24 +1826,18 @@ $(document).ready(function() {
     }
 
     function bindEvents() {
-        var filterDebounce;
-        $('#searchInput').on('input', function() {
-            clearTimeout(filterDebounce);
-            filterDebounce = setTimeout(applyFilters, 300);
+        $('#searchInput').on('keypress', function(e) {
+            if (e.which === 13) {
+                applyFilters();
+            }
         });
 
-        $('#categoryFilter, #severityFilter, #dateFromFilter, #dateToFilter').on('change', applyFilters);
+        $('#applyFiltersBtn').on('click', function() {
+            applyFilters();
+        });
 
         $('#clearFilters').on('click', function() {
-            $('#searchInput').val('');
-            $('#categoryFilter').val('');
-            $('#severityFilter').val('');
-            $('#dateFromFilter').val('');
-            $('#dateToFilter').val('');
-            activeQuickFilter = 'all';
-            $('.quick-filter-btn').removeClass('active');
-            $('.quick-filter-btn[data-filter="all"]').addClass('active');
-            applyFilters();
+            clearAllFilters();
         });
 
         $('.quick-filter-btn').on('click', function() {
