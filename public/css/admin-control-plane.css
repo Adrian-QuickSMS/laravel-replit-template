@@ -615,3 +615,202 @@ body.admin-control-plane {
     background: rgba(139, 92, 246, 0.15);
     color: #8b5cf6;
 }
+
+.admin-filter-panel {
+    background: #fff;
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.admin-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.admin-filter-panel .filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.admin-filter-panel .filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--admin-text-muted);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.admin-filter-panel .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.admin-filter-apply {
+    background: var(--admin-accent);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-filter-apply:hover {
+    background: #3a7bc8;
+}
+
+.admin-filter-clear {
+    background: transparent;
+    color: var(--admin-text-muted);
+    border: 1px solid var(--admin-border);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.admin-filter-clear:hover {
+    background: #f1f5f9;
+}
+
+.admin-filter-pending {
+    font-size: 0.7rem;
+    color: var(--admin-warning);
+    margin-top: 0.5rem;
+}
+
+.admin-filter-pending::before {
+    content: '\f071';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 0.25rem;
+}
+
+.masked-value {
+    font-family: monospace;
+    color: var(--admin-text-muted);
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+.pii-reveal-btn {
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+}
+
+.pii-reveal-btn:hover {
+    background: var(--admin-accent);
+    color: #fff;
+    border-color: var(--admin-accent);
+}
+
+.pii-reveal-btn i {
+    margin-right: 0.25rem;
+}
+
+.pii-revealed {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px dashed var(--admin-warning);
+    padding: 2px 6px;
+    border-radius: 3px;
+    animation: pii-pulse 2s infinite;
+}
+
+@keyframes pii-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.pii-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid var(--admin-warning);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+}
+
+.pii-warning i {
+    color: var(--admin-warning);
+    margin-right: 0.5rem;
+}
+
+.drill-link {
+    color: var(--admin-accent);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.drill-link:hover {
+    text-decoration: underline;
+}
+
+.drill-link::after {
+    content: '\f061';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.65rem;
+    margin-left: 0.25rem;
+    opacity: 0.5;
+}
+
+.admin-data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-data-table th {
+    background: #f8fafc;
+    border-bottom: 2px solid var(--admin-border);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.admin-data-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+}
+
+.admin-data-table tr:hover {
+    background: #f8fafc;
+}
+
+.admin-no-ui-calc {
+    font-style: italic;
+    color: var(--admin-text-muted);
+    font-size: 0.75rem;
+}
+
+.admin-warehouse-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--admin-success);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.admin-warehouse-badge::before {
+    content: '\f1c0';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 0.25rem;
+}

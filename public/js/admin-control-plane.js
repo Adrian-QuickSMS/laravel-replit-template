@@ -1,6 +1,38 @@
 var AdminControlPlane = (function() {
     'use strict';
 
+    var GLOBAL_RULES = {
+        singleSourceOfTruth: {
+            enabled: true,
+            description: 'All data from warehouse or reference tables only',
+            noUICalculations: true,
+            noDerivedMetrics: true
+        },
+        filtering: {
+            autoFilter: false,
+            applyOnClick: true,
+            maxDrillDepth: 1,
+            drillNavigatesToModule: true
+        },
+        audit: {
+            requireBeforeAfterValues: true,
+            requiredFields: ['adminUser', 'action', 'targetAccount', 'beforeValues', 'afterValues', 'timestamp']
+        },
+        piiProtection: {
+            defaultMasked: true,
+            phoneNumbersMasked: true,
+            messageContentHidden: true,
+            personalisationRedacted: true,
+            revealRequiresAction: true,
+            revealRequiresPermission: true,
+            revealRequiresAudit: true
+        }
+    };
+
+    var pendingFilters = {};
+    var appliedFilters = {};
+    var currentDrillDepth = 0;
+
     var currentAdmin = (function() {
         var meta = document.querySelector('meta[name="admin-user"]');
         if (meta && meta.content) {
@@ -127,8 +159,137 @@ var AdminControlPlane = (function() {
 
     function init() {
         console.log('[AdminControlPlane] Initialized for:', currentAdmin.email);
+        console.log('[AdminControlPlane] Global Rules:', GLOBAL_RULES);
         updateAdminDisplay();
         bindEvents();
+        initFilterSystem();
+        initPIIProtection();
+    }
+
+    function initFilterSystem() {
+        document.querySelectorAll('[data-admin-filter]').forEach(function(input) {
+            input.addEventListener('change', function(e) {
+                var filterKey = e.target.dataset.adminFilter;
+                pendingFilters[filterKey] = e.target.value;
+                console.log('[AdminControlPlane] Filter pending:', filterKey, '=', e.target.value);
+            });
+        });
+
+        document.querySelectorAll('.admin-filter-apply').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                applyFilters();
+            });
+        });
+
+        document.querySelectorAll('.admin-filter-clear').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                clearFilters();
+            });
+        });
+    }
+
+    function setPendingFilter(key, value) {
+        pendingFilters[key] = value;
+        console.log('[AdminControlPlane] Filter pending:', key, '=', value);
+    }
+
+    function applyFilters() {
+        if (GLOBAL_RULES.filtering.autoFilter) {
+            console.warn('[AdminControlPlane] Auto-filter is disabled by global rules');
+        }
+
+        appliedFilters = Object.assign({}, pendingFilters);
+        console.log('[AdminControlPlane] Filters applied:', appliedFilters);
+
+        logAdminAction('FILTERS_APPLIED', 'current_view', {
+            filters: appliedFilters
+        });
+
+        var event = new CustomEvent('adminFiltersApplied', { detail: appliedFilters });
+        document.dispatchEvent(event);
+
+        return appliedFilters;
+    }
+
+    function clearFilters() {
+        pendingFilters = {};
+        appliedFilters = {};
+        
+        document.querySelectorAll('[data-admin-filter]').forEach(function(input) {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+
+        var event = new CustomEvent('adminFiltersCleared');
+        document.dispatchEvent(event);
+
+        console.log('[AdminControlPlane] Filters cleared');
+    }
+
+    function getAppliedFilters() {
+        return Object.assign({}, appliedFilters);
+    }
+
+    function drillDown(targetModule, targetId, context) {
+        if (currentDrillDepth >= GLOBAL_RULES.filtering.maxDrillDepth) {
+            console.warn('[AdminControlPlane] Max drill depth reached:', GLOBAL_RULES.filtering.maxDrillDepth);
+            return false;
+        }
+
+        currentDrillDepth++;
+
+        logAdminAction('DRILL_DOWN', targetId, {
+            module: targetModule,
+            context: context,
+            depth: currentDrillDepth
+        });
+
+        if (GLOBAL_RULES.filtering.drillNavigatesToModule) {
+            window.location.href = '/admin/' + targetModule + '?id=' + encodeURIComponent(targetId);
+        }
+
+        return true;
+    }
+
+    function resetDrillDepth() {
+        currentDrillDepth = 0;
+    }
+
+    function initPIIProtection() {
+        if (!GLOBAL_RULES.piiProtection.defaultMasked) return;
+
+        document.querySelectorAll('[data-pii-type]').forEach(function(el) {
+            var piiType = el.dataset.piiType;
+            var originalValue = el.textContent || el.value || '';
+
+            if (piiType === 'phone' && GLOBAL_RULES.piiProtection.phoneNumbersMasked) {
+                el.dataset.unmasked = originalValue;
+                el.dataset.masked = maskPhoneNumber(originalValue);
+                el.textContent = el.dataset.masked;
+                el.classList.add('masked-value');
+            } else if (piiType === 'message' && GLOBAL_RULES.piiProtection.messageContentHidden) {
+                el.dataset.unmasked = originalValue;
+                el.dataset.masked = '[Content hidden]';
+                el.textContent = el.dataset.masked;
+                el.classList.add('masked-value');
+            } else if (piiType === 'personalisation' && GLOBAL_RULES.piiProtection.personalisationRedacted) {
+                el.dataset.unmasked = originalValue;
+                el.dataset.masked = redactPersonalisation(originalValue);
+                el.textContent = el.dataset.masked;
+                el.classList.add('masked-value');
+            }
+        });
+    }
+
+    function redactPersonalisation(content) {
+        if (!content) return '';
+        return content.replace(/\{\{[^}]+\}\}/g, '[REDACTED]')
+                      .replace(/\{[^}]+\}/g, '[REDACTED]');
     }
 
     function updateAdminDisplay() {
@@ -200,22 +361,59 @@ var AdminControlPlane = (function() {
         container.innerHTML = html;
     }
 
-    function logAdminAction(action, target, details) {
+    function logAdminAction(action, target, details, beforeValues, afterValues) {
         var entry = {
             timestamp: new Date().toISOString(),
-            adminId: currentAdmin.id,
-            adminEmail: currentAdmin.email,
-            adminRole: currentAdmin.role,
+            adminUser: {
+                id: currentAdmin.id,
+                email: currentAdmin.email,
+                role: currentAdmin.role,
+                name: currentAdmin.name
+            },
             action: action,
-            target: target,
-            details: details,
+            targetAccount: target,
+            details: details || {},
+            beforeValues: beforeValues || null,
+            afterValues: afterValues || null,
             ipAddress: currentAdmin.ipAddress || 'unknown',
-            impersonating: impersonationSession ? impersonationSession.accountId : null
+            impersonating: impersonationSession ? impersonationSession.accountId : null,
+            sessionId: currentAdmin.sessionStart
         };
+
+        if (GLOBAL_RULES.audit.requireBeforeAfterValues) {
+            var isMutation = ['CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'SUSPEND', 'REACTIVATE', 'OVERRIDE'].some(function(m) {
+                return action.toUpperCase().indexOf(m) !== -1;
+            });
+            
+            if (isMutation && (!beforeValues && !afterValues)) {
+                console.warn('[AdminControlPlane] Mutation action without before/after values:', action);
+            }
+        }
 
         console.log('[ADMIN_AUDIT]', JSON.stringify(entry, null, 2));
 
+        if (typeof fetch !== 'undefined') {
+            fetch('/admin/api/audit-log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(entry)
+            }).catch(function(err) {
+                console.warn('[AdminControlPlane] Failed to send audit log to server:', err);
+            });
+        }
+
         return entry;
+    }
+
+    function logMutation(action, targetAccount, beforeValues, afterValues, details) {
+        if (!beforeValues || !afterValues) {
+            console.error('[AdminControlPlane] Mutations require before and after values');
+            return null;
+        }
+        return logAdminAction(action, targetAccount, details, beforeValues, afterValues);
     }
 
     function startImpersonation(accountId, accountName, reason) {
@@ -449,6 +647,8 @@ var AdminControlPlane = (function() {
 
     return {
         init: init,
+        GLOBAL_RULES: GLOBAL_RULES,
+
         hasPermission: hasPermission,
         hasResponsibility: hasResponsibility,
         canObserve: canObserve,
@@ -457,12 +657,25 @@ var AdminControlPlane = (function() {
         canGovern: canGovern,
         getActiveResponsibilities: getActiveResponsibilities,
         renderResponsibilityBadges: renderResponsibilityBadges,
+
+        setPendingFilter: setPendingFilter,
+        applyFilters: applyFilters,
+        clearFilters: clearFilters,
+        getAppliedFilters: getAppliedFilters,
+        drillDown: drillDown,
+        resetDrillDepth: resetDrillDepth,
+
         logAdminAction: logAdminAction,
+        logMutation: logMutation,
+
         startImpersonation: startImpersonation,
         endImpersonation: endImpersonation,
         isImpersonating: isImpersonating,
+
         maskPhoneNumber: maskPhoneNumber,
         maskMessageContent: maskMessageContent,
+        redactPersonalisation: redactPersonalisation,
+        
         formatCurrency: formatCurrency,
         calculateMargin: calculateMargin,
         approveItem: approveItem,
