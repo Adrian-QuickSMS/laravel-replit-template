@@ -1963,10 +1963,8 @@ class QuickSMSController extends Controller
 
     public function auditLogs()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Audit Logs',
-            'purpose' => 'Review account activity and security events.',
-            'sub_modules' => []
+        return view('quicksms.account.audit-logs', [
+            'page_title' => 'Audit Logs'
         ]);
     }
 
