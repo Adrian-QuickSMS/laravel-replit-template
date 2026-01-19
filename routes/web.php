@@ -87,43 +87,57 @@ Route::prefix('api/purchase')->controller(QuickSMSController::class)->group(func
     Route::post('/numbers/release', 'releaseNumberLocks')->name('api.purchase.numbers.release');
 });
 
-Route::prefix('admin')->controller(\App\Http\Controllers\AdminController::class)->group(function () {
-    Route::get('/', 'dashboard')->name('admin.dashboard');
+Route::prefix('admin')->group(function () {
+    Route::controller(\App\Http\Controllers\AdminAuthController::class)->group(function () {
+        Route::get('/login', 'showLogin')->name('admin.login');
+        Route::post('/login', 'login')->name('admin.login.submit');
+        Route::get('/logout', 'logout')->name('admin.logout');
+        Route::get('/mfa/setup', 'showMfaSetup')->name('admin.mfa.setup');
+        Route::post('/mfa/setup', 'completeMfaSetup')->name('admin.mfa.setup.complete');
+        Route::get('/mfa/verify', 'showMfaVerify')->name('admin.mfa.verify');
+        Route::post('/mfa/verify', 'verifyMfa')->name('admin.mfa.verify.submit');
+    });
     
-    Route::get('/accounts/overview', 'accountsOverview')->name('admin.accounts.overview');
-    Route::get('/accounts/sub-accounts', 'accountsSubAccounts')->name('admin.accounts.sub-accounts');
-    Route::get('/accounts/balances', 'accountsBalances')->name('admin.accounts.balances');
-    Route::get('/accounts/details', 'accountsDetails')->name('admin.accounts.details');
-    
-    Route::get('/reporting/message-log', 'reportingMessageLog')->name('admin.reporting.message-log');
-    Route::get('/reporting/client', 'reportingClient')->name('admin.reporting.client');
-    Route::get('/reporting/supplier', 'reportingSupplier')->name('admin.reporting.supplier');
-    Route::get('/reporting/finance', 'reportingFinance')->name('admin.reporting.finance');
-    
-    Route::get('/campaigns/active', 'campaignsActive')->name('admin.campaigns.active');
-    Route::get('/campaigns/approvals', 'campaignsApprovals')->name('admin.campaigns.approvals');
-    Route::get('/campaigns/blocked', 'campaignsBlocked')->name('admin.campaigns.blocked');
-    
-    Route::get('/assets/sender-ids', 'assetsSenderIds')->name('admin.assets.sender-ids');
-    Route::get('/assets/rcs-agents', 'assetsRcsAgents')->name('admin.assets.rcs-agents');
-    Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
-    Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');
-    Route::get('/assets/email-to-sms', 'assetsEmailToSms')->name('admin.assets.email-to-sms');
-    
-    Route::get('/api/connections', 'apiConnections')->name('admin.api.connections');
-    Route::get('/api/callbacks', 'apiCallbacks')->name('admin.api.callbacks');
-    Route::get('/api/health', 'apiHealth')->name('admin.api.health');
-    
-    Route::get('/billing/invoices', 'billingInvoices')->name('admin.billing.invoices');
-    Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
-    Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
-    
-    Route::get('/security/audit-logs', 'securityAuditLogs')->name('admin.security.audit-logs');
-    Route::get('/security/country-controls', 'securityCountryControls')->name('admin.security.country-controls');
-    Route::get('/security/anti-spam', 'securityAntiSpam')->name('admin.security.anti-spam');
-    Route::get('/security/ip-allowlists', 'securityIpAllowlists')->name('admin.security.ip-allowlists');
-    
-    Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
-    Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
-    Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
+    Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
+        ->controller(\App\Http\Controllers\AdminController::class)
+        ->group(function () {
+            Route::get('/', 'dashboard')->name('admin.dashboard');
+            
+            Route::get('/accounts/overview', 'accountsOverview')->name('admin.accounts.overview');
+            Route::get('/accounts/sub-accounts', 'accountsSubAccounts')->name('admin.accounts.sub-accounts');
+            Route::get('/accounts/balances', 'accountsBalances')->name('admin.accounts.balances');
+            Route::get('/accounts/details', 'accountsDetails')->name('admin.accounts.details');
+            
+            Route::get('/reporting/message-log', 'reportingMessageLog')->name('admin.reporting.message-log');
+            Route::get('/reporting/client', 'reportingClient')->name('admin.reporting.client');
+            Route::get('/reporting/supplier', 'reportingSupplier')->name('admin.reporting.supplier');
+            Route::get('/reporting/finance', 'reportingFinance')->name('admin.reporting.finance');
+            
+            Route::get('/campaigns/active', 'campaignsActive')->name('admin.campaigns.active');
+            Route::get('/campaigns/approvals', 'campaignsApprovals')->name('admin.campaigns.approvals');
+            Route::get('/campaigns/blocked', 'campaignsBlocked')->name('admin.campaigns.blocked');
+            
+            Route::get('/assets/sender-ids', 'assetsSenderIds')->name('admin.assets.sender-ids');
+            Route::get('/assets/rcs-agents', 'assetsRcsAgents')->name('admin.assets.rcs-agents');
+            Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
+            Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');
+            Route::get('/assets/email-to-sms', 'assetsEmailToSms')->name('admin.assets.email-to-sms');
+            
+            Route::get('/api/connections', 'apiConnections')->name('admin.api.connections');
+            Route::get('/api/callbacks', 'apiCallbacks')->name('admin.api.callbacks');
+            Route::get('/api/health', 'apiHealth')->name('admin.api.health');
+            
+            Route::get('/billing/invoices', 'billingInvoices')->name('admin.billing.invoices');
+            Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
+            Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
+            
+            Route::get('/security/audit-logs', 'securityAuditLogs')->name('admin.security.audit-logs');
+            Route::get('/security/country-controls', 'securityCountryControls')->name('admin.security.country-controls');
+            Route::get('/security/anti-spam', 'securityAntiSpam')->name('admin.security.anti-spam');
+            Route::get('/security/ip-allowlists', 'securityIpAllowlists')->name('admin.security.ip-allowlists');
+            
+            Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
+            Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
+            Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
+        });
 });

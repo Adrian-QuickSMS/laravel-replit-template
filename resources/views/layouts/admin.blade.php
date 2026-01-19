@@ -1,5 +1,17 @@
 @php
     $action = 'admin_dashboard';
+    $adminSession = session('admin_auth', []);
+    $adminName = $adminSession['name'] ?? 'Admin User';
+    $adminEmail = $adminSession['email'] ?? '';
+    $adminRole = $adminSession['role'] ?? 'super_admin';
+    $roleLabels = [
+        'super_admin' => 'Super Admin',
+        'support' => 'Support',
+        'finance' => 'Finance',
+        'compliance' => 'Compliance',
+        'sales' => 'Sales'
+    ];
+    $adminRoleLabel = $roleLabels[$adminRole] ?? ucfirst($adminRole);
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -10,6 +22,7 @@
     <meta name="author" content="" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="admin-user" content="{{ json_encode(['id' => $adminSession['admin_id'] ?? '', 'name' => $adminName, 'email' => $adminEmail, 'role' => $adminRole]) }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="QuickSMS Admin Control Plane" />
     <meta name="format-detection" content="telephone=no">
@@ -62,8 +75,11 @@
                         <span><strong>Admin Control Plane</strong> — Internal Use Only. All actions are logged.</span>
                         <span class="ms-auto admin-user-info">
                             <i class="fas fa-user-shield me-1"></i>
-                            <span id="admin-user-name">Admin User</span>
-                            <span class="admin-role-badge">Super Admin</span>
+                            <span id="admin-user-name">{{ $adminName }}</span>
+                            <span class="admin-role-badge">{{ $adminRoleLabel }}</span>
+                            <a href="{{ route('admin.logout') }}" class="btn btn-sm btn-outline-light ms-3" title="Logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </a>
                         </span>
                     </div>
                 </div>

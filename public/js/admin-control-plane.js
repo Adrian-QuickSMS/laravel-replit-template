@@ -1,15 +1,34 @@
 var AdminControlPlane = (function() {
     'use strict';
 
-    var currentAdmin = {
-        id: 'admin_001',
-        name: 'Admin User',
-        email: 'admin@quicksms.co.uk',
-        role: 'super_admin',
-        mfaVerified: true,
-        ipAddress: null,
-        sessionStart: new Date().toISOString()
-    };
+    var currentAdmin = (function() {
+        var meta = document.querySelector('meta[name="admin-user"]');
+        if (meta && meta.content) {
+            try {
+                var data = JSON.parse(meta.content);
+                return {
+                    id: data.id || '',
+                    name: data.name || 'Admin User',
+                    email: data.email || '',
+                    role: data.role || 'super_admin',
+                    mfaVerified: true,
+                    ipAddress: null,
+                    sessionStart: new Date().toISOString()
+                };
+            } catch (e) {
+                console.warn('[AdminControlPlane] Failed to parse admin user meta');
+            }
+        }
+        return {
+            id: '',
+            name: 'Admin User',
+            email: '',
+            role: 'super_admin',
+            mfaVerified: true,
+            ipAddress: null,
+            sessionStart: new Date().toISOString()
+        };
+    })();
 
     var impersonationSession = null;
 
