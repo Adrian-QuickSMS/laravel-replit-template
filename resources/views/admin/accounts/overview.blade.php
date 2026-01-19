@@ -711,37 +711,81 @@ window.selectNode = function(type, index) {
 };
 
 function renderMainAccountDetails(account) {
-    return '<h6 class="mb-3">Main Account Details</h6>' +
-        '<table class="table table-sm">' +
-        '<tr><th class="text-muted" style="width:40%">Name</th><td>' + account.name + '</td></tr>' +
-        '<tr><th class="text-muted">Account ID</th><td>' + account.id + '</td></tr>' +
-        '<tr><th class="text-muted">Status</th><td><span class="badge light badge-' + (account.status === 'Active' ? 'success' : 'danger') + '">' + account.status + '</span></td></tr>' +
-        '<tr><th class="text-muted">Type</th><td>' + account.type + '</td></tr>' +
-        '<tr><th class="text-muted">Created</th><td>' + account.created + '</td></tr>' +
-        '<tr><th class="text-muted">Balance</th><td>' + account.balance + '</td></tr>' +
+    var data = currentHierarchyData;
+    var totalSubAccounts = data.subAccounts ? data.subAccounts.length : 0;
+    var totalUsers = (data.mainUsers ? data.mainUsers.length : 0);
+    data.subAccounts.forEach(function(sub) { totalUsers += sub.users ? sub.users.length : 0; });
+
+    return '<h6 class="mb-3">Main Account</h6>' +
+        '<table class="table table-sm mb-4">' +
+        '<tr><th class="text-muted" style="width:45%">Account Owner</th><td>' + (data.mainUsers && data.mainUsers.length > 0 ? data.mainUsers[0].name : 'N/A') + '</td></tr>' +
+        '<tr><th class="text-muted">Account Status</th><td><span class="badge light badge-' + (account.status === 'Active' ? 'success' : 'danger') + '">' + account.status + '</span></td></tr>' +
+        '<tr><th class="text-muted">Pricing Model</th><td><span class="badge light badge-info">' + (account.pricingModel || 'Delivered') + '</span></td></tr>' +
+        '<tr><th class="text-muted">Credit Model</th><td><span class="badge light badge-secondary">' + (account.creditModel || 'Prepaid') + '</span></td></tr>' +
+        '<tr><th class="text-muted">Total Sub-accounts</th><td>' + totalSubAccounts + '</td></tr>' +
+        '<tr><th class="text-muted">Total Users</th><td>' + totalUsers + '</td></tr>' +
         '</table>';
 }
 
 function renderSubAccountDetails(sub) {
-    return '<h6 class="mb-3">Sub-Account Details</h6>' +
-        '<table class="table table-sm">' +
-        '<tr><th class="text-muted" style="width:40%">Name</th><td>' + sub.name + '</td></tr>' +
-        '<tr><th class="text-muted">Sub-Account ID</th><td>' + sub.id + '</td></tr>' +
-        '<tr><th class="text-muted">Status</th><td><span class="badge light badge-' + (sub.status === 'Active' ? 'success' : 'danger') + '">' + sub.status + '</span></td></tr>' +
-        '<tr><th class="text-muted">Users</th><td>' + sub.users.length + '</td></tr>' +
-        '</table>';
+    var spendUsed = sub.spendUsed || 2450;
+    var spendCap = sub.spendCap || 5000;
+    var msgUsed = sub.msgUsed || 45000;
+    var msgCap = sub.msgCap || 100000;
+    var spendPct = Math.round((spendUsed / spendCap) * 100);
+    var msgPct = Math.round((msgUsed / msgCap) * 100);
+
+    return '<h6 class="mb-3">Sub-Account</h6>' +
+        '<table class="table table-sm mb-3">' +
+        '<tr><th class="text-muted" style="width:45%">Status</th><td><span class="badge light badge-' + (sub.status === 'Active' ? 'success' : 'danger') + '">' + sub.status + '</span></td></tr>' +
+        '</table>' +
+        '<h6 class="text-muted mb-2" style="font-size:0.85rem;">Enforcement Summary</h6>' +
+        '<table class="table table-sm mb-3">' +
+        '<tr><th class="text-muted" style="width:45%">Monthly Spend Cap</th><td>£' + spendCap.toLocaleString() + '</td></tr>' +
+        '<tr><th class="text-muted">Monthly Message Cap</th><td>' + msgCap.toLocaleString() + '</td></tr>' +
+        '<tr><th class="text-muted">Enforcement Type</th><td><span class="badge light badge-warning">' + (sub.enforcementType || 'Warn Only') + '</span></td></tr>' +
+        '</table>' +
+        '<h6 class="text-muted mb-2" style="font-size:0.85rem;">Usage vs Limits</h6>' +
+        '<div class="mb-2"><small class="text-muted">Spend: £' + spendUsed.toLocaleString() + ' / £' + spendCap.toLocaleString() + '</small>' +
+        '<div class="progress" style="height:8px;"><div class="progress-bar bg-' + (spendPct > 80 ? 'danger' : spendPct > 60 ? 'warning' : 'success') + '" style="width:' + spendPct + '%"></div></div></div>' +
+        '<div class="mb-3"><small class="text-muted">Messages: ' + msgUsed.toLocaleString() + ' / ' + msgCap.toLocaleString() + '</small>' +
+        '<div class="progress" style="height:8px;"><div class="progress-bar bg-' + (msgPct > 80 ? 'danger' : msgPct > 60 ? 'warning' : 'success') + '" style="width:' + msgPct + '%"></div></div></div>' +
+        '<h6 class="text-muted mb-2" style="font-size:0.85rem;">Assigned Assets</h6>' +
+        '<table class="table table-sm mb-3">' +
+        '<tr><th class="text-muted" style="width:45%">Sender IDs</th><td>' + (sub.senderIds || 3) + '</td></tr>' +
+        '<tr><th class="text-muted">Numbers</th><td>' + (sub.numbers || 2) + '</td></tr>' +
+        '<tr><th class="text-muted">Templates</th><td>' + (sub.templates || 8) + '</td></tr>' +
+        '<tr><th class="text-muted">RCS Agents</th><td>' + (sub.rcsAgents || 1) + '</td></tr>' +
+        '<tr><th class="text-muted">API Connections</th><td>' + (sub.apiConnections || 2) + '</td></tr>' +
+        '<tr><th class="text-muted">Email-to-SMS Configs</th><td>' + (sub.emailConfigs || 1) + '</td></tr>' +
+        '</table>' +
+        '<button class="btn btn-primary btn-sm" onclick="manageSubAccount(\'' + sub.id + '\')">Manage Sub-account</button>';
 }
 
 function renderUserDetails(user, parentName) {
-    return '<h6 class="mb-3">User Details</h6>' +
-        '<table class="table table-sm">' +
-        '<tr><th class="text-muted" style="width:40%">Name</th><td>' + user.name + '</td></tr>' +
-        '<tr><th class="text-muted">Email</th><td>' + user.email + '</td></tr>' +
-        '<tr><th class="text-muted">Role</th><td><span class="badge light badge-primary">' + user.role + '</span></td></tr>' +
-        '<tr><th class="text-muted">Status</th><td><span class="badge light badge-' + (user.status === 'Active' ? 'success' : 'warning') + '">' + user.status + '</span></td></tr>' +
-        '<tr><th class="text-muted">Parent</th><td>' + parentName + '</td></tr>' +
-        '</table>';
+    return '<h6 class="mb-3">User</h6>' +
+        '<table class="table table-sm mb-3">' +
+        '<tr><th class="text-muted" style="width:45%">Role</th><td><span class="badge light badge-primary">' + user.role + '</span></td></tr>' +
+        '<tr><th class="text-muted">Sender Capability</th><td><span class="badge light badge-' + ((user.senderCapability || 'Advanced') === 'Advanced' ? 'success' : 'secondary') + '">' + (user.senderCapability || 'Advanced') + '</span></td></tr>' +
+        '<tr><th class="text-muted">MFA Status</th><td><span class="badge light badge-' + ((user.mfaEnabled !== false) ? 'success' : 'warning') + '">' + ((user.mfaEnabled !== false) ? 'Enabled' : 'Disabled') + '</span></td></tr>' +
+        '<tr><th class="text-muted">Last Login</th><td>' + (user.lastLogin || '2 hours ago') + '</td></tr>' +
+        '</table>' +
+        '<button class="btn btn-primary btn-sm" onclick="viewUserDetails(\'' + user.email + '\')">View User Details</button>';
 }
+
+window.manageSubAccount = function(subId) {
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('SUB_ACCOUNT_MANAGE_CLICKED', 'ACCOUNTS', { subAccountId: subId });
+    }
+    alert('Navigate to Sub-account management: ' + subId);
+};
+
+window.viewUserDetails = function(email) {
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('USER_DETAILS_CLICKED', 'ACCOUNTS', { userEmail: email });
+    }
+    alert('Navigate to User details: ' + email);
+};
 
 function filterTable(filter) {
     var rows = document.querySelectorAll('#accountsTable tbody tr');
