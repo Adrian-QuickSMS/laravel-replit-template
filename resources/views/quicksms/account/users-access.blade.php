@@ -721,7 +721,7 @@ input:focus + .perm-slider {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: 1px solid #e9d5ff; color: #6b21a8;">
+                <div class="alert mb-4" style="font-size: 0.85rem; background: #f3e8ff; border: none; color: #6b21a8;">
                     <strong>Role-Based Navigation:</strong> Roles control which sections of QuickSMS the user can access, not individual feature toggles.
                 </div>
                 
