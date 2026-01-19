@@ -920,6 +920,209 @@
     color: #1e3a5f;
     text-align: right;
 }
+
+.supplier-health-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 1fr;
+    gap: 1rem;
+}
+
+.supplier-health-grid .chart-span-2 {
+    grid-column: span 2;
+}
+
+@media (max-width: 1200px) {
+    .supplier-health-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .supplier-health-grid .route-health-tile {
+        grid-column: span 2;
+    }
+    .supplier-health-grid .chart-span-2 {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .supplier-health-grid {
+        grid-template-columns: 1fr;
+    }
+    .supplier-health-grid .route-health-tile,
+    .supplier-health-grid .chart-span-2 {
+        grid-column: span 1;
+    }
+}
+
+.route-health-tile {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease;
+}
+
+.route-health-tile.clickable:hover {
+    border-color: #4a90d9;
+    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
+}
+
+.route-health-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.route-health-status.healthy {
+    background: rgba(5, 150, 105, 0.1);
+    color: #059669;
+}
+
+.route-health-status.degraded {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.route-health-status.critical {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+}
+
+.route-health-title {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+.route-health-counts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.route-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.route-count .count-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.route-count .count-value.success { color: #059669; }
+.route-count .count-value.warning { color: #f59e0b; }
+.route-count .count-value.danger { color: #dc2626; }
+
+.route-count .count-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.route-health-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.drill-hint {
+    font-size: 0.7rem;
+    color: #4a90d9;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.response-time-metrics {
+    display: flex;
+    justify-content: space-around;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.response-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.response-metric .metric-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.response-metric .metric-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.response-metric .metric-value.warning { color: #f59e0b; }
+.response-metric .metric-value.danger { color: #dc2626; }
+
+.stacked-bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stacked-bar-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 80px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.35rem 0;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.stacked-bar-row.clickable:hover {
+    background: #f8fafc;
+}
+
+.stacked-bar-label {
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.stacked-bar-track {
+    height: 24px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+}
+
+.stacked-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.stacked-segment.sms { background: #4a90d9; }
+.stacked-segment.rcs-basic { background: #10b981; }
+.stacked-segment.rcs-single { background: #8b5cf6; }
+
+.stacked-bar-total {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1e3a5f;
+    text-align: right;
+}
 </style>
 @endpush
 
@@ -1369,75 +1572,131 @@
         </div>
     </div>
 
-    <div class="section-card">
+    <div class="section-card" id="supplier-route-health-section">
         <div class="section-header">
-            <h6><i class="fas fa-route"></i> Supplier & Route Health</h6>
+            <h6><i class="fas fa-route"></i> Supplier Route Health</h6>
             <span class="badge-admin-only">Admin Only</span>
         </div>
         <div class="section-body">
-            <div class="health-grid">
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h6>Route Performance</h6>
+            <div class="supplier-health-grid">
+                <div class="route-health-tile clickable" onclick="drillToReport('supplier-reporting')">
+                    <div class="route-health-status healthy">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Healthy</span>
                     </div>
-                    <table class="health-table">
-                        <thead>
-                            <tr>
-                                <th>Route</th>
-                                <th>Status</th>
-                                <th>Success Rate</th>
-                                <th>Latency</th>
-                                <th>Volume</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="status-dot active"></span>UK Tier 1</td>
-                                <td><span class="severity-low">Healthy</span></td>
-                                <td>99.2%</td>
-                                <td>120ms</td>
-                                <td>482,341</td>
-                            </tr>
-                            <tr>
-                                <td><span class="status-dot active"></span>UK Tier 2</td>
-                                <td><span class="severity-low">Healthy</span></td>
-                                <td>97.8%</td>
-                                <td>180ms</td>
-                                <td>198,432</td>
-                            </tr>
-                            <tr>
-                                <td><span class="status-dot active"></span>EU Primary</td>
-                                <td><span class="severity-low">Healthy</span></td>
-                                <td>98.5%</td>
-                                <td>150ms</td>
-                                <td>87,234</td>
-                            </tr>
-                            <tr>
-                                <td><span class="status-dot degraded"></span>International</td>
-                                <td><span class="severity-medium">Degraded</span></td>
-                                <td>94.1%</td>
-                                <td>350ms</td>
-                                <td>23,892</td>
-                            </tr>
-                            <tr>
-                                <td><span class="status-dot active"></span>RCS Google</td>
-                                <td><span class="severity-low">Healthy</span></td>
-                                <td>99.8%</td>
-                                <td>95ms</td>
-                                <td>42,187</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h6>Supplier Cost Trends</h6>
-                    </div>
-                    <div class="chart-body">
-                        <div class="chart-placeholder">
-                            <i class="fas fa-chart-bar d-block"></i>
-                            <span>Cost per route over time</span>
+                    <div class="route-health-title">Overall Route Health</div>
+                    <div class="route-health-counts">
+                        <div class="route-count">
+                            <span class="count-value success">5</span>
+                            <span class="count-label">Active</span>
                         </div>
+                        <div class="route-count">
+                            <span class="count-value warning">1</span>
+                            <span class="count-label">Degraded</span>
+                        </div>
+                        <div class="route-count">
+                            <span class="count-value danger">0</span>
+                            <span class="count-label">Failed</span>
+                        </div>
+                    </div>
+                    <div class="route-health-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> dim_routes.status</span>
+                        <span class="drill-hint"><i class="fas fa-external-link-alt"></i> View Supplier Reporting</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h6>Supplier Response Time</h6>
+                        <div class="chart-toggle-group">
+                            <button class="chart-toggle active" data-window="1h">1h</button>
+                            <button class="chart-toggle" data-window="24h">24h</button>
+                            <button class="chart-toggle" data-window="7d">7d</button>
+                        </div>
+                    </div>
+                    <div class="chart-body" id="chart-supplier-response-time">
+                        <div class="response-time-metrics">
+                            <div class="response-metric">
+                                <span class="metric-label">Avg</span>
+                                <span class="metric-value">142ms</span>
+                            </div>
+                            <div class="response-metric">
+                                <span class="metric-label">P95</span>
+                                <span class="metric-value warning">287ms</span>
+                            </div>
+                            <div class="response-metric">
+                                <span class="metric-label">Max</span>
+                                <span class="metric-value danger">892ms</span>
+                            </div>
+                        </div>
+                        <div class="chart-placeholder" style="margin-top: 1rem;">
+                            <i class="fas fa-chart-line d-block"></i>
+                            <div>Response time over selected window</div>
+                            <div class="chart-note">Click spike → Message Log (filtered by timestamp)</div>
+                        </div>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery.response_time_ms</span>
+                    </div>
+                </div>
+
+                <div class="chart-container chart-span-2">
+                    <div class="chart-header">
+                        <h6>Route Distribution</h6>
+                        <div class="chart-legend">
+                            <span class="legend-item" style="--color: #4a90d9;"><span class="legend-dot"></span> SMS</span>
+                            <span class="legend-item" style="--color: #10b981;"><span class="legend-dot"></span> RCS Basic</span>
+                            <span class="legend-item" style="--color: #8b5cf6;"><span class="legend-dot"></span> RCS Single</span>
+                        </div>
+                    </div>
+                    <div class="chart-body" id="chart-route-distribution">
+                        <div class="stacked-bar-chart">
+                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
+                                <span class="stacked-bar-label">UK Tier 1</span>
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-segment sms" style="width: 75%;" title="SMS: 361,756"></div>
+                                    <div class="stacked-segment rcs-basic" style="width: 18%;" title="RCS Basic: 86,821"></div>
+                                    <div class="stacked-segment rcs-single" style="width: 7%;" title="RCS Single: 33,764"></div>
+                                </div>
+                                <span class="stacked-bar-total">482,341</span>
+                            </div>
+                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
+                                <span class="stacked-bar-label">UK Tier 2</span>
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-segment sms" style="width: 92%;" title="SMS: 182,557"></div>
+                                    <div class="stacked-segment rcs-basic" style="width: 6%;" title="RCS Basic: 11,906"></div>
+                                    <div class="stacked-segment rcs-single" style="width: 2%;" title="RCS Single: 3,969"></div>
+                                </div>
+                                <span class="stacked-bar-total">198,432</span>
+                            </div>
+                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
+                                <span class="stacked-bar-label">EU Primary</span>
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-segment sms" style="width: 88%;" title="SMS: 76,766"></div>
+                                    <div class="stacked-segment rcs-basic" style="width: 10%;" title="RCS Basic: 8,723"></div>
+                                    <div class="stacked-segment rcs-single" style="width: 2%;" title="RCS Single: 1,745"></div>
+                                </div>
+                                <span class="stacked-bar-total">87,234</span>
+                            </div>
+                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
+                                <span class="stacked-bar-label">International</span>
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-segment sms" style="width: 100%;" title="SMS: 23,892"></div>
+                                </div>
+                                <span class="stacked-bar-total">23,892</span>
+                            </div>
+                            <div class="stacked-bar-row clickable" onclick="drillToReport('supplier-reporting')">
+                                <span class="stacked-bar-label">RCS Google</span>
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-segment rcs-basic" style="width: 65%;" title="RCS Basic: 27,422"></div>
+                                    <div class="stacked-segment rcs-single" style="width: 35%;" title="RCS Single: 14,765"></div>
+                                </div>
+                                <span class="stacked-bar-total">42,187</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-footer">
+                        <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY route, product</span>
                     </div>
                 </div>
             </div>
