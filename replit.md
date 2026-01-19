@@ -65,6 +65,43 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, incorporating the Fillow SaaS A
   - **Export:** CSV and Excel formats with read-only protection, permission checks, async processing for large datasets
   - **Filters:** Date range, module, event type, sub-account, user, actor type, severity with Apply button workflow
 
+## Admin Control Plane
+The Admin Control Plane is a separate internal-only interface for QuickSMS employees with a hard security boundary from the customer portal.
+
+**Security Architecture:**
+- **Separate Authentication:** Admin login at `/admin/login` with dedicated session handling (`admin_auth` session key)
+- **Mandatory MFA:** All admin users require TOTP-based two-factor authentication. New users are directed to MFA setup before accessing any protected routes.
+- **IP Allow-listing:** Configurable IP whitelist with CIDR support (`ADMIN_IP_ALLOWLIST_ENABLED`, `ADMIN_IP_ALLOWLIST_IPS`, `ADMIN_IP_ALLOWLIST_CIDRS`)
+- **Session Timeout:** Configurable session timeout with activity tracking (default: 1 hour)
+- **Admin Audit Logging:** Separate audit log system that does NOT write to customer audit logs. All admin actions are logged with actor, target, action, timestamp, IP, and session context.
+
+**RBAC Structure (Feature-Flagged):**
+- `ADMIN_RBAC_ENABLED=false` by default (all admins have full permissions in v1)
+- Roles defined in code: Super Admin (full access), Support, Finance, Compliance, Sales
+- Each role has specific permission sets for different admin functions
+- Permission evaluation via `AdminRbacService::can()` and `AdminRbacService::hasPermission()`
+
+**Admin Roles:**
+- **Super Admin:** Full access to all admin functions
+- **Support:** Account viewing, impersonation, message logs, audit logs
+- **Finance:** Account balances, financial reports, billing, invoices
+- **Compliance:** Campaign approvals, sender IDs, templates, security controls
+- **Sales:** Account details, client reporting, pricing
+
+**Impersonation:**
+- Requires minimum 10-character reason
+- 5-minute session limit
+- All actions logged to ADMIN audit (NOT customer audit)
+- Session tracked separately from admin session
+
+**Key Files:**
+- `app/Http/Middleware/AdminAuthenticate.php` - Session and MFA verification
+- `app/Http/Middleware/AdminIpAllowlist.php` - IP allow-listing
+- `app/Http/Controllers/AdminAuthController.php` - Login, logout, MFA flows
+- `app/Services/Admin/AdminRbacService.php` - Role and permission definitions
+- `app/Services/Admin/AdminAuditService.php` - Admin-only audit logging
+- `config/admin.php` - Configuration for session, MFA, IP allowlist, RBAC
+
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
 - **Fillow SaaS Admin Template:** UI framework.
