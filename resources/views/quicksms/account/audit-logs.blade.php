@@ -48,8 +48,27 @@
 .compliance-card h6 { color: #6f42c1; font-size: 0.875rem; margin-bottom: 0.5rem; }
 .compliance-card .compliance-stat { font-size: 1.25rem; font-weight: 600; color: #886CC0; }
 
-.quick-filter-btn { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 1rem; margin-right: 0.5rem; margin-bottom: 0.5rem; }
-.quick-filter-btn.active { background-color: #886CC0; color: #fff; border-color: #886CC0; }
+.quick-filter-btn { 
+    font-size: 0.75rem; 
+    padding: 0.375rem 0.875rem; 
+    border-radius: 1rem; 
+    margin-right: 0.5rem; 
+    margin-bottom: 0.5rem; 
+    background-color: #fff; 
+    border: 1px solid #dee2e6; 
+    color: #495057;
+    transition: all 0.15s ease;
+}
+.quick-filter-btn:hover { 
+    background-color: #f3e8ff; 
+    border-color: #886CC0; 
+    color: #6b21a8; 
+}
+.quick-filter-btn.active { 
+    background-color: #886CC0; 
+    color: #fff; 
+    border-color: #886CC0; 
+}
 
 .access-denied-container { padding: 4rem 2rem; text-align: center; background: #fff; border-radius: 0.5rem; }
 .access-denied-container .access-icon { font-size: 4rem; color: #dee2e6; margin-bottom: 1.5rem; }
@@ -213,9 +232,6 @@
                     <small class="text-muted">Centralised, chronological record of all platform activity</small>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-                    <span class="retention-indicator retention-active">
-                        <i class="fas fa-clock me-1"></i>Retention: 7 years
-                    </span>
                     <div class="dropdown" id="exportDropdown">
                         <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="exportBtn">
                             <i class="fas fa-download me-1"></i>Export
@@ -245,16 +261,6 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="alert alert-pastel-primary mb-4">
-                    <div class="d-flex align-items-start">
-                        <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
-                        <div>
-                            <strong>Tamper-proof audit trail for compliance and accountability.</strong>
-                            <p class="mb-0 mt-1 small">All logs are immutable and retained for 7 years. Supports ISO 27001, NHS DSP Toolkit, and GDPR requirements.</p>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="row mb-3">
                     <div class="col-12">
                         <div class="d-flex flex-wrap">
@@ -396,18 +402,13 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                        <div class="active-filters-display" id="activeFiltersDisplay">
-                            <span class="text-muted small">No filters applied</span>
-                        </div>
-                        <div class="filter-actions">
-                            <button type="button" class="btn btn-outline-primary btn-sm me-2" id="clearFilters">
-                                <i class="fas fa-times me-1"></i>Clear All
-                            </button>
-                            <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
-                                <i class="fas fa-check me-1"></i>Apply Filters
-                            </button>
-                        </div>
+                    <div class="d-flex justify-content-end align-items-center pt-3">
+                        <a href="#" class="text-primary small me-3" id="clearFilters">
+                            <i class="fas fa-undo me-1"></i>Reset Filters
+                        </a>
+                        <button type="button" class="btn btn-primary btn-sm" id="applyFiltersBtn">
+                            <i class="fas fa-filter me-1"></i>Apply Filters
+                        </button>
                     </div>
                 </div>
 
