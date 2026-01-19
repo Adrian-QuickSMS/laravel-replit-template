@@ -486,7 +486,7 @@
                             <td>
                                 <span class="status-badge pending">
                                     <span class="dot"></span>
-                                    Pending Approval
+                                    Pending
                                 </span>
                             </td>
                             <td>
