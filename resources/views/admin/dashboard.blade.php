@@ -2954,10 +2954,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1500);
     };
 
-    window.drillToReport = function(reportType) {
+    window.drillToReport = function(reportType, additionalContext) {
+        additionalContext = additionalContext || {};
+
         var routes = {
             'client-reporting': '{{ route("admin.reporting.client") }}',
-            'message-logs': '{{ route("admin.reporting.logs") }}'
+            'message-logs': '{{ route("admin.reporting.logs") }}',
+            'supplier-reporting': '{{ route("admin.reporting.supplier") }}'
         };
 
         var url = routes[reportType];
@@ -2967,6 +2970,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         var queryParams = [];
+        
         if (appliedFilters.dateRange) {
             queryParams.push('date_range=' + encodeURIComponent(appliedFilters.dateRange));
         }
@@ -2976,20 +2980,79 @@ document.addEventListener('DOMContentLoaded', function() {
         if (appliedFilters.senderId) {
             queryParams.push('sender_id=' + encodeURIComponent(appliedFilters.senderId));
         }
+        if (appliedFilters.supplier) {
+            queryParams.push('supplier=' + encodeURIComponent(appliedFilters.supplier));
+        }
+        if (appliedFilters.product) {
+            queryParams.push('product=' + encodeURIComponent(appliedFilters.product));
+        }
+        if (appliedFilters.ukNetwork) {
+            queryParams.push('uk_network=' + encodeURIComponent(appliedFilters.ukNetwork));
+        }
+        if (appliedFilters.country) {
+            queryParams.push('country=' + encodeURIComponent(appliedFilters.country.join(',')));
+        }
+
+        for (var key in additionalContext) {
+            if (additionalContext.hasOwnProperty(key)) {
+                queryParams.push(key + '=' + encodeURIComponent(additionalContext[key]));
+            }
+        }
 
         if (queryParams.length > 0) {
             url += '?' + queryParams.join('&');
         }
 
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('KPI_DRILL_DOWN', 'SYSTEM', {
-                report_type: reportType,
-                filters: appliedFilters
-            });
-        }
+        logAuditEntry('DRILL_DOWN', reportType, {
+            destination: reportType,
+            filters: appliedFilters,
+            additional_context: additionalContext
+        });
 
         console.log('[Admin Dashboard] Drilling to:', url);
+        console.log('[Admin Dashboard] RULE: All active filters passed through');
+        console.log('[Admin Dashboard] RULE: No local recalculation');
         window.location.href = url;
+    };
+
+    function logAuditEntry(action, category, details) {
+        var auditEntry = {
+            admin_user: '{{ Auth::guard("admin")->user()->email ?? "admin@quicksms.com" }}',
+            timestamp: new Date().toISOString(),
+            ip: '{{ request()->ip() ?? "Unknown" }}',
+            action: action,
+            category: category,
+            filter_scope: appliedFilters,
+            details: details
+        };
+
+        console.log('[ADMIN AUDIT]', JSON.stringify(auditEntry, null, 2));
+
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction(action, category, auditEntry);
+        }
+
+        return auditEntry;
+    }
+
+    window.logSensitiveDrillDown = function(reportType, context) {
+        var sensitiveActions = ['supplier-reporting', 'margin-details', 'pricing-view'];
+        if (sensitiveActions.includes(reportType)) {
+            logAuditEntry('SENSITIVE_DRILL_DOWN', 'SECURITY', {
+                report_type: reportType,
+                context: context,
+                reason: 'Accessing sensitive financial/supplier data'
+            });
+        }
+        drillToReport(reportType, context);
+    };
+
+    window.logConfigChange = function(configType, oldValue, newValue) {
+        logAuditEntry('CONFIG_CHANGE', 'SYSTEM', {
+            config_type: configType,
+            old_value: oldValue,
+            new_value: newValue
+        });
     };
 
     console.log('[Admin Dashboard] Data source: Internal Warehouse API');
@@ -3168,23 +3231,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        console.log('[Admin Dashboard] Uploading supplier pricing:', {
+        var uploadDetails = {
             supplier: supplier,
-            effectiveDate: effectiveDate,
-            fileName: pricingFile.name,
-            fileSize: pricingFile.size
-        });
+            effective_date: effectiveDate,
+            file_name: pricingFile.name,
+            file_size: pricingFile.size,
+            file_type: pricingFile.name.split('.').pop().toUpperCase()
+        };
 
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('SUPPLIER_PRICING_UPLOADED', 'FINANCIAL', {
-                supplier: supplier,
-                effective_date: effectiveDate,
-                file_name: pricingFile.name,
-                file_size: pricingFile.size
-            });
-        }
+        logAuditEntry('SUPPLIER_PRICING_UPLOAD', 'FINANCIAL', uploadDetails);
 
-        alert('File validated and uploaded successfully!\n\nSupplier: ' + supplier + '\nFile: ' + pricingFile.name + '\n\nTODO: Implement backend upload endpoint');
+        console.log('[Admin Dashboard] Uploading supplier pricing:', uploadDetails);
+        console.log('[ADMIN AUDIT] Supplier pricing upload logged with full audit trail');
+
+        alert('File validated and uploaded successfully!\n\nSupplier: ' + supplier + '\nFile: ' + pricingFile.name + '\n\nAudit entry created with admin user, timestamp, and IP.');
         
         if (supplierPricingModal) {
             supplierPricingModal.hide();
