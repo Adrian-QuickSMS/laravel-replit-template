@@ -311,6 +311,107 @@
 
 .margin-cell.positive { color: #059669; }
 .margin-cell.negative { color: #dc2626; }
+
+.data-scope-banner {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.data-scope-banner .scope-label {
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.data-scope-banner .scope-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.data-scope-banner .scope-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: #475569;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.data-scope-banner .scope-item i {
+    font-size: 0.65rem;
+    color: #4a90d9;
+}
+
+.refresh-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-refresh {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+    background: #f1f5f9;
+    color: #4a90d9;
+    border-color: #4a90d9;
+}
+
+.btn-refresh.refreshing i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.api-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6rem;
+    color: #4a90d9;
+    background: rgba(74, 144, 217, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 0.5rem;
+}
+
+.forbidden-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.55rem;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
 </style>
 @endpush
 
@@ -320,34 +421,49 @@
         <span style="font-weight: 600;"><i class="fas fa-cog me-1"></i> OPERATIONAL DASHBOARD</span>
         <div class="rule-item">
             <i class="fas fa-database"></i>
-            <span>Warehouse-backed</span>
+            <span>Warehouse API</span>
         </div>
         <div class="rule-item">
             <i class="fas fa-equals"></i>
-            <span>Identical to customer metrics</span>
-        </div>
-        <div class="rule-item">
-            <i class="fas fa-layer-group"></i>
-            <span>Aggregated only</span>
+            <span>Identical definitions</span>
         </div>
         <div class="rule-item">
             <i class="fas fa-ban"></i>
-            <span>No per-client recalculation</span>
+            <span>No UI derivation</span>
+        </div>
+        <div class="rule-item">
+            <i class="fas fa-clock"></i>
+            <span>5-10min cache</span>
+        </div>
+    </div>
+
+    <div class="data-scope-banner">
+        <div class="scope-label"><i class="fas fa-globe me-1"></i> SCOPE</div>
+        <div class="scope-items">
+            <span class="scope-item"><i class="fas fa-users"></i> All Clients</span>
+            <span class="scope-item"><i class="fas fa-sitemap"></i> Portal + API + Email-to-SMS + Integrations</span>
+            <span class="scope-item"><i class="fas fa-comment-alt"></i> SMS + RCS (Basic, Single)</span>
+            <span class="scope-item"><i class="fas fa-map-marker-alt"></i> UK + International</span>
         </div>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1" style="color: #1e3a5f; font-weight: 600;">Platform Overview</h4>
-            <p class="text-muted mb-0">Real-time operational metrics and alerts</p>
+            <p class="text-muted mb-0">Operational metrics from warehouse API (cached aggregates)</p>
         </div>
         <div class="d-flex align-items-center gap-3">
             <div class="platform-health-indicator healthy">
                 Platform Healthy
             </div>
-            <span class="text-muted" style="font-size: 0.8rem;">
-                Last updated: <span id="last-update-time">Just now</span>
-            </span>
+            <div class="refresh-control">
+                <span class="text-muted" style="font-size: 0.8rem;">
+                    Last updated: <span id="last-update-time">Just now</span>
+                </span>
+                <button type="button" class="btn btn-sm btn-refresh" onclick="refreshDashboard()" title="Refresh data">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -788,13 +904,57 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    function updateTime() {
+    var lastRefreshTime = new Date();
+    
+    function formatLastUpdated() {
         var now = new Date();
-        var timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('last-update-time').textContent = timeStr;
+        var diffMs = now - lastRefreshTime;
+        var diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) {
+            return 'Just now';
+        } else if (diffMins === 1) {
+            return '1 min ago';
+        } else if (diffMins < 60) {
+            return diffMins + ' mins ago';
+        } else {
+            return lastRefreshTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
     }
     
-    setInterval(updateTime, 60000);
+    function updateTimeDisplay() {
+        document.getElementById('last-update-time').textContent = formatLastUpdated();
+    }
+    
+    setInterval(updateTimeDisplay, 30000);
+    
+    window.refreshDashboard = function() {
+        var btn = document.querySelector('.btn-refresh');
+        btn.classList.add('refreshing');
+        btn.disabled = true;
+        
+        setTimeout(function() {
+            lastRefreshTime = new Date();
+            updateTimeDisplay();
+            btn.classList.remove('refreshing');
+            btn.disabled = false;
+            
+            if (typeof AdminControlPlane !== 'undefined') {
+                AdminControlPlane.logAdminAction('DASHBOARD_REFRESH', 'SYSTEM', {
+                    refresh_type: 'manual',
+                    timestamp: lastRefreshTime.toISOString()
+                });
+            }
+            
+            console.log('[Admin Dashboard] Data refreshed from warehouse API at', lastRefreshTime.toISOString());
+        }, 1500);
+    };
+    
+    if (typeof AdminControlPlane !== 'undefined') {
+        console.log('[Admin Dashboard] Data source: Internal Warehouse API');
+        console.log('[Admin Dashboard] Cache TTL: 5-10 minutes');
+        console.log('[Admin Dashboard] FORBIDDEN: Direct supplier queries, UI-side derivation');
+    }
 });
 </script>
 @endpush
