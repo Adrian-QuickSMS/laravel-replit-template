@@ -3017,9 +3017,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function logAuditEntry(action, category, details) {
         var auditEntry = {
-            admin_user: '{{ Auth::guard("admin")->user()->email ?? "admin@quicksms.com" }}',
+            admin_user: '{{ session("admin_user_email", "admin@quicksms.com") }}',
             timestamp: new Date().toISOString(),
-            ip: '{{ request()->ip() ?? "Unknown" }}',
+            ip: '{{ request()->ip() }}',
             action: action,
             category: category,
             filter_scope: appliedFilters,
