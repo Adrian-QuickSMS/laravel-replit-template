@@ -2958,9 +2958,9 @@ document.addEventListener('DOMContentLoaded', function() {
         additionalContext = additionalContext || {};
 
         var routes = {
-            'client-reporting': '{{ route("admin.reporting.client") }}',
-            'message-logs': '{{ route("admin.reporting.logs") }}',
-            'supplier-reporting': '{{ route("admin.reporting.supplier") }}'
+            'client-reporting': '/admin/reporting/client',
+            'message-logs': '/admin/reporting/logs',
+            'supplier-reporting': '/admin/reporting/supplier'
         };
 
         var url = routes[reportType];
