@@ -1,0 +1,285 @@
+REPLIT PROMPT — SECURITY MODULE (Fillow Template, No Design Drift)
+
+GLOBAL CONTEXT (READ FIRST)
+You are building the **Security module** for the QuickSMS platform.
+
+Hard rules:
+
+* Follow existing **Fillow template design principles** exactly.
+* Reuse existing cards, toggles, dropdowns, pills, banners, and buttons.
+* Do NOT introduce new colours, icons, layouts, or interaction patterns.
+* All changes must emit audit events using the **central Audit Logs specification**.
+* This module is **account-level**, not per-user.
+
+Navigation:
+Management (or Settings) → Security
+Page title: Security
+
+Only **Account Owner** and **Admin** may modify settings.
+
+────────────────────────────────────────
+SECTION 1 — MULTI-FACTOR AUTHENTICATION (MFA)
+────────────────────────────────────────
+Control:
+
+* Toggle: Enable MFA
+
+Default:
+
+* ON for all new accounts
+
+Behaviour:
+
+* When ON:
+
+  * MFA is enforced for all users at login
+* When OFF:
+
+  * Show Fillow-style warning banner:
+    “Disabling MFA reduces account security and is not recommended.”
+
+Constraints:
+
+* Only Account Owner / Admin can change
+* Change must emit audit event:
+
+  * “MFA enabled”
+  * “MFA disabled”
+
+Acceptance:
+
+* Toggle persists after refresh
+* Warning banner only visible when OFF
+* Audit log entry created on change
+
+────────────────────────────────────────
+SECTION 2 — MESSAGE DATA RETENTION
+────────────────────────────────────────
+Control:
+
+* Dropdown: Message log retention period
+
+Options:
+
+* 30 days
+* 60 days (default)
+* 90 days
+* 120 days
+
+Behaviour:
+
+* Applies to:
+
+  * Message Logs
+  * Delivery receipts
+* Does NOT affect:
+
+  * Aggregated reporting
+  * Billing records
+
+Constraints:
+
+* Owner/Admin only
+* Emit audit event:
+
+  * “Retention period changed” (include old + new value)
+
+Acceptance:
+
+* Selected value persists
+* Audit log event emitted
+
+────────────────────────────────────────
+SECTION 3 — DATA VISIBILITY & MASKING
+────────────────────────────────────────
+Controls (toggles):
+
+* Mobile Number (default OFF)
+* Message Content (default ON)
+* Date/Time Sent (default OFF)
+* Date/Time Delivered (default OFF)
+
+Behaviour:
+
+* When OFF:
+
+  * Data is masked or hidden in:
+
+    * Message Logs
+    * Reporting
+    * Exports
+* Applies consistently across UI and exports
+* This is a **visibility control**, not storage encryption
+
+Constraints:
+
+* Owner/Admin only
+* Emit audit event:
+
+  * “Data visibility toggles changed”
+* Never log message content or MSISDNs
+
+Acceptance:
+
+* Toggle changes immediately affect downstream views (mocked)
+* State persists and audits correctly
+
+────────────────────────────────────────
+SECTION 4 — ANTI-SPAM PROTECTION
+────────────────────────────────────────
+Controls:
+
+* Toggle: Enable anti-spam protection (default OFF)
+* If ON, show window dropdown:
+
+  * 2h / 4h / 12h / 24h / 48h
+
+Behaviour:
+
+* Blocks sending identical message content to the same MSISDN within window
+* Applies to:
+
+  * Portal
+  * API
+  * Email-to-SMS
+* Blocked sends:
+
+  * Show inline error
+  * Emit audit event:
+    “Anti-spam blocked send”
+
+Constraints:
+
+* Comparison uses normalised content + recipient
+* Do NOT log message content or phone numbers
+* Emit audit events:
+
+  * “Anti-spam enabled”
+  * “Anti-spam disabled”
+  * “Anti-spam window changed”
+
+Acceptance:
+
+* Blocking behaviour visible in mock send flow
+* Correct audit events created
+
+────────────────────────────────────────
+SECTION 5 — OUT-OF-HOURS SENDING RESTRICTION
+────────────────────────────────────────
+Control:
+
+* Toggle: Restrict out-of-hours sending (default OFF)
+
+Behaviour:
+
+* When ON:
+
+  * Block sends between 21:00–08:00 (account timezone)
+* Applies to:
+
+  * Portal
+  * API
+  * Email-to-SMS
+* Rejection is immediate (not queued)
+
+Constraints:
+
+* Owner/Admin only
+* Emit audit event:
+
+  * “Out-of-hours restriction enabled”
+  * “Out-of-hours restriction disabled”
+
+Acceptance:
+
+* Sends blocked correctly in window
+* Error messaging consistent with platform
+* Audit logged
+
+────────────────────────────────────────
+SECTION 6 — ALLOWED DESTINATION COUNTRIES
+────────────────────────────────────────
+Control:
+
+* Multi-select: Allowed destination countries
+
+Default:
+
+* United Kingdom (Approved)
+
+Behaviour:
+
+* Messages can only be sent to approved countries
+* Selecting a new country sets status:
+
+  * Pending approval
+* Country statuses:
+
+  * Approved
+  * Pending approval
+  * Rejected
+
+Rules:
+
+* Pending/Rejected countries block sending
+* UI must show status clearly using existing Fillow styles
+* No new badge designs
+
+Constraints:
+
+* Approval flow mocked (backend-ready)
+* Emit audit events:
+
+  * “Country list updated”
+  * “Country approval granted”
+  * “Country approval rejected”
+
+Acceptance:
+
+* Pending countries prevent sends
+* Status persists and audits correctly
+
+────────────────────────────────────────
+BACKEND & STATE MANAGEMENT
+────────────────────────────────────────
+Requirements:
+
+* Implement mock services for:
+
+  * Load security settings
+  * Update security settings
+  * Country approval status
+* UI must optimistically update and rollback on error
+* No hardcoded secrets
+
+────────────────────────────────────────
+AUDIT LOGGING (MANDATORY)
+────────────────────────────────────────
+All changes must emit events using the **central Audit Logs spec**.
+
+Required events:
+
+* MFA enabled / disabled
+* Retention period changed
+* Data visibility toggles changed
+* Anti-spam enabled / disabled
+* Out-of-hours restriction enabled / disabled
+* Country list updated
+* Country approval granted / rejected
+
+Rules:
+
+* Never log message content, MSISDNs, or credentials
+* Include actor, timestamp, IP (where applicable)
+
+────────────────────────────────────────
+FINAL ACCEPTANCE CHECKLIST
+────────────────────────────────────────
+
+* UI matches Fillow template exactly
+* No new design patterns introduced
+* Role enforcement works
+* All settings persist
+* Enforcement visible in mock flows
+* Audit events emitted correctly
+* Backend-ready without refactor

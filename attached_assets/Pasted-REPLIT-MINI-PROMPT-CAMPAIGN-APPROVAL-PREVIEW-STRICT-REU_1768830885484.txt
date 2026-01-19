@@ -1,0 +1,106 @@
+REPLIT MINI PROMPT — CAMPAIGN APPROVAL PREVIEW (STRICT REUSE)
+
+GLOBAL CONSTRAINT (NON-NEGOTIABLE)
+Do NOT design, create, style, or modify any preview UI.
+
+The **ONLY permitted preview** is the **existing shared message preview component** already used in:
+
+* Send Message
+* Rich RCS Wizard
+* Templates (Send Message mode)
+
+If a new preview component is introduced, the work is incorrect.
+
+────────────────────────────────────────
+REQUIREMENT — CAMPAIGN APPROVAL PREVIEW
+────────────────────────────────────────
+When a campaign is viewed in the **Campaign Approval workflow**, the approver must see **exactly the same preview** that the creator saw when building the campaign.
+
+Definition of “same preview”:
+
+* Same component
+* Same layout
+* Same phone mock
+* Same spacing
+* Same typography
+* Same bubble widths
+* Same card rendering
+* Same carousel behaviour
+* Same image cropping
+* Same buttons
+* Same fallback logic
+* Same disclaimer handling (e.g. Test Mode)
+
+No visual, behavioural, or structural differences are allowed.
+
+────────────────────────────────────────
+IMPLEMENTATION RULES
+────────────────────────────────────────
+
+1. Reuse the existing shared preview component.
+
+   * Import the same component used by:
+
+     * Send Message
+     * Rich RCS Wizard
+   * Do NOT fork or duplicate code.
+
+2. Preview rendering must be **data-driven only**.
+
+   * Render using the saved campaign payload:
+
+     * Rich RCS: render from stored wizard payload
+     * Basic RCS: render from stored text payload
+     * SMS: render from stored SMS content
+   * No editable state in approval view.
+
+3. Preview mode is **read-only**.
+
+   * No toggles
+   * No edit controls
+   * No preview switching
+   * No debug UI
+
+4. Channel behaviour must match exactly:
+
+   * Rich RCS:
+
+     * Cards, carousel, buttons, media must be pixel-identical to wizard
+   * Basic RCS:
+
+     * Single speech bubble only
+   * SMS:
+
+     * SenderID only (no agent)
+     * Android-style SMS bubble
+     * Input label rules unchanged
+
+────────────────────────────────────────
+WHAT IS EXPLICITLY FORBIDDEN
+────────────────────────────────────────
+
+* Creating a new preview layout
+* Creating a “simplified” preview
+* Creating an “approval-only” preview
+* Changing phone size or aspect ratio
+* Changing colours, borders, shadows, or spacing
+* Introducing icons or labels not present in Send Message preview
+* Wrapping preview in new cards or containers
+
+────────────────────────────────────────
+ACCEPTANCE CRITERIA (STRICT)
+────────────────────────────────────────
+
+* The campaign creator and approver see **visually identical previews**
+* Screenshots from Send Message preview and Approval preview match
+* Preview component is imported, not duplicated
+* Rich RCS previews are pixel-identical
+* SMS previews behave exactly the same
+* No additional preview-related CSS or components added
+
+If any difference is visible between:
+Send Message preview
+vs
+Campaign Approval preview
+
+→ the implementation is incorrect.
