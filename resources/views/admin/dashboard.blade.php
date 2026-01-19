@@ -1794,7 +1794,7 @@
         </div>
     </div>
 
-    <!-- Supplier Route Health - Single full-width tile (simplified per spec) -->
+    <!-- Supplier Route Health - Stacked bar chart like UK Networks -->
     <div class="card" id="supplier-route-health-section">
         <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
             <h5 class="card-title"><i class="fas fa-route me-2 text-primary"></i>Supplier Route Health</h5>
@@ -1802,98 +1802,71 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <!-- Delivery Status Volumes & Percentages -->
+                <!-- Delivery Status by Supplier - Stacked Bar Chart -->
                 <div class="col-lg-8">
-                    <h6 class="mb-3">Delivery Status by Supplier</h6>
-                    <div class="row">
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="widget-stat card">
-                                <div class="card-body p-3">
-                                    <div class="media ai-icon">
-                                        <span class="me-3 bgl-success text-success" style="width:40px;height:40px;">
-                                            <i class="fas fa-check" style="font-size:1rem;"></i>
-                                        </span>
-                                        <div class="media-body">
-                                            <p class="mb-1 small">Delivered</p>
-                                            <h4 class="mb-0" id="supplierDeliveredCount">1,231,654</h4>
-                                            <span class="badge badge-success light small" id="supplierDeliveredPct">98.7%</span>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h6>Delivery by Supplier</h6>
+                            <div class="chart-legend">
+                                <span class="legend-item" style="--color: #10b981;"><span class="legend-dot"></span> Delivered</span>
+                                <span class="legend-item" style="--color: #ef4444;"><span class="legend-dot"></span> Undeliverable</span>
+                                <span class="legend-item" style="--color: #f59e0b;"><span class="legend-dot"></span> Pending</span>
+                                <span class="legend-item" style="--color: #64748b;"><span class="legend-dot"></span> Rejected</span>
+                                <span class="legend-item" style="--color: #6b7280;"><span class="legend-dot"></span> Expired</span>
                             </div>
                         </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="widget-stat card">
-                                <div class="card-body p-3">
-                                    <div class="media ai-icon">
-                                        <span class="me-3 bgl-warning text-warning" style="width:40px;height:40px;">
-                                            <i class="fas fa-clock" style="font-size:1rem;"></i>
-                                        </span>
-                                        <div class="media-body">
-                                            <p class="mb-1 small">Pending</p>
-                                            <h4 class="mb-0" id="supplierPendingCount">8,234</h4>
-                                            <span class="badge badge-warning light small" id="supplierPendingPct">0.7%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="chart-body">
+                            <div id="adminSupplierStackedBarChart" style="min-height: 200px;"></div>
                         </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="widget-stat card">
-                                <div class="card-body p-3">
-                                    <div class="media ai-icon">
-                                        <span class="me-3 bgl-secondary text-secondary" style="width:40px;height:40px;">
-                                            <i class="fas fa-hourglass-end" style="font-size:1rem;"></i>
-                                        </span>
-                                        <div class="media-body">
-                                            <p class="mb-1 small">Expired</p>
-                                            <h4 class="mb-0" id="supplierExpiredCount">4,567</h4>
-                                            <span class="badge badge-secondary light small" id="supplierExpiredPct">0.4%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="widget-stat card">
-                                <div class="card-body p-3">
-                                    <div class="media ai-icon">
-                                        <span class="me-3 bgl-danger text-danger" style="width:40px;height:40px;">
-                                            <i class="fas fa-times" style="font-size:1rem;"></i>
-                                        </span>
-                                        <div class="media-body">
-                                            <p class="mb-1 small">Rejected</p>
-                                            <h4 class="mb-0" id="supplierRejectedCount">3,377</h4>
-                                            <span class="badge badge-danger light small" id="supplierRejectedPct">0.3%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="chart-footer">
+                            <span class="chart-source"><i class="fas fa-database"></i> fact_delivery GROUP BY supplier, status</span>
                         </div>
                     </div>
                 </div>
-                <!-- Response Time Stats -->
+                <!-- Response Time Stats by Supplier -->
                 <div class="col-lg-4">
-                    <h6 class="mb-3">Response Time</h6>
-                    <div class="card">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="text-center flex-fill">
-                                    <p class="mb-1 small text-muted">Average</p>
-                                    <h4 class="mb-0 text-primary" id="supplierAvgResponse">142ms</h4>
-                                </div>
-                                <div class="text-center flex-fill border-start border-end">
-                                    <p class="mb-1 small text-muted">Min</p>
-                                    <h4 class="mb-0 text-success" id="supplierMinResponse">23ms</h4>
-                                </div>
-                                <div class="text-center flex-fill">
-                                    <p class="mb-1 small text-muted">Max</p>
-                                    <h4 class="mb-0 text-danger" id="supplierMaxResponse">892ms</h4>
-                                </div>
-                            </div>
-                            <small class="text-muted d-block text-center"><i class="fas fa-database me-1"></i>fact_delivery.response_time_ms</small>
-                        </div>
+                    <h6 class="mb-3">Response Time by Supplier</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th>Supplier</th>
+                                    <th class="text-center">Avg</th>
+                                    <th class="text-center">Min</th>
+                                    <th class="text-center">Max</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-primary">Infobip</span></td>
+                                    <td class="text-center text-primary fw-bold">128ms</td>
+                                    <td class="text-center text-success">18ms</td>
+                                    <td class="text-center text-danger">645ms</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">Sinch</span></td>
+                                    <td class="text-center text-primary fw-bold">156ms</td>
+                                    <td class="text-center text-success">24ms</td>
+                                    <td class="text-center text-danger">892ms</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-secondary">BT</span></td>
+                                    <td class="text-center text-primary fw-bold">142ms</td>
+                                    <td class="text-center text-success">31ms</td>
+                                    <td class="text-center text-danger">578ms</td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="border-top">
+                                <tr class="fw-bold">
+                                    <td>All Suppliers</td>
+                                    <td class="text-center text-primary">142ms</td>
+                                    <td class="text-center text-success">18ms</td>
+                                    <td class="text-center text-danger">892ms</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
+                    <small class="text-muted d-block text-center"><i class="fas fa-database me-1"></i>fact_delivery.response_time_ms</small>
                 </div>
             </div>
         </div>
@@ -2648,6 +2621,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
             };
             new ApexCharts(countriesChartEl, countriesOptions).render();
+        }
+
+        // Supplier Stacked Bar Chart - Delivery Status by Supplier
+        var supplierChartEl = document.getElementById('adminSupplierStackedBarChart');
+        if (supplierChartEl && typeof ApexCharts !== 'undefined') {
+            supplierChartEl.innerHTML = '';
+            var supplierOptions = {
+                series: [
+                    { name: 'Delivered', data: [523456, 412345, 295853] },
+                    { name: 'Pending', data: [3124, 2891, 2219] },
+                    { name: 'Expired', data: [2345, 1987, 1235] },
+                    { name: 'Rejected', data: [1567, 1234, 576] },
+                    { name: 'Undeliverable', data: [2108, 1893, 1466] }
+                ],
+                chart: { 
+                    type: 'bar', 
+                    height: 180, 
+                    stacked: true,
+                    stackType: '100%',
+                    toolbar: { show: false }, 
+                    fontFamily: 'inherit',
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            var suppliers = ['Infobip', 'Sinch', 'BT'];
+                            var statuses = ['Delivered', 'Pending', 'Expired', 'Rejected', 'Undeliverable'];
+                            drillToReport('message-logs', { 
+                                supplier: suppliers[config.dataPointIndex],
+                                status: statuses[config.seriesIndex]
+                            });
+                        }
+                    }
+                },
+                colors: ['#10b981', '#f59e0b', '#6b7280', '#64748b', '#ef4444'],
+                plotOptions: { 
+                    bar: { 
+                        horizontal: true, 
+                        borderRadius: 2, 
+                        barHeight: '70%'
+                    } 
+                },
+                dataLabels: { enabled: false },
+                xaxis: { 
+                    categories: ['Infobip', 'Sinch', 'BT'],
+                    labels: { show: false }
+                },
+                yaxis: { 
+                    labels: { 
+                        style: { fontSize: '12px', fontWeight: 600 }
+                    } 
+                },
+                legend: { show: false },
+                tooltip: { 
+                    y: { 
+                        formatter: function(val, opts) { 
+                            var total = opts.w.globals.stackedSeriesTotals[opts.dataPointIndex];
+                            var pct = ((val / total) * 100).toFixed(1);
+                            return val.toLocaleString() + ' (' + pct + '%)'; 
+                        } 
+                    } 
+                },
+                grid: { padding: { left: 0, right: 10 } }
+            };
+            new ApexCharts(supplierChartEl, supplierOptions).render();
         }
 
         // UK MNO Stacked Bar Chart - Delivery Status by Network
