@@ -97,6 +97,21 @@
     text-transform: uppercase;
     letter-spacing: 0.025em;
 }
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease;
+}
+.sortable-header:hover {
+    background-color: #f0ebf8;
+}
+.sortable-header .sort-icon {
+    color: #ccc;
+    font-size: 0.7rem;
+}
+.sortable-header .sort-icon.active {
+    color: #886CC0;
+}
 
 .loading-more { 
     text-align: center; 
@@ -403,21 +418,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center">
-                        <span class="text-muted small me-3"><span id="totalFiltered">0</span> events</span>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-sort me-1"></i><span id="currentSortLabel">Newest to Oldest</span>
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-                                <li><a class="dropdown-item active" href="#" data-sort="newest"><i class="fas fa-arrow-down me-2"></i>Newest to Oldest</a></li>
-                                <li><a class="dropdown-item" href="#" data-sort="oldest"><i class="fas fa-arrow-up me-2"></i>Oldest to Newest</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" data-sort="az"><i class="fas fa-sort-alpha-down me-2"></i>A-Z (Action)</a></li>
-                                <li><a class="dropdown-item" href="#" data-sort="za"><i class="fas fa-sort-alpha-up me-2"></i>Z-A (Action)</a></li>
-                            </ul>
-                        </div>
-                    </div>
+                    <span class="text-muted small"><span id="totalFiltered">0</span> events</span>
                     <div class="view-mode-toggle btn-group" role="group" aria-label="View mode">
                         <button type="button" class="btn btn-outline-secondary active" id="paginationModeBtn" title="Pagination view">
                             <i class="fas fa-list"></i> Paginated
@@ -432,12 +433,12 @@
                     <table class="table table-hover mb-0 table-read-only" id="auditLogsTable">
                         <thead class="sticky-top bg-white">
                             <tr>
-                                <th style="width: 150px;">Timestamp</th>
+                                <th style="width: 150px;" class="sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
                                 <th style="width: 100px;">Event ID</th>
-                                <th>Action</th>
-                                <th style="width: 120px;">Category</th>
-                                <th style="width: 90px;">Severity</th>
-                                <th>Actor</th>
+                                <th class="sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 120px;" class="sortable-header" data-sort="category">Category <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 90px;" class="sortable-header" data-sort="severity">Severity <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th class="sortable-header" data-sort="actor">Actor <i class="fas fa-sort ms-1 sort-icon"></i></th>
                                 <th>Target</th>
                                 <th style="width: 110px;">IP Address</th>
                             </tr>
@@ -1556,29 +1557,41 @@ $(document).ready(function() {
         }
     }
 
-    function sortLogs(sortType) {
-        switch (sortType) {
-            case 'newest':
-                filteredLogs.sort(function(a, b) {
-                    return new Date(b.timestamp) - new Date(a.timestamp);
-                });
-                break;
-            case 'oldest':
-                filteredLogs.sort(function(a, b) {
-                    return new Date(a.timestamp) - new Date(b.timestamp);
-                });
-                break;
-            case 'az':
-                filteredLogs.sort(function(a, b) {
-                    return (a.actionLabel || '').localeCompare(b.actionLabel || '');
-                });
-                break;
-            case 'za':
-                filteredLogs.sort(function(a, b) {
-                    return (b.actionLabel || '').localeCompare(a.actionLabel || '');
-                });
-                break;
-        }
+    function sortLogsByColumn(column, direction) {
+        filteredLogs.sort(function(a, b) {
+            var valA, valB;
+            
+            switch (column) {
+                case 'timestamp':
+                    valA = new Date(a.timestamp);
+                    valB = new Date(b.timestamp);
+                    break;
+                case 'action':
+                    valA = (a.actionLabel || '').toLowerCase();
+                    valB = (b.actionLabel || '').toLowerCase();
+                    break;
+                case 'category':
+                    valA = (a.category || '').toLowerCase();
+                    valB = (b.category || '').toLowerCase();
+                    break;
+                case 'severity':
+                    var severityOrder = { 'low': 1, 'medium': 2, 'high': 3, 'critical': 4 };
+                    valA = severityOrder[a.severity] || 0;
+                    valB = severityOrder[b.severity] || 0;
+                    break;
+                case 'actor':
+                    valA = (a.actor && a.actor.userName ? a.actor.userName : '').toLowerCase();
+                    valB = (b.actor && b.actor.userName ? b.actor.userName : '').toLowerCase();
+                    break;
+                default:
+                    valA = a[column] || '';
+                    valB = b[column] || '';
+            }
+            
+            if (valA < valB) return direction === 'asc' ? -1 : 1;
+            if (valA > valB) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
         
         currentPage = 1;
         displayedCount = 0;
@@ -1747,16 +1760,24 @@ $(document).ready(function() {
             setViewMode('infinite');
         });
 
-        $('#sortDropdown').next('.dropdown-menu').on('click', 'a.dropdown-item', function(e) {
-            e.preventDefault();
-            var sortType = $(this).data('sort');
-            var label = $(this).text().trim();
+        var currentSortColumn = 'timestamp';
+        var currentSortDirection = 'desc';
+
+        $('.sortable-header').on('click', function() {
+            var column = $(this).data('sort');
             
-            $('#sortDropdown').next('.dropdown-menu').find('.dropdown-item').removeClass('active');
-            $(this).addClass('active');
-            $('#currentSortLabel').text(label);
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = column === 'timestamp' ? 'desc' : 'asc';
+            }
             
-            sortLogs(sortType);
+            $('.sortable-header .sort-icon').removeClass('fa-sort-up fa-sort-down active').addClass('fa-sort');
+            var icon = $(this).find('.sort-icon');
+            icon.removeClass('fa-sort').addClass(currentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down').addClass('active');
+            
+            sortLogsByColumn(column, currentSortDirection);
         });
 
         $('#loadMoreBtn').on('click', function() {
