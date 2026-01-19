@@ -82,17 +82,17 @@
     transition: all 0.15s ease;
 }
 .btn-approve {
-    background: #16a34a;
-    color: #fff;
+    background: #dcfce7;
+    color: #166534;
     border: none;
 }
-.btn-approve:hover { background: #15803d; color: #fff; }
+.btn-approve:hover { background: #bbf7d0; color: #166534; }
 .btn-reject {
-    background: transparent;
-    color: #dc2626;
-    border: 1px solid #dc2626;
+    background: #fee2e2;
+    color: #991b1b;
+    border: none;
 }
-.btn-reject:hover { background: #dc2626; color: #fff; }
+.btn-reject:hover { background: #fecaca; color: #991b1b; }
 .btn-view {
     background: transparent;
     color: #886cc0;
@@ -251,6 +251,163 @@
     font-size: 0.9rem;
     color: #374151;
     font-weight: 500;
+}
+
+.message-preview-section {
+    margin-top: 1.5rem;
+}
+.message-preview-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.message-preview-title i {
+    color: #886cc0;
+}
+.phone-frame {
+    width: 280px;
+    margin: 0 auto;
+    background: #1f2937;
+    border-radius: 32px;
+    padding: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.phone-screen {
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    height: 480px;
+    display: flex;
+    flex-direction: column;
+}
+.phone-status-bar {
+    background: #f3f4f6;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: #374151;
+}
+.phone-header {
+    background: #886cc0;
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.phone-header-avatar {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+.phone-header-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+.phone-messages {
+    flex: 1;
+    padding: 16px;
+    background: #f9fafb;
+    overflow-y: auto;
+}
+.message-bubble {
+    max-width: 85%;
+    margin-bottom: 12px;
+}
+.message-bubble.incoming {
+    margin-right: auto;
+}
+.message-bubble .bubble-content {
+    background: #fff;
+    border-radius: 16px 16px 16px 4px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #374151;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.message-bubble .bubble-time {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 4px;
+    padding-left: 4px;
+}
+.rcs-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    max-width: 90%;
+}
+.rcs-card-image {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, #f3e8ff 0%, #dbeafe 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #886cc0;
+    font-size: 2rem;
+}
+.rcs-card-content {
+    padding: 12px;
+}
+.rcs-card-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 4px;
+}
+.rcs-card-description {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+.rcs-card-buttons {
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+}
+.rcs-card-button {
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #886cc0;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+.rcs-card-button:last-child {
+    border-bottom: none;
+}
+.channel-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.channel-indicator.sms {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.channel-indicator.rcs {
+    background: #f3e8ff;
+    color: #7c3aed;
 }
 </style>
 @endpush
@@ -432,58 +589,108 @@
 </div>
 
 <div class="modal fade" id="campaignDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-bullhorn me-2" style="color: #886cc0;"></i>Campaign Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="campaign-detail-grid" id="campaign-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Campaign Name</div>
-                        <div class="detail-value" id="detail-name">-</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Sub-Account</div>
-                        <div class="detail-value" id="detail-sub-account">-</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Created By</div>
-                        <div class="detail-value" id="detail-created-by">-</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Message Volume</div>
-                        <div class="detail-value" id="detail-volume">-</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Estimated Cost</div>
-                        <div class="detail-value" id="detail-cost">-</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Scheduled Time</div>
-                        <div class="detail-value" id="detail-scheduled">-</div>
-                    </div>
-                </div>
-                
-                <div class="audit-trail">
-                    <div class="audit-trail-title">
-                        <i class="fas fa-clipboard-list"></i>
-                        Approval Audit Trail
-                    </div>
-                    <div id="audit-entries">
-                        <div class="audit-entry">
-                            <div class="audit-icon submitted"><i class="fas fa-paper-plane"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Submitted for Approval</div>
-                                <div class="audit-meta">by Emma Thompson • Jan 19, 2026 14:30</div>
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="campaign-detail-grid" id="campaign-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Campaign Name</div>
+                                <div class="detail-value" id="detail-name">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Sub-Account</div>
+                                <div class="detail-value" id="detail-sub-account">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Created By</div>
+                                <div class="detail-value" id="detail-created-by">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Message Volume</div>
+                                <div class="detail-value" id="detail-volume">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Estimated Cost</div>
+                                <div class="detail-value" id="detail-cost">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Scheduled Time</div>
+                                <div class="detail-value" id="detail-scheduled">-</div>
                             </div>
                         </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon created"><i class="fas fa-plus"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Campaign Created</div>
-                                <div class="audit-meta">by Emma Thompson • Jan 19, 2026 14:15</div>
+                        
+                        <div class="audit-trail">
+                            <div class="audit-trail-title">
+                                <i class="fas fa-clipboard-list"></i>
+                                Approval Audit Trail
+                            </div>
+                            <div id="audit-entries">
+                                <div class="audit-entry">
+                                    <div class="audit-icon submitted"><i class="fas fa-paper-plane"></i></div>
+                                    <div class="audit-content">
+                                        <div class="audit-action">Submitted for Approval</div>
+                                        <div class="audit-meta">by Emma Thompson • Jan 19, 2026 14:30</div>
+                                    </div>
+                                </div>
+                                <div class="audit-entry">
+                                    <div class="audit-icon created"><i class="fas fa-plus"></i></div>
+                                    <div class="audit-content">
+                                        <div class="audit-action">Campaign Created</div>
+                                        <div class="audit-meta">by Emma Thompson • Jan 19, 2026 14:15</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="message-preview-section">
+                            <div class="message-preview-title">
+                                <i class="fas fa-mobile-alt"></i>
+                                Message Preview
+                            </div>
+                            <div class="text-center mb-3">
+                                <span class="channel-indicator sms" id="preview-channel-badge">
+                                    <i class="fas fa-comment-alt"></i> SMS
+                                </span>
+                            </div>
+                            <div class="phone-frame">
+                                <div class="phone-screen">
+                                    <div class="phone-status-bar">
+                                        <span>09:41</span>
+                                        <span><i class="fas fa-signal me-1"></i><i class="fas fa-wifi me-1"></i><i class="fas fa-battery-full"></i></span>
+                                    </div>
+                                    <div class="phone-header">
+                                        <div class="phone-header-avatar"><i class="fas fa-building"></i></div>
+                                        <div class="phone-header-name" id="preview-sender">QuickSMS</div>
+                                    </div>
+                                    <div class="phone-messages" id="preview-messages">
+                                        <div class="message-bubble incoming" id="sms-preview-bubble">
+                                            <div class="bubble-content" id="preview-content">
+                                                Hi! Don't miss our January Promo - 20% off all products! Use code JAN20 at checkout. Valid until Jan 31. Shop now: quicksms.co/promo
+                                            </div>
+                                            <div class="bubble-time">Just now</div>
+                                        </div>
+                                        <div class="rcs-card" id="rcs-preview-card" style="display: none;">
+                                            <div class="rcs-card-image" id="rcs-card-image">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                            <div class="rcs-card-content">
+                                                <div class="rcs-card-title" id="rcs-card-title">Product Launch</div>
+                                                <div class="rcs-card-description" id="rcs-card-description">Check out our latest product with exclusive launch offer!</div>
+                                            </div>
+                                            <div class="rcs-card-buttons">
+                                                <div class="rcs-card-button" id="rcs-button-1">View Details</div>
+                                                <div class="rcs-card-button" id="rcs-button-2">Shop Now</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -508,6 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
             volume: '5,200 messages',
             cost: '£156.00',
             scheduled: 'Jan 20, 09:00',
+            channel: 'sms',
+            sender: 'QuickSMS',
+            messageContent: "Hi! Don't miss our January Promo - 20% off all products! Use code JAN20 at checkout. Valid until Jan 31. Shop now: quicksms.co/promo",
             audit: [
                 { type: 'submitted', action: 'Submitted for Approval', by: 'Emma Thompson', date: 'Jan 19, 2026 14:30' },
                 { type: 'created', action: 'Campaign Created', by: 'Emma Thompson', date: 'Jan 19, 2026 14:15' }
@@ -520,6 +730,14 @@ document.addEventListener('DOMContentLoaded', function() {
             volume: '3,800 messages',
             cost: '£228.00',
             scheduled: 'Jan 21, 10:00',
+            channel: 'rcs',
+            sender: 'QuickSMS Brand',
+            rcsCard: {
+                title: 'New Product Launch!',
+                description: 'Be the first to experience our revolutionary new product. Exclusive 25% launch discount for early adopters.',
+                button1: 'View Details',
+                button2: 'Shop Now'
+            },
             audit: [
                 { type: 'submitted', action: 'Submitted for Approval', by: 'Michael Brown', date: 'Jan 20, 2026 09:15' },
                 { type: 'created', action: 'Campaign Created', by: 'Michael Brown', date: 'Jan 20, 2026 08:45' }
@@ -532,6 +750,9 @@ document.addEventListener('DOMContentLoaded', function() {
             volume: '1,500 messages',
             cost: '£45.00',
             scheduled: 'Jan 18, 12:00',
+            channel: 'sms',
+            sender: 'ALERTS',
+            messageContent: "FLASH SALE! 50% off everything for the next 4 hours only! Don't miss out - shop now at quicksms.co/flash",
             audit: [
                 { type: 'submitted', action: 'Submitted for Approval', by: 'Chris Martinez', date: 'Jan 17, 2026 16:20' },
                 { type: 'created', action: 'Campaign Created', by: 'Chris Martinez', date: 'Jan 17, 2026 15:30' }
@@ -550,6 +771,29 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('detail-volume').textContent = data.volume;
             document.getElementById('detail-cost').textContent = data.cost;
             document.getElementById('detail-scheduled').textContent = data.scheduled;
+            
+            const channelBadge = document.getElementById('preview-channel-badge');
+            const smsBubble = document.getElementById('sms-preview-bubble');
+            const rcsCard = document.getElementById('rcs-preview-card');
+            
+            document.getElementById('preview-sender').textContent = data.sender || 'QuickSMS';
+            
+            if (data.channel === 'rcs' && data.rcsCard) {
+                channelBadge.className = 'channel-indicator rcs';
+                channelBadge.innerHTML = '<i class="fas fa-comments"></i> RCS';
+                smsBubble.style.display = 'none';
+                rcsCard.style.display = 'block';
+                document.getElementById('rcs-card-title').textContent = data.rcsCard.title;
+                document.getElementById('rcs-card-description').textContent = data.rcsCard.description;
+                document.getElementById('rcs-button-1').textContent = data.rcsCard.button1;
+                document.getElementById('rcs-button-2').textContent = data.rcsCard.button2;
+            } else {
+                channelBadge.className = 'channel-indicator sms';
+                channelBadge.innerHTML = '<i class="fas fa-comment-alt"></i> SMS';
+                smsBubble.style.display = 'block';
+                rcsCard.style.display = 'none';
+                document.getElementById('preview-content').textContent = data.messageContent || 'No message content available';
+            }
             
             const auditHtml = data.audit.map(entry => `
                 <div class="audit-entry">
