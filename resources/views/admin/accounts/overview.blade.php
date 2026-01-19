@@ -13,6 +13,25 @@
 .kpi-tile-row .widget-stat .card-body { padding: 1rem; }
 .kpi-tile-row .widget-stat h4 { font-size: 1.5rem; margin-bottom: 0; }
 .kpi-tile-row .widget-stat p { font-size: 0.8rem; margin-bottom: 0.25rem; }
+
+/* Hierarchy Tree Styles */
+.hierarchy-tree { font-size: 0.9rem; }
+.tree-node { position: relative; padding-left: 1.5rem; }
+.tree-node::before { content: ''; position: absolute; left: 0.5rem; top: 0; bottom: 0; width: 1px; background: #dee2e6; }
+.tree-node:last-child::before { height: 1.25rem; }
+.tree-item { position: relative; padding: 0.5rem 0.75rem; margin-bottom: 0.25rem; border-radius: 4px; cursor: pointer; transition: background-color 0.15s; }
+.tree-item::before { content: ''; position: absolute; left: -1rem; top: 1.25rem; width: 1rem; height: 1px; background: #dee2e6; }
+.tree-item:hover { background-color: #f8f9fa; }
+.tree-item.selected { background-color: #e3f2fd; border: 1px solid #1e3a5f; }
+.tree-item.main-account { font-weight: 600; background-color: #f8f9fa; border: 1px solid #dee2e6; }
+.tree-item.main-account::before { display: none; }
+.tree-toggle { cursor: pointer; user-select: none; margin-right: 0.25rem; font-size: 0.75rem; color: #6c757d; }
+.tree-toggle:hover { color: #1e3a5f; }
+.tree-children { display: block; }
+.tree-children.collapsed { display: none; }
+.tree-node-name { display: inline-block; }
+.tree-node-badges { display: inline-block; margin-left: 0.5rem; }
+.tree-node-badges .badge { font-size: 0.7rem; padding: 0.2rem 0.4rem; }
 </style>
 @endpush
 
@@ -423,17 +442,35 @@
 
 <!-- Account Structure Modal -->
 <div class="modal fade" id="accountStructureModal" tabindex="-1" aria-labelledby="accountStructureModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="accountStructureModalLabel">Account Hierarchy</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="accountStructureContent">
-                <!-- Content populated by JavaScript -->
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Left Panel - Hierarchy Tree -->
+                    <div class="col-md-5 border-end" style="max-height: 500px; overflow-y: auto;">
+                        <div class="p-3">
+                            <h6 class="text-muted mb-3">Hierarchy Tree</h6>
+                            <div id="hierarchyTree" class="hierarchy-tree">
+                                <!-- Tree populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Panel - Selected Node Details -->
+                    <div class="col-md-7" style="max-height: 500px; overflow-y: auto;">
+                        <div class="p-3" id="nodeDetailsPanel">
+                            <div class="text-center text-muted py-5">
+                                <p>Select a node to view details</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <span class="text-muted small me-auto">Read-only view</span>
+                <span class="text-muted small me-auto">Read-only view - No inline editing</span>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -507,117 +544,204 @@ window.impersonateAccount = function(accountId) {
 };
 
 var accountStructureModal = null;
+var currentHierarchyData = null;
 
 window.openAccountStructure = function(accountId, accountName) {
     if (!accountStructureModal) {
         accountStructureModal = new bootstrap.Modal(document.getElementById('accountStructureModal'));
     }
 
-    // Update modal title
-    document.getElementById('accountStructureModalLabel').textContent = 'Account Hierarchy: ' + accountName;
+    document.getElementById('accountStructureModalLabel').textContent = 'Account Structure — ' + accountName;
 
-    // Mock hierarchy data - in production would come from API
+    // Mock hierarchy data
     var hierarchyData = {
         'ACC-1234': {
-            main: { name: 'Acme Corporation', id: 'ACC-1234', status: 'Live', type: 'Enterprise' },
+            main: { name: 'Acme Corporation', id: 'ACC-1234', status: 'Active', type: 'Enterprise', created: 'Jan 15, 2024', balance: '£5,420' },
             subAccounts: [
-                { name: 'Acme Marketing', id: 'SUB-001', status: 'Active', users: 5 },
-                { name: 'Acme Sales', id: 'SUB-002', status: 'Active', users: 12 },
-                { name: 'Acme Support', id: 'SUB-003', status: 'Active', users: 8 }
+                { 
+                    name: 'Acme Marketing', id: 'SUB-001', status: 'Active', 
+                    users: [
+                        { name: 'Sarah Wilson', email: 's.wilson@acme.com', role: 'Admin', status: 'Active' },
+                        { name: 'Tom Brown', email: 't.brown@acme.com', role: 'Messaging Manager', status: 'Active' },
+                        { name: 'Lisa Green', email: 'l.green@acme.com', role: 'Read-Only', status: 'Active' }
+                    ]
+                },
+                { 
+                    name: 'Acme Sales', id: 'SUB-002', status: 'Active',
+                    users: [
+                        { name: 'James Miller', email: 'j.miller@acme.com', role: 'Admin', status: 'Active' },
+                        { name: 'Emma Davis', email: 'e.davis@acme.com', role: 'Messaging Manager', status: 'Active' }
+                    ]
+                },
+                { 
+                    name: 'Acme Support', id: 'SUB-003', status: 'Suspended',
+                    users: [
+                        { name: 'Chris Taylor', email: 'c.taylor@acme.com', role: 'Finance', status: 'Suspended' }
+                    ]
+                }
             ],
-            users: [
+            mainUsers: [
                 { name: 'John Smith', email: 'j.smith@acme.com', role: 'Account Owner', status: 'Active' },
                 { name: 'Jane Doe', email: 'j.doe@acme.com', role: 'Admin', status: 'Active' }
             ]
         },
         'ACC-5678': {
-            main: { name: 'Finance Ltd', id: 'ACC-5678', status: 'Live', type: 'Enterprise' },
+            main: { name: 'Finance Ltd', id: 'ACC-5678', status: 'Active', type: 'Enterprise', created: 'Mar 02, 2024', balance: '£12,100' },
             subAccounts: [
-                { name: 'Finance Retail', id: 'SUB-101', status: 'Active', users: 3 }
+                { 
+                    name: 'Finance Retail', id: 'SUB-101', status: 'Active',
+                    users: [
+                        { name: 'Alex Johnson', email: 'a.johnson@finance.com', role: 'Messaging Manager', status: 'Active' }
+                    ]
+                }
             ],
-            users: [
+            mainUsers: [
                 { name: 'Mike Johnson', email: 'm.johnson@finance.com', role: 'Account Owner', status: 'Active' }
             ]
         }
     };
 
-    var data = hierarchyData[accountId] || {
-        main: { name: accountName, id: accountId, status: 'Live', type: 'SMB' },
+    currentHierarchyData = hierarchyData[accountId] || {
+        main: { name: accountName, id: accountId, status: 'Active', type: 'SMB', created: 'Jan 2026', balance: '£0' },
         subAccounts: [],
-        users: [{ name: 'Primary User', email: 'user@example.com', role: 'Account Owner', status: 'Active' }]
+        mainUsers: [{ name: 'Primary User', email: 'user@example.com', role: 'Account Owner', status: 'Active' }]
     };
 
-    var html = '<div class="account-hierarchy">';
-    
-    // Main Account
-    html += '<div class="hierarchy-section mb-4">';
-    html += '<h6 class="text-muted mb-3">Main Account</h6>';
-    html += '<div class="card bg-light">';
-    html += '<div class="card-body py-3">';
-    html += '<div class="d-flex justify-content-between align-items-center">';
-    html += '<div>';
-    html += '<strong>' + data.main.name + '</strong>';
-    html += '<div class="text-muted small">' + data.main.id + '</div>';
-    html += '</div>';
-    html += '<div>';
-    html += '<span class="badge light badge-' + (data.main.status === 'Live' ? 'success' : 'info') + '">' + data.main.status + '</span> ';
-    html += '<span class="badge light badge-secondary">' + data.main.type + '</span>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-
-    // Sub-Accounts
-    html += '<div class="hierarchy-section mb-4">';
-    html += '<h6 class="text-muted mb-3">Sub-Accounts (' + data.subAccounts.length + ')</h6>';
-    if (data.subAccounts.length > 0) {
-        html += '<div class="table-responsive">';
-        html += '<table class="table table-sm table-bordered mb-0">';
-        html += '<thead><tr><th>Name</th><th>ID</th><th>Status</th><th>Users</th></tr></thead>';
-        html += '<tbody>';
-        data.subAccounts.forEach(function(sub) {
-            html += '<tr>';
-            html += '<td>' + sub.name + '</td>';
-            html += '<td class="text-muted">' + sub.id + '</td>';
-            html += '<td><span class="badge light badge-success">' + sub.status + '</span></td>';
-            html += '<td>' + sub.users + '</td>';
-            html += '</tr>';
-        });
-        html += '</tbody></table></div>';
-    } else {
-        html += '<p class="text-muted mb-0">No sub-accounts</p>';
-    }
-    html += '</div>';
-
-    // Users
-    html += '<div class="hierarchy-section">';
-    html += '<h6 class="text-muted mb-3">Users (' + data.users.length + ')</h6>';
-    html += '<div class="table-responsive">';
-    html += '<table class="table table-sm table-bordered mb-0">';
-    html += '<thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>';
-    html += '<tbody>';
-    data.users.forEach(function(user) {
-        html += '<tr>';
-        html += '<td>' + user.name + '</td>';
-        html += '<td class="text-muted">' + user.email + '</td>';
-        html += '<td><span class="badge light badge-primary">' + user.role + '</span></td>';
-        html += '<td><span class="badge light badge-success">' + user.status + '</span></td>';
-        html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-    html += '</div>';
-
-    html += '</div>';
-
-    document.getElementById('accountStructureContent').innerHTML = html;
+    renderHierarchyTree();
+    document.getElementById('nodeDetailsPanel').innerHTML = '<div class="text-center text-muted py-5"><p>Select a node to view details</p></div>';
     accountStructureModal.show();
 
-    // Audit log
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('ACCOUNT_STRUCTURE_VIEWED', 'ACCOUNTS', { accountId: accountId });
     }
 };
+
+function renderHierarchyTree() {
+    var data = currentHierarchyData;
+    var html = '';
+
+    // Main Account Node
+    html += '<div class="tree-item main-account" onclick="selectNode(\'main\', null)">';
+    html += '<span class="tree-node-name">' + data.main.name + '</span>';
+    html += '<span class="tree-node-badges">';
+    html += '<span class="badge light badge-' + (data.main.status === 'Active' ? 'success' : 'danger') + '">' + data.main.status + '</span>';
+    html += '</span>';
+    html += '</div>';
+
+    // Main Account Users
+    if (data.mainUsers && data.mainUsers.length > 0) {
+        html += '<div class="tree-node">';
+        data.mainUsers.forEach(function(user, idx) {
+            html += '<div class="tree-item" onclick="selectNode(\'main-user\', ' + idx + ')">';
+            html += '<span class="tree-node-name">' + user.name + '</span>';
+            html += '<span class="tree-node-badges">';
+            html += '<span class="badge light badge-' + (user.status === 'Active' ? 'success' : 'warning') + '">' + user.status + '</span>';
+            html += '<span class="badge light badge-primary">' + user.role + '</span>';
+            html += '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    // Sub-Accounts
+    if (data.subAccounts && data.subAccounts.length > 0) {
+        data.subAccounts.forEach(function(sub, subIdx) {
+            html += '<div class="tree-node">';
+            html += '<div class="tree-item" onclick="selectNode(\'sub\', ' + subIdx + ')">';
+            html += '<span class="tree-toggle" onclick="event.stopPropagation(); toggleTreeNode(this);">▼</span>';
+            html += '<span class="tree-node-name">' + sub.name + '</span>';
+            html += '<span class="tree-node-badges">';
+            html += '<span class="badge light badge-' + (sub.status === 'Active' ? 'success' : 'danger') + '">' + sub.status + '</span>';
+            html += '</span>';
+            html += '</div>';
+
+            // Sub-Account Users
+            if (sub.users && sub.users.length > 0) {
+                html += '<div class="tree-children">';
+                sub.users.forEach(function(user, userIdx) {
+                    html += '<div class="tree-node">';
+                    html += '<div class="tree-item" onclick="selectNode(\'sub-user\', {sub: ' + subIdx + ', user: ' + userIdx + '})">';
+                    html += '<span class="tree-node-name">' + user.name + '</span>';
+                    html += '<span class="tree-node-badges">';
+                    html += '<span class="badge light badge-' + (user.status === 'Active' ? 'success' : 'warning') + '">' + user.status + '</span>';
+                    html += '<span class="badge light badge-primary">' + user.role + '</span>';
+                    html += '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+        });
+    }
+
+    document.getElementById('hierarchyTree').innerHTML = html;
+}
+
+window.toggleTreeNode = function(toggle) {
+    var parent = toggle.closest('.tree-item').nextElementSibling;
+    if (parent && parent.classList.contains('tree-children')) {
+        parent.classList.toggle('collapsed');
+        toggle.textContent = parent.classList.contains('collapsed') ? '▶' : '▼';
+    }
+};
+
+window.selectNode = function(type, index) {
+    // Clear previous selection
+    document.querySelectorAll('.tree-item.selected').forEach(function(el) {
+        el.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+
+    var data = currentHierarchyData;
+    var html = '';
+
+    if (type === 'main') {
+        html = renderMainAccountDetails(data.main);
+    } else if (type === 'main-user') {
+        html = renderUserDetails(data.mainUsers[index], data.main.name);
+    } else if (type === 'sub') {
+        html = renderSubAccountDetails(data.subAccounts[index]);
+    } else if (type === 'sub-user') {
+        var sub = data.subAccounts[index.sub];
+        html = renderUserDetails(sub.users[index.user], sub.name);
+    }
+
+    document.getElementById('nodeDetailsPanel').innerHTML = html;
+};
+
+function renderMainAccountDetails(account) {
+    return '<h6 class="mb-3">Main Account Details</h6>' +
+        '<table class="table table-sm">' +
+        '<tr><th class="text-muted" style="width:40%">Name</th><td>' + account.name + '</td></tr>' +
+        '<tr><th class="text-muted">Account ID</th><td>' + account.id + '</td></tr>' +
+        '<tr><th class="text-muted">Status</th><td><span class="badge light badge-' + (account.status === 'Active' ? 'success' : 'danger') + '">' + account.status + '</span></td></tr>' +
+        '<tr><th class="text-muted">Type</th><td>' + account.type + '</td></tr>' +
+        '<tr><th class="text-muted">Created</th><td>' + account.created + '</td></tr>' +
+        '<tr><th class="text-muted">Balance</th><td>' + account.balance + '</td></tr>' +
+        '</table>';
+}
+
+function renderSubAccountDetails(sub) {
+    return '<h6 class="mb-3">Sub-Account Details</h6>' +
+        '<table class="table table-sm">' +
+        '<tr><th class="text-muted" style="width:40%">Name</th><td>' + sub.name + '</td></tr>' +
+        '<tr><th class="text-muted">Sub-Account ID</th><td>' + sub.id + '</td></tr>' +
+        '<tr><th class="text-muted">Status</th><td><span class="badge light badge-' + (sub.status === 'Active' ? 'success' : 'danger') + '">' + sub.status + '</span></td></tr>' +
+        '<tr><th class="text-muted">Users</th><td>' + sub.users.length + '</td></tr>' +
+        '</table>';
+}
+
+function renderUserDetails(user, parentName) {
+    return '<h6 class="mb-3">User Details</h6>' +
+        '<table class="table table-sm">' +
+        '<tr><th class="text-muted" style="width:40%">Name</th><td>' + user.name + '</td></tr>' +
+        '<tr><th class="text-muted">Email</th><td>' + user.email + '</td></tr>' +
+        '<tr><th class="text-muted">Role</th><td><span class="badge light badge-primary">' + user.role + '</span></td></tr>' +
+        '<tr><th class="text-muted">Status</th><td><span class="badge light badge-' + (user.status === 'Active' ? 'success' : 'warning') + '">' + user.status + '</span></td></tr>' +
+        '<tr><th class="text-muted">Parent</th><td>' + parentName + '</td></tr>' +
+        '</table>';
+}
 
 function filterTable(filter) {
     var rows = document.querySelectorAll('#accountsTable tbody tr');
