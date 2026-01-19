@@ -1374,20 +1374,6 @@
         </div>
     </div>
 
-    <div class="info-strip">
-        <div class="rules">
-            <div class="rule-item"><i class="fas fa-database"></i> Warehouse API</div>
-            <div class="rule-item"><i class="fas fa-equals"></i> Same definitions</div>
-            <div class="rule-item"><i class="fas fa-ban"></i> No UI derivation</div>
-            <div class="rule-item"><i class="fas fa-clock"></i> 5-10min cache</div>
-        </div>
-        <div class="scope-items">
-            <span class="scope-item">All Clients</span>
-            <span class="scope-item">Portal + API + E2S + Int.</span>
-            <span class="scope-item">SMS + RCS</span>
-            <span class="scope-item">UK + Intl</span>
-        </div>
-    </div>
 
     <!-- Global Filters - Matching customer portal pattern: button only, no card wrapper -->
     <div class="row mb-3" id="global-filters-section">
