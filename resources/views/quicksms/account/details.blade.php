@@ -482,17 +482,8 @@
     </ol>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="highlight-box">
-            <h6><i class="fas fa-database me-2"></i>Account Information Centre</h6>
-            <p>This is the authoritative source for your company information. Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing, VAT handling, Support tickets, and Compliance records.</p>
-        </div>
-    </div>
-</div>
-
 <!-- Tabs Navigation -->
-<ul class="nav nav-tabs mb-4" id="accountTabs" role="tablist">
+<ul class="nav nav-tabs" id="accountTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#detailsContent" type="button" role="tab" aria-controls="detailsContent" aria-selected="true">
             <i class="fas fa-building me-2"></i>Details
@@ -509,8 +500,18 @@
 <div class="tab-content" id="accountTabsContent">
     <!-- Details Tab -->
     <div class="tab-pane fade show active" id="detailsContent" role="tabpanel" aria-labelledby="details-tab">
-        <div class="row">
-            <div class="col-lg-12">
+        <div class="card border-top-0 rounded-top-0">
+            <div class="card-body">
+                <div class="alert alert-pastel-primary mb-4">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                        <div>
+                            <strong>Account Information Centre</strong>
+                            <p class="mb-0 mt-1 small">This is the authoritative source for your company information. Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing, VAT handling, Support tickets, and Compliance records.</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="accordion accordion-primary" id="accountDetailsAccordion">
             
             <div class="accordion-item">
@@ -998,13 +999,15 @@
                 </div>
             </div>
             
+                </div>
+            </div>
         </div>
-    </div>
-</div>
     </div>
     
     <!-- Pricing Tab -->
     <div class="tab-pane fade" id="pricingContent" role="tabpanel" aria-labelledby="pricing-tab">
+        <div class="card border-top-0 rounded-top-0">
+            <div class="card-body">
         @php
             // Permission check - only Admin/Owner can view pricing
             $canViewPricing = true; // TODO: Replace with auth check: auth()->user()->hasRole(['admin', 'owner'])
@@ -1294,14 +1297,20 @@
         
         <div class="row mt-4">
             <div class="col-12">
-                <div class="alert alert-light border small">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
-                    <strong>Note:</strong> Pricing shown is from HubSpot and reflects your current agreement. VAT is applied separately on invoices where applicable. For pricing changes, please contact your account manager.
+                <div class="alert alert-pastel-primary small">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle text-primary me-2 mt-1"></i>
+                        <div>
+                            <strong>Note:</strong> Pricing shown is from HubSpot and reflects your current agreement. VAT is applied separately on invoices where applicable. For pricing changes, please contact your account manager.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
             </div>
         @endif
+            </div>
+        </div>
     </div>
 </div>
 @endsection
