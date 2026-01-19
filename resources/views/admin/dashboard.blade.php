@@ -2618,6 +2618,95 @@ document.addEventListener('DOMContentLoaded', function() {
             supplierPricingModal.hide();
         }
     };
+
+    // Initialize Charts with Mock Data
+    initializeAdminCharts();
+    
+    function initializeAdminCharts() {
+        // Messages Sent Over Time - Line Chart
+        var volumeChartEl = document.getElementById('adminVolumeLineChart');
+        if (volumeChartEl && typeof ApexCharts !== 'undefined') {
+            volumeChartEl.innerHTML = '';
+            var volumeOptions = {
+                series: [
+                    { name: 'Sent', data: [45000, 52000, 48000, 61000, 58000, 72000, 68000, 75000, 82000, 78000, 85000, 92000] },
+                    { name: 'Delivered', data: [44100, 50960, 47040, 59780, 56840, 70560, 66640, 73500, 80360, 76440, 83300, 90160] },
+                    { name: 'Undelivered', data: [900, 1040, 960, 1220, 1160, 1440, 1360, 1500, 1640, 1560, 1700, 1840] }
+                ],
+                chart: { type: 'area', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+                colors: ['#4a90d9', '#10b981', '#ef4444'],
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.1 } },
+                dataLabels: { enabled: false },
+                xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+                yaxis: { labels: { formatter: function(val) { return (val / 1000).toFixed(0) + 'K'; } } },
+                legend: { position: 'top', horizontalAlign: 'right' },
+                tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
+            };
+            new ApexCharts(volumeChartEl, volumeOptions).render();
+        }
+
+        // Delivery Status Breakdown - Donut Chart
+        var deliveryChartEl = document.getElementById('adminDeliveryStatusPieChart');
+        if (deliveryChartEl && typeof ApexCharts !== 'undefined') {
+            deliveryChartEl.innerHTML = '';
+            var deliveryOptions = {
+                series: [1231654, 8234, 4567, 3377],
+                chart: { type: 'donut', height: 200, fontFamily: 'inherit' },
+                labels: ['Delivered', 'Pending', 'Expired', 'Rejected'],
+                colors: ['#10b981', '#f59e0b', '#6b7280', '#ef4444'],
+                plotOptions: { pie: { donut: { size: '60%', labels: { show: true, total: { show: true, label: 'Total', formatter: function(w) { return w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString(); } } } } } },
+                dataLabels: { enabled: false },
+                legend: { position: 'bottom', fontSize: '11px' }
+            };
+            new ApexCharts(deliveryChartEl, deliveryOptions).render();
+        }
+
+        // Top SenderIDs List
+        var senderIdsList = document.getElementById('adminTopSenderIdsList');
+        if (senderIdsList) {
+            var mockSenderIds = [
+                { name: 'ACME Corp', sent: 245892, delivered: 98.2 },
+                { name: 'TechStart', sent: 189234, delivered: 97.8 },
+                { name: 'HealthPlus', sent: 156789, delivered: 99.1 },
+                { name: 'BankSecure', sent: 134567, delivered: 98.9 },
+                { name: 'RetailMax', sent: 98234, delivered: 97.5 }
+            ];
+            var html = mockSenderIds.map(function(s, i) {
+                var statusClass = s.delivered >= 98 ? 'badge-success' : (s.delivered >= 95 ? 'badge-warning' : 'badge-danger');
+                return '<div class="d-flex justify-content-between align-items-center py-2 ' + (i < mockSenderIds.length - 1 ? 'border-bottom' : '') + '">' +
+                    '<div><span class="badge bg-light text-dark me-2">' + (i + 1) + '</span><strong>' + s.name + '</strong></div>' +
+                    '<div class="text-end"><span class="text-muted me-3">' + s.sent.toLocaleString() + '</span><span class="badge ' + statusClass + ' light">' + s.delivered + '%</span></div></div>';
+            }).join('');
+            senderIdsList.innerHTML = html;
+            document.getElementById('adminTopSenderIdsStats')?.classList.remove('d-none');
+            var statSent = document.getElementById('adminSenderIdStatSent');
+            var statDelivered = document.getElementById('adminSenderIdStatDelivered');
+            var statRate = document.getElementById('adminSenderIdStatRate');
+            if (statSent) statSent.textContent = '824.7K';
+            if (statDelivered) statDelivered.textContent = '812.1K';
+            if (statRate) statRate.textContent = '98.5%';
+        }
+
+        // Top Countries Bar Chart
+        var countriesChartEl = document.getElementById('adminTopCountriesBarChart');
+        if (countriesChartEl && typeof ApexCharts !== 'undefined') {
+            countriesChartEl.innerHTML = '';
+            var countriesOptions = {
+                series: [{ name: 'Messages', data: [892145, 124567, 89234, 56789, 45123, 34567, 23456, 18234, 12345, 9876] }],
+                chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+                colors: ['#4a90d9'],
+                plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
+                dataLabels: { enabled: true, formatter: function(val) { return (val / 1000).toFixed(0) + 'K'; }, style: { fontSize: '11px' }, offsetX: 5 },
+                xaxis: { categories: ['United Kingdom', 'Ireland', 'Germany', 'France', 'Spain', 'Italy', 'Netherlands', 'Belgium', 'Portugal', 'Poland'] },
+                yaxis: { labels: { style: { fontSize: '11px' } } },
+                tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
+            };
+            new ApexCharts(countriesChartEl, countriesOptions).render();
+        }
+
+        console.log('[Admin Dashboard] All charts initialized with mock data');
+    }
 });
 </script>
 @endpush
