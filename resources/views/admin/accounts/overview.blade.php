@@ -442,6 +442,73 @@
     </div>
 </div>
 
+<!-- Enforcement Controls Modal -->
+<div class="modal fade" id="enforcementModal" tabindex="-1" aria-labelledby="enforcementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="enforcementModalLabel">Edit Enforcement Controls</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Changes apply immediately. Notifications will be sent to sub-account and main account admins.
+                </div>
+                <input type="hidden" id="enforcementSubId">
+                <input type="hidden" id="enforcementPrevSpend">
+                <input type="hidden" id="enforcementPrevMsg">
+                <input type="hidden" id="enforcementPrevType">
+                
+                <div class="mb-3">
+                    <label class="form-label">Sub-Account</label>
+                    <input type="text" class="form-control" id="enforcementSubName" readonly>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Monthly Spend Cap (£)</label>
+                    <input type="number" class="form-control" id="enforcementSpendCap" min="0" step="100" placeholder="e.g., 5000">
+                    <small class="text-muted">Set to 0 for unlimited</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Monthly Message Cap</label>
+                    <input type="number" class="form-control" id="enforcementMsgCap" min="0" step="1000" placeholder="e.g., 100000">
+                    <small class="text-muted">Set to 0 for unlimited</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Enforcement Type</label>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="enforcementType" id="enfTypeWarn" value="Warn Only">
+                        <label class="form-check-label" for="enfTypeWarn">
+                            <strong>Warn Only</strong>
+                            <div class="text-muted small">Send notifications when limits are approached, but allow continued sending</div>
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="enforcementType" id="enfTypeBlock" value="Block Sends">
+                        <label class="form-check-label" for="enfTypeBlock">
+                            <strong>Block Sends</strong>
+                            <div class="text-muted small">Block new messages when limit is reached, existing queued messages proceed</div>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="enforcementType" id="enfTypeHard" value="Hard Stop">
+                        <label class="form-check-label" for="enfTypeHard">
+                            <strong>Hard Stop</strong>
+                            <div class="text-muted small">Immediately halt all messaging including queued messages</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveEnforcement()">Save & Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Row Action Confirmation Modal -->
 <div class="modal fade" id="rowActionModal" tabindex="-1" aria-labelledby="rowActionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -761,16 +828,21 @@ function renderSubAccountDetails(sub) {
     var msgCap = sub.msgCap || 100000;
     var spendPct = Math.round((spendUsed / spendCap) * 100);
     var msgPct = Math.round((msgUsed / msgCap) * 100);
+    var enforcementType = sub.enforcementType || 'Warn Only';
+    var enforcementClass = enforcementType === 'Hard Stop' ? 'danger' : enforcementType === 'Block Sends' ? 'warning' : 'info';
 
     return '<h6 class="mb-3">Sub-Account</h6>' +
         '<table class="table table-sm mb-3">' +
         '<tr><th class="text-muted" style="width:45%">Status</th><td><span class="badge light badge-' + (sub.status === 'Active' ? 'success' : 'danger') + '">' + sub.status + '</span></td></tr>' +
         '</table>' +
-        '<h6 class="text-muted mb-2" style="font-size:0.85rem;">Enforcement Summary</h6>' +
+        '<div class="d-flex justify-content-between align-items-center mb-2">' +
+        '<h6 class="text-muted mb-0" style="font-size:0.85rem;">Enforcement Controls</h6>' +
+        '<button class="btn btn-outline-primary btn-xs" onclick="editEnforcement(\'' + sub.id + '\', \'' + sub.name + '\', ' + spendCap + ', ' + msgCap + ', \'' + enforcementType + '\')"><i class="fas fa-edit me-1"></i>Edit</button>' +
+        '</div>' +
         '<table class="table table-sm mb-3">' +
         '<tr><th class="text-muted" style="width:45%">Monthly Spend Cap</th><td>£' + spendCap.toLocaleString() + '</td></tr>' +
         '<tr><th class="text-muted">Monthly Message Cap</th><td>' + msgCap.toLocaleString() + '</td></tr>' +
-        '<tr><th class="text-muted">Enforcement Type</th><td><span class="badge light badge-warning">' + (sub.enforcementType || 'Warn Only') + '</span></td></tr>' +
+        '<tr><th class="text-muted">Enforcement Type</th><td><span class="badge light badge-' + enforcementClass + '">' + enforcementType + '</span></td></tr>' +
         '</table>' +
         '<h6 class="text-muted mb-2" style="font-size:0.85rem;">Usage vs Limits</h6>' +
         '<div class="mb-2"><small class="text-muted">Spend: £' + spendUsed.toLocaleString() + ' / £' + spendCap.toLocaleString() + '</small>' +
@@ -805,6 +877,93 @@ window.manageSubAccount = function(subId) {
         AdminControlPlane.logAdminAction('SUB_ACCOUNT_MANAGE_CLICKED', 'ACCOUNTS', { subAccountId: subId });
     }
     alert('Navigate to Sub-account management: ' + subId);
+};
+
+var enforcementModal = null;
+
+window.editEnforcement = function(subId, subName, spendCap, msgCap, enfType) {
+    if (!enforcementModal) {
+        enforcementModal = new bootstrap.Modal(document.getElementById('enforcementModal'));
+    }
+
+    document.getElementById('enforcementModalLabel').textContent = 'Edit Enforcement Controls — ' + subName;
+    document.getElementById('enforcementSubId').value = subId;
+    document.getElementById('enforcementSubName').value = subName;
+    document.getElementById('enforcementSpendCap').value = spendCap;
+    document.getElementById('enforcementMsgCap').value = msgCap;
+    document.getElementById('enforcementPrevSpend').value = spendCap;
+    document.getElementById('enforcementPrevMsg').value = msgCap;
+    document.getElementById('enforcementPrevType').value = enfType;
+
+    // Set the correct radio button
+    document.getElementById('enfTypeWarn').checked = (enfType === 'Warn Only');
+    document.getElementById('enfTypeBlock').checked = (enfType === 'Block Sends');
+    document.getElementById('enfTypeHard').checked = (enfType === 'Hard Stop');
+
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ENFORCEMENT_EDIT_OPENED', 'ACCOUNTS', { subAccountId: subId, subAccountName: subName });
+    }
+
+    enforcementModal.show();
+};
+
+window.saveEnforcement = function() {
+    var subId = document.getElementById('enforcementSubId').value;
+    var subName = document.getElementById('enforcementSubName').value;
+    var newSpendCap = parseInt(document.getElementById('enforcementSpendCap').value) || 0;
+    var newMsgCap = parseInt(document.getElementById('enforcementMsgCap').value) || 0;
+    var newEnfType = document.querySelector('input[name="enforcementType"]:checked')?.value;
+
+    var prevSpendCap = parseInt(document.getElementById('enforcementPrevSpend').value) || 0;
+    var prevMsgCap = parseInt(document.getElementById('enforcementPrevMsg').value) || 0;
+    var prevEnfType = document.getElementById('enforcementPrevType').value;
+
+    if (!newEnfType) {
+        alert('Please select an enforcement type.');
+        return;
+    }
+
+    // Build change summary for audit
+    var changes = [];
+    if (newSpendCap !== prevSpendCap) {
+        changes.push('Spend Cap: £' + prevSpendCap.toLocaleString() + ' → £' + newSpendCap.toLocaleString());
+    }
+    if (newMsgCap !== prevMsgCap) {
+        changes.push('Message Cap: ' + prevMsgCap.toLocaleString() + ' → ' + newMsgCap.toLocaleString());
+    }
+    if (newEnfType !== prevEnfType) {
+        changes.push('Enforcement Type: ' + prevEnfType + ' → ' + newEnfType);
+    }
+
+    if (changes.length === 0) {
+        alert('No changes were made.');
+        enforcementModal.hide();
+        return;
+    }
+
+    // Log to audit trail with before/after
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ENFORCEMENT_CONTROLS_UPDATED', 'ACCOUNTS', { 
+            subAccountId: subId,
+            subAccountName: subName,
+            previous: {
+                spendCap: prevSpendCap,
+                msgCap: prevMsgCap,
+                enforcementType: prevEnfType
+            },
+            new: {
+                spendCap: newSpendCap,
+                msgCap: newMsgCap,
+                enforcementType: newEnfType
+            },
+            changesSummary: changes,
+            notificationsSent: ['sub_account_admins', 'main_account_admins'],
+            appliedImmediately: true
+        });
+    }
+
+    alert('Enforcement controls updated for ' + subName + '.\n\nChanges:\n• ' + changes.join('\n• ') + '\n\nNotifications sent to sub-account and main account admins.');
+    enforcementModal.hide();
 };
 
 window.viewUserDetails = function(email) {
