@@ -1,0 +1,102 @@
+ADMIN DASHBOARD — ALIGN REPORTING COMPONENTS WITH CUSTOMER DASHBOARD (NO NEW UI)
+
+Context
+- We are working in the QuickSMS Admin Control Plane (internal only).
+- The Admin Dashboard MUST reuse the SAME reporting components, layout rules, and calculation logic as the CUSTOMER Reporting Dashboard.
+- Do NOT redesign charts/tables. Do NOT introduce new layouts, icons, colours, or new data definitions.
+- Theme may be Admin Blue, but component composition, typography, table styles, pills, headings, spacing MUST remain Fillow-standard and match customer dashboard patterns.
+
+Global Non-Negotiables
+- Use the same warehouse/API metric definitions as customer reporting:
+  - Sent/Delivered/Undelivered/Pending/Rejected/Expired (use the same mapping as customer reporting).
+  - Parts/fragments as the unit where customer dashboard uses parts.
+- Do NOT use mock data for charts/tables that exist in customer reporting. These must be driven by the same data source + queries as customer reporting.
+- Filters must only apply on “Apply Filters” (no auto-apply).
+
+Task 1 — “Message Sent” Graph MUST match customer
+Issue
+- Admin “Sent” graph currently looks different and/or uses mock data.
+Requirement
+- Replace Admin “Sent” graph implementation with the exact same chart component used in the customer Reporting Dashboard.
+- Use the same series, toggles, axis behaviour, and time bucketing rules (hourly for Today / daily for longer ranges) as customer.
+- Data source must match customer reporting API/warehouse aggregates (no mock data).
+Acceptance
+- Graph is visually and functionally identical to the customer “Message Sent” graph (aside from blue theme).
+- Values match customer reporting output when filters are equivalent.
+
+Task 2 — “Delivery Status Breakdown” MUST match customer
+Issue
+- Delivery status breakdown is not matching customer and/or uses mock data.
+Requirement
+- Reuse the customer dashboard “Delivery Status Breakdown” component and logic (pie/donut + legend exactly as customer).
+- Data must come from the same source as customer (no mock data).
+Acceptance
+- Same layout, labels, ordering, tooltip behaviour, and percentages as customer dashboard.
+- Status mapping identical to customer.
+
+Task 3 — “Top 10 SenderIDs” MUST match customer (design + logic)
+Issue
+- Admin Top 10 SenderIDs uses different design/logic.
+Requirement
+- Reuse the customer dashboard Top SenderIDs component (table or bar/table hybrid, whichever customer uses).
+- Use the same ranking logic (by volume default) and same formatting rules as customer.
+- Ensure SenderID predictive search and rendering are consistent with customer dashboard (no new UI).
+Acceptance
+- Pixel/structure matches customer version.
+- Ranking and values match customer reporting when filters match.
+
+Task 4 — “Top 10 Countries” MUST match customer (design + logic)
+Issue
+- Admin Top 10 Countries not matching customer.
+Requirement
+- Reuse the customer dashboard Top Countries component and logic.
+- Use same country naming/ISO mapping used in customer reporting.
+- No mock data.
+Acceptance
+- Same design and value logic as customer.
+
+Task 5 — Supplier Route Health section changes (simplify + one full-width tile)
+Remove
+- Remove Route Distribution tile/graph entirely.
+- Remove Supplier Pricing Reference tile/graph entirely.
+Requirement (replace Supplier Route Health with ONE full-width tile)
+- Create ONE full-width Fillow card/tile (spans page width) named “Supplier Route Health”.
+- Inside the tile, show:
+  A) Delivery status volumes + percentages:
+     - Delivered, Pending, Expired, Rejected
+     - Each must show: Volume + % of total (same % formatting rules as customer breakdown)
+  B) Response time stats (same definition as existing admin spec, but simplified):
+     - Average response time
+     - Min response time
+     - Max response time
+- Data must come from warehouse/API (no mock).
+- Use existing status pill/badge styles only (pastel Fillow style). Do not invent new pill colours.
+Acceptance
+- Supplier Route Health is a single page-width tile.
+- Shows Delivered/Pending/Expired/Rejected volumes and %.
+- Shows Avg/Min/Max response times.
+- No route distribution chart exists.
+- No supplier pricing tile exists.
+
+Task 6 — UK Network & Porting Health enhancement
+Current
+- UK Network & Porting Health section is good.
+Change required
+- For “Delivery by UK Mobile Network”:
+  - Keep the existing stacked status view if present, BUT add a horizontal mini line chart next to EACH network row.
+  - Each network row must show a small horizontal line chart segmented by message status (Delivered/Pending/Expired/Rejected) over time.
+  - The mini charts MUST use the same chart styling conventions as the customer dashboard (scaled down), and must not introduce a new chart style.
+  - The porting toggle must change attribution (Original vs Ported-to) for BOTH the summary and the mini charts.
+Acceptance
+- Each network row shows a compact horizontal time series segmented by status.
+- Porting toggle updates the attribution consistently across the entire section.
+- Visual style remains Fillow-consistent (no new chart chrome).
+
+Final checks (must do)
+- Verify Admin uses the same components as customer for:
+  - Sent graph
+  - Delivery status breakdown
+  - Top 10 SenderIDs
+  - Top 10 Countries
+- Remove any remaining mock data wiring for these shared reporting components.
+- Ensure no redesign occurred (only reuse and composition).

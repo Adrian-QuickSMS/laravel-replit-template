@@ -1625,6 +1625,15 @@
 
 @section('content')
 <div class="admin-dashboard">
+    <!-- Breadcrumb - matching customer portal pattern -->
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </div>
+
     <div class="dashboard-header">
         <h4><i class="fas fa-tachometer-alt me-2" style="color: #4a90d9;"></i>Admin Dashboard</h4>
         <div class="dashboard-meta">
