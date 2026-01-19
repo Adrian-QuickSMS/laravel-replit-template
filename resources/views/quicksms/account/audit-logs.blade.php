@@ -268,7 +268,6 @@
                     <div class="input-group">
                         <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
                         <input type="text" class="form-control" id="searchInput" placeholder="Search by description, target ID, or user name...">
-                        <button class="btn btn-primary" type="button" id="searchBtn"><i class="fas fa-search"></i></button>
                     </div>
                 </div>
 
@@ -404,10 +403,20 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="text-muted small">
-                        <span id="totalFilteredInfo"><span id="totalFiltered">0</span> events</span>
-                        <span class="ms-2 text-muted">|</span>
-                        <span class="ms-2">Sorted: <strong>Newest first</strong></span>
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted small me-3"><span id="totalFiltered">0</span> events</span>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-sort me-1"></i><span id="currentSortLabel">Newest to Oldest</span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                <li><a class="dropdown-item active" href="#" data-sort="newest"><i class="fas fa-arrow-down me-2"></i>Newest to Oldest</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="oldest"><i class="fas fa-arrow-up me-2"></i>Oldest to Newest</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-sort="az"><i class="fas fa-sort-alpha-down me-2"></i>A-Z (Action)</a></li>
+                                <li><a class="dropdown-item" href="#" data-sort="za"><i class="fas fa-sort-alpha-up me-2"></i>Z-A (Action)</a></li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="view-mode-toggle btn-group" role="group" aria-label="View mode">
                         <button type="button" class="btn btn-outline-secondary active" id="paginationModeBtn" title="Pagination view">
@@ -1547,6 +1556,38 @@ $(document).ready(function() {
         }
     }
 
+    function sortLogs(sortType) {
+        switch (sortType) {
+            case 'newest':
+                filteredLogs.sort(function(a, b) {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                });
+                break;
+            case 'oldest':
+                filteredLogs.sort(function(a, b) {
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                });
+                break;
+            case 'az':
+                filteredLogs.sort(function(a, b) {
+                    return (a.actionLabel || '').localeCompare(b.actionLabel || '');
+                });
+                break;
+            case 'za':
+                filteredLogs.sort(function(a, b) {
+                    return (b.actionLabel || '').localeCompare(a.actionLabel || '');
+                });
+                break;
+        }
+        
+        currentPage = 1;
+        displayedCount = 0;
+        renderTable();
+        if (viewMode === 'pagination') {
+            renderPagination();
+        }
+    }
+
     function renderPagination() {
         var totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
         var pagination = $('#paginationControls');
@@ -1704,6 +1745,18 @@ $(document).ready(function() {
 
         $('#infiniteScrollModeBtn').on('click', function() {
             setViewMode('infinite');
+        });
+
+        $('#sortDropdown').next('.dropdown-menu').on('click', 'a.dropdown-item', function(e) {
+            e.preventDefault();
+            var sortType = $(this).data('sort');
+            var label = $(this).text().trim();
+            
+            $('#sortDropdown').next('.dropdown-menu').find('.dropdown-item').removeClass('active');
+            $(this).addClass('active');
+            $('#currentSortLabel').text(label);
+            
+            sortLogs(sortType);
         });
 
         $('#loadMoreBtn').on('click', function() {
