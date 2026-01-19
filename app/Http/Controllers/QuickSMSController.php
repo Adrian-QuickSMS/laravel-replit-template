@@ -1970,11 +1970,7 @@ class QuickSMSController extends Controller
 
     public function securitySettings()
     {
-        return view('quicksms.placeholder', [
-            'page_title' => 'Security Settings',
-            'purpose' => 'Configure security options including 2FA and session management.',
-            'sub_modules' => []
-        ]);
+        return view('quicksms.account.security');
     }
 
     public function support()

@@ -3,6 +3,7 @@
 @section('title', 'Campaign Approvals')
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
 .approval-stats {
     display: flex;
@@ -254,7 +255,7 @@
 }
 
 .message-preview-section {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
 }
 .message-preview-title {
     font-size: 0.8rem;
@@ -268,146 +269,10 @@
 .message-preview-title i {
     color: #886cc0;
 }
-.phone-frame {
-    width: 280px;
-    margin: 0 auto;
-    background: #1f2937;
-    border-radius: 32px;
-    padding: 12px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-.phone-screen {
-    background: #fff;
-    border-radius: 24px;
-    overflow: hidden;
-    height: 480px;
-    display: flex;
-    flex-direction: column;
-}
-.phone-status-bar {
-    background: #f3f4f6;
-    padding: 8px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    font-weight: 500;
-    color: #374151;
-}
-.phone-header {
-    background: #886cc0;
-    color: #fff;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.phone-header-avatar {
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-.phone-header-name {
-    font-weight: 600;
-    font-size: 14px;
-}
-.phone-messages {
-    flex: 1;
-    padding: 16px;
-    background: #f9fafb;
-    overflow-y: auto;
-}
-.message-bubble {
-    max-width: 85%;
-    margin-bottom: 12px;
-}
-.message-bubble.incoming {
-    margin-right: auto;
-}
-.message-bubble .bubble-content {
-    background: #fff;
-    border-radius: 16px 16px 16px 4px;
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #374151;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.message-bubble .bubble-time {
-    font-size: 10px;
-    color: #9ca3af;
-    margin-top: 4px;
-    padding-left: 4px;
-}
-.rcs-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    max-width: 90%;
-}
-.rcs-card-image {
-    width: 100%;
-    height: 140px;
-    background: linear-gradient(135deg, #f3e8ff 0%, #dbeafe 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #886cc0;
-    font-size: 2rem;
-}
-.rcs-card-content {
-    padding: 12px;
-}
-.rcs-card-title {
-    font-weight: 600;
-    font-size: 14px;
-    color: #374151;
-    margin-bottom: 4px;
-}
-.rcs-card-description {
-    font-size: 12px;
-    color: #6b7280;
-    line-height: 1.4;
-}
-.rcs-card-buttons {
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    flex-direction: column;
-}
-.rcs-card-button {
-    padding: 10px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #886cc0;
-    text-align: center;
-    border-bottom: 1px solid #e5e7eb;
-}
-.rcs-card-button:last-child {
-    border-bottom: none;
-}
-.channel-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-.channel-indicator.sms {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-.channel-indicator.rcs {
-    background: #f3e8ff;
-    color: #7c3aed;
+#campaign-preview-container {
+    transform: scale(0.75);
+    transform-origin: top center;
+    margin-bottom: -100px;
 }
 </style>
 @endpush
@@ -654,44 +519,7 @@
                                 <i class="fas fa-mobile-alt"></i>
                                 Message Preview
                             </div>
-                            <div class="text-center mb-3">
-                                <span class="channel-indicator sms" id="preview-channel-badge">
-                                    <i class="fas fa-comment-alt"></i> SMS
-                                </span>
-                            </div>
-                            <div class="phone-frame">
-                                <div class="phone-screen">
-                                    <div class="phone-status-bar">
-                                        <span>09:41</span>
-                                        <span><i class="fas fa-signal me-1"></i><i class="fas fa-wifi me-1"></i><i class="fas fa-battery-full"></i></span>
-                                    </div>
-                                    <div class="phone-header">
-                                        <div class="phone-header-avatar"><i class="fas fa-building"></i></div>
-                                        <div class="phone-header-name" id="preview-sender">QuickSMS</div>
-                                    </div>
-                                    <div class="phone-messages" id="preview-messages">
-                                        <div class="message-bubble incoming" id="sms-preview-bubble">
-                                            <div class="bubble-content" id="preview-content">
-                                                Hi! Don't miss our January Promo - 20% off all products! Use code JAN20 at checkout. Valid until Jan 31. Shop now: quicksms.co/promo
-                                            </div>
-                                            <div class="bubble-time">Just now</div>
-                                        </div>
-                                        <div class="rcs-card" id="rcs-preview-card" style="display: none;">
-                                            <div class="rcs-card-image" id="rcs-card-image">
-                                                <i class="fas fa-image"></i>
-                                            </div>
-                                            <div class="rcs-card-content">
-                                                <div class="rcs-card-title" id="rcs-card-title">Product Launch</div>
-                                                <div class="rcs-card-description" id="rcs-card-description">Check out our latest product with exclusive launch offer!</div>
-                                            </div>
-                                            <div class="rcs-card-buttons">
-                                                <div class="rcs-card-button" id="rcs-button-1">View Details</div>
-                                                <div class="rcs-card-button" id="rcs-button-2">Shop Now</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <div id="campaign-preview-container" class="d-flex justify-content-center"></div>
                         </div>
                     </div>
                 </div>
@@ -705,9 +533,10 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const campaignData = {
+    var campaignData = {
         'camp-001': {
             name: 'January Promo Blast',
             subAccount: 'Marketing Department',
@@ -716,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cost: '£156.00',
             scheduled: 'Jan 20, 09:00',
             channel: 'sms',
-            sender: 'QuickSMS',
+            senderId: 'QuickSMS',
             messageContent: "Hi! Don't miss our January Promo - 20% off all products! Use code JAN20 at checkout. Valid until Jan 31. Shop now: quicksms.co/promo",
             audit: [
                 { type: 'submitted', action: 'Submitted for Approval', by: 'Emma Thompson', date: 'Jan 19, 2026 14:30' },
@@ -730,13 +559,21 @@ document.addEventListener('DOMContentLoaded', function() {
             volume: '3,800 messages',
             cost: '£228.00',
             scheduled: 'Jan 21, 10:00',
-            channel: 'rcs',
-            sender: 'QuickSMS Brand',
-            rcsCard: {
+            channel: 'rich_rcs',
+            agent: {
+                name: 'QuickSMS Brand',
+                logo: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI4IiBmaWxsPSIjODg2Q0MwIi8+PHRleHQgeD0iNTAlIiB5PSI1NSUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiPlFTPC90ZXh0Pjwvc3ZnPg==',
+                tagline: 'Official Business',
+                verified: true
+            },
+            richCard: {
                 title: 'New Product Launch!',
                 description: 'Be the first to experience our revolutionary new product. Exclusive 25% launch discount for early adopters.',
-                button1: 'View Details',
-                button2: 'Shop Now'
+                media: { height: 'medium' },
+                buttons: [
+                    { label: 'View Details', action: { type: 'url' } },
+                    { label: 'Shop Now', action: { type: 'url' } }
+                ]
             },
             audit: [
                 { type: 'submitted', action: 'Submitted for Approval', by: 'Michael Brown', date: 'Jan 20, 2026 09:15' },
@@ -751,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cost: '£45.00',
             scheduled: 'Jan 18, 12:00',
             channel: 'sms',
-            sender: 'ALERTS',
+            senderId: 'ALERTS',
             messageContent: "FLASH SALE! 50% off everything for the next 4 hours only! Don't miss out - shop now at quicksms.co/flash",
             audit: [
                 { type: 'submitted', action: 'Submitted for Approval', by: 'Chris Martinez', date: 'Jan 17, 2026 16:20' },
@@ -760,10 +597,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    function renderCampaignPreview(data) {
+        var container = document.getElementById('campaign-preview-container');
+        var previewConfig = {
+            channel: data.channel,
+            senderId: data.senderId || 'Sender'
+        };
+        
+        if (data.channel === 'sms') {
+            previewConfig.message = {
+                type: 'text',
+                content: { body: data.messageContent }
+            };
+        } else if (data.channel === 'basic_rcs') {
+            previewConfig.agent = data.agent;
+            previewConfig.message = {
+                type: 'text',
+                content: { body: data.messageContent }
+            };
+        } else if (data.channel === 'rich_rcs' && data.richCard) {
+            previewConfig.agent = data.agent;
+            previewConfig.message = {
+                type: 'rich_card',
+                content: data.richCard
+            };
+        }
+        
+        container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
+    }
+    
     document.querySelectorAll('.btn-view').forEach(function(btn) {
         btn.addEventListener('click', function() {
-            const campaignId = this.getAttribute('data-campaign-id');
-            const data = campaignData[campaignId] || campaignData['camp-001'];
+            var campaignId = this.getAttribute('data-campaign-id');
+            var data = campaignData[campaignId] || campaignData['camp-001'];
             
             document.getElementById('detail-name').textContent = data.name;
             document.getElementById('detail-sub-account').textContent = data.subAccount;
@@ -772,39 +638,18 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('detail-cost').textContent = data.cost;
             document.getElementById('detail-scheduled').textContent = data.scheduled;
             
-            const channelBadge = document.getElementById('preview-channel-badge');
-            const smsBubble = document.getElementById('sms-preview-bubble');
-            const rcsCard = document.getElementById('rcs-preview-card');
+            renderCampaignPreview(data);
             
-            document.getElementById('preview-sender').textContent = data.sender || 'QuickSMS';
-            
-            if (data.channel === 'rcs' && data.rcsCard) {
-                channelBadge.className = 'channel-indicator rcs';
-                channelBadge.innerHTML = '<i class="fas fa-comments"></i> RCS';
-                smsBubble.style.display = 'none';
-                rcsCard.style.display = 'block';
-                document.getElementById('rcs-card-title').textContent = data.rcsCard.title;
-                document.getElementById('rcs-card-description').textContent = data.rcsCard.description;
-                document.getElementById('rcs-button-1').textContent = data.rcsCard.button1;
-                document.getElementById('rcs-button-2').textContent = data.rcsCard.button2;
-            } else {
-                channelBadge.className = 'channel-indicator sms';
-                channelBadge.innerHTML = '<i class="fas fa-comment-alt"></i> SMS';
-                smsBubble.style.display = 'block';
-                rcsCard.style.display = 'none';
-                document.getElementById('preview-content').textContent = data.messageContent || 'No message content available';
-            }
-            
-            const auditHtml = data.audit.map(entry => `
-                <div class="audit-entry">
-                    <div class="audit-icon ${entry.type}"><i class="fas fa-${getAuditIcon(entry.type)}"></i></div>
-                    <div class="audit-content">
-                        <div class="audit-action">${entry.action}</div>
-                        <div class="audit-meta">by ${entry.by} • ${entry.date}</div>
-                        ${entry.reason ? `<div class="audit-reason">"${entry.reason}"</div>` : ''}
-                    </div>
-                </div>
-            `).join('');
+            var auditHtml = data.audit.map(function(entry) {
+                return '<div class="audit-entry">' +
+                    '<div class="audit-icon ' + entry.type + '"><i class="fas fa-' + getAuditIcon(entry.type) + '"></i></div>' +
+                    '<div class="audit-content">' +
+                        '<div class="audit-action">' + entry.action + '</div>' +
+                        '<div class="audit-meta">by ' + entry.by + ' • ' + entry.date + '</div>' +
+                        (entry.reason ? '<div class="audit-reason">"' + entry.reason + '"</div>' : '') +
+                    '</div>' +
+                '</div>';
+            }).join('');
             document.getElementById('audit-entries').innerHTML = auditHtml;
             
             new bootstrap.Modal(document.getElementById('campaignDetailModal')).show();
