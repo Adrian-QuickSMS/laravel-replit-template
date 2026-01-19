@@ -192,116 +192,201 @@
         <button class="btn admin-btn-apply">Apply</button>
     </div>
 
-    <div class="admin-card">
+    <div class="card">
         <div class="card-body p-0">
-            <table class="table admin-table mb-0">
-                <thead>
-                    <tr>
-                        <th>Account</th>
-                        <th>Status</th>
-                        <th>Type</th>
-                        <th>Created</th>
-                        <th class="text-end">MTD Volume</th>
-                        <th class="text-end">MTD Revenue</th>
-                        <th class="text-end">Balance</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="admin-account-card" style="padding: 0; border: none;">
-                                <div class="account-avatar" style="width: 32px; height: 32px; font-size: 0.75rem;">AC</div>
-                                <div>
-                                    <div class="account-name">Acme Corporation</div>
-                                    <div class="account-id">ACC-1234</div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="accountsTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="name">Client Name</th>
+                            <th class="sortable" data-sort="status">Account Status</th>
+                            <th class="sortable text-end" data-sort="volume-year">Volume (Year)</th>
+                            <th class="sortable text-end" data-sort="volume-month">Volume (Month)</th>
+                            <th class="sortable text-end" data-sort="balance">Balance / Credit</th>
+                            <th class="sortable" data-sort="pricing">Pricing Model</th>
+                            <th>Risk Flags</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-1234')">Acme Corporation</a>
+                                <div class="text-muted small">ACC-1234</div>
+                            </td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">14,892,456</td>
+                            <td class="text-end">1,247,832</td>
+                            <td class="text-end">£5,420</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')">View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-1234')">Impersonate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#">Edit Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#">View Invoices</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-warning" href="#">Suspend Account</a></li>
+                                    </ul>
                                 </div>
-                            </div>
-                        </td>
-                        <td><span class="admin-status-badge live">Live</span></td>
-                        <td>Enterprise</td>
-                        <td>Jan 15, 2024</td>
-                        <td class="text-end">1,247,832</td>
-                        <td class="text-end">£24,892</td>
-                        <td class="text-end">£5,420</td>
-                        <td>
-                            <div class="admin-quick-actions">
-                                <button class="btn btn-outline-primary btn-sm">View</button>
-                                <button class="btn btn-outline-secondary btn-sm">Impersonate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="admin-account-card" style="padding: 0; border: none;">
-                                <div class="account-avatar" style="width: 32px; height: 32px; font-size: 0.75rem;">FL</div>
-                                <div>
-                                    <div class="account-name">Finance Ltd</div>
-                                    <div class="account-id">ACC-5678</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-5678')">Finance Ltd</a>
+                                <div class="text-muted small">ACC-5678</div>
+                            </td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">10,456,234</td>
+                            <td class="text-end">892,156</td>
+                            <td class="text-end">£12,100</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')">View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-5678')">Impersonate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#">Edit Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#">View Invoices</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-warning" href="#">Suspend Account</a></li>
+                                    </ul>
                                 </div>
-                            </div>
-                        </td>
-                        <td><span class="admin-status-badge live">Live</span></td>
-                        <td>Enterprise</td>
-                        <td>Mar 02, 2024</td>
-                        <td class="text-end">892,156</td>
-                        <td class="text-end">£18,432</td>
-                        <td class="text-end">£12,100</td>
-                        <td>
-                            <div class="admin-quick-actions">
-                                <button class="btn btn-outline-primary btn-sm">View</button>
-                                <button class="btn btn-outline-secondary btn-sm">Impersonate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="admin-account-card" style="padding: 0; border: none;">
-                                <div class="account-avatar" style="width: 32px; height: 32px; font-size: 0.75rem;">NC</div>
-                                <div>
-                                    <div class="account-name">NewClient</div>
-                                    <div class="account-id">ACC-7890</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-7890')">NewClient</a>
+                                <div class="text-muted small">ACC-7890</div>
+                            </td>
+                            <td><span class="badge light badge-info">Test</span></td>
+                            <td class="text-end">0</td>
+                            <td class="text-end">47</td>
+                            <td class="text-end">£0</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')">View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-7890')">Impersonate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-success" href="#">Activate Account</a></li>
+                                    </ul>
                                 </div>
-                            </div>
-                        </td>
-                        <td><span class="admin-status-badge test">Test</span></td>
-                        <td>Startup</td>
-                        <td>Jan 18, 2026</td>
-                        <td class="text-end">47</td>
-                        <td class="text-end">£0</td>
-                        <td class="text-end">£0</td>
-                        <td>
-                            <div class="admin-quick-actions">
-                                <button class="btn btn-outline-primary btn-sm">View</button>
-                                <button class="btn btn-outline-success btn-sm">Activate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="admin-account-card" style="padding: 0; border: none;">
-                                <div class="account-avatar" style="width: 32px; height: 32px; font-size: 0.75rem;">TC</div>
-                                <div>
-                                    <div class="account-name">TestCo</div>
-                                    <div class="account-id">ACC-4567</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-4567')">TestCo</a>
+                                <div class="text-muted small">ACC-4567</div>
+                            </td>
+                            <td><span class="badge light badge-danger">Suspended</span></td>
+                            <td class="text-end">234,567</td>
+                            <td class="text-end">0</td>
+                            <td class="text-end text-danger">-£240</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td><span class="badge light badge-warning">Watchlist</span></td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')">View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-4567')">Impersonate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-success" href="#">Reactivate Account</a></li>
+                                    </ul>
                                 </div>
-                            </div>
-                        </td>
-                        <td><span class="admin-status-badge suspended">Suspended</span></td>
-                        <td>SMB</td>
-                        <td>Nov 10, 2025</td>
-                        <td class="text-end">0</td>
-                        <td class="text-end">£0</td>
-                        <td class="text-end">-£240</td>
-                        <td>
-                            <div class="admin-quick-actions">
-                                <button class="btn btn-outline-primary btn-sm">View</button>
-                                <button class="btn btn-outline-warning btn-sm">Reactivate</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-9012')">HighRisk Corp</a>
+                                <div class="text-muted small">ACC-9012</div>
+                            </td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">5,678,901</td>
+                            <td class="text-end">456,789</td>
+                            <td class="text-end">£3,250</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td>
+                                <span class="badge light badge-danger">Fraud</span>
+                                <span class="badge light badge-secondary">Restricted</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-9012')">View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-9012')">Impersonate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#">Review Risk</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#">Suspend Account</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-3456')">MedTech Solutions</a>
+                                <div class="text-muted small">ACC-3456</div>
+                            </td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">8,901,234</td>
+                            <td class="text-end">743,102</td>
+                            <td class="text-end">£8,900</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-3456')">View Details</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-3456')">Impersonate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#">Edit Pricing</a></li>
+                                        <li><a class="dropdown-item" href="#">View Invoices</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Showing 1-6 of 847 accounts</span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">...</a></li>
+                    <li class="page-item"><a class="page-link" href="#">142</a></li>
+                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                </ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -352,8 +437,28 @@ window.filterAccounts = function(filter) {
     }
 };
 
+window.openAccountDetail = function(accountId) {
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ACCOUNT_VIEWED', 'ACCOUNTS', { accountId: accountId });
+    }
+    // Navigate to account details page
+    window.location.href = '/admin/accounts/details?id=' + accountId;
+};
+
+window.impersonateAccount = function(accountId) {
+    if (confirm('You are about to impersonate account ' + accountId + '. This action will be logged. Continue?')) {
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('ACCOUNT_IMPERSONATION_STARTED', 'ACCOUNTS', { 
+                accountId: accountId,
+                reason: 'Admin initiated impersonation'
+            });
+        }
+        alert('Impersonation session started for ' + accountId + ' (5-minute limit)');
+    }
+};
+
 function filterTable(filter) {
-    var rows = document.querySelectorAll('.admin-table tbody tr');
+    var rows = document.querySelectorAll('#accountsTable tbody tr');
     
     if (!filter) {
         // Show all rows
@@ -364,7 +469,7 @@ function filterTable(filter) {
     }
 
     rows.forEach(function(row) {
-        var statusBadge = row.querySelector('.admin-status-badge');
+        var statusBadge = row.querySelector('.badge');
         var status = statusBadge ? statusBadge.textContent.toLowerCase().trim() : '';
         var show = false;
 
@@ -388,8 +493,11 @@ function filterTable(filter) {
                 show = status === 'pending' || status === 'test';
                 break;
             case 'flagged':
-                // Show suspended or accounts with negative balance
-                show = status === 'suspended' || row.textContent.includes('-£');
+                // Show accounts with risk flags (Fraud, Restricted, Watchlist)
+                var hasRiskFlag = row.textContent.includes('Fraud') || 
+                                  row.textContent.includes('Restricted') || 
+                                  row.textContent.includes('Watchlist');
+                show = hasRiskFlag || row.textContent.includes('-£');
                 break;
             default:
                 show = true;
