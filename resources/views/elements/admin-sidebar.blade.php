@@ -9,15 +9,10 @@
             </li>
             
             <li class="{{ request()->routeIs('admin.accounts.*') ? 'mm-active' : '' }}">
-                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                <a href="{{ route('admin.accounts.overview') }}" aria-expanded="false">
                     <i class="fas fa-building"></i>
                     <span class="nav-text">Accounts</span>
                 </a>
-                <ul aria-expanded="false">
-                    <li><a href="{{ route('admin.accounts.overview') }}" class="{{ request()->routeIs('admin.accounts.overview') ? 'mm-active' : '' }}">Account Overview</a></li>
-                    <li><a href="{{ route('admin.accounts.sub-accounts') }}" class="{{ request()->routeIs('admin.accounts.sub-accounts') ? 'mm-active' : '' }}">Sub Accounts</a></li>
-                    <li><a href="{{ route('admin.accounts.balances') }}" class="{{ request()->routeIs('admin.accounts.balances') ? 'mm-active' : '' }}">Balances & Credit</a></li>
-                </ul>
             </li>
             
             <li class="{{ request()->routeIs('admin.reporting.*') ? 'mm-active' : '' }}">

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Account Overview')
+@section('title', 'Accounts')
 
 @push('styles')
 <style>
@@ -153,14 +153,12 @@
     <div class="admin-breadcrumb">
         <a href="{{ route('admin.dashboard') }}">Admin</a>
         <span class="separator">/</span>
-        <a href="#">Accounts</a>
-        <span class="separator">/</span>
-        <span>Overview</span>
+        <span>Accounts</span>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 style="color: #1e3a5f; font-weight: 600;">Account Overview</h4>
+            <h4 style="color: #1e3a5f; font-weight: 600;">Accounts</h4>
             <p class="text-muted mb-0">Manage all client accounts across the platform</p>
         </div>
     </div>
