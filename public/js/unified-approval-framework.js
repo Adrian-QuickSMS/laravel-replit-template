@@ -236,6 +236,11 @@ var UNIFIED_APPROVAL = (function() {
         var reasonInfo = RETURN_REASON_CODES[reasonCode] || { label: reasonCode };
         var fullReason = reasonInfo.label + (guidance ? ': ' + guidance : '');
         
+        currentEntity.returnedReasonCode = reasonCode;
+        currentEntity.returnedGuidance = guidance;
+        currentEntity.returnedAt = new Date().toISOString();
+        currentEntity.returnedBy = 'admin@quicksms.co.uk';
+        
         versionHistory.push(createVersion(currentEntity.currentVersion, currentEntity.data, 'returned'));
         
         var result = transitionStatus('returned', fullReason, {});
@@ -243,9 +248,39 @@ var UNIFIED_APPROVAL = (function() {
         if (result.success) {
             lockApprovalActions();
             showCustomerNotification('RETURNED', guidance);
+            storeReturnedSubmissionState();
         }
         
         return result;
+    }
+
+    function storeReturnedSubmissionState() {
+        var returnState = {
+            entityType: currentEntity.type.code,
+            entityId: currentEntity.id,
+            version: currentEntity.currentVersion,
+            reasonCode: currentEntity.returnedReasonCode,
+            message: currentEntity.returnedGuidance,
+            returnedAt: currentEntity.returnedAt,
+            returnedBy: currentEntity.returnedBy
+        };
+        
+        try {
+            var returnedSubmissions = JSON.parse(localStorage.getItem('returnedSubmissions') || '{}');
+            returnedSubmissions[currentEntity.id] = returnState;
+            localStorage.setItem('returnedSubmissions', JSON.stringify(returnedSubmissions));
+        } catch (e) {
+            console.warn('[UnifiedApproval] Could not store returned state:', e);
+        }
+    }
+
+    function getReturnedSubmissionState(entityId) {
+        try {
+            var returnedSubmissions = JSON.parse(localStorage.getItem('returnedSubmissions') || '{}');
+            return returnedSubmissions[entityId] || null;
+        } catch (e) {
+            return null;
+        }
     }
 
     function forceApprove(reason) {
@@ -910,9 +945,9 @@ var UNIFIED_APPROVAL = (function() {
                             <div class="reason-description" id="returnReasonDescription"></div>\
                         </div>\
                         <div class="mb-3">\
-                            <label class="form-label">Guidance for Customer <small class="text-muted">(Optional)</small></label>\
-                            <textarea class="form-control" id="returnGuidance" rows="4" placeholder="Provide specific guidance on what needs to be corrected or clarified..."></textarea>\
-                            <small class="text-muted">This message will be included in the customer notification email.</small>\
+                            <label class="form-label">Customer-Facing Message <span class="text-danger">*</span></label>\
+                            <textarea class="form-control" id="returnGuidance" rows="4" placeholder="Explain what changes are required and how the customer should address them..." required></textarea>\
+                            <small class="text-muted">This message will be displayed to the customer and included in the notification email.</small>\
                         </div>\
                         <div class="version-preview">\
                             <div class="version-preview-header">\
@@ -957,8 +992,13 @@ var UNIFIED_APPROVAL = (function() {
             return;
         }
 
-        if (reasonCode === 'OTHER' && !guidance) {
-            alert('Please provide guidance when selecting "Other" as the reason');
+        if (!guidance) {
+            alert('Please provide a customer-facing message explaining what changes are required');
+            return;
+        }
+
+        if (guidance.length < 20) {
+            alert('Please provide a more detailed message (at least 20 characters)');
             return;
         }
 
@@ -1085,6 +1125,7 @@ var UNIFIED_APPROVAL = (function() {
         
         getCurrentEntity: getCurrentEntity,
         getVersionHistory: getVersionHistory,
-        getExternalValidationHistory: getExternalValidationHistory
+        getExternalValidationHistory: getExternalValidationHistory,
+        getReturnedSubmissionState: getReturnedSubmissionState
     };
 })();

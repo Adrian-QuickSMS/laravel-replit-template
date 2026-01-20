@@ -500,14 +500,22 @@
                 <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>SID-001</strong></span>
                 <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 20, 2026, 10:15 AM</strong></span>
             </div>
+            @php
+                $senderIdVersions = [
+                    ['id' => 'v2', 'label' => 'Version 2 (Current)', 'date' => '20 Jan 2026, 10:15', 'status' => 'submitted'],
+                    ['id' => 'v1', 'label' => 'Version 1', 'date' => '15 Jan 2026, 14:30', 'status' => 'returned'],
+                ];
+            @endphp
             @include('partials.admin.version-history-dropdown', [
                 'currentVersion' => 'v2',
                 'submissionId' => 'SID-001',
                 'submissionType' => 'sender-id',
-                'versions' => [
-                    ['id' => 'v2', 'label' => 'Version 2 (Current)', 'date' => '20 Jan 2026, 10:15', 'status' => 'submitted'],
-                    ['id' => 'v1', 'label' => 'Version 1', 'date' => '15 Jan 2026, 14:30', 'status' => 'returned'],
-                ]
+                'versions' => $senderIdVersions
+            ])
+            @include('partials.admin.compare-versions', [
+                'submissionId' => 'SID-001',
+                'submissionType' => 'sender-id',
+                'versions' => $senderIdVersions
             ])
         </div>
     </div>
