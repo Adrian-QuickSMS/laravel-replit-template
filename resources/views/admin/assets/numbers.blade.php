@@ -6,6 +6,62 @@
 <style>
 .admin-page { padding: 1.5rem; }
 
+.search-filter-toolbar {
+    background: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.search-filter-toolbar .input-group {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+.search-filter-toolbar .input-group .input-group-text,
+.search-filter-toolbar .input-group .form-control,
+.search-filter-toolbar .input-group .btn {
+    border: none;
+}
+.search-filter-toolbar .form-control:focus {
+    box-shadow: none;
+}
+.filter-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--admin-accent, #4a90d9);
+    color: var(--admin-accent, #4a90d9);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+.filter-toggle-btn:hover {
+    background: rgba(74, 144, 217, 0.1);
+    border-color: var(--admin-primary, #1e3a5f);
+    color: var(--admin-primary, #1e3a5f);
+}
+.filter-toggle-btn.active {
+    background: var(--admin-accent, #4a90d9);
+    color: #fff;
+}
+.filter-toggle-btn .toggle-icon {
+    transition: transform 0.2s;
+}
+.filter-toggle-btn.active .toggle-icon {
+    transform: rotate(180deg);
+}
+.filter-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--admin-primary, #1e3a5f);
+    color: #fff;
+    font-size: 0.7rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    margin-left: 0.25rem;
+    padding: 0 5px;
+}
 .admin-filter-panel {
     background: #fff;
     border-radius: 0.5rem;
@@ -558,11 +614,26 @@ tr.selected-row:hover {
         </div>
     </div>
 
-    <div class="admin-filter-panel">
-        <div class="filter-header" onclick="toggleFilterPanel()">
-            <h6><i class="fas fa-filter me-2"></i>Filters</h6>
-            <i class="fas fa-chevron-down toggle-icon"></i>
+    <div class="search-filter-toolbar mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="search-box flex-grow-1" style="max-width: 400px;">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0" id="globalSearch" placeholder="Search VMN, keyword, account..." onkeyup="handleSearch(this.value)">
+                    <button class="btn btn-outline-secondary border-start-0 bg-white" type="button" onclick="clearSearch()" id="clearSearchBtn" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="btn filter-toggle-btn" type="button" onclick="toggleFilterPanel()">
+                <i class="fas fa-filter me-2"></i>Filters
+                <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
+                <i class="fas fa-chevron-down ms-2 toggle-icon" id="filterToggleIcon"></i>
+            </button>
         </div>
+    </div>
+
+    <div class="admin-filter-panel" id="filterPanel" style="display: none;">
         <div class="filter-body" id="filterBody">
             <div class="filter-row">
                 <div class="filter-group">
@@ -614,22 +685,6 @@ tr.selected-row:hover {
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="active" id="status_active"><label class="form-check-label" for="status_active">Active</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="status_suspended"><label class="form-check-label" for="status_suspended">Suspended</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="pending" id="status_pending"><label class="form-check-label" for="status_pending">Pending</label></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label>Mode</label>
-                    <div class="dropdown multiselect-dropdown" id="modeDropdown">
-                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                            <span class="dropdown-label">All Modes</span>
-                        </button>
-                        <div class="dropdown-menu">
-                            <div class="select-actions">
-                                <a href="#" onclick="selectAll('modeDropdown'); return false;">Select All</a>
-                                <a href="#" onclick="clearAll('modeDropdown'); return false;">Clear</a>
-                            </div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="portal" id="mode_portal"><label class="form-check-label" for="mode_portal">Portal</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="api" id="mode_api"><label class="form-check-label" for="mode_api">API</label></div>
                         </div>
                     </div>
                 </div>
@@ -793,7 +848,6 @@ tr.selected-row:hover {
                             <th class="sortable" data-sort="country">Country</th>
                             <th class="sortable" data-sort="type">Number Type</th>
                             <th class="sortable" data-sort="status">Status</th>
-                            <th class="sortable" data-sort="mode">Mode</th>
                             <th class="sortable" data-sort="account">Customer Account</th>
                             <th class="sortable text-end" data-sort="cost">Monthly Cost</th>
                             <th class="sortable" data-sort="supplier">Supplier</th>
@@ -808,7 +862,6 @@ tr.selected-row:hover {
                             <td>🇬🇧 UK</td>
                             <td><span class="type-label type-vmn">VMN</span></td>
                             <td><span class="badge badge-admin-active">Active</span></td>
-                            <td><span class="badge badge-admin-portal">Portal</span></td>
                             <td class="account-cell"><div class="account-name">Acme Corporation</div><div class="sub-account">Marketing</div></td>
                             <td class="text-end"><span class="cost-value">£2.00</span></td>
                             <td><span class="supplier-value">Sinch</span></td>
@@ -821,7 +874,6 @@ tr.selected-row:hover {
                             <td>🇬🇧 UK</td>
                             <td><span class="type-label type-vmn">VMN</span></td>
                             <td><span class="badge badge-admin-active">Active</span></td>
-                            <td><span class="badge badge-admin-api">API</span></td>
                             <td class="account-cell"><div class="account-name">Finance Ltd</div><div class="sub-account">Retail</div></td>
                             <td class="text-end"><span class="cost-value">£2.00</span></td>
                             <td><span class="supplier-value">Sinch</span></td>
@@ -834,7 +886,6 @@ tr.selected-row:hover {
                             <td>🇬🇧 UK</td>
                             <td><span class="type-label type-vmn">VMN</span></td>
                             <td><span class="badge badge-admin-suspended">Suspended</span></td>
-                            <td><span class="badge badge-admin-portal">Portal</span></td>
                             <td class="account-cell"><div class="account-name">Tech Solutions</div><div class="sub-account">Support</div></td>
                             <td class="text-end"><span class="cost-value">£2.00</span></td>
                             <td><span class="supplier-value">Vonage</span></td>
@@ -847,7 +898,6 @@ tr.selected-row:hover {
                             <td>🇬🇧 UK</td>
                             <td><span class="type-label type-shortcode-keyword">Shortcode Keyword</span></td>
                             <td><span class="badge badge-admin-active">Active</span></td>
-                            <td><span class="badge badge-admin-portal">Portal</span></td>
                             <td class="account-cell"><div class="account-name">Retail Group</div><div class="sub-account">Promotions</div></td>
                             <td class="text-end"><span class="cost-value">£5.00</span></td>
                             <td><span class="supplier-value">OpenMarket</span></td>
@@ -860,7 +910,6 @@ tr.selected-row:hover {
                             <td>🇬🇧 UK</td>
                             <td><span class="type-label type-dedicated">Dedicated Shortcode</span></td>
                             <td><span class="badge badge-admin-active">Active</span></td>
-                            <td><span class="badge badge-admin-api">API</span></td>
                             <td class="account-cell"><div class="account-name">Healthcare UK</div><div class="sub-account">Appointments</div></td>
                             <td class="text-end"><span class="cost-value">£250.00</span></td>
                             <td><span class="supplier-value">Twilio</span></td>
@@ -1426,15 +1475,52 @@ function showLoadingState(loading) {
 }
 
 function toggleFilterPanel() {
-    const body = document.getElementById('filterBody');
-    const header = document.querySelector('.filter-header');
-    if (body.style.display === 'none') {
-        body.style.display = 'block';
-        header.classList.remove('collapsed');
+    const panel = document.getElementById('filterPanel');
+    const btn = document.querySelector('.filter-toggle-btn');
+    const icon = document.getElementById('filterToggleIcon');
+    
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        btn.classList.add('active');
     } else {
-        body.style.display = 'none';
-        header.classList.add('collapsed');
+        panel.style.display = 'none';
+        btn.classList.remove('active');
     }
+}
+
+let searchTimeout = null;
+function handleSearch(value) {
+    const clearBtn = document.getElementById('clearSearchBtn');
+    clearBtn.style.display = value ? 'block' : 'none';
+    
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        const searchTerm = value.toLowerCase().trim();
+        if (!searchTerm) {
+            filteredData = numbersData.slice();
+        } else {
+            filteredData = numbersData.filter(num => 
+                num.number.toLowerCase().includes(searchTerm) ||
+                num.account.toLowerCase().includes(searchTerm) ||
+                num.subAccount.toLowerCase().includes(searchTerm) ||
+                num.type.toLowerCase().includes(searchTerm) ||
+                num.supplier.toLowerCase().includes(searchTerm) ||
+                num.country.toLowerCase().includes(searchTerm)
+            );
+        }
+        currentPage = 1;
+        renderTable(filteredData);
+        updatePaginationInfo({ totalCount: filteredData.length, page: 1, pageSize: rowsPerPage });
+    }, 300);
+}
+
+function clearSearch() {
+    document.getElementById('globalSearch').value = '';
+    document.getElementById('clearSearchBtn').style.display = 'none';
+    filteredData = numbersData.slice();
+    currentPage = 1;
+    renderTable(filteredData);
+    updatePaginationInfo({ totalCount: filteredData.length, page: 1, pageSize: rowsPerPage });
 }
 
 function initializeMultiSelectDropdowns() {
@@ -1537,7 +1623,6 @@ function renderTable(data) {
             <td>${getCountryFlag(num.country)} ${num.country}</td>
             <td>${getTypeLabel(num.type)}</td>
             <td>${getStatusBadge(num.status)}</td>
-            <td>${getModeBadge(num.mode)}</td>
             <td class="account-cell">
                 <div class="account-name">${num.account}</div>
                 <div class="sub-account">${num.subAccount}</div>
