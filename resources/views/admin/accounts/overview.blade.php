@@ -56,7 +56,76 @@
 }
 .client-name-cell .client-name:hover { text-decoration: underline; cursor: pointer; }
 .client-name-cell .account-number { font-size: 0.75rem; color: #6c757d; margin-top: 0.125rem; }
-.btn-view-structure { font-size: 0.7rem; padding: 0.15rem 0.4rem; margin-left: 0.5rem; }
+
+/* Expand/Collapse Row Controls */
+.expand-toggle {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    background: #fff;
+    color: #6c757d;
+    font-size: 0.7rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+.expand-toggle:hover { border-color: #1e3a5f; color: #1e3a5f; background: #f8f9fa; }
+.expand-toggle.expanded { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+.client-name-wrapper { display: flex; align-items: flex-start; }
+.client-name-content { flex: 1; min-width: 0; }
+
+/* Sub-Account Expanded Row */
+.sub-account-row { display: none; }
+.sub-account-row.visible { display: table-row; }
+.sub-account-row td { 
+    background: #f8f9fa !important; 
+    padding: 0 !important; 
+    border-top: none !important;
+}
+.sub-account-table-wrapper { padding: 0.75rem 1rem 0.75rem 2.5rem; }
+.sub-account-table { 
+    width: 100%; 
+    font-size: 0.8rem; 
+    margin: 0;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+}
+.sub-account-table thead th { 
+    background: #f1f3f5; 
+    padding: 0.5rem 0.75rem; 
+    font-weight: 600; 
+    font-size: 0.75rem;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+}
+.sub-account-table tbody td { 
+    padding: 0.5rem 0.75rem; 
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+.sub-account-table tbody tr:last-child td { border-bottom: none; }
+.sub-account-table .sub-name { font-weight: 500; color: #333; }
+.no-sub-accounts { color: #6c757d; font-style: italic; padding: 0.5rem 0; }
+
+/* Sortable Headers */
+.sortable { cursor: pointer; user-select: none; position: relative; white-space: nowrap; }
+.sortable:hover { background: #f8f9fa; }
+.sortable::after {
+    content: '\f0dc';
+    font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-left: 0.5rem;
+    color: #adb5bd;
+    font-size: 0.7rem;
+}
+.sortable.sort-asc::after { content: '\f0de'; color: #1e3a5f; }
+.sortable.sort-desc::after { content: '\f0dd'; color: #1e3a5f; }
 
 /* Hierarchy Tree Styles */
 .hierarchy-tree { font-size: 0.9rem; }
@@ -316,11 +385,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr class="account-row" data-account="ACC-1234" data-name="Acme Corporation" data-status="live" data-volume-year="14892456" data-volume-month="1247832" data-balance="5420">
                             <td class="client-name-cell">
-                                <div>
-                                    <a href="{{ route('admin.accounts.details', 'ACC-1234') }}" class="client-name">Acme Corporation</a>
-                                    <div class="account-number">ACC-1234</div>
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-1234', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-1234') }}" class="client-name">Acme Corporation</a>
+                                        <div class="account-number">ACC-1234</div>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -346,11 +418,28 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="sub-account-row" data-parent="ACC-1234">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <table class="sub-account-table">
+                                        <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                            <tr><td class="sub-name">Acme Marketing</td><td class="text-end">456,234</td><td class="text-end">5,234,567</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                            <tr><td class="sub-name">Acme Sales</td><td class="text-end">521,598</td><td class="text-end">6,123,456</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                            <tr><td class="sub-name">Acme Support</td><td class="text-end">270,000</td><td class="text-end">3,534,433</td><td><span class="badge light badge-warning">Limited</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-5678" data-name="Finance Ltd" data-status="live" data-volume-year="10456234" data-volume-month="892156" data-balance="12100">
                             <td class="client-name-cell">
-                                <div>
-                                    <a href="{{ route('admin.accounts.details', 'ACC-5678') }}" class="client-name">Finance Ltd</a>
-                                    <div class="account-number">ACC-5678</div>
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-5678', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-5678') }}" class="client-name">Finance Ltd</a>
+                                        <div class="account-number">ACC-5678</div>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -376,11 +465,26 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="sub-account-row" data-parent="ACC-5678">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <table class="sub-account-table">
+                                        <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                            <tr><td class="sub-name">Finance Retail</td><td class="text-end">892,156</td><td class="text-end">10,456,234</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-7890" data-name="NewClient" data-status="test" data-volume-year="0" data-volume-month="47" data-balance="0">
                             <td class="client-name-cell">
-                                <div>
-                                    <a href="{{ route('admin.accounts.details', 'ACC-7890') }}" class="client-name">NewClient</a>
-                                    <div class="account-number">ACC-7890</div>
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-7890', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-7890') }}" class="client-name">NewClient</a>
+                                        <div class="account-number">ACC-7890</div>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-info">Test</span></td>
@@ -406,11 +510,21 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="sub-account-row" data-parent="ACC-7890">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <span class="no-sub-accounts">No sub-accounts configured</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-4567" data-name="TestCo" data-status="suspended" data-volume-year="234567" data-volume-month="0" data-balance="-240">
                             <td class="client-name-cell">
-                                <div>
-                                    <a href="{{ route('admin.accounts.details', 'ACC-4567') }}" class="client-name">TestCo</a>
-                                    <div class="account-number">ACC-4567</div>
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-4567', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-4567') }}" class="client-name">TestCo</a>
+                                        <div class="account-number">ACC-4567</div>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-danger">Suspended</span></td>
@@ -436,11 +550,26 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="sub-account-row" data-parent="ACC-4567">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <table class="sub-account-table">
+                                        <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                            <tr><td class="sub-name">TestCo Dev</td><td class="text-end">0</td><td class="text-end">234,567</td><td><span class="badge light badge-danger">Suspended</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-9012" data-name="HighRisk Corp" data-status="live" data-volume-year="5678901" data-volume-month="456789" data-balance="3250">
                             <td class="client-name-cell">
-                                <div>
-                                    <a href="{{ route('admin.accounts.details', 'ACC-9012') }}" class="client-name">HighRisk Corp</a>
-                                    <div class="account-number">ACC-9012</div>
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-9012', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-9012') }}" class="client-name">HighRisk Corp</a>
+                                        <div class="account-number">ACC-9012</div>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -467,11 +596,27 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="sub-account-row" data-parent="ACC-9012">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <table class="sub-account-table">
+                                        <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                            <tr><td class="sub-name">HighRisk Alerts</td><td class="text-end">300,456</td><td class="text-end">3,567,890</td><td><span class="badge light badge-warning">Restricted</span></td></tr>
+                                            <tr><td class="sub-name">HighRisk Promos</td><td class="text-end">156,333</td><td class="text-end">2,111,011</td><td><span class="badge light badge-danger">Blocked</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-3456" data-name="MedTech Solutions" data-status="live" data-volume-year="8901234" data-volume-month="743102" data-balance="8900">
                             <td class="client-name-cell">
-                                <div>
-                                    <a href="{{ route('admin.accounts.details', 'ACC-3456') }}" class="client-name">MedTech Solutions</a>
-                                    <div class="account-number">ACC-3456</div>
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-3456', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-3456') }}" class="client-name">MedTech Solutions</a>
+                                        <div class="account-number">ACC-3456</div>
+                                    </div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -495,8 +640,29 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4001') }}" class="client-name">RetailMax Group</a><div class="account-number">ACC-4001</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-3456">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <table class="sub-account-table">
+                                        <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                            <tr><td class="sub-name">MedTech Alerts</td><td class="text-end">450,000</td><td class="text-end">5,400,123</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                            <tr><td class="sub-name">MedTech Reminders</td><td class="text-end">293,102</td><td class="text-end">3,501,111</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-4001" data-name="RetailMax Group" data-status="live" data-volume-year="6234567" data-volume-month="521234" data-balance="4320">
+                            <td class="client-name-cell">
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-4001', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-4001') }}" class="client-name">RetailMax Group</a>
+                                        <div class="account-number">ACC-4001</div>
+                                    </div>
+                                </div>
+                            </td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">6,234,567</td>
                             <td class="text-end">521,234</td>
@@ -505,8 +671,29 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4002') }}" class="client-name">CloudFirst Tech</a><div class="account-number">ACC-4002</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4001">
+                            <td colspan="8">
+                                <div class="sub-account-table-wrapper">
+                                    <table class="sub-account-table">
+                                        <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
+                                        <tbody>
+                                            <tr><td class="sub-name">RetailMax Online</td><td class="text-end">321,234</td><td class="text-end">3,900,000</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                            <tr><td class="sub-name">RetailMax Stores</td><td class="text-end">200,000</td><td class="text-end">2,334,567</td><td><span class="badge light badge-success">Active</span></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="account-row" data-account="ACC-4002" data-name="CloudFirst Tech" data-status="live" data-volume-year="4567890" data-volume-month="382456" data-balance="3150">
+                            <td class="client-name-cell">
+                                <div class="client-name-wrapper">
+                                    <button class="expand-toggle" onclick="toggleSubAccounts('ACC-4002', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button>
+                                    <div class="client-name-content">
+                                        <a href="{{ route('admin.accounts.details', 'ACC-4002') }}" class="client-name">CloudFirst Tech</a>
+                                        <div class="account-number">ACC-4002</div>
+                                    </div>
+                                </div>
+                            </td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,567,890</td>
                             <td class="text-end">382,456</td>
@@ -515,8 +702,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4003') }}" class="client-name">GreenEnergy Ltd</a><div class="account-number">ACC-4003</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4002"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">CloudFirst SaaS</td><td class="text-end">382,456</td><td class="text-end">4,567,890</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4003" data-name="GreenEnergy Ltd" data-status="live" data-volume-year="3456789" data-volume-month="287654" data-balance="2890">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4003', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4003') }}" class="client-name">GreenEnergy Ltd</a><div class="account-number">ACC-4003</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,456,789</td>
                             <td class="text-end">287,654</td>
@@ -525,8 +713,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4004') }}" class="client-name">FastLogistics</a><div class="account-number">ACC-4004</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4003"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4004" data-name="FastLogistics" data-status="test" data-volume-year="0" data-volume-month="156" data-balance="0">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4004', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4004') }}" class="client-name">FastLogistics</a><div class="account-number">ACC-4004</div></div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">156</td>
@@ -535,8 +724,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4005') }}" class="client-name">HealthPlus Care</a><div class="account-number">ACC-4005</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4004"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4005" data-name="HealthPlus Care" data-status="live" data-volume-year="7890123" data-volume-month="654321" data-balance="6540">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4005', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4005') }}" class="client-name">HealthPlus Care</a><div class="account-number">ACC-4005</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">7,890,123</td>
                             <td class="text-end">654,321</td>
@@ -545,8 +735,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4006') }}" class="client-name">EduLearn Academy</a><div class="account-number">ACC-4006</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4005"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">HealthPlus Clinics</td><td class="text-end">400,000</td><td class="text-end">4,800,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">HealthPlus Labs</td><td class="text-end">254,321</td><td class="text-end">3,090,123</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4006" data-name="EduLearn Academy" data-status="live" data-volume-year="2345678" data-volume-month="198765" data-balance="1980">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4006', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4006') }}" class="client-name">EduLearn Academy</a><div class="account-number">ACC-4006</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">2,345,678</td>
                             <td class="text-end">198,765</td>
@@ -555,8 +746,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4007') }}" class="client-name">AutoDrive Motors</a><div class="account-number">ACC-4007</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4006"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4007" data-name="AutoDrive Motors" data-status="live" data-volume-year="5678901" data-volume-month="476543" data-balance="4760">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4007', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4007') }}" class="client-name">AutoDrive Motors</a><div class="account-number">ACC-4007</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">476,543</td>
@@ -565,8 +757,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4008') }}" class="client-name">TechStartup Inc</a><div class="account-number">ACC-4008</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4007"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">AutoDrive Sales</td><td class="text-end">300,000</td><td class="text-end">3,500,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">AutoDrive Service</td><td class="text-end">176,543</td><td class="text-end">2,178,901</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4008" data-name="TechStartup Inc" data-status="test" data-volume-year="0" data-volume-month="89" data-balance="0">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4008', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4008') }}" class="client-name">TechStartup Inc</a><div class="account-number">ACC-4008</div></div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">89</td>
@@ -575,8 +768,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4009') }}" class="client-name">FoodDelivery Pro</a><div class="account-number">ACC-4009</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4008"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4009" data-name="FoodDelivery Pro" data-status="live" data-volume-year="9012345" data-volume-month="756789" data-balance="7560">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4009', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4009') }}" class="client-name">FoodDelivery Pro</a><div class="account-number">ACC-4009</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">9,012,345</td>
                             <td class="text-end">756,789</td>
@@ -585,8 +779,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4010') }}" class="client-name">PropertyHub UK</a><div class="account-number">ACC-4010</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4009"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">FoodDelivery Express</td><td class="text-end">500,000</td><td class="text-end">6,000,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">FoodDelivery Premium</td><td class="text-end">256,789</td><td class="text-end">3,012,345</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4010" data-name="PropertyHub UK" data-status="live" data-volume-year="4123456" data-volume-month="345678" data-balance="3450">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4010', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4010') }}" class="client-name">PropertyHub UK</a><div class="account-number">ACC-4010</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,123,456</td>
                             <td class="text-end">345,678</td>
@@ -595,8 +790,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4011') }}" class="client-name">TravelWorld Agency</a><div class="account-number">ACC-4011</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4010"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4011" data-name="TravelWorld Agency" data-status="live" data-volume-year="3789012" data-volume-month="312456" data-balance="3120">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4011', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4011') }}" class="client-name">TravelWorld Agency</a><div class="account-number">ACC-4011</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,789,012</td>
                             <td class="text-end">312,456</td>
@@ -605,8 +801,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4012') }}" class="client-name">SecureBank Financial</a><div class="account-number">ACC-4012</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4011"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">TravelWorld Holidays</td><td class="text-end">200,000</td><td class="text-end">2,400,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">TravelWorld Business</td><td class="text-end">112,456</td><td class="text-end">1,389,012</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4012" data-name="SecureBank Financial" data-status="live" data-volume-year="12345678" data-volume-month="1034567" data-balance="10340">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4012', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4012') }}" class="client-name">SecureBank Financial</a><div class="account-number">ACC-4012</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">12,345,678</td>
                             <td class="text-end">1,034,567</td>
@@ -615,8 +812,9 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr>
-                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4013') }}" class="client-name">SmartHome Systems</a><div class="account-number">ACC-4013</div></div></td>
+                        <tr class="sub-account-row" data-parent="ACC-4012"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">SecureBank Retail</td><td class="text-end">600,000</td><td class="text-end">7,200,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">SecureBank Business</td><td class="text-end">434,567</td><td class="text-end">5,145,678</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="account-row" data-account="ACC-4013" data-name="SmartHome Systems" data-status="test" data-volume-year="0" data-volume-month="234" data-balance="0">
+                            <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4013', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4013') }}" class="client-name">SmartHome Systems</a><div class="account-number">ACC-4013</div></div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">234</td>
@@ -625,6 +823,7 @@
                             <td></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
+                        <tr class="sub-account-row" data-parent="ACC-4013"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -897,6 +1096,119 @@ function initKpiScrollCollapse() {
         contentArea.addEventListener('scroll', handleScroll, { passive: true });
     }
 }
+
+// ========================
+// Sub-Account Expand/Collapse
+// ========================
+window.toggleSubAccounts = function(accountId, button) {
+    var subAccountRow = document.querySelector('.sub-account-row[data-parent="' + accountId + '"]');
+    if (!subAccountRow) return;
+    
+    var isExpanded = subAccountRow.classList.contains('visible');
+    
+    if (isExpanded) {
+        subAccountRow.classList.remove('visible');
+        button.classList.remove('expanded');
+        button.innerHTML = '<i class="fas fa-plus"></i>';
+        button.title = 'Show sub-accounts';
+    } else {
+        subAccountRow.classList.add('visible');
+        button.classList.add('expanded');
+        button.innerHTML = '<i class="fas fa-minus"></i>';
+        button.title = 'Hide sub-accounts';
+    }
+};
+
+// ========================
+// Table Sorting
+// ========================
+var currentSort = { column: null, direction: null };
+
+function initTableSorting() {
+    var headers = document.querySelectorAll('#accountsTable thead th.sortable');
+    headers.forEach(function(header) {
+        header.addEventListener('click', function() {
+            var sortKey = this.dataset.sort;
+            sortTable(sortKey, this);
+        });
+    });
+}
+
+function sortTable(sortKey, headerElement) {
+    var table = document.getElementById('accountsTable');
+    var tbody = table.querySelector('tbody');
+    var rows = Array.from(tbody.querySelectorAll('tr.account-row'));
+    var headers = table.querySelectorAll('thead th.sortable');
+    
+    // Determine sort direction
+    var direction = 'asc';
+    if (currentSort.column === sortKey && currentSort.direction === 'asc') {
+        direction = 'desc';
+    }
+    
+    // Update header styling
+    headers.forEach(function(h) {
+        h.classList.remove('sort-asc', 'sort-desc');
+    });
+    headerElement.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+    
+    // Sort rows
+    rows.sort(function(a, b) {
+        var aVal, bVal;
+        
+        switch(sortKey) {
+            case 'name':
+                aVal = (a.dataset.name || '').toLowerCase();
+                bVal = (b.dataset.name || '').toLowerCase();
+                break;
+            case 'volume-year':
+                aVal = parseInt(a.dataset.volumeYear) || 0;
+                bVal = parseInt(b.dataset.volumeYear) || 0;
+                break;
+            case 'volume-month':
+                aVal = parseInt(a.dataset.volumeMonth) || 0;
+                bVal = parseInt(b.dataset.volumeMonth) || 0;
+                break;
+            case 'balance':
+                aVal = parseInt(a.dataset.balance) || 0;
+                bVal = parseInt(b.dataset.balance) || 0;
+                break;
+            case 'status':
+                aVal = (a.dataset.status || '').toLowerCase();
+                bVal = (b.dataset.status || '').toLowerCase();
+                break;
+            default:
+                aVal = '';
+                bVal = '';
+        }
+        
+        var result = 0;
+        if (typeof aVal === 'string') {
+            result = aVal.localeCompare(bVal);
+        } else {
+            result = aVal - bVal;
+        }
+        
+        return direction === 'asc' ? result : -result;
+    });
+    
+    // Re-append sorted rows with their sub-account rows
+    rows.forEach(function(row) {
+        var accountId = row.dataset.account;
+        var subRow = tbody.querySelector('.sub-account-row[data-parent="' + accountId + '"]');
+        tbody.appendChild(row);
+        if (subRow) {
+            tbody.appendChild(subRow);
+        }
+    });
+    
+    currentSort = { column: sortKey, direction: direction };
+}
+
+// Initialize sorting on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initTableSorting();
+});
 
 var currentFilter = null;
 
