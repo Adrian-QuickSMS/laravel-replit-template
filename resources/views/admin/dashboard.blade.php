@@ -2632,25 +2632,27 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Admin Charts] Delivery chart rendered');
         }
 
-        // Top Countries Bar Chart (matching customer portal design)
+        // Top Countries Bar Chart (matching customer portal design exactly)
         var countriesChartEl = document.getElementById('adminTopCountriesBarChart');
         if (countriesChartEl) {
             countriesChartEl.innerHTML = '';
-            var seriesData = [
-                { x: 'United Kingdom', y: 892145 },
-                { x: 'Ireland', y: 124567 },
-                { x: 'Germany', y: 89234 },
-                { x: 'France', y: 56789 },
-                { x: 'Spain', y: 45123 },
-                { x: 'Italy', y: 34567 },
-                { x: 'Netherlands', y: 23456 },
-                { x: 'Belgium', y: 18234 },
-                { x: 'Portugal', y: 12345 },
-                { x: 'Poland', y: 9876 }
-            ];
+            // Use DashboardDataService as single source of truth
+            var initialCountries = DashboardDataService.baseData.countries;
             var countriesOptions = {
-                series: [{ name: 'Messages', data: seriesData }],
-                chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+                series: [{ name: 'Messages', data: initialCountries }],
+                chart: { 
+                    type: 'bar', 
+                    height: 280, 
+                    toolbar: { show: false }, 
+                    fontFamily: 'inherit',
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            // Click to drill-through (matches customer behavior)
+                            var country = initialCountries[config.dataPointIndex];
+                            console.log('[Admin] Country drill-through:', country.x);
+                        }
+                    }
+                },
                 colors: ['#1e3a5f'],
                 plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '60%' } },
                 dataLabels: { enabled: false },
@@ -2659,6 +2661,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } }
                 },
                 yaxis: { labels: { style: { fontSize: '12px' } } },
+                tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } },
                 states: { hover: { filter: { type: 'darken', value: 0.9 } } }
             };
             chartInstances.countries = new ApexCharts(countriesChartEl, countriesOptions);
@@ -3181,12 +3184,32 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modalCharts.topCountries) {
             modalCharts.topCountries.destroy();
         }
+        // Use current filtered data from DashboardDataService (matches customer pattern)
+        var currentFilters = collectFilters();
+        var filteredData = DashboardDataService.getFilteredData(currentFilters);
+        
         modalCharts.topCountries = new ApexCharts(document.getElementById('adminTopCountriesModalChart'), {
-            series: [{ name: 'Messages', data: [892456, 234567, 156789, 98234, 78456, 65432, 54321, 43210, 32109, 21098] }],
-            chart: { type: 'bar', height: 400 },
-            plotOptions: { bar: { horizontal: true, barHeight: '70%' } },
+            series: [{ name: 'Messages', data: filteredData.countries }],
+            chart: { 
+                type: 'bar', 
+                height: 400, 
+                toolbar: { show: false },
+                events: {
+                    dataPointSelection: function(event, chartContext, config) {
+                        var country = filteredData.countries[config.dataPointIndex];
+                        console.log('[Admin] Country drill-through from modal:', country.x);
+                    }
+                }
+            },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
             colors: ['#1e3a5f'],
-            xaxis: { categories: ['United Kingdom', 'Germany', 'India', 'Philippines', 'Brazil', 'South Africa', 'Nigeria', 'France', 'Spain', 'Italy'] }
+            dataLabels: { enabled: false },
+            xaxis: { 
+                title: { text: 'Messages' },
+                labels: { formatter: function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val; } }
+            },
+            yaxis: { labels: { style: { fontSize: '12px' } } },
+            tooltip: { y: { formatter: function(val) { return val.toLocaleString() + ' messages'; } } }
         });
         modalCharts.topCountries.render();
     });
