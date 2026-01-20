@@ -42,6 +42,8 @@
                     <span class="nav-text">Messaging Assets</span>
                 </a>
                 <ul aria-expanded="false">
+                    <li><a href="{{ route('admin.assets.sender-ids') }}" class="{{ request()->routeIs('admin.assets.sender-ids') ? 'mm-active' : '' }}">Sender ID Approvals</a></li>
+                    <li><a href="{{ route('admin.assets.rcs-agents') }}" class="{{ request()->routeIs('admin.assets.rcs-agents') ? 'mm-active' : '' }}">RCS Agent Registration</a></li>
                     <li><a href="{{ route('admin.assets.templates') }}" class="{{ request()->routeIs('admin.assets.templates') ? 'mm-active' : '' }}">Templates</a></li>
                     <li><a href="{{ route('admin.assets.numbers') }}" class="{{ request()->routeIs('admin.assets.numbers') ? 'mm-active' : '' }}">Numbers</a></li>
                     <li><a href="{{ route('admin.assets.email-to-sms') }}" class="{{ request()->routeIs('admin.assets.email-to-sms') ? 'mm-active' : '' }}">Email-to-SMS</a></li>

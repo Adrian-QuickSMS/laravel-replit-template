@@ -601,41 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
     AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-approvals', {
         module: 'messaging_assets'
     });
-    
-    // Add click handlers to stat tiles
-    document.querySelectorAll('.approval-stat-card').forEach(function(tile) {
-        tile.style.cursor = 'pointer';
-        tile.addEventListener('click', function() {
-            var status = this.dataset.status;
-            filterByTile(status);
-            
-            // Update active state
-            document.querySelectorAll('.approval-stat-card').forEach(function(t) {
-                t.classList.remove('active');
-            });
-            this.classList.add('active');
-        });
-    });
 });
-
-function filterByTile(status) {
-    // Update the status dropdown
-    var dropdown = document.getElementById('filterStatus');
-    if (dropdown) {
-        dropdown.value = status === 'all' ? 'all' : status;
-    }
-    
-    // Filter the table
-    document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
-        if (status === 'all') {
-            row.style.display = '';
-        } else {
-            row.style.display = row.dataset.status === status ? '' : 'none';
-        }
-    });
-    
-    console.log('[SenderID Approvals] Filtered by status:', status);
-}
 
 var currentRejectItem = null;
 var selectedItems = [];
