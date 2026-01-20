@@ -142,6 +142,14 @@ class AdminController extends Controller
         ]);
     }
 
+    public function assetsNumberConfigure($id)
+    {
+        return view('admin.assets.number-configure', [
+            'page_title' => 'Configure Number',
+            'number_id' => $id
+        ]);
+    }
+
     public function assetsEmailToSms()
     {
         return view('admin.assets.email-to-sms', [

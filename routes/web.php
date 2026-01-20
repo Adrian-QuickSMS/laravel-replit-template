@@ -125,6 +125,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/rcs-agents/{id}', 'assetsRcsAgentDetail')->name('admin.assets.rcs-agent.detail');
             Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
             Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');
+            Route::get('/assets/numbers/{id}/configure', 'assetsNumberConfigure')->name('admin.assets.number.configure');
             Route::get('/assets/email-to-sms', 'assetsEmailToSms')->name('admin.assets.email-to-sms');
             
             Route::get('/api/connections', 'apiConnections')->name('admin.api.connections');

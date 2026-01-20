@@ -1922,6 +1922,10 @@ let currentConfigNumberId = null;
 let originalMode = null;
 
 function viewNumberDetails(numberId) {
+    window.location.href = `/admin/assets/numbers/${numberId}/configure`;
+}
+
+function viewNumberDetailsOLD(numberId) {
     let num = numbersData.find(n => n.id === numberId);
     if (!num && typeof NumbersAdminService !== 'undefined') {
         num = NumbersAdminService._mockDb.numbers.find(n => n.id === numberId);
