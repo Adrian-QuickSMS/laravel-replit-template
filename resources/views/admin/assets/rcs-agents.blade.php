@@ -1018,10 +1018,7 @@ function clearSelection() {
 }
 
 function markInReview(itemId) {
-    var result = AdminControlPlane.ApprovalFramework.markInReview(itemId, AdminControlPlane.getCurrentAdmin().email);
-    if (result.success) {
-        updateRowStatus(itemId, 'in-review');
-    }
+    AdminControlPlane.ApprovalFramework.markInReview(itemId, AdminControlPlane.getCurrentAdmin().email);
     window.location.href = '/admin/assets/rcs-agents/' + itemId;
 }
 
