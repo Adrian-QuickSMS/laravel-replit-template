@@ -846,8 +846,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
-<script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
-<script src="{{ asset('js/admin-external-validation.js') }}"></script>
+<script src="{{ asset('js/unified-approval-framework.js') }}"></script>
 <script src="{{ asset('js/admin-notifications.js') }}"></script>
 <script src="{{ asset('js/admin-audit-log.js') }}"></script>
 <script>
@@ -936,26 +935,26 @@ document.addEventListener('DOMContentLoaded', function() {
         AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-detail', { requestId: 'SID-001' }, 'LOW');
     }
 
-    APPROVAL_WORKFLOW.init({
-        requestId: 'SID-001',
-        requestType: 'sender-id',
+    UNIFIED_APPROVAL.init({
+        entityType: 'SENDER_ID',
+        entityId: 'SID-001',
         currentVersion: 1,
-        initialData: {
-            senderIdValue: 'ACMEBANK',
-            senderIdType: 'Alphanumeric',
-            brandName: 'Acme Bank Ltd',
+        currentStatus: 'submitted',
+        accountId: 'ACC-001',
+        accountName: 'Acme Corporation',
+        submittedBy: 'j.smith@acme.com',
+        submittedAt: '2026-01-20T10:15:00Z',
+        entityData: {
+            value: 'ACMEBANK',
+            type: 'Alphanumeric',
+            brand: 'Acme Bank Ltd',
             permissionConfirmed: true,
-            explanation: 'We are registering ACMEBANK as our official sender ID for transactional banking notifications.'
+            explanation: 'We are registering ACMEBANK as our official sender ID for transactional banking notifications.',
+            vertical: 'Financial Services'
         }
     });
 
-    EXTERNAL_VALIDATION.initBrandAssure({
-        history: []
-    });
-
     ADMIN_NOTIFICATIONS.init();
-
-    checkHighRiskFlags();
     checkSlaStatus();
 });
 
@@ -987,120 +986,28 @@ function switchNotesTab(tab) {
 }
 
 function returnToCustomer() {
-    APPROVAL_WORKFLOW.showReturnModal();
-}
-
-function onReturnConfirmed(reasonCode, notes) {
-    var previousStatus = getCurrentStatus();
-    
-    ADMIN_AUDIT.logStatusTransition(
-        ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
-        'SID-001',
-        previousStatus,
-        'returned',
-        reasonCode + (notes ? ': ' + notes : ''),
-        {}
-    );
-    
-    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'SID-001', 'SenderID', 'j.smith@acme.com', notes || 'Please review and update your submission.');
+    UNIFIED_APPROVAL.showReturnModal();
 }
 
 function showRejectModal() {
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
-
-function confirmReject() {
-    var reason = document.getElementById('rejectReason').value;
-    var message = document.getElementById('rejectMessage').value;
-    
-    if (!reason) {
-        alert('Please select a rejection reason');
-        return;
-    }
-    
-    var previousStatus = getCurrentStatus();
-    
-    ADMIN_AUDIT.logStatusTransition(
-        ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
-        'SID-001',
-        previousStatus,
-        'rejected',
-        reason + (message ? ': ' + message : ''),
-        { brandAssureRequestId: getBrandAssureRequestId() }
-    );
-    
-    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'SID-001', 'SenderID', 'j.smith@acme.com');
-    
-    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-    updateStatus('rejected', 'Rejected', 'fa-times-circle');
-    alert('SenderID request rejected. Customer will be notified.');
+    UNIFIED_APPROVAL.showRejectModal();
 }
 
 function approveSenderId() {
     if (confirm('Approve this SenderID request?')) {
-        var previousStatus = getCurrentStatus();
-        
-        ADMIN_AUDIT.logStatusTransition(
-            ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
-            'SID-001',
-            previousStatus,
-            'approved',
-            'Manual approval by admin',
-            { brandAssureRequestId: getBrandAssureRequestId() }
-        );
-        
-        updateStatus('approved', 'Approved', 'fa-check-circle');
-        ADMIN_NOTIFICATIONS.showCustomerNotificationModal('APPROVED', 'SID-001', 'SenderID', 'j.smith@acme.com');
-        
-        setTimeout(function() {
-            ADMIN_AUDIT.logStatusTransition(
-                ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
-                'SID-001',
-                'approved',
-                'live',
-                'Auto-provisioned after approval',
-                {}
-            );
-            updateStatus('live', 'Live', 'fa-broadcast-tower');
-            ADMIN_NOTIFICATIONS.sendCustomerNotification('LIVE', 'SID-001', 'SenderID', 'j.smith@acme.com');
-        }, 1500);
-    }
-}
-
-function getCurrentStatus() {
-    var statusBadge = document.querySelector('.status-badge');
-    if (statusBadge) {
-        return statusBadge.textContent.trim().toLowerCase().replace(/\s+/g, '_');
-    }
-    return 'submitted';
-}
-
-function getBrandAssureRequestId() {
-    var history = EXTERNAL_VALIDATION.getBrandAssureHistory();
-    if (history && history.length > 0) {
-        return history[history.length - 1].externalRequestId;
-    }
-    return null;
-}
-
-function submitToBrandAssure() {
-    if (confirm('Submit this SenderID to BrandAssure for external validation?')) {
-        EXTERNAL_VALIDATION.submitToBrandAssure('SID-001', {
-            value: 'ACMEBANK',
-            type: 'Alphanumeric',
-            brand: 'Acme Bank Ltd',
-            accountId: 'ACC-1234'
-        });
-        updateStatus('validation-in-progress', 'Validation In Progress', 'fa-spinner fa-spin');
-    }
-}
-
-function markValidationFailed() {
-    if (confirm('Mark external validation as failed?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('VALIDATION_FAILED', 'SID-001', {}, 'HIGH');
+        var result = UNIFIED_APPROVAL.approve('Manual approval by admin');
+        if (result.success) {
+            setTimeout(function() {
+                UNIFIED_APPROVAL.provision();
+            }, 1500);
         }
-        updateStatus('validation-failed', 'Validation Failed', 'fa-exclamation-circle');
+    }
+}
+
+function submitToExternalProvider() {
+    if (confirm('Submit this SenderID to BrandAssure for external validation?')) {
+        var entity = UNIFIED_APPROVAL.getCurrentEntity();
+        UNIFIED_APPROVAL.submitToExternalProvider(entity.data);
     }
 }
 
@@ -1112,28 +1019,15 @@ function forceApprove() {
     }
     
     if (confirm('Force approve this SenderID bypassing validation? This action is logged with CRITICAL severity.')) {
-        var previousStatus = getCurrentStatus();
-        
-        ADMIN_AUDIT.logForceApprove(
-            ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
-            'SID-001',
-            reason,
-            previousStatus
-        );
-        
-        updateStatus('approved', 'Approved', 'fa-check-circle');
-        setTimeout(function() {
-            ADMIN_AUDIT.logStatusTransition(
-                ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
-                'SID-001',
-                'approved',
-                'live',
-                'Force-provisioned after enterprise override',
-                {}
-            );
-            updateStatus('live', 'Live', 'fa-broadcast-tower');
-        }, 1000);
-        alert('SenderID force approved (enterprise override). Audit logged with CRITICAL severity.');
+        var result = UNIFIED_APPROVAL.forceApprove(reason);
+        if (result.success) {
+            setTimeout(function() {
+                UNIFIED_APPROVAL.provision();
+            }, 1000);
+            alert('SenderID force approved (enterprise override). Audit logged with CRITICAL severity.');
+        } else {
+            alert('Error: ' + result.error);
+        }
     }
 }
 

@@ -39,6 +39,15 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin
   - **Cross-Cutting Security Controls:** Mandatory MFA, optional IP allowlists, immediate suspension propagation, central password policy enforcement.
   - **Hierarchy Enforcement:** Users belong to one Sub-Account, credential sharing detection, silent permission changes prohibited, hierarchical context enforced.
   - **Permission Engine:** High-performance permission evaluation with in-memory caching and audit logging.
+- **Unified Approval Framework:** Single approval system handling both SenderID and RCS Agent entity types with shared:
+  - Queue infrastructure (unified approval queue)
+  - Lifecycle handling (10-state status workflow)
+  - Audit logging (status transitions, external references, integrity checksums)
+  - Customer notification logic (email templates with preview modals)
+  - External validation tracking (BrandAssure for SenderID, RCS Provider for RCS Agent)
+  - Return-to-customer flow with version preservation
+  - Force approve with CRITICAL severity audit logging
+  - High-risk detection (BANK, NHS, HMRC keywords; Financial Services, Healthcare verticals)
 - **SMS SenderID Registration:** UK-compliant 5-step registration wizard with lifecycle management and audit trails.
 - **Numbers Management:** Library table for managing owned numbers with status, capabilities, filtering, and bulk actions.
 - **Numbers Mode Selection:** Each number operates in one mutually exclusive mode (Portal Mode or API Mode) with explicit confirmation for switching.

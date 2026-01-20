@@ -1056,8 +1056,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
-<script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
-<script src="{{ asset('js/admin-external-validation.js') }}"></script>
+<script src="{{ asset('js/unified-approval-framework.js') }}"></script>
 <script src="{{ asset('js/admin-notifications.js') }}"></script>
 <script src="{{ asset('js/admin-audit-log.js') }}"></script>
 <script>
@@ -1184,14 +1183,19 @@ document.addEventListener('DOMContentLoaded', function() {
         AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-detail', { requestId: 'RCS-001' }, 'LOW');
     }
 
-    APPROVAL_WORKFLOW.init({
-        requestId: 'RCS-001',
-        requestType: 'rcs-agent',
+    UNIFIED_APPROVAL.init({
+        entityType: 'RCS_AGENT',
+        entityId: 'RCS-001',
         currentVersion: 1,
-        initialData: {
-            agentName: 'Acme Bank Notifications',
-            agentDescription: 'Official notification service for Acme Bank customers.',
-            brandColour: '#1e40af',
+        currentStatus: 'submitted',
+        accountId: 'ACC-002',
+        accountName: 'Finance Ltd',
+        submittedBy: 'e.davis@financeltd.com',
+        submittedAt: '2026-01-18T14:30:00Z',
+        entityData: {
+            name: 'Acme Bank Notifications',
+            description: 'Official notification service for Acme Bank customers.',
+            brandColor: '#1e40af',
             billingCategory: 'Financial Services',
             useCase: 'Transactional Notifications',
             privacyPolicyUrl: 'https://acmebank.com/privacy',
@@ -1199,13 +1203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    EXTERNAL_VALIDATION.initRcsProvider({
-        history: []
-    });
-
     ADMIN_NOTIFICATIONS.init();
-
-    checkHighRiskFlags();
     checkSlaStatus();
 });
 
@@ -1237,85 +1235,56 @@ function switchNotesTab(tab) {
 }
 
 function returnToCustomer() {
-    APPROVAL_WORKFLOW.showReturnModal();
-}
-
-function onReturnConfirmed(reasonCode, notes) {
-    var previousStatus = getCurrentStatus();
-    
-    ADMIN_AUDIT.logStatusTransition(
-        ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
-        'RCS-001',
-        previousStatus,
-        'returned',
-        reasonCode + (notes ? ': ' + notes : ''),
-        {}
-    );
-    
-    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com', notes || 'Please review and update your submission.');
+    UNIFIED_APPROVAL.showReturnModal();
 }
 
 function showRejectModal() {
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
-
-function confirmReject() {
-    var reason = document.getElementById('rejectReason').value;
-    var message = document.getElementById('rejectMessage').value;
-    
-    if (!reason) {
-        alert('Please select a rejection reason');
-        return;
-    }
-    
-    var previousStatus = getCurrentStatus();
-    
-    ADMIN_AUDIT.logStatusTransition(
-        ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
-        'RCS-001',
-        previousStatus,
-        'rejected',
-        reason + (message ? ': ' + message : ''),
-        { rcsProviderRefId: getRcsProviderRefId() }
-    );
-    
-    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
-    
-    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-    updateStatus('rejected', 'Rejected', 'fa-times-circle');
-    alert('RCS Agent request rejected. Customer will be notified.');
+    UNIFIED_APPROVAL.showRejectModal();
 }
 
 function approveAgent() {
     if (confirm('Approve this RCS Agent request?')) {
-        var previousStatus = getCurrentStatus();
-        
-        ADMIN_AUDIT.logStatusTransition(
-            ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
-            'RCS-001',
-            previousStatus,
-            'approved',
-            'Manual approval by admin',
-            { rcsProviderRefId: getRcsProviderRefId() }
-        );
-        
-        updateStatus('approved', 'Approved', 'fa-check-circle');
-        ADMIN_NOTIFICATIONS.showCustomerNotificationModal('APPROVED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
+        UNIFIED_APPROVAL.approve('Manual approval by admin');
     }
 }
 
-function getCurrentStatus() {
-    var statusBadge = document.querySelector('.status-badge');
-    if (statusBadge) {
-        return statusBadge.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+function submitToExternalProvider() {
+    if (confirm('Submit this RCS Agent to RCS Provider for validation?')) {
+        var entity = UNIFIED_APPROVAL.getCurrentEntity();
+        UNIFIED_APPROVAL.submitToExternalProvider(entity.data);
     }
-    return 'submitted';
+}
+
+function provisionAgent() {
+    if (confirm('Provision this RCS Agent? This will make it live on the network.')) {
+        UNIFIED_APPROVAL.provision();
+    }
+}
+
+function forceApprove() {
+    var reason = prompt('ENTERPRISE OVERRIDE: Enter reason for force approve (required for audit):');
+    if (!reason) {
+        alert('Reason is required for force approve.');
+        return;
+    }
+    
+    if (confirm('Force approve this RCS Agent bypassing validation? This action is logged with CRITICAL severity.')) {
+        var result = UNIFIED_APPROVAL.forceApprove(reason);
+        if (result.success) {
+            setTimeout(function() {
+                UNIFIED_APPROVAL.provision();
+            }, 1000);
+            alert('RCS Agent force approved (enterprise override). Audit logged with CRITICAL severity.');
+        } else {
+            alert('Error: ' + result.error);
+        }
+    }
 }
 
 function getRcsProviderRefId() {
-    var history = EXTERNAL_VALIDATION.getRcsProviderHistory();
+    var history = UNIFIED_APPROVAL.getExternalValidationHistory();
     if (history && history.length > 0) {
-        return history[history.length - 1].providerReferenceId;
+        return history[history.length - 1].externalRequestId;
     }
     return null;
 }
