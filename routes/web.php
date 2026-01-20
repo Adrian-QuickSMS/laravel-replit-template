@@ -103,6 +103,7 @@ Route::prefix('admin')->group(function () {
         ->controller(\App\Http\Controllers\AdminController::class)
         ->group(function () {
             Route::get('/', 'dashboard')->name('admin.dashboard');
+            Route::get('/approval-queue', 'approvalQueue')->name('admin.approval-queue');
             
             Route::get('/accounts/overview', 'accountsOverview')->name('admin.accounts.overview');
             Route::get('/accounts/sub-accounts', 'accountsSubAccounts')->name('admin.accounts.sub-accounts');

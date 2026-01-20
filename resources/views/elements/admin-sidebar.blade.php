@@ -8,6 +8,14 @@
                 </a>
             </li>
             
+            <li class="{{ request()->routeIs('admin.approval-queue') ? 'mm-active' : '' }}">
+                <a href="{{ route('admin.approval-queue') }}" aria-expanded="false">
+                    <i class="fas fa-inbox"></i>
+                    <span class="nav-text">Approval Queue</span>
+                    <span class="badge bg-danger ms-auto">11</span>
+                </a>
+            </li>
+            
             <li class="{{ request()->routeIs('admin.accounts.*') ? 'mm-active' : '' }}">
                 <a href="{{ route('admin.accounts.overview') }}" aria-expanded="false">
                     <i class="fas fa-building"></i>

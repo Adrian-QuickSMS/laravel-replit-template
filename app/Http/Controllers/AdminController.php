@@ -13,6 +13,13 @@ class AdminController extends Controller
         ]);
     }
 
+    public function approvalQueue()
+    {
+        return view('admin.approval-queue', [
+            'page_title' => 'Approval Queue'
+        ]);
+    }
+
     public function accountsOverview()
     {
         return view('admin.accounts.overview', [
