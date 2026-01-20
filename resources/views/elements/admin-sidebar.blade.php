@@ -17,7 +17,6 @@
                     <li><a href="{{ route('admin.accounts.overview') }}" class="{{ request()->routeIs('admin.accounts.overview') ? 'mm-active' : '' }}">Account Overview</a></li>
                     <li><a href="{{ route('admin.accounts.sub-accounts') }}" class="{{ request()->routeIs('admin.accounts.sub-accounts') ? 'mm-active' : '' }}">Sub Accounts</a></li>
                     <li><a href="{{ route('admin.accounts.balances') }}" class="{{ request()->routeIs('admin.accounts.balances') ? 'mm-active' : '' }}">Balances & Credit</a></li>
-                    <li><a href="{{ route('admin.accounts.details') }}" class="{{ request()->routeIs('admin.accounts.details') ? 'mm-active' : '' }}">Account Details</a></li>
                 </ul>
             </li>
             

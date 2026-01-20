@@ -34,10 +34,11 @@ class AdminController extends Controller
         ]);
     }
 
-    public function accountsDetails()
+    public function accountsDetails($accountId)
     {
         return view('admin.accounts.details', [
-            'page_title' => 'Account Details'
+            'page_title' => 'Account Details',
+            'account_id' => $accountId
         ]);
     }
 

@@ -58,6 +58,12 @@ A separate internal interface for QuickSMS employees with a hard security bounda
 - **Security Architecture:** Separate authentication, mandatory MFA, IP allow-listing, configurable session timeout, and separate admin audit logging.
 - **RBAC Structure (Feature-Flagged):** Roles defined in code (Super Admin, Support, Finance, Compliance, Sales) with specific permission sets.
 - **Admin Roles:** Super Admin, Support, Finance, Compliance, Sales, each with defined access.
+- **Admin Accounts Module:**
+  - **Account Overview:** 8 KPI filter tiles (collapsible on scroll), 20-row paginated accounts table with compact density.
+  - **Navigation Pattern:** Client names in table are links that navigate to dedicated Account Details page (no View Structure button in table rows).
+  - **Account Details Page:** Reuses customer portal content with admin blue styling (#1e3a5f). Includes "View Account Structure" button to open hierarchy modal, breadcrumb navigation, and "Back to Accounts" link.
+  - **Account Structure Modal:** Two-panel layout with hierarchy tree (left) and contextual details panel (right). Available via button on Account Details page.
+  - **Row Actions:** Add Credit, Change Account Name, Edit Details, Edit Pricing, Suspend/Reactivate - all with confirmation modals and audit logging.
 - **Impersonation:** Requires a reason, has a 5-minute session limit, and logs all actions to the ADMIN audit.
 - **Admin Responsibility Model:** Observe (READ), Control (WRITE), Investigate (SUPPORT), Govern (COMPLIANCE).
 - **Global Admin Module Rules:** Single source of truth for data, filtering applies only on explicit action, maximum drill depth of 1, comprehensive audit logging for state mutations, and PII protection (masking by default, explicit reveal with logging).

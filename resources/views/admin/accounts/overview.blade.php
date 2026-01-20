@@ -318,12 +318,9 @@
                     <tbody>
                         <tr>
                             <td class="client-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-1234')">Acme Corporation</a>
-                                        <div class="account-number">ACC-1234</div>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-1234', 'Acme Corporation')">View Structure</button>
+                                <div>
+                                    <a href="{{ route('admin.accounts.details', 'ACC-1234') }}" class="client-name">Acme Corporation</a>
+                                    <div class="account-number">ACC-1234</div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -351,12 +348,9 @@
                         </tr>
                         <tr>
                             <td class="client-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-5678')">Finance Ltd</a>
-                                        <div class="account-number">ACC-5678</div>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-5678', 'Finance Ltd')">View Structure</button>
+                                <div>
+                                    <a href="{{ route('admin.accounts.details', 'ACC-5678') }}" class="client-name">Finance Ltd</a>
+                                    <div class="account-number">ACC-5678</div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -384,12 +378,9 @@
                         </tr>
                         <tr>
                             <td class="client-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-7890')">NewClient</a>
-                                        <div class="account-number">ACC-7890</div>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-7890', 'NewClient')">View Structure</button>
+                                <div>
+                                    <a href="{{ route('admin.accounts.details', 'ACC-7890') }}" class="client-name">NewClient</a>
+                                    <div class="account-number">ACC-7890</div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-info">Test</span></td>
@@ -417,12 +408,9 @@
                         </tr>
                         <tr>
                             <td class="client-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-4567')">TestCo</a>
-                                        <div class="account-number">ACC-4567</div>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4567', 'TestCo')">View Structure</button>
+                                <div>
+                                    <a href="{{ route('admin.accounts.details', 'ACC-4567') }}" class="client-name">TestCo</a>
+                                    <div class="account-number">ACC-4567</div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-danger">Suspended</span></td>
@@ -450,12 +438,9 @@
                         </tr>
                         <tr>
                             <td class="client-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-9012')">HighRisk Corp</a>
-                                        <div class="account-number">ACC-9012</div>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-9012', 'HighRisk Corp')">View Structure</button>
+                                <div>
+                                    <a href="{{ route('admin.accounts.details', 'ACC-9012') }}" class="client-name">HighRisk Corp</a>
+                                    <div class="account-number">ACC-9012</div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -484,12 +469,9 @@
                         </tr>
                         <tr>
                             <td class="client-name-cell">
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-3456')">MedTech Solutions</a>
-                                        <div class="account-number">ACC-3456</div>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-3456', 'MedTech Solutions')">View Structure</button>
+                                <div>
+                                    <a href="{{ route('admin.accounts.details', 'ACC-3456') }}" class="client-name">MedTech Solutions</a>
+                                    <div class="account-number">ACC-3456</div>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -514,7 +496,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">RetailMax Group</a><div class="account-number">ACC-4001</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4001', 'RetailMax Group')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4001') }}" class="client-name">RetailMax Group</a><div class="account-number">ACC-4001</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">6,234,567</td>
                             <td class="text-end">521,234</td>
@@ -524,7 +506,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">CloudFirst Tech</a><div class="account-number">ACC-4002</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4002', 'CloudFirst Tech')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4002') }}" class="client-name">CloudFirst Tech</a><div class="account-number">ACC-4002</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,567,890</td>
                             <td class="text-end">382,456</td>
@@ -534,7 +516,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">GreenEnergy Ltd</a><div class="account-number">ACC-4003</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4003', 'GreenEnergy Ltd')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4003') }}" class="client-name">GreenEnergy Ltd</a><div class="account-number">ACC-4003</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,456,789</td>
                             <td class="text-end">287,654</td>
@@ -544,7 +526,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">FastLogistics</a><div class="account-number">ACC-4004</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4004', 'FastLogistics')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4004') }}" class="client-name">FastLogistics</a><div class="account-number">ACC-4004</div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">156</td>
@@ -554,7 +536,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">HealthPlus Care</a><div class="account-number">ACC-4005</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4005', 'HealthPlus Care')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4005') }}" class="client-name">HealthPlus Care</a><div class="account-number">ACC-4005</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">7,890,123</td>
                             <td class="text-end">654,321</td>
@@ -564,7 +546,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">EduLearn Academy</a><div class="account-number">ACC-4006</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4006', 'EduLearn Academy')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4006') }}" class="client-name">EduLearn Academy</a><div class="account-number">ACC-4006</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">2,345,678</td>
                             <td class="text-end">198,765</td>
@@ -574,7 +556,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">AutoDrive Motors</a><div class="account-number">ACC-4007</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4007', 'AutoDrive Motors')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4007') }}" class="client-name">AutoDrive Motors</a><div class="account-number">ACC-4007</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">476,543</td>
@@ -584,7 +566,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">TechStartup Inc</a><div class="account-number">ACC-4008</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4008', 'TechStartup Inc')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4008') }}" class="client-name">TechStartup Inc</a><div class="account-number">ACC-4008</div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">89</td>
@@ -594,7 +576,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">FoodDelivery Pro</a><div class="account-number">ACC-4009</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4009', 'FoodDelivery Pro')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4009') }}" class="client-name">FoodDelivery Pro</a><div class="account-number">ACC-4009</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">9,012,345</td>
                             <td class="text-end">756,789</td>
@@ -604,7 +586,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">PropertyHub UK</a><div class="account-number">ACC-4010</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4010', 'PropertyHub UK')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4010') }}" class="client-name">PropertyHub UK</a><div class="account-number">ACC-4010</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,123,456</td>
                             <td class="text-end">345,678</td>
@@ -614,7 +596,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">TravelWorld Agency</a><div class="account-number">ACC-4011</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4011', 'TravelWorld Agency')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4011') }}" class="client-name">TravelWorld Agency</a><div class="account-number">ACC-4011</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,789,012</td>
                             <td class="text-end">312,456</td>
@@ -624,7 +606,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">SecureBank Financial</a><div class="account-number">ACC-4012</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4012', 'SecureBank Financial')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4012') }}" class="client-name">SecureBank Financial</a><div class="account-number">ACC-4012</div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">12,345,678</td>
                             <td class="text-end">1,034,567</td>
@@ -634,7 +616,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">SmartHome Systems</a><div class="account-number">ACC-4013</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4013', 'SmartHome Systems')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div><a href="{{ route('admin.accounts.details', 'ACC-4013') }}" class="client-name">SmartHome Systems</a><div class="account-number">ACC-4013</div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">234</td>
@@ -856,48 +838,7 @@
     </div>
 </div>
 
-<!-- Account Structure Modal -->
-<div class="modal fade" id="accountStructureModal" tabindex="-1" aria-labelledby="accountStructureModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="accountStructureModalLabel">Account Hierarchy</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div class="row g-0">
-                    <!-- Left Panel - Hierarchy Tree -->
-                    <div class="col-md-5 border-end" style="max-height: 500px; overflow-y: auto;">
-                        <div class="p-3">
-                            <h6 class="text-muted mb-3">Hierarchy Tree</h6>
-                            <div id="hierarchyTree" class="hierarchy-tree">
-                                <!-- Tree populated by JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Right Panel - Selected Node Details -->
-                    <div class="col-md-7" style="max-height: 500px; overflow-y: auto;">
-                        <div class="p-3" id="nodeDetailsPanel">
-                            <div class="text-center text-muted py-5">
-                                <p>Select a node to view details</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <span class="text-muted small me-auto">Read-only view</span>
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSubAccount()">
-                    <i class="fa fa-plus me-1"></i>Add Sub-account
-                </button>
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="inviteUser()">
-                    <i class="fa fa-user-plus me-1"></i>Invite User
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+@include('admin.accounts.partials.account-structure-modal')
 @endsection
 
 @push('scripts')
