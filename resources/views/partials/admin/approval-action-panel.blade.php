@@ -320,11 +320,11 @@
     @endif
     <div class="admin-action-panel-body">
         <div class="admin-action-group">
-            <div class="admin-action-group-title">Standard Actions</div>
+            <div class="admin-action-group-title">Actions</div>
             <div class="admin-action-buttons">
                 <button class="admin-action-btn approve" onclick="approveEntity()">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Approve</span>
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Submit to {{ $validationProvider ?? 'Provider' }}</span>
                 </button>
                 <button class="admin-action-btn reject" onclick="showRejectModal()">
                     <i class="fas fa-times-circle"></i>
@@ -333,22 +333,6 @@
                 <button class="admin-action-btn return" onclick="returnToCustomer()">
                     <i class="fas fa-reply"></i>
                     <span>Return to Customer</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="admin-action-group">
-            <div class="admin-action-group-title">External Validation</div>
-            <div class="external-validation-status" id="externalValidationStatus">
-                <div class="validation-status-pill not-sent">
-                    <i class="fas fa-circle"></i>
-                    <span>Not Sent</span>
-                </div>
-            </div>
-            <div class="admin-action-buttons" style="margin-top: 0.75rem;">
-                <button class="admin-action-btn validation" onclick="showExternalValidationModal()" id="submitExternalBtn">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Submit to {{ $validationProvider ?? 'External Validation' }}</span>
                 </button>
             </div>
         </div>
