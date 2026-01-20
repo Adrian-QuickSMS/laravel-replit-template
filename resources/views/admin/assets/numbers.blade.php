@@ -2099,8 +2099,14 @@ function saveConfiguration() {
 document.getElementById('apiWebhookUrl')?.addEventListener('blur', validateWebhookUrl);
 
 function viewAuditTrail(numberId) {
-    const num = numbersData.find(n => n.id === numberId);
-    if (!num) return;
+    let num = numbersData.find(n => n.id === numberId);
+    if (!num && typeof NumbersAdminService !== 'undefined') {
+        num = NumbersAdminService._mockDb.numbers.find(n => n.id === numberId);
+    }
+    if (!num) {
+        console.error('[Admin Numbers] Number not found for audit:', numberId);
+        return;
+    }
     
     const content = `
         <div class="alert alert-info">
