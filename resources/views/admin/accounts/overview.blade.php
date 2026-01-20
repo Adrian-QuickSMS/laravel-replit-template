@@ -411,12 +411,9 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-1234') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-1234', 'Acme Corporation')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
-                                        <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-1234', 'Acme Corporation')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -462,12 +459,9 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-5678') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-5678', 'Finance Ltd')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
-                                        <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-5678', 'Finance Ltd')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -511,12 +505,9 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-7890') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-7890', 'NewClient')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
-                                        <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-7890', 'NewClient')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -555,12 +546,9 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4567') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-4567', 'TestCo')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
-                                        <li><a class="dropdown-item text-success" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'reactivate')"><i class="fas fa-play-circle me-2"></i>Reactivate Account</a></li>
+                                        <li><a class="dropdown-item text-success" href="#" onclick="confirmReactivateAccount('ACC-4567', 'TestCo')"><i class="fas fa-play-circle me-2"></i>Reactivate Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -604,11 +592,9 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-9012')">View Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-9012')">Impersonate</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-9012') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#">Review Risk</a></li>
-                                        <li><a class="dropdown-item text-warning" href="#">Suspend Account</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-9012', 'HighRisk Corp')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -653,11 +639,9 @@
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-3456')">View Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="impersonateAccount('ACC-3456')">Impersonate</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-3456') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#">Edit Pricing</a></li>
-                                        <li><a class="dropdown-item" href="#">View Invoices</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-3456', 'MedTech Solutions')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
                                     </ul>
                                 </div>
                             </td>
@@ -690,7 +674,7 @@
                             <td class="text-end">521,234</td>
                             <td class="text-end">£4,320</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4001', 'RetailMax Group')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4001', 'RetailMax Group')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4001', 'RetailMax Group')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4001') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4001', 'RetailMax Group')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4001">
                             <td colspan="7">
@@ -720,7 +704,7 @@
                             <td class="text-end">382,456</td>
                             <td class="text-end">£3,150</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4002', 'CloudFirst Tech')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4002', 'CloudFirst Tech')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4002', 'CloudFirst Tech')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4002') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4002', 'CloudFirst Tech')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4002"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">CloudFirst SaaS</td><td class="text-end">382,456</td><td class="text-end">4,567,890</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4003" data-name="GreenEnergy Ltd" data-status="live" data-volume-year="3456789" data-volume-month="287654" data-balance="2890">
@@ -730,7 +714,7 @@
                             <td class="text-end">287,654</td>
                             <td class="text-end">£2,890</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4003', 'GreenEnergy Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4003', 'GreenEnergy Ltd')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4003', 'GreenEnergy Ltd')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4003') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4003', 'GreenEnergy Ltd')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4003"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4004" data-name="FastLogistics" data-status="test" data-volume-year="0" data-volume-month="156" data-balance="0">
@@ -740,7 +724,7 @@
                             <td class="text-end">156</td>
                             <td class="text-end">£0</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4004', 'FastLogistics')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4004', 'FastLogistics')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4004', 'FastLogistics')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4004') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4004', 'FastLogistics')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4004"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4005" data-name="HealthPlus Care" data-status="live" data-volume-year="7890123" data-volume-month="654321" data-balance="6540">
@@ -750,7 +734,7 @@
                             <td class="text-end">654,321</td>
                             <td class="text-end">£6,540</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4005', 'HealthPlus Care')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4005', 'HealthPlus Care')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4005', 'HealthPlus Care')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4005') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4005', 'HealthPlus Care')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4005"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">HealthPlus Clinics</td><td class="text-end">400,000</td><td class="text-end">4,800,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">HealthPlus Labs</td><td class="text-end">254,321</td><td class="text-end">3,090,123</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4006" data-name="EduLearn Academy" data-status="live" data-volume-year="2345678" data-volume-month="198765" data-balance="1980">
@@ -760,7 +744,7 @@
                             <td class="text-end">198,765</td>
                             <td class="text-end">£1,980</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4006', 'EduLearn Academy')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4006', 'EduLearn Academy')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4006', 'EduLearn Academy')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4006') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4006', 'EduLearn Academy')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4006"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4007" data-name="AutoDrive Motors" data-status="live" data-volume-year="5678901" data-volume-month="476543" data-balance="4760">
@@ -770,7 +754,7 @@
                             <td class="text-end">476,543</td>
                             <td class="text-end">£4,760</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4007', 'AutoDrive Motors')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4007', 'AutoDrive Motors')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4007', 'AutoDrive Motors')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4007') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4007', 'AutoDrive Motors')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4007"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">AutoDrive Sales</td><td class="text-end">300,000</td><td class="text-end">3,500,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">AutoDrive Service</td><td class="text-end">176,543</td><td class="text-end">2,178,901</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4008" data-name="TechStartup Inc" data-status="test" data-volume-year="0" data-volume-month="89" data-balance="0">
@@ -780,7 +764,7 @@
                             <td class="text-end">89</td>
                             <td class="text-end">£0</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4008', 'TechStartup Inc')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4008', 'TechStartup Inc')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4008', 'TechStartup Inc')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4008') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4008', 'TechStartup Inc')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4008"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4009" data-name="FoodDelivery Pro" data-status="live" data-volume-year="9012345" data-volume-month="756789" data-balance="7560">
@@ -790,7 +774,7 @@
                             <td class="text-end">756,789</td>
                             <td class="text-end">£7,560</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4009', 'FoodDelivery Pro')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4009', 'FoodDelivery Pro')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4009', 'FoodDelivery Pro')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4009') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4009', 'FoodDelivery Pro')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4009"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">FoodDelivery Express</td><td class="text-end">500,000</td><td class="text-end">6,000,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">FoodDelivery Premium</td><td class="text-end">256,789</td><td class="text-end">3,012,345</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4010" data-name="PropertyHub UK" data-status="live" data-volume-year="4123456" data-volume-month="345678" data-balance="3450">
@@ -800,7 +784,7 @@
                             <td class="text-end">345,678</td>
                             <td class="text-end">£3,450</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4010', 'PropertyHub UK')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4010', 'PropertyHub UK')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4010', 'PropertyHub UK')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4010') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4010', 'PropertyHub UK')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4010"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4011" data-name="TravelWorld Agency" data-status="live" data-volume-year="3789012" data-volume-month="312456" data-balance="3120">
@@ -810,7 +794,7 @@
                             <td class="text-end">312,456</td>
                             <td class="text-end">£3,120</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4011', 'TravelWorld Agency')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4011', 'TravelWorld Agency')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4011', 'TravelWorld Agency')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4011') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4011', 'TravelWorld Agency')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4011"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">TravelWorld Holidays</td><td class="text-end">200,000</td><td class="text-end">2,400,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">TravelWorld Business</td><td class="text-end">112,456</td><td class="text-end">1,389,012</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4012" data-name="SecureBank Financial" data-status="live" data-volume-year="12345678" data-volume-month="1034567" data-balance="10340">
@@ -820,7 +804,7 @@
                             <td class="text-end">1,034,567</td>
                             <td class="text-end">£10,340</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4012', 'SecureBank Financial')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4012', 'SecureBank Financial')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4012', 'SecureBank Financial')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4012') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4012', 'SecureBank Financial')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4012"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">SecureBank Retail</td><td class="text-end">600,000</td><td class="text-end">7,200,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">SecureBank Business</td><td class="text-end">434,567</td><td class="text-end">5,145,678</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4013" data-name="SmartHome Systems" data-status="test" data-volume-year="0" data-volume-month="234" data-balance="0">
@@ -830,7 +814,7 @@
                             <td class="text-end">234</td>
                             <td class="text-end">£0</td>
                             <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4013', 'SmartHome Systems')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4013', 'SmartHome Systems')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4013', 'SmartHome Systems')" title="Routing"><i class="fas fa-route"></i></button></div></td>
-                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{{ route('admin.accounts.details', 'ACC-4013') }}"><i class="fas fa-eye me-2"></i>View Account Details</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspendAccount('ACC-4013', 'SmartHome Systems')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4013"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                     </tbody>
@@ -1446,6 +1430,85 @@
             <div class="modal-footer">
                 <span class="text-muted small me-auto"><i class="fas fa-info-circle me-1"></i>Routing managed by Operations</span>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="suspendAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-pause-circle me-2"></i>Suspend Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Suspending this account will immediately stop all messaging services.
+                </div>
+                <p>You are about to suspend account:</p>
+                <div class="card bg-light mb-3">
+                    <div class="card-body py-2">
+                        <strong id="suspendAccountName">Account Name</strong>
+                        <br><small class="text-muted" id="suspendAccountId">ACC-XXXX</small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Reason for Suspension <span class="text-danger">*</span></label>
+                    <select class="form-select" id="suspendReason" required>
+                        <option value="">Select a reason...</option>
+                        <option value="payment">Payment Issue</option>
+                        <option value="compliance">Compliance Violation</option>
+                        <option value="fraud">Fraud Investigation</option>
+                        <option value="request">Customer Request</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea class="form-control" id="suspendNotes" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="executeSuspendAccount()">
+                    <i class="fas fa-pause-circle me-1"></i>Suspend Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reactivateAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-play-circle me-2"></i>Reactivate Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Reactivating this account will restore all messaging services.
+                </div>
+                <p>You are about to reactivate account:</p>
+                <div class="card bg-light mb-3">
+                    <div class="card-body py-2">
+                        <strong id="reactivateAccountName">Account Name</strong>
+                        <br><small class="text-muted" id="reactivateAccountId">ACC-XXXX</small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Reactivation Notes</label>
+                    <textarea class="form-control" id="reactivateNotes" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="executeReactivateAccount()">
+                    <i class="fas fa-play-circle me-1"></i>Reactivate Account
+                </button>
             </div>
         </div>
     </div>
@@ -3160,6 +3223,164 @@ function renderCountryRoutingTable(countryRouting) {
     });
     
     tbody.innerHTML = html;
+}
+
+// ========================
+// Suspend/Reactivate Account Functions
+// ========================
+var suspendAccountModal = null;
+var reactivateAccountModal = null;
+var currentSuspendAccountId = null;
+var currentSuspendAccountName = null;
+var currentReactivateAccountId = null;
+var currentReactivateAccountName = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    var suspendEl = document.getElementById('suspendAccountModal');
+    var reactivateEl = document.getElementById('reactivateAccountModal');
+    if (suspendEl) suspendAccountModal = new bootstrap.Modal(suspendEl);
+    if (reactivateEl) reactivateAccountModal = new bootstrap.Modal(reactivateEl);
+});
+
+window.confirmSuspendAccount = function(accountId, accountName) {
+    currentSuspendAccountId = accountId;
+    currentSuspendAccountName = accountName;
+    
+    document.getElementById('suspendAccountId').textContent = accountId;
+    document.getElementById('suspendAccountName').textContent = accountName;
+    document.getElementById('suspendReason').value = '';
+    document.getElementById('suspendNotes').value = '';
+    
+    suspendAccountModal.show();
+};
+
+window.executeSuspendAccount = function() {
+    var reason = document.getElementById('suspendReason').value;
+    if (!reason) {
+        alert('Please select a reason for suspension.');
+        return;
+    }
+    
+    var notes = document.getElementById('suspendNotes').value;
+    
+    // TODO: Backend API call to suspend account
+    console.log('Suspending account:', currentSuspendAccountId, 'Reason:', reason, 'Notes:', notes);
+    
+    // Audit log
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ACCOUNT_SUSPENDED', 'ACCOUNT', {
+            accountId: currentSuspendAccountId,
+            accountName: currentSuspendAccountName,
+            reason: reason,
+            notes: notes
+        });
+    }
+    
+    suspendAccountModal.hide();
+    
+    // Show success notification
+    showToast('Account ' + currentSuspendAccountName + ' has been suspended.', 'warning');
+    
+    // Update UI - change status badge to Suspended
+    var row = document.querySelector('tr[data-account="' + currentSuspendAccountId + '"]');
+    if (row) {
+        var statusCell = row.querySelector('td:nth-child(2)');
+        if (statusCell) {
+            statusCell.innerHTML = '<span class="badge light badge-danger">Suspended</span>';
+        }
+        // Update menu to show Reactivate instead of Suspend
+        var menu = row.querySelector('.dropdown-menu');
+        if (menu) {
+            var suspendItem = menu.querySelector('a[onclick*="confirmSuspendAccount"]');
+            if (suspendItem) {
+                suspendItem.className = 'dropdown-item text-success';
+                suspendItem.innerHTML = '<i class="fas fa-play-circle me-2"></i>Reactivate Account';
+                suspendItem.setAttribute('onclick', "confirmReactivateAccount('" + currentSuspendAccountId + "', '" + currentSuspendAccountName + "')");
+            }
+        }
+    }
+};
+
+window.confirmReactivateAccount = function(accountId, accountName) {
+    currentReactivateAccountId = accountId;
+    currentReactivateAccountName = accountName;
+    
+    document.getElementById('reactivateAccountId').textContent = accountId;
+    document.getElementById('reactivateAccountName').textContent = accountName;
+    document.getElementById('reactivateNotes').value = '';
+    
+    reactivateAccountModal.show();
+};
+
+window.executeReactivateAccount = function() {
+    var notes = document.getElementById('reactivateNotes').value;
+    
+    // TODO: Backend API call to reactivate account
+    console.log('Reactivating account:', currentReactivateAccountId, 'Notes:', notes);
+    
+    // Audit log
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ACCOUNT_REACTIVATED', 'ACCOUNT', {
+            accountId: currentReactivateAccountId,
+            accountName: currentReactivateAccountName,
+            notes: notes
+        });
+    }
+    
+    reactivateAccountModal.hide();
+    
+    // Show success notification
+    showToast('Account ' + currentReactivateAccountName + ' has been reactivated.', 'success');
+    
+    // Update UI - change status badge back to Live
+    var row = document.querySelector('tr[data-account="' + currentReactivateAccountId + '"]');
+    if (row) {
+        var statusCell = row.querySelector('td:nth-child(2)');
+        if (statusCell) {
+            statusCell.innerHTML = '<span class="badge light badge-success">Live</span>';
+        }
+        // Update menu to show Suspend instead of Reactivate
+        var menu = row.querySelector('.dropdown-menu');
+        if (menu) {
+            var reactivateItem = menu.querySelector('a[onclick*="confirmReactivateAccount"]');
+            if (reactivateItem) {
+                reactivateItem.className = 'dropdown-item text-warning';
+                reactivateItem.innerHTML = '<i class="fas fa-pause-circle me-2"></i>Suspend Account';
+                reactivateItem.setAttribute('onclick', "confirmSuspendAccount('" + currentReactivateAccountId + "', '" + currentReactivateAccountName + "')");
+            }
+        }
+    }
+};
+
+function showToast(message, type) {
+    // Create toast container if it doesn't exist
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+    }
+    
+    var bgClass = type === 'success' ? 'bg-success' : (type === 'warning' ? 'bg-warning' : 'bg-info');
+    var textClass = type === 'warning' ? 'text-dark' : 'text-white';
+    
+    var toastHtml = '<div class="toast ' + bgClass + ' ' + textClass + '" role="alert">' +
+        '<div class="toast-body d-flex align-items-center">' +
+        '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'info-circle') + ' me-2"></i>' +
+        message +
+        '<button type="button" class="btn-close btn-close-' + (type === 'warning' ? '' : 'white') + ' ms-auto" data-bs-dismiss="toast"></button>' +
+        '</div></div>';
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    var toastEl = container.lastElementChild;
+    var toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastEl.remove();
+    });
 }
 </script>
 @endpush
