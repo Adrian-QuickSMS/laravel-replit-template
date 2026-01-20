@@ -41,6 +41,23 @@
 .kpi-collapsed-strip .kpi-item .kpi-count { font-weight: 600; font-size: 0.875rem; color: #1e3a5f; }
 .kpi-tile-row.collapsed { display: none; }
 
+/* Compact Table Rows */
+#accountsTable tbody tr td { padding: 0.5rem 0.75rem; vertical-align: middle; }
+#accountsTable thead th { padding: 0.5rem 0.75rem; }
+.client-name-cell { max-width: 200px; }
+.client-name-cell .client-name { 
+    font-weight: 600; 
+    color: #1e3a5f; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: block;
+    max-width: 180px;
+}
+.client-name-cell .client-name:hover { text-decoration: underline; cursor: pointer; }
+.client-name-cell .account-number { font-size: 0.75rem; color: #6c757d; margin-top: 0.125rem; }
+.btn-view-structure { font-size: 0.7rem; padding: 0.15rem 0.4rem; margin-left: 0.5rem; }
+
 /* Hierarchy Tree Styles */
 .hierarchy-tree { font-size: 0.9rem; }
 .tree-node { position: relative; padding-left: 1.5rem; }
@@ -300,13 +317,13 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
+                            <td class="client-name-cell">
+                                <div class="d-flex align-items-center">
                                     <div>
-                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-1234')">Acme Corporation</a>
-                                        <div class="text-muted small">ACC-1234</div>
+                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-1234')">Acme Corporation</a>
+                                        <div class="account-number">ACC-1234</div>
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-1234', 'Acme Corporation')">View Structure</button>
+                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-1234', 'Acme Corporation')">View Structure</button>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -333,13 +350,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
+                            <td class="client-name-cell">
+                                <div class="d-flex align-items-center">
                                     <div>
-                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-5678')">Finance Ltd</a>
-                                        <div class="text-muted small">ACC-5678</div>
+                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-5678')">Finance Ltd</a>
+                                        <div class="account-number">ACC-5678</div>
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-5678', 'Finance Ltd')">View Structure</button>
+                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-5678', 'Finance Ltd')">View Structure</button>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -366,13 +383,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
+                            <td class="client-name-cell">
+                                <div class="d-flex align-items-center">
                                     <div>
-                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-7890')">NewClient</a>
-                                        <div class="text-muted small">ACC-7890</div>
+                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-7890')">NewClient</a>
+                                        <div class="account-number">ACC-7890</div>
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-7890', 'NewClient')">View Structure</button>
+                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-7890', 'NewClient')">View Structure</button>
                                 </div>
                             </td>
                             <td><span class="badge light badge-info">Test</span></td>
@@ -399,13 +416,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
+                            <td class="client-name-cell">
+                                <div class="d-flex align-items-center">
                                     <div>
-                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-4567')">TestCo</a>
-                                        <div class="text-muted small">ACC-4567</div>
+                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-4567')">TestCo</a>
+                                        <div class="account-number">ACC-4567</div>
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4567', 'TestCo')">View Structure</button>
+                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4567', 'TestCo')">View Structure</button>
                                 </div>
                             </td>
                             <td><span class="badge light badge-danger">Suspended</span></td>
@@ -432,13 +449,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
+                            <td class="client-name-cell">
+                                <div class="d-flex align-items-center">
                                     <div>
-                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-9012')">HighRisk Corp</a>
-                                        <div class="text-muted small">ACC-9012</div>
+                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-9012')">HighRisk Corp</a>
+                                        <div class="account-number">ACC-9012</div>
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-9012', 'HighRisk Corp')">View Structure</button>
+                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-9012', 'HighRisk Corp')">View Structure</button>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -466,13 +483,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
+                            <td class="client-name-cell">
+                                <div class="d-flex align-items-center">
                                     <div>
-                                        <a href="#" class="text-primary fw-semibold" onclick="openAccountDetail('ACC-3456')">MedTech Solutions</a>
-                                        <div class="text-muted small">ACC-3456</div>
+                                        <a href="#" class="client-name" onclick="openAccountDetail('ACC-3456')">MedTech Solutions</a>
+                                        <div class="account-number">ACC-3456</div>
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-3456', 'MedTech Solutions')">View Structure</button>
+                                    <button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-3456', 'MedTech Solutions')">View Structure</button>
                                 </div>
                             </td>
                             <td><span class="badge light badge-success">Live</span></td>
@@ -497,7 +514,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">RetailMax Group</a><div class="text-muted small">ACC-4001</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4001', 'RetailMax Group')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">RetailMax Group</a><div class="account-number">ACC-4001</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4001', 'RetailMax Group')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">6,234,567</td>
                             <td class="text-end">521,234</td>
@@ -507,7 +524,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">CloudFirst Tech</a><div class="text-muted small">ACC-4002</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4002', 'CloudFirst Tech')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">CloudFirst Tech</a><div class="account-number">ACC-4002</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4002', 'CloudFirst Tech')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,567,890</td>
                             <td class="text-end">382,456</td>
@@ -517,7 +534,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">GreenEnergy Ltd</a><div class="text-muted small">ACC-4003</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4003', 'GreenEnergy Ltd')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">GreenEnergy Ltd</a><div class="account-number">ACC-4003</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4003', 'GreenEnergy Ltd')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,456,789</td>
                             <td class="text-end">287,654</td>
@@ -527,7 +544,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">FastLogistics</a><div class="text-muted small">ACC-4004</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4004', 'FastLogistics')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">FastLogistics</a><div class="account-number">ACC-4004</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4004', 'FastLogistics')">View Structure</button></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">156</td>
@@ -537,7 +554,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">HealthPlus Care</a><div class="text-muted small">ACC-4005</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4005', 'HealthPlus Care')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">HealthPlus Care</a><div class="account-number">ACC-4005</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4005', 'HealthPlus Care')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">7,890,123</td>
                             <td class="text-end">654,321</td>
@@ -547,7 +564,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">EduLearn Academy</a><div class="text-muted small">ACC-4006</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4006', 'EduLearn Academy')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">EduLearn Academy</a><div class="account-number">ACC-4006</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4006', 'EduLearn Academy')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">2,345,678</td>
                             <td class="text-end">198,765</td>
@@ -557,7 +574,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">AutoDrive Motors</a><div class="text-muted small">ACC-4007</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4007', 'AutoDrive Motors')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">AutoDrive Motors</a><div class="account-number">ACC-4007</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4007', 'AutoDrive Motors')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">476,543</td>
@@ -567,7 +584,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">TechStartup Inc</a><div class="text-muted small">ACC-4008</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4008', 'TechStartup Inc')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">TechStartup Inc</a><div class="account-number">ACC-4008</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4008', 'TechStartup Inc')">View Structure</button></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">89</td>
@@ -577,7 +594,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">FoodDelivery Pro</a><div class="text-muted small">ACC-4009</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4009', 'FoodDelivery Pro')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">FoodDelivery Pro</a><div class="account-number">ACC-4009</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4009', 'FoodDelivery Pro')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">9,012,345</td>
                             <td class="text-end">756,789</td>
@@ -587,7 +604,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">PropertyHub UK</a><div class="text-muted small">ACC-4010</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4010', 'PropertyHub UK')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">PropertyHub UK</a><div class="account-number">ACC-4010</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4010', 'PropertyHub UK')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,123,456</td>
                             <td class="text-end">345,678</td>
@@ -597,7 +614,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">TravelWorld Agency</a><div class="text-muted small">ACC-4011</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4011', 'TravelWorld Agency')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">TravelWorld Agency</a><div class="account-number">ACC-4011</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4011', 'TravelWorld Agency')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,789,012</td>
                             <td class="text-end">312,456</td>
@@ -607,7 +624,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">SecureBank Financial</a><div class="text-muted small">ACC-4012</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4012', 'SecureBank Financial')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">SecureBank Financial</a><div class="account-number">ACC-4012</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4012', 'SecureBank Financial')">View Structure</button></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">12,345,678</td>
                             <td class="text-end">1,034,567</td>
@@ -617,7 +634,7 @@
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr>
-                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">SmartHome Systems</a><div class="text-muted small">ACC-4013</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4013', 'SmartHome Systems')">View Structure</button></div></td>
+                            <td class="client-name-cell"><div class="d-flex align-items-center"><div><a href="#" class="client-name">SmartHome Systems</a><div class="account-number">ACC-4013</div></div><button class="btn btn-outline-secondary btn-view-structure" onclick="openAccountStructure('ACC-4013', 'SmartHome Systems')">View Structure</button></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">234</td>
