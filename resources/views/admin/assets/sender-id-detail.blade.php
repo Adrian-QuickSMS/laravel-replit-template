@@ -522,40 +522,61 @@
     <div class="detail-grid">
         <div class="main-content">
             {{-- CANONICAL REVIEW UI - EXACT SAME as customer registration wizard Step 5 --}}
+            {{-- Sections A-D: Matches customer final review exactly --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <i class="fas fa-id-card"></i> Registration Details
-                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Same as Customer View</span>
+                    <i class="fas fa-id-card"></i> SenderID Overview
+                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Matches Customer Final Review</span>
                 </div>
                 <div class="detail-card-body">
                     @php
                     $senderIdData = [
-                        'type' => 'Alphanumeric',
                         'senderId' => 'ACMEBANK',
+                        'type' => 'Alphanumeric',
+                        'normalisedValue' => null,
                         'brand' => 'Acme Bank Ltd',
-                        'country' => 'United Kingdom',
-                        'subaccounts' => 'Marketing Dept',
-                        'users' => '',
-                        'useCase' => 'Transactional Notifications',
-                        'description' => 'Balance alerts, payment confirmations, and security notifications',
+                        'hasPermission' => true,
+                        'explanation' => 'We are registering ACMEBANK as our official sender ID for transactional banking notifications including balance alerts, payment confirmations, and security notifications to our customers.',
                         'channels' => [
                             'portal' => true,
                             'inbox' => true,
                             'emailToSms' => false,
                             'api' => true
                         ],
-                        'explanation' => 'We are registering ACMEBANK as our official sender ID for transactional banking notifications including balance alerts, payment confirmations, and security notifications to our customers.'
+                        'useCase' => 'Transactional Notifications',
+                        'description' => 'Balance alerts, payment confirmations, and security notifications',
+                        'validation' => [
+                            'characterCompliance' => true,
+                            'lengthCompliance' => true,
+                            'restrictedChars' => true,
+                            'ukRules' => true
+                        ]
+                    ];
+                    
+                    $senderIdMetadata = [
+                        'versionId' => 'SID-2026-00089-v2',
+                        'submittedBy' => 'm.johnson@acmebank.com',
+                        'account' => 'Acme Corporation Ltd',
+                        'subAccount' => 'Marketing Dept',
+                        'createdAt' => '12 Jan 2026, 11:15',
+                        'submittedAt' => '15 Jan 2026, 09:42',
+                        'lastUpdatedAt' => '20 Jan 2026, 14:30',
+                        'externalValidationStatus' => 'pending',
+                        'externalReferenceIds' => [
+                            'BrandAssure' => 'BA-UK-2026-00089',
+                            'Internal Ticket' => 'QSMS-4498'
+                        ]
                     ];
                     @endphp
                     @include('partials.review.sender-id-review-summary', [
                         'isAdmin' => true,
                         'data' => $senderIdData
                     ])
+                    
+                    {{-- Section E: Admin-only Submission Metadata --}}
+                    @include('partials.admin.sender-id-admin-extras', ['metadata' => $senderIdMetadata])
                 </div>
             </div>
-
-            {{-- ADMIN-ONLY EXTRAS - Channels and Explanation (NOT shown to customers) --}}
-            @include('partials.admin.sender-id-admin-extras', ['data' => $senderIdData])
 
             <div class="detail-card validation-section">
                 <div class="detail-card-header">
