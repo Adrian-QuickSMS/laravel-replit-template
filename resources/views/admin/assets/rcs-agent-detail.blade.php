@@ -4,6 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-approval-workflow.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
 <style>
 .detail-page { padding: 1.5rem; }
 
@@ -865,6 +866,19 @@
                 </div>
             </div>
 
+            <div class="external-validation-card">
+                <div class="external-validation-header">
+                    <i class="fas fa-cloud-upload-alt"></i> RCS Provider Tracking
+                </div>
+                <div class="external-validation-body" id="rcsProviderTracking">
+                    <div class="validation-empty">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>No RCS Provider submissions yet</p>
+                        <small>Click "Submit to RCS Provider" to initiate agent registration</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="detail-card notes-section">
                 <div class="detail-card-header">
                     <i class="fas fa-sticky-note"></i> Notes & Communication
@@ -1042,6 +1056,7 @@
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
+<script src="{{ asset('js/admin-external-validation.js') }}"></script>
 <script>
 var RCS_ASSET_VALIDATION = {
     logoRequirements: {
@@ -1180,6 +1195,10 @@ document.addEventListener('DOMContentLoaded', function() {
             termsOfServiceUrl: 'https://acmebank.com/terms'
         }
     });
+
+    EXTERNAL_VALIDATION.initRcsProvider({
+        history: []
+    });
 });
 
 function switchNotesTab(tab) {
@@ -1232,11 +1251,15 @@ function approveAgent() {
 
 function submitToProvider() {
     if (confirm('Submit this RCS Agent to the RCS Provider for validation?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('SUBMIT_TO_PROVIDER', 'RCS-001', {}, 'MEDIUM');
-        }
+        EXTERNAL_VALIDATION.submitToRcsProvider('RCS-001', {
+            name: 'Acme Bank Notifications',
+            description: 'Official notification service for Acme Bank customers.',
+            brandColor: '#1e40af',
+            logoUrl: 'https://assets.acmebank.com/logo.png',
+            heroUrl: 'https://assets.acmebank.com/hero.png',
+            billingCategory: 'Financial Services'
+        });
         updateStatus('validation-in-progress', 'Validation In Progress', 'fa-spinner fa-spin');
-        alert('Submitted to RCS Provider. You will be notified when validation completes.');
     }
 }
 

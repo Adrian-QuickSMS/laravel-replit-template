@@ -4,6 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-approval-workflow.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
 <style>
 .detail-page { padding: 1.5rem; }
 
@@ -632,6 +633,19 @@
                 </div>
             </div>
 
+            <div class="external-validation-card">
+                <div class="external-validation-header">
+                    <i class="fas fa-shield-alt"></i> BrandAssure Validation Tracking
+                </div>
+                <div class="external-validation-body" id="brandAssureTracking">
+                    <div class="validation-empty">
+                        <i class="fas fa-shield-alt"></i>
+                        <p>No BrandAssure validation requests yet</p>
+                        <small>Click "Submit to BrandAssure" to initiate external brand verification</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="action-panel">
                 <div class="action-panel-title"><i class="fas fa-gavel me-2"></i>Admin Actions</div>
                 <div class="action-buttons">
@@ -832,6 +846,7 @@
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
+<script src="{{ asset('js/admin-external-validation.js') }}"></script>
 <script>
 var SENDER_ID_VALIDATION = {
     characterRules: function(value) {
@@ -930,6 +945,10 @@ document.addEventListener('DOMContentLoaded', function() {
             explanation: 'We are registering ACMEBANK as our official sender ID for transactional banking notifications.'
         }
     });
+
+    EXTERNAL_VALIDATION.initBrandAssure({
+        history: []
+    });
 });
 
 function switchNotesTab(tab) {
@@ -985,11 +1004,13 @@ function approveSenderId() {
 
 function submitToBrandAssure() {
     if (confirm('Submit this SenderID to BrandAssure for external validation?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('SUBMIT_TO_BRANDASSURE', 'SID-001', {}, 'MEDIUM');
-        }
+        EXTERNAL_VALIDATION.submitToBrandAssure('SID-001', {
+            value: 'ACMEBANK',
+            type: 'Alphanumeric',
+            brand: 'Acme Bank Ltd',
+            accountId: 'ACC-1234'
+        });
         updateStatus('validation-in-progress', 'Validation In Progress', 'fa-spinner fa-spin');
-        alert('Submitted to BrandAssure. You will be notified when validation completes.');
     }
 }
 
