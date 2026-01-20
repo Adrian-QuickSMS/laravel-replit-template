@@ -103,6 +103,20 @@ A separate internal interface for QuickSMS employees with a hard security bounda
   - Client-side: Max 1000 records, server-side filtering required
 - **Final Guardrails:** Any admin sub-module that invents new definitions, duplicates customer logic, redesigns instead of extends, bypasses audit logging, or exposes PII by default is INVALID and must be reworked. Admin Control Plane is a governed superset, not a redesign.
 
+**Service Layer Architecture:**
+- **NumbersAdminService (`public/js/numbers-admin-service.js`):** Backend-ready abstraction layer for Admin Numbers Management.
+  - Provides clean separation between UI and backend API
+  - All methods return Promises for async operation
+  - Mock data mode for development (configurable via `NumbersAdminService.config.useMockData`)
+  - Easy swap to real endpoints by changing config and service layer only
+  - Methods: `listNumbers`, `getNumber`, `suspendNumber`, `reactivateNumber`, `reassignNumber`, `changeMode`, `updateCapabilities`, `updateApiWebhook`, `disableKeyword`, `updateOptoutRouting`, `getAuditHistory`, `getAccounts`, `getSubAccounts`
+  - Bulk operations: `bulkSuspend`, `bulkReactivate`, `bulkReassign`, `bulkChangeMode`, `bulkUpdateCapabilities`
+  - Export: `exportNumbers`
+  - Mock database includes: numbers, accounts, sub-accounts, audit history
+  - Realistic delays (200-600ms) for mock operations
+  - Validation and error handling built-in
+  - No credentials hardcoded in UI layer
+
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
 - **Fillow SaaS Admin Template:** UI framework.

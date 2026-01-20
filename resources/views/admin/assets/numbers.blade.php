@@ -1266,9 +1266,22 @@ tr.selected-row:hover {
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/numbers-admin-service.js') }}"></script>
 <script>
+let numbersData = [];
+let currentPage = 1;
+const rowsPerPage = 20;
+let filteredData = [];
+let sortColumn = 'created';
+let sortDirection = 'desc';
+let appliedFilters = {};
+let selectedRows = new Set();
+let currentBulkAction = null;
+let isLoading = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Admin Numbers] Initializing Global Numbers Library');
+    console.log('[Admin Numbers] Using NumbersAdminService layer (mock mode:', NumbersAdminService.config.useMockData, ')');
     
     initializeSorting();
     initializeMultiSelectDropdowns();
@@ -1279,37 +1292,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-const mockNumbersData = [
-    { id: 'NUM-001', number: '+447700900123', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Marketing', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Premium', network: 'Vodafone UK', portedTo: null, created: '2025-10-15' },
-    { id: 'NUM-002', number: '+447700900456', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Finance Ltd', subAccount: 'Retail', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'EE', portedTo: 'Three UK', created: '2025-09-20' },
-    { id: 'NUM-003', number: 'PROMO', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Sales', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-11-01' },
-    { id: 'NUM-004', number: '+447700900789', country: 'UK', type: 'vmn', status: 'suspended', mode: 'portal', account: 'TechStart Inc', subAccount: 'Main', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Premium', network: 'O2 UK', portedTo: null, created: '2025-08-10' },
-    { id: 'NUM-005', number: '82228', country: 'UK', type: 'dedicated', status: 'active', mode: 'portal', account: 'Big Enterprise', subAccount: 'Operations', capabilities: ['senderid', 'inbox', 'optout'], cost: 500.00, supplier: 'Vonage', route: 'UK-SC-Dedicated', network: 'All UK Networks', portedTo: null, created: '2024-06-15' },
-    { id: 'NUM-006', number: '+447700900111', country: 'UK', type: 'vmn', status: 'pending', mode: 'api', account: 'NewClient', subAccount: 'Main', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'Three UK', portedTo: null, created: '2026-01-18' },
-    { id: 'NUM-007', number: 'SALE', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Marketing', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-12-05' },
-    { id: 'NUM-008', number: '+447700900222', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Healthcare Plus', subAccount: 'Notifications', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Premium', network: 'Vodafone UK', portedTo: 'EE', created: '2025-07-22' },
-    { id: 'NUM-009', number: '+14155551234', country: 'US', type: 'vmn', status: 'active', mode: 'api', account: 'US Branch Corp', subAccount: 'Sales', capabilities: ['api'], cost: 3.50, supplier: 'Twilio', route: 'US-Direct-Standard', network: 'AT&T', portedTo: null, created: '2025-11-10' },
-    { id: 'NUM-010', number: 'HELP', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Support Services', subAccount: 'Customer Care', capabilities: ['inbox', 'optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-10-01' },
-    { id: 'NUM-011', number: '+447700900333', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Logistics Ltd', subAccount: 'Dispatch', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Vonage', route: 'UK-Direct-Standard', network: 'EE', portedTo: null, created: '2025-09-15' },
-    { id: 'NUM-012', number: '+447700900444', country: 'UK', type: 'vmn', status: 'suspended', mode: 'api', account: 'Old Account', subAccount: 'Legacy', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'O2 UK', portedTo: 'Vodafone UK', created: '2024-03-20' },
-    { id: 'NUM-013', number: 'INFO', country: 'UK', type: 'shortcode_keyword', status: 'pending', mode: 'portal', account: 'Media Group', subAccount: 'News', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2026-01-15' },
-    { id: 'NUM-014', number: '+447700900555', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Banking Secure', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Premium', network: 'Three UK', portedTo: null, created: '2025-08-30' },
-    { id: 'NUM-015', number: '+49170123456', country: 'DE', type: 'vmn', status: 'active', mode: 'api', account: 'Euro Expansion', subAccount: 'Germany', capabilities: ['api'], cost: 4.00, supplier: 'Vonage', route: 'DE-Direct-Standard', network: 'T-Mobile DE', portedTo: null, created: '2025-11-20' },
-    { id: 'NUM-016', number: '+447700900666', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Support', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'Vodafone UK', portedTo: null, created: '2025-10-25' },
-    { id: 'NUM-017', number: 'DEAL', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Promotions', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-12-10' },
-    { id: 'NUM-018', number: '+447700900777', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Tech Solutions', subAccount: 'API Team', capabilities: ['api'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Standard', network: 'O2 UK', portedTo: null, created: '2025-09-05' },
-    { id: 'NUM-019', number: '+33612345678', country: 'FR', type: 'vmn', status: 'pending', mode: 'portal', account: 'Euro Expansion', subAccount: 'France', capabilities: ['senderid'], cost: 3.50, supplier: 'Vonage', route: 'FR-Direct-Standard', network: 'Orange FR', portedTo: null, created: '2026-01-10' },
-    { id: 'NUM-020', number: '+447700900888', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Finance Ltd', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Premium', network: 'EE', portedTo: 'Vodafone UK', created: '2025-07-15' }
-];
+async function loadNumbersData() {
+    showLoadingState(true);
+    
+    try {
+        const result = await NumbersAdminService.listNumbers(
+            appliedFilters,
+            { page: currentPage, pageSize: rowsPerPage },
+            { field: sortColumn, direction: sortDirection }
+        );
+        
+        if (result.success) {
+            numbersData = result.data;
+            filteredData = numbersData;
+            renderTable(filteredData);
+            updatePaginationInfo(result.pagination);
+        } else {
+            showToast('Failed to load numbers: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('[Admin Numbers] Error loading data:', error);
+        showToast('Error loading numbers data', 'error');
+    } finally {
+        showLoadingState(false);
+    }
+}
 
-let currentPage = 1;
-const rowsPerPage = 20;
-let filteredData = [...mockNumbersData];
-let sortColumn = 'created';
-let sortDirection = 'desc';
-let appliedFilters = {};
-let selectedRows = new Set();
-let currentBulkAction = null;
+function showLoadingState(loading) {
+    isLoading = loading;
+    const tableBody = document.getElementById('numbersTableBody');
+    if (loading && tableBody) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="12" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading numbers...</p>
+                </td>
+            </tr>
+        `;
+    }
+}
 
 function toggleFilterPanel() {
     const body = document.getElementById('filterBody');
@@ -1525,7 +1549,7 @@ function formatDate(dateStr) {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function applyFilters() {
+async function applyFilters() {
     const countries = getSelectedValues('countryDropdown');
     const types = getSelectedValues('typeDropdown');
     const statuses = getSelectedValues('statusDropdown');
@@ -1535,43 +1559,59 @@ function applyFilters() {
     const subAccounts = getSelectedValues('subAccountDropdown');
     const suppliers = getSelectedValues('supplierDropdown');
     
-    appliedFilters = { countries, types, statuses, modes, capabilities, accounts, subAccounts, suppliers };
-    
-    filteredData = mockNumbersData.filter(num => {
-        if (countries.length > 0 && !countries.includes(num.country)) return false;
-        if (types.length > 0 && !types.includes(num.type)) return false;
-        if (statuses.length > 0 && !statuses.includes(num.status)) return false;
-        if (modes.length > 0 && !modes.includes(num.mode)) return false;
-        if (capabilities.length > 0 && !capabilities.some(cap => num.capabilities.includes(cap))) return false;
-        if (accounts.length > 0 && !accounts.includes(num.account)) return false;
-        if (subAccounts.length > 0 && !subAccounts.includes(num.subAccount)) return false;
-        if (suppliers.length > 0 && !suppliers.includes(num.supplier)) return false;
-        return true;
-    });
+    appliedFilters = { 
+        country: countries, 
+        type: types, 
+        status: statuses, 
+        mode: modes, 
+        capability: capabilities, 
+        account: accounts, 
+        subAccount: subAccounts, 
+        supplier: suppliers 
+    };
     
     currentPage = 1;
-    renderTable(filteredData);
-    updatePaginationInfo();
-    updateFilterChips();
+    showLoadingState(true);
     
-    if (typeof ADMIN_AUDIT !== 'undefined') {
-        ADMIN_AUDIT.logDataAccess('NUMBERS_FILTERED', 'numbers', { 
-            filters: appliedFilters, 
-            resultCount: filteredData.length 
-        });
+    try {
+        const result = await NumbersAdminService.listNumbers(
+            appliedFilters,
+            { page: currentPage, pageSize: rowsPerPage },
+            { field: sortColumn, direction: sortDirection }
+        );
+        
+        if (result.success) {
+            numbersData = result.data;
+            filteredData = numbersData;
+            renderTable(filteredData);
+            updatePaginationInfo(result.pagination);
+            updateFilterChips();
+            
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                ADMIN_AUDIT.logDataAccess('NUMBERS_FILTERED', 'numbers', { 
+                    filters: appliedFilters, 
+                    resultCount: filteredData.length 
+                });
+            }
+        } else {
+            showToast('Failed to filter numbers: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('[Admin Numbers] Filter error:', error);
+        showToast('Error filtering numbers', 'error');
+    } finally {
+        showLoadingState(false);
     }
 }
 
-function resetFilters() {
+async function resetFilters() {
     ['countryDropdown', 'typeDropdown', 'statusDropdown', 'modeDropdown', 'capabilityDropdown', 'accountDropdown', 'subAccountDropdown', 'supplierDropdown'].forEach(id => {
         clearAll(id);
     });
     
     appliedFilters = {};
-    filteredData = [...mockNumbersData];
     currentPage = 1;
-    renderTable(filteredData);
-    updatePaginationInfo();
+    await loadNumbersData();
     updateFilterChips();
 }
 
@@ -1635,10 +1675,18 @@ function removeFilterChip(filterKey, value) {
     applyFilters();
 }
 
-function updatePaginationInfo() {
-    const total = filteredData.length;
-    const start = total === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
-    const end = Math.min(currentPage * rowsPerPage, total);
+function updatePaginationInfo(pagination = null) {
+    let total, start, end;
+    
+    if (pagination) {
+        total = pagination.totalCount;
+        start = total === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+        end = Math.min(pagination.page * pagination.pageSize, total);
+    } else {
+        total = filteredData.length;
+        start = total === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+        end = Math.min(currentPage * rowsPerPage, total);
+    }
     
     document.getElementById('showingStart').textContent = start;
     document.getElementById('showingEnd').textContent = end;
@@ -1698,7 +1746,7 @@ let currentConfigNumberId = null;
 let originalMode = null;
 
 function viewNumberDetails(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     currentConfigNumberId = numberId;
@@ -1793,7 +1841,7 @@ function validateWebhookUrl() {
 }
 
 function saveConfiguration() {
-    const num = mockNumbersData.find(n => n.id === currentConfigNumberId);
+    const num = numbersData.find(n => n.id === currentConfigNumberId);
     if (!num) return;
     
     const isKeyword = num.type === 'shortcode_keyword';
@@ -1870,7 +1918,7 @@ function saveConfiguration() {
 document.getElementById('apiWebhookUrl')?.addEventListener('blur', validateWebhookUrl);
 
 function viewAuditTrail(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     const content = `
@@ -1908,21 +1956,28 @@ function viewAuditTrail(numberId) {
     new bootstrap.Modal(document.getElementById('numberDetailsModal')).show();
 }
 
-function exportNumbers() {
-    if (typeof ADMIN_AUDIT !== 'undefined') {
-        ADMIN_AUDIT.logDataAccess('NUMBERS_EXPORTED', 'numbers', {
-            recordCount: filteredData.length,
-            format: 'CSV'
-        });
+async function exportNumbers() {
+    try {
+        const result = await NumbersAdminService.exportNumbers(appliedFilters, 'csv');
+        
+        if (typeof ADMIN_AUDIT !== 'undefined') {
+            ADMIN_AUDIT.logDataAccess('NUMBERS_EXPORTED', 'numbers', {
+                recordCount: result.recordCount || filteredData.length,
+                format: 'CSV'
+            });
+        }
+        
+        showToast(`Export ready: ${result.recordCount || filteredData.length} records prepared for CSV download`, 'success');
+    } catch (error) {
+        console.error('[Admin Numbers] Export error:', error);
+        showToast('Error exporting numbers', 'error');
     }
-    
-    alert('Export functionality: ' + filteredData.length + ' records would be exported to CSV.');
 }
 
 let pendingAction = null;
 
 function confirmSuspend(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     pendingAction = { type: 'suspend', numberId, num };
@@ -1953,7 +2008,7 @@ function confirmSuspend(numberId) {
 }
 
 function confirmReactivate(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     pendingAction = { type: 'reactivate', numberId, num };
@@ -1979,7 +2034,7 @@ function confirmReactivate(numberId) {
 }
 
 function confirmChangeMode(numberId, targetMode) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     pendingAction = { type: 'changeMode', numberId, num, targetMode };
@@ -2009,7 +2064,7 @@ function confirmChangeMode(numberId, targetMode) {
 }
 
 function confirmDisableKeyword(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     pendingAction = { type: 'disableKeyword', numberId, num };
@@ -2038,7 +2093,7 @@ function confirmDisableKeyword(numberId) {
     new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
 }
 
-function executeConfirmedAction() {
+async function executeConfirmedAction() {
     if (!pendingAction) return;
     
     const reason = document.getElementById('actionReason')?.value || '';
@@ -2049,75 +2104,83 @@ function executeConfirmedAction() {
     }
     
     const num = pendingAction.num;
-    const dataNum = mockNumbersData.find(n => n.id === pendingAction.numberId);
+    let result;
     
-    const previousStatus = dataNum ? dataNum.status : null;
-    const previousMode = dataNum ? dataNum.mode : null;
-    
-    switch (pendingAction.type) {
-        case 'suspend':
-            if (dataNum) dataNum.status = 'suspended';
-            break;
-        case 'reactivate':
-            if (dataNum) dataNum.status = 'active';
-            break;
-        case 'changeMode':
-            if (dataNum) dataNum.mode = pendingAction.targetMode.toLowerCase();
-            break;
-        case 'disableKeyword':
-            if (dataNum) dataNum.status = 'suspended';
-            break;
-    }
-    
-    if (typeof ADMIN_AUDIT !== 'undefined') {
+    try {
         switch (pendingAction.type) {
             case 'suspend':
-                ADMIN_AUDIT.logNumberSuspended(
-                    pendingAction.numberId,
-                    num.number,
-                    num.account,
-                    num.account,
-                    reason
-                );
+                result = await NumbersAdminService.suspendNumber(pendingAction.numberId, reason);
                 break;
             case 'reactivate':
-                ADMIN_AUDIT.logNumberReactivated(
-                    pendingAction.numberId,
-                    num.number,
-                    num.account,
-                    num.account,
-                    reason
-                );
+                result = await NumbersAdminService.reactivateNumber(pendingAction.numberId, reason);
                 break;
             case 'changeMode':
-                ADMIN_AUDIT.logNumberModeChanged(
-                    pendingAction.numberId,
-                    num.number,
-                    num.account,
-                    num.account,
-                    previousMode,
-                    pendingAction.targetMode.toLowerCase(),
-                    reason
-                );
+                result = await NumbersAdminService.changeMode(pendingAction.numberId, pendingAction.targetMode, reason);
                 break;
             case 'disableKeyword':
-                ADMIN_AUDIT.logNumberAction('KEYWORD_DISABLED', {
-                    numberId: pendingAction.numberId,
-                    number: num.number,
-                    accountId: num.account,
-                    accountName: num.account,
-                    before: { status: previousStatus },
-                    after: { status: 'suspended' },
-                    reason: reason
-                });
+                result = await NumbersAdminService.disableKeyword(pendingAction.numberId, reason);
                 break;
         }
+        
+        if (result && result.success) {
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                switch (pendingAction.type) {
+                    case 'suspend':
+                        ADMIN_AUDIT.logNumberSuspended(
+                            pendingAction.numberId,
+                            num.number,
+                            num.account,
+                            num.account,
+                            reason
+                        );
+                        break;
+                    case 'reactivate':
+                        ADMIN_AUDIT.logNumberReactivated(
+                            pendingAction.numberId,
+                            num.number,
+                            num.account,
+                            num.account,
+                            reason
+                        );
+                        break;
+                    case 'changeMode':
+                        ADMIN_AUDIT.logNumberModeChanged(
+                            pendingAction.numberId,
+                            num.number,
+                            num.account,
+                            num.account,
+                            result.changes.before.mode,
+                            result.changes.after.mode,
+                            reason
+                        );
+                        break;
+                    case 'disableKeyword':
+                        ADMIN_AUDIT.logNumberAction('KEYWORD_DISABLED', {
+                            numberId: pendingAction.numberId,
+                            number: num.number,
+                            accountId: num.account,
+                            accountName: num.account,
+                            before: result.changes.before,
+                            after: result.changes.after,
+                            reason: reason
+                        });
+                        break;
+                }
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+            pendingAction = null;
+            
+            await loadNumbersData();
+            showToast('Action completed successfully', 'success');
+        } else {
+            showToast('Action failed: ' + (result?.error || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        console.error('[Admin Numbers] Action error:', error);
+        showToast('Error executing action: ' + error.message, 'error');
     }
-    
-    bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
-    pendingAction = null;
-    
-    applyFilters();
+}
     
     showToast('Action completed successfully', 'success');
 }
@@ -2125,7 +2188,7 @@ function executeConfirmedAction() {
 let currentReassignNumberId = null;
 
 function openReassignModal(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     currentReassignNumberId = numberId;
@@ -2146,12 +2209,12 @@ function openReassignModal(numberId) {
     new bootstrap.Modal(document.getElementById('reassignModal')).show();
 }
 
-function executeReassign() {
-    const newAccount = document.getElementById('reassignAccount').value;
-    const newSubAccount = document.getElementById('reassignSubAccount').value;
+async function executeReassign() {
+    const newAccountId = document.getElementById('reassignAccount').value;
+    const newSubAccountId = document.getElementById('reassignSubAccount').value;
     const reason = document.getElementById('reassignReason').value;
     
-    if (!newAccount || !newSubAccount) {
+    if (!newAccountId || !newSubAccountId) {
         alert('Please select both a customer account and sub-account.');
         return;
     }
@@ -2160,38 +2223,45 @@ function executeReassign() {
         return;
     }
     
-    const num = mockNumbersData.find(n => n.id === currentReassignNumberId);
-    const previousAccount = num ? num.account : null;
-    const previousSubAccount = num ? num.subAccount : null;
-    
-    if (num) {
-        num.account = newAccount;
-        num.subAccount = newSubAccount;
-    }
-    
-    if (typeof ADMIN_AUDIT !== 'undefined') {
-        ADMIN_AUDIT.logNumberReassigned(
-            currentReassignNumberId,
-            num ? num.number : 'Unknown',
-            previousAccount,
-            newAccount,
-            previousSubAccount,
-            newSubAccount,
+    try {
+        const result = await NumbersAdminService.reassignNumber(
+            currentReassignNumberId, 
+            newAccountId, 
+            newSubAccountId, 
             reason
         );
+        
+        if (result.success) {
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                ADMIN_AUDIT.logNumberReassigned(
+                    currentReassignNumberId,
+                    result.data.number,
+                    result.changes.before.account,
+                    result.changes.after.account,
+                    result.changes.before.subAccount,
+                    result.changes.after.subAccount,
+                    reason
+                );
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('reassignModal')).hide();
+            currentReassignNumberId = null;
+            
+            await loadNumbersData();
+            showToast('Number reassigned successfully', 'success');
+        } else {
+            showToast('Reassignment failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('[Admin Numbers] Reassign error:', error);
+        showToast('Error reassigning number: ' + error.message, 'error');
     }
-    
-    bootstrap.Modal.getInstance(document.getElementById('reassignModal')).hide();
-    currentReassignNumberId = null;
-    
-    applyFilters();
-    showToast('Number reassigned successfully', 'success');
 }
 
 let currentCapabilitiesNumberId = null;
 
 function openEditCapabilities(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     currentCapabilitiesNumberId = numberId;
@@ -2235,11 +2305,7 @@ function openEditCapabilities(numberId) {
     new bootstrap.Modal(document.getElementById('editCapabilitiesModal')).show();
 }
 
-function saveCapabilities() {
-    const num = mockNumbersData.find(n => n.id === currentCapabilitiesNumberId);
-    if (!num) return;
-    
-    const previousCaps = [...(num.capabilities || [])];
+async function saveCapabilities() {
     const newCaps = [];
     ['senderid', 'inbox', 'optout', 'api'].forEach(cap => {
         const toggle = document.getElementById(`cap_toggle_${cap}`);
@@ -2248,23 +2314,37 @@ function saveCapabilities() {
         }
     });
     
-    num.capabilities = newCaps;
-    
-    if (typeof ADMIN_AUDIT !== 'undefined') {
-        ADMIN_AUDIT.logNumberCapabilityChanged(
+    try {
+        const result = await NumbersAdminService.updateCapabilities(
             currentCapabilitiesNumberId,
-            num.number,
-            num.account,
-            num.account,
-            previousCaps,
-            newCaps
+            newCaps,
+            'Admin capability update'
         );
+        
+        if (result.success) {
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                ADMIN_AUDIT.logNumberCapabilityChanged(
+                    currentCapabilitiesNumberId,
+                    result.data.number,
+                    result.data.account,
+                    result.data.account,
+                    result.changes.before.capabilities,
+                    result.changes.after.capabilities
+                );
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('editCapabilitiesModal')).hide();
+            currentCapabilitiesNumberId = null;
+            
+            await loadNumbersData();
+            showToast('Capabilities updated successfully', 'success');
+        } else {
+            showToast('Update failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('[Admin Numbers] Capabilities error:', error);
+        showToast('Error updating capabilities: ' + error.message, 'error');
     }
-    
-    bootstrap.Modal.getInstance(document.getElementById('editCapabilitiesModal')).hide();
-    currentCapabilitiesNumberId = null;
-    
-    showToast('Capabilities updated successfully', 'success');
 }
 
 function openReassignSubAccountOnly(numberId) {
@@ -2274,7 +2354,7 @@ function openReassignSubAccountOnly(numberId) {
 let currentOptoutNumberId = null;
 
 function openOptoutRouting(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     currentOptoutNumberId = numberId;
@@ -2289,39 +2369,59 @@ function openOptoutRouting(numberId) {
     new bootstrap.Modal(document.getElementById('optoutRoutingModal')).show();
 }
 
-function saveOptoutRouting() {
+async function saveOptoutRouting() {
     const keywords = document.getElementById('optoutKeywords').value;
     const reply = document.getElementById('optoutReply').value;
     const forward = document.getElementById('optoutForward').value;
     
-    const num = mockNumbersData.find(n => n.id === currentOptoutNumberId);
+    const routingConfig = {
+        keywords: keywords,
+        reply: reply,
+        forward: forward || null
+    };
     
-    if (typeof ADMIN_AUDIT !== 'undefined') {
-        ADMIN_AUDIT.logOptoutRoutingChanged(
+    try {
+        const result = await NumbersAdminService.updateOptoutRouting(
             currentOptoutNumberId,
-            num ? num.number : 'Unknown',
-            num ? num.account : 'Unknown',
-            num ? num.account : 'Unknown',
-            { keywords: 'STOP, UNSUBSCRIBE, QUIT, END', forward: 'none' },
-            { keywords: keywords, reply: reply, forward: forward }
+            routingConfig,
+            'Admin opt-out routing update'
         );
+        
+        if (result.success) {
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                ADMIN_AUDIT.logOptoutRoutingChanged(
+                    currentOptoutNumberId,
+                    result.data.number,
+                    result.data.account,
+                    result.data.account,
+                    result.changes.before.optoutConfig,
+                    result.changes.after.optoutConfig
+                );
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('optoutRoutingModal')).hide();
+            currentOptoutNumberId = null;
+            
+            await loadNumbersData();
+            showToast('Opt-out routing updated successfully', 'success');
+        } else {
+            showToast('Update failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('[Admin Numbers] Optout routing error:', error);
+        showToast('Error updating opt-out routing: ' + error.message, 'error');
     }
-    
-    bootstrap.Modal.getInstance(document.getElementById('optoutRoutingModal')).hide();
-    currentOptoutNumberId = null;
-    
-    showToast('Opt-out routing updated successfully', 'success');
 }
 
 function openSubAccountAssign(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     alert(`TODO: Open Sub-Account assignment modal for ${num.number}\nThis would allow assigning/removing sub-accounts in Portal mode.`);
 }
 
 function openOverrideUsage(numberId) {
-    const num = mockNumbersData.find(n => n.id === numberId);
+    const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
     alert(`TODO: Open Override Default Usage modal for ${num.number}\nThis would allow overriding default usage settings in Portal mode.`);
@@ -2454,7 +2554,7 @@ function updateBulkActionAvailability() {
 }
 
 function getSelectedNumbersData() {
-    return Array.from(selectedRows).map(id => mockNumbersData.find(n => n.id === id)).filter(Boolean);
+    return Array.from(selectedRows).map(id => numbersData.find(n => n.id === id)).filter(Boolean);
 }
 
 function initBulkAction(actionType) {
@@ -2822,116 +2922,126 @@ function loadSubAccounts() {
     container.style.display = 'block';
 }
 
-function executeBulkAction() {
+async function executeBulkAction() {
     const selected = getSelectedNumbersData();
     let compatible = selected;
-    let actionDetails = {};
+    let result;
     
-    switch(currentBulkAction) {
-        case 'suspend':
-            compatible = selected.filter(n => n.status === 'active');
-            compatible.forEach(n => {
-                const idx = mockNumbersData.findIndex(m => m.id === n.id);
-                if (idx !== -1) mockNumbersData[idx].status = 'suspended';
-            });
-            actionDetails = { action: 'suspend', count: compatible.length };
-            break;
-            
-        case 'reactivate':
-            compatible = selected.filter(n => n.status === 'suspended');
-            compatible.forEach(n => {
-                const idx = mockNumbersData.findIndex(m => m.id === n.id);
-                if (idx !== -1) mockNumbersData[idx].status = 'active';
-            });
-            actionDetails = { action: 'reactivate', count: compatible.length };
-            break;
-            
-        case 'assignCustomer':
-            const customer = document.getElementById('bulkCustomerSelect').value;
-            if (!customer) {
-                showToast('Please select a customer account', 'error');
-                return;
+    try {
+        switch(currentBulkAction) {
+            case 'suspend':
+                compatible = selected.filter(n => n.status === 'active');
+                result = await NumbersAdminService.bulkSuspend(
+                    compatible.map(n => n.id),
+                    'Bulk admin suspend action'
+                );
+                break;
+                
+            case 'reactivate':
+                compatible = selected.filter(n => n.status === 'suspended');
+                result = await NumbersAdminService.bulkReactivate(
+                    compatible.map(n => n.id),
+                    'Bulk admin reactivate action'
+                );
+                break;
+                
+            case 'assignCustomer':
+                const customer = document.getElementById('bulkCustomerSelect').value;
+                if (!customer) {
+                    showToast('Please select a customer account', 'error');
+                    return;
+                }
+                const subAccountForCustomer = document.getElementById('bulkSubAccountSelect')?.value;
+                result = await NumbersAdminService.bulkReassign(
+                    compatible.map(n => n.id),
+                    customer,
+                    subAccountForCustomer || 'SUB-001',
+                    'Bulk admin reassign action'
+                );
+                break;
+                
+            case 'assignSubAccount':
+                const subAccount = document.getElementById('bulkSubAccountSelect').value;
+                if (!subAccount) {
+                    showToast('Please select a sub-account', 'error');
+                    return;
+                }
+                result = await NumbersAdminService.bulkReassign(
+                    compatible.map(n => n.id),
+                    compatible[0]?.accountId || 'ACC-001',
+                    subAccount,
+                    'Bulk admin sub-account assignment'
+                );
+                break;
+                
+            case 'changeMode':
+                const mode = document.querySelector('input[name="bulkMode"]:checked')?.value;
+                if (!mode) {
+                    showToast('Please select a mode', 'error');
+                    return;
+                }
+                compatible = selected.filter(n => n.type !== 'shortcode_keyword');
+                result = await NumbersAdminService.bulkChangeMode(
+                    compatible.map(n => n.id),
+                    mode,
+                    'Bulk admin mode change'
+                );
+                break;
+                
+            case 'capabilities':
+                compatible = selected.filter(n => n.type !== 'shortcode_keyword');
+                const caps = [];
+                if (document.getElementById('bulkCapSenderID').checked) caps.push('senderid');
+                if (document.getElementById('bulkCapInbox').checked) caps.push('inbox');
+                if (document.getElementById('bulkCapOptout').checked) caps.push('optout');
+                if (document.getElementById('bulkCapAPI').checked) caps.push('api');
+                
+                if (caps.length === 0) {
+                    showToast('Please select at least one capability', 'error');
+                    return;
+                }
+                result = await NumbersAdminService.bulkUpdateCapabilities(
+                    compatible.map(n => n.id),
+                    caps,
+                    'Bulk admin capability update'
+                );
+                break;
+        }
+        
+        if (result) {
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                const eventTypeMap = {
+                    'suspend': 'NUMBER_SUSPENDED',
+                    'reactivate': 'NUMBER_REACTIVATED',
+                    'assignCustomer': 'NUMBER_REASSIGNED',
+                    'assignSubAccount': 'NUMBER_REASSIGNED',
+                    'changeMode': 'NUMBER_MODE_CHANGED',
+                    'capabilities': 'NUMBER_CAPABILITY_CHANGED'
+                };
+                ADMIN_AUDIT.logBulkNumberAction(
+                    eventTypeMap[currentBulkAction] || currentBulkAction.toUpperCase(),
+                    compatible,
+                    null
+                );
             }
-            compatible.forEach(n => {
-                const idx = mockNumbersData.findIndex(m => m.id === n.id);
-                if (idx !== -1) mockNumbersData[idx].account = customer;
-            });
-            actionDetails = { action: 'assignCustomer', customer, count: compatible.length };
-            break;
             
-        case 'assignSubAccount':
-            const subAccount = document.getElementById('bulkSubAccountSelect').value;
-            if (!subAccount) {
-                showToast('Please select a sub-account', 'error');
-                return;
+            bootstrap.Modal.getInstance(document.getElementById('bulkActionModal')).hide();
+            
+            await loadNumbersData();
+            clearSelection();
+            
+            if (result.success) {
+                showToast(`Successfully applied ${currentBulkAction} to ${result.successCount} number(s)`, 'success');
+            } else {
+                showToast(`Bulk action completed with ${result.failedCount} failures`, 'warning');
             }
-            compatible.forEach(n => {
-                const idx = mockNumbersData.findIndex(m => m.id === n.id);
-                if (idx !== -1) mockNumbersData[idx].subAccount = subAccount;
-            });
-            actionDetails = { action: 'assignSubAccount', subAccount, count: compatible.length };
-            break;
-            
-        case 'changeMode':
-            const mode = document.querySelector('input[name="bulkMode"]:checked')?.value;
-            if (!mode) {
-                showToast('Please select a mode', 'error');
-                return;
-            }
-            compatible = selected.filter(n => n.type !== 'keyword');
-            compatible.forEach(n => {
-                const idx = mockNumbersData.findIndex(m => m.id === n.id);
-                if (idx !== -1) mockNumbersData[idx].mode = mode;
-            });
-            actionDetails = { action: 'changeMode', mode, count: compatible.length };
-            break;
-            
-        case 'capabilities':
-            compatible = selected.filter(n => n.type !== 'keyword');
-            const caps = [];
-            if (document.getElementById('bulkCapSenderID').checked) caps.push('senderid');
-            if (document.getElementById('bulkCapInbox').checked) caps.push('inbox');
-            if (document.getElementById('bulkCapOptout').checked) caps.push('optout');
-            if (document.getElementById('bulkCapAPI').checked) caps.push('api');
-            
-            if (caps.length === 0) {
-                showToast('Please select at least one capability', 'error');
-                return;
-            }
-            compatible.forEach(n => {
-                const idx = mockNumbersData.findIndex(m => m.id === n.id);
-                if (idx !== -1) mockNumbersData[idx].capabilities = [...caps];
-            });
-            actionDetails = { action: 'capabilities', capabilities: caps, count: compatible.length };
-            break;
+        }
+        
+        currentBulkAction = null;
+    } catch (error) {
+        console.error('[Admin Numbers] Bulk action error:', error);
+        showToast('Error executing bulk action: ' + error.message, 'error');
     }
-    
-    if (typeof ADMIN_AUDIT !== 'undefined') {
-        const eventTypeMap = {
-            'suspend': 'NUMBER_SUSPENDED',
-            'reactivate': 'NUMBER_REACTIVATED',
-            'assignCustomer': 'NUMBER_REASSIGNED',
-            'assignSubAccount': 'NUMBER_REASSIGNED',
-            'changeMode': 'NUMBER_MODE_CHANGED',
-            'capabilities': 'NUMBER_CAPABILITY_CHANGED'
-        };
-        ADMIN_AUDIT.logBulkNumberAction(
-            eventTypeMap[currentBulkAction] || currentBulkAction.toUpperCase(),
-            compatible,
-            null
-        );
-    }
-    
-    bootstrap.Modal.getInstance(document.getElementById('bulkActionModal')).hide();
-    
-    filteredData = [...mockNumbersData];
-    applyFilters();
-    
-    clearSelection();
-    
-    showToast(`Successfully applied ${currentBulkAction} to ${compatible.length} number(s)`, 'success');
-    
-    currentBulkAction = null;
 }
 </script>
 @endpush
