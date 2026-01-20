@@ -236,9 +236,9 @@
         <div class="filter-group">
             <label>Status</label>
             <select class="form-select form-select-sm" id="filterStatus">
-                <option value="pending" selected>Pending (Submitted + In Review)</option>
-                <option value="submitted">Submitted</option>
-                <option value="in-review">In Review</option>
+                <option value="awaiting-action" selected>Awaiting Action</option>
+                <option value="submitted">Submitted Only</option>
+                <option value="in-review">In Review Only</option>
                 <option value="all">All Statuses</option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
@@ -820,7 +820,7 @@ function applyFilters() {
         var show = true;
         var rowStatus = row.dataset.status;
 
-        if (status === 'pending') {
+        if (status === 'awaiting-action') {
             if (rowStatus !== 'submitted' && rowStatus !== 'in-review') {
                 show = false;
             }
@@ -857,7 +857,7 @@ function applyFilters() {
 }
 
 function clearFilters() {
-    document.getElementById('filterStatus').value = 'pending';
+    document.getElementById('filterStatus').value = 'awaiting-action';
     document.getElementById('filterType').value = '';
     document.getElementById('filterAccount').value = '';
     document.getElementById('searchInput').value = '';

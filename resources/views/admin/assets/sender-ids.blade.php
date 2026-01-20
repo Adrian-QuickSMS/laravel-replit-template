@@ -122,10 +122,6 @@
             <div class="stat-count" id="stat-pending">8</div>
             <div class="stat-label">Pending</div>
         </div>
-        <div class="approval-stat-card in-review" data-status="in-review">
-            <div class="stat-count" id="stat-in-review">3</div>
-            <div class="stat-label">Under Review</div>
-        </div>
         <div class="approval-stat-card approved" data-status="approved">
             <div class="stat-count" id="stat-approved">1,847</div>
             <div class="stat-label">Approved</div>
@@ -802,7 +798,7 @@ function updateRowStatus(itemId, newStatus) {
 }
 
 function updateStatCounts() {
-    var counts = { pending: 0, 'in-review': 0, approved: 0, rejected: 0 };
+    var counts = { pending: 0, approved: 0, rejected: 0 };
     document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
         var status = row.dataset.status;
         if (counts.hasOwnProperty(status)) {
