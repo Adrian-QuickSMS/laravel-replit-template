@@ -25,29 +25,32 @@
 .search-filter-toolbar .form-control:focus {
     box-shadow: none;
 }
-.filter-toggle-btn {
-    background: transparent;
-    border: 1px solid var(--admin-accent, #4a90d9);
-    color: var(--admin-accent, #4a90d9);
+.filter-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
     font-weight: 500;
+    font-size: 0.875rem;
     padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
+    border-radius: 50px;
     transition: all 0.2s;
+    cursor: pointer;
 }
-.filter-toggle-btn:hover {
-    background: rgba(74, 144, 217, 0.1);
-    border-color: var(--admin-primary, #1e3a5f);
+.filter-pill-btn:hover {
+    background: #f1f5f9;
+    border-color: var(--admin-accent, #4a90d9);
     color: var(--admin-primary, #1e3a5f);
 }
-.filter-toggle-btn.active {
-    background: var(--admin-accent, #4a90d9);
-    color: #fff;
+.filter-pill-btn.active {
+    background: #e0f2fe;
+    border-color: var(--admin-accent, #4a90d9);
+    color: var(--admin-primary, #1e3a5f);
 }
-.filter-toggle-btn .toggle-icon {
-    transition: transform 0.2s;
-}
-.filter-toggle-btn.active .toggle-icon {
-    transform: rotate(180deg);
+.filter-pill-btn i {
+    font-size: 0.8rem;
 }
 .filter-count-badge {
     display: inline-flex;
@@ -616,20 +619,20 @@ tr.selected-row:hover {
 
     <div class="search-filter-toolbar mb-3">
         <div class="d-flex align-items-center gap-3">
-            <div class="search-box flex-grow-1" style="max-width: 400px;">
+            <button class="filter-pill-btn" type="button" onclick="toggleFilterPanel()" id="filterPillBtn">
+                <i class="fas fa-filter"></i>
+                <span>Filters</span>
+                <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
+            </button>
+            <div class="search-box flex-grow-1" style="max-width: 350px;">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" class="form-control border-start-0" id="globalSearch" placeholder="Search VMN, keyword, account..." onkeyup="handleSearch(this.value)">
-                    <button class="btn btn-outline-secondary border-start-0 bg-white" type="button" onclick="clearSearch()" id="clearSearchBtn" style="display: none;">
+                    <span class="input-group-text"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control" id="globalSearch" placeholder="Search VMN, keyword, account..." onkeyup="handleSearch(this.value)">
+                    <button class="btn btn-link text-muted" type="button" onclick="clearSearch()" id="clearSearchBtn" style="display: none;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
-            <button class="btn filter-toggle-btn" type="button" onclick="toggleFilterPanel()">
-                <i class="fas fa-filter me-2"></i>Filters
-                <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
-                <i class="fas fa-chevron-down ms-2 toggle-icon" id="filterToggleIcon"></i>
-            </button>
         </div>
     </div>
 
@@ -1476,8 +1479,7 @@ function showLoadingState(loading) {
 
 function toggleFilterPanel() {
     const panel = document.getElementById('filterPanel');
-    const btn = document.querySelector('.filter-toggle-btn');
-    const icon = document.getElementById('filterToggleIcon');
+    const btn = document.getElementById('filterPillBtn');
     
     if (panel.style.display === 'none') {
         panel.style.display = 'block';
