@@ -73,7 +73,21 @@ A separate internal interface for QuickSMS employees with a hard security bounda
   - **Account Details Page:** Reuses customer portal content with admin blue styling (#1e3a5f). Includes "View Account Structure" button to open hierarchy modal, breadcrumb navigation, and "Back to Accounts" link.
   - **Account Structure Modal:** Two-panel layout with hierarchy tree (left) and contextual details panel (right). Available via button on Account Details page.
   - **Row Actions:** Add Credit, Change Account Name, Edit Details, Edit Pricing, Suspend/Reactivate - all with confirmation modals and audit logging.
-- **Impersonation:** Requires a reason, has a 5-minute session limit, and logs all actions to the ADMIN audit.
+- **Impersonation:** Enhanced security controls:
+  - Requires reason (min 10 characters)
+  - 5-minute session limit with countdown timer
+  - Read-only mode enforced (no data mutations)
+  - No PII access during impersonation
+  - Visual banner with Read-Only and No PII Access badges
+  - All actions logged with CRITICAL severity to ADMIN audit
+  - Session expiry auto-terminates impersonation
+- **Admin Access Security:**
+  - Separate admin_auth session (not shared with customer portal)
+  - Whitelisted internal users enforcement via config/admin.php
+  - Customer access attempt detection with CRITICAL severity logging
+  - Automatic redirect to customer portal for unauthorized access
+  - IP allowlist enforcement when enabled
+  - Session timeout handling with redirect to admin login
 - **Admin Responsibility Model:** Observe (READ), Control (WRITE), Investigate (SUPPORT), Govern (COMPLIANCE).
 - **Global Admin Module Rules:** Single source of truth for data, filtering applies only on explicit action, maximum drill depth of 1, comprehensive audit logging for state mutations, and PII protection (masking by default, explicit reveal with logging).
 - **Admin vs Customer Enforcement Matrix:**
