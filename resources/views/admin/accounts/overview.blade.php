@@ -379,9 +379,8 @@
                             <th class="sortable text-end" data-sort="volume-year">Volume (Year)</th>
                             <th class="sortable text-end" data-sort="volume-month">Volume (Month)</th>
                             <th class="sortable text-end" data-sort="balance">Balance / Credit</th>
-                            <th class="sortable" data-sort="pricing">Pricing Model</th>
-                            <th>Risk Flags</th>
                             <th class="text-center">Actions</th>
+                            <th class="text-center" style="width: 50px;"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -399,8 +398,13 @@
                             <td class="text-end">14,892,456</td>
                             <td class="text-end">1,247,832</td>
                             <td class="text-end">£5,420</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-1234', 'Acme Corporation', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-1234', 'Acme Corporation', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-1234', 'Acme Corporation', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                </div>
+                            </td>
                             <td class="text-center">
                                 <div class="dropdown">
                                     <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -410,7 +414,6 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-1234')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-1234', 'Acme Corporation')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-1234', 'Acme Corporation', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
@@ -419,7 +422,7 @@
                             </td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-1234">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <table class="sub-account-table">
                                         <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
@@ -446,8 +449,13 @@
                             <td class="text-end">10,456,234</td>
                             <td class="text-end">892,156</td>
                             <td class="text-end">£12,100</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-5678', 'Finance Ltd', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-5678', 'Finance Ltd', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-5678', 'Finance Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                </div>
+                            </td>
                             <td class="text-center">
                                 <div class="dropdown">
                                     <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -457,7 +465,6 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-5678')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-5678', 'Finance Ltd')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-5678', 'Finance Ltd', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
@@ -466,7 +473,7 @@
                             </td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-5678">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <table class="sub-account-table">
                                         <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
@@ -491,8 +498,13 @@
                             <td class="text-end">0</td>
                             <td class="text-end">47</td>
                             <td class="text-end">£0</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-7890', 'NewClient', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-7890', 'NewClient', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-7890', 'NewClient', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                </div>
+                            </td>
                             <td class="text-center">
                                 <div class="dropdown">
                                     <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -502,7 +514,6 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-7890')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-7890', 'NewClient')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-warning" href="#" onclick="rowAction('ACC-7890', 'NewClient', 'suspend')"><i class="fas fa-pause-circle me-2"></i>Suspend Account</a></li>
@@ -511,7 +522,7 @@
                             </td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-7890">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <span class="no-sub-accounts">No sub-accounts configured</span>
                                 </div>
@@ -531,8 +542,13 @@
                             <td class="text-end">234,567</td>
                             <td class="text-end">0</td>
                             <td class="text-end text-danger">-£240</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td><span class="badge light badge-warning">Watchlist</span></td>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-4567', 'TestCo', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-4567', 'TestCo', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-4567', 'TestCo', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                </div>
+                            </td>
                             <td class="text-center">
                                 <div class="dropdown">
                                     <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -542,7 +558,6 @@
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'add_credit')"><i class="fas fa-plus-circle me-2 text-success"></i>Add Credit</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'change_name')"><i class="fas fa-edit me-2"></i>Change Account Name</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="openAccountDetail('ACC-4567')"><i class="fas fa-cog me-2"></i>Edit Account Details</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'view_pricing')"><i class="fas fa-tags me-2"></i>Edit Pricing Model</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="openFraudRisk('ACC-4567', 'TestCo')"><i class="fas fa-shield-alt me-2 text-danger"></i>Fraud & Risk</a></li>
                                         <li><a class="dropdown-item text-success" href="#" onclick="rowAction('ACC-4567', 'TestCo', 'reactivate')"><i class="fas fa-play-circle me-2"></i>Reactivate Account</a></li>
@@ -551,7 +566,7 @@
                             </td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4567">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <table class="sub-account-table">
                                         <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
@@ -576,10 +591,12 @@
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">456,789</td>
                             <td class="text-end">£3,250</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td>
-                                <span class="badge light badge-danger">Fraud</span>
-                                <span class="badge light badge-secondary">Restricted</span>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-9012', 'HighRisk Corp', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-9012', 'HighRisk Corp', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-9012', 'HighRisk Corp', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                </div>
                             </td>
                             <td class="text-center">
                                 <div class="dropdown">
@@ -597,7 +614,7 @@
                             </td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-9012">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <table class="sub-account-table">
                                         <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
@@ -623,8 +640,13 @@
                             <td class="text-end">8,901,234</td>
                             <td class="text-end">743,102</td>
                             <td class="text-end">£8,900</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center">
+                                <div class="action-icons">
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-3456', 'MedTech Solutions', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-3456', 'MedTech Solutions', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="rowAction('ACC-3456', 'MedTech Solutions', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                </div>
+                            </td>
                             <td class="text-center">
                                 <div class="dropdown">
                                     <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -641,7 +663,7 @@
                             </td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-3456">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <table class="sub-account-table">
                                         <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
@@ -667,12 +689,11 @@
                             <td class="text-end">6,234,567</td>
                             <td class="text-end">521,234</td>
                             <td class="text-end">£4,320</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4001">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="sub-account-table-wrapper">
                                     <table class="sub-account-table">
                                         <thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead>
@@ -698,132 +719,120 @@
                             <td class="text-end">4,567,890</td>
                             <td class="text-end">382,456</td>
                             <td class="text-end">£3,150</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4002"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">CloudFirst SaaS</td><td class="text-end">382,456</td><td class="text-end">4,567,890</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4002"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">CloudFirst SaaS</td><td class="text-end">382,456</td><td class="text-end">4,567,890</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4003" data-name="GreenEnergy Ltd" data-status="live" data-volume-year="3456789" data-volume-month="287654" data-balance="2890">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4003', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4003') }}" class="client-name">GreenEnergy Ltd</a><div class="account-number">ACC-4003</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,456,789</td>
                             <td class="text-end">287,654</td>
                             <td class="text-end">£2,890</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4003"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4003"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4004" data-name="FastLogistics" data-status="test" data-volume-year="0" data-volume-month="156" data-balance="0">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4004', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4004') }}" class="client-name">FastLogistics</a><div class="account-number">ACC-4004</div></div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">156</td>
                             <td class="text-end">£0</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4004"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4004"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4005" data-name="HealthPlus Care" data-status="live" data-volume-year="7890123" data-volume-month="654321" data-balance="6540">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4005', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4005') }}" class="client-name">HealthPlus Care</a><div class="account-number">ACC-4005</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">7,890,123</td>
                             <td class="text-end">654,321</td>
                             <td class="text-end">£6,540</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4005"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">HealthPlus Clinics</td><td class="text-end">400,000</td><td class="text-end">4,800,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">HealthPlus Labs</td><td class="text-end">254,321</td><td class="text-end">3,090,123</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4005"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">HealthPlus Clinics</td><td class="text-end">400,000</td><td class="text-end">4,800,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">HealthPlus Labs</td><td class="text-end">254,321</td><td class="text-end">3,090,123</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4006" data-name="EduLearn Academy" data-status="live" data-volume-year="2345678" data-volume-month="198765" data-balance="1980">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4006', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4006') }}" class="client-name">EduLearn Academy</a><div class="account-number">ACC-4006</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">2,345,678</td>
                             <td class="text-end">198,765</td>
                             <td class="text-end">£1,980</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4006"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4006"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4007" data-name="AutoDrive Motors" data-status="live" data-volume-year="5678901" data-volume-month="476543" data-balance="4760">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4007', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4007') }}" class="client-name">AutoDrive Motors</a><div class="account-number">ACC-4007</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">476,543</td>
                             <td class="text-end">£4,760</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4007"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">AutoDrive Sales</td><td class="text-end">300,000</td><td class="text-end">3,500,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">AutoDrive Service</td><td class="text-end">176,543</td><td class="text-end">2,178,901</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4007"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">AutoDrive Sales</td><td class="text-end">300,000</td><td class="text-end">3,500,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">AutoDrive Service</td><td class="text-end">176,543</td><td class="text-end">2,178,901</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4008" data-name="TechStartup Inc" data-status="test" data-volume-year="0" data-volume-month="89" data-balance="0">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4008', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4008') }}" class="client-name">TechStartup Inc</a><div class="account-number">ACC-4008</div></div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">89</td>
                             <td class="text-end">£0</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4008"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4008"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4009" data-name="FoodDelivery Pro" data-status="live" data-volume-year="9012345" data-volume-month="756789" data-balance="7560">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4009', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4009') }}" class="client-name">FoodDelivery Pro</a><div class="account-number">ACC-4009</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">9,012,345</td>
                             <td class="text-end">756,789</td>
                             <td class="text-end">£7,560</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4009"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">FoodDelivery Express</td><td class="text-end">500,000</td><td class="text-end">6,000,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">FoodDelivery Premium</td><td class="text-end">256,789</td><td class="text-end">3,012,345</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4009"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">FoodDelivery Express</td><td class="text-end">500,000</td><td class="text-end">6,000,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">FoodDelivery Premium</td><td class="text-end">256,789</td><td class="text-end">3,012,345</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4010" data-name="PropertyHub UK" data-status="live" data-volume-year="4123456" data-volume-month="345678" data-balance="3450">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4010', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4010') }}" class="client-name">PropertyHub UK</a><div class="account-number">ACC-4010</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">4,123,456</td>
                             <td class="text-end">345,678</td>
                             <td class="text-end">£3,450</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4010"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4010"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                         <tr class="account-row" data-account="ACC-4011" data-name="TravelWorld Agency" data-status="live" data-volume-year="3789012" data-volume-month="312456" data-balance="3120">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4011', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4011') }}" class="client-name">TravelWorld Agency</a><div class="account-number">ACC-4011</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">3,789,012</td>
                             <td class="text-end">312,456</td>
                             <td class="text-end">£3,120</td>
-                            <td><span class="badge light badge-info">Delivered</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4011"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">TravelWorld Holidays</td><td class="text-end">200,000</td><td class="text-end">2,400,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">TravelWorld Business</td><td class="text-end">112,456</td><td class="text-end">1,389,012</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4011"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">TravelWorld Holidays</td><td class="text-end">200,000</td><td class="text-end">2,400,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">TravelWorld Business</td><td class="text-end">112,456</td><td class="text-end">1,389,012</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4012" data-name="SecureBank Financial" data-status="live" data-volume-year="12345678" data-volume-month="1034567" data-balance="10340">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4012', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4012') }}" class="client-name">SecureBank Financial</a><div class="account-number">ACC-4012</div></div></div></td>
                             <td><span class="badge light badge-success">Live</span></td>
                             <td class="text-end">12,345,678</td>
                             <td class="text-end">1,034,567</td>
                             <td class="text-end">£10,340</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4012"><td colspan="8"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">SecureBank Retail</td><td class="text-end">600,000</td><td class="text-end">7,200,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">SecureBank Business</td><td class="text-end">434,567</td><td class="text-end">5,145,678</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4012"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">SecureBank Retail</td><td class="text-end">600,000</td><td class="text-end">7,200,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">SecureBank Business</td><td class="text-end">434,567</td><td class="text-end">5,145,678</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
                         <tr class="account-row" data-account="ACC-4013" data-name="SmartHome Systems" data-status="test" data-volume-year="0" data-volume-month="234" data-balance="0">
                             <td class="client-name-cell"><div class="client-name-wrapper"><button class="expand-toggle" onclick="toggleSubAccounts('ACC-4013', this)" title="Show sub-accounts"><i class="fas fa-plus"></i></button><div class="client-name-content"><a href="{{ route('admin.accounts.details', 'ACC-4013') }}" class="client-name">SmartHome Systems</a><div class="account-number">ACC-4013</div></div></div></td>
                             <td><span class="badge light badge-info">Test</span></td>
                             <td class="text-end">0</td>
                             <td class="text-end">234</td>
                             <td class="text-end">£0</td>
-                            <td><span class="badge light badge-primary">Submitted</span></td>
-                            <td></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'billing')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
-                        <tr class="sub-account-row" data-parent="ACC-4013"><td colspan="8"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
+                        <tr class="sub-account-row" data-parent="ACC-4013"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
                     </tbody>
                 </table>
             </div>

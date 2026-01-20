@@ -943,3 +943,45 @@ body.admin-control-plane {
     font-weight: 900;
     margin-right: 0.25rem;
 }
+
+/* ========================
+   Action Icon Buttons
+   ======================== */
+.action-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.action-icon-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--admin-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.action-icon-btn:hover {
+    background: rgba(30, 58, 95, 0.1);
+    border-color: var(--admin-primary);
+    color: var(--admin-primary);
+}
+
+.action-icon-btn:active {
+    background: rgba(30, 58, 95, 0.2);
+}
+
+.action-icon-btn i {
+    font-size: 0.8rem;
+}
+
+.action-icon-btn[title="Billing"] i {
+    font-weight: 700;
+}
