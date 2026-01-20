@@ -195,15 +195,20 @@ var AdminControlPlane = (function() {
             fullPlatformTraffic: true,
             millionsOfRecordsPerDay: true,
             multiYearHistoricalQueries: true,
-            responsiveUnderWideFilters: true
+            responsiveUnderWideFilters: true,
+            enterpriseNhsScale: true,
+            concurrentUsers: 500
         },
         performance: {
+            subSecondFiltering: true,
+            maxFilterResponseMs: 1000,
             heavyQueriesServerSide: true,
             aggregationsIndexed: true,
             cachingReadOnlyOnly: true,
             maxClientSideRecords: 1000,
             paginationRequired: true,
-            serverSideFilteringRequired: true
+            serverSideFilteringRequired: true,
+            debounceFilterMs: 300
         },
         queryLimits: {
             maxDateRangeDays: 365,
@@ -211,6 +216,13 @@ var AdminControlPlane = (function() {
             maxPageSize: 100,
             warnOnWideFilter: true,
             requireDateRange: true
+        },
+        divergenceRules: {
+            noNewMetricDefinitions: true,
+            noNewStatuses: true,
+            noLogicDivergence: true,
+            noUiRedesigns: true,
+            useSharedDefinitionsOnly: true
         }
     };
 
@@ -356,8 +368,20 @@ var AdminControlPlane = (function() {
             DUPLICATES_LOGIC: 'duplicates_logic',
             REDESIGNS_INSTEAD_OF_EXTENDS: 'redesigns_instead_of_extends',
             BYPASSES_AUDIT: 'bypasses_audit',
-            EXPOSES_PII_BY_DEFAULT: 'exposes_pii_by_default'
+            EXPOSES_PII_BY_DEFAULT: 'exposes_pii_by_default',
+            NEW_METRIC_DEFINITIONS: 'new_metric_definitions',
+            NEW_STATUS_DEFINITIONS: 'new_status_definitions',
+            LOGIC_DIVERGENCE: 'logic_divergence',
+            UI_REDESIGN: 'ui_redesign'
         },
+        rules: [
+            'Sub-second filtering required for all queries',
+            'Enterprise/NHS scale - millions of records per day',
+            'No new metric definitions - use customer portal metrics',
+            'No new statuses - use SHARED_DEFINITIONS only',
+            'No logic divergence from customer portal',
+            'No UI redesigns - use Fillow components only'
+        ],
         message: 'Admin Control Plane is a governed superset, not a redesign.'
     };
 
@@ -368,6 +392,34 @@ var AdminControlPlane = (function() {
             violations.push({
                 type: FINAL_GUARDRAILS.violations.INVENTS_NEW_DEFINITIONS,
                 message: 'Cannot invent new definitions - must use SHARED_DEFINITIONS'
+            });
+        }
+
+        if (context.definesNewMetric && NFR_CONSTRAINTS.divergenceRules.noNewMetricDefinitions) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.NEW_METRIC_DEFINITIONS,
+                message: 'Cannot define new metrics - must use customer portal metrics'
+            });
+        }
+
+        if (context.definesNewStatus && NFR_CONSTRAINTS.divergenceRules.noNewStatuses) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.NEW_STATUS_DEFINITIONS,
+                message: 'Cannot define new statuses - must use SHARED_DEFINITIONS'
+            });
+        }
+
+        if (context.divergesFromCustomerLogic && NFR_CONSTRAINTS.divergenceRules.noLogicDivergence) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.LOGIC_DIVERGENCE,
+                message: 'Cannot diverge from customer portal logic'
+            });
+        }
+
+        if (context.redesignsUi && NFR_CONSTRAINTS.divergenceRules.noUiRedesigns) {
+            violations.push({
+                type: FINAL_GUARDRAILS.violations.UI_REDESIGN,
+                message: 'Cannot redesign UI - use Fillow components only'
             });
         }
 
