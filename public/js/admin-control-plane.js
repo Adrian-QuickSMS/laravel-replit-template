@@ -1035,6 +1035,319 @@ var AdminControlPlane = (function() {
         return ((revenue - cost) / revenue * 100).toFixed(2);
     }
 
+    /* ============================================
+       SHARED APPROVAL FRAMEWORK
+       Used by: SenderID Approvals, RCS Agent Approvals
+       Reuses customer portal lifecycle states exactly
+       ============================================ */
+
+    var APPROVAL_LIFECYCLE = {
+        SENDERID: {
+            states: ['draft', 'pending', 'approved', 'rejected'],
+            pendingStates: ['pending'],
+            finalStates: ['approved', 'rejected'],
+            transitions: {
+                draft: ['pending'],
+                pending: ['approved', 'rejected'],
+                approved: ['rejected'],
+                rejected: ['pending']
+            }
+        },
+        RCS_AGENT: {
+            states: ['draft', 'submitted', 'in-review', 'approved', 'rejected'],
+            pendingStates: ['submitted', 'in-review'],
+            finalStates: ['approved', 'rejected'],
+            transitions: {
+                draft: ['submitted'],
+                submitted: ['in-review', 'approved', 'rejected'],
+                'in-review': ['approved', 'rejected'],
+                approved: ['rejected'],
+                rejected: ['submitted']
+            }
+        }
+    };
+
+    var REJECTION_TEMPLATES = {
+        SENDERID: [
+            'Trademark/brand name without authorization',
+            'Misleading or deceptive sender name',
+            'Reserved/restricted keyword',
+            'Does not meet alphanumeric requirements',
+            'Insufficient business justification',
+            'Duplicate of existing SenderID'
+        ],
+        RCS_AGENT: [
+            'Logo does not meet quality requirements',
+            'Business verification incomplete',
+            'Description contains prohibited content',
+            'Missing required branding assets',
+            'Insufficient use case documentation',
+            'Privacy policy URL invalid or missing'
+        ]
+    };
+
+    var ApprovalFramework = {
+        drawer: null,
+        currentItem: null,
+        selectedItems: [],
+        assetType: null,
+
+        init: function(assetType) {
+            this.assetType = assetType;
+            this.bindEvents();
+            console.log('[ApprovalFramework] Initialized for:', assetType);
+        },
+
+        bindEvents: function() {
+            var self = this;
+
+            document.querySelectorAll('.approval-stat-card').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    var status = this.dataset.status;
+                    self.filterByStatus(status);
+                });
+            });
+
+            document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
+                row.addEventListener('click', function(e) {
+                    if (!e.target.closest('.approval-quick-actions') && !e.target.closest('input[type="checkbox"]')) {
+                        self.openDrawer(this.dataset.itemId);
+                    }
+                });
+            });
+
+            var overlay = document.querySelector('.approval-drawer-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    self.closeDrawer();
+                });
+            }
+
+            var closeBtn = document.querySelector('.approval-drawer-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    self.closeDrawer();
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    self.closeDrawer();
+                }
+            });
+        },
+
+        filterByStatus: function(status) {
+            document.querySelectorAll('.approval-stat-card').forEach(function(card) {
+                card.classList.toggle('active', card.dataset.status === status);
+            });
+
+            document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
+                if (status === 'all' || row.dataset.status === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            logAdminAction('APPROVAL_QUEUE_FILTERED', this.assetType, { status: status });
+        },
+
+        openDrawer: function(itemId) {
+            this.currentItem = itemId;
+            var drawer = document.querySelector('.approval-drawer');
+            var overlay = document.querySelector('.approval-drawer-overlay');
+            
+            if (drawer && overlay) {
+                drawer.classList.add('open');
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+                this.loadItemDetails(itemId);
+            }
+
+            logAdminAction('APPROVAL_DETAIL_VIEWED', itemId, { assetType: this.assetType });
+        },
+
+        closeDrawer: function() {
+            var drawer = document.querySelector('.approval-drawer');
+            var overlay = document.querySelector('.approval-drawer-overlay');
+            
+            if (drawer && overlay) {
+                drawer.classList.remove('open');
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+            this.currentItem = null;
+        },
+
+        loadItemDetails: function(itemId) {
+            console.log('[ApprovalFramework] Loading details for:', itemId);
+        },
+
+        approve: function(itemId, notes) {
+            var result = approveItem(this.assetType, itemId, notes);
+            if (result.success) {
+                this.updateItemStatus(itemId, 'approved');
+                this.closeDrawer();
+                this.showToast('Item approved successfully', 'success');
+            }
+            return result;
+        },
+
+        reject: function(itemId, reason) {
+            var result = rejectItem(this.assetType, itemId, reason);
+            if (result.success) {
+                this.updateItemStatus(itemId, 'rejected');
+                this.closeDrawer();
+                this.showToast('Item rejected', 'warning');
+            }
+            return result;
+        },
+
+        markInReview: function(itemId, assignee) {
+            if (this.assetType !== 'RCS_AGENT') {
+                return { success: false, error: 'In-review status only available for RCS Agents' };
+            }
+
+            logAdminAction('ITEM_MARKED_IN_REVIEW', itemId, {
+                assetType: this.assetType,
+                assignee: assignee
+            });
+
+            this.updateItemStatus(itemId, 'in-review');
+            return { success: true };
+        },
+
+        bulkApprove: function(itemIds, notes) {
+            var self = this;
+            var results = [];
+            itemIds.forEach(function(id) {
+                results.push(self.approve(id, notes));
+            });
+            this.selectedItems = [];
+            this.updateBulkBar();
+            return results;
+        },
+
+        bulkReject: function(itemIds, reason) {
+            var self = this;
+            var results = [];
+            itemIds.forEach(function(id) {
+                results.push(self.reject(id, reason));
+            });
+            this.selectedItems = [];
+            this.updateBulkBar();
+            return results;
+        },
+
+        toggleSelectItem: function(itemId) {
+            var idx = this.selectedItems.indexOf(itemId);
+            if (idx > -1) {
+                this.selectedItems.splice(idx, 1);
+            } else {
+                this.selectedItems.push(itemId);
+            }
+            this.updateBulkBar();
+        },
+
+        selectAll: function() {
+            var self = this;
+            this.selectedItems = [];
+            document.querySelectorAll('.approval-queue-table tbody tr:not([style*="display: none"])').forEach(function(row) {
+                self.selectedItems.push(row.dataset.itemId);
+            });
+            this.updateBulkBar();
+        },
+
+        clearSelection: function() {
+            this.selectedItems = [];
+            this.updateBulkBar();
+        },
+
+        updateBulkBar: function() {
+            var bar = document.querySelector('.approval-bulk-bar');
+            if (bar) {
+                if (this.selectedItems.length > 0) {
+                    bar.style.display = 'flex';
+                    bar.querySelector('.selected-count').textContent = this.selectedItems.length + ' items selected';
+                } else {
+                    bar.style.display = 'none';
+                }
+            }
+
+            document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
+                var checkbox = row.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = this.selectedItems.indexOf(row.dataset.itemId) > -1;
+                }
+            }.bind(this));
+        },
+
+        updateItemStatus: function(itemId, newStatus) {
+            var row = document.querySelector('[data-item-id="' + itemId + '"]');
+            if (row) {
+                row.dataset.status = newStatus;
+                var badge = row.querySelector('.approval-status-badge');
+                if (badge) {
+                    badge.className = 'approval-status-badge ' + newStatus;
+                    badge.innerHTML = this.getStatusIcon(newStatus) + ' ' + this.formatStatus(newStatus);
+                }
+            }
+            this.updateStatCounts();
+        },
+
+        getStatusIcon: function(status) {
+            var icons = {
+                draft: '<i class="fas fa-file"></i>',
+                pending: '<i class="fas fa-clock"></i>',
+                submitted: '<i class="fas fa-paper-plane"></i>',
+                'in-review': '<i class="fas fa-search"></i>',
+                approved: '<i class="fas fa-check-circle"></i>',
+                rejected: '<i class="fas fa-times-circle"></i>'
+            };
+            return icons[status] || '';
+        },
+
+        formatStatus: function(status) {
+            return status.replace('-', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+        },
+
+        updateStatCounts: function() {
+            var counts = { pending: 0, submitted: 0, 'in-review': 0, approved: 0, rejected: 0, total: 0 };
+            
+            document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
+                var status = row.dataset.status;
+                if (counts.hasOwnProperty(status)) {
+                    counts[status]++;
+                }
+                counts.total++;
+            });
+
+            document.querySelectorAll('.approval-stat-card').forEach(function(card) {
+                var status = card.dataset.status;
+                var countEl = card.querySelector('.stat-count');
+                if (countEl && counts.hasOwnProperty(status)) {
+                    countEl.textContent = counts[status];
+                }
+            });
+        },
+
+        showToast: function(message, type) {
+            console.log('[ApprovalFramework] Toast:', type, message);
+        },
+
+        getRejectTemplates: function() {
+            return REJECTION_TEMPLATES[this.assetType] || [];
+        },
+
+        canTransition: function(fromStatus, toStatus) {
+            var lifecycle = APPROVAL_LIFECYCLE[this.assetType];
+            if (!lifecycle) return false;
+            var allowed = lifecycle.transitions[fromStatus] || [];
+            return allowed.indexOf(toStatus) > -1;
+        }
+    };
+
     function approveItem(itemType, itemId, notes) {
         if (!hasPermission('canApprove')) {
             return { success: false, error: 'Approval permission required' };
@@ -1042,7 +1355,8 @@ var AdminControlPlane = (function() {
 
         logAdminAction('ITEM_APPROVED', itemId, {
             itemType: itemType,
-            notes: notes
+            notes: notes,
+            severity: 'HIGH'
         });
 
         return { success: true };
@@ -1059,7 +1373,8 @@ var AdminControlPlane = (function() {
 
         logAdminAction('ITEM_REJECTED', itemId, {
             itemType: itemType,
-            reason: reason
+            reason: reason,
+            severity: 'HIGH'
         });
 
         return { success: true };
@@ -1162,7 +1477,11 @@ var AdminControlPlane = (function() {
         getSupplierRoutes: getSupplierRoutes,
         getCurrentAdmin: function() { return currentAdmin; },
         RESPONSIBILITIES: RESPONSIBILITIES,
-        ROLE_RESPONSIBILITIES: ROLE_RESPONSIBILITIES
+        ROLE_RESPONSIBILITIES: ROLE_RESPONSIBILITIES,
+        
+        ApprovalFramework: ApprovalFramework,
+        APPROVAL_LIFECYCLE: APPROVAL_LIFECYCLE,
+        REJECTION_TEMPLATES: REJECTION_TEMPLATES
     };
 })();
 
