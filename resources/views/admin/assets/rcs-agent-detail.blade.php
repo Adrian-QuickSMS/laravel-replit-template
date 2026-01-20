@@ -1171,6 +1171,11 @@ function showAdminActionsModal() {
 @endpush
 
 {{-- Admin Actions Modal --}}
+<style>
+#adminActionsModal:not(.show) {
+    display: none !important;
+}
+</style>
 <div class="modal fade" id="adminActionsModal" tabindex="-1" aria-labelledby="adminActionsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
