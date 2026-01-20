@@ -802,6 +802,71 @@ tr.selected-row:hover {
                         </tr>
                     </thead>
                     <tbody id="numbersTableBody">
+                        <tr data-id="NUM-001">
+                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-001"></td>
+                            <td><span class="number-value">+447700900123</span></td>
+                            <td>🇬🇧 UK</td>
+                            <td><span class="type-label type-vmn">VMN</span></td>
+                            <td><span class="badge badge-admin-active">Active</span></td>
+                            <td><span class="badge badge-admin-portal">Portal</span></td>
+                            <td class="account-cell"><div class="account-name">Acme Corporation</div><div class="sub-account">Marketing</div></td>
+                            <td class="text-end"><span class="cost-value">£2.00</span></td>
+                            <td><span class="supplier-value">Sinch</span></td>
+                            <td><span class="date-value">15 Oct 2025</span></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-001'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-001'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                        </tr>
+                        <tr data-id="NUM-002">
+                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-002"></td>
+                            <td><span class="number-value">+447700900456</span></td>
+                            <td>🇬🇧 UK</td>
+                            <td><span class="type-label type-vmn">VMN</span></td>
+                            <td><span class="badge badge-admin-active">Active</span></td>
+                            <td><span class="badge badge-admin-api">API</span></td>
+                            <td class="account-cell"><div class="account-name">Finance Ltd</div><div class="sub-account">Retail</div></td>
+                            <td class="text-end"><span class="cost-value">£2.00</span></td>
+                            <td><span class="supplier-value">Sinch</span></td>
+                            <td><span class="date-value">20 Sep 2025</span></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-002'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-002'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                        </tr>
+                        <tr data-id="NUM-003">
+                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-003"></td>
+                            <td><span class="number-value">+447700900789</span></td>
+                            <td>🇬🇧 UK</td>
+                            <td><span class="type-label type-vmn">VMN</span></td>
+                            <td><span class="badge badge-admin-suspended">Suspended</span></td>
+                            <td><span class="badge badge-admin-portal">Portal</span></td>
+                            <td class="account-cell"><div class="account-name">Tech Solutions</div><div class="sub-account">Support</div></td>
+                            <td class="text-end"><span class="cost-value">£2.00</span></td>
+                            <td><span class="supplier-value">Vonage</span></td>
+                            <td><span class="date-value">10 Aug 2025</span></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-003'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-003'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                        </tr>
+                        <tr data-id="NUM-004">
+                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-004"></td>
+                            <td><span class="number-value">OFFER</span></td>
+                            <td>🇬🇧 UK</td>
+                            <td><span class="type-label type-shortcode-keyword">Shortcode Keyword</span></td>
+                            <td><span class="badge badge-admin-active">Active</span></td>
+                            <td><span class="badge badge-admin-portal">Portal</span></td>
+                            <td class="account-cell"><div class="account-name">Retail Group</div><div class="sub-account">Promotions</div></td>
+                            <td class="text-end"><span class="cost-value">£5.00</span></td>
+                            <td><span class="supplier-value">OpenMarket</span></td>
+                            <td><span class="date-value">01 Jul 2025</span></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-004'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-004'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                        </tr>
+                        <tr data-id="NUM-005">
+                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-005"></td>
+                            <td><span class="number-value">60123</span></td>
+                            <td>🇬🇧 UK</td>
+                            <td><span class="type-label type-dedicated">Dedicated Shortcode</span></td>
+                            <td><span class="badge badge-admin-active">Active</span></td>
+                            <td><span class="badge badge-admin-api">API</span></td>
+                            <td class="account-cell"><div class="account-name">Healthcare UK</div><div class="sub-account">Appointments</div></td>
+                            <td class="text-end"><span class="cost-value">£250.00</span></td>
+                            <td><span class="supplier-value">Twilio</span></td>
+                            <td><span class="date-value">20 May 2025</span></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-005'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-005'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -1285,27 +1350,28 @@ function initNumbersPage() {
         
         if (typeof NumbersAdminService === 'undefined') {
             console.error('[Admin Numbers] ERROR: NumbersAdminService not loaded!');
-            document.getElementById('numbersTableBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger py-3">Service not loaded. Please refresh the page.</td></tr>';
             return;
         }
         
         console.log('[Admin Numbers] Service loaded, mock mode:', NumbersAdminService.config.useMockData);
         
         numbersData = NumbersAdminService._mockDb.numbers.slice();
-        filteredData = numbersData;
+        filteredData = numbersData.slice();
         console.log('[Admin Numbers] Mock data loaded:', numbersData.length, 'numbers');
         
         initializeSorting();
         initializeMultiSelectDropdowns();
+        
         renderTable(numbersData);
         updatePaginationInfo({ totalCount: numbersData.length, page: 1, pageSize: rowsPerPage });
         
         if (typeof ADMIN_AUDIT !== 'undefined') {
             ADMIN_AUDIT.logDataAccess('NUMBERS_LIBRARY_VIEWED', 'numbers', { action: 'view_list' });
         }
+        
+        console.log('[Admin Numbers] Page initialized successfully');
     } catch (e) {
         console.error('[Admin Numbers] Init error:', e);
-        document.getElementById('numbersTableBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger py-3">Error: ' + e.message + '</td></tr>';
     }
 }
 
