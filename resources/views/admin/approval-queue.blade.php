@@ -669,7 +669,8 @@
             <thead>
                 <tr>
                     <th>Request Type</th>
-                    <th>Account</th>
+                    <th>Account Name</th>
+                    <th>Sub-Account</th>
                     <th>Submitted By</th>
                     <th>Status</th>
                     <th>Submitted</th>
@@ -687,12 +688,8 @@
                             <i class="fas fa-signature"></i> Sender ID
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">Acme Corporation</span>
-                            <span class="sub-account-name">Marketing Dept</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">Acme Corporation</span></td>
+                    <td><span class="sub-account-name">Marketing Dept</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">John Smith</span>
@@ -729,11 +726,8 @@
                             <i class="fas fa-robot"></i> RCS Agent
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">Finance Ltd</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">Finance Ltd</span></td>
+                    <td><span class="sub-account-na">-</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Emily Davis</span>
@@ -781,12 +775,8 @@
                             <i class="fas fa-signature"></i> Sender ID
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">MedTech Solutions</span>
-                            <span class="sub-account-name">Patient Services</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">MedTech Solutions</span></td>
+                    <td><span class="sub-account-name">Patient Services</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Dr. Sarah Wilson</span>
@@ -828,12 +818,8 @@
                             <i class="fas fa-robot"></i> RCS Agent
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">RetailMax Group</span>
-                            <span class="sub-account-name">E-Commerce Division</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">RetailMax Group</span></td>
+                    <td><span class="sub-account-name">E-Commerce Division</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Michael Brown</span>
@@ -875,11 +861,8 @@
                             <i class="fas fa-signature"></i> Sender ID
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">HealthPlus Care</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">HealthPlus Care</span></td>
+                    <td><span class="sub-account-na">-</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">James Taylor</span>
@@ -921,12 +904,8 @@
                             <i class="fas fa-robot"></i> RCS Agent
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">Acme Corporation</span>
-                            <span class="sub-account-name">Sales Team</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">Acme Corporation</span></td>
+                    <td><span class="sub-account-name">Sales Team</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Lisa Anderson</span>
@@ -968,12 +947,8 @@
                             <i class="fas fa-signature"></i> Sender ID
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">Finance Ltd</span>
-                            <span class="sub-account-name">Compliance Team</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">Finance Ltd</span></td>
+                    <td><span class="sub-account-name">Compliance Team</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Robert White</span>
@@ -1010,11 +985,8 @@
                             <i class="fas fa-robot"></i> RCS Agent
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">MedTech Solutions</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">MedTech Solutions</span></td>
+                    <td><span class="sub-account-na">-</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Jennifer Martinez</span>
@@ -1057,12 +1029,8 @@
                             <i class="fas fa-signature"></i> Sender ID
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">RetailMax Group</span>
-                            <span class="sub-account-name">Notifications Team</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">RetailMax Group</span></td>
+                    <td><span class="sub-account-name">Notifications Team</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">David Lee</span>
@@ -1099,12 +1067,8 @@
                             <i class="fas fa-robot"></i> RCS Agent
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">HealthPlus Care</span>
-                            <span class="sub-account-name">Appointments Dept</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">HealthPlus Care</span></td>
+                    <td><span class="sub-account-name">Appointments Dept</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Amanda Foster</span>
@@ -1150,12 +1114,8 @@
                             <i class="fas fa-signature"></i> Sender ID
                         </span>
                     </td>
-                    <td>
-                        <div class="account-cell">
-                            <span class="account-name">Acme Corporation</span>
-                            <span class="sub-account-name">Support Team</span>
-                        </div>
-                    </td>
+                    <td><span class="account-name">Acme Corporation</span></td>
+                    <td><span class="sub-account-name">Support Team</span></td>
                     <td>
                         <div class="submitter-cell">
                             <span class="submitter-name">Chris Johnson</span>
