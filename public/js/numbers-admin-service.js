@@ -950,6 +950,7 @@ const NumbersAdminService = (function() {
 
     return {
         config: config,
+        _mockDb: mockDatabase,
         listNumbers: listNumbers,
         getNumber: getNumber,
         suspendNumber: suspendNumber,
