@@ -2494,26 +2494,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Shared SenderIDs data (same pattern as customer dashboard)
+    window.adminSenderIdsData = [];
+    
     function updateSenderIdsList(senderIds) {
         var listEl = document.getElementById('adminTopSenderIdsList');
         if (!listEl) return;
         
-        var html = senderIds.map(function(s, i) {
-            var iconClass = i === 0 ? 'fa-crown text-warning' : 'fa-tag text-primary';
-            return '<div class="d-flex align-items-center py-2 border-bottom">' +
-                '<span class="me-3"><i class="fas ' + iconClass + '"></i></span>' +
-                '<div class="flex-grow-1">' +
-                    '<h6 class="mb-0">' + s.senderId + '</h6>' +
-                    '<small class="text-muted">' + s.messages.toLocaleString() + ' messages</small>' +
-                '</div>' +
-                '<div class="text-end">' +
-                    '<span class="badge ' + (s.deliveryRate >= 98 ? 'badge-success' : 'badge-warning') + ' light">' + s.deliveryRate + '%</span>' +
-                '</div>' +
+        // Store data for selection handler (matches customer pattern)
+        window.adminSenderIdsData = senderIds;
+        
+        // Render list matching customer dashboard "About Me" style exactly
+        var html = senderIds.map(function(item, index) {
+            var borderClass = index < senderIds.length - 1 ? 'border-bottom' : '';
+            return '<div class="d-flex justify-content-between py-2 ' + borderClass + ' cursor-pointer sender-id-row" ' +
+                'data-index="' + index + '" ' +
+                'onclick="window.selectAdminSenderId(' + index + ')" ' +
+                'style="transition: background-color 0.2s;">' +
+                '<span class="fw-bold">' + item.senderId + '</span>' +
+                '<span class="text-muted">' + item.messages.toLocaleString() + '</span>' +
             '</div>';
         }).join('');
         
         listEl.innerHTML = html;
+        
+        // Auto-select first item (matches customer behavior)
+        if (senderIds.length > 0) {
+            window.selectAdminSenderId(0);
+        }
     }
+    
+    // SenderID selection handler (matches customer dashboard logic)
+    window.selectAdminSenderId = function(index) {
+        var item = window.adminSenderIdsData[index];
+        if (!item) return;
+        
+        // Update stats section
+        document.getElementById('adminSenderIdStatSent').textContent = item.messages.toLocaleString();
+        document.getElementById('adminSenderIdStatDelivered').textContent = item.delivered.toLocaleString();
+        document.getElementById('adminSenderIdStatRate').textContent = item.deliveryRate + '%';
+        
+        // Show stats section
+        document.getElementById('adminTopSenderIdsStats').classList.remove('d-none');
+        
+        // Highlight selected row with admin blue accent
+        document.querySelectorAll('#adminTopSenderIdsList .sender-id-row').forEach(function(row, i) {
+            if (i === index) {
+                row.style.backgroundColor = 'rgba(30, 58, 95, 0.1)';
+            } else {
+                row.style.backgroundColor = '';
+            }
+        });
+    };
     
     // ============================================
     // FILTER APPLICATION - Core functionality
@@ -2688,39 +2720,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Admin Charts] MNO chart rendered');
         }
 
-        // Top SenderIDs List (matching customer portal design - About Me style)
-        var senderIdsList = document.getElementById('adminTopSenderIdsList');
-        if (senderIdsList) {
-            var mockSenderIds = [
-                { senderId: 'ACME Corp', messages: 245892, delivered: 241894, deliveryRate: 98.4 },
-                { senderId: 'TechStart', messages: 189234, delivered: 185449, deliveryRate: 98.0 },
-                { senderId: 'HealthPlus', messages: 156789, delivered: 155378, deliveryRate: 99.1 },
-                { senderId: 'BankSecure', messages: 134567, delivered: 133086, deliveryRate: 98.9 },
-                { senderId: 'RetailMax', messages: 98234, delivered: 95777, deliveryRate: 97.5 }
-            ];
-            var html = mockSenderIds.map(function(item, index) {
-                return '<div class="d-flex justify-content-between py-2 ' + (index < mockSenderIds.length - 1 ? 'border-bottom' : '') + ' cursor-pointer sender-id-row" data-index="' + index + '" onclick="window.selectAdminSenderId(' + index + ')" style="transition: background-color 0.2s;">' +
-                    '<span class="fw-bold">' + item.senderId + '</span>' +
-                    '<span class="text-muted">' + item.messages.toLocaleString() + '</span>' +
-                '</div>';
-            }).join('');
-            senderIdsList.innerHTML = html;
-            
-            window.adminSenderIdsData = mockSenderIds;
-            window.selectAdminSenderId = function(index) {
-                var item = window.adminSenderIdsData[index];
-                if (!item) return;
-                document.getElementById('adminSenderIdStatSent').textContent = item.messages.toLocaleString();
-                document.getElementById('adminSenderIdStatDelivered').textContent = item.delivered.toLocaleString();
-                document.getElementById('adminSenderIdStatRate').textContent = item.deliveryRate + '%';
-                document.getElementById('adminTopSenderIdsStats').classList.remove('d-none');
-                document.querySelectorAll('.sender-id-row').forEach(function(row, i) {
-                    row.style.backgroundColor = (i === index) ? 'rgba(30, 58, 95, 0.1)' : '';
-                });
-            };
-            window.selectAdminSenderId(0);
-            console.log('[Admin Charts] SenderIDs list rendered');
-        }
+        // Top SenderIDs List - Initialize with base data (uses shared updateSenderIdsList function)
+        var initialSenderIds = DashboardDataService.baseData.senderIds;
+        updateSenderIdsList(initialSenderIds);
+        console.log('[Admin Charts] SenderIDs list rendered');
 
         console.log('[Admin Charts] All charts initialized successfully');
     }
