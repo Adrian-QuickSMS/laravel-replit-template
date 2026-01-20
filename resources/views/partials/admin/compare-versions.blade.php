@@ -25,9 +25,9 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: var(--admin-primary, #1e3a5f);
-    color: #fff;
-    border: none;
+    background: transparent;
+    color: var(--admin-primary, #1e3a5f);
+    border: 1px solid var(--admin-primary, #1e3a5f);
     border-radius: 6px;
     font-size: 0.85rem;
     font-weight: 500;
@@ -36,7 +36,9 @@
 }
 
 .compare-versions-btn:hover {
-    background: var(--admin-secondary, #2d5a87);
+    background: rgba(30, 58, 95, 0.1);
+    color: var(--admin-secondary, #2d5a87);
+    border-color: var(--admin-secondary, #2d5a87);
 }
 
 .compare-versions-modal .modal-dialog {

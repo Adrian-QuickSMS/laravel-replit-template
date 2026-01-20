@@ -558,9 +558,6 @@
         <span class="agent-name-display" id="agentNameDisplay">Acme Bank Notifications</span>
         <span class="status-pill submitted" id="currentStatus"><i class="fas fa-paper-plane"></i> Submitted</span>
         <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
-            <button class="btn btn-primary" style="background: var(--admin-primary, #1e3a5f); border-color: var(--admin-primary, #1e3a5f);" onclick="showAdminActionsModal()">
-                <i class="fas fa-gavel me-1"></i> Admin Actions
-            </button>
             <div style="font-size: 0.8rem; color: #64748b; display: flex; gap: 1rem;">
                 <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>RCS-001</strong></span>
                 <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 18, 2026, 2:30 PM</strong></span>
@@ -583,6 +580,9 @@
                 'submissionType' => 'rcs-agent',
                 'versions' => $rcsVersions
             ])
+            <button class="btn btn-primary" style="background: var(--admin-primary, #1e3a5f); border-color: var(--admin-primary, #1e3a5f);" onclick="showAdminActionsModal()">
+                <i class="fas fa-gavel me-1"></i> Admin Actions
+            </button>
         </div>
     </div>
 
