@@ -393,6 +393,78 @@ tr.selected-row:hover {
     display: block;
     margin-top: 0.15rem;
 }
+
+.billing-impact-panel {
+    border: 2px solid var(--admin-primary);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #fff;
+}
+.billing-impact-header {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+}
+.billing-impact-body {
+    padding: 1rem;
+    background: rgba(30, 58, 95, 0.03);
+}
+.billing-changes-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+.billing-change-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #fff;
+    border: 1px solid rgba(30, 58, 95, 0.15);
+    border-radius: 0.375rem;
+}
+.billing-change-item .change-label {
+    flex: 0 0 140px;
+    font-weight: 600;
+    color: var(--admin-primary);
+    font-size: 0.85rem;
+}
+.billing-change-item .change-values {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.billing-change-item .change-before {
+    padding: 0.25rem 0.5rem;
+    background: rgba(108, 117, 125, 0.1);
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+.billing-change-item .change-arrow {
+    color: var(--admin-accent);
+    font-weight: bold;
+}
+.billing-change-item .change-after {
+    padding: 0.25rem 0.5rem;
+    background: rgba(74, 144, 217, 0.15);
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--admin-primary);
+    font-weight: 600;
+}
+.billing-confirm-section {
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(30, 58, 95, 0.15);
+}
+.billing-confirm-section .form-check-label {
+    font-weight: 500;
+    color: var(--admin-primary);
+}
+.billing-confirm-section .form-check-input:checked {
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+}
 </style>
 @endpush
 
@@ -1059,10 +1131,26 @@ tr.selected-row:hover {
             <div class="modal-body">
                 <div id="bulkActionSummary"></div>
                 <div id="bulkActionOptions" class="mt-3"></div>
-                <div id="bulkBillingWarning" class="alert alert-warning mt-3" style="display: none;">
-                    <i class="fas fa-pound-sign me-2"></i>
-                    <strong>Billing Impact:</strong> This action may affect monthly billing for the selected numbers.
+                
+                <div id="bulkBillingWarning" class="billing-impact-panel mt-3" style="display: none;">
+                    <div class="billing-impact-header">
+                        <i class="fas fa-pound-sign me-2"></i>
+                        <strong>Billing Impact</strong>
+                    </div>
+                    <div class="billing-impact-body">
+                        <p class="mb-2">This action will affect monthly billing for the selected numbers:</p>
+                        <div id="billingChangesSummary" class="billing-changes-grid"></div>
+                        <div class="billing-confirm-section mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="billingConfirmCheckbox" onchange="updateBillingConfirmState()">
+                                <label class="form-check-label" for="billingConfirmCheckbox">
+                                    I understand this action impacts billing and wish to proceed
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
                 <div id="bulkIncompatibleWarning" class="alert alert-danger mt-3" style="display: none;">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <span id="bulkIncompatibleText"></span>
@@ -1070,7 +1158,7 @@ tr.selected-row:hover {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="bulkExecuteBtn" onclick="executeBulkAction()">
+                <button type="button" class="btn btn-primary" id="bulkExecuteBtn" onclick="executeBulkAction()" disabled>
                     <i class="fas fa-check me-1"></i> Apply to <span id="bulkApplyCount">0</span> Numbers
                 </button>
             </div>
@@ -2214,18 +2302,24 @@ function initBulkAction(actionType) {
     const summaryEl = document.getElementById('bulkActionSummary');
     const optionsEl = document.getElementById('bulkActionOptions');
     const billingWarning = document.getElementById('bulkBillingWarning');
+    const billingChangesSummary = document.getElementById('billingChangesSummary');
+    const billingCheckbox = document.getElementById('billingConfirmCheckbox');
     const incompatibleWarning = document.getElementById('bulkIncompatibleWarning');
     const applyCountEl = document.getElementById('bulkApplyCount');
     const executeBtn = document.getElementById('bulkExecuteBtn');
     
     billingWarning.style.display = 'none';
+    billingCheckbox.checked = false;
     incompatibleWarning.style.display = 'none';
     optionsEl.innerHTML = '';
+    billingChangesSummary.innerHTML = '';
     
     let compatible = selected;
     let incompatible = [];
     let title = 'Bulk Action';
     let summary = '';
+    let hasBillingImpact = false;
+    let billingChanges = [];
     
     switch(actionType) {
         case 'suspend':
@@ -2233,7 +2327,11 @@ function initBulkAction(actionType) {
             compatible = selected.filter(n => n.status === 'active');
             incompatible = selected.filter(n => n.status !== 'active');
             summary = buildBulkSummaryTable(compatible, 'Status', n => getStatusBadge(n.status), () => '<span class="badge bg-warning">Suspended</span>');
-            billingWarning.style.display = 'block';
+            hasBillingImpact = true;
+            billingChanges = [
+                { label: 'Status Change', before: 'Active', after: 'Suspended' },
+                { label: 'Billing Effect', before: 'Full monthly rate', after: 'Suspended (no charge)' }
+            ];
             break;
             
         case 'reactivate':
@@ -2241,17 +2339,27 @@ function initBulkAction(actionType) {
             compatible = selected.filter(n => n.status === 'suspended');
             incompatible = selected.filter(n => n.status !== 'suspended');
             summary = buildBulkSummaryTable(compatible, 'Status', n => getStatusBadge(n.status), () => '<span class="badge bg-success">Active</span>');
-            billingWarning.style.display = 'block';
+            hasBillingImpact = true;
+            billingChanges = [
+                { label: 'Status Change', before: 'Suspended', after: 'Active' },
+                { label: 'Billing Effect', before: 'No charge', after: 'Full monthly rate resumes' }
+            ];
             break;
             
         case 'assignCustomer':
             title = 'Assign to Customer';
             compatible = selected;
             summary = buildBulkSummaryTable(compatible, 'Account', n => n.account, () => '<em>Select below</em>');
+            hasBillingImpact = true;
+            const uniqueAccounts = [...new Set(compatible.map(n => n.account))];
+            billingChanges = [
+                { label: 'Account Attribution', before: uniqueAccounts.length > 1 ? 'Multiple accounts' : uniqueAccounts[0], after: 'New customer account' },
+                { label: 'Invoice Allocation', before: 'Current customer', after: 'New customer' }
+            ];
             optionsEl.innerHTML = `
                 <div class="mb-3">
                     <label class="form-label fw-bold">Select Customer Account</label>
-                    <select class="form-select" id="bulkCustomerSelect">
+                    <select class="form-select" id="bulkCustomerSelect" onchange="updateBillingPreview('assignCustomer')">
                         <option value="">Choose account...</option>
                         <option value="Acme Corp">Acme Corp</option>
                         <option value="TechStart Ltd">TechStart Ltd</option>
@@ -2267,6 +2375,12 @@ function initBulkAction(actionType) {
             title = 'Assign to Sub-Account';
             compatible = selected;
             summary = buildBulkSummaryTable(compatible, 'Sub-Account', n => n.subAccount, () => '<em>Select below</em>');
+            hasBillingImpact = true;
+            const uniqueSubAccounts = [...new Set(compatible.map(n => n.subAccount))];
+            billingChanges = [
+                { label: 'Sub-Account', before: uniqueSubAccounts.length > 1 ? 'Multiple sub-accounts' : uniqueSubAccounts[0], after: 'New sub-account' },
+                { label: 'Cost Centre', before: 'Current allocation', after: 'New allocation' }
+            ];
             optionsEl.innerHTML = `
                 <div class="mb-3">
                     <label class="form-label fw-bold">Select Customer Account First</label>
@@ -2279,7 +2393,7 @@ function initBulkAction(actionType) {
                 </div>
                 <div class="mb-3" id="subAccountContainer" style="display: none;">
                     <label class="form-label fw-bold">Select Sub-Account</label>
-                    <select class="form-select" id="bulkSubAccountSelect">
+                    <select class="form-select" id="bulkSubAccountSelect" onchange="updateBillingPreview('assignSubAccount')">
                         <option value="">Choose sub-account...</option>
                     </select>
                 </div>
@@ -2291,15 +2405,22 @@ function initBulkAction(actionType) {
             compatible = selected.filter(n => n.type !== 'keyword');
             incompatible = selected.filter(n => n.type === 'keyword');
             summary = buildBulkSummaryTable(compatible, 'Mode', n => getModeBadge(n.mode), () => '<em>Select below</em>');
+            hasBillingImpact = true;
+            const portalCount = compatible.filter(n => n.mode === 'portal').length;
+            const apiCount = compatible.filter(n => n.mode === 'api').length;
+            billingChanges = [
+                { label: 'Mode Change', before: `${portalCount} Portal, ${apiCount} API`, after: 'Select mode below' },
+                { label: 'Billing Model', before: 'Current rates apply', after: 'Mode-specific rates apply' }
+            ];
             optionsEl.innerHTML = `
                 <div class="mb-3">
                     <label class="form-label fw-bold">Select New Mode</label>
                     <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="bulkMode" id="bulkModePortal" value="portal">
+                        <input type="radio" class="btn-check" name="bulkMode" id="bulkModePortal" value="portal" onchange="updateBillingPreview('changeMode')">
                         <label class="btn btn-outline-primary" for="bulkModePortal">
                             <i class="fas fa-desktop me-2"></i>Portal Mode
                         </label>
-                        <input type="radio" class="btn-check" name="bulkMode" id="bulkModeAPI" value="api">
+                        <input type="radio" class="btn-check" name="bulkMode" id="bulkModeAPI" value="api" onchange="updateBillingPreview('changeMode')">
                         <label class="btn btn-outline-primary" for="bulkModeAPI">
                             <i class="fas fa-code me-2"></i>API Mode
                         </label>
@@ -2310,7 +2431,6 @@ function initBulkAction(actionType) {
                     <strong>Note:</strong> API Mode is limited to 1 sub-account and requires HTTPS webhook URL.
                 </div>
             `;
-            billingWarning.style.display = 'block';
             break;
             
         case 'capabilities':
@@ -2318,6 +2438,7 @@ function initBulkAction(actionType) {
             compatible = selected.filter(n => n.type !== 'keyword');
             incompatible = selected.filter(n => n.type === 'keyword');
             summary = buildBulkSummaryTable(compatible, 'Type', n => getTypeLabel(n.type), null);
+            hasBillingImpact = false;
             optionsEl.innerHTML = `
                 <div class="mb-3">
                     <label class="form-label fw-bold">Select Capabilities to Apply</label>
@@ -2355,9 +2476,116 @@ function initBulkAction(actionType) {
             `<strong>${incompatible.length} number(s)</strong> are not compatible with this action and will be skipped.`;
     }
     
-    executeBtn.disabled = compatible.length === 0;
+    if (hasBillingImpact && compatible.length > 0) {
+        billingWarning.style.display = 'block';
+        billingChangesSummary.innerHTML = billingChanges.map(change => `
+            <div class="billing-change-item">
+                <span class="change-label">${change.label}</span>
+                <div class="change-values">
+                    <span class="change-before">${change.before}</span>
+                    <span class="change-arrow">→</span>
+                    <span class="change-after">${change.after}</span>
+                </div>
+            </div>
+        `).join('');
+        executeBtn.disabled = true;
+    } else {
+        executeBtn.disabled = compatible.length === 0;
+    }
     
     new bootstrap.Modal(modal).show();
+}
+
+function updateBillingPreview(actionType) {
+    const billingChangesSummary = document.getElementById('billingChangesSummary');
+    const selected = getSelectedNumbersData();
+    
+    switch(actionType) {
+        case 'assignCustomer':
+            const customer = document.getElementById('bulkCustomerSelect')?.value || 'Not selected';
+            const uniqueAccounts = [...new Set(selected.map(n => n.account))];
+            billingChangesSummary.innerHTML = `
+                <div class="billing-change-item">
+                    <span class="change-label">Account Attribution</span>
+                    <div class="change-values">
+                        <span class="change-before">${uniqueAccounts.length > 1 ? 'Multiple accounts' : uniqueAccounts[0]}</span>
+                        <span class="change-arrow">→</span>
+                        <span class="change-after">${customer || 'Not selected'}</span>
+                    </div>
+                </div>
+                <div class="billing-change-item">
+                    <span class="change-label">Invoice Allocation</span>
+                    <div class="change-values">
+                        <span class="change-before">Current customer</span>
+                        <span class="change-arrow">→</span>
+                        <span class="change-after">${customer || 'Not selected'}</span>
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case 'assignSubAccount':
+            const subAccount = document.getElementById('bulkSubAccountSelect')?.value || 'Not selected';
+            const uniqueSubAccounts = [...new Set(selected.map(n => n.subAccount))];
+            billingChangesSummary.innerHTML = `
+                <div class="billing-change-item">
+                    <span class="change-label">Sub-Account</span>
+                    <div class="change-values">
+                        <span class="change-before">${uniqueSubAccounts.length > 1 ? 'Multiple' : uniqueSubAccounts[0]}</span>
+                        <span class="change-arrow">→</span>
+                        <span class="change-after">${subAccount || 'Not selected'}</span>
+                    </div>
+                </div>
+                <div class="billing-change-item">
+                    <span class="change-label">Cost Centre</span>
+                    <div class="change-values">
+                        <span class="change-before">Current allocation</span>
+                        <span class="change-arrow">→</span>
+                        <span class="change-after">${subAccount || 'Not selected'}</span>
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case 'changeMode':
+            const mode = document.querySelector('input[name="bulkMode"]:checked')?.value;
+            const modeLabel = mode === 'portal' ? 'Portal Mode' : mode === 'api' ? 'API Mode' : 'Not selected';
+            const compatible = selected.filter(n => n.type !== 'keyword');
+            const portalCount = compatible.filter(n => n.mode === 'portal').length;
+            const apiCount = compatible.filter(n => n.mode === 'api').length;
+            billingChangesSummary.innerHTML = `
+                <div class="billing-change-item">
+                    <span class="change-label">Mode Change</span>
+                    <div class="change-values">
+                        <span class="change-before">${portalCount} Portal, ${apiCount} API</span>
+                        <span class="change-arrow">→</span>
+                        <span class="change-after">${modeLabel}</span>
+                    </div>
+                </div>
+                <div class="billing-change-item">
+                    <span class="change-label">Billing Model</span>
+                    <div class="change-values">
+                        <span class="change-before">Current rates</span>
+                        <span class="change-arrow">→</span>
+                        <span class="change-after">${modeLabel} rates</span>
+                    </div>
+                </div>
+            `;
+            break;
+    }
+}
+
+function updateBillingConfirmState() {
+    const checkbox = document.getElementById('billingConfirmCheckbox');
+    const executeBtn = document.getElementById('bulkExecuteBtn');
+    const billingPanel = document.getElementById('bulkBillingWarning');
+    const selected = getSelectedNumbersData();
+    
+    if (billingPanel.style.display === 'none') {
+        executeBtn.disabled = selected.length === 0;
+    } else {
+        executeBtn.disabled = !checkbox.checked;
+    }
 }
 
 function buildBulkSummaryTable(items, changeColumn, currentFn, newFn) {
