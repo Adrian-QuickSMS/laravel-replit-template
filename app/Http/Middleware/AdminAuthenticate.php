@@ -5,23 +5,41 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\Admin\AdminAuditService;
 
 class AdminAuthenticate
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Development bypass - auto-login for dev environment
+        if ($this->isCustomerSession($request)) {
+            return $this->handleCustomerAccessAttempt($request);
+        }
+        
+        if (config('admin.ip_allowlist.enabled', false)) {
+            if (!$this->isIpAllowed($request->ip())) {
+                $this->logSecurityEvent('ADMIN_ACCESS_IP_BLOCKED', [
+                    'ip' => $request->ip(),
+                    'path' => $request->path(),
+                    'user_agent' => $request->userAgent()
+                ]);
+                
+                abort(403, 'Access denied from this IP address');
+            }
+        }
+        
         if (config('app.env') === 'local' || config('app.debug') === true) {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
                 session()->put('admin_auth', [
                     'authenticated' => true,
                     'mfa_verified' => true,
                     'user_id' => 1,
-                    'email' => 'admin@quicksms.com',
+                    'email' => 'admin@quicksms.co.uk',
+                    'name' => 'System Administrator',
                     'role' => 'super_admin',
                     'last_activity' => now()->timestamp,
+                    'ip_address' => $request->ip(),
                 ]);
-                session()->put('admin_user_email', 'admin@quicksms.com');
+                session()->put('admin_user_email', 'admin@quicksms.co.uk');
             }
         }
         
@@ -34,7 +52,25 @@ class AdminAuthenticate
             return redirect()->route('admin.login');
         }
         
+        if (!$this->isWhitelistedUser($adminSession['email'] ?? '')) {
+            $this->logSecurityEvent('ADMIN_ACCESS_UNAUTHORIZED_USER', [
+                'email' => $adminSession['email'] ?? 'unknown',
+                'ip' => $request->ip(),
+                'path' => $request->path(),
+                'session_id' => session()->getId()
+            ]);
+            
+            session()->forget('admin_auth');
+            
+            return $this->redirectToCustomerPortal($request, 'unauthorized_user');
+        }
+        
         if ($this->isSessionExpired($adminSession)) {
+            $this->logSecurityEvent('ADMIN_SESSION_EXPIRED', [
+                'email' => $adminSession['email'] ?? 'unknown',
+                'last_activity' => $adminSession['last_activity'] ?? 0
+            ]);
+            
             session()->forget('admin_auth');
             return redirect()->route('admin.login')->with('error', 'Admin session expired. Please login again.');
         }
@@ -47,8 +83,117 @@ class AdminAuthenticate
         }
         
         session()->put('admin_auth.last_activity', now()->timestamp);
+        session()->put('admin_auth.ip_address', $request->ip());
         
         return $next($request);
+    }
+    
+    protected function isCustomerSession(Request $request): bool
+    {
+        $customerSession = session('customer_auth');
+        if ($customerSession && isset($customerSession['authenticated']) && $customerSession['authenticated'] === true) {
+            $adminSession = session('admin_auth');
+            if (!$adminSession || !isset($adminSession['authenticated']) || $adminSession['authenticated'] !== true) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    protected function handleCustomerAccessAttempt(Request $request): Response
+    {
+        $customerEmail = session('customer_auth.email', 'unknown');
+        
+        $this->logSecurityEvent('CUSTOMER_ADMIN_ACCESS_ATTEMPT', [
+            'customer_email' => $customerEmail,
+            'ip' => $request->ip(),
+            'path' => $request->path(),
+            'user_agent' => $request->userAgent(),
+            'referer' => $request->header('referer'),
+            'session_id' => session()->getId()
+        ]);
+        
+        return $this->redirectToCustomerPortal($request, 'customer_access_attempt');
+    }
+    
+    protected function redirectToCustomerPortal(Request $request, string $reason): Response
+    {
+        $redirectPath = config('admin.security.customer_portal_redirect', '/dashboard');
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'error' => 'Access denied',
+                'redirect' => $redirectPath
+            ], 403);
+        }
+        
+        return redirect($redirectPath)->with('error', 'You do not have permission to access that area.');
+    }
+    
+    protected function isWhitelistedUser(string $email): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+        
+        $adminUsers = config('admin.users', []);
+        foreach ($adminUsers as $user) {
+            if (strtolower($user['email']) === strtolower($email) && ($user['status'] ?? '') === 'active') {
+                return true;
+            }
+        }
+        
+        $whitelistedDomains = config('admin.security.whitelisted_domains', []);
+        $emailParts = explode('@', $email);
+        if (count($emailParts) === 2) {
+            $domain = strtolower($emailParts[1]);
+            foreach ($whitelistedDomains as $whitelistedDomain) {
+                if ($domain === strtolower($whitelistedDomain)) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    protected function isIpAllowed(string $ip): bool
+    {
+        $allowedIps = config('admin.ip_allowlist.ips', []);
+        $allowedCidrs = config('admin.ip_allowlist.cidrs', []);
+        
+        if (empty($allowedIps) && empty($allowedCidrs)) {
+            return true;
+        }
+        
+        if (in_array($ip, $allowedIps)) {
+            return true;
+        }
+        
+        foreach ($allowedCidrs as $cidr) {
+            if ($this->ipInCidr($ip, $cidr)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    protected function ipInCidr(string $ip, string $cidr): bool
+    {
+        list($subnet, $mask) = explode('/', $cidr);
+        $mask = (int) $mask;
+        
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $ip = ip2long($ip);
+            $subnet = ip2long($subnet);
+            $mask = -1 << (32 - $mask);
+            $subnet &= $mask;
+            return ($ip & $mask) == $subnet;
+        }
+        
+        return false;
     }
     
     protected function isSessionExpired(array $adminSession): bool
@@ -67,5 +212,35 @@ class AdminAuthenticate
     protected function isMfaSetupRequired(array $adminSession): bool
     {
         return isset($adminSession['mfa_setup_required']) && $adminSession['mfa_setup_required'] === true;
+    }
+    
+    protected function logSecurityEvent(string $eventCode, array $data): void
+    {
+        try {
+            AdminAuditService::log($eventCode, array_merge($data, [
+                'timestamp' => now()->toIso8601String(),
+                'severity' => $this->getEventSeverity($eventCode)
+            ]));
+        } catch (\Exception $e) {
+            \Log::error('[AdminAuth] Failed to log security event: ' . $e->getMessage(), [
+                'event_code' => $eventCode,
+                'data' => $data
+            ]);
+        }
+    }
+    
+    protected function getEventSeverity(string $eventCode): string
+    {
+        $criticalEvents = ['CUSTOMER_ADMIN_ACCESS_ATTEMPT', 'ADMIN_ACCESS_UNAUTHORIZED_USER'];
+        $highEvents = ['ADMIN_ACCESS_IP_BLOCKED'];
+        
+        if (in_array($eventCode, $criticalEvents)) {
+            return 'CRITICAL';
+        }
+        if (in_array($eventCode, $highEvents)) {
+            return 'HIGH';
+        }
+        
+        return 'MEDIUM';
     }
 }

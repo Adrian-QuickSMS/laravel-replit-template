@@ -1031,43 +1031,135 @@ var AdminControlPlane = (function() {
         return logAdminAction(action, targetAccount, details, beforeValues, afterValues);
     }
 
+    var IMPERSONATION_CONFIG = {
+        enabled: true,
+        readOnly: true,
+        maxDurationSeconds: 300,
+        minReasonLength: 10,
+        allowPiiAccess: false,
+        logAllActions: true
+    };
+
     function startImpersonation(accountId, accountName, reason) {
+        if (!IMPERSONATION_CONFIG.enabled) {
+            console.warn('[AdminControlPlane] Impersonation is disabled');
+            return { success: false, error: 'Impersonation is disabled' };
+        }
+        
         if (!hasPermission('canImpersonate')) {
             console.error('[AdminControlPlane] Impersonation not permitted for role:', currentAdmin.role);
+            logAdminAction('IMPERSONATION_DENIED', accountId, {
+                reason: 'permission_denied',
+                adminRole: currentAdmin.role
+            }, null, null, 'HIGH');
             return { success: false, error: 'Permission denied' };
         }
 
-        if (!reason || reason.trim().length < 10) {
-            return { success: false, error: 'Reason required (min 10 characters)' };
+        if (!reason || reason.trim().length < IMPERSONATION_CONFIG.minReasonLength) {
+            return { success: false, error: 'Reason required (min ' + IMPERSONATION_CONFIG.minReasonLength + ' characters)' };
         }
 
+        var sessionId = 'IMP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        var expiresAt = new Date(Date.now() + (IMPERSONATION_CONFIG.maxDurationSeconds * 1000)).toISOString();
+
         impersonationSession = {
+            sessionId: sessionId,
             accountId: accountId,
             accountName: accountName,
             reason: reason,
             startedAt: new Date().toISOString(),
-            adminId: currentAdmin.id
+            expiresAt: expiresAt,
+            adminId: currentAdmin.id,
+            adminEmail: currentAdmin.email,
+            readOnly: IMPERSONATION_CONFIG.readOnly,
+            piiAccessBlocked: !IMPERSONATION_CONFIG.allowPiiAccess,
+            actionsLogged: []
         };
 
         logAdminAction('IMPERSONATION_START', accountId, {
+            sessionId: sessionId,
             accountName: accountName,
-            reason: reason
-        });
+            reason: reason,
+            readOnly: IMPERSONATION_CONFIG.readOnly,
+            maxDuration: IMPERSONATION_CONFIG.maxDurationSeconds,
+            piiAccessBlocked: !IMPERSONATION_CONFIG.allowPiiAccess
+        }, null, null, 'CRITICAL');
 
         showImpersonationBanner(accountName);
+        startImpersonationTimer();
 
         return { success: true, session: impersonationSession };
     }
 
-    function endImpersonation() {
-        if (!impersonationSession) return;
+    function endImpersonation(endReason) {
+        if (!impersonationSession) return { success: false, error: 'No active session' };
+
+        var duration = Date.now() - new Date(impersonationSession.startedAt).getTime();
+        var actionsCount = impersonationSession.actionsLogged ? impersonationSession.actionsLogged.length : 0;
 
         logAdminAction('IMPERSONATION_END', impersonationSession.accountId, {
-            duration: Date.now() - new Date(impersonationSession.startedAt).getTime()
-        });
+            sessionId: impersonationSession.sessionId,
+            endReason: endReason || 'manual',
+            durationMs: duration,
+            actionsCount: actionsCount
+        }, null, null, 'HIGH');
 
+        stopImpersonationTimer();
         impersonationSession = null;
         hideImpersonationBanner();
+        
+        return { success: true, duration: duration, actionsCount: actionsCount };
+    }
+
+    var impersonationTimerInterval = null;
+
+    function startImpersonationTimer() {
+        stopImpersonationTimer();
+        
+        impersonationTimerInterval = setInterval(function() {
+            if (!impersonationSession) {
+                stopImpersonationTimer();
+                return;
+            }
+            
+            var remaining = getRemainingImpersonationTime();
+            updateImpersonationBannerTimer(remaining);
+            
+            if (remaining <= 0) {
+                endImpersonation('expired');
+                alert('Impersonation session has expired.');
+            }
+        }, 1000);
+    }
+
+    function stopImpersonationTimer() {
+        if (impersonationTimerInterval) {
+            clearInterval(impersonationTimerInterval);
+            impersonationTimerInterval = null;
+        }
+    }
+
+    function getRemainingImpersonationTime() {
+        if (!impersonationSession || !impersonationSession.expiresAt) {
+            return 0;
+        }
+        
+        var expiresAt = new Date(impersonationSession.expiresAt).getTime();
+        var remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+        return remaining;
+    }
+
+    function updateImpersonationBannerTimer(remainingSeconds) {
+        var timerEl = document.querySelector('.impersonation-timer');
+        if (timerEl) {
+            var mins = Math.floor(remainingSeconds / 60);
+            var secs = remainingSeconds % 60;
+            timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+            
+            if (remainingSeconds <= 60) {
+                timerEl.classList.add('warning');
+            }
+        }
     }
 
     function showImpersonationBanner(accountName) {
@@ -1076,23 +1168,73 @@ var AdminControlPlane = (function() {
 
         var banner = document.createElement('div');
         banner.className = 'admin-impersonate-banner';
-        banner.innerHTML = '<div><i class="fas fa-eye me-2"></i><strong>Impersonating:</strong> ' + accountName + 
-            ' <span class="ms-2">(View Only - Changes will NOT affect customer audit log)</span></div>' +
-            '<button class="btn-exit" onclick="AdminControlPlane.endImpersonation()"><i class="fas fa-times me-1"></i>Exit</button>';
+        banner.innerHTML = '<div class="impersonate-info">' +
+            '<i class="fas fa-user-secret me-2"></i>' +
+            '<strong>Impersonating:</strong> ' + escapeHtml(accountName) + 
+            '<span class="impersonate-badges">' +
+            '<span class="badge read-only"><i class="fas fa-lock me-1"></i>Read-Only</span>' +
+            '<span class="badge no-pii"><i class="fas fa-eye-slash me-1"></i>No PII Access</span>' +
+            '</span>' +
+            '<span class="impersonate-timer-wrap">Time remaining: <span class="impersonation-timer">' + 
+            formatTime(IMPERSONATION_CONFIG.maxDurationSeconds) + '</span></span>' +
+            '</div>' +
+            '<button class="btn-exit" onclick="AdminControlPlane.endImpersonation(\'manual\')"><i class="fas fa-sign-out-alt me-1"></i>Exit</button>';
 
-        var contentBody = document.querySelector('.content-body');
-        if (contentBody) {
-            contentBody.insertBefore(banner, contentBody.firstChild);
-        }
+        var style = document.createElement('style');
+        style.textContent = '.admin-impersonate-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#dc2626,#b91c1c);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10000;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,0.3)}.impersonate-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.impersonate-badges{display:flex;gap:8px}.impersonate-badges .badge{background:rgba(255,255,255,0.2);padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600}.impersonate-badges .badge.read-only{background:#fbbf24;color:#78350f}.impersonate-badges .badge.no-pii{background:#60a5fa;color:#1e3a8a}.impersonate-timer-wrap{margin-left:12px}.impersonation-timer{font-family:monospace;font-weight:700;background:rgba(0,0,0,0.3);padding:2px 8px;border-radius:4px}.impersonation-timer.warning{background:#fbbf24;color:#78350f;animation:pulse 1s infinite}.btn-exit{background:#fff;color:#dc2626;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.2s}.btn-exit:hover{background:#fee2e2;transform:scale(1.05)}@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}';
+        document.head.appendChild(style);
+
+        document.body.insertBefore(banner, document.body.firstChild);
+        document.body.style.paddingTop = '60px';
+    }
+
+    function formatTime(seconds) {
+        var mins = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+        return mins + ':' + (secs < 10 ? '0' : '') + secs;
     }
 
     function hideImpersonationBanner() {
         var banner = document.querySelector('.admin-impersonate-banner');
         if (banner) banner.remove();
+        document.body.style.paddingTop = '';
     }
 
     function isImpersonating() {
         return impersonationSession !== null;
+    }
+
+    function getImpersonationSession() {
+        return impersonationSession;
+    }
+
+    function canAccessPiiDuringImpersonation() {
+        return false;
+    }
+
+    function canMutateDataDuringImpersonation() {
+        if (!isImpersonating()) return true;
+        return !IMPERSONATION_CONFIG.readOnly;
+    }
+
+    function logImpersonationAction(action, details) {
+        if (!isImpersonating() || !IMPERSONATION_CONFIG.logAllActions) return;
+        
+        var actionEntry = {
+            action: action,
+            details: details,
+            timestamp: new Date().toISOString()
+        };
+        
+        if (impersonationSession.actionsLogged) {
+            impersonationSession.actionsLogged.push(actionEntry);
+        }
+        
+        logAdminAction('IMPERSONATION_ACTION', impersonationSession.accountId, {
+            sessionId: impersonationSession.sessionId,
+            action: action,
+            details: details
+        }, null, null, 'MEDIUM');
     }
 
     function handleRevealClick(e) {
@@ -1621,6 +1763,11 @@ var AdminControlPlane = (function() {
         startImpersonation: startImpersonation,
         endImpersonation: endImpersonation,
         isImpersonating: isImpersonating,
+        getImpersonationSession: getImpersonationSession,
+        canAccessPiiDuringImpersonation: canAccessPiiDuringImpersonation,
+        canMutateDataDuringImpersonation: canMutateDataDuringImpersonation,
+        logImpersonationAction: logImpersonationAction,
+        getRemainingImpersonationTime: getRemainingImpersonationTime,
 
         maskPhoneNumber: maskPhoneNumber,
         maskMessageContent: maskMessageContent,
