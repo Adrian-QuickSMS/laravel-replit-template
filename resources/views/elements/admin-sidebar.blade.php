@@ -8,14 +8,6 @@
                 </a>
             </li>
             
-            <li class="{{ request()->routeIs('admin.approval-queue') ? 'mm-active' : '' }}">
-                <a href="{{ route('admin.approval-queue') }}" aria-expanded="false">
-                    <i class="fas fa-inbox"></i>
-                    <span class="nav-text">Approval Queue</span>
-                    <span class="badge bg-danger ms-auto">11</span>
-                </a>
-            </li>
-            
             <li class="{{ request()->routeIs('admin.accounts.*') ? 'mm-active' : '' }}">
                 <a href="{{ route('admin.accounts.overview') }}" aria-expanded="false">
                     <i class="fas fa-building"></i>
@@ -42,8 +34,8 @@
                     <span class="nav-text">Messaging Assets</span>
                 </a>
                 <ul aria-expanded="false">
-                    <li><a href="{{ route('admin.assets.sender-ids') }}" class="{{ request()->routeIs('admin.assets.sender-ids') ? 'mm-active' : '' }}">Sender ID Approvals</a></li>
-                    <li><a href="{{ route('admin.assets.rcs-agents') }}" class="{{ request()->routeIs('admin.assets.rcs-agents') ? 'mm-active' : '' }}">RCS Agent Registration</a></li>
+                    <li><a href="{{ route('admin.assets.sender-ids') }}" class="{{ request()->routeIs('admin.assets.sender-ids') ? 'mm-active' : '' }}">Sender ID Approvals <span class="badge bg-danger rounded-circle" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; margin-left: 0.25rem;">8</span></a></li>
+                    <li><a href="{{ route('admin.assets.rcs-agents') }}" class="{{ request()->routeIs('admin.assets.rcs-agents') ? 'mm-active' : '' }}">RCS Agent Registration <span class="badge bg-danger rounded-circle" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; margin-left: 0.25rem;">3</span></a></li>
                     <li><a href="{{ route('admin.assets.templates') }}" class="{{ request()->routeIs('admin.assets.templates') ? 'mm-active' : '' }}">Templates</a></li>
                     <li><a href="{{ route('admin.assets.numbers') }}" class="{{ request()->routeIs('admin.assets.numbers') ? 'mm-active' : '' }}">Numbers</a></li>
                     <li><a href="{{ route('admin.assets.email-to-sms') }}" class="{{ request()->routeIs('admin.assets.email-to-sms') ? 'mm-active' : '' }}">Email-to-SMS</a></li>

@@ -118,19 +118,19 @@
     </div>
 
     <div class="approval-queue-stats">
-        <div class="approval-stat-card pending active" data-status="pending">
+        <div class="approval-stat-card pending active" data-status="pending" onclick="filterByTile('pending')" style="cursor: pointer;">
             <div class="stat-count" id="stat-pending">8</div>
             <div class="stat-label">Pending</div>
         </div>
-        <div class="approval-stat-card approved" data-status="approved">
+        <div class="approval-stat-card approved" data-status="approved" onclick="filterByTile('approved')" style="cursor: pointer;">
             <div class="stat-count" id="stat-approved">1,847</div>
             <div class="stat-label">Approved</div>
         </div>
-        <div class="approval-stat-card rejected" data-status="rejected">
+        <div class="approval-stat-card rejected" data-status="rejected" onclick="filterByTile('rejected')" style="cursor: pointer;">
             <div class="stat-count" id="stat-rejected">56</div>
             <div class="stat-label">Rejected</div>
         </div>
-        <div class="approval-stat-card total" data-status="all">
+        <div class="approval-stat-card total" data-status="all" onclick="filterByTile('all')" style="cursor: pointer;">
             <div class="stat-count" id="stat-total">1,914</div>
             <div class="stat-label">Total</div>
         </div>
@@ -700,6 +700,28 @@ function clearSelection() {
     document.querySelectorAll('.item-checkbox').forEach(function(cb) { cb.checked = false; });
     document.getElementById('selectAllCheckbox').checked = false;
     updateBulkBar();
+}
+
+function filterByTile(status) {
+    // Update the dropdown
+    var dropdown = document.getElementById('filterStatus');
+    if (status === 'all') {
+        dropdown.value = 'all';
+    } else {
+        dropdown.value = status;
+    }
+    
+    // Update active tile
+    document.querySelectorAll('.approval-stat-card').forEach(function(card) {
+        card.classList.remove('active');
+    });
+    var activeCard = document.querySelector('.approval-stat-card[data-status="' + status + '"]');
+    if (activeCard) {
+        activeCard.classList.add('active');
+    }
+    
+    // Apply filters
+    applyFilters();
 }
 
 function goToDetail(itemId) {
