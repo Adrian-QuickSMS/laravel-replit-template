@@ -3,6 +3,7 @@
 @section('title', 'SenderID Approval Detail')
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-approval-workflow.css') }}">
 <style>
 .detail-page { padding: 1.5rem; }
 
@@ -830,6 +831,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
+<script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
 <script>
 var SENDER_ID_VALIDATION = {
     characterRules: function(value) {
@@ -915,6 +917,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-detail', { requestId: 'SID-001' }, 'LOW');
     }
+
+    APPROVAL_WORKFLOW.init({
+        requestId: 'SID-001',
+        requestType: 'sender-id',
+        currentVersion: 1,
+        initialData: {
+            senderIdValue: 'ACMEBANK',
+            senderIdType: 'Alphanumeric',
+            brandName: 'Acme Bank Ltd',
+            permissionConfirmed: true,
+            explanation: 'We are registering ACMEBANK as our official sender ID for transactional banking notifications.'
+        }
+    });
 });
 
 function switchNotesTab(tab) {
@@ -930,16 +945,7 @@ function switchNotesTab(tab) {
 }
 
 function returnToCustomer() {
-    if (confirm('Return this request to the customer for additional information?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('STATUS_TRANSITION', 'SID-001', { 
-                from: 'submitted', 
-                to: 'returned-to-customer' 
-            }, 'HIGH');
-        }
-        alert('Request returned to customer. They will receive a notification email.');
-        updateStatus('returned-to-customer', 'Returned to Customer', 'fa-reply');
-    }
+    APPROVAL_WORKFLOW.showReturnModal();
 }
 
 function showRejectModal() {

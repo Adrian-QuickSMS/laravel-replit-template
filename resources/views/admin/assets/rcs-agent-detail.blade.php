@@ -3,6 +3,7 @@
 @section('title', 'RCS Agent Approval Detail')
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-approval-workflow.css') }}">
 <style>
 .detail-page { padding: 1.5rem; }
 
@@ -1040,6 +1041,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
+<script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
 <script>
 var RCS_ASSET_VALIDATION = {
     logoRequirements: {
@@ -1163,6 +1165,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-detail', { requestId: 'RCS-001' }, 'LOW');
     }
+
+    APPROVAL_WORKFLOW.init({
+        requestId: 'RCS-001',
+        requestType: 'rcs-agent',
+        currentVersion: 1,
+        initialData: {
+            agentName: 'Acme Bank Notifications',
+            agentDescription: 'Official notification service for Acme Bank customers.',
+            brandColour: '#1e40af',
+            billingCategory: 'Financial Services',
+            useCase: 'Transactional Notifications',
+            privacyPolicyUrl: 'https://acmebank.com/privacy',
+            termsOfServiceUrl: 'https://acmebank.com/terms'
+        }
+    });
 });
 
 function switchNotesTab(tab) {
@@ -1178,16 +1195,7 @@ function switchNotesTab(tab) {
 }
 
 function returnToCustomer() {
-    if (confirm('Return this request to the customer for additional information?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('STATUS_TRANSITION', 'RCS-001', { 
-                from: 'submitted', 
-                to: 'returned-to-customer' 
-            }, 'HIGH');
-        }
-        alert('Request returned to customer. They will receive a notification email.');
-        updateStatus('returned-to-customer', 'Returned to Customer', 'fa-reply');
-    }
+    APPROVAL_WORKFLOW.showReturnModal();
 }
 
 function showRejectModal() {
