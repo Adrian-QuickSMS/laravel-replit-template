@@ -849,6 +849,7 @@
 <script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
 <script src="{{ asset('js/admin-external-validation.js') }}"></script>
 <script src="{{ asset('js/admin-notifications.js') }}"></script>
+<script src="{{ asset('js/admin-audit-log.js') }}"></script>
 <script>
 var SENDER_ID_VALIDATION = {
     characterRules: function(value) {
@@ -989,8 +990,19 @@ function returnToCustomer() {
     APPROVAL_WORKFLOW.showReturnModal();
 }
 
-function onReturnConfirmed() {
-    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'SID-001', 'SenderID', 'j.smith@acme.com', 'Please review and update your submission.');
+function onReturnConfirmed(reasonCode, notes) {
+    var previousStatus = getCurrentStatus();
+    
+    ADMIN_AUDIT.logStatusTransition(
+        ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
+        'SID-001',
+        previousStatus,
+        'returned',
+        reasonCode + (notes ? ': ' + notes : ''),
+        {}
+    );
+    
+    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'SID-001', 'SenderID', 'j.smith@acme.com', notes || 'Please review and update your submission.');
 }
 
 function showRejectModal() {
@@ -1006,11 +1018,18 @@ function confirmReject() {
         return;
     }
     
-    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'SID-001', 'SenderID', 'j.smith@acme.com');
+    var previousStatus = getCurrentStatus();
     
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('REJECT', 'SID-001', { reason: reason, message: message }, 'HIGH');
-    }
+    ADMIN_AUDIT.logStatusTransition(
+        ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
+        'SID-001',
+        previousStatus,
+        'rejected',
+        reason + (message ? ': ' + message : ''),
+        { brandAssureRequestId: getBrandAssureRequestId() }
+    );
+    
+    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'SID-001', 'SenderID', 'j.smith@acme.com');
     
     bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
     updateStatus('rejected', 'Rejected', 'fa-times-circle');
@@ -1019,16 +1038,49 @@ function confirmReject() {
 
 function approveSenderId() {
     if (confirm('Approve this SenderID request?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('APPROVE', 'SID-001', {}, 'HIGH');
-        }
+        var previousStatus = getCurrentStatus();
+        
+        ADMIN_AUDIT.logStatusTransition(
+            ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
+            'SID-001',
+            previousStatus,
+            'approved',
+            'Manual approval by admin',
+            { brandAssureRequestId: getBrandAssureRequestId() }
+        );
+        
         updateStatus('approved', 'Approved', 'fa-check-circle');
         ADMIN_NOTIFICATIONS.showCustomerNotificationModal('APPROVED', 'SID-001', 'SenderID', 'j.smith@acme.com');
+        
         setTimeout(function() {
+            ADMIN_AUDIT.logStatusTransition(
+                ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
+                'SID-001',
+                'approved',
+                'live',
+                'Auto-provisioned after approval',
+                {}
+            );
             updateStatus('live', 'Live', 'fa-broadcast-tower');
             ADMIN_NOTIFICATIONS.sendCustomerNotification('LIVE', 'SID-001', 'SenderID', 'j.smith@acme.com');
         }, 1500);
     }
+}
+
+function getCurrentStatus() {
+    var statusBadge = document.querySelector('.status-badge');
+    if (statusBadge) {
+        return statusBadge.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+    }
+    return 'submitted';
+}
+
+function getBrandAssureRequestId() {
+    var history = EXTERNAL_VALIDATION.getBrandAssureHistory();
+    if (history && history.length > 0) {
+        return history[history.length - 1].externalRequestId;
+    }
+    return null;
 }
 
 function submitToBrandAssure() {
@@ -1053,15 +1105,35 @@ function markValidationFailed() {
 }
 
 function forceApprove() {
-    if (confirm('ENTERPRISE OVERRIDE: Force approve this SenderID bypassing validation? This action is logged and audited.')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('FORCE_APPROVE', 'SID-001', { override: true, reason: 'enterprise' }, 'CRITICAL');
-        }
+    var reason = prompt('ENTERPRISE OVERRIDE: Enter reason for force approve (required for audit):');
+    if (!reason) {
+        alert('Reason is required for force approve.');
+        return;
+    }
+    
+    if (confirm('Force approve this SenderID bypassing validation? This action is logged with CRITICAL severity.')) {
+        var previousStatus = getCurrentStatus();
+        
+        ADMIN_AUDIT.logForceApprove(
+            ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
+            'SID-001',
+            reason,
+            previousStatus
+        );
+        
         updateStatus('approved', 'Approved', 'fa-check-circle');
         setTimeout(function() {
+            ADMIN_AUDIT.logStatusTransition(
+                ADMIN_AUDIT.ENTITY_TYPES.SENDER_ID.code,
+                'SID-001',
+                'approved',
+                'live',
+                'Force-provisioned after enterprise override',
+                {}
+            );
             updateStatus('live', 'Live', 'fa-broadcast-tower');
         }, 1000);
-        alert('SenderID force approved (enterprise override).');
+        alert('SenderID force approved (enterprise override). Audit logged with CRITICAL severity.');
     }
 }
 

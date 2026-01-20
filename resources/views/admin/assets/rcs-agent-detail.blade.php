@@ -1059,6 +1059,7 @@
 <script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
 <script src="{{ asset('js/admin-external-validation.js') }}"></script>
 <script src="{{ asset('js/admin-notifications.js') }}"></script>
+<script src="{{ asset('js/admin-audit-log.js') }}"></script>
 <script>
 var RCS_ASSET_VALIDATION = {
     logoRequirements: {
@@ -1239,8 +1240,19 @@ function returnToCustomer() {
     APPROVAL_WORKFLOW.showReturnModal();
 }
 
-function onReturnConfirmed() {
-    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com', 'Please review and update your submission.');
+function onReturnConfirmed(reasonCode, notes) {
+    var previousStatus = getCurrentStatus();
+    
+    ADMIN_AUDIT.logStatusTransition(
+        ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
+        'RCS-001',
+        previousStatus,
+        'returned',
+        reasonCode + (notes ? ': ' + notes : ''),
+        {}
+    );
+    
+    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com', notes || 'Please review and update your submission.');
 }
 
 function showRejectModal() {
@@ -1256,11 +1268,18 @@ function confirmReject() {
         return;
     }
     
-    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
+    var previousStatus = getCurrentStatus();
     
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('REJECT', 'RCS-001', { reason: reason, message: message }, 'HIGH');
-    }
+    ADMIN_AUDIT.logStatusTransition(
+        ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
+        'RCS-001',
+        previousStatus,
+        'rejected',
+        reason + (message ? ': ' + message : ''),
+        { rcsProviderRefId: getRcsProviderRefId() }
+    );
+    
+    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
     
     bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
     updateStatus('rejected', 'Rejected', 'fa-times-circle');
@@ -1269,12 +1288,36 @@ function confirmReject() {
 
 function approveAgent() {
     if (confirm('Approve this RCS Agent request?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('APPROVE', 'RCS-001', {}, 'HIGH');
-        }
+        var previousStatus = getCurrentStatus();
+        
+        ADMIN_AUDIT.logStatusTransition(
+            ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
+            'RCS-001',
+            previousStatus,
+            'approved',
+            'Manual approval by admin',
+            { rcsProviderRefId: getRcsProviderRefId() }
+        );
+        
         updateStatus('approved', 'Approved', 'fa-check-circle');
         ADMIN_NOTIFICATIONS.showCustomerNotificationModal('APPROVED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
     }
+}
+
+function getCurrentStatus() {
+    var statusBadge = document.querySelector('.status-badge');
+    if (statusBadge) {
+        return statusBadge.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+    }
+    return 'submitted';
+}
+
+function getRcsProviderRefId() {
+    var history = EXTERNAL_VALIDATION.getRcsProviderHistory();
+    if (history && history.length > 0) {
+        return history[history.length - 1].providerReferenceId;
+    }
+    return null;
 }
 
 function submitToProvider() {
@@ -1302,16 +1345,30 @@ function markValidationFailed() {
 
 function provisionAgent() {
     if (confirm('Provision this RCS Agent? This will make it live on the network.')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('PROVISION_AGENT', 'RCS-001', {}, 'HIGH');
-        }
+        var previousStatus = getCurrentStatus();
+        
+        ADMIN_AUDIT.logStatusTransition(
+            ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
+            'RCS-001',
+            previousStatus,
+            'provisioning',
+            'Manual provisioning initiated',
+            { rcsProviderRefId: getRcsProviderRefId() }
+        );
+        
         updateStatus('provisioning-in-progress', 'Provisioning In Progress', 'fa-cog fa-spin');
         
         setTimeout(function() {
+            ADMIN_AUDIT.logStatusTransition(
+                ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
+                'RCS-001',
+                'provisioning',
+                'live',
+                'Provisioning completed successfully',
+                { rcsProviderRefId: getRcsProviderRefId() }
+            );
             updateStatus('live', 'Live', 'fa-broadcast-tower');
-            if (typeof AdminControlPlane !== 'undefined') {
-                AdminControlPlane.logAdminAction('AGENT_LIVE', 'RCS-001', {}, 'HIGH');
-            }
+            ADMIN_NOTIFICATIONS.sendCustomerNotification('LIVE', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
             alert('RCS Agent is now live on the network.');
         }, 2000);
     }
