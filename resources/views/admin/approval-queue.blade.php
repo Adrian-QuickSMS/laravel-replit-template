@@ -1480,7 +1480,7 @@ function viewDetails(id, type) {
     if (type === 'sender-id') {
         window.location.href = '/admin/assets/sender-ids/' + id;
     } else {
-        window.location.href = '{{ route("admin.assets.rcs-agents") }}?highlight=' + id;
+        window.location.href = '/admin/assets/rcs-agents/' + id;
     }
 }
 

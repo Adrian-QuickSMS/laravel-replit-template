@@ -120,6 +120,14 @@ class AdminController extends Controller
         ]);
     }
 
+    public function assetsRcsAgentDetail($id)
+    {
+        return view('admin.assets.rcs-agent-detail', [
+            'page_title' => 'RCS Agent Approval Detail',
+            'agent_id' => $id
+        ]);
+    }
+
     public function assetsTemplates()
     {
         return view('admin.assets.templates', [
