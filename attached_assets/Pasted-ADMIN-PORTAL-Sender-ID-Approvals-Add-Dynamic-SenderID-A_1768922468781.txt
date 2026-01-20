@@ -1,0 +1,83 @@
+ADMIN PORTAL — Sender ID Approvals: Add “Dynamic SenderID Access” Modal (Fillow, no new design)
+
+Context:
+- This is the internal Admin Control Plane page “Sender ID Approvals” (queue/table view).
+- We must follow existing Fillow table/filter/button/modal styles already used in Admin.
+- Do NOT redesign the page. Add only what is required.
+- This feature grants an account permission to use Dynamic SenderIDs (admin-only override).
+
+UI Change (Page):
+1) Add a new secondary button in the top-right action area of the page (same row as the existing Export button).
+   - Button label: “Dynamic SenderID Access”
+   - Style: Fillow secondary button (admin blue theme), same height and spacing as Export.
+   - Clicking it opens a standard Fillow confirmation modal (popup).
+
+Modal: “Dynamic SenderID Access”
+2) Modal layout must follow existing Fillow modal pattern used across Admin:
+   - Title: “Dynamic SenderID Access”
+   - Short helper text (1–2 lines):
+     “Grant an account permission to use Dynamic SenderIDs. This is an admin override and is fully audited.”
+
+3) Fields (Required):
+   A) Account (required)
+   - Searchable dropdown (typeahead) listing all customer accounts by:
+     - Primary label: Company/Client Name
+     - Secondary small text: Account ID / Account number
+   - Selecting an account drives the Sub-account options.
+
+   B) Scope (required, radio buttons):
+   - “All sub-accounts”
+   - “Specific sub-account(s)”
+
+   C) Sub-accounts (conditional)
+   - Only visible when “Specific sub-account(s)” is selected.
+   - Multi-select dropdown listing sub-accounts for the chosen account.
+   - If account changes, clear selected sub-accounts.
+
+4) Optional Field:
+   D) Internal note (optional)
+   - Textarea
+   - Placeholder: “Reason for granting dynamic SenderID access (optional)”
+   - This note is internal-only.
+
+Modal Actions:
+5) Footer buttons:
+   - Left: “Cancel” (Fillow secondary/ghost, no new colours)
+   - Right (primary CTA): “Grant Access” (Fillow primary button in admin blue)
+
+Behaviour:
+6) Validation:
+   - Account is mandatory.
+   - Scope is mandatory.
+   - If scope = specific sub-accounts, at least one sub-account must be selected.
+   - Inline validation errors under fields using existing Fillow form validation style.
+
+7) On “Grant Access”:
+   - Call a backend-ready service function (mock if endpoint not available yet):
+     POST /admin/accounts/{accountId}/dynamic-senderid
+     payload:
+     {
+       "scope": "ALL_SUBACCOUNTS" | "SPECIFIC_SUBACCOUNTS",
+       "subAccountIds": [],
+       "note": ""
+     }
+   - If backend not implemented, create a mock service layer that returns success and is easy to replace later.
+
+8) Success:
+   - Show standard Fillow success toast: “Dynamic SenderID access granted.”
+   - Close modal.
+   - (No table redesign required.) If the table already supports re-fetch, trigger a data refresh; otherwise leave as-is.
+
+9) Failure:
+   - Show standard Fillow error toast: “Could not grant access. Please try again.”
+   - Keep modal open and preserve user selections.
+
+Audit Logging (Mandatory):
+10) Emit an admin audit event on success:
+   - Event Type: “dynamic_senderid_access_granted”
+   - Fields: adminUserId, accountId, scope, subAccountIds (if any), timestamp, ipAddress, note (if provided)
+
+Constraints:
+- Reuse existing components (Dropdowns, Multi-select, Modal, Toast) from the Admin Fillow implementation.
+- Do NOT introduce new colours, badges, icons, or page sections.
+- Keep spacing/alignment consistent with the current “Export” control area.

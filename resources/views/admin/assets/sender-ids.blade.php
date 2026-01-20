@@ -111,6 +111,9 @@
             <p>Review and approve customer SenderID registration requests</p>
         </div>
         <div class="card-header-actions">
+            <button class="btn btn-outline-primary btn-sm me-2" onclick="showDynamicSenderIdModal()" style="border-color: var(--admin-primary, #1e3a5f); color: var(--admin-primary, #1e3a5f);">
+                <i class="fas fa-unlock-alt me-1"></i> Dynamic SenderID Access
+            </button>
             <button class="export-btn" onclick="exportQueue('csv')">
                 <i class="fas fa-download me-1"></i> Export
             </button>
@@ -587,6 +590,73 @@
         </div>
     </div>
 </div>
+
+{{-- Dynamic SenderID Access Modal --}}
+<div class="modal fade" id="dynamicSenderIdModal" tabindex="-1" aria-labelledby="dynamicSenderIdModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--admin-primary, #1e3a5f) 0%, #2d5a87 100%); color: #fff;">
+                <h5 class="modal-title" id="dynamicSenderIdModalLabel">
+                    <i class="fas fa-unlock-alt me-2"></i>Dynamic SenderID Access
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-4">Grant an account permission to use Dynamic SenderIDs. This is an admin override and is fully audited.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Account <span class="text-danger">*</span></label>
+                    <select class="form-select" id="dynamicAccountSelect" onchange="onDynamicAccountChange()">
+                        <option value="">Select an account...</option>
+                        <option value="ACC-1234">Acme Corporation (ACC-1234)</option>
+                        <option value="ACC-5678">Finance Ltd (ACC-5678)</option>
+                        <option value="ACC-4001">RetailMax Group (ACC-4001)</option>
+                        <option value="ACC-4005">HealthPlus Care (ACC-4005)</option>
+                        <option value="ACC-4008">TechStartup Inc (ACC-4008)</option>
+                        <option value="ACC-4009">FoodDelivery Pro (ACC-4009)</option>
+                        <option value="ACC-4006">EduLearn Academy (ACC-4006)</option>
+                    </select>
+                    <div class="invalid-feedback" id="dynamicAccountError">Please select an account.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Scope <span class="text-danger">*</span></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="dynamicScope" id="scopeAll" value="ALL_SUBACCOUNTS" checked onchange="onScopeChange()">
+                        <label class="form-check-label" for="scopeAll">All sub-accounts</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="dynamicScope" id="scopeSpecific" value="SPECIFIC_SUBACCOUNTS" onchange="onScopeChange()">
+                        <label class="form-check-label" for="scopeSpecific">Specific sub-account(s)</label>
+                    </div>
+                </div>
+
+                <div class="mb-3" id="subAccountsContainer" style="display: none;">
+                    <label class="form-label">Sub-accounts <span class="text-danger">*</span></label>
+                    <select class="form-select" id="dynamicSubAccountSelect" multiple size="4">
+                        <option value="SUB-001">Marketing Dept</option>
+                        <option value="SUB-002">Sales Team</option>
+                        <option value="SUB-003">Support Division</option>
+                        <option value="SUB-004">Operations</option>
+                    </select>
+                    <small class="text-muted">Hold Ctrl/Cmd to select multiple sub-accounts</small>
+                    <div class="invalid-feedback" id="dynamicSubAccountError">Please select at least one sub-account.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Internal Note <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="dynamicNote" rows="3" placeholder="Reason for granting dynamic SenderID access (optional)"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="grantDynamicAccess()" style="background: var(--admin-primary, #1e3a5f); border-color: var(--admin-primary, #1e3a5f);">
+                    <i class="fas fa-check me-1"></i> Grant Access
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -863,6 +933,117 @@ function exportQueue(format) {
 
 function showToast(message, type) {
     console.log('[Toast]', type, message);
+    
+    var toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+        document.body.appendChild(toastContainer);
+    }
+    
+    var colors = { success: '#10b981', error: '#ef4444', info: '#3b82f6', warning: '#f59e0b' };
+    var toast = document.createElement('div');
+    toast.style.cssText = 'background: ' + (colors[type] || colors.info) + '; color: #fff; padding: 12px 20px; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 0.9rem;';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    
+    setTimeout(function() { toast.remove(); }, 4000);
 }
+
+function showDynamicSenderIdModal() {
+    resetDynamicModal();
+    new bootstrap.Modal(document.getElementById('dynamicSenderIdModal')).show();
+}
+
+function resetDynamicModal() {
+    document.getElementById('dynamicAccountSelect').value = '';
+    document.getElementById('dynamicAccountSelect').classList.remove('is-invalid');
+    document.getElementById('scopeAll').checked = true;
+    document.getElementById('subAccountsContainer').style.display = 'none';
+    document.getElementById('dynamicSubAccountSelect').selectedIndex = -1;
+    document.getElementById('dynamicSubAccountSelect').classList.remove('is-invalid');
+    document.getElementById('dynamicNote').value = '';
+}
+
+function onDynamicAccountChange() {
+    var accountId = document.getElementById('dynamicAccountSelect').value;
+    document.getElementById('dynamicAccountSelect').classList.remove('is-invalid');
+    
+    if (accountId) {
+        document.getElementById('dynamicSubAccountSelect').selectedIndex = -1;
+    }
+}
+
+function onScopeChange() {
+    var scope = document.querySelector('input[name="dynamicScope"]:checked').value;
+    var container = document.getElementById('subAccountsContainer');
+    
+    if (scope === 'SPECIFIC_SUBACCOUNTS') {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+        document.getElementById('dynamicSubAccountSelect').classList.remove('is-invalid');
+    }
+}
+
+function grantDynamicAccess() {
+    var accountId = document.getElementById('dynamicAccountSelect').value;
+    var scope = document.querySelector('input[name="dynamicScope"]:checked').value;
+    var subAccountSelect = document.getElementById('dynamicSubAccountSelect');
+    var subAccountIds = Array.from(subAccountSelect.selectedOptions).map(function(opt) { return opt.value; });
+    var note = document.getElementById('dynamicNote').value.trim();
+    
+    var valid = true;
+    
+    if (!accountId) {
+        document.getElementById('dynamicAccountSelect').classList.add('is-invalid');
+        valid = false;
+    }
+    
+    if (scope === 'SPECIFIC_SUBACCOUNTS' && subAccountIds.length === 0) {
+        subAccountSelect.classList.add('is-invalid');
+        valid = false;
+    }
+    
+    if (!valid) return;
+    
+    var payload = {
+        scope: scope,
+        subAccountIds: scope === 'SPECIFIC_SUBACCOUNTS' ? subAccountIds : [],
+        note: note
+    };
+    
+    DynamicSenderIdService.grantAccess(accountId, payload)
+        .then(function(response) {
+            if (response.success) {
+                AdminControlPlane.logAdminAction('DYNAMIC_SENDERID_ACCESS_GRANTED', accountId, {
+                    scope: scope,
+                    subAccountIds: subAccountIds,
+                    note: note ? note.substring(0, 100) : null
+                }, 'HIGH');
+                
+                showToast('Dynamic SenderID access granted.', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('dynamicSenderIdModal')).hide();
+            } else {
+                showToast('Could not grant access. Please try again.', 'error');
+            }
+        })
+        .catch(function(error) {
+            showToast('Could not grant access. Please try again.', 'error');
+        });
+}
+
+var DynamicSenderIdService = {
+    grantAccess: function(accountId, payload) {
+        console.log('[DynamicSenderIdService] POST /admin/accounts/' + accountId + '/dynamic-senderid', payload);
+        
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                resolve({ success: true, message: 'Access granted' });
+            }, 500);
+        });
+    }
+};
 </script>
 @endpush
