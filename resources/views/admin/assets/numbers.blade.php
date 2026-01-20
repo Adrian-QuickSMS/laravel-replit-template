@@ -1274,11 +1274,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMultiSelectDropdowns();
     loadNumbersData();
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBERS_LIBRARY_VIEWED', {
-            module: 'numbers',
-            action: 'view_list'
-        }, 'LOW');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logDataAccess('NUMBERS_LIBRARY_VIEWED', 'numbers', { action: 'view_list' });
     }
 });
 
@@ -1557,12 +1554,11 @@ function applyFilters() {
     updatePaginationInfo();
     updateFilterChips();
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBERS_FILTERED', {
-            module: 'numbers',
-            filters: appliedFilters,
-            resultCount: filteredData.length
-        }, 'LOW');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logDataAccess('NUMBERS_FILTERED', 'numbers', { 
+            filters: appliedFilters, 
+            resultCount: filteredData.length 
+        });
     }
 }
 
@@ -1762,13 +1758,12 @@ function viewNumberDetails(numberId) {
     
     new bootstrap.Modal(document.getElementById('configurationDrawer')).show();
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBER_CONFIG_VIEWED', {
-            module: 'numbers',
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logDataAccess('NUMBER_CONFIG_VIEWED', 'numbers', {
             numberId: numberId,
             number: num.number,
             account: num.account
-        }, 'LOW');
+        });
     }
 }
 
@@ -1844,14 +1839,24 @@ function saveConfiguration() {
         }
     }
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBER_CONFIG_SAVED', {
-            module: 'numbers',
-            numberId: currentConfigNumberId,
-            number: num.number,
-            mode: num.mode,
-            modeChanged: num.mode !== originalMode
-        }, num.mode !== originalMode ? 'MEDIUM' : 'LOW');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        if (num.mode !== originalMode) {
+            ADMIN_AUDIT.logNumberModeChanged(
+                currentConfigNumberId,
+                num.number,
+                num.account,
+                num.account,
+                originalMode,
+                num.mode,
+                'Configuration drawer save'
+            );
+        } else {
+            ADMIN_AUDIT.logDataAccess('NUMBER_CONFIG_SAVED', 'numbers', {
+                numberId: currentConfigNumberId,
+                number: num.number,
+                mode: num.mode
+            });
+        }
     }
     
     bootstrap.Modal.getInstance(document.getElementById('configurationDrawer')).hide();
@@ -1904,12 +1909,11 @@ function viewAuditTrail(numberId) {
 }
 
 function exportNumbers() {
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBERS_EXPORTED', {
-            module: 'numbers',
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logDataAccess('NUMBERS_EXPORTED', 'numbers', {
             recordCount: filteredData.length,
             format: 'CSV'
-        }, 'MEDIUM');
+        });
     }
     
     alert('Export functionality: ' + filteredData.length + ' records would be exported to CSV.');
@@ -2047,6 +2051,9 @@ function executeConfirmedAction() {
     const num = pendingAction.num;
     const dataNum = mockNumbersData.find(n => n.id === pendingAction.numberId);
     
+    const previousStatus = dataNum ? dataNum.status : null;
+    const previousMode = dataNum ? dataNum.mode : null;
+    
     switch (pendingAction.type) {
         case 'suspend':
             if (dataNum) dataNum.status = 'suspended';
@@ -2062,14 +2069,49 @@ function executeConfirmedAction() {
             break;
     }
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBER_ACTION_EXECUTED', {
-            module: 'numbers',
-            action: pendingAction.type,
-            numberId: pendingAction.numberId,
-            number: num.number,
-            reason: reason
-        }, pendingAction.type === 'disableKeyword' ? 'HIGH' : 'MEDIUM');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        switch (pendingAction.type) {
+            case 'suspend':
+                ADMIN_AUDIT.logNumberSuspended(
+                    pendingAction.numberId,
+                    num.number,
+                    num.account,
+                    num.account,
+                    reason
+                );
+                break;
+            case 'reactivate':
+                ADMIN_AUDIT.logNumberReactivated(
+                    pendingAction.numberId,
+                    num.number,
+                    num.account,
+                    num.account,
+                    reason
+                );
+                break;
+            case 'changeMode':
+                ADMIN_AUDIT.logNumberModeChanged(
+                    pendingAction.numberId,
+                    num.number,
+                    num.account,
+                    num.account,
+                    previousMode,
+                    pendingAction.targetMode.toLowerCase(),
+                    reason
+                );
+                break;
+            case 'disableKeyword':
+                ADMIN_AUDIT.logNumberAction('KEYWORD_DISABLED', {
+                    numberId: pendingAction.numberId,
+                    number: num.number,
+                    accountId: num.account,
+                    accountName: num.account,
+                    before: { status: previousStatus },
+                    after: { status: 'suspended' },
+                    reason: reason
+                });
+                break;
+        }
     }
     
     bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
@@ -2119,19 +2161,24 @@ function executeReassign() {
     }
     
     const num = mockNumbersData.find(n => n.id === currentReassignNumberId);
+    const previousAccount = num ? num.account : null;
+    const previousSubAccount = num ? num.subAccount : null;
+    
     if (num) {
         num.account = newAccount;
         num.subAccount = newSubAccount;
     }
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBER_REASSIGNED', {
-            module: 'numbers',
-            numberId: currentReassignNumberId,
-            newAccount: newAccount,
-            newSubAccount: newSubAccount,
-            reason: reason
-        }, 'MEDIUM');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logNumberReassigned(
+            currentReassignNumberId,
+            num ? num.number : 'Unknown',
+            previousAccount,
+            newAccount,
+            previousSubAccount,
+            newSubAccount,
+            reason
+        );
     }
     
     bootstrap.Modal.getInstance(document.getElementById('reassignModal')).hide();
@@ -2192,6 +2239,7 @@ function saveCapabilities() {
     const num = mockNumbersData.find(n => n.id === currentCapabilitiesNumberId);
     if (!num) return;
     
+    const previousCaps = [...(num.capabilities || [])];
     const newCaps = [];
     ['senderid', 'inbox', 'optout', 'api'].forEach(cap => {
         const toggle = document.getElementById(`cap_toggle_${cap}`);
@@ -2202,12 +2250,15 @@ function saveCapabilities() {
     
     num.capabilities = newCaps;
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBER_CAPABILITIES_CHANGED', {
-            module: 'numbers',
-            numberId: currentCapabilitiesNumberId,
-            capabilities: newCaps
-        }, 'MEDIUM');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logNumberCapabilityChanged(
+            currentCapabilitiesNumberId,
+            num.number,
+            num.account,
+            num.account,
+            previousCaps,
+            newCaps
+        );
     }
     
     bootstrap.Modal.getInstance(document.getElementById('editCapabilitiesModal')).hide();
@@ -2243,13 +2294,17 @@ function saveOptoutRouting() {
     const reply = document.getElementById('optoutReply').value;
     const forward = document.getElementById('optoutForward').value;
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('OPTOUT_ROUTING_UPDATED', {
-            module: 'numbers',
-            numberId: currentOptoutNumberId,
-            keywords: keywords,
-            forward: forward
-        }, 'MEDIUM');
+    const num = mockNumbersData.find(n => n.id === currentOptoutNumberId);
+    
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logOptoutRoutingChanged(
+            currentOptoutNumberId,
+            num ? num.number : 'Unknown',
+            num ? num.account : 'Unknown',
+            num ? num.account : 'Unknown',
+            { keywords: 'STOP, UNSUBSCRIBE, QUIT, END', forward: 'none' },
+            { keywords: keywords, reply: reply, forward: forward }
+        );
     }
     
     bootstrap.Modal.getInstance(document.getElementById('optoutRoutingModal')).hide();
@@ -2851,13 +2906,20 @@ function executeBulkAction() {
             break;
     }
     
-    if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('BULK_NUMBER_ACTION', {
-            module: 'numbers',
-            action: currentBulkAction,
-            affectedIds: compatible.map(n => n.id),
-            details: actionDetails
-        }, 'HIGH');
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        const eventTypeMap = {
+            'suspend': 'NUMBER_SUSPENDED',
+            'reactivate': 'NUMBER_REACTIVATED',
+            'assignCustomer': 'NUMBER_REASSIGNED',
+            'assignSubAccount': 'NUMBER_REASSIGNED',
+            'changeMode': 'NUMBER_MODE_CHANGED',
+            'capabilities': 'NUMBER_CAPABILITY_CHANGED'
+        };
+        ADMIN_AUDIT.logBulkNumberAction(
+            eventTypeMap[currentBulkAction] || currentBulkAction.toUpperCase(),
+            compatible,
+            null
+        );
     }
     
     bootstrap.Modal.getInstance(document.getElementById('bulkActionModal')).hide();

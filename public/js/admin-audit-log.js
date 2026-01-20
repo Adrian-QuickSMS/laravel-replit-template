@@ -47,7 +47,16 @@ var ADMIN_AUDIT = (function() {
         APPROVE: 'approve',
         REJECT: 'reject',
         RETURN_TO_CUSTOMER: 'return_to_customer',
-        SUBMIT_EXTERNAL: 'submit_external'
+        SUBMIT_EXTERNAL: 'submit_external',
+        NUMBER_ASSIGNED: 'number_assigned',
+        NUMBER_REASSIGNED: 'number_reassigned',
+        NUMBER_MODE_CHANGED: 'number_mode_changed',
+        NUMBER_CAPABILITY_CHANGED: 'number_capability_changed',
+        NUMBER_SUSPENDED: 'number_suspended',
+        NUMBER_REACTIVATED: 'number_reactivated',
+        BILLING_MODEL_CHANGED: 'billing_model_changed',
+        KEYWORD_DISABLED: 'keyword_disabled',
+        OPTOUT_ROUTING_CHANGED: 'optout_routing_changed'
     };
 
     var ADMIN_ACTIONS = {
@@ -249,6 +258,137 @@ var ADMIN_AUDIT = (function() {
             notesSummary: notesSummary || null,
             externalReferences: {},
             severity: 'CRITICAL'
+        }, context);
+
+        appendToLog(entry, context.isImpersonating);
+        return entry;
+    }
+
+    function logNumberAction(eventType, data) {
+        var context = getAdminContext();
+        
+        var severityMap = {
+            'NUMBER_ASSIGNED': 'HIGH',
+            'NUMBER_REASSIGNED': 'HIGH',
+            'NUMBER_MODE_CHANGED': 'HIGH',
+            'NUMBER_CAPABILITY_CHANGED': 'MEDIUM',
+            'NUMBER_SUSPENDED': 'HIGH',
+            'NUMBER_REACTIVATED': 'HIGH',
+            'BILLING_MODEL_CHANGED': 'CRITICAL',
+            'KEYWORD_DISABLED': 'HIGH',
+            'OPTOUT_ROUTING_CHANGED': 'MEDIUM'
+        };
+        
+        var entry = createAuditEntry({
+            eventType: AUDIT_EVENT_TYPES[eventType] || eventType.toLowerCase(),
+            action: eventType,
+            entityType: ENTITY_TYPES.NUMBER.code,
+            entityId: data.numberId || data.entityId,
+            numberDetails: {
+                number: data.number,
+                numberType: data.numberType,
+                affectedCustomerAccountId: data.accountId,
+                affectedCustomerAccount: data.accountName,
+                affectedSubAccount: data.subAccount
+            },
+            beforeAfter: {
+                before: data.before || null,
+                after: data.after || null
+            },
+            reason: data.reason || null,
+            severity: data.severity || severityMap[eventType] || 'MEDIUM'
+        }, context);
+
+        appendToLog(entry, context.isImpersonating);
+        return entry;
+    }
+
+    function logNumberSuspended(numberId, number, accountId, accountName, reason) {
+        return logNumberAction('NUMBER_SUSPENDED', {
+            numberId: numberId,
+            number: number,
+            accountId: accountId,
+            accountName: accountName,
+            before: { status: 'active' },
+            after: { status: 'suspended' },
+            reason: reason
+        });
+    }
+
+    function logNumberReactivated(numberId, number, accountId, accountName, reason) {
+        return logNumberAction('NUMBER_REACTIVATED', {
+            numberId: numberId,
+            number: number,
+            accountId: accountId,
+            accountName: accountName,
+            before: { status: 'suspended' },
+            after: { status: 'active' },
+            reason: reason
+        });
+    }
+
+    function logNumberReassigned(numberId, number, previousAccount, newAccount, previousSubAccount, newSubAccount, reason) {
+        return logNumberAction('NUMBER_REASSIGNED', {
+            numberId: numberId,
+            number: number,
+            accountId: newAccount.id || newAccount,
+            accountName: newAccount.name || newAccount,
+            before: { account: previousAccount, subAccount: previousSubAccount },
+            after: { account: newAccount.name || newAccount, subAccount: newSubAccount },
+            reason: reason
+        });
+    }
+
+    function logNumberModeChanged(numberId, number, accountId, accountName, previousMode, newMode, reason) {
+        return logNumberAction('NUMBER_MODE_CHANGED', {
+            numberId: numberId,
+            number: number,
+            accountId: accountId,
+            accountName: accountName,
+            before: { mode: previousMode },
+            after: { mode: newMode },
+            reason: reason
+        });
+    }
+
+    function logNumberCapabilityChanged(numberId, number, accountId, accountName, previousCapabilities, newCapabilities) {
+        return logNumberAction('NUMBER_CAPABILITY_CHANGED', {
+            numberId: numberId,
+            number: number,
+            accountId: accountId,
+            accountName: accountName,
+            before: { capabilities: previousCapabilities },
+            after: { capabilities: newCapabilities }
+        });
+    }
+
+    function logOptoutRoutingChanged(numberId, number, accountId, accountName, previousConfig, newConfig) {
+        return logNumberAction('OPTOUT_ROUTING_CHANGED', {
+            numberId: numberId,
+            number: number,
+            accountId: accountId,
+            accountName: accountName,
+            before: previousConfig,
+            after: newConfig
+        });
+    }
+
+    function logBulkNumberAction(eventType, affectedNumbers, reason) {
+        var context = getAdminContext();
+        
+        var entry = createAuditEntry({
+            eventType: AUDIT_EVENT_TYPES[eventType] || eventType.toLowerCase(),
+            action: 'BULK_' + eventType,
+            entityType: ENTITY_TYPES.NUMBER.code,
+            entityId: 'BULK_' + affectedNumbers.length + '_NUMBERS',
+            bulkOperation: {
+                affectedCount: affectedNumbers.length,
+                affectedNumberIds: affectedNumbers.map(function(n) { return n.id; }),
+                affectedNumbers: affectedNumbers.map(function(n) { return n.number; }).slice(0, 10),
+                truncated: affectedNumbers.length > 10
+            },
+            reason: reason || null,
+            severity: 'HIGH'
         }, context);
 
         appendToLog(entry, context.isImpersonating);
@@ -608,6 +748,14 @@ var ADMIN_AUDIT = (function() {
         logDataAccess: logDataAccess,
         logImpersonation: logImpersonation,
         logForceApprove: logForceApprove,
+        logNumberAction: logNumberAction,
+        logNumberSuspended: logNumberSuspended,
+        logNumberReactivated: logNumberReactivated,
+        logNumberReassigned: logNumberReassigned,
+        logNumberModeChanged: logNumberModeChanged,
+        logNumberCapabilityChanged: logNumberCapabilityChanged,
+        logOptoutRoutingChanged: logOptoutRoutingChanged,
+        logBulkNumberAction: logBulkNumberAction,
         searchAuditLog: searchAuditLog,
         getEntityAuditTrail: getEntityAuditTrail,
         getAdminActivityLog: getAdminActivityLog,
