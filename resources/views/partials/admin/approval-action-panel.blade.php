@@ -77,6 +77,16 @@
     background: #bef264;
 }
 
+.admin-action-btn.submit-provider {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+
+.admin-action-btn.submit-provider:hover {
+    background: #fde68a;
+}
+
 .admin-action-btn.reject {
     background: #fee2e2;
     color: #991b1b;
@@ -322,7 +332,11 @@
         <div class="admin-action-group">
             <div class="admin-action-group-title">Actions</div>
             <div class="admin-action-buttons">
-                <button class="admin-action-btn approve" onclick="approveEntity()">
+                <button class="admin-action-btn approve" onclick="directApprove()">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Approve</span>
+                </button>
+                <button class="admin-action-btn submit-provider" onclick="approveEntity()">
                     <i class="fas fa-paper-plane"></i>
                     <span>Submit to {{ $validationProvider ?? 'Provider' }}</span>
                 </button>
@@ -392,8 +406,8 @@ function getCustomerMessage() {
     return msgText ? msgText.value.trim() : null;
 }
 
-function approveEntity() {
-    if (!confirm('Are you sure you want to approve this ' + AdminApprovalContext.entityType.replace('_', ' ') + '?')) {
+function directApprove() {
+    if (!confirm('Approve this ' + AdminApprovalContext.entityType.replace('_', ' ') + ' directly without external validation?')) {
         return;
     }
     
@@ -403,15 +417,47 @@ function approveEntity() {
             AdminApprovalContext.entityId,
             AdminApprovalContext.submissionId,
             AdminApprovalContext.versionId,
-            getInternalNotesSummary()
+            getInternalNotesSummary(),
+            'DIRECT_APPROVAL'
         );
+    }
+    
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('DIRECT_APPROVE', AdminApprovalContext.entityId, {
+            entityType: AdminApprovalContext.entityType,
+            note: 'Direct approval without external validation'
+        }, 'HIGH');
     }
     
     if (typeof UNIFIED_APPROVAL !== 'undefined') {
         UNIFIED_APPROVAL.approve();
     }
     
-    alert('Entity approved successfully.');
+    alert('Entity approved successfully (direct approval).');
+    location.reload();
+}
+
+function approveEntity() {
+    if (!confirm('Submit this ' + AdminApprovalContext.entityType.replace('_', ' ') + ' to external provider for validation?')) {
+        return;
+    }
+    
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logApproval(
+            AdminApprovalContext.entityType,
+            AdminApprovalContext.entityId,
+            AdminApprovalContext.submissionId,
+            AdminApprovalContext.versionId,
+            getInternalNotesSummary(),
+            'SUBMIT_TO_PROVIDER'
+        );
+    }
+    
+    if (typeof UNIFIED_APPROVAL !== 'undefined') {
+        UNIFIED_APPROVAL.submitToExternalProvider();
+    }
+    
+    alert('Submitted to external provider for validation.');
     location.reload();
 }
 
