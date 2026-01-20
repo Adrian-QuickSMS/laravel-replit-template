@@ -496,21 +496,162 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">RetailMax Group</a><div class="text-muted small">ACC-4001</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4001', 'RetailMax Group')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">6,234,567</td>
+                            <td class="text-end">521,234</td>
+                            <td class="text-end">£4,320</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">CloudFirst Tech</a><div class="text-muted small">ACC-4002</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4002', 'CloudFirst Tech')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">4,567,890</td>
+                            <td class="text-end">382,456</td>
+                            <td class="text-end">£3,150</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">GreenEnergy Ltd</a><div class="text-muted small">ACC-4003</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4003', 'GreenEnergy Ltd')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">3,456,789</td>
+                            <td class="text-end">287,654</td>
+                            <td class="text-end">£2,890</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">FastLogistics</a><div class="text-muted small">ACC-4004</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4004', 'FastLogistics')">View Structure</button></div></td>
+                            <td><span class="badge light badge-info">Test</span></td>
+                            <td class="text-end">0</td>
+                            <td class="text-end">156</td>
+                            <td class="text-end">£0</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">HealthPlus Care</a><div class="text-muted small">ACC-4005</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4005', 'HealthPlus Care')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">7,890,123</td>
+                            <td class="text-end">654,321</td>
+                            <td class="text-end">£6,540</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">EduLearn Academy</a><div class="text-muted small">ACC-4006</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4006', 'EduLearn Academy')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">2,345,678</td>
+                            <td class="text-end">198,765</td>
+                            <td class="text-end">£1,980</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">AutoDrive Motors</a><div class="text-muted small">ACC-4007</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4007', 'AutoDrive Motors')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">5,678,901</td>
+                            <td class="text-end">476,543</td>
+                            <td class="text-end">£4,760</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">TechStartup Inc</a><div class="text-muted small">ACC-4008</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4008', 'TechStartup Inc')">View Structure</button></div></td>
+                            <td><span class="badge light badge-info">Test</span></td>
+                            <td class="text-end">0</td>
+                            <td class="text-end">89</td>
+                            <td class="text-end">£0</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">FoodDelivery Pro</a><div class="text-muted small">ACC-4009</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4009', 'FoodDelivery Pro')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">9,012,345</td>
+                            <td class="text-end">756,789</td>
+                            <td class="text-end">£7,560</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">PropertyHub UK</a><div class="text-muted small">ACC-4010</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4010', 'PropertyHub UK')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">4,123,456</td>
+                            <td class="text-end">345,678</td>
+                            <td class="text-end">£3,450</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">TravelWorld Agency</a><div class="text-muted small">ACC-4011</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4011', 'TravelWorld Agency')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">3,789,012</td>
+                            <td class="text-end">312,456</td>
+                            <td class="text-end">£3,120</td>
+                            <td><span class="badge light badge-info">Delivered</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">SecureBank Financial</a><div class="text-muted small">ACC-4012</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4012', 'SecureBank Financial')">View Structure</button></div></td>
+                            <td><span class="badge light badge-success">Live</span></td>
+                            <td class="text-end">12,345,678</td>
+                            <td class="text-end">1,034,567</td>
+                            <td class="text-end">£10,340</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><div><a href="#" class="text-primary fw-semibold">SmartHome Systems</a><div class="text-muted small">ACC-4013</div></div><button class="btn btn-outline-secondary btn-xs" onclick="openAccountStructure('ACC-4013', 'SmartHome Systems')">View Structure</button></div></td>
+                            <td><span class="badge light badge-info">Test</span></td>
+                            <td class="text-end">0</td>
+                            <td class="text-end">234</td>
+                            <td class="text-end">£0</td>
+                            <td><span class="badge light badge-primary">Submitted</span></td>
+                            <td></td>
+                            <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <div class="card-footer d-flex justify-content-between align-items-center">
-            <span class="text-muted small">Showing 1-6 of 847 accounts</span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small" id="paginationInfo">Showing 1-20 of 847 accounts</span>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-muted small mb-0">Per page:</label>
+                    <select class="form-select form-select-sm" id="pageSizeSelect" style="width: auto;">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
             <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">...</a></li>
-                    <li class="page-item"><a class="page-link" href="#">142</a></li>
-                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                <ul class="pagination pagination-sm mb-0" id="paginationNav">
+                    <li class="page-item disabled"><a class="page-link" href="#" data-page="prev">Previous</a></li>
+                    <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#" data-page="2">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#" data-page="3">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#" data-page="...">...</a></li>
+                    <li class="page-item"><a class="page-link" href="#" data-page="43">43</a></li>
+                    <li class="page-item"><a class="page-link" href="#" data-page="next">Next</a></li>
                 </ul>
             </nav>
         </div>
