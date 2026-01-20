@@ -465,6 +465,74 @@ tr.selected-row:hover {
     background-color: var(--admin-primary);
     border-color: var(--admin-primary);
 }
+
+.readonly-section {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.05) 0%, rgba(108, 117, 125, 0.08) 100%);
+    border: 1px solid rgba(108, 117, 125, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+.readonly-section .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(108, 117, 125, 0.15);
+}
+.readonly-section .section-header i {
+    color: #6c757d;
+    margin-right: 0.5rem;
+}
+.readonly-section .section-header span {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+.readonly-section .readonly-badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.readonly-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed rgba(108, 117, 125, 0.15);
+}
+.readonly-field:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.readonly-field .field-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+.readonly-field .field-value {
+    font-size: 0.85rem;
+    color: #495057;
+    font-weight: 500;
+    text-align: right;
+}
+.readonly-field .field-value.not-available {
+    color: #adb5bd;
+    font-style: italic;
+}
+.readonly-field .ported-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.readonly-field .ported-indicator i {
+    color: var(--admin-accent);
+    font-size: 0.75rem;
+}
 </style>
 @endpush
 
@@ -982,6 +1050,36 @@ tr.selected-row:hover {
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Shared Shortcode Keywords</strong> have limited configuration options. They can only use Opt-out or API capabilities.
                     </div>
+                    
+                    <div class="config-section mb-0" id="sectionNetworkInfo">
+                        <h6 class="section-title d-flex align-items-center mb-3">
+                            <span class="section-icon me-2" style="background: #6c757d; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;"><i class="fas fa-network-wired" style="font-size: 0.6rem;"></i></span>
+                            Supplier & Network Information
+                        </h6>
+                        <div class="readonly-section">
+                            <div class="section-header">
+                                <i class="fas fa-lock"></i>
+                                <span>Routing Details</span>
+                                <span class="readonly-badge">Read-only</span>
+                            </div>
+                            <div class="readonly-field">
+                                <span class="field-label">Supplier</span>
+                                <span class="field-value" id="cfg_network_supplier">—</span>
+                            </div>
+                            <div class="readonly-field">
+                                <span class="field-label">Route</span>
+                                <span class="field-value" id="cfg_network_route">—</span>
+                            </div>
+                            <div class="readonly-field">
+                                <span class="field-label">Network Destination</span>
+                                <span class="field-value" id="cfg_network_destination">—</span>
+                            </div>
+                            <div class="readonly-field" id="portedToRow" style="display: none;">
+                                <span class="field-label">Ported To Network (UK)</span>
+                                <span class="field-value" id="cfg_ported_to">—</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1185,26 +1283,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 const mockNumbersData = [
-    { id: 'NUM-001', number: '+447700900123', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Marketing', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', created: '2025-10-15' },
-    { id: 'NUM-002', number: '+447700900456', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Finance Ltd', subAccount: 'Retail', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', created: '2025-09-20' },
-    { id: 'NUM-003', number: 'PROMO', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Sales', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2025-11-01' },
-    { id: 'NUM-004', number: '+447700900789', country: 'UK', type: 'vmn', status: 'suspended', mode: 'portal', account: 'TechStart Inc', subAccount: 'Main', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Twilio', created: '2025-08-10' },
-    { id: 'NUM-005', number: '82228', country: 'UK', type: 'dedicated', status: 'active', mode: 'portal', account: 'Big Enterprise', subAccount: 'Operations', capabilities: ['senderid', 'inbox', 'optout'], cost: 500.00, supplier: 'Vonage', created: '2024-06-15' },
-    { id: 'NUM-006', number: '+447700900111', country: 'UK', type: 'vmn', status: 'pending', mode: 'api', account: 'NewClient', subAccount: 'Main', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', created: '2026-01-18' },
-    { id: 'NUM-007', number: 'SALE', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Marketing', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2025-12-05' },
-    { id: 'NUM-008', number: '+447700900222', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Healthcare Plus', subAccount: 'Notifications', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', created: '2025-07-22' },
-    { id: 'NUM-009', number: '+14155551234', country: 'US', type: 'vmn', status: 'active', mode: 'api', account: 'US Branch Corp', subAccount: 'Sales', capabilities: ['api'], cost: 3.50, supplier: 'Twilio', created: '2025-11-10' },
-    { id: 'NUM-010', number: 'HELP', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Support Services', subAccount: 'Customer Care', capabilities: ['inbox', 'optout'], cost: 2.00, supplier: 'Sinch', created: '2025-10-01' },
-    { id: 'NUM-011', number: '+447700900333', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Logistics Ltd', subAccount: 'Dispatch', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Vonage', created: '2025-09-15' },
-    { id: 'NUM-012', number: '+447700900444', country: 'UK', type: 'vmn', status: 'suspended', mode: 'api', account: 'Old Account', subAccount: 'Legacy', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', created: '2024-03-20' },
-    { id: 'NUM-013', number: 'INFO', country: 'UK', type: 'shortcode_keyword', status: 'pending', mode: 'portal', account: 'Media Group', subAccount: 'News', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2026-01-15' },
-    { id: 'NUM-014', number: '+447700900555', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Banking Secure', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', created: '2025-08-30' },
-    { id: 'NUM-015', number: '+49170123456', country: 'DE', type: 'vmn', status: 'active', mode: 'api', account: 'Euro Expansion', subAccount: 'Germany', capabilities: ['api'], cost: 4.00, supplier: 'Vonage', created: '2025-11-20' },
-    { id: 'NUM-016', number: '+447700900666', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Support', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Sinch', created: '2025-10-25' },
-    { id: 'NUM-017', number: 'DEAL', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Promotions', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2025-12-10' },
-    { id: 'NUM-018', number: '+447700900777', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Tech Solutions', subAccount: 'API Team', capabilities: ['api'], cost: 2.00, supplier: 'Twilio', created: '2025-09-05' },
-    { id: 'NUM-019', number: '+33612345678', country: 'FR', type: 'vmn', status: 'pending', mode: 'portal', account: 'Euro Expansion', subAccount: 'France', capabilities: ['senderid'], cost: 3.50, supplier: 'Vonage', created: '2026-01-10' },
-    { id: 'NUM-020', number: '+447700900888', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Finance Ltd', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', created: '2025-07-15' }
+    { id: 'NUM-001', number: '+447700900123', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Marketing', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Premium', network: 'Vodafone UK', portedTo: null, created: '2025-10-15' },
+    { id: 'NUM-002', number: '+447700900456', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Finance Ltd', subAccount: 'Retail', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'EE', portedTo: 'Three UK', created: '2025-09-20' },
+    { id: 'NUM-003', number: 'PROMO', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Sales', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-11-01' },
+    { id: 'NUM-004', number: '+447700900789', country: 'UK', type: 'vmn', status: 'suspended', mode: 'portal', account: 'TechStart Inc', subAccount: 'Main', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Premium', network: 'O2 UK', portedTo: null, created: '2025-08-10' },
+    { id: 'NUM-005', number: '82228', country: 'UK', type: 'dedicated', status: 'active', mode: 'portal', account: 'Big Enterprise', subAccount: 'Operations', capabilities: ['senderid', 'inbox', 'optout'], cost: 500.00, supplier: 'Vonage', route: 'UK-SC-Dedicated', network: 'All UK Networks', portedTo: null, created: '2024-06-15' },
+    { id: 'NUM-006', number: '+447700900111', country: 'UK', type: 'vmn', status: 'pending', mode: 'api', account: 'NewClient', subAccount: 'Main', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'Three UK', portedTo: null, created: '2026-01-18' },
+    { id: 'NUM-007', number: 'SALE', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Marketing', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-12-05' },
+    { id: 'NUM-008', number: '+447700900222', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Healthcare Plus', subAccount: 'Notifications', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Premium', network: 'Vodafone UK', portedTo: 'EE', created: '2025-07-22' },
+    { id: 'NUM-009', number: '+14155551234', country: 'US', type: 'vmn', status: 'active', mode: 'api', account: 'US Branch Corp', subAccount: 'Sales', capabilities: ['api'], cost: 3.50, supplier: 'Twilio', route: 'US-Direct-Standard', network: 'AT&T', portedTo: null, created: '2025-11-10' },
+    { id: 'NUM-010', number: 'HELP', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Support Services', subAccount: 'Customer Care', capabilities: ['inbox', 'optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-10-01' },
+    { id: 'NUM-011', number: '+447700900333', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Logistics Ltd', subAccount: 'Dispatch', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Vonage', route: 'UK-Direct-Standard', network: 'EE', portedTo: null, created: '2025-09-15' },
+    { id: 'NUM-012', number: '+447700900444', country: 'UK', type: 'vmn', status: 'suspended', mode: 'api', account: 'Old Account', subAccount: 'Legacy', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'O2 UK', portedTo: 'Vodafone UK', created: '2024-03-20' },
+    { id: 'NUM-013', number: 'INFO', country: 'UK', type: 'shortcode_keyword', status: 'pending', mode: 'portal', account: 'Media Group', subAccount: 'News', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2026-01-15' },
+    { id: 'NUM-014', number: '+447700900555', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Banking Secure', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Premium', network: 'Three UK', portedTo: null, created: '2025-08-30' },
+    { id: 'NUM-015', number: '+49170123456', country: 'DE', type: 'vmn', status: 'active', mode: 'api', account: 'Euro Expansion', subAccount: 'Germany', capabilities: ['api'], cost: 4.00, supplier: 'Vonage', route: 'DE-Direct-Standard', network: 'T-Mobile DE', portedTo: null, created: '2025-11-20' },
+    { id: 'NUM-016', number: '+447700900666', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Support', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Standard', network: 'Vodafone UK', portedTo: null, created: '2025-10-25' },
+    { id: 'NUM-017', number: 'DEAL', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Promotions', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-SC-82228', network: 'Shared Shortcode', portedTo: null, created: '2025-12-10' },
+    { id: 'NUM-018', number: '+447700900777', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Tech Solutions', subAccount: 'API Team', capabilities: ['api'], cost: 2.00, supplier: 'Twilio', route: 'UK-Direct-Standard', network: 'O2 UK', portedTo: null, created: '2025-09-05' },
+    { id: 'NUM-019', number: '+33612345678', country: 'FR', type: 'vmn', status: 'pending', mode: 'portal', account: 'Euro Expansion', subAccount: 'France', capabilities: ['senderid'], cost: 3.50, supplier: 'Vonage', route: 'FR-Direct-Standard', network: 'Orange FR', portedTo: null, created: '2026-01-10' },
+    { id: 'NUM-020', number: '+447700900888', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Finance Ltd', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', route: 'UK-Direct-Premium', network: 'EE', portedTo: 'Vodafone UK', created: '2025-07-15' }
 ];
 
 let currentPage = 1;
@@ -1618,6 +1716,19 @@ function viewNumberDetails(numberId) {
     document.getElementById('cfg_mode').innerHTML = getModeBadge(num.mode);
     document.getElementById('cfg_cost').textContent = `£${num.cost.toFixed(2)}`;
     document.getElementById('cfg_supplier').textContent = num.supplier;
+    
+    document.getElementById('cfg_network_supplier').textContent = num.supplier || '—';
+    document.getElementById('cfg_network_route').textContent = num.route || '—';
+    document.getElementById('cfg_network_destination').textContent = num.network || '—';
+    
+    const portedToRow = document.getElementById('portedToRow');
+    const portedToValue = document.getElementById('cfg_ported_to');
+    if (num.portedTo && num.country === 'UK') {
+        portedToRow.style.display = 'flex';
+        portedToValue.innerHTML = `<span class="ported-indicator"><i class="fas fa-exchange-alt"></i>${num.portedTo}</span>`;
+    } else {
+        portedToRow.style.display = 'none';
+    }
     
     const isKeyword = num.type === 'shortcode_keyword';
     document.getElementById('keywordRestrictionAlert').style.display = isKeyword ? 'block' : 'none';
