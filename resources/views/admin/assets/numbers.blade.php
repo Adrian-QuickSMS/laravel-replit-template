@@ -330,6 +330,69 @@
     background: #f8f9fa;
     color: #495057;
 }
+
+.bulk-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.08) 0%, rgba(74, 144, 217, 0.12) 100%);
+    border: 1px solid rgba(74, 144, 217, 0.25);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+.bulk-actions-bar .bulk-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.bulk-actions-bar .bulk-count {
+    color: var(--admin-primary);
+    font-size: 0.9rem;
+}
+.bulk-actions-bar .bulk-count strong {
+    font-size: 1.1rem;
+}
+
+.row-checkbox {
+    cursor: pointer;
+}
+tr.selected-row {
+    background-color: rgba(74, 144, 217, 0.08) !important;
+}
+tr.selected-row:hover {
+    background-color: rgba(74, 144, 217, 0.12) !important;
+}
+
+.bulk-summary-table {
+    font-size: 0.85rem;
+}
+.bulk-summary-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+.bulk-summary-table td {
+    padding: 0.5rem;
+}
+.bulk-change-arrow {
+    color: var(--admin-accent);
+    font-weight: bold;
+}
+
+.dropdown-item.disabled {
+    color: #adb5bd !important;
+    pointer-events: none;
+}
+.dropdown-item .incompatible-reason {
+    font-size: 0.7rem;
+    color: #dc3545;
+    display: block;
+    margin-top: 0.15rem;
+}
 </style>
 @endpush
 
@@ -550,12 +613,42 @@
         <a href="#" class="clear-all-link" onclick="resetFilters(); return false;">Clear all</a>
     </div>
 
+    <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+        <div class="bulk-actions-left">
+            <span class="bulk-count"><strong id="selectedCount">0</strong> selected</span>
+            <button type="button" class="btn btn-link btn-sm text-muted" onclick="clearSelection()">Clear selection</button>
+        </div>
+        <div class="bulk-actions-right">
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-tasks me-1"></i> Bulk Actions
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><h6 class="dropdown-header">Status Actions</h6></li>
+                    <li><a class="dropdown-item" href="#" id="bulkSuspendBtn" onclick="initBulkAction('suspend'); return false;"><i class="fas fa-pause-circle me-2 text-warning"></i>Suspend Selected</a></li>
+                    <li><a class="dropdown-item" href="#" id="bulkReactivateBtn" onclick="initBulkAction('reactivate'); return false;"><i class="fas fa-play-circle me-2 text-success"></i>Reactivate Selected</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Assignment Actions</h6></li>
+                    <li><a class="dropdown-item" href="#" onclick="initBulkAction('assignCustomer'); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign to Customer</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="initBulkAction('assignSubAccount'); return false;"><i class="fas fa-sitemap me-2 text-muted"></i>Assign to Sub-Account</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Configuration Actions</h6></li>
+                    <li><a class="dropdown-item" href="#" id="bulkChangeModeBtn" onclick="initBulkAction('changeMode'); return false;"><i class="fas fa-sync-alt me-2 text-muted"></i>Change Mode</a></li>
+                    <li><a class="dropdown-item" href="#" id="bulkCapabilitiesBtn" onclick="initBulkAction('capabilities'); return false;"><i class="fas fa-cogs me-2 text-muted"></i>Apply Capability Toggles</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0" id="numbersTable">
                     <thead>
                         <tr>
+                            <th style="width: 40px;" class="text-center">
+                                <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                            </th>
                             <th class="sortable" data-sort="number">Number / Keyword</th>
                             <th class="sortable" data-sort="country">Country</th>
                             <th class="sortable" data-sort="type">Number Type</th>
@@ -955,6 +1048,35 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="bulkActionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" id="bulkModalHeader" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title" id="bulkModalTitle"><i class="fas fa-tasks me-2"></i>Bulk Action</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="bulkActionSummary"></div>
+                <div id="bulkActionOptions" class="mt-3"></div>
+                <div id="bulkBillingWarning" class="alert alert-warning mt-3" style="display: none;">
+                    <i class="fas fa-pound-sign me-2"></i>
+                    <strong>Billing Impact:</strong> This action may affect monthly billing for the selected numbers.
+                </div>
+                <div id="bulkIncompatibleWarning" class="alert alert-danger mt-3" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="bulkIncompatibleText"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="bulkExecuteBtn" onclick="executeBulkAction()">
+                    <i class="fas fa-check me-1"></i> Apply to <span id="bulkApplyCount">0</span> Numbers
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1003,6 +1125,8 @@ let filteredData = [...mockNumbersData];
 let sortColumn = 'created';
 let sortDirection = 'desc';
 let appliedFilters = {};
+let selectedRows = new Set();
+let currentBulkAction = null;
 
 function toggleFilterPanel() {
     const body = document.getElementById('filterBody');
@@ -1092,12 +1216,13 @@ function renderTable(data) {
     if (data.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="10" class="empty-state">
+                <td colspan="11" class="empty-state">
                     <i class="fas fa-phone-slash d-block"></i>
                     <p>No numbers found matching your criteria</p>
                 </td>
             </tr>
         `;
+        document.getElementById('selectAllCheckbox').checked = false;
         return;
     }
     
@@ -1106,7 +1231,13 @@ function renderTable(data) {
     const pageData = data.slice(start, end);
     
     tbody.innerHTML = pageData.map(num => `
-        <tr data-id="${num.id}">
+        <tr data-id="${num.id}" class="${selectedRows.has(num.id) ? 'selected-row' : ''}">
+            <td class="text-center">
+                <input type="checkbox" class="form-check-input row-checkbox" 
+                       data-id="${num.id}" 
+                       onchange="toggleRowSelection('${num.id}')"
+                       ${selectedRows.has(num.id) ? 'checked' : ''}>
+            </td>
             <td><span class="number-value">${num.number}</span></td>
             <td>${getCountryFlag(num.country)} ${num.country}</td>
             <td>${getTypeLabel(num.type)}</td>
@@ -1129,6 +1260,8 @@ function renderTable(data) {
             </td>
         </tr>
     `).join('');
+    
+    updateSelectAllState();
 }
 
 function buildContextMenu(num) {
@@ -1963,6 +2096,441 @@ function showToast(message, type = 'info') {
     bsToast.show();
     
     toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+function toggleRowSelection(id) {
+    if (selectedRows.has(id)) {
+        selectedRows.delete(id);
+    } else {
+        selectedRows.add(id);
+    }
+    updateSelectionUI();
+}
+
+function toggleSelectAll() {
+    const checkbox = document.getElementById('selectAllCheckbox');
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = Math.min(start + rowsPerPage, filteredData.length);
+    const pageData = filteredData.slice(start, end);
+    
+    if (checkbox.checked) {
+        pageData.forEach(num => selectedRows.add(num.id));
+    } else {
+        pageData.forEach(num => selectedRows.delete(num.id));
+    }
+    
+    updateSelectionUI();
+}
+
+function updateSelectAllState() {
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = Math.min(start + rowsPerPage, filteredData.length);
+    const pageData = filteredData.slice(start, end);
+    const checkbox = document.getElementById('selectAllCheckbox');
+    
+    if (pageData.length === 0) {
+        checkbox.checked = false;
+        checkbox.indeterminate = false;
+        return;
+    }
+    
+    const selectedOnPage = pageData.filter(num => selectedRows.has(num.id)).length;
+    
+    if (selectedOnPage === 0) {
+        checkbox.checked = false;
+        checkbox.indeterminate = false;
+    } else if (selectedOnPage === pageData.length) {
+        checkbox.checked = true;
+        checkbox.indeterminate = false;
+    } else {
+        checkbox.checked = false;
+        checkbox.indeterminate = true;
+    }
+}
+
+function updateSelectionUI() {
+    document.querySelectorAll('#numbersTableBody tr').forEach(row => {
+        const id = row.dataset.id;
+        const checkbox = row.querySelector('.row-checkbox');
+        if (selectedRows.has(id)) {
+            row.classList.add('selected-row');
+            if (checkbox) checkbox.checked = true;
+        } else {
+            row.classList.remove('selected-row');
+            if (checkbox) checkbox.checked = false;
+        }
+    });
+    
+    const bulkBar = document.getElementById('bulkActionsBar');
+    const countSpan = document.getElementById('selectedCount');
+    
+    if (selectedRows.size > 0) {
+        bulkBar.style.display = 'flex';
+        countSpan.textContent = selectedRows.size;
+    } else {
+        bulkBar.style.display = 'none';
+    }
+    
+    updateSelectAllState();
+    updateBulkActionAvailability();
+}
+
+function clearSelection() {
+    selectedRows.clear();
+    updateSelectionUI();
+}
+
+function updateBulkActionAvailability() {
+    const selected = getSelectedNumbersData();
+    
+    const canSuspend = selected.filter(n => n.status === 'active').length;
+    const canReactivate = selected.filter(n => n.status === 'suspended').length;
+    const canChangeMode = selected.filter(n => n.type !== 'keyword').length;
+    const canChangeCapabilities = selected.filter(n => n.type !== 'keyword').length;
+    
+    const suspendBtn = document.getElementById('bulkSuspendBtn');
+    const reactivateBtn = document.getElementById('bulkReactivateBtn');
+    const changeModeBtn = document.getElementById('bulkChangeModeBtn');
+    const capabilitiesBtn = document.getElementById('bulkCapabilitiesBtn');
+    
+    suspendBtn.classList.toggle('disabled', canSuspend === 0);
+    reactivateBtn.classList.toggle('disabled', canReactivate === 0);
+    changeModeBtn.classList.toggle('disabled', canChangeMode === 0);
+    capabilitiesBtn.classList.toggle('disabled', canChangeCapabilities === 0);
+}
+
+function getSelectedNumbersData() {
+    return Array.from(selectedRows).map(id => mockNumbersData.find(n => n.id === id)).filter(Boolean);
+}
+
+function initBulkAction(actionType) {
+    const selected = getSelectedNumbersData();
+    if (selected.length === 0) return;
+    
+    currentBulkAction = actionType;
+    
+    const modal = document.getElementById('bulkActionModal');
+    const titleEl = document.getElementById('bulkModalTitle');
+    const summaryEl = document.getElementById('bulkActionSummary');
+    const optionsEl = document.getElementById('bulkActionOptions');
+    const billingWarning = document.getElementById('bulkBillingWarning');
+    const incompatibleWarning = document.getElementById('bulkIncompatibleWarning');
+    const applyCountEl = document.getElementById('bulkApplyCount');
+    const executeBtn = document.getElementById('bulkExecuteBtn');
+    
+    billingWarning.style.display = 'none';
+    incompatibleWarning.style.display = 'none';
+    optionsEl.innerHTML = '';
+    
+    let compatible = selected;
+    let incompatible = [];
+    let title = 'Bulk Action';
+    let summary = '';
+    
+    switch(actionType) {
+        case 'suspend':
+            title = 'Suspend Numbers';
+            compatible = selected.filter(n => n.status === 'active');
+            incompatible = selected.filter(n => n.status !== 'active');
+            summary = buildBulkSummaryTable(compatible, 'Status', n => getStatusBadge(n.status), () => '<span class="badge bg-warning">Suspended</span>');
+            billingWarning.style.display = 'block';
+            break;
+            
+        case 'reactivate':
+            title = 'Reactivate Numbers';
+            compatible = selected.filter(n => n.status === 'suspended');
+            incompatible = selected.filter(n => n.status !== 'suspended');
+            summary = buildBulkSummaryTable(compatible, 'Status', n => getStatusBadge(n.status), () => '<span class="badge bg-success">Active</span>');
+            billingWarning.style.display = 'block';
+            break;
+            
+        case 'assignCustomer':
+            title = 'Assign to Customer';
+            compatible = selected;
+            summary = buildBulkSummaryTable(compatible, 'Account', n => n.account, () => '<em>Select below</em>');
+            optionsEl.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Customer Account</label>
+                    <select class="form-select" id="bulkCustomerSelect">
+                        <option value="">Choose account...</option>
+                        <option value="Acme Corp">Acme Corp</option>
+                        <option value="TechStart Ltd">TechStart Ltd</option>
+                        <option value="RetailMax">RetailMax</option>
+                        <option value="Healthcare Plus">Healthcare Plus</option>
+                        <option value="Finance Ltd">Finance Ltd</option>
+                    </select>
+                </div>
+            `;
+            break;
+            
+        case 'assignSubAccount':
+            title = 'Assign to Sub-Account';
+            compatible = selected;
+            summary = buildBulkSummaryTable(compatible, 'Sub-Account', n => n.subAccount, () => '<em>Select below</em>');
+            optionsEl.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Customer Account First</label>
+                    <select class="form-select mb-2" id="bulkParentAccount" onchange="loadSubAccounts()">
+                        <option value="">Choose account...</option>
+                        <option value="Acme Corp">Acme Corp</option>
+                        <option value="TechStart Ltd">TechStart Ltd</option>
+                        <option value="RetailMax">RetailMax</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="subAccountContainer" style="display: none;">
+                    <label class="form-label fw-bold">Select Sub-Account</label>
+                    <select class="form-select" id="bulkSubAccountSelect">
+                        <option value="">Choose sub-account...</option>
+                    </select>
+                </div>
+            `;
+            break;
+            
+        case 'changeMode':
+            title = 'Change Mode';
+            compatible = selected.filter(n => n.type !== 'keyword');
+            incompatible = selected.filter(n => n.type === 'keyword');
+            summary = buildBulkSummaryTable(compatible, 'Mode', n => getModeBadge(n.mode), () => '<em>Select below</em>');
+            optionsEl.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select New Mode</label>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="bulkMode" id="bulkModePortal" value="portal">
+                        <label class="btn btn-outline-primary" for="bulkModePortal">
+                            <i class="fas fa-desktop me-2"></i>Portal Mode
+                        </label>
+                        <input type="radio" class="btn-check" name="bulkMode" id="bulkModeAPI" value="api">
+                        <label class="btn btn-outline-primary" for="bulkModeAPI">
+                            <i class="fas fa-code me-2"></i>API Mode
+                        </label>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> API Mode is limited to 1 sub-account and requires HTTPS webhook URL.
+                </div>
+            `;
+            billingWarning.style.display = 'block';
+            break;
+            
+        case 'capabilities':
+            title = 'Apply Capability Toggles';
+            compatible = selected.filter(n => n.type !== 'keyword');
+            incompatible = selected.filter(n => n.type === 'keyword');
+            summary = buildBulkSummaryTable(compatible, 'Type', n => getTypeLabel(n.type), null);
+            optionsEl.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Capabilities to Apply</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="bulkCapSenderID" value="senderid">
+                        <label class="form-check-label" for="bulkCapSenderID">SenderID</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="bulkCapInbox" value="inbox">
+                        <label class="form-check-label" for="bulkCapInbox">Inbox</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="bulkCapOptout" value="optout">
+                        <label class="form-check-label" for="bulkCapOptout">Opt-out</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="bulkCapAPI" value="api">
+                        <label class="form-check-label" for="bulkCapAPI">API</label>
+                    </div>
+                </div>
+                <div class="alert alert-secondary">
+                    <small><i class="fas fa-info-circle me-2"></i>Selected capabilities will replace existing ones on all compatible numbers.</small>
+                </div>
+            `;
+            break;
+    }
+    
+    titleEl.innerHTML = `<i class="fas fa-tasks me-2"></i>${title}`;
+    summaryEl.innerHTML = summary;
+    applyCountEl.textContent = compatible.length;
+    
+    if (incompatible.length > 0) {
+        incompatibleWarning.style.display = 'block';
+        document.getElementById('bulkIncompatibleText').innerHTML = 
+            `<strong>${incompatible.length} number(s)</strong> are not compatible with this action and will be skipped.`;
+    }
+    
+    executeBtn.disabled = compatible.length === 0;
+    
+    new bootstrap.Modal(modal).show();
+}
+
+function buildBulkSummaryTable(items, changeColumn, currentFn, newFn) {
+    if (items.length === 0) {
+        return '<div class="alert alert-warning">No compatible numbers selected for this action.</div>';
+    }
+    
+    const showMax = 5;
+    const displayItems = items.slice(0, showMax);
+    const remaining = items.length - showMax;
+    
+    let html = `
+        <div class="mb-2"><strong>${items.length}</strong> number(s) will be affected:</div>
+        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+            <table class="table table-sm bulk-summary-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Number</th>
+                        <th>Account</th>
+                        <th>Current ${changeColumn}</th>
+                        ${newFn ? `<th></th><th>New ${changeColumn}</th>` : ''}
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    displayItems.forEach(item => {
+        html += `
+            <tr>
+                <td><code>${item.number}</code></td>
+                <td>${item.account}</td>
+                <td>${currentFn(item)}</td>
+                ${newFn ? `<td class="bulk-change-arrow">→</td><td>${newFn(item)}</td>` : ''}
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table></div>';
+    
+    if (remaining > 0) {
+        html += `<div class="text-muted small mt-2">...and ${remaining} more</div>`;
+    }
+    
+    return html;
+}
+
+function loadSubAccounts() {
+    const parent = document.getElementById('bulkParentAccount').value;
+    const container = document.getElementById('subAccountContainer');
+    const select = document.getElementById('bulkSubAccountSelect');
+    
+    if (!parent) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const subAccounts = {
+        'Acme Corp': ['Marketing', 'Sales', 'Support', 'Operations'],
+        'TechStart Ltd': ['Development', 'QA', 'DevOps'],
+        'RetailMax': ['Stores', 'eCommerce', 'Logistics']
+    };
+    
+    select.innerHTML = '<option value="">Choose sub-account...</option>';
+    (subAccounts[parent] || []).forEach(sa => {
+        select.innerHTML += `<option value="${sa}">${sa}</option>`;
+    });
+    
+    container.style.display = 'block';
+}
+
+function executeBulkAction() {
+    const selected = getSelectedNumbersData();
+    let compatible = selected;
+    let actionDetails = {};
+    
+    switch(currentBulkAction) {
+        case 'suspend':
+            compatible = selected.filter(n => n.status === 'active');
+            compatible.forEach(n => {
+                const idx = mockNumbersData.findIndex(m => m.id === n.id);
+                if (idx !== -1) mockNumbersData[idx].status = 'suspended';
+            });
+            actionDetails = { action: 'suspend', count: compatible.length };
+            break;
+            
+        case 'reactivate':
+            compatible = selected.filter(n => n.status === 'suspended');
+            compatible.forEach(n => {
+                const idx = mockNumbersData.findIndex(m => m.id === n.id);
+                if (idx !== -1) mockNumbersData[idx].status = 'active';
+            });
+            actionDetails = { action: 'reactivate', count: compatible.length };
+            break;
+            
+        case 'assignCustomer':
+            const customer = document.getElementById('bulkCustomerSelect').value;
+            if (!customer) {
+                showToast('Please select a customer account', 'error');
+                return;
+            }
+            compatible.forEach(n => {
+                const idx = mockNumbersData.findIndex(m => m.id === n.id);
+                if (idx !== -1) mockNumbersData[idx].account = customer;
+            });
+            actionDetails = { action: 'assignCustomer', customer, count: compatible.length };
+            break;
+            
+        case 'assignSubAccount':
+            const subAccount = document.getElementById('bulkSubAccountSelect').value;
+            if (!subAccount) {
+                showToast('Please select a sub-account', 'error');
+                return;
+            }
+            compatible.forEach(n => {
+                const idx = mockNumbersData.findIndex(m => m.id === n.id);
+                if (idx !== -1) mockNumbersData[idx].subAccount = subAccount;
+            });
+            actionDetails = { action: 'assignSubAccount', subAccount, count: compatible.length };
+            break;
+            
+        case 'changeMode':
+            const mode = document.querySelector('input[name="bulkMode"]:checked')?.value;
+            if (!mode) {
+                showToast('Please select a mode', 'error');
+                return;
+            }
+            compatible = selected.filter(n => n.type !== 'keyword');
+            compatible.forEach(n => {
+                const idx = mockNumbersData.findIndex(m => m.id === n.id);
+                if (idx !== -1) mockNumbersData[idx].mode = mode;
+            });
+            actionDetails = { action: 'changeMode', mode, count: compatible.length };
+            break;
+            
+        case 'capabilities':
+            compatible = selected.filter(n => n.type !== 'keyword');
+            const caps = [];
+            if (document.getElementById('bulkCapSenderID').checked) caps.push('senderid');
+            if (document.getElementById('bulkCapInbox').checked) caps.push('inbox');
+            if (document.getElementById('bulkCapOptout').checked) caps.push('optout');
+            if (document.getElementById('bulkCapAPI').checked) caps.push('api');
+            
+            if (caps.length === 0) {
+                showToast('Please select at least one capability', 'error');
+                return;
+            }
+            compatible.forEach(n => {
+                const idx = mockNumbersData.findIndex(m => m.id === n.id);
+                if (idx !== -1) mockNumbersData[idx].capabilities = [...caps];
+            });
+            actionDetails = { action: 'capabilities', capabilities: caps, count: compatible.length };
+            break;
+    }
+    
+    if (typeof AdminAudit !== 'undefined') {
+        AdminAudit.log('BULK_NUMBER_ACTION', {
+            module: 'numbers',
+            action: currentBulkAction,
+            affectedIds: compatible.map(n => n.id),
+            details: actionDetails
+        }, 'HIGH');
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('bulkActionModal')).hide();
+    
+    filteredData = [...mockNumbersData];
+    applyFilters();
+    
+    clearSelection();
+    
+    showToast(`Successfully applied ${currentBulkAction} to ${compatible.length} number(s)`, 'success');
+    
+    currentBulkAction = null;
 }
 </script>
 @endpush
