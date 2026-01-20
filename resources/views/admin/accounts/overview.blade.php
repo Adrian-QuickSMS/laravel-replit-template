@@ -401,7 +401,7 @@
                             <td class="text-center">
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-1234', 'Acme Corporation')" title="Billing"><i class="fas fa-pound-sign"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-1234', 'Acme Corporation', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="openPricingModal('ACC-1234', 'Acme Corporation')" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="rowAction('ACC-1234', 'Acme Corporation', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
@@ -452,7 +452,7 @@
                             <td class="text-center">
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-5678', 'Finance Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-5678', 'Finance Ltd', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="openPricingModal('ACC-5678', 'Finance Ltd')" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="rowAction('ACC-5678', 'Finance Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
@@ -501,7 +501,7 @@
                             <td class="text-center">
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-7890', 'NewClient')" title="Billing"><i class="fas fa-pound-sign"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-7890', 'NewClient', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="openPricingModal('ACC-7890', 'NewClient')" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="rowAction('ACC-7890', 'NewClient', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
@@ -545,7 +545,7 @@
                             <td class="text-center">
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-4567', 'TestCo')" title="Billing"><i class="fas fa-pound-sign"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-4567', 'TestCo', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="openPricingModal('ACC-4567', 'TestCo')" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="rowAction('ACC-4567', 'TestCo', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
@@ -594,7 +594,7 @@
                             <td class="text-center">
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-9012', 'HighRisk Corp')" title="Billing"><i class="fas fa-pound-sign"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-9012', 'HighRisk Corp', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="openPricingModal('ACC-9012', 'HighRisk Corp')" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="rowAction('ACC-9012', 'HighRisk Corp', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
@@ -643,7 +643,7 @@
                             <td class="text-center">
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-3456', 'MedTech Solutions')" title="Billing"><i class="fas fa-pound-sign"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-3456', 'MedTech Solutions', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button>
+                                    <button class="action-icon-btn" onclick="openPricingModal('ACC-3456', 'MedTech Solutions')" title="Pricing"><i class="fas fa-tags"></i></button>
                                     <button class="action-icon-btn" onclick="rowAction('ACC-3456', 'MedTech Solutions', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
@@ -689,7 +689,7 @@
                             <td class="text-end">6,234,567</td>
                             <td class="text-end">521,234</td>
                             <td class="text-end">£4,320</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4001', 'RetailMax Group')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4001', 'RetailMax Group')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4001', 'RetailMax Group')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4001">
@@ -719,7 +719,7 @@
                             <td class="text-end">4,567,890</td>
                             <td class="text-end">382,456</td>
                             <td class="text-end">£3,150</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4002', 'CloudFirst Tech')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4002', 'CloudFirst Tech')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4002', 'CloudFirst Tech')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4002"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">CloudFirst SaaS</td><td class="text-end">382,456</td><td class="text-end">4,567,890</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -729,7 +729,7 @@
                             <td class="text-end">3,456,789</td>
                             <td class="text-end">287,654</td>
                             <td class="text-end">£2,890</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4003', 'GreenEnergy Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4003', 'GreenEnergy Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4003', 'GreenEnergy Ltd')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4003"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -739,7 +739,7 @@
                             <td class="text-end">0</td>
                             <td class="text-end">156</td>
                             <td class="text-end">£0</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4004', 'FastLogistics')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4004', 'FastLogistics')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4004', 'FastLogistics')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4004"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -749,7 +749,7 @@
                             <td class="text-end">7,890,123</td>
                             <td class="text-end">654,321</td>
                             <td class="text-end">£6,540</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4005', 'HealthPlus Care')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4005', 'HealthPlus Care')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4005', 'HealthPlus Care')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4005"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">HealthPlus Clinics</td><td class="text-end">400,000</td><td class="text-end">4,800,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">HealthPlus Labs</td><td class="text-end">254,321</td><td class="text-end">3,090,123</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -759,7 +759,7 @@
                             <td class="text-end">2,345,678</td>
                             <td class="text-end">198,765</td>
                             <td class="text-end">£1,980</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4006', 'EduLearn Academy')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4006', 'EduLearn Academy')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4006', 'EduLearn Academy')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4006"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -769,7 +769,7 @@
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">476,543</td>
                             <td class="text-end">£4,760</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4007', 'AutoDrive Motors')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4007', 'AutoDrive Motors')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4007', 'AutoDrive Motors')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4007"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">AutoDrive Sales</td><td class="text-end">300,000</td><td class="text-end">3,500,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">AutoDrive Service</td><td class="text-end">176,543</td><td class="text-end">2,178,901</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -779,7 +779,7 @@
                             <td class="text-end">0</td>
                             <td class="text-end">89</td>
                             <td class="text-end">£0</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4008', 'TechStartup Inc')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4008', 'TechStartup Inc')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4008', 'TechStartup Inc')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4008"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -789,7 +789,7 @@
                             <td class="text-end">9,012,345</td>
                             <td class="text-end">756,789</td>
                             <td class="text-end">£7,560</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4009', 'FoodDelivery Pro')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4009', 'FoodDelivery Pro')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4009', 'FoodDelivery Pro')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4009"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">FoodDelivery Express</td><td class="text-end">500,000</td><td class="text-end">6,000,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">FoodDelivery Premium</td><td class="text-end">256,789</td><td class="text-end">3,012,345</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -799,7 +799,7 @@
                             <td class="text-end">4,123,456</td>
                             <td class="text-end">345,678</td>
                             <td class="text-end">£3,450</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4010', 'PropertyHub UK')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4010', 'PropertyHub UK')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4010', 'PropertyHub UK')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4010"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -809,7 +809,7 @@
                             <td class="text-end">3,789,012</td>
                             <td class="text-end">312,456</td>
                             <td class="text-end">£3,120</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4011', 'TravelWorld Agency')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4011', 'TravelWorld Agency')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4011', 'TravelWorld Agency')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4011"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">TravelWorld Holidays</td><td class="text-end">200,000</td><td class="text-end">2,400,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">TravelWorld Business</td><td class="text-end">112,456</td><td class="text-end">1,389,012</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -819,7 +819,7 @@
                             <td class="text-end">12,345,678</td>
                             <td class="text-end">1,034,567</td>
                             <td class="text-end">£10,340</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4012', 'SecureBank Financial')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4012', 'SecureBank Financial')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4012', 'SecureBank Financial')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4012"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">SecureBank Retail</td><td class="text-end">600,000</td><td class="text-end">7,200,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">SecureBank Business</td><td class="text-end">434,567</td><td class="text-end">5,145,678</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -829,7 +829,7 @@
                             <td class="text-end">0</td>
                             <td class="text-end">234</td>
                             <td class="text-end">£0</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4013', 'SmartHome Systems')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'pricing')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4013', 'SmartHome Systems')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4013', 'SmartHome Systems')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4013"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -1227,6 +1227,135 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="createCreditNoteBtn" onclick="submitCreateCreditNote()">
                     <i class="fas fa-file-invoice me-1"></i>Create Credit Note
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Modal -->
+<div class="modal fade" id="pricingModal" tabindex="-1" aria-labelledby="pricingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pricingModalLabel">Pricing — <span id="pricingClientName">Client</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="pricingAccountId">
+                
+                <!-- Loading State -->
+                <div id="pricingLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading pricing data...</p>
+                </div>
+                
+                <!-- Pricing Content -->
+                <div id="pricingContent" style="display: none;">
+                    <!-- Billing Basis Section -->
+                    <div class="card mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>Billing Basis</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Determines how messages are counted for billing purposes. This replaces the previous Pricing Model column.</p>
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="billingBasis" id="basisSubmitted" value="submitted">
+                                        <label class="form-check-label" for="basisSubmitted">
+                                            <strong>Submitted Messages</strong>
+                                            <span class="d-block text-muted small">Client is billed for all messages submitted, regardless of delivery status</span>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline mt-2">
+                                        <input class="form-check-input" type="radio" name="billingBasis" id="basisDelivered" value="delivered">
+                                        <label class="form-check-label" for="basisDelivered">
+                                            <strong>Delivered Messages Only</strong>
+                                            <span class="d-block text-muted small">Client is billed only for successfully delivered messages</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <span id="billingBasisCurrent" class="badge light badge-info">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="mt-3" id="billingBasisActions" style="display: none;">
+                                <button type="button" class="btn btn-sm btn-primary" id="saveBillingBasisBtn" onclick="confirmBillingBasisChange()">
+                                    <i class="fas fa-save me-1"></i>Save Change
+                                </button>
+                                <button type="button" class="btn btn-sm btn-secondary" onclick="resetBillingBasis()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pricing Table Section -->
+                    <div class="card">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-tags me-2"></i>Product Pricing</h6>
+                            <span class="badge light badge-secondary"><i class="fas fa-cloud me-1"></i>HubSpot sync ready</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Unit</th>
+                                            <th class="text-end">Rate</th>
+                                            <th>Currency</th>
+                                            <th>Effective From</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pricingTableBody">
+                                        <!-- Populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info small mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Price overrides can be configured per client. Changes to billing basis or pricing will be reflected in the next billing cycle and logged to the audit trail.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto"><i class="fas fa-sync-alt me-1"></i>HubSpot sync ready</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Billing Basis Change Modal -->
+<div class="modal fade" id="confirmBillingBasisModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm Billing Basis Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to change the billing basis for <strong id="confirmBillingClient"></strong>:</p>
+                <div class="d-flex align-items-center justify-content-center my-4">
+                    <span class="badge light badge-secondary px-3 py-2" id="confirmBillingFrom">Submitted</span>
+                    <i class="fas fa-arrow-right mx-3 text-muted"></i>
+                    <span class="badge light badge-primary px-3 py-2" id="confirmBillingTo">Delivered</span>
+                </div>
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-exclamation-circle me-1"></i>
+                    <strong>Important:</strong> This change will take effect from the next billing cycle and will be logged to the audit trail.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBillingBasisBtn" onclick="executeBillingBasisChange()">
+                    <i class="fas fa-check me-1"></i>Confirm Change
                 </button>
             </div>
         </div>
@@ -2492,6 +2621,262 @@ window.submitCreateCreditNote = function() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-file-invoice me-1"></i>Create Credit Note';
         alert('Failed to create credit note. Please try again.');
+    });
+};
+
+// ========================
+// Pricing Service Layer (HubSpot-Ready)
+// ========================
+var PricingService = (function() {
+    // Mock pricing data matching Purchase → Messages module rates
+    var mockPricing = {
+        'default': {
+            billingBasis: 'submitted',
+            products: [
+                { product: 'UK SMS', unit: 'per message', rate: 0.039, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK RCS Basic', unit: 'per message', rate: 0.055, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK RCS Single', unit: 'per message', rate: 0.075, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK VMN', unit: 'per month', rate: 5.00, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK Dedicated Shortcode', unit: 'per month', rate: 500.00, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK Shared Shortcode', unit: 'per month', rate: 50.00, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'AI Tokens', unit: 'per 1K tokens', rate: 0.002, currency: 'GBP', effectiveFrom: '2024-06-01', status: 'active' },
+                { product: 'International SMS - EU', unit: 'per message', rate: 0.065, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'International SMS - US', unit: 'per message', rate: 0.045, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'International SMS - Other', unit: 'per message', rate: 0.095, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' }
+            ]
+        },
+        'ACC-1234': {
+            billingBasis: 'delivered',
+            products: [
+                { product: 'UK SMS', unit: 'per message', rate: 0.032, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'UK RCS Basic', unit: 'per message', rate: 0.048, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'UK RCS Single', unit: 'per message', rate: 0.068, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'UK VMN', unit: 'per month', rate: 4.00, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'UK Dedicated Shortcode', unit: 'per month', rate: 450.00, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'UK Shared Shortcode', unit: 'per month', rate: 45.00, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'AI Tokens', unit: 'per 1K tokens', rate: 0.002, currency: 'GBP', effectiveFrom: '2024-06-01', status: 'active' },
+                { product: 'International SMS - EU', unit: 'per message', rate: 0.055, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'International SMS - US', unit: 'per message', rate: 0.038, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true },
+                { product: 'International SMS - Other', unit: 'per message', rate: 0.085, currency: 'GBP', effectiveFrom: '2024-03-15', status: 'active', override: true }
+            ]
+        },
+        'ACC-5678': {
+            billingBasis: 'submitted',
+            products: [
+                { product: 'UK SMS', unit: 'per message', rate: 0.035, currency: 'GBP', effectiveFrom: '2024-02-01', status: 'active', override: true },
+                { product: 'UK RCS Basic', unit: 'per message', rate: 0.055, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK RCS Single', unit: 'per message', rate: 0.075, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK VMN', unit: 'per month', rate: 5.00, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK Dedicated Shortcode', unit: 'per month', rate: 500.00, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'UK Shared Shortcode', unit: 'per month', rate: 50.00, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'AI Tokens', unit: 'per 1K tokens', rate: 0.002, currency: 'GBP', effectiveFrom: '2024-06-01', status: 'active' },
+                { product: 'International SMS - EU', unit: 'per message', rate: 0.065, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'International SMS - US', unit: 'per message', rate: 0.045, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' },
+                { product: 'International SMS - Other', unit: 'per message', rate: 0.095, currency: 'GBP', effectiveFrom: '2024-01-01', status: 'active' }
+            ]
+        }
+    };
+
+    function getPricingForAccount(accountId) {
+        if (mockPricing[accountId]) return mockPricing[accountId];
+        // Return default pricing with random billing basis for demo
+        var basis = Math.random() > 0.5 ? 'submitted' : 'delivered';
+        return { ...mockPricing['default'], billingBasis: basis };
+    }
+
+    return {
+        // TODO: Replace with real API endpoint when HubSpot integration is ready
+        // @param accountId - Client account ID
+        // @returns Promise<{ billingBasis, products[] }>
+        getClientPricing: function(accountId) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    var pricing = getPricingForAccount(accountId);
+                    resolve({ success: true, data: pricing });
+                }, 500);
+            });
+        },
+
+        // TODO: Replace with real API endpoint when HubSpot integration is ready
+        // @param accountId - Client account ID
+        // @param basis - 'submitted' | 'delivered'
+        // @returns Promise<{ success, newBasis }>
+        updateBillingBasis: function(accountId, basis) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    // Update mock data
+                    if (!mockPricing[accountId]) {
+                        mockPricing[accountId] = { ...mockPricing['default'] };
+                    }
+                    mockPricing[accountId].billingBasis = basis;
+                    resolve({ success: true, data: { accountId: accountId, newBasis: basis } });
+                }, 600);
+            });
+        },
+
+        // TODO: Stub for future price override functionality
+        // @param accountId - Client account ID
+        // @param payload - { productId, newRate, effectiveFrom }
+        // @returns Promise<{ success }>
+        updatePriceOverrides: function(accountId, payload) {
+            return new Promise(function(resolve, reject) {
+                // Stub - not implemented yet
+                reject({ success: false, error: 'Price overrides are not yet implemented. Contact product team.' });
+            });
+        }
+    };
+})();
+
+// ========================
+// Pricing UI Functions
+// ========================
+var currentPricingAccountId = null;
+var currentPricingClientName = null;
+var originalBillingBasis = null;
+var pricingModal = null;
+var confirmBillingBasisModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    pricingModal = new bootstrap.Modal(document.getElementById('pricingModal'));
+    confirmBillingBasisModal = new bootstrap.Modal(document.getElementById('confirmBillingBasisModal'));
+    
+    // Listen for billing basis radio changes
+    document.querySelectorAll('input[name="billingBasis"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var actionsDiv = document.getElementById('billingBasisActions');
+            if (this.value !== originalBillingBasis) {
+                actionsDiv.style.display = 'block';
+            } else {
+                actionsDiv.style.display = 'none';
+            }
+        });
+    });
+});
+
+window.openPricingModal = function(accountId, clientName) {
+    currentPricingAccountId = accountId;
+    currentPricingClientName = clientName;
+    
+    document.getElementById('pricingAccountId').value = accountId;
+    document.getElementById('pricingClientName').textContent = clientName;
+    
+    // Show loading, hide content
+    document.getElementById('pricingLoading').style.display = 'block';
+    document.getElementById('pricingContent').style.display = 'none';
+    document.getElementById('billingBasisActions').style.display = 'none';
+    
+    pricingModal.show();
+    
+    // Fetch pricing data
+    PricingService.getClientPricing(accountId).then(function(response) {
+        document.getElementById('pricingLoading').style.display = 'none';
+        document.getElementById('pricingContent').style.display = 'block';
+        
+        var data = response.data;
+        originalBillingBasis = data.billingBasis;
+        
+        // Set billing basis radio
+        document.getElementById('basisSubmitted').checked = (data.billingBasis === 'submitted');
+        document.getElementById('basisDelivered').checked = (data.billingBasis === 'delivered');
+        
+        // Update current badge
+        var basisLabel = data.billingBasis === 'submitted' ? 'Submitted' : 'Delivered Only';
+        document.getElementById('billingBasisCurrent').textContent = 'Current: ' + basisLabel;
+        
+        // Render pricing table
+        renderPricingTable(data.products);
+        
+        // Audit log
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('PRICING_MODAL_OPENED', 'PRICING', {
+                accountId: accountId,
+                clientName: clientName,
+                billingBasis: data.billingBasis,
+                productCount: data.products.length
+            });
+        }
+    }).catch(function(error) {
+        document.getElementById('pricingLoading').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Failed to load pricing data. Please try again.</div>';
+    });
+};
+
+function renderPricingTable(products) {
+    var tbody = document.getElementById('pricingTableBody');
+    var html = '';
+    
+    products.forEach(function(item) {
+        var statusClass = item.status === 'active' ? 'badge-success' : 'badge-secondary';
+        var rateDisplay = item.rate < 1 ? item.rate.toFixed(3) : item.rate.toFixed(2);
+        var overrideIcon = item.override ? '<i class="fas fa-star text-warning ms-1" title="Custom rate override"></i>' : '';
+        
+        html += '<tr>';
+        html += '<td><strong>' + item.product + '</strong>' + overrideIcon + '</td>';
+        html += '<td>' + item.unit + '</td>';
+        html += '<td class="text-end">£' + rateDisplay + '</td>';
+        html += '<td>' + item.currency + '</td>';
+        html += '<td>' + formatDateShort(item.effectiveFrom) + '</td>';
+        html += '<td><span class="badge light ' + statusClass + '">' + capitalizeFirst(item.status) + '</span></td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function formatDateShort(dateStr) {
+    var date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+window.resetBillingBasis = function() {
+    document.getElementById('basisSubmitted').checked = (originalBillingBasis === 'submitted');
+    document.getElementById('basisDelivered').checked = (originalBillingBasis === 'delivered');
+    document.getElementById('billingBasisActions').style.display = 'none';
+};
+
+window.confirmBillingBasisChange = function() {
+    var newBasis = document.querySelector('input[name="billingBasis"]:checked').value;
+    var oldBasisLabel = originalBillingBasis === 'submitted' ? 'Submitted' : 'Delivered Only';
+    var newBasisLabel = newBasis === 'submitted' ? 'Submitted' : 'Delivered Only';
+    
+    document.getElementById('confirmBillingClient').textContent = currentPricingClientName;
+    document.getElementById('confirmBillingFrom').textContent = oldBasisLabel;
+    document.getElementById('confirmBillingTo').textContent = newBasisLabel;
+    
+    confirmBillingBasisModal.show();
+};
+
+window.executeBillingBasisChange = function() {
+    var newBasis = document.querySelector('input[name="billingBasis"]:checked').value;
+    var btn = document.getElementById('confirmBillingBasisBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+    
+    PricingService.updateBillingBasis(currentPricingAccountId, newBasis).then(function(response) {
+        originalBillingBasis = newBasis;
+        var basisLabel = newBasis === 'submitted' ? 'Submitted' : 'Delivered Only';
+        document.getElementById('billingBasisCurrent').textContent = 'Current: ' + basisLabel;
+        document.getElementById('billingBasisActions').style.display = 'none';
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Change';
+        confirmBillingBasisModal.hide();
+        
+        // Show success toast/alert
+        alert('Billing basis updated successfully to: ' + basisLabel);
+        
+        // Audit log
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('BILLING_BASIS_CHANGED', 'PRICING', {
+                accountId: currentPricingAccountId,
+                clientName: currentPricingClientName,
+                previousBasis: originalBillingBasis,
+                newBasis: newBasis
+            });
+        }
+    }).catch(function(error) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Change';
+        alert('Failed to update billing basis. Please try again.');
     });
 };
 </script>
