@@ -813,7 +813,7 @@ tr.selected-row:hover {
                             <td class="text-end"><span class="cost-value">£2.00</span></td>
                             <td><span class="supplier-value">Sinch</span></td>
                             <td><span class="date-value">15 Oct 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-001'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-001'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-001'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-001'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-001'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Number</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-001'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
                         </tr>
                         <tr data-id="NUM-002">
                             <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-002"></td>
@@ -826,7 +826,7 @@ tr.selected-row:hover {
                             <td class="text-end"><span class="cost-value">£2.00</span></td>
                             <td><span class="supplier-value">Sinch</span></td>
                             <td><span class="date-value">20 Sep 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-002'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-002'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-002'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-002'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-002'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Number</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-002'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
                         </tr>
                         <tr data-id="NUM-003">
                             <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-003"></td>
@@ -839,7 +839,7 @@ tr.selected-row:hover {
                             <td class="text-end"><span class="cost-value">£2.00</span></td>
                             <td><span class="supplier-value">Vonage</span></td>
                             <td><span class="date-value">10 Aug 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-003'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-003'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-003'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-003'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-success" href="#" onclick="confirmReactivate('NUM-003'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate Number</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-003'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
                         </tr>
                         <tr data-id="NUM-004">
                             <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-004"></td>
@@ -852,7 +852,7 @@ tr.selected-row:hover {
                             <td class="text-end"><span class="cost-value">£5.00</span></td>
                             <td><span class="supplier-value">OpenMarket</span></td>
                             <td><span class="date-value">01 Jul 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-004'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-004'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-004'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-004'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-004'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Keyword</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-004'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
                         </tr>
                         <tr data-id="NUM-005">
                             <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-005"></td>
@@ -865,7 +865,7 @@ tr.selected-row:hover {
                             <td class="text-end"><span class="cost-value">£250.00</span></td>
                             <td><span class="supplier-value">Twilio</span></td>
                             <td><span class="date-value">20 May 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-005'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-005'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li></ul></div></td>
+                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-005'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-005'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-005'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Shortcode</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-005'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
                         </tr>
                     </tbody>
                 </table>
@@ -1573,6 +1573,7 @@ function buildContextMenu(num) {
     }
     
     menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openReassignModal('${num.id}'); return false;"><i class="fas fa-exchange-alt me-2 text-muted"></i>Reassign Customer / Sub-Account</a></li>`);
+    menuItems.push(`<li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('${num.id}'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li>`);
     
     if (num.type === 'vmn' || num.type === 'dedicated') {
         menuItems.push('<li><hr class="dropdown-divider"></li>');
@@ -1834,8 +1835,15 @@ let currentConfigNumberId = null;
 let originalMode = null;
 
 function viewNumberDetails(numberId) {
-    const num = numbersData.find(n => n.id === numberId);
-    if (!num) return;
+    let num = numbersData.find(n => n.id === numberId);
+    if (!num && typeof NumbersAdminService !== 'undefined') {
+        num = NumbersAdminService._mockDb.numbers.find(n => n.id === numberId);
+    }
+    if (!num) {
+        console.error('[Admin Numbers] Number not found:', numberId);
+        return;
+    }
+    console.log('[Admin Numbers] Opening config for:', numberId, num);
     
     currentConfigNumberId = numberId;
     originalMode = num.mode;
@@ -2065,7 +2073,10 @@ async function exportNumbers() {
 let pendingAction = null;
 
 function confirmSuspend(numberId) {
-    const num = numbersData.find(n => n.id === numberId);
+    let num = numbersData.find(n => n.id === numberId);
+    if (!num && typeof NumbersAdminService !== 'undefined') {
+        num = NumbersAdminService._mockDb.numbers.find(n => n.id === numberId);
+    }
     if (!num) return;
     
     pendingAction = { type: 'suspend', numberId, num };
@@ -2096,7 +2107,10 @@ function confirmSuspend(numberId) {
 }
 
 function confirmReactivate(numberId) {
-    const num = numbersData.find(n => n.id === numberId);
+    let num = numbersData.find(n => n.id === numberId);
+    if (!num && typeof NumbersAdminService !== 'undefined') {
+        num = NumbersAdminService._mockDb.numbers.find(n => n.id === numberId);
+    }
     if (!num) return;
     
     pendingAction = { type: 'reactivate', numberId, num };
@@ -2117,6 +2131,40 @@ function confirmReactivate(numberId) {
     `;
     document.getElementById('confirmModalBtn').className = 'btn btn-success';
     document.getElementById('confirmModalBtn').textContent = 'Reactivate Number';
+    
+    new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+}
+
+function confirmReturnToPool(numberId) {
+    let num = numbersData.find(n => n.id === numberId);
+    if (!num && typeof NumbersAdminService !== 'undefined') {
+        num = NumbersAdminService._mockDb.numbers.find(n => n.id === numberId);
+    }
+    if (!num) return;
+    
+    pendingAction = { type: 'return_to_pool', numberId, num };
+    
+    document.getElementById('confirmModalHeader').style.background = '#dc3545';
+    document.getElementById('confirmModalHeader').style.color = '#fff';
+    document.getElementById('confirmModalTitle').textContent = 'Return Number to Pool';
+    document.getElementById('confirmModalBody').innerHTML = `
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This action will unassign the number from its current customer and return it to the available pool.
+        </div>
+        <p>Are you sure you want to return <strong>${num.number}</strong> to the pool?</p>
+        <table class="table table-sm">
+            <tr><td class="text-muted">Current Account</td><td>${num.account}</td></tr>
+            <tr><td class="text-muted">Sub-Account</td><td>${num.subAccount}</td></tr>
+            <tr><td class="text-muted">Type</td><td>${getTypeLabel(num.type)}</td></tr>
+        </table>
+        <div class="mt-3">
+            <label class="form-label">Reason for returning to pool <span class="text-danger">*</span></label>
+            <textarea id="returnToPoolReason" class="form-control" rows="2" placeholder="Enter reason..." required></textarea>
+        </div>
+    `;
+    document.getElementById('confirmModalBtn').className = 'btn btn-danger';
+    document.getElementById('confirmModalBtn').textContent = 'Return to Pool';
     
     new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
 }
