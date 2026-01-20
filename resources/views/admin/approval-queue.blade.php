@@ -192,8 +192,14 @@
     vertical-align: middle;
 }
 
+.queue-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
 .queue-table tbody tr:hover {
     background: #f8f9fc;
+    box-shadow: inset 3px 0 0 var(--admin-primary, #1e3a5f);
 }
 
 .queue-table tbody tr.sla-critical {
@@ -202,6 +208,11 @@
 
 .queue-table tbody tr.sla-critical:hover {
     background: rgba(220, 38, 38, 0.06);
+    box-shadow: inset 3px 0 0 #dc2626;
+}
+
+.queue-table tbody tr td:last-child {
+    cursor: default;
 }
 
 .type-badge {
@@ -727,7 +738,7 @@
                 </tr>
             </thead>
             <tbody id="queue-tbody">
-                <tr data-id="SID-001" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-1234" data-sla="18" data-age="2h">
+                <tr data-id="SID-001" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-1234" data-sla="18" data-age="2h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -765,7 +776,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="sla-critical" data-id="RCS-001" data-type="rcs-agent" data-status="submitted" data-risk="high" data-account="ACC-5678" data-sla="2" data-age="46h">
+                <tr class="sla-critical" data-id="RCS-001" data-type="rcs-agent" data-status="submitted" data-risk="high" data-account="ACC-5678" data-sla="2" data-age="46h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge rcs-agent">
                             <i class="fas fa-robot"></i> RCS Agent
@@ -813,7 +824,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-002" data-type="sender-id" data-status="submitted" data-risk="medium" data-account="ACC-3456" data-sla="12" data-age="12h">
+                <tr data-id="SID-002" data-type="sender-id" data-status="submitted" data-risk="medium" data-account="ACC-3456" data-sla="12" data-age="12h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -856,7 +867,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="RCS-002" data-type="rcs-agent" data-status="in-review" data-risk="low" data-account="ACC-4001" data-sla="36" data-age="8h">
+                <tr data-id="RCS-002" data-type="rcs-agent" data-status="in-review" data-risk="low" data-account="ACC-4001" data-sla="36" data-age="8h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge rcs-agent">
                             <i class="fas fa-robot"></i> RCS Agent
@@ -901,7 +912,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="sla-critical" data-id="SID-003" data-type="sender-id" data-status="submitted" data-risk="high" data-account="ACC-4005" data-sla="0" data-age="52h">
+                <tr class="sla-critical" data-id="SID-003" data-type="sender-id" data-status="submitted" data-risk="high" data-account="ACC-4005" data-sla="0" data-age="52h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -944,7 +955,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="RCS-003" data-type="rcs-agent" data-status="submitted" data-risk="medium" data-account="ACC-1234" data-sla="42" data-age="6h">
+                <tr data-id="RCS-003" data-type="rcs-agent" data-status="submitted" data-risk="medium" data-account="ACC-1234" data-sla="42" data-age="6h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge rcs-agent">
                             <i class="fas fa-robot"></i> RCS Agent
@@ -987,7 +998,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-004" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-5678" data-sla="22" data-age="2h">
+                <tr data-id="SID-004" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-5678" data-sla="22" data-age="2h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -1025,7 +1036,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="sla-critical" data-id="RCS-004" data-type="rcs-agent" data-status="submitted" data-risk="high" data-account="ACC-3456" data-sla="4" data-age="44h">
+                <tr class="sla-critical" data-id="RCS-004" data-type="rcs-agent" data-status="submitted" data-risk="high" data-account="ACC-3456" data-sla="4" data-age="44h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge rcs-agent">
                             <i class="fas fa-robot"></i> RCS Agent
@@ -1069,7 +1080,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-005" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-4001" data-sla="20" data-age="4h">
+                <tr data-id="SID-005" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-4001" data-sla="20" data-age="4h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -1107,7 +1118,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="RCS-005" data-type="rcs-agent" data-status="in-review" data-risk="medium" data-account="ACC-4005" data-sla="28" data-age="20h">
+                <tr data-id="RCS-005" data-type="rcs-agent" data-status="in-review" data-risk="medium" data-account="ACC-4005" data-sla="28" data-age="20h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge rcs-agent">
                             <i class="fas fa-robot"></i> RCS Agent
@@ -1154,7 +1165,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-006" data-type="sender-id" data-status="submitted" data-risk="medium" data-account="ACC-1234" data-sla="16" data-age="8h">
+                <tr data-id="SID-006" data-type="sender-id" data-status="submitted" data-risk="medium" data-account="ACC-1234" data-sla="16" data-age="8h" onclick="navigateToOverview(event, this)">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -1478,10 +1489,20 @@ function setSort(sortType) {
 function viewDetails(id, type) {
     closeAllDropdowns();
     if (type === 'sender-id') {
-        window.location.href = '/admin/assets/sender-ids/' + id;
-    } else {
-        window.location.href = '/admin/assets/rcs-agents/' + id;
+        window.location.href = '/admin/approvals/sender-id/' + id;
+    } else if (type === 'rcs-agent') {
+        window.location.href = '/admin/approvals/rcs-agent/' + id;
     }
+}
+
+function navigateToOverview(e, row) {
+    if (e.target.closest('.action-menu') || e.target.closest('.action-btn') || e.target.closest('.action-dropdown')) {
+        e.stopPropagation();
+        return;
+    }
+    const id = row.dataset.id;
+    const type = row.dataset.type;
+    viewDetails(id, type);
 }
 
 function assignToMe(id) {

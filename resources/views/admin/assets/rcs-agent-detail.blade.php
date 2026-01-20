@@ -557,9 +557,21 @@
     <div class="status-header">
         <span class="agent-name-display" id="agentNameDisplay">Acme Bank Notifications</span>
         <span class="status-pill submitted" id="currentStatus"><i class="fas fa-paper-plane"></i> Submitted</span>
-        <div style="margin-left: auto; display: flex; gap: 1rem; font-size: 0.8rem; color: #64748b;">
-            <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>RCS-001</strong></span>
-            <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 18, 2026, 2:30 PM</strong></span>
+        <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
+            <div style="font-size: 0.8rem; color: #64748b; display: flex; gap: 1rem;">
+                <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>RCS-001</strong></span>
+                <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 18, 2026, 2:30 PM</strong></span>
+            </div>
+            @include('partials.admin.version-history-dropdown', [
+                'currentVersion' => 'v3',
+                'submissionId' => 'RCS-001',
+                'submissionType' => 'rcs-agent',
+                'versions' => [
+                    ['id' => 'v3', 'label' => 'Version 3 (Current)', 'date' => '18 Jan 2026, 14:30', 'status' => 'submitted'],
+                    ['id' => 'v2', 'label' => 'Version 2', 'date' => '16 Jan 2026, 09:15', 'status' => 'returned'],
+                    ['id' => 'v1', 'label' => 'Version 1', 'date' => '12 Jan 2026, 11:42', 'status' => 'returned'],
+                ]
+            ])
         </div>
     </div>
 
