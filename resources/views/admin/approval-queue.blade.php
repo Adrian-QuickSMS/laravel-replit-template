@@ -248,11 +248,7 @@
     border-radius: 50px;
     font-size: 0.75rem;
     font-weight: 500;
-}
-
-.status-pill.pending {
-    background: #fef3c7;
-    color: #92400e;
+    white-space: nowrap;
 }
 
 .status-pill.submitted {
@@ -263,6 +259,46 @@
 .status-pill.in-review {
     background: #e0e7ff;
     color: #3730a3;
+}
+
+.status-pill.returned-to-customer {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-pill.resubmitted {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-pill.validation-in-progress {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+.status-pill.validation-failed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-pill.approved {
+    background: #d9f99d;
+    color: #3f6212;
+}
+
+.status-pill.rejected {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+.status-pill.provisioning-in-progress {
+    background: #c7d2fe;
+    color: #4338ca;
+}
+
+.status-pill.live {
+    background: #bbf7d0;
+    color: #15803d;
 }
 
 .sla-timer {
@@ -447,6 +483,8 @@
 
 .action-dropdown-item.approve { color: #059669; }
 .action-dropdown-item.approve i { color: #059669; }
+.action-dropdown-item.warn { color: #f59e0b; }
+.action-dropdown-item.warn i { color: #f59e0b; }
 .action-dropdown-item.reject { color: #dc2626; }
 .action-dropdown-item.reject i { color: #dc2626; }
 
@@ -566,7 +604,7 @@
 
     <div class="queue-stats-row">
         <div class="queue-stat-card awaiting active" data-filter="awaiting">
-            <div class="stat-count" id="stat-awaiting">11</div>
+            <div class="stat-count" id="stat-awaiting">8</div>
             <div class="stat-label">Awaiting Action</div>
         </div>
         <div class="queue-stat-card sla-critical" data-filter="sla-critical">
@@ -583,7 +621,7 @@
         </div>
         <div class="queue-stat-card total" data-filter="all">
             <div class="stat-count" id="stat-total">11</div>
-            <div class="stat-label">Total Pending</div>
+            <div class="stat-label">Total In Queue</div>
         </div>
     </div>
 
@@ -600,10 +638,17 @@
             <div class="filter-group">
                 <label>Status</label>
                 <select class="form-select form-select-sm" id="filterStatus">
-                    <option value="">All Pending</option>
-                    <option value="pending">Pending (SenderID)</option>
-                    <option value="submitted">Submitted (RCS)</option>
-                    <option value="in-review">In Review (RCS)</option>
+                    <option value="">All Statuses</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="in-review">In Review</option>
+                    <option value="returned-to-customer">Returned to Customer</option>
+                    <option value="resubmitted">Resubmitted</option>
+                    <option value="validation-in-progress">Validation In Progress</option>
+                    <option value="validation-failed">Validation Failed</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="provisioning-in-progress">Provisioning In Progress</option>
+                    <option value="live">Live</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -682,7 +727,7 @@
                 </tr>
             </thead>
             <tbody id="queue-tbody">
-                <tr data-id="SID-001" data-type="sender-id" data-status="pending" data-risk="low" data-account="ACC-1234" data-sla="18" data-age="2h">
+                <tr data-id="SID-001" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-1234" data-sla="18" data-age="2h">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -696,7 +741,7 @@
                             <span class="submitter-email">j.smith@acme.com</span>
                         </div>
                     </td>
-                    <td><span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="status-pill submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="submitted-cell">
                             <span class="submitted-date">Jan 20, 2026</span>
@@ -714,8 +759,8 @@
                                 <div class="action-dropdown-item" onclick="viewDetails('SID-001', 'sender-id')"><i class="fas fa-eye"></i> View Details</div>
                                 <div class="action-dropdown-item" onclick="assignToMe('SID-001')"><i class="fas fa-user-plus"></i> Assign to Me</div>
                                 <div class="action-divider"></div>
-                                <div class="action-dropdown-item approve" onclick="quickApprove('SID-001')"><i class="fas fa-check"></i> Approve</div>
-                                <div class="action-dropdown-item reject" onclick="showRejectModal('SID-001')"><i class="fas fa-times"></i> Reject</div>
+                                <div class="action-dropdown-item" onclick="markInReview('SID-001')"><i class="fas fa-search"></i> In Review</div>
+                                <div class="action-dropdown-item reject" onclick="showRejectModal('SID-001')"><i class="fas fa-times-circle"></i> Reject</div>
                             </div>
                         </div>
                     </td>
@@ -748,7 +793,7 @@
                             <span class="risk-pill spam-keywords">Spam Keywords</span>
                         </div>
                     </td>
-                    <td><span class="validation-status pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="validation-status pending"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="assigned-admin">
                             <span class="admin-avatar">SJ</span>
@@ -761,15 +806,14 @@
                             <div class="action-dropdown">
                                 <div class="action-dropdown-item" onclick="viewDetails('RCS-001', 'rcs-agent')"><i class="fas fa-eye"></i> View Details</div>
                                 <div class="action-dropdown-item" onclick="reassign('RCS-001')"><i class="fas fa-user-edit"></i> Reassign</div>
-                                <div class="action-dropdown-item" onclick="markInReview('RCS-001')"><i class="fas fa-search"></i> Mark In Review</div>
                                 <div class="action-divider"></div>
-                                <div class="action-dropdown-item approve" onclick="quickApprove('RCS-001')"><i class="fas fa-check"></i> Approve</div>
-                                <div class="action-dropdown-item reject" onclick="showRejectModal('RCS-001')"><i class="fas fa-times"></i> Reject</div>
+                                <div class="action-dropdown-item" onclick="markInReview('RCS-001')"><i class="fas fa-search"></i> In Review</div>
+                                <div class="action-dropdown-item reject" onclick="showRejectModal('RCS-001')"><i class="fas fa-times-circle"></i> Reject</div>
                             </div>
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-002" data-type="sender-id" data-status="pending" data-risk="medium" data-account="ACC-3456" data-sla="12" data-age="12h">
+                <tr data-id="SID-002" data-type="sender-id" data-status="submitted" data-risk="medium" data-account="ACC-3456" data-sla="12" data-age="12h">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -783,7 +827,7 @@
                             <span class="submitter-email">s.wilson@medtech.nhs.uk</span>
                         </div>
                     </td>
-                    <td><span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="status-pill submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="submitted-cell">
                             <span class="submitted-date">Jan 20, 2026</span>
@@ -849,13 +893,15 @@
                                 <div class="action-dropdown-item" onclick="viewDetails('RCS-002', 'rcs-agent')"><i class="fas fa-eye"></i> View Details</div>
                                 <div class="action-dropdown-item" onclick="reassign('RCS-002')"><i class="fas fa-user-edit"></i> Reassign</div>
                                 <div class="action-divider"></div>
-                                <div class="action-dropdown-item approve" onclick="quickApprove('RCS-002')"><i class="fas fa-check"></i> Approve</div>
-                                <div class="action-dropdown-item reject" onclick="showRejectModal('RCS-002')"><i class="fas fa-times"></i> Reject</div>
+                                <div class="action-dropdown-item warn" onclick="returnToCustomer('RCS-002')"><i class="fas fa-reply"></i> Return to Customer</div>
+                                <div class="action-dropdown-item" onclick="startValidation('RCS-002')"><i class="fas fa-spinner"></i> Start Validation</div>
+                                <div class="action-dropdown-item approve" onclick="quickApprove('RCS-002')"><i class="fas fa-check-circle"></i> Approve</div>
+                                <div class="action-dropdown-item reject" onclick="showRejectModal('RCS-002')"><i class="fas fa-times-circle"></i> Reject</div>
                             </div>
                         </div>
                     </td>
                 </tr>
-                <tr class="sla-critical" data-id="SID-003" data-type="sender-id" data-status="pending" data-risk="high" data-account="ACC-4005" data-sla="0" data-age="52h">
+                <tr class="sla-critical" data-id="SID-003" data-type="sender-id" data-status="submitted" data-risk="high" data-account="ACC-4005" data-sla="0" data-age="52h">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -869,7 +915,7 @@
                             <span class="submitter-email">j.taylor@healthplus.com</span>
                         </div>
                     </td>
-                    <td><span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="status-pill submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="submitted-cell">
                             <span class="submitted-date">Jan 18, 2026</span>
@@ -925,7 +971,7 @@
                             <span class="risk-pill medium">Medium</span>
                         </div>
                     </td>
-                    <td><span class="validation-status pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="validation-status pending"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td><span class="unassigned">Unassigned</span></td>
                     <td>
                         <div class="action-menu">
@@ -941,7 +987,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-004" data-type="sender-id" data-status="pending" data-risk="low" data-account="ACC-5678" data-sla="22" data-age="2h">
+                <tr data-id="SID-004" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-5678" data-sla="22" data-age="2h">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -955,7 +1001,7 @@
                             <span class="submitter-email">r.white@financeltd.com</span>
                         </div>
                     </td>
-                    <td><span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="status-pill submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="submitted-cell">
                             <span class="submitted-date">Jan 20, 2026</span>
@@ -1023,7 +1069,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-005" data-type="sender-id" data-status="pending" data-risk="low" data-account="ACC-4001" data-sla="20" data-age="4h">
+                <tr data-id="SID-005" data-type="sender-id" data-status="submitted" data-risk="low" data-account="ACC-4001" data-sla="20" data-age="4h">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -1037,7 +1083,7 @@
                             <span class="submitter-email">d.lee@retailmax.com</span>
                         </div>
                     </td>
-                    <td><span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="status-pill submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="submitted-cell">
                             <span class="submitted-date">Jan 20, 2026</span>
@@ -1108,7 +1154,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr data-id="SID-006" data-type="sender-id" data-status="pending" data-risk="medium" data-account="ACC-1234" data-sla="16" data-age="8h">
+                <tr data-id="SID-006" data-type="sender-id" data-status="submitted" data-risk="medium" data-account="ACC-1234" data-sla="16" data-age="8h">
                     <td>
                         <span class="type-badge sender-id">
                             <i class="fas fa-signature"></i> Sender ID
@@ -1122,7 +1168,7 @@
                             <span class="submitter-email">c.johnson@acme.com</span>
                         </div>
                     </td>
-                    <td><span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span></td>
+                    <td><span class="status-pill submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                     <td>
                         <div class="submitted-cell">
                             <span class="submitted-date">Jan 20, 2026</span>
@@ -1203,11 +1249,82 @@
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script>
+var APPROVAL_LIFECYCLE = {
+    STATUSES: {
+        SUBMITTED: 'submitted',
+        IN_REVIEW: 'in-review',
+        RETURNED_TO_CUSTOMER: 'returned-to-customer',
+        RESUBMITTED: 'resubmitted',
+        VALIDATION_IN_PROGRESS: 'validation-in-progress',
+        VALIDATION_FAILED: 'validation-failed',
+        APPROVED: 'approved',
+        REJECTED: 'rejected',
+        PROVISIONING_IN_PROGRESS: 'provisioning-in-progress',
+        LIVE: 'live'
+    },
+    
+    STATUS_DISPLAY: {
+        'submitted': { label: 'Submitted', icon: 'fa-paper-plane' },
+        'in-review': { label: 'In Review', icon: 'fa-search' },
+        'returned-to-customer': { label: 'Returned to Customer', icon: 'fa-reply' },
+        'resubmitted': { label: 'Resubmitted', icon: 'fa-redo' },
+        'validation-in-progress': { label: 'Validation In Progress', icon: 'fa-spinner fa-spin' },
+        'validation-failed': { label: 'Validation Failed', icon: 'fa-exclamation-circle' },
+        'approved': { label: 'Approved', icon: 'fa-check-circle' },
+        'rejected': { label: 'Rejected', icon: 'fa-times-circle' },
+        'provisioning-in-progress': { label: 'Provisioning In Progress', icon: 'fa-cog fa-spin' },
+        'live': { label: 'Live', icon: 'fa-broadcast-tower' }
+    },
+    
+    TRANSITIONS: {
+        'submitted': ['in-review', 'rejected'],
+        'in-review': ['returned-to-customer', 'validation-in-progress', 'approved', 'rejected'],
+        'returned-to-customer': [],
+        'resubmitted': ['in-review', 'rejected'],
+        'validation-in-progress': ['validation-failed', 'approved'],
+        'validation-failed': ['returned-to-customer', 'rejected'],
+        'approved': ['provisioning-in-progress', 'live'],
+        'rejected': [],
+        'provisioning-in-progress': ['live', 'validation-failed'],
+        'live': []
+    },
+    
+    RCS_ONLY_STATUSES: ['provisioning-in-progress'],
+    
+    AWAITING_ADMIN_ACTION: ['submitted', 'resubmitted', 'in-review', 'validation-failed'],
+    
+    TERMINAL_STATES: ['rejected', 'live'],
+    
+    canTransition: function(currentStatus, targetStatus, requestType) {
+        if (this.RCS_ONLY_STATUSES.includes(targetStatus) && requestType !== 'rcs-agent') {
+            console.warn('[LIFECYCLE] Status', targetStatus, 'is RCS-only');
+            return false;
+        }
+        
+        var allowed = this.TRANSITIONS[currentStatus] || [];
+        return allowed.includes(targetStatus);
+    },
+    
+    getAvailableTransitions: function(currentStatus, requestType) {
+        var transitions = this.TRANSITIONS[currentStatus] || [];
+        var self = this;
+        
+        if (requestType !== 'rcs-agent') {
+            transitions = transitions.filter(function(s) {
+                return !self.RCS_ONLY_STATUSES.includes(s);
+            });
+        }
+        
+        return transitions;
+    }
+};
+
 var currentSort = 'oldest';
 var openDropdown = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Approval Queue] Initialized');
+    console.log('[LIFECYCLE] Loaded unified lifecycle with statuses:', Object.keys(APPROVAL_LIFECYCLE.STATUSES));
     
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('PAGE_VIEW', 'approval-queue', { module: 'approval_queue' }, 'LOW');
@@ -1255,13 +1372,15 @@ function applyStatFilter(filter) {
         var show = true;
         
         if (filter === 'awaiting') {
-            show = true;
+            show = APPROVAL_LIFECYCLE.AWAITING_ADMIN_ACTION.includes(row.dataset.status);
         } else if (filter === 'sla-critical') {
             show = parseInt(row.dataset.sla) <= 8;
         } else if (filter === 'high-risk') {
             show = row.dataset.risk === 'high';
         } else if (filter === 'assigned-to-me') {
             show = row.querySelector('.admin-name') !== null;
+        } else if (filter === 'all') {
+            show = true;
         }
         
         row.style.display = show ? '' : 'none';
@@ -1379,35 +1498,88 @@ function reassign(id) {
     alert('Reassign modal for ' + id);
 }
 
-function markInReview(id) {
-    closeAllDropdowns();
+function transitionStatus(id, newStatus) {
     var row = document.querySelector('[data-id="' + id + '"]');
-    if (row) {
-        row.dataset.status = 'in-review';
-        var statusCell = row.querySelector('.status-pill');
-        statusCell.className = 'status-pill in-review';
-        statusCell.innerHTML = '<i class="fas fa-search"></i> In Review';
+    if (!row) {
+        console.error('[LIFECYCLE] Row not found:', id);
+        return false;
     }
     
+    var currentStatus = row.dataset.status;
+    var requestType = row.dataset.type;
+    
+    if (!APPROVAL_LIFECYCLE.canTransition(currentStatus, newStatus, requestType)) {
+        console.error('[LIFECYCLE] Invalid transition:', currentStatus, '->', newStatus);
+        alert('Invalid status transition from ' + currentStatus + ' to ' + newStatus);
+        return false;
+    }
+    
+    var statusInfo = APPROVAL_LIFECYCLE.STATUS_DISPLAY[newStatus];
+    row.dataset.status = newStatus;
+    var statusCell = row.querySelector('.status-pill');
+    statusCell.className = 'status-pill ' + newStatus;
+    statusCell.innerHTML = '<i class="fas ' + statusInfo.icon + '"></i> ' + statusInfo.label;
+    
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('MARK_IN_REVIEW', id, {}, 'MEDIUM');
+        AdminControlPlane.logAdminAction('STATUS_TRANSITION', id, {
+            from: currentStatus,
+            to: newStatus,
+            requestType: requestType
+        }, 'HIGH');
+    }
+    
+    console.log('[LIFECYCLE] Transition complete:', id, currentStatus, '->', newStatus);
+    return true;
+}
+
+function markInReview(id) {
+    closeAllDropdowns();
+    transitionStatus(id, 'in-review');
+}
+
+function startValidation(id) {
+    closeAllDropdowns();
+    transitionStatus(id, 'validation-in-progress');
+}
+
+function returnToCustomer(id) {
+    closeAllDropdowns();
+    if (confirm('Return this request to the customer for additional information?')) {
+        transitionStatus(id, 'returned-to-customer');
     }
 }
 
 function quickApprove(id) {
     closeAllDropdowns();
+    var row = document.querySelector('[data-id="' + id + '"]');
+    if (!row) return;
+    
+    var currentStatus = row.dataset.status;
+    var requestType = row.dataset.type;
+    
+    if (!APPROVAL_LIFECYCLE.canTransition(currentStatus, 'approved', requestType)) {
+        alert('Cannot approve from status: ' + currentStatus + '. Must complete required steps first.');
+        return;
+    }
+    
     if (confirm('Are you sure you want to approve this request?')) {
-        var row = document.querySelector('[data-id="' + id + '"]');
-        if (row) {
-            row.style.opacity = '0.5';
-            setTimeout(function() {
-                row.remove();
-                updateCounts();
-            }, 500);
-        }
+        transitionStatus(id, 'approved');
         
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('APPROVE', id, {}, 'HIGH');
+        if (requestType === 'rcs-agent') {
+            setTimeout(function() {
+                transitionStatus(id, 'provisioning-in-progress');
+            }, 1000);
+        } else {
+            setTimeout(function() {
+                transitionStatus(id, 'live');
+                setTimeout(function() {
+                    row.style.opacity = '0.5';
+                    setTimeout(function() {
+                        row.remove();
+                        updateCounts();
+                    }, 500);
+                }, 1000);
+            }, 1000);
         }
     }
 }
@@ -1431,19 +1603,34 @@ function confirmReject() {
     }
     
     var row = document.querySelector('[data-id="' + id + '"]');
-    if (row) {
+    if (!row) return;
+    
+    var currentStatus = row.dataset.status;
+    if (!APPROVAL_LIFECYCLE.canTransition(currentStatus, 'rejected', row.dataset.type)) {
+        alert('Cannot reject from status: ' + currentStatus);
+        bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+        return;
+    }
+    
+    transitionStatus(id, 'rejected');
+    
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('REJECT', id, { 
+            reason: reason, 
+            notes: notes,
+            fromStatus: currentStatus 
+        }, 'HIGH');
+    }
+    
+    setTimeout(function() {
         row.style.opacity = '0.5';
         setTimeout(function() {
             row.remove();
             updateCounts();
         }, 500);
-    }
+    }, 1000);
     
     bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-    
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('REJECT', id, { reason, notes }, 'HIGH');
-    }
 }
 
 function updateCounts() {
@@ -1452,20 +1639,81 @@ function updateCounts() {
     var slaCritical = 0;
     var highRisk = 0;
     var assigned = 0;
+    var awaitingAction = 0;
     
     rows.forEach(function(row) {
         if (parseInt(row.dataset.sla) <= 8) slaCritical++;
         if (row.dataset.risk === 'high') highRisk++;
         if (row.querySelector('.admin-name')) assigned++;
+        if (APPROVAL_LIFECYCLE.AWAITING_ADMIN_ACTION.includes(row.dataset.status)) awaitingAction++;
     });
     
-    document.getElementById('stat-awaiting').textContent = total;
+    document.getElementById('stat-awaiting').textContent = awaitingAction;
     document.getElementById('stat-sla-critical').textContent = slaCritical;
     document.getElementById('stat-high-risk').textContent = highRisk;
     document.getElementById('stat-assigned').textContent = assigned;
     document.getElementById('stat-total').textContent = total;
     document.getElementById('showing-count').textContent = total;
     document.getElementById('total-count').textContent = total;
+}
+
+function getActionMenuItems(id, type, status) {
+    var items = [];
+    
+    items.push({ label: 'View Details', icon: 'fa-eye', action: "viewDetails('" + id + "', '" + type + "')" });
+    
+    var hasAdmin = document.querySelector('[data-id="' + id + '"] .admin-name');
+    if (hasAdmin) {
+        items.push({ label: 'Reassign', icon: 'fa-user-edit', action: "reassign('" + id + "')" });
+    } else {
+        items.push({ label: 'Assign to Me', icon: 'fa-user-plus', action: "assignToMe('" + id + "')" });
+    }
+    
+    var transitions = APPROVAL_LIFECYCLE.getAvailableTransitions(status, type);
+    
+    if (transitions.length > 0) {
+        items.push({ divider: true });
+    }
+    
+    transitions.forEach(function(t) {
+        var info = APPROVAL_LIFECYCLE.STATUS_DISPLAY[t];
+        var actionClass = '';
+        var actionFn = '';
+        
+        switch(t) {
+            case 'in-review':
+                actionClass = '';
+                actionFn = "markInReview('" + id + "')";
+                break;
+            case 'validation-in-progress':
+                actionClass = '';
+                actionFn = "startValidation('" + id + "')";
+                break;
+            case 'returned-to-customer':
+                actionClass = 'warn';
+                actionFn = "returnToCustomer('" + id + "')";
+                break;
+            case 'approved':
+                actionClass = 'approve';
+                actionFn = "quickApprove('" + id + "')";
+                break;
+            case 'rejected':
+                actionClass = 'reject';
+                actionFn = "showRejectModal('" + id + "')";
+                break;
+            default:
+                actionFn = "transitionStatus('" + id + "', '" + t + "')";
+        }
+        
+        items.push({
+            label: info.label,
+            icon: info.icon,
+            action: actionFn,
+            className: actionClass
+        });
+    });
+    
+    return items;
 }
 
 function exportQueue() {
