@@ -2145,11 +2145,6 @@ document.addEventListener('DOMContentLoaded', function() {
         baseData: {
             volume: { parts: 1247832, revenue: 18492, margin: 6328, marginPct: 34.2 },
             delivery: { sent: 1247832, delivered: 1231654, undelivered: 16178, deliveryPct: 98.7 },
-            volumeChart: {
-                total: [45000, 52000, 48000, 61000, 58000, 72000, 68000, 75000, 82000, 78000, 85000, 92000],
-                sms: [38000, 44000, 40000, 51000, 48000, 60000, 56000, 62000, 68000, 65000, 71000, 76000],
-                rcs: [7000, 8000, 8000, 10000, 10000, 12000, 12000, 13000, 14000, 13000, 14000, 16000]
-            },
             deliveryPie: [1231654, 8234, 3456, 4567, 3377],
             countries: [
                 { x: 'United Kingdom', y: 892145 },
@@ -2186,8 +2181,105 @@ document.addEventListener('DOMContentLoaded', function() {
             ]
         },
         
+        // Determine time bucket granularity based on date range
+        // Returns: 'hour', 'day', or 'month'
+        getTimeBucketGranularity: function(dateRange) {
+            switch (dateRange) {
+                case 'today':
+                case 'yesterday':
+                    return 'hour';
+                case 'last7':
+                case 'last30':
+                case 'mtd':
+                    return 'day';
+                case 'custom':
+                default:
+                    return 'month';
+            }
+        },
+        
+        // Generate time series categories (x-axis labels) based on granularity
+        generateTimeCategories: function(granularity, dateRange) {
+            var categories = [];
+            
+            switch (granularity) {
+                case 'hour':
+                    // 24 hours: 00:00, 01:00, ..., 23:00
+                    for (var h = 0; h < 24; h++) {
+                        categories.push((h < 10 ? '0' : '') + h + ':00');
+                    }
+                    break;
+                    
+                case 'day':
+                    var numDays = dateRange === 'last7' ? 7 : dateRange === 'mtd' ? new Date().getDate() : 30;
+                    var today = new Date();
+                    for (var d = numDays - 1; d >= 0; d--) {
+                        var date = new Date(today);
+                        date.setDate(today.getDate() - d);
+                        var day = date.getDate();
+                        var month = date.toLocaleString('en-GB', { month: 'short' });
+                        categories.push(day + ' ' + month);
+                    }
+                    break;
+                    
+                case 'month':
+                default:
+                    categories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    break;
+            }
+            
+            return categories;
+        },
+        
+        // Generate time series data points based on granularity
+        generateTimeSeriesData: function(granularity, dateRange, multiplier) {
+            var count;
+            var baseValues;
+            
+            switch (granularity) {
+                case 'hour':
+                    count = 24;
+                    // Hourly pattern: lower at night, peaks during business hours
+                    baseValues = [800, 600, 400, 300, 350, 500, 1200, 2800, 4500, 5200, 5800, 6000, 
+                                  5500, 5800, 6200, 6000, 5500, 4800, 4200, 3800, 3200, 2400, 1800, 1200];
+                    break;
+                    
+                case 'day':
+                    count = dateRange === 'last7' ? 7 : dateRange === 'mtd' ? new Date().getDate() : 30;
+                    // Daily pattern: some variation, weekends lower
+                    baseValues = [];
+                    for (var i = 0; i < count; i++) {
+                        var dayOfWeek = (new Date().getDay() - (count - 1 - i) + 7) % 7;
+                        var isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                        var baseVal = isWeekend ? 35000 : 52000;
+                        baseValues.push(baseVal + Math.floor(Math.random() * 10000 - 5000));
+                    }
+                    break;
+                    
+                case 'month':
+                default:
+                    count = 12;
+                    baseValues = [45000, 52000, 48000, 61000, 58000, 72000, 68000, 75000, 82000, 78000, 85000, 92000];
+                    break;
+            }
+            
+            // Generate SMS and RCS breakdown (SMS ~85%, RCS ~15%)
+            var total = baseValues.map(function(v) { return Math.round(v * multiplier); });
+            var sms = total.map(function(v) { return Math.round(v * 0.85); });
+            var rcs = total.map(function(v) { return Math.round(v * 0.15); });
+            
+            return {
+                categories: this.generateTimeCategories(granularity, dateRange),
+                total: total,
+                sms: sms,
+                rcs: rcs,
+                granularity: granularity
+            };
+        },
+        
         // Generate filtered data based on filter selections
         getFilteredData: function(filters) {
+            var self = this;
             var multiplier = this.calculateMultiplier(filters);
             var data = JSON.parse(JSON.stringify(this.baseData)); // Deep clone
             
@@ -2202,10 +2294,9 @@ document.addEventListener('DOMContentLoaded', function() {
             data.delivery.undelivered = Math.round(data.delivery.undelivered * multiplier);
             data.delivery.deliveryPct = +((data.delivery.delivered / data.delivery.sent) * 100).toFixed(1);
             
-            // Apply multiplier to chart data
-            data.volumeChart.total = data.volumeChart.total.map(function(v) { return Math.round(v * multiplier); });
-            data.volumeChart.sms = data.volumeChart.sms.map(function(v) { return Math.round(v * multiplier); });
-            data.volumeChart.rcs = data.volumeChart.rcs.map(function(v) { return Math.round(v * multiplier); });
+            // Generate time-bucketed volume chart data based on date range
+            var granularity = this.getTimeBucketGranularity(filters.dateRange);
+            data.volumeChart = this.generateTimeSeriesData(granularity, filters.dateRange, multiplier);
             
             data.deliveryPie = data.deliveryPie.map(function(v) { return Math.round(v * multiplier); });
             
@@ -2321,13 +2412,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateCharts(data) {
-        // Update Volume Line Chart
+        // Update Volume Line Chart with adaptive time buckets
         if (chartInstances.volume) {
+            // Update x-axis categories for time bucketing
+            chartInstances.volume.updateOptions({
+                xaxis: {
+                    categories: data.volumeChart.categories,
+                    title: { 
+                        text: data.volumeChart.granularity === 'hour' ? 'Hour' : 
+                              data.volumeChart.granularity === 'day' ? 'Date' : 'Month'
+                    }
+                }
+            }, false, false); // Don't redraw yet
+            
+            // Update series data
             chartInstances.volume.updateSeries([
                 { name: 'Total', data: data.volumeChart.total },
                 { name: 'SMS', data: data.volumeChart.sms },
                 { name: 'RCS', data: data.volumeChart.rcs }
             ]);
+            
+            console.log('[Admin Charts] Volume chart updated - Granularity:', data.volumeChart.granularity, 
+                        'Categories:', data.volumeChart.categories.length);
         }
         
         // Update Delivery Pie Chart
