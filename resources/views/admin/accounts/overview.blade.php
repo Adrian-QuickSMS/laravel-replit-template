@@ -6,13 +6,40 @@
 <style>
 .admin-page { padding: 1.5rem; }
 .account-filters { margin-bottom: 1.5rem; }
-.kpi-tile-row { margin-bottom: 1.5rem; }
+.kpi-tile-row { margin-bottom: 1.5rem; transition: all 0.3s ease; }
 .kpi-tile-row .widget-stat { cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; }
 .kpi-tile-row .widget-stat:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .kpi-tile-row .widget-stat.active { border-color: #1e3a5f; }
 .kpi-tile-row .widget-stat .card-body { padding: 1rem; }
 .kpi-tile-row .widget-stat h4 { font-size: 1.5rem; margin-bottom: 0; }
 .kpi-tile-row .widget-stat p { font-size: 0.8rem; margin-bottom: 0.25rem; }
+
+/* Collapsed KPI Strip */
+.kpi-collapsed-strip { 
+    display: none; 
+    background: #fff; 
+    border: 1px solid #e6e6e6; 
+    border-radius: 0.5rem; 
+    padding: 0.5rem 1rem; 
+    margin-bottom: 1rem; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.kpi-collapsed-strip.visible { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; }
+.kpi-collapsed-strip .kpi-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    cursor: pointer; 
+    padding: 0.25rem 0.5rem; 
+    border-radius: 0.25rem;
+    transition: background-color 0.15s;
+}
+.kpi-collapsed-strip .kpi-item:hover { background-color: #f8f9fa; }
+.kpi-collapsed-strip .kpi-item.active { background-color: #e3f2fd; }
+.kpi-collapsed-strip .kpi-item .kpi-icon { font-size: 0.875rem; }
+.kpi-collapsed-strip .kpi-item .kpi-label { font-size: 0.75rem; color: #6c757d; }
+.kpi-collapsed-strip .kpi-item .kpi-count { font-weight: 600; font-size: 0.875rem; color: #1e3a5f; }
+.kpi-tile-row.collapsed { display: none; }
 
 /* Hierarchy Tree Styles */
 .hierarchy-tree { font-size: 0.9rem; }
@@ -181,6 +208,50 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Collapsed KPI Strip (shown when scrolled) -->
+    <div class="kpi-collapsed-strip" id="kpiCollapsedStrip">
+        <div class="kpi-item" onclick="filterAccounts('live')" data-filter="live">
+            <i class="fas fa-check-circle text-success kpi-icon"></i>
+            <span class="kpi-label">Active</span>
+            <span class="kpi-count">847</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('test')" data-filter="test">
+            <i class="fas fa-flask text-info kpi-icon"></i>
+            <span class="kpi-label">Test</span>
+            <span class="kpi-count">156</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('suspended')" data-filter="suspended">
+            <i class="fas fa-ban text-danger kpi-icon"></i>
+            <span class="kpi-label">Suspended</span>
+            <span class="kpi-count">23</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('pending')" data-filter="pending">
+            <i class="fas fa-clock text-warning kpi-icon"></i>
+            <span class="kpi-label">Pending</span>
+            <span class="kpi-count">12</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('senderid')" data-filter="senderid">
+            <i class="fas fa-id-badge text-primary kpi-icon"></i>
+            <span class="kpi-label">Sender ID</span>
+            <span class="kpi-count">8</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('rcs')" data-filter="rcs">
+            <i class="fas fa-comments text-secondary kpi-icon"></i>
+            <span class="kpi-label">RCS</span>
+            <span class="kpi-count">5</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('testnumber')" data-filter="testnumber">
+            <i class="fas fa-phone text-info kpi-icon"></i>
+            <span class="kpi-label">Test #</span>
+            <span class="kpi-count">3</span>
+        </div>
+        <div class="kpi-item" onclick="filterAccounts('flagged')" data-filter="flagged">
+            <i class="fas fa-exclamation-triangle text-danger kpi-icon"></i>
+            <span class="kpi-label">Fraud/Risk</span>
+            <span class="kpi-count">4</span>
         </div>
     </div>
 
@@ -679,12 +750,60 @@ document.addEventListener('DOMContentLoaded', function() {
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // KPI Tiles Collapse on Scroll
+    initKpiScrollCollapse();
 });
+
+function initKpiScrollCollapse() {
+    var kpiTileRow = document.querySelector('.kpi-tile-row');
+    var kpiCollapsedStrip = document.getElementById('kpiCollapsedStrip');
+    var contentArea = document.querySelector('.content-body') || document.querySelector('.admin-page').parentElement || window;
+    
+    if (!kpiTileRow || !kpiCollapsedStrip) return;
+
+    var collapseThreshold = 100;
+    var isCollapsed = false;
+
+    function handleScroll() {
+        var scrollTop = contentArea === window ? window.scrollY : contentArea.scrollTop;
+        
+        if (scrollTop > collapseThreshold && !isCollapsed) {
+            kpiTileRow.classList.add('collapsed');
+            kpiCollapsedStrip.classList.add('visible');
+            isCollapsed = true;
+            syncActiveFilter();
+        } else if (scrollTop <= collapseThreshold && isCollapsed) {
+            kpiTileRow.classList.remove('collapsed');
+            kpiCollapsedStrip.classList.remove('visible');
+            isCollapsed = false;
+        }
+    }
+
+    function syncActiveFilter() {
+        var activeTile = kpiTileRow.querySelector('.widget-stat.active');
+        var stripItems = kpiCollapsedStrip.querySelectorAll('.kpi-item');
+        
+        stripItems.forEach(function(item) {
+            item.classList.remove('active');
+            if (activeTile && item.dataset.filter === activeTile.dataset.filter) {
+                item.classList.add('active');
+            }
+        });
+    }
+
+    if (contentArea === window) {
+        window.addEventListener('scroll', handleScroll, { passive: true });
+    } else {
+        contentArea.addEventListener('scroll', handleScroll, { passive: true });
+    }
+}
 
 var currentFilter = null;
 
 window.filterAccounts = function(filter) {
     var tiles = document.querySelectorAll('.kpi-tile-row .widget-stat');
+    var stripItems = document.querySelectorAll('.kpi-collapsed-strip .kpi-item');
     
     // Toggle active state
     if (currentFilter === filter) {
@@ -692,6 +811,9 @@ window.filterAccounts = function(filter) {
         currentFilter = null;
         tiles.forEach(function(tile) {
             tile.classList.remove('active');
+        });
+        stripItems.forEach(function(item) {
+            item.classList.remove('active');
         });
         // Reset table to show all
         filterTable(null);
@@ -702,6 +824,12 @@ window.filterAccounts = function(filter) {
             tile.classList.remove('active');
             if (tile.dataset.filter === filter) {
                 tile.classList.add('active');
+            }
+        });
+        stripItems.forEach(function(item) {
+            item.classList.remove('active');
+            if (item.dataset.filter === filter) {
+                item.classList.add('active');
             }
         });
         filterTable(filter);
