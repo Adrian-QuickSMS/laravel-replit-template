@@ -1,6 +1,40 @@
 var AdminControlPlane = (function() {
     'use strict';
 
+    var ACCESS_RULES = {
+        internalRoutingOnly: {
+            enabled: true,
+            description: 'Admin routes are internal-only, no external access',
+            routePrefix: '/admin',
+            enforced: true
+        },
+        noSharedRoutes: {
+            enabled: true,
+            description: 'No routes shared with customer portal',
+            customerRoutePrefix: '/',
+            adminRoutePrefix: '/admin',
+            enforced: true
+        },
+        noDeepLinksFromCustomer: {
+            enabled: true,
+            description: 'Customer UI cannot deep-link to admin pages',
+            blockReferrers: ['quicksms.com', 'quicksms.co.uk'],
+            enforced: true
+        },
+        mandatoryMfa: {
+            enabled: true,
+            description: 'MFA required for all admin users',
+            gracePeriodsAllowed: false,
+            enforced: true
+        },
+        adminUsersOnly: {
+            enabled: true,
+            description: 'Only admin-role users can access',
+            validRoles: ['super_admin', 'support', 'finance', 'compliance', 'sales'],
+            enforced: true
+        }
+    };
+
     var GLOBAL_RULES = {
         singleSourceOfTruth: {
             enabled: true,
@@ -581,12 +615,83 @@ var AdminControlPlane = (function() {
     };
 
     function init() {
+        if (!validateAccessRules()) {
+            console.error('[AdminControlPlane] ACCESS DENIED - Security rules violated');
+            return;
+        }
+        
         console.log('[AdminControlPlane] Initialized for:', currentAdmin.email);
+        console.log('[AdminControlPlane] Access Rules:', ACCESS_RULES);
         console.log('[AdminControlPlane] Global Rules:', GLOBAL_RULES);
         updateAdminDisplay();
         bindEvents();
         initFilterSystem();
         initPIIProtection();
+        logAccessEvent('ADMIN_SESSION_START');
+    }
+
+    function validateAccessRules() {
+        var violations = [];
+        
+        if (ACCESS_RULES.internalRoutingOnly.enabled) {
+            var currentPath = window.location.pathname;
+            if (!currentPath.startsWith(ACCESS_RULES.internalRoutingOnly.routePrefix)) {
+                violations.push('INVALID_ROUTE_PREFIX');
+            }
+        }
+        
+        if (ACCESS_RULES.noDeepLinksFromCustomer.enabled && document.referrer) {
+            var referrer = document.referrer;
+            var isCustomerReferrer = ACCESS_RULES.noDeepLinksFromCustomer.blockReferrers.some(function(domain) {
+                return referrer.indexOf(domain) !== -1 && referrer.indexOf('/admin') === -1;
+            });
+            if (isCustomerReferrer) {
+                violations.push('DEEP_LINK_FROM_CUSTOMER_BLOCKED');
+            }
+        }
+        
+        if (ACCESS_RULES.adminUsersOnly.enabled) {
+            if (ACCESS_RULES.adminUsersOnly.validRoles.indexOf(currentAdmin.role) === -1) {
+                violations.push('INVALID_ADMIN_ROLE');
+            }
+        }
+        
+        if (violations.length > 0) {
+            console.error('[AdminControlPlane] Access Violations:', violations);
+            logSecurityViolation(violations);
+            return false;
+        }
+        
+        return true;
+    }
+
+    function logAccessEvent(eventType) {
+        var entry = {
+            timestamp: new Date().toISOString(),
+            eventType: eventType,
+            adminEmail: currentAdmin.email,
+            adminRole: currentAdmin.role,
+            path: window.location.pathname,
+            referrer: document.referrer || 'direct',
+            userAgent: navigator.userAgent,
+            accessRulesEnforced: Object.keys(ACCESS_RULES).filter(function(key) {
+                return ACCESS_RULES[key].enforced;
+            })
+        };
+        console.log('[AdminControlPlane][ACCESS]', JSON.stringify(entry));
+    }
+
+    function logSecurityViolation(violations) {
+        var entry = {
+            timestamp: new Date().toISOString(),
+            severity: 'CRITICAL',
+            eventType: 'SECURITY_VIOLATION',
+            violations: violations,
+            attemptedPath: window.location.pathname,
+            referrer: document.referrer || 'direct',
+            userAgent: navigator.userAgent
+        };
+        console.error('[AdminControlPlane][SECURITY]', JSON.stringify(entry, null, 2));
     }
 
     function initFilterSystem() {
@@ -1420,6 +1525,7 @@ var AdminControlPlane = (function() {
 
     return {
         init: init,
+        ACCESS_RULES: ACCESS_RULES,
         GLOBAL_RULES: GLOBAL_RULES,
         ENFORCEMENT_MATRIX: ENFORCEMENT_MATRIX,
         SHARED_DEFINITIONS: SHARED_DEFINITIONS,
