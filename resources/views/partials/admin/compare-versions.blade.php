@@ -98,11 +98,72 @@
     color: #fff;
 }
 
+.changes-summary-bar {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-bottom: 1px solid #bae6fd;
+    padding: 0.75rem 1rem;
+}
+
+.changes-summary-title {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--admin-primary, #1e3a5f);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.changed-fields-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.changed-field-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.changed-field-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.changed-field-chip.changed {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.changed-field-chip.added {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.changed-field-chip.removed {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.changed-field-chip i {
+    font-size: 0.65rem;
+}
+
 .compare-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
-    height: 600px;
+    height: 550px;
     overflow: hidden;
 }
 
@@ -159,18 +220,25 @@
 
 .compare-section {
     margin-bottom: 1.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .compare-section-header {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--admin-primary, #1e3a5f);
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.compare-section-body {
+    padding: 0.75rem;
 }
 
 .compare-field {
@@ -180,20 +248,25 @@
     margin-bottom: 0.75rem;
     padding: 0.5rem;
     border-radius: 4px;
+    background: #fff;
+}
+
+.compare-field:last-child {
+    margin-bottom: 0;
 }
 
 .compare-field.changed {
-    background: #fef3c7;
+    background: #fffbeb;
     border-left: 3px solid #f59e0b;
 }
 
 .compare-field.added {
-    background: #dcfce7;
+    background: #f0fdf4;
     border-left: 3px solid #22c55e;
 }
 
 .compare-field.removed {
-    background: #fee2e2;
+    background: #fef2f2;
     border-left: 3px solid #ef4444;
 }
 
@@ -202,11 +275,20 @@
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.compare-field-label .field-type-icon {
+    font-size: 0.6rem;
+    opacity: 0.7;
 }
 
 .compare-field-value {
     font-size: 0.85rem;
     color: #1e293b;
+    line-height: 1.5;
 }
 
 .compare-field-value.empty {
@@ -214,29 +296,156 @@
     font-style: italic;
 }
 
-.diff-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.65rem;
-    padding: 0.1rem 0.35rem;
-    border-radius: 3px;
-    margin-left: 0.5rem;
+.diff-text-removed {
+    background: #fecaca;
+    color: #991b1b;
+    text-decoration: line-through;
+    padding: 0.1rem 0.2rem;
+    border-radius: 2px;
 }
 
-.diff-indicator.changed {
+.diff-text-added {
+    background: #bbf7d0;
+    color: #166534;
+    padding: 0.1rem 0.2rem;
+    border-radius: 2px;
+}
+
+.url-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.url-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f1f5f9;
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    word-break: break-all;
+}
+
+.url-display.changed {
+    background: #fef3c7;
+}
+
+.url-display i {
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.tile-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.tile-field.changed {
+    background: #fef3c7;
+    color: #92400e;
+    border: 2px dashed #f59e0b;
+}
+
+.tile-field i {
+    font-size: 0.75rem;
+}
+
+.image-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.image-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.image-preview.changed {
+    border-color: #f59e0b;
+    border-style: dashed;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview .placeholder {
+    color: #94a3b8;
+    font-size: 1.5rem;
+}
+
+.image-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.image-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+.image-meta-item.changed {
     background: #fef3c7;
     color: #92400e;
 }
 
-.diff-indicator.added {
+.list-field {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.list-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    background: #f1f5f9;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: monospace;
+}
+
+.list-item.added {
     background: #dcfce7;
     color: #166534;
 }
 
-.diff-indicator.removed {
+.list-item.removed {
     background: #fee2e2;
     color: #991b1b;
+    text-decoration: line-through;
+}
+
+.list-item.unchanged {
+    background: #f1f5f9;
+    color: #64748b;
 }
 
 .compare-summary {
@@ -312,6 +521,14 @@
                 </div>
             </div>
             
+            <div class="changes-summary-bar" id="changesSummaryBar">
+                <div class="changes-summary-title">
+                    <i class="fas fa-list-check"></i>
+                    Changed Fields
+                </div>
+                <div class="changed-fields-list" id="changedFieldsList"></div>
+            </div>
+            
             <div class="modal-body p-0">
                 <div class="compare-container" id="compareContainer">
                     <div class="compare-panel" id="leftPanel">
@@ -362,6 +579,24 @@ var CompareVersions = (function() {
     var versionData = {};
     var versionMeta = {};
     
+    var FIELD_TYPES = {
+        text: ['senderId', 'agentName', 'description', 'explanation', 'brand', 'type', 'optInExplanation', 'optOutExplanation'],
+        url: ['privacyUrl', 'tosUrl', 'websiteUrl', 'logoUrl', 'heroUrl', 'supportEmail'],
+        tile: ['billingCategory', 'useCase', 'vertical', 'messageType'],
+        image: ['logoUrl', 'heroUrl'],
+        list: ['testNumbers', 'channels', 'capabilities'],
+        crop: ['logoCrop', 'heroCrop']
+    };
+    
+    function getFieldType(key) {
+        for (var type in FIELD_TYPES) {
+            if (FIELD_TYPES[type].indexOf(key) !== -1) return type;
+        }
+        if (key.toLowerCase().indexOf('url') !== -1) return 'url';
+        if (key.toLowerCase().indexOf('crop') !== -1) return 'crop';
+        return 'text';
+    }
+    
     function init() {
         if (typeof UNIFIED_APPROVAL !== 'undefined') {
             var history = UNIFIED_APPROVAL.getVersionHistory();
@@ -385,6 +620,13 @@ var CompareVersions = (function() {
                     type: 'Alphanumeric',
                     brand: 'Acme Bank Ltd',
                     explanation: 'We are registering ACMEBNK as our sender ID for banking notifications.',
+                    billingCategory: 'Standard',
+                    useCase: 'Marketing',
+                    privacyUrl: 'https://acme.com/privacy',
+                    tosUrl: 'https://acme.com/terms',
+                    logoUrl: '/images/logo-v1.png',
+                    logoCrop: { x: 0, y: 0, width: 200, height: 200 },
+                    testNumbers: ['+447700900001', '+447700900002'],
                     channels: { portal: true, inbox: false, emailToSms: false, api: true }
                 },
                 'v2': {
@@ -392,6 +634,13 @@ var CompareVersions = (function() {
                     type: 'Alphanumeric',
                     brand: 'Acme Bank Ltd',
                     explanation: 'We are registering ACMEBANK as our official sender ID for transactional banking notifications including balance alerts, payment confirmations, and security notifications to our customers.',
+                    billingCategory: 'Financial Services',
+                    useCase: 'Transactional',
+                    privacyUrl: 'https://acmebank.com/privacy-policy',
+                    tosUrl: 'https://acmebank.com/terms-of-service',
+                    logoUrl: '/images/logo-v2.png',
+                    logoCrop: { x: 10, y: 10, width: 180, height: 180 },
+                    testNumbers: ['+447700900001', '+447700900003', '+447700900004'],
                     channels: { portal: true, inbox: true, emailToSms: false, api: true }
                 }
             };
@@ -425,31 +674,16 @@ var CompareVersions = (function() {
                 changes.unchanged++;
             }
             
-            results.push({ key: key, oldValue: oldVal, newValue: newVal, status: status });
+            results.push({ 
+                key: key, 
+                oldValue: oldVal, 
+                newValue: newVal, 
+                status: status,
+                fieldType: getFieldType(key)
+            });
         });
         
         return { results: results, summary: changes };
-    }
-    
-    function renderField(key, value, status) {
-        var displayValue = value;
-        if (typeof value === 'object' && value !== null) {
-            if (Array.isArray(value)) {
-                displayValue = value.join(', ');
-            } else {
-                displayValue = Object.keys(value).filter(function(k) { return value[k]; }).join(', ') || '(none)';
-            }
-        }
-        if (displayValue === undefined || displayValue === null || displayValue === '') {
-            displayValue = '<span class="empty">(empty)</span>';
-        }
-        
-        var label = key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
-        
-        return '<div class="compare-field ' + status + '">' +
-            '<span class="compare-field-label">' + escapeHtml(label) + '</span>' +
-            '<span class="compare-field-value">' + (displayValue.includes('<span') ? displayValue : escapeHtml(displayValue)) + '</span>' +
-            '</div>';
     }
     
     function escapeHtml(text) {
@@ -457,6 +691,185 @@ var CompareVersions = (function() {
         var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+    
+    function formatLabel(key) {
+        return key.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
+    }
+    
+    function renderTextDiff(oldText, newText, status) {
+        if (status === 'unchanged') return escapeHtml(newText || '');
+        if (status === 'added') return '<span class="diff-text-added">' + escapeHtml(newText) + '</span>';
+        if (status === 'removed') return '<span class="diff-text-removed">' + escapeHtml(oldText) + '</span>';
+        
+        var oldStr = String(oldText || '');
+        var newStr = String(newText || '');
+        
+        if (oldStr.length < 50 && newStr.length < 50) {
+            return '<span class="diff-text-removed">' + escapeHtml(oldStr) + '</span> → <span class="diff-text-added">' + escapeHtml(newStr) + '</span>';
+        }
+        
+        return escapeHtml(newStr);
+    }
+    
+    function renderUrlField(value, status, isNew) {
+        if (!value) return '<span class="empty">(no URL)</span>';
+        var url = String(value);
+        var changedClass = status === 'changed' ? ' changed' : '';
+        return '<div class="url-display' + changedClass + '"><i class="fas fa-link"></i><span>' + escapeHtml(url) + '</span></div>';
+    }
+    
+    function renderTileField(value, status) {
+        if (!value) return '<span class="empty">(not set)</span>';
+        var changedClass = status === 'changed' ? ' changed' : '';
+        return '<span class="tile-field' + changedClass + '"><i class="fas fa-tag"></i>' + escapeHtml(value) + '</span>';
+    }
+    
+    function renderImageField(url, crop, status) {
+        var changedClass = status === 'changed' ? ' changed' : '';
+        var html = '<div class="image-field">';
+        html += '<div class="image-preview' + changedClass + '">';
+        if (url) {
+            html += '<img src="' + escapeHtml(url) + '" alt="Preview" onerror="this.parentNode.innerHTML=\'<i class=\\\'fas fa-image placeholder\\\'></i>\'">';
+        } else {
+            html += '<i class="fas fa-image placeholder"></i>';
+        }
+        html += '</div>';
+        
+        if (crop) {
+            html += '<div class="image-meta">';
+            html += '<span class="image-meta-item' + changedClass + '"><i class="fas fa-crop-alt"></i> ' + crop.width + 'x' + crop.height + '</span>';
+            html += '<span class="image-meta-item' + changedClass + '"><i class="fas fa-arrows-alt"></i> (' + crop.x + ', ' + crop.y + ')</span>';
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+    
+    function renderListField(oldList, newList, status) {
+        var oldArr = Array.isArray(oldList) ? oldList : [];
+        var newArr = Array.isArray(newList) ? newList : [];
+        
+        if (typeof oldList === 'object' && !Array.isArray(oldList)) {
+            oldArr = Object.keys(oldList || {}).filter(function(k) { return oldList[k]; });
+        }
+        if (typeof newList === 'object' && !Array.isArray(newList)) {
+            newArr = Object.keys(newList || {}).filter(function(k) { return newList[k]; });
+        }
+        
+        var allItems = new Set([...oldArr, ...newArr]);
+        var html = '<div class="list-field">';
+        
+        allItems.forEach(function(item) {
+            var inOld = oldArr.indexOf(item) !== -1;
+            var inNew = newArr.indexOf(item) !== -1;
+            var itemClass = 'unchanged';
+            var icon = '';
+            
+            if (!inOld && inNew) {
+                itemClass = 'added';
+                icon = '<i class="fas fa-plus"></i> ';
+            } else if (inOld && !inNew) {
+                itemClass = 'removed';
+                icon = '<i class="fas fa-minus"></i> ';
+            }
+            
+            html += '<span class="list-item ' + itemClass + '">' + icon + escapeHtml(item) + '</span>';
+        });
+        
+        html += '</div>';
+        return html;
+    }
+    
+    function renderField(item, isNewPanel) {
+        var value = isNewPanel ? item.newValue : item.oldValue;
+        var otherValue = isNewPanel ? item.oldValue : item.newValue;
+        var status = item.status;
+        var fieldType = item.fieldType;
+        var label = formatLabel(item.key);
+        
+        var typeIcon = '';
+        switch(fieldType) {
+            case 'url': typeIcon = '<i class="field-type-icon fas fa-link"></i>'; break;
+            case 'tile': typeIcon = '<i class="field-type-icon fas fa-th-large"></i>'; break;
+            case 'image': typeIcon = '<i class="field-type-icon fas fa-image"></i>'; break;
+            case 'list': typeIcon = '<i class="field-type-icon fas fa-list"></i>'; break;
+            case 'crop': typeIcon = '<i class="field-type-icon fas fa-crop-alt"></i>'; break;
+            default: typeIcon = '<i class="field-type-icon fas fa-font"></i>';
+        }
+        
+        var valueHtml = '';
+        
+        switch(fieldType) {
+            case 'url':
+                valueHtml = renderUrlField(value, status, isNewPanel);
+                break;
+            case 'tile':
+                valueHtml = renderTileField(value, status);
+                break;
+            case 'image':
+                var cropKey = item.key.replace('Url', 'Crop');
+                var cropData = isNewPanel ? 
+                    (versionData[document.getElementById('compareVersionNew').value] || {})[cropKey] :
+                    (versionData[document.getElementById('compareVersionOld').value] || {})[cropKey];
+                valueHtml = renderImageField(value, cropData, status);
+                break;
+            case 'list':
+                valueHtml = renderListField(item.oldValue, item.newValue, status);
+                break;
+            case 'crop':
+                if (typeof value === 'object' && value) {
+                    valueHtml = '<div class="image-meta">';
+                    valueHtml += '<span class="image-meta-item ' + (status === 'changed' ? 'changed' : '') + '">x: ' + value.x + '</span>';
+                    valueHtml += '<span class="image-meta-item ' + (status === 'changed' ? 'changed' : '') + '">y: ' + value.y + '</span>';
+                    valueHtml += '<span class="image-meta-item ' + (status === 'changed' ? 'changed' : '') + '">w: ' + value.width + '</span>';
+                    valueHtml += '<span class="image-meta-item ' + (status === 'changed' ? 'changed' : '') + '">h: ' + value.height + '</span>';
+                    valueHtml += '</div>';
+                } else {
+                    valueHtml = '<span class="empty">(no crop)</span>';
+                }
+                break;
+            default:
+                if (value === undefined || value === null || value === '') {
+                    valueHtml = '<span class="empty">(empty)</span>';
+                } else if (typeof value === 'object') {
+                    valueHtml = escapeHtml(JSON.stringify(value));
+                } else {
+                    valueHtml = renderTextDiff(item.oldValue, item.newValue, status);
+                }
+        }
+        
+        return '<div class="compare-field ' + status + '" data-field="' + item.key + '">' +
+            '<span class="compare-field-label">' + typeIcon + ' ' + escapeHtml(label) + '</span>' +
+            '<div class="compare-field-value">' + valueHtml + '</div>' +
+            '</div>';
+    }
+    
+    function renderChangedFieldsList(results) {
+        var changedFields = results.filter(function(r) { return r.status !== 'unchanged'; });
+        var listEl = document.getElementById('changedFieldsList');
+        var summaryBar = document.getElementById('changesSummaryBar');
+        
+        if (changedFields.length === 0) {
+            summaryBar.style.display = 'none';
+            return;
+        }
+        
+        summaryBar.style.display = 'block';
+        var html = '';
+        
+        changedFields.forEach(function(item) {
+            var icon = '';
+            switch(item.status) {
+                case 'changed': icon = '<i class="fas fa-pen"></i>'; break;
+                case 'added': icon = '<i class="fas fa-plus"></i>'; break;
+                case 'removed': icon = '<i class="fas fa-minus"></i>'; break;
+            }
+            html += '<span class="changed-field-chip ' + item.status + '" onclick="scrollToField(\'' + item.key + '\')">' + 
+                icon + formatLabel(item.key) + '</span>';
+        });
+        
+        listEl.innerHTML = html;
     }
     
     function formatTimestamp(timestamp) {
@@ -492,14 +905,16 @@ var CompareVersions = (function() {
         
         var comparison = compareObjects(oldData, newData);
         
+        renderChangedFieldsList(comparison.results);
+        
         var leftHtml = '';
         var rightHtml = '';
         
         comparison.results.forEach(function(item) {
             if (showOnlyChanges && item.status === 'unchanged') return;
             
-            leftHtml += renderField(item.key, item.oldValue, item.status);
-            rightHtml += renderField(item.key, item.newValue, item.status);
+            leftHtml += renderField(item, false);
+            rightHtml += renderField(item, true);
         });
         
         document.getElementById('leftContent').innerHTML = leftHtml || '<p class="text-muted text-center py-4">No differences to display</p>';
@@ -516,8 +931,22 @@ var CompareVersions = (function() {
         return versionData;
     }
     
-    return { render: render, init: init, getVersionData: getVersionData };
+    return { render: render, init: init, getVersionData: getVersionData, formatLabel: formatLabel };
 })();
+
+function scrollToField(fieldKey) {
+    var fields = document.querySelectorAll('[data-field="' + fieldKey + '"]');
+    if (fields.length > 0) {
+        fields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        fields.forEach(function(f) {
+            f.style.transition = 'box-shadow 0.3s';
+            f.style.boxShadow = '0 0 0 3px rgba(245, 158, 11, 0.5)';
+            setTimeout(function() {
+                f.style.boxShadow = '';
+            }, 2000);
+        });
+    }
+}
 
 function openCompareVersions() {
     var modal = new bootstrap.Modal(document.getElementById('compareVersionsModal'));
