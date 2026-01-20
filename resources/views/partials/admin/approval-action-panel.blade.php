@@ -310,12 +310,14 @@
 }
 </style>
 
-<div class="admin-action-panel">
+<div class="admin-action-panel" @if(isset($isModal) && $isModal) style="border: none;" @endif>
+    @if(!isset($isModal) || !$isModal)
     <div class="admin-action-panel-header">
         <i class="fas fa-gavel"></i>
         <span>Admin Actions</span>
         <span class="internal-note-badge"><i class="fas fa-lock"></i> INTERNAL ONLY</span>
     </div>
+    @endif
     <div class="admin-action-panel-body">
         <div class="admin-action-group">
             <div class="admin-action-group-title">Standard Actions</div>

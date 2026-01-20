@@ -558,6 +558,9 @@
         <span class="agent-name-display" id="agentNameDisplay">Acme Bank Notifications</span>
         <span class="status-pill submitted" id="currentStatus"><i class="fas fa-paper-plane"></i> Submitted</span>
         <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
+            <button class="btn btn-primary" style="background: var(--admin-primary, #1e3a5f); border-color: var(--admin-primary, #1e3a5f);" onclick="showAdminActionsModal()">
+                <i class="fas fa-gavel me-1"></i> Admin Actions
+            </button>
             <div style="font-size: 0.8rem; color: #64748b; display: flex; gap: 1rem;">
                 <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>RCS-001</strong></span>
                 <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 18, 2026, 2:30 PM</strong></span>
@@ -677,13 +680,6 @@
                     @include('partials.admin.rcs-agent-admin-extras', ['metadata' => $rcsMetadata])
                 </div>
             </div>
-
-            {{-- SHARED ADMIN ACTION PANEL - Same component used for all entity types --}}
-            @include('partials.admin.approval-action-panel', [
-                'entityType' => 'rcs_agent',
-                'entityId' => 'RCS-001',
-                'validationProvider' => 'RCS Provider'
-            ])
 
             <div class="external-validation-card" style="margin-top: 1.5rem;">
                 <div class="external-validation-header">
@@ -1164,5 +1160,35 @@ function sendCustomerMessage() {
     document.querySelector('#tab-customer .notes-textarea').value = '';
     alert('Message sent to customer.');
 }
+
+function showAdminActionsModal() {
+    var modal = document.getElementById('adminActionsModal');
+    if (modal) {
+        new bootstrap.Modal(modal).show();
+    }
+}
 </script>
 @endpush
+
+{{-- Admin Actions Modal --}}
+<div class="modal fade" id="adminActionsModal" tabindex="-1" aria-labelledby="adminActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--admin-primary, #1e3a5f) 0%, #2d5a87 100%); color: #fff;">
+                <h5 class="modal-title" id="adminActionsModalLabel">
+                    <i class="fas fa-gavel me-2"></i>Admin Actions
+                    <span class="badge bg-warning text-dark ms-2" style="font-size: 0.65rem;"><i class="fas fa-lock me-1"></i>INTERNAL ONLY</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                @include('partials.admin.approval-action-panel', [
+                    'entityType' => 'rcs_agent',
+                    'entityId' => 'RCS-001',
+                    'validationProvider' => 'RCS Provider',
+                    'isModal' => true
+                ])
+            </div>
+        </div>
+    </div>
+</div>
