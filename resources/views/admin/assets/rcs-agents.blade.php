@@ -1021,8 +1021,8 @@ function markInReview(itemId) {
     var result = AdminControlPlane.ApprovalFramework.markInReview(itemId, AdminControlPlane.getCurrentAdmin().email);
     if (result.success) {
         updateRowStatus(itemId, 'in-review');
-        showToast('Agent marked for review', 'info');
     }
+    window.location.href = '/admin/assets/rcs-agents/' + itemId;
 }
 
 function quickApprove(itemId) {
