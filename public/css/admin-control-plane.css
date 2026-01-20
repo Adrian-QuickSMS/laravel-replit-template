@@ -864,6 +864,10 @@ body.admin-control-plane {
     border-top: 1px solid #e2e8f0;
 }
 
+.pagination .page-link {
+    white-space: nowrap;
+}
+
 .admin-pagination .page-info {
     font-size: 0.8rem;
     color: var(--admin-text-muted);
