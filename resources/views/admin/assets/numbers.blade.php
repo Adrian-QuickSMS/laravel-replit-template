@@ -606,6 +606,229 @@
     </div>
 </div>
 
+<div class="modal fade" id="configurationDrawer" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-cog me-2"></i>Number Configuration</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="config-summary p-3" style="background: #f8fafc; border-bottom: 1px solid #e9ecef;">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Number/Keyword</label>
+                                <div id="cfg_number" class="fw-bold" style="color: var(--admin-primary);"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Type</label>
+                                <div id="cfg_type"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Status</label>
+                                <div id="cfg_status"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Customer Account</label>
+                                <div id="cfg_account" class="fw-medium"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Sub-Account(s)</label>
+                                <div id="cfg_subaccount"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Current Mode</label>
+                                <div id="cfg_mode"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Billing Model</label>
+                                <div id="cfg_billing">Monthly Subscription</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Monthly Cost</label>
+                                <div id="cfg_cost" class="fw-medium"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-field">
+                                <label class="text-muted small text-uppercase">Supplier</label>
+                                <div id="cfg_supplier"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-sections p-3">
+                    <div class="config-section mb-4" id="sectionModeSelection">
+                        <h6 class="section-title d-flex align-items-center mb-3">
+                            <span class="section-icon me-2" style="background: var(--admin-primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;">A</span>
+                            Mode Selection
+                        </h6>
+                        <div class="section-content bg-light p-3 rounded">
+                            <div class="btn-group w-100" role="group" id="modeToggleGroup">
+                                <input type="radio" class="btn-check" name="configMode" id="configModePortal" value="portal" onchange="onModeChange('portal')">
+                                <label class="btn btn-outline-primary" for="configModePortal">
+                                    <i class="fas fa-desktop me-2"></i>Portal Mode
+                                </label>
+                                <input type="radio" class="btn-check" name="configMode" id="configModeAPI" value="api" onchange="onModeChange('api')">
+                                <label class="btn btn-outline-primary" for="configModeAPI">
+                                    <i class="fas fa-code me-2"></i>API Mode
+                                </label>
+                            </div>
+                            <div id="modeChangeWarning" class="alert alert-warning mt-3" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Warning:</strong> Changing mode affects customer functionality and may impact billing.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-section mb-4" id="sectionPortalConfig" style="display: none;">
+                        <h6 class="section-title d-flex align-items-center mb-3">
+                            <span class="section-icon me-2" style="background: var(--admin-accent); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;">B</span>
+                            Portal Configuration
+                        </h6>
+                        <div class="section-content bg-light p-3 rounded">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Assigned Sub-Accounts</label>
+                                <div id="portalSubAccountsContainer">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="Marketing" id="portal_sub_marketing" checked>
+                                        <label class="form-check-label" for="portal_sub_marketing">Marketing</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="Sales" id="portal_sub_sales">
+                                        <label class="form-check-label" for="portal_sub_sales">Sales</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="Support" id="portal_sub_support">
+                                        <label class="form-check-label" for="portal_sub_support">Support</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="Operations" id="portal_sub_ops">
+                                        <label class="form-check-label" for="portal_sub_ops">Operations</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Default Sub-Account</label>
+                                <select class="form-select" id="portalDefaultSubAccount">
+                                    <option value="">Select default...</option>
+                                    <option value="Marketing" selected>Marketing</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Support">Support</option>
+                                    <option value="Operations">Operations</option>
+                                </select>
+                                <small class="text-muted">Used when no sub-account is specified</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Capability Toggles</label>
+                                <div id="portalCapabilityToggles">
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="cap_portal_senderid" checked>
+                                        <label class="form-check-label" for="cap_portal_senderid">
+                                            <strong>Allow as SenderID</strong>
+                                            <small class="d-block text-muted">Use this number as sender ID for outbound messages</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="cap_portal_inbox" checked>
+                                        <label class="form-check-label" for="cap_portal_inbox">
+                                            <strong>Enable Inbox Replies</strong>
+                                            <small class="d-block text-muted">Receive inbound messages to portal inbox</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="cap_portal_optout" checked>
+                                        <label class="form-check-label" for="cap_portal_optout">
+                                            <strong>Enable Opt-out Handling</strong>
+                                            <small class="d-block text-muted">Automatically process STOP/unsubscribe requests</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-0">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="portalAdminOverride">
+                                    <label class="form-check-label" for="portalAdminOverride">
+                                        <strong>Override Customer Defaults</strong>
+                                        <small class="d-block text-muted">Admin override flag - ignore customer-level default settings</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-section mb-4" id="sectionAPIConfig" style="display: none;">
+                        <h6 class="section-title d-flex align-items-center mb-3">
+                            <span class="section-icon me-2" style="background: var(--admin-secondary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;">C</span>
+                            API Configuration
+                        </h6>
+                        <div class="section-content bg-light p-3 rounded">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Assigned Sub-Account</label>
+                                <select class="form-select" id="apiSubAccount">
+                                    <option value="">Select sub-account...</option>
+                                    <option value="API Team" selected>API Team</option>
+                                    <option value="Main">Main</option>
+                                    <option value="Development">Development</option>
+                                </select>
+                                <small class="text-muted">API mode allows only one sub-account assignment</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Inbound Webhook URL</label>
+                                <input type="url" class="form-control" id="apiWebhookUrl" placeholder="https://api.example.com/webhook/sms" value="">
+                                <div id="webhookValidation" class="invalid-feedback">URL must start with https://</div>
+                                <small class="text-muted">Inbound messages will be POSTed to this URL</small>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label fw-bold">API Connection Association</label>
+                                <div class="bg-white p-3 rounded border">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="badge bg-success me-2">Connected</span>
+                                            <strong id="apiConnectionName">Production API Key</strong>
+                                        </div>
+                                        <small class="text-muted">Read-only</small>
+                                    </div>
+                                    <div class="mt-2 small text-muted">
+                                        <span>Key ID:</span> <code id="apiKeyId">pk_live_abc123...xyz</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="keywordRestrictionAlert" class="alert alert-info" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Shared Shortcode Keywords</strong> have limited configuration options. They can only use Opt-out or API capabilities.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveConfiguration()">
+                    <i class="fas fa-save me-1"></i> Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="confirmActionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -1156,53 +1379,59 @@ function sortTable() {
     renderTable(filteredData);
 }
 
+let currentConfigNumberId = null;
+let originalMode = null;
+
 function viewNumberDetails(numberId) {
     const num = mockNumbersData.find(n => n.id === numberId);
     if (!num) return;
     
-    const capBadges = (num.capabilities || []).map(cap => {
-        const classes = {
-            'senderid': 'capability-senderid',
-            'inbox': 'capability-inbox',
-            'optout': 'capability-optout',
-            'api': 'capability-api'
-        };
-        const labels = { 'senderid': 'SenderID', 'inbox': 'Inbox', 'optout': 'Opt-out', 'api': 'API' };
-        return `<span class="capability-pill ${classes[cap]}">${labels[cap]}</span>`;
-    }).join('');
+    currentConfigNumberId = numberId;
+    originalMode = num.mode;
     
-    const content = `
-        <div class="row">
-            <div class="col-md-6">
-                <h6 class="text-muted mb-2">Number Information</h6>
-                <table class="table table-sm">
-                    <tr><td class="text-muted">Number/Keyword</td><td class="fw-bold">${num.number}</td></tr>
-                    <tr><td class="text-muted">Country</td><td>${getCountryFlag(num.country)} ${num.country}</td></tr>
-                    <tr><td class="text-muted">Type</td><td>${getTypeLabel(num.type)}</td></tr>
-                    <tr><td class="text-muted">Status</td><td>${getStatusBadge(num.status)}</td></tr>
-                    <tr><td class="text-muted">Mode</td><td>${getModeBadge(num.mode)}</td></tr>
-                    <tr><td class="text-muted">Capabilities</td><td>${capBadges}</td></tr>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <h6 class="text-muted mb-2">Assignment & Billing</h6>
-                <table class="table table-sm">
-                    <tr><td class="text-muted">Customer Account</td><td class="fw-bold">${num.account}</td></tr>
-                    <tr><td class="text-muted">Sub-Account</td><td>${num.subAccount}</td></tr>
-                    <tr><td class="text-muted">Monthly Cost</td><td>£${num.cost.toFixed(2)}</td></tr>
-                    <tr><td class="text-muted">Supplier</td><td>${num.supplier}</td></tr>
-                    <tr><td class="text-muted">Created</td><td>${formatDate(num.created)}</td></tr>
-                </table>
-            </div>
-        </div>
-    `;
+    document.getElementById('cfg_number').textContent = num.number;
+    document.getElementById('cfg_type').innerHTML = getTypeLabel(num.type);
+    document.getElementById('cfg_status').innerHTML = getStatusBadge(num.status);
+    document.getElementById('cfg_account').textContent = num.account;
+    document.getElementById('cfg_subaccount').textContent = num.subAccount;
+    document.getElementById('cfg_mode').innerHTML = getModeBadge(num.mode);
+    document.getElementById('cfg_cost').textContent = `£${num.cost.toFixed(2)}`;
+    document.getElementById('cfg_supplier').textContent = num.supplier;
     
-    document.getElementById('numberDetailsContent').innerHTML = content;
-    document.querySelector('#numberDetailsModal .modal-title').innerHTML = '<i class="fas fa-phone-alt me-2"></i>Number Details';
-    new bootstrap.Modal(document.getElementById('numberDetailsModal')).show();
+    const isKeyword = num.type === 'shortcode_keyword';
+    document.getElementById('keywordRestrictionAlert').style.display = isKeyword ? 'block' : 'none';
+    
+    if (isKeyword) {
+        document.getElementById('sectionModeSelection').style.display = 'none';
+        document.getElementById('sectionPortalConfig').style.display = 'none';
+        document.getElementById('sectionAPIConfig').style.display = 'none';
+    } else {
+        document.getElementById('sectionModeSelection').style.display = 'block';
+        
+        if (num.mode === 'portal') {
+            document.getElementById('configModePortal').checked = true;
+            document.getElementById('sectionPortalConfig').style.display = 'block';
+            document.getElementById('sectionAPIConfig').style.display = 'none';
+        } else {
+            document.getElementById('configModeAPI').checked = true;
+            document.getElementById('sectionPortalConfig').style.display = 'none';
+            document.getElementById('sectionAPIConfig').style.display = 'block';
+        }
+        
+        document.getElementById('modeChangeWarning').style.display = 'none';
+        
+        document.getElementById('cap_portal_senderid').checked = num.capabilities.includes('senderid');
+        document.getElementById('cap_portal_inbox').checked = num.capabilities.includes('inbox');
+        document.getElementById('cap_portal_optout').checked = num.capabilities.includes('optout');
+        
+        document.getElementById('apiWebhookUrl').value = num.webhookUrl || '';
+        document.getElementById('apiWebhookUrl').classList.remove('is-invalid');
+    }
+    
+    new bootstrap.Modal(document.getElementById('configurationDrawer')).show();
     
     if (typeof AdminAudit !== 'undefined') {
-        AdminAudit.log('NUMBER_DETAILS_VIEWED', {
+        AdminAudit.log('NUMBER_CONFIG_VIEWED', {
             module: 'numbers',
             numberId: numberId,
             number: num.number,
@@ -1210,6 +1439,98 @@ function viewNumberDetails(numberId) {
         }, 'LOW');
     }
 }
+
+function onModeChange(newMode) {
+    const showWarning = newMode !== originalMode;
+    document.getElementById('modeChangeWarning').style.display = showWarning ? 'block' : 'none';
+    
+    if (newMode === 'portal') {
+        document.getElementById('sectionPortalConfig').style.display = 'block';
+        document.getElementById('sectionAPIConfig').style.display = 'none';
+    } else {
+        document.getElementById('sectionPortalConfig').style.display = 'none';
+        document.getElementById('sectionAPIConfig').style.display = 'block';
+    }
+}
+
+function validateWebhookUrl() {
+    const url = document.getElementById('apiWebhookUrl').value;
+    const input = document.getElementById('apiWebhookUrl');
+    
+    if (url && !url.startsWith('https://')) {
+        input.classList.add('is-invalid');
+        return false;
+    }
+    input.classList.remove('is-invalid');
+    return true;
+}
+
+function saveConfiguration() {
+    const num = mockNumbersData.find(n => n.id === currentConfigNumberId);
+    if (!num) return;
+    
+    const isKeyword = num.type === 'shortcode_keyword';
+    
+    if (!isKeyword) {
+        const selectedMode = document.querySelector('input[name="configMode"]:checked')?.value;
+        
+        if (selectedMode === 'api') {
+            if (!validateWebhookUrl()) {
+                alert('Please enter a valid HTTPS webhook URL.');
+                return;
+            }
+            
+            const apiSubAccount = document.getElementById('apiSubAccount').value;
+            if (!apiSubAccount) {
+                alert('API mode requires exactly one sub-account assignment.');
+                return;
+            }
+            
+            num.mode = 'api';
+            num.subAccount = apiSubAccount;
+            num.webhookUrl = document.getElementById('apiWebhookUrl').value;
+            num.capabilities = ['api'];
+        } else {
+            const portalSubAccounts = [];
+            document.querySelectorAll('#portalSubAccountsContainer input:checked').forEach(cb => {
+                portalSubAccounts.push(cb.value);
+            });
+            
+            if (portalSubAccounts.length === 0) {
+                alert('Portal mode requires at least one sub-account assignment.');
+                return;
+            }
+            
+            num.mode = 'portal';
+            num.subAccount = portalSubAccounts[0];
+            
+            const newCaps = [];
+            if (document.getElementById('cap_portal_senderid').checked) newCaps.push('senderid');
+            if (document.getElementById('cap_portal_inbox').checked) newCaps.push('inbox');
+            if (document.getElementById('cap_portal_optout').checked) newCaps.push('optout');
+            num.capabilities = newCaps;
+        }
+    }
+    
+    if (typeof AdminAudit !== 'undefined') {
+        AdminAudit.log('NUMBER_CONFIG_SAVED', {
+            module: 'numbers',
+            numberId: currentConfigNumberId,
+            number: num.number,
+            mode: num.mode,
+            modeChanged: num.mode !== originalMode
+        }, num.mode !== originalMode ? 'MEDIUM' : 'LOW');
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('configurationDrawer')).hide();
+    currentConfigNumberId = null;
+    originalMode = null;
+    
+    applyFilters();
+    showToast('Configuration saved successfully', 'success');
+}
+
+document.getElementById('apiWebhookUrl')?.addEventListener('blur', validateWebhookUrl);
 
 function viewAuditTrail(numberId) {
     const num = mockNumbersData.find(n => n.id === numberId);
