@@ -5,6 +5,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-approval-workflow.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin-notifications.css') }}">
 <style>
 .detail-page { padding: 1.5rem; }
 
@@ -1057,6 +1058,7 @@
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
 <script src="{{ asset('js/admin-external-validation.js') }}"></script>
+<script src="{{ asset('js/admin-notifications.js') }}"></script>
 <script>
 var RCS_ASSET_VALIDATION = {
     logoRequirements: {
@@ -1199,7 +1201,27 @@ document.addEventListener('DOMContentLoaded', function() {
     EXTERNAL_VALIDATION.initRcsProvider({
         history: []
     });
+
+    ADMIN_NOTIFICATIONS.init();
+
+    checkHighRiskFlags();
+    checkSlaStatus();
 });
+
+function checkHighRiskFlags() {
+    var highRiskVertical = document.querySelector('.compliance-item.warn');
+    if (highRiskVertical) {
+        var warningText = highRiskVertical.textContent;
+        if (warningText.includes('Financial Services') || warningText.includes('Healthcare')) {
+            ADMIN_NOTIFICATIONS.triggerInternalAlert('HIGH_RISK', 'RCS-001', 'High-risk vertical detected - requires enhanced compliance review');
+        }
+    }
+}
+
+function checkSlaStatus() {
+    var submittedAt = '2026-01-18T14:30:00Z';
+    ADMIN_NOTIFICATIONS.checkSlaBreach('RCS-001', submittedAt, 'RCS Agent');
+}
 
 function switchNotesTab(tab) {
     document.querySelectorAll('.notes-tab').forEach(function(t) {
@@ -1217,6 +1239,10 @@ function returnToCustomer() {
     APPROVAL_WORKFLOW.showReturnModal();
 }
 
+function onReturnConfirmed() {
+    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com', 'Please review and update your submission.');
+}
+
 function showRejectModal() {
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
@@ -1229,6 +1255,8 @@ function confirmReject() {
         alert('Please select a rejection reason');
         return;
     }
+    
+    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
     
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('REJECT', 'RCS-001', { reason: reason, message: message }, 'HIGH');
@@ -1245,7 +1273,7 @@ function approveAgent() {
             AdminControlPlane.logAdminAction('APPROVE', 'RCS-001', {}, 'HIGH');
         }
         updateStatus('approved', 'Approved', 'fa-check-circle');
-        alert('RCS Agent approved. Ready for provisioning.');
+        ADMIN_NOTIFICATIONS.showCustomerNotificationModal('APPROVED', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
     }
 }
 

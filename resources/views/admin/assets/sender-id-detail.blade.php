@@ -5,6 +5,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/admin-approval-workflow.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin-notifications.css') }}">
 <style>
 .detail-page { padding: 1.5rem; }
 
@@ -847,6 +848,7 @@
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script src="{{ asset('js/admin-approval-workflow.js') }}"></script>
 <script src="{{ asset('js/admin-external-validation.js') }}"></script>
+<script src="{{ asset('js/admin-notifications.js') }}"></script>
 <script>
 var SENDER_ID_VALIDATION = {
     characterRules: function(value) {
@@ -949,7 +951,27 @@ document.addEventListener('DOMContentLoaded', function() {
     EXTERNAL_VALIDATION.initBrandAssure({
         history: []
     });
+
+    ADMIN_NOTIFICATIONS.init();
+
+    checkHighRiskFlags();
+    checkSlaStatus();
 });
+
+function checkHighRiskFlags() {
+    var brandWarning = document.querySelector('.validation-item.warn');
+    if (brandWarning) {
+        var warningText = brandWarning.textContent;
+        if (warningText.includes('BANK') || warningText.includes('NHS') || warningText.includes('HMRC')) {
+            ADMIN_NOTIFICATIONS.triggerInternalAlert('HIGH_RISK', 'SID-001', 'SenderID contains regulated term - requires enhanced verification');
+        }
+    }
+}
+
+function checkSlaStatus() {
+    var submittedAt = '2026-01-20T10:15:00Z';
+    ADMIN_NOTIFICATIONS.checkSlaBreach('SID-001', submittedAt, 'SenderID');
+}
 
 function switchNotesTab(tab) {
     document.querySelectorAll('.notes-tab').forEach(function(t) {
@@ -967,6 +989,10 @@ function returnToCustomer() {
     APPROVAL_WORKFLOW.showReturnModal();
 }
 
+function onReturnConfirmed() {
+    ADMIN_NOTIFICATIONS.sendCustomerNotification('RETURNED', 'SID-001', 'SenderID', 'j.smith@acme.com', 'Please review and update your submission.');
+}
+
 function showRejectModal() {
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
@@ -979,6 +1005,8 @@ function confirmReject() {
         alert('Please select a rejection reason');
         return;
     }
+    
+    ADMIN_NOTIFICATIONS.showCustomerNotificationModal('REJECTED', 'SID-001', 'SenderID', 'j.smith@acme.com');
     
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('REJECT', 'SID-001', { reason: reason, message: message }, 'HIGH');
@@ -995,10 +1023,11 @@ function approveSenderId() {
             AdminControlPlane.logAdminAction('APPROVE', 'SID-001', {}, 'HIGH');
         }
         updateStatus('approved', 'Approved', 'fa-check-circle');
+        ADMIN_NOTIFICATIONS.showCustomerNotificationModal('APPROVED', 'SID-001', 'SenderID', 'j.smith@acme.com');
         setTimeout(function() {
             updateStatus('live', 'Live', 'fa-broadcast-tower');
+            ADMIN_NOTIFICATIONS.sendCustomerNotification('LIVE', 'SID-001', 'SenderID', 'j.smith@acme.com');
         }, 1500);
-        alert('SenderID approved and now live.');
     }
 }
 

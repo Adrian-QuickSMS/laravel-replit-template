@@ -121,6 +121,10 @@ var EXTERNAL_VALIDATION = (function() {
             }, success ? 'MEDIUM' : 'HIGH');
         }
 
+        if (!success && typeof ADMIN_NOTIFICATIONS !== 'undefined') {
+            ADMIN_NOTIFICATIONS.triggerInternalAlert('VALIDATION_FAILED', entry.externalRequestId, 'BrandAssure verification failed - trademark conflict');
+        }
+
         renderBrandAssureSection();
     }
 
@@ -189,6 +193,10 @@ var EXTERNAL_VALIDATION = (function() {
                 status: status,
                 callbackCount: entry.callbacks.length
             }, status === 'REJECTED' || status === 'FAILED' ? 'HIGH' : 'MEDIUM');
+        }
+
+        if ((status === 'REJECTED' || status === 'FAILED') && typeof ADMIN_NOTIFICATIONS !== 'undefined') {
+            ADMIN_NOTIFICATIONS.triggerInternalAlert('VALIDATION_FAILED', entry.providerReferenceId, 'RCS Provider rejected agent - ' + entry.failureReason);
         }
 
         renderRcsProviderSection();
