@@ -120,6 +120,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/campaigns/blocked', 'campaignsBlocked')->name('admin.campaigns.blocked');
             
             Route::get('/assets/sender-ids', 'assetsSenderIds')->name('admin.assets.sender-ids');
+            Route::get('/assets/sender-ids/{id}', 'assetsSenderIdDetail')->name('admin.assets.sender-id.detail');
             Route::get('/assets/rcs-agents', 'assetsRcsAgents')->name('admin.assets.rcs-agents');
             Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
             Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');

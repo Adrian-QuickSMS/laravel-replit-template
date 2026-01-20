@@ -105,6 +105,14 @@ class AdminController extends Controller
         ]);
     }
 
+    public function assetsSenderIdDetail($id)
+    {
+        return view('admin.assets.sender-id-detail', [
+            'page_title' => 'SenderID Approval Detail',
+            'sender_id' => $id
+        ]);
+    }
+
     public function assetsRcsAgents()
     {
         return view('admin.assets.rcs-agents', [

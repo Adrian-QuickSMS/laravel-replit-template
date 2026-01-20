@@ -1478,7 +1478,7 @@ function setSort(sortType) {
 function viewDetails(id, type) {
     closeAllDropdowns();
     if (type === 'sender-id') {
-        window.location.href = '{{ route("admin.assets.sender-ids") }}?highlight=' + id;
+        window.location.href = '/admin/assets/sender-ids/' + id;
     } else {
         window.location.href = '{{ route("admin.assets.rcs-agents") }}?highlight=' + id;
     }
