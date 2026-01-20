@@ -29,28 +29,29 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #64748b;
+    background: transparent;
+    border: 1.5px solid #c5d3e0;
+    color: var(--admin-primary, #1e3a5f);
     font-weight: 500;
     font-size: 0.875rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     border-radius: 50px;
     transition: all 0.2s;
     cursor: pointer;
 }
 .filter-pill-btn:hover {
-    background: #f1f5f9;
-    border-color: var(--admin-accent, #4a90d9);
+    background: rgba(30, 58, 95, 0.05);
+    border-color: var(--admin-primary, #1e3a5f);
     color: var(--admin-primary, #1e3a5f);
 }
 .filter-pill-btn.active {
-    background: #e0f2fe;
-    border-color: var(--admin-accent, #4a90d9);
+    background: rgba(30, 58, 95, 0.08);
+    border-color: var(--admin-primary, #1e3a5f);
     color: var(--admin-primary, #1e3a5f);
 }
 .filter-pill-btn i {
     font-size: 0.8rem;
+    color: var(--admin-primary, #1e3a5f);
 }
 .filter-count-badge {
     display: inline-flex;
@@ -618,13 +619,8 @@ tr.selected-row:hover {
     </div>
 
     <div class="search-filter-toolbar mb-3">
-        <div class="d-flex align-items-center gap-3">
-            <button class="filter-pill-btn" type="button" onclick="toggleFilterPanel()" id="filterPillBtn">
-                <i class="fas fa-filter"></i>
-                <span>Filters</span>
-                <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
-            </button>
-            <div class="search-box flex-grow-1" style="max-width: 350px;">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="search-box" style="max-width: 350px; flex: 1;">
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search text-muted"></i></span>
                     <input type="text" class="form-control" id="globalSearch" placeholder="Search VMN, keyword, account..." onkeyup="handleSearch(this.value)">
@@ -633,6 +629,11 @@ tr.selected-row:hover {
                     </button>
                 </div>
             </div>
+            <button class="filter-pill-btn" type="button" onclick="toggleFilterPanel()" id="filterPillBtn">
+                <i class="fas fa-filter"></i>
+                <span>Filters</span>
+                <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
+            </button>
         </div>
     </div>
 
