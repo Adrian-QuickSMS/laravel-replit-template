@@ -947,10 +947,29 @@ body.admin-control-plane {
 /* ========================
    Action Icon Buttons
    ======================== */
+
+/* Fixed-width Actions column to prevent layout shifts */
+#accountsTable th.text-center:nth-last-child(2),
+#accountsTable td.text-center:has(.action-icons) {
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+}
+
+/* Fixed-width menu column */
+#accountsTable th.text-center:last-child,
+#accountsTable td.text-center:last-child:has(.dropdown) {
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+}
+
 .action-icons {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
+    white-space: nowrap;
 }
 
 .action-icon-btn {
@@ -959,6 +978,7 @@ body.admin-control-plane {
     border-radius: 4px;
     width: 28px;
     height: 28px;
+    min-width: 28px;
     padding: 0;
     display: inline-flex;
     align-items: center;
@@ -966,6 +986,7 @@ body.admin-control-plane {
     color: var(--admin-primary);
     cursor: pointer;
     transition: all 0.15s ease;
+    flex-shrink: 0;
 }
 
 .action-icon-btn:hover {
@@ -978,10 +999,27 @@ body.admin-control-plane {
     background: rgba(30, 58, 95, 0.2);
 }
 
+.action-icon-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.25);
+}
+
 .action-icon-btn i {
     font-size: 0.8rem;
 }
 
+.action-icon-btn[data-bs-original-title="Billing"] i,
 .action-icon-btn[title="Billing"] i {
     font-weight: 700;
+}
+
+/* Fillow tooltip style for admin icons */
+.tooltip.admin-tooltip .tooltip-inner {
+    background-color: var(--admin-primary);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+}
+
+.tooltip.admin-tooltip .tooltip-arrow::before {
+    border-top-color: var(--admin-primary);
 }
