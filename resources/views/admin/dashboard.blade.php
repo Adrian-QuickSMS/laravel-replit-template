@@ -2126,6 +2126,289 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Admin Dashboard JS] DOMContentLoaded fired');
     
+    // ============================================
+    // CHART INSTANCES - Global storage for updates
+    // ============================================
+    var chartInstances = {
+        volume: null,
+        delivery: null,
+        countries: null,
+        supplier: null,
+        mno: null
+    };
+    
+    // ============================================
+    // MOCK DATA GENERATOR - Filter-responsive data
+    // ============================================
+    var DashboardDataService = {
+        // Base data (default/unfiltered)
+        baseData: {
+            volume: { parts: 1247832, revenue: 18492, margin: 6328, marginPct: 34.2 },
+            delivery: { sent: 1247832, delivered: 1231654, undelivered: 16178, deliveryPct: 98.7 },
+            volumeChart: {
+                total: [45000, 52000, 48000, 61000, 58000, 72000, 68000, 75000, 82000, 78000, 85000, 92000],
+                sms: [38000, 44000, 40000, 51000, 48000, 60000, 56000, 62000, 68000, 65000, 71000, 76000],
+                rcs: [7000, 8000, 8000, 10000, 10000, 12000, 12000, 13000, 14000, 13000, 14000, 16000]
+            },
+            deliveryPie: [1231654, 8234, 3456, 4567, 3377],
+            countries: [
+                { x: 'United Kingdom', y: 892145 },
+                { x: 'Ireland', y: 124567 },
+                { x: 'Germany', y: 89234 },
+                { x: 'France', y: 56789 },
+                { x: 'Spain', y: 45123 },
+                { x: 'Italy', y: 34567 },
+                { x: 'Netherlands', y: 23456 },
+                { x: 'Belgium', y: 18234 },
+                { x: 'Portugal', y: 12345 },
+                { x: 'Poland', y: 9876 }
+            ],
+            supplier: {
+                delivered: [523456, 412345, 295853],
+                undeliverable: [987, 654, 321],
+                pending: [3124, 2891, 2219],
+                rejected: [1567, 1234, 576],
+                expired: [2345, 1987, 1235]
+            },
+            mno: {
+                delivered: [312456, 298765, 256789, 234567, 98234],
+                undeliverable: [234, 198, 167, 145, 87],
+                pending: [1234, 1456, 987, 876, 543],
+                rejected: [543, 432, 321, 234, 123],
+                expired: [876, 765, 654, 543, 234]
+            },
+            senderIds: [
+                { senderId: 'ACME Corp', messages: 245892, delivered: 241894, deliveryRate: 98.4 },
+                { senderId: 'TechStart', messages: 189234, delivered: 185449, deliveryRate: 98.0 },
+                { senderId: 'HealthPlus', messages: 156789, delivered: 155378, deliveryRate: 99.1 },
+                { senderId: 'BankSecure', messages: 134567, delivered: 133086, deliveryRate: 98.9 },
+                { senderId: 'RetailMax', messages: 98765, delivered: 97134, deliveryRate: 98.3 }
+            ]
+        },
+        
+        // Generate filtered data based on filter selections
+        getFilteredData: function(filters) {
+            var multiplier = this.calculateMultiplier(filters);
+            var data = JSON.parse(JSON.stringify(this.baseData)); // Deep clone
+            
+            // Apply multiplier to KPI values
+            data.volume.parts = Math.round(data.volume.parts * multiplier);
+            data.volume.revenue = Math.round(data.volume.revenue * multiplier);
+            data.volume.margin = Math.round(data.volume.margin * multiplier);
+            data.volume.marginPct = +(data.volume.marginPct * (0.9 + Math.random() * 0.2)).toFixed(1);
+            
+            data.delivery.sent = Math.round(data.delivery.sent * multiplier);
+            data.delivery.delivered = Math.round(data.delivery.delivered * multiplier);
+            data.delivery.undelivered = Math.round(data.delivery.undelivered * multiplier);
+            data.delivery.deliveryPct = +((data.delivery.delivered / data.delivery.sent) * 100).toFixed(1);
+            
+            // Apply multiplier to chart data
+            data.volumeChart.total = data.volumeChart.total.map(function(v) { return Math.round(v * multiplier); });
+            data.volumeChart.sms = data.volumeChart.sms.map(function(v) { return Math.round(v * multiplier); });
+            data.volumeChart.rcs = data.volumeChart.rcs.map(function(v) { return Math.round(v * multiplier); });
+            
+            data.deliveryPie = data.deliveryPie.map(function(v) { return Math.round(v * multiplier); });
+            
+            data.countries = data.countries.map(function(c) { 
+                return { x: c.x, y: Math.round(c.y * multiplier) }; 
+            });
+            
+            // Apply to stacked bars
+            for (var key in data.supplier) {
+                data.supplier[key] = data.supplier[key].map(function(v) { return Math.round(v * multiplier); });
+            }
+            for (var key in data.mno) {
+                data.mno[key] = data.mno[key].map(function(v) { return Math.round(v * multiplier); });
+            }
+            
+            // Apply to sender IDs
+            data.senderIds = data.senderIds.map(function(s) {
+                return {
+                    senderId: s.senderId,
+                    messages: Math.round(s.messages * multiplier),
+                    delivered: Math.round(s.delivered * multiplier),
+                    deliveryRate: s.deliveryRate
+                };
+            });
+            
+            return data;
+        },
+        
+        // Calculate a multiplier based on filters (simulates different data volumes)
+        calculateMultiplier: function(filters) {
+            var mult = 1.0;
+            
+            // Date range affects volume
+            switch (filters.dateRange) {
+                case 'today': mult *= 0.08; break;
+                case 'yesterday': mult *= 0.07; break;
+                case 'last7': mult *= 0.25; break;
+                case 'last30': mult *= 1.0; break;
+                case 'mtd': mult *= 0.65; break;
+                case 'custom': mult *= 0.5; break;
+            }
+            
+            // Client filter reduces to subset
+            if (filters.client && filters.client.trim()) {
+                mult *= 0.15;
+            }
+            
+            // Channel filter
+            if (filters.channel && filters.channel.length > 0 && filters.channel.length < 3) {
+                mult *= (filters.channel.length / 3);
+            }
+            
+            // Supplier filter
+            if (filters.supplier && filters.supplier.length > 0 && filters.supplier.length < 4) {
+                mult *= (filters.supplier.length / 4);
+            }
+            
+            // Network filter
+            if (filters.network && filters.network.length > 0 && filters.network.length < 5) {
+                mult *= (filters.network.length / 5);
+            }
+            
+            return mult;
+        }
+    };
+    
+    // ============================================
+    // UPDATE FUNCTIONS - Refresh all visuals
+    // ============================================
+    function updateDashboardVisuals(data) {
+        console.log('[Admin Dashboard] Updating visuals with data:', data);
+        
+        // Update KPI tiles
+        updateKPITiles(data);
+        
+        // Update charts
+        updateCharts(data);
+        
+        // Update sender IDs table
+        updateSenderIdsList(data.senderIds);
+        
+        // Update timestamp
+        lastRefreshTime = new Date();
+        updateTimeDisplay();
+    }
+    
+    function updateKPITiles(data) {
+        // Volume & Financials section
+        var volumeTile = document.querySelector('[data-kpi="volume"] h4');
+        if (volumeTile) volumeTile.textContent = data.volume.parts.toLocaleString();
+        
+        var revenueTile = document.querySelector('[data-kpi="revenue"] h4');
+        if (revenueTile) revenueTile.textContent = '£' + data.volume.revenue.toLocaleString();
+        
+        var marginTile = document.querySelector('[data-kpi="margin"] h4');
+        if (marginTile) marginTile.textContent = '£' + data.volume.margin.toLocaleString();
+        
+        var marginPctTile = document.querySelector('[data-kpi="margin-pct"] h4');
+        if (marginPctTile) marginPctTile.textContent = data.volume.marginPct + '%';
+        
+        // Delivery section
+        var sentTile = document.querySelector('[data-kpi="sent-parts"] h4');
+        if (sentTile) sentTile.textContent = data.delivery.sent.toLocaleString();
+        
+        var deliveredTile = document.querySelector('[data-kpi="delivered-parts"] h4');
+        if (deliveredTile) deliveredTile.textContent = data.delivery.delivered.toLocaleString();
+        
+        var undeliveredTile = document.querySelector('[data-kpi="undelivered-parts"] h4');
+        if (undeliveredTile) undeliveredTile.textContent = data.delivery.undelivered.toLocaleString();
+        
+        var deliveryPctTile = document.querySelector('[data-kpi="delivery-pct"] h4');
+        if (deliveryPctTile) deliveryPctTile.textContent = data.delivery.deliveryPct + '%';
+    }
+    
+    function updateCharts(data) {
+        // Update Volume Line Chart
+        if (chartInstances.volume) {
+            chartInstances.volume.updateSeries([
+                { name: 'Total', data: data.volumeChart.total },
+                { name: 'SMS', data: data.volumeChart.sms },
+                { name: 'RCS', data: data.volumeChart.rcs }
+            ]);
+        }
+        
+        // Update Delivery Pie Chart
+        if (chartInstances.delivery) {
+            chartInstances.delivery.updateSeries(data.deliveryPie);
+        }
+        
+        // Update Countries Bar Chart
+        if (chartInstances.countries) {
+            chartInstances.countries.updateSeries([{ name: 'Messages', data: data.countries }]);
+        }
+        
+        // Update Supplier Stacked Bar Chart
+        if (chartInstances.supplier) {
+            chartInstances.supplier.updateSeries([
+                { name: 'Delivered', data: data.supplier.delivered },
+                { name: 'Undeliverable', data: data.supplier.undeliverable },
+                { name: 'Pending', data: data.supplier.pending },
+                { name: 'Rejected', data: data.supplier.rejected },
+                { name: 'Expired', data: data.supplier.expired }
+            ]);
+        }
+        
+        // Update MNO Stacked Bar Chart
+        if (chartInstances.mno) {
+            chartInstances.mno.updateSeries([
+                { name: 'Delivered', data: data.mno.delivered },
+                { name: 'Undeliverable', data: data.mno.undeliverable },
+                { name: 'Pending', data: data.mno.pending },
+                { name: 'Rejected', data: data.mno.rejected },
+                { name: 'Expired', data: data.mno.expired }
+            ]);
+        }
+    }
+    
+    function updateSenderIdsList(senderIds) {
+        var listEl = document.getElementById('adminTopSenderIdsList');
+        if (!listEl) return;
+        
+        var html = senderIds.map(function(s, i) {
+            var iconClass = i === 0 ? 'fa-crown text-warning' : 'fa-tag text-primary';
+            return '<div class="d-flex align-items-center py-2 border-bottom">' +
+                '<span class="me-3"><i class="fas ' + iconClass + '"></i></span>' +
+                '<div class="flex-grow-1">' +
+                    '<h6 class="mb-0">' + s.senderId + '</h6>' +
+                    '<small class="text-muted">' + s.messages.toLocaleString() + ' messages</small>' +
+                '</div>' +
+                '<div class="text-end">' +
+                    '<span class="badge ' + (s.deliveryRate >= 98 ? 'badge-success' : 'badge-warning') + ' light">' + s.deliveryRate + '%</span>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+        
+        listEl.innerHTML = html;
+    }
+    
+    // ============================================
+    // FILTER APPLICATION - Core functionality
+    // ============================================
+    function collectFilters() {
+        var getMultiSelectValues = function(id) {
+            var el = document.getElementById(id);
+            if (!el) return [];
+            return Array.from(el.selectedOptions).map(function(opt) { return opt.value; });
+        };
+        
+        return {
+            dateRange: document.getElementById('filter-date-range').value,
+            dateStart: document.getElementById('filter-date-start') ? document.getElementById('filter-date-start').value : null,
+            dateEnd: document.getElementById('filter-date-end') ? document.getElementById('filter-date-end').value : null,
+            client: document.getElementById('filter-client').value,
+            origin: getMultiSelectValues('filter-origin'),
+            channel: getMultiSelectValues('filter-channel'),
+            senderId: document.getElementById('filter-sender-id').value,
+            supplier: getMultiSelectValues('filter-supplier'),
+            network: getMultiSelectValues('filter-network'),
+            country: getMultiSelectValues('filter-country'),
+            portingView: document.getElementById('filter-porting-view').checked ? 'ported' : 'original'
+        };
+    }
+    
     // Initialize Charts FIRST - wait for ApexCharts to be available
     function waitForApexCharts() {
         console.log('[Admin Charts] Checking for ApexCharts...', typeof ApexCharts);
@@ -2164,7 +2447,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: { shared: true, intersect: false },
                 markers: { size: 5, hover: { size: 7 } }
             };
-            new ApexCharts(volumeChartEl, volumeOptions).render();
+            chartInstances.volume = new ApexCharts(volumeChartEl, volumeOptions);
+            chartInstances.volume.render();
             console.log('[Admin Charts] Volume chart rendered');
         }
 
@@ -2180,7 +2464,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 dataLabels: { enabled: true, formatter: function(val) { return val.toFixed(1) + '%'; } },
                 legend: { position: 'bottom', fontSize: '11px' }
             };
-            new ApexCharts(deliveryChartEl, deliveryOptions).render();
+            chartInstances.delivery = new ApexCharts(deliveryChartEl, deliveryOptions);
+            chartInstances.delivery.render();
             console.log('[Admin Charts] Delivery chart rendered');
         }
 
@@ -2213,7 +2498,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 yaxis: { labels: { style: { fontSize: '12px' } } },
                 states: { hover: { filter: { type: 'darken', value: 0.9 } } }
             };
-            new ApexCharts(countriesChartEl, countriesOptions).render();
+            chartInstances.countries = new ApexCharts(countriesChartEl, countriesOptions);
+            chartInstances.countries.render();
             console.log('[Admin Charts] Countries chart rendered');
         }
 
@@ -2239,7 +2525,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
                 grid: { padding: { top: -15, bottom: -15, left: 0, right: 0 } }
             };
-            new ApexCharts(supplierChartEl, supplierOptions).render();
+            chartInstances.supplier = new ApexCharts(supplierChartEl, supplierOptions);
+            chartInstances.supplier.render();
             console.log('[Admin Charts] Supplier chart rendered');
         }
 
@@ -2265,7 +2552,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: { y: { formatter: function(val) { return val.toLocaleString(); } } },
                 grid: { padding: { top: -15, bottom: -15, left: 0, right: 0 } }
             };
-            new ApexCharts(mnoChartEl, mnoOptions).render();
+            chartInstances.mno = new ApexCharts(mnoChartEl, mnoOptions);
+            chartInstances.mno.render();
             console.log('[Admin Charts] MNO chart rendered');
         }
 
@@ -2364,43 +2652,73 @@ document.addEventListener('DOMContentLoaded', function() {
         pendingChanges = false;
         document.getElementById('filter-pending-notice').classList.remove('visible');
         
-        var filters = {
-            dateRange: document.getElementById('filter-date-range').value,
-            client: document.getElementById('filter-client').value,
-            senderId: document.getElementById('filter-sender-id').value,
-            portingView: document.getElementById('filter-porting-view').checked ? 'ported' : 'original'
-        };
-
+        // Collect all filter values
+        var filters = collectFilters();
         appliedFilters = filters;
+        
+        console.log('[Admin Dashboard] Applying filters:', filters);
+        
+        // Get filtered data from service
+        var filteredData = DashboardDataService.getFilteredData(filters);
+        
+        // Update all dashboard visuals with filtered data
+        updateDashboardVisuals(filteredData);
+        
+        // Update filter chips UI
         updateFilterChips();
-        lastRefreshTime = new Date();
-        updateTimeDisplay();
 
         if (typeof AdminControlPlane !== 'undefined') {
             AdminControlPlane.applyFilters();
             AdminControlPlane.logAdminAction('DASHBOARD_FILTERS_APPLIED', 'SYSTEM', filters);
         }
 
-        console.log('[Admin Dashboard] Filters applied:', filters);
+        console.log('[Admin Dashboard] Filters applied successfully');
     };
 
     window.resetFilters = function() {
-        document.getElementById('filter-date-range').value = 'today';
+        // Reset all filter inputs to defaults
+        document.getElementById('filter-date-range').value = 'last30';
         document.getElementById('filter-client').value = '';
         document.getElementById('filter-sender-id').value = '';
         document.getElementById('filter-porting-view').checked = false;
         document.getElementById('custom-date-range').style.display = 'none';
         
+        // Reset multi-selects
+        var originSelect = document.getElementById('filter-origin');
+        var channelSelect = document.getElementById('filter-channel');
+        var supplierSelect = document.getElementById('filter-supplier');
+        var networkSelect = document.getElementById('filter-network');
+        var countrySelect = document.getElementById('filter-country');
+        
+        [originSelect, channelSelect, supplierSelect, networkSelect, countrySelect].forEach(function(sel) {
+            if (sel) {
+                Array.from(sel.options).forEach(function(opt) { opt.selected = false; });
+            }
+        });
+        
+        // Set default country to UK
+        if (countrySelect) {
+            var ukOption = countrySelect.querySelector('option[value="uk"]');
+            if (ukOption) ukOption.selected = true;
+        }
+        
         pendingChanges = false;
         document.getElementById('filter-pending-notice').classList.remove('visible');
         
-        appliedFilters = { dateRange: 'today', country: ['uk'] };
+        // Get default data (last 30 days, no other filters)
+        appliedFilters = { dateRange: 'last30', country: ['uk'] };
+        var defaultData = DashboardDataService.getFilteredData(appliedFilters);
+        
+        // Update all visuals with default data
+        updateDashboardVisuals(defaultData);
         updateFilterChips();
 
         if (typeof AdminControlPlane !== 'undefined') {
             AdminControlPlane.clearFilters();
             AdminControlPlane.logAdminAction('DASHBOARD_FILTERS_RESET', 'SYSTEM', {});
         }
+        
+        console.log('[Admin Dashboard] Filters reset to defaults');
     };
 
     function updateFilterChips() {
@@ -2443,6 +2761,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.disabled = true;
 
         setTimeout(function() {
+            // Refresh data with current filters
+            var filters = collectFilters();
+            var refreshedData = DashboardDataService.getFilteredData(filters);
+            updateDashboardVisuals(refreshedData);
+            
             lastRefreshTime = new Date();
             updateTimeDisplay();
             btn.classList.remove('refreshing');
