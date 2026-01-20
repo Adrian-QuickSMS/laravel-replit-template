@@ -360,8 +360,7 @@
                         <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('RCS-002')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('RCS-002')">Reject</button>
+                                <span class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1"></i>Awaiting RCS Provider</span>
                             </div>
                         </td>
                     </tr>
@@ -425,8 +424,7 @@
                         <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('RCS-004')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('RCS-004')">Reject</button>
+                                <span class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1"></i>Awaiting RCS Provider</span>
                             </div>
                         </td>
                     </tr>
@@ -490,8 +488,7 @@
                         <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('RCS-006')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('RCS-006')">Reject</button>
+                                <span class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1"></i>Awaiting RCS Provider</span>
                             </div>
                         </td>
                     </tr>
