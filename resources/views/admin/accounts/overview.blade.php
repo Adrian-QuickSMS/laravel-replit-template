@@ -402,7 +402,7 @@
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-1234', 'Acme Corporation')" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('ACC-1234', 'Acme Corporation')" title="Pricing"><i class="fas fa-tags"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-1234', 'Acme Corporation', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                    <button class="action-icon-btn" onclick="openRoutingModal('ACC-1234', 'Acme Corporation')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -453,7 +453,7 @@
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-5678', 'Finance Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('ACC-5678', 'Finance Ltd')" title="Pricing"><i class="fas fa-tags"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-5678', 'Finance Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                    <button class="action-icon-btn" onclick="openRoutingModal('ACC-5678', 'Finance Ltd')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -502,7 +502,7 @@
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-7890', 'NewClient')" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('ACC-7890', 'NewClient')" title="Pricing"><i class="fas fa-tags"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-7890', 'NewClient', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                    <button class="action-icon-btn" onclick="openRoutingModal('ACC-7890', 'NewClient')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -546,7 +546,7 @@
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-4567', 'TestCo')" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('ACC-4567', 'TestCo')" title="Pricing"><i class="fas fa-tags"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-4567', 'TestCo', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                    <button class="action-icon-btn" onclick="openRoutingModal('ACC-4567', 'TestCo')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -595,7 +595,7 @@
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-9012', 'HighRisk Corp')" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('ACC-9012', 'HighRisk Corp')" title="Pricing"><i class="fas fa-tags"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-9012', 'HighRisk Corp', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                    <button class="action-icon-btn" onclick="openRoutingModal('ACC-9012', 'HighRisk Corp')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -644,7 +644,7 @@
                                 <div class="action-icons">
                                     <button class="action-icon-btn" onclick="openBillingModal('ACC-3456', 'MedTech Solutions')" title="Billing"><i class="fas fa-pound-sign"></i></button>
                                     <button class="action-icon-btn" onclick="openPricingModal('ACC-3456', 'MedTech Solutions')" title="Pricing"><i class="fas fa-tags"></i></button>
-                                    <button class="action-icon-btn" onclick="rowAction('ACC-3456', 'MedTech Solutions', 'routing')" title="Routing"><i class="fas fa-route"></i></button>
+                                    <button class="action-icon-btn" onclick="openRoutingModal('ACC-3456', 'MedTech Solutions')" title="Routing"><i class="fas fa-route"></i></button>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -689,7 +689,7 @@
                             <td class="text-end">6,234,567</td>
                             <td class="text-end">521,234</td>
                             <td class="text-end">£4,320</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4001', 'RetailMax Group')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4001', 'RetailMax Group')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4001', 'RetailMax Group', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4001', 'RetailMax Group')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4001', 'RetailMax Group')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4001', 'RetailMax Group')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4001">
@@ -719,7 +719,7 @@
                             <td class="text-end">4,567,890</td>
                             <td class="text-end">382,456</td>
                             <td class="text-end">£3,150</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4002', 'CloudFirst Tech')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4002', 'CloudFirst Tech')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4002', 'CloudFirst Tech', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4002', 'CloudFirst Tech')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4002', 'CloudFirst Tech')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4002', 'CloudFirst Tech')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4002"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">CloudFirst SaaS</td><td class="text-end">382,456</td><td class="text-end">4,567,890</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -729,7 +729,7 @@
                             <td class="text-end">3,456,789</td>
                             <td class="text-end">287,654</td>
                             <td class="text-end">£2,890</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4003', 'GreenEnergy Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4003', 'GreenEnergy Ltd')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4003', 'GreenEnergy Ltd', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4003', 'GreenEnergy Ltd')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4003', 'GreenEnergy Ltd')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4003', 'GreenEnergy Ltd')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4003"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -739,7 +739,7 @@
                             <td class="text-end">0</td>
                             <td class="text-end">156</td>
                             <td class="text-end">£0</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4004', 'FastLogistics')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4004', 'FastLogistics')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4004', 'FastLogistics', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4004', 'FastLogistics')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4004', 'FastLogistics')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4004', 'FastLogistics')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4004"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -749,7 +749,7 @@
                             <td class="text-end">7,890,123</td>
                             <td class="text-end">654,321</td>
                             <td class="text-end">£6,540</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4005', 'HealthPlus Care')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4005', 'HealthPlus Care')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4005', 'HealthPlus Care', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4005', 'HealthPlus Care')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4005', 'HealthPlus Care')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4005', 'HealthPlus Care')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4005"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">HealthPlus Clinics</td><td class="text-end">400,000</td><td class="text-end">4,800,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">HealthPlus Labs</td><td class="text-end">254,321</td><td class="text-end">3,090,123</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -759,7 +759,7 @@
                             <td class="text-end">2,345,678</td>
                             <td class="text-end">198,765</td>
                             <td class="text-end">£1,980</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4006', 'EduLearn Academy')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4006', 'EduLearn Academy')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4006', 'EduLearn Academy', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4006', 'EduLearn Academy')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4006', 'EduLearn Academy')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4006', 'EduLearn Academy')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4006"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -769,7 +769,7 @@
                             <td class="text-end">5,678,901</td>
                             <td class="text-end">476,543</td>
                             <td class="text-end">£4,760</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4007', 'AutoDrive Motors')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4007', 'AutoDrive Motors')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4007', 'AutoDrive Motors', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4007', 'AutoDrive Motors')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4007', 'AutoDrive Motors')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4007', 'AutoDrive Motors')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4007"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">AutoDrive Sales</td><td class="text-end">300,000</td><td class="text-end">3,500,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">AutoDrive Service</td><td class="text-end">176,543</td><td class="text-end">2,178,901</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -779,7 +779,7 @@
                             <td class="text-end">0</td>
                             <td class="text-end">89</td>
                             <td class="text-end">£0</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4008', 'TechStartup Inc')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4008', 'TechStartup Inc')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4008', 'TechStartup Inc', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4008', 'TechStartup Inc')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4008', 'TechStartup Inc')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4008', 'TechStartup Inc')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4008"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -789,7 +789,7 @@
                             <td class="text-end">9,012,345</td>
                             <td class="text-end">756,789</td>
                             <td class="text-end">£7,560</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4009', 'FoodDelivery Pro')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4009', 'FoodDelivery Pro')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4009', 'FoodDelivery Pro', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4009', 'FoodDelivery Pro')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4009', 'FoodDelivery Pro')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4009', 'FoodDelivery Pro')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4009"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">FoodDelivery Express</td><td class="text-end">500,000</td><td class="text-end">6,000,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">FoodDelivery Premium</td><td class="text-end">256,789</td><td class="text-end">3,012,345</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -799,7 +799,7 @@
                             <td class="text-end">4,123,456</td>
                             <td class="text-end">345,678</td>
                             <td class="text-end">£3,450</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4010', 'PropertyHub UK')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4010', 'PropertyHub UK')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4010', 'PropertyHub UK', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4010', 'PropertyHub UK')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4010', 'PropertyHub UK')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4010', 'PropertyHub UK')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4010"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -809,7 +809,7 @@
                             <td class="text-end">3,789,012</td>
                             <td class="text-end">312,456</td>
                             <td class="text-end">£3,120</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4011', 'TravelWorld Agency')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4011', 'TravelWorld Agency')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4011', 'TravelWorld Agency', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4011', 'TravelWorld Agency')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4011', 'TravelWorld Agency')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4011', 'TravelWorld Agency')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4011"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">TravelWorld Holidays</td><td class="text-end">200,000</td><td class="text-end">2,400,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">TravelWorld Business</td><td class="text-end">112,456</td><td class="text-end">1,389,012</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -819,7 +819,7 @@
                             <td class="text-end">12,345,678</td>
                             <td class="text-end">1,034,567</td>
                             <td class="text-end">£10,340</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4012', 'SecureBank Financial')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4012', 'SecureBank Financial')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4012', 'SecureBank Financial', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4012', 'SecureBank Financial')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4012', 'SecureBank Financial')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4012', 'SecureBank Financial')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4012"><td colspan="7"><div class="sub-account-table-wrapper"><table class="sub-account-table"><thead><tr><th>Sub-Account</th><th class="text-end">Volume (Month)</th><th class="text-end">Volume (Year)</th><th>Status</th></tr></thead><tbody><tr><td class="sub-name">SecureBank Retail</td><td class="text-end">600,000</td><td class="text-end">7,200,000</td><td><span class="badge light badge-success">Active</span></td></tr><tr><td class="sub-name">SecureBank Business</td><td class="text-end">434,567</td><td class="text-end">5,145,678</td><td><span class="badge light badge-success">Active</span></td></tr></tbody></table></div></td></tr>
@@ -829,7 +829,7 @@
                             <td class="text-end">0</td>
                             <td class="text-end">234</td>
                             <td class="text-end">£0</td>
-                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4013', 'SmartHome Systems')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4013', 'SmartHome Systems')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="rowAction('ACC-4013', 'SmartHome Systems', 'routing')" title="Routing"><i class="fas fa-route"></i></button></div></td>
+                            <td class="text-center"><div class="action-icons"><button class="action-icon-btn" onclick="openBillingModal('ACC-4013', 'SmartHome Systems')" title="Billing"><i class="fas fa-pound-sign"></i></button><button class="action-icon-btn" onclick="openPricingModal('ACC-4013', 'SmartHome Systems')" title="Pricing"><i class="fas fa-tags"></i></button><button class="action-icon-btn" onclick="openRoutingModal('ACC-4013', 'SmartHome Systems')" title="Routing"><i class="fas fa-route"></i></button></div></td>
                             <td class="text-center"><div class="dropdown"><button class="btn btn-sm" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#">View Details</a></li></ul></div></td>
                         </tr>
                         <tr class="sub-account-row" data-parent="ACC-4013"><td colspan="7"><div class="sub-account-table-wrapper"><span class="no-sub-accounts">No sub-accounts configured</span></div></td></tr>
@@ -1357,6 +1357,95 @@
                 <button type="button" class="btn btn-primary" id="confirmBillingBasisBtn" onclick="executeBillingBasisChange()">
                     <i class="fas fa-check me-1"></i>Confirm Change
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Routing Modal -->
+<div class="modal fade" id="routingModal" tabindex="-1" aria-labelledby="routingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="routingModalLabel">Routing — <span id="routingClientName">Client</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="routingAccountId">
+                
+                <!-- Loading State -->
+                <div id="routingLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading routing configuration...</p>
+                </div>
+                
+                <!-- Routing Content -->
+                <div id="routingContent" style="display: none;">
+                    <!-- Primary Supplier Routing Section -->
+                    <div class="card mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-network-wired me-2"></i>Primary Supplier Routing</h6>
+                            <span class="badge light badge-info" id="routingLoadBalanceStatus">Load Balance: 100%</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Supplier</th>
+                                            <th class="text-center">Priority</th>
+                                            <th class="text-end">Load Balance %</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="primaryRoutingTableBody">
+                                        <!-- Populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Country-Specific Routing Section -->
+                    <div class="card" id="countryRoutingCard">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-globe me-2"></i>Country-Specific Routing</h6>
+                            <span class="badge light badge-secondary" id="countryRoutingCount">0 overrides</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Country</th>
+                                            <th>Supplier</th>
+                                            <th class="text-end">%</th>
+                                            <th>Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="countryRoutingTableBody">
+                                        <!-- Populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="noCountryRouting" class="text-center py-4" style="display: none;">
+                                <i class="fas fa-globe fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No country-specific routing configured.<br><small>Using primary supplier routing for all destinations.</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-secondary small mt-3 mb-0">
+                        <i class="fas fa-lock me-1"></i>
+                        Routing configuration is read-only in Admin view. Contact Operations to modify routing rules.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted small me-auto"><i class="fas fa-info-circle me-1"></i>Routing managed by Operations</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -2879,5 +2968,198 @@ window.executeBillingBasisChange = function() {
         alert('Failed to update billing basis. Please try again.');
     });
 };
+
+// ========================
+// Routing Service Layer (Backend-Ready)
+// ========================
+var RoutingService = (function() {
+    // Mock routing data
+    var mockRouting = {
+        'default': {
+            primarySuppliers: [
+                { name: 'TeleSign UK', priority: 1, loadBalance: 60, status: 'active' },
+                { name: 'Vonage Direct', priority: 2, loadBalance: 40, status: 'active' }
+            ],
+            countryRouting: []
+        },
+        'ACC-1234': {
+            primarySuppliers: [
+                { name: 'TeleSign UK', priority: 1, loadBalance: 50, status: 'active' },
+                { name: 'Vonage Direct', priority: 2, loadBalance: 30, status: 'active' },
+                { name: 'Sinch Enterprise', priority: 3, loadBalance: 20, status: 'active' }
+            ],
+            countryRouting: [
+                { country: 'United States', countryCode: 'US', supplier: 'Twilio US', percentage: 100, notes: 'Direct US routing for cost optimization' },
+                { country: 'Germany', countryCode: 'DE', supplier: 'Deutsche Telekom', percentage: 100, notes: 'Local carrier for better deliverability' },
+                { country: 'France', countryCode: 'FR', supplier: 'Orange Business', percentage: 100, notes: 'Regulatory compliance requirement' }
+            ]
+        },
+        'ACC-5678': {
+            primarySuppliers: [
+                { name: 'Sinch Enterprise', priority: 1, loadBalance: 70, status: 'active' },
+                { name: 'MessageBird', priority: 2, loadBalance: 30, status: 'standby' }
+            ],
+            countryRouting: [
+                { country: 'Australia', countryCode: 'AU', supplier: 'Telstra Direct', percentage: 100, notes: 'ACMA compliance' }
+            ]
+        },
+        'ACC-7890': {
+            primarySuppliers: [
+                { name: 'TeleSign UK', priority: 1, loadBalance: 100, status: 'active' }
+            ],
+            countryRouting: []
+        },
+        'ACC-4567': {
+            primarySuppliers: [
+                { name: 'Vonage Direct', priority: 1, loadBalance: 100, status: 'active' }
+            ],
+            countryRouting: []
+        }
+    };
+
+    function getRoutingForAccount(accountId) {
+        if (mockRouting[accountId]) return mockRouting[accountId];
+        // Return default routing with slight variations
+        var suppliers = [
+            { name: 'TeleSign UK', priority: 1, loadBalance: Math.floor(Math.random() * 30) + 50, status: 'active' },
+            { name: 'Vonage Direct', priority: 2, loadBalance: 0, status: 'active' }
+        ];
+        suppliers[1].loadBalance = 100 - suppliers[0].loadBalance;
+        return { primarySuppliers: suppliers, countryRouting: [] };
+    }
+
+    return {
+        // TODO: Replace with real API endpoint when backend is ready
+        // @param accountId - Client account ID
+        // @returns Promise<{ primarySuppliers[], countryRouting[] }>
+        getClientRouting: function(accountId) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    var routing = getRoutingForAccount(accountId);
+                    resolve({ success: true, data: routing });
+                }, 400);
+            });
+        }
+    };
+})();
+
+// ========================
+// Routing UI Functions
+// ========================
+var currentRoutingAccountId = null;
+var currentRoutingClientName = null;
+var routingModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    routingModal = new bootstrap.Modal(document.getElementById('routingModal'));
+});
+
+window.openRoutingModal = function(accountId, clientName) {
+    currentRoutingAccountId = accountId;
+    currentRoutingClientName = clientName;
+    
+    document.getElementById('routingAccountId').value = accountId;
+    document.getElementById('routingClientName').textContent = clientName;
+    
+    // Show loading, hide content
+    document.getElementById('routingLoading').style.display = 'block';
+    document.getElementById('routingContent').style.display = 'none';
+    
+    routingModal.show();
+    
+    // Fetch routing data
+    RoutingService.getClientRouting(accountId).then(function(response) {
+        document.getElementById('routingLoading').style.display = 'none';
+        document.getElementById('routingContent').style.display = 'block';
+        
+        var data = response.data;
+        
+        // Render primary suppliers
+        renderPrimaryRoutingTable(data.primarySuppliers);
+        
+        // Render country-specific routing
+        renderCountryRoutingTable(data.countryRouting);
+        
+        // Audit log
+        if (typeof AdminControlPlane !== 'undefined') {
+            AdminControlPlane.logAdminAction('ROUTING_MODAL_OPENED', 'ROUTING', {
+                accountId: accountId,
+                clientName: clientName,
+                supplierCount: data.primarySuppliers.length,
+                countryOverrideCount: data.countryRouting.length
+            });
+        }
+    }).catch(function(error) {
+        document.getElementById('routingLoading').innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Failed to load routing data. Please try again.</div>';
+    });
+};
+
+function renderPrimaryRoutingTable(suppliers) {
+    var tbody = document.getElementById('primaryRoutingTableBody');
+    var html = '';
+    var totalLoadBalance = 0;
+    
+    suppliers.forEach(function(sup) {
+        totalLoadBalance += sup.loadBalance;
+        var statusClass = sup.status === 'active' ? 'badge-success' : 'badge-warning';
+        var statusLabel = sup.status === 'active' ? 'Active' : 'Standby';
+        
+        html += '<tr>';
+        html += '<td><strong>' + sup.name + '</strong></td>';
+        html += '<td class="text-center">' + sup.priority + '</td>';
+        html += '<td class="text-end">';
+        html += '<div class="d-flex align-items-center justify-content-end">';
+        html += '<div class="progress me-2" style="width: 80px; height: 8px;">';
+        html += '<div class="progress-bar bg-primary" style="width: ' + sup.loadBalance + '%;"></div>';
+        html += '</div>';
+        html += '<span>' + sup.loadBalance + '%</span>';
+        html += '</div>';
+        html += '</td>';
+        html += '<td><span class="badge light ' + statusClass + '">' + statusLabel + '</span></td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+    
+    // Update load balance status badge
+    var statusBadge = document.getElementById('routingLoadBalanceStatus');
+    if (totalLoadBalance === 100) {
+        statusBadge.className = 'badge light badge-success';
+        statusBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Load Balance: 100%';
+    } else {
+        statusBadge.className = 'badge light badge-warning';
+        statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Load Balance: ' + totalLoadBalance + '%';
+    }
+}
+
+function renderCountryRoutingTable(countryRouting) {
+    var tbody = document.getElementById('countryRoutingTableBody');
+    var noRoutingDiv = document.getElementById('noCountryRouting');
+    var countBadge = document.getElementById('countryRoutingCount');
+    
+    if (countryRouting.length === 0) {
+        tbody.innerHTML = '';
+        noRoutingDiv.style.display = 'block';
+        tbody.parentElement.parentElement.style.display = 'none';
+        countBadge.textContent = 'No overrides';
+        return;
+    }
+    
+    noRoutingDiv.style.display = 'none';
+    tbody.parentElement.parentElement.style.display = '';
+    countBadge.textContent = countryRouting.length + ' override' + (countryRouting.length > 1 ? 's' : '');
+    
+    var html = '';
+    countryRouting.forEach(function(route) {
+        html += '<tr>';
+        html += '<td><span class="me-2">🌍</span><strong>' + route.country + '</strong> <small class="text-muted">(' + route.countryCode + ')</small></td>';
+        html += '<td>' + route.supplier + '</td>';
+        html += '<td class="text-end">' + route.percentage + '%</td>';
+        html += '<td><small class="text-muted">' + route.notes + '</small></td>';
+        html += '</tr>';
+    });
+    
+    tbody.innerHTML = html;
+}
 </script>
 @endpush
