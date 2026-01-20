@@ -589,10 +589,11 @@
     <div class="detail-grid">
         <div class="main-content">
             {{-- CANONICAL REVIEW UI - EXACT SAME as customer registration wizard Step 7 --}}
+            {{-- Sections A-G: Matches customer final review exactly --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <i class="fas fa-robot"></i> Registration Details
-                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Same as Customer View</span>
+                    <i class="fas fa-robot"></i> RCS Agent Overview
+                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Matches Customer Step 7 Review</span>
                 </div>
                 <div class="detail-card-body">
                     @php
@@ -609,14 +610,15 @@
                         'website' => 'https://www.acmebank.com',
                         'privacyUrl' => 'https://acmebank.com/privacy',
                         'termsUrl' => 'https://acmebank.com/terms',
-                        'billingCategory' => 'Financial Services',
-                        'useCase' => 'Transactional Notifications',
+                        'billingCategory' => 'Conversational',
+                        'useCase' => 'Transactional',
                         'useCaseOverview' => 'Balance alerts, transaction confirmations, security notifications',
-                        'campaignFrequency' => 'As needed (event-driven)',
-                        'userConsent' => 'During online banking registration',
-                        'optOutAvailable' => 'Yes - STOP, settings, or phone',
+                        'userConsent' => true,
+                        'userConsentType' => 'Opted in during registration',
+                        'optOutAvailable' => true,
                         'monthlyVolume' => '50,000 - 100,000',
                         'companyName' => 'Acme Corporation Ltd',
+                        'tradingName' => 'Acme Bank',
                         'companyNumber' => '12345678',
                         'companyWebsite' => 'https://www.acmebank.com',
                         'sector' => 'Financial Services',
@@ -630,11 +632,29 @@
                         'approverEmail' => 'j.wilson@acmebank.com',
                         'testNumbers' => ['+44 7700 900111', '+44 7700 900222', '+44 7700 900333']
                     ];
+                    
+                    $rcsMetadata = [
+                        'versionId' => 'RCS-2026-00142-v3',
+                        'submittedBy' => 'j.wilson@acmebank.com',
+                        'account' => 'Acme Corporation Ltd',
+                        'subAccount' => 'Marketing Dept',
+                        'createdAt' => '15 Jan 2026, 09:32',
+                        'submittedAt' => '18 Jan 2026, 14:22',
+                        'lastUpdatedAt' => '20 Jan 2026, 11:45',
+                        'validationStatus' => 'pending',
+                        'externalReferenceIds' => [
+                            'RCS Provider' => 'RCS-UK-2026-00142',
+                            'Internal Ticket' => 'QSMS-4521'
+                        ]
+                    ];
                     @endphp
                     @include('partials.review.rcs-agent-review-summary', [
                         'isAdmin' => true,
                         'data' => $rcsAgentData
                     ])
+                    
+                    {{-- Section H: Admin-only Submission Metadata --}}
+                    @include('partials.admin.rcs-agent-admin-extras', ['metadata' => $rcsMetadata])
                 </div>
             </div>
 
