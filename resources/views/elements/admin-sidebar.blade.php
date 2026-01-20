@@ -28,18 +28,6 @@
                 </ul>
             </li>
             
-            <li class="{{ request()->routeIs('admin.campaigns.*') ? 'mm-active' : '' }}">
-                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
-                    <i class="fas fa-bullhorn"></i>
-                    <span class="nav-text">Campaign Oversight</span>
-                </a>
-                <ul aria-expanded="false">
-                    <li><a href="{{ route('admin.campaigns.active') }}" class="{{ request()->routeIs('admin.campaigns.active') ? 'mm-active' : '' }}">Active / Scheduled</a></li>
-                    <li><a href="{{ route('admin.campaigns.approvals') }}" class="{{ request()->routeIs('admin.campaigns.approvals') ? 'mm-active' : '' }}">Approvals Queue</a></li>
-                    <li><a href="{{ route('admin.campaigns.blocked') }}" class="{{ request()->routeIs('admin.campaigns.blocked') ? 'mm-active' : '' }}">Blocked / Failed</a></li>
-                </ul>
-            </li>
-            
             <li class="{{ request()->routeIs('admin.assets.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-puzzle-piece"></i>
