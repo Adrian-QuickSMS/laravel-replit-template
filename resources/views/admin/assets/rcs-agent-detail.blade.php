@@ -9,9 +9,39 @@
 <style>
 .detail-page { 
     padding: 1.5rem; 
-    padding-bottom: 3rem;
+    padding-bottom: 5rem;
     min-height: auto;
-    overflow: visible;
+    overflow: visible !important;
+    height: auto !important;
+}
+
+.content-body {
+    overflow: visible !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+.content-body.default-height {
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    overflow-y: auto !important;
+}
+
+html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+}
+
+#main-wrapper {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+.qsms-main, .qsms-content-wrap {
+    overflow: visible !important;
+    height: auto !important;
 }
 
 .header-action-btn {
