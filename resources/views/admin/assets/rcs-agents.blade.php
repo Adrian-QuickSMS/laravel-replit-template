@@ -211,19 +211,19 @@
 
     <div class="approval-queue-stats">
         <div class="approval-stat-card pending" data-status="submitted">
-            <div class="stat-count" id="stat-submitted">5</div>
+            <div class="stat-count" id="stat-submitted">4</div>
             <div class="stat-label">Submitted</div>
         </div>
-        <div class="approval-stat-card in-review active" data-status="in-review">
-            <div class="stat-count" id="stat-in-review">3</div>
+        <div class="approval-stat-card in-review" data-status="in-review">
+            <div class="stat-count" id="stat-in-review">4</div>
             <div class="stat-label">In Review</div>
         </div>
         <div class="approval-stat-card approved" data-status="approved">
-            <div class="stat-count" id="stat-approved">234</div>
+            <div class="stat-count" id="stat-approved">226</div>
             <div class="stat-label">Approved</div>
         </div>
         <div class="approval-stat-card rejected" data-status="rejected">
-            <div class="stat-count" id="stat-rejected">12</div>
+            <div class="stat-count" id="stat-rejected">4</div>
             <div class="stat-label">Rejected</div>
         </div>
         <div class="approval-stat-card total" data-status="all">
@@ -295,7 +295,6 @@
                         <th>Type</th>
                         <th>Account</th>
                         <th>Submitted</th>
-                        <th>Carriers</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -305,7 +304,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-001')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">AC</div>
                                 <div>
                                     <div class="approval-item-name">Acme Support Bot</div>
                                     <div class="agent-desc">Customer support and FAQ assistance</div>
@@ -315,7 +313,6 @@
                         <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">AC</div>
                                 <div class="account-info">
                                     <div class="account-name">Acme Corporation</div>
                                     <div class="account-id">ACC-1234</div>
@@ -328,11 +325,6 @@
                                 3 hours ago
                             </div>
                         </td>
-                        <td>
-                            <span class="carrier-badge">EE</span>
-                            <span class="carrier-badge">Vodafone</span>
-                            <span class="carrier-badge">O2</span>
-                        </td>
                         <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                         <td>
                             <div class="approval-quick-actions">
@@ -344,7 +336,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-002')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">FL</div>
                                 <div>
                                     <div class="approval-item-name">Finance Alerts</div>
                                     <div class="agent-desc">Transaction alerts and security notifications</div>
@@ -354,7 +345,6 @@
                         <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">FL</div>
                                 <div class="account-info">
                                     <div class="account-name">Finance Ltd</div>
                                     <div class="account-id">ACC-5678</div>
@@ -366,10 +356,6 @@
                                 <span class="date">Jan 19, 2026</span><br>
                                 1 day ago
                             </div>
-                        </td>
-                        <td>
-                            <span class="carrier-badge">EE</span>
-                            <span class="carrier-badge">Three</span>
                         </td>
                         <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
                         <td>
@@ -383,7 +369,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-003')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">RM</div>
                                 <div>
                                     <div class="approval-item-name">RetailMax Offers</div>
                                     <div class="agent-desc">Promotional campaigns and special offers</div>
@@ -393,7 +378,6 @@
                         <td><span class="rcs-agent-type-badge promotional">Promotional</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">RM</div>
                                 <div class="account-info">
                                     <div class="account-name">RetailMax Group</div>
                                     <div class="account-id">ACC-4001</div>
@@ -406,10 +390,6 @@
                                 1 day ago
                             </div>
                         </td>
-                        <td>
-                            <span class="carrier-badge">Vodafone</span>
-                            <span class="carrier-badge">O2</span>
-                        </td>
                         <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                         <td>
                             <div class="approval-quick-actions">
@@ -421,7 +401,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-004')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">HP</div>
                                 <div>
                                     <div class="approval-item-name">HealthPlus Assistant</div>
                                     <div class="agent-desc">Appointment booking and health reminders</div>
@@ -431,7 +410,6 @@
                         <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">HP</div>
                                 <div class="account-info">
                                     <div class="account-name">HealthPlus Care</div>
                                     <div class="account-id">ACC-4005</div>
@@ -443,12 +421,6 @@
                                 <span class="date">Jan 18, 2026</span><br>
                                 2 days ago
                             </div>
-                        </td>
-                        <td>
-                            <span class="carrier-badge">EE</span>
-                            <span class="carrier-badge">Vodafone</span>
-                            <span class="carrier-badge">O2</span>
-                            <span class="carrier-badge">Three</span>
                         </td>
                         <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
                         <td>
@@ -462,7 +434,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-005')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">FD</div>
                                 <div>
                                     <div class="approval-item-name">FoodDelivery Updates</div>
                                     <div class="agent-desc">Order tracking and delivery notifications</div>
@@ -472,7 +443,6 @@
                         <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">FD</div>
                                 <div class="account-info">
                                     <div class="account-name">FoodDelivery Pro</div>
                                     <div class="account-id">ACC-4009</div>
@@ -485,10 +455,6 @@
                                 2 days ago
                             </div>
                         </td>
-                        <td>
-                            <span class="carrier-badge">EE</span>
-                            <span class="carrier-badge">Vodafone</span>
-                        </td>
                         <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                         <td>
                             <div class="approval-quick-actions">
@@ -500,7 +466,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-006')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">TW</div>
                                 <div>
                                     <div class="approval-item-name">TravelWorld Deals</div>
                                     <div class="agent-desc">Travel packages and holiday offers</div>
@@ -510,7 +475,6 @@
                         <td><span class="rcs-agent-type-badge promotional">Promotional</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">TW</div>
                                 <div class="account-info">
                                     <div class="account-name">TravelWorld Agency</div>
                                     <div class="account-id">ACC-4011</div>
@@ -522,10 +486,6 @@
                                 <span class="date">Jan 17, 2026</span><br>
                                 3 days ago
                             </div>
-                        </td>
-                        <td>
-                            <span class="carrier-badge">O2</span>
-                            <span class="carrier-badge">Three</span>
                         </td>
                         <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
                         <td>
@@ -539,7 +499,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-007')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">EA</div>
                                 <div>
                                     <div class="approval-item-name">EduLearn Helper</div>
                                     <div class="agent-desc">Course info and student support</div>
@@ -549,7 +508,6 @@
                         <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">EA</div>
                                 <div class="account-info">
                                     <div class="account-name">EduLearn Academy</div>
                                     <div class="account-id">ACC-4006</div>
@@ -562,11 +520,6 @@
                                 3 days ago
                             </div>
                         </td>
-                        <td>
-                            <span class="carrier-badge">EE</span>
-                            <span class="carrier-badge">Vodafone</span>
-                            <span class="carrier-badge">O2</span>
-                        </td>
                         <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                         <td>
                             <div class="approval-quick-actions">
@@ -578,7 +531,6 @@
                         <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-008')"></td>
                         <td>
                             <div class="agent-name-cell">
-                                <div class="agent-logo">SB</div>
                                 <div>
                                     <div class="approval-item-name">SecureBank Notify</div>
                                     <div class="agent-desc">Security alerts and account notifications</div>
@@ -588,7 +540,6 @@
                         <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
                         <td>
                             <div class="approval-item-account">
-                                <div class="account-avatar">SB</div>
                                 <div class="account-info">
                                     <div class="account-name">SecureBank Financial</div>
                                     <div class="account-id">ACC-4012</div>
@@ -601,16 +552,140 @@
                                 4 days ago
                             </div>
                         </td>
-                        <td>
-                            <span class="carrier-badge">EE</span>
-                            <span class="carrier-badge">Vodafone</span>
-                            <span class="carrier-badge">O2</span>
-                            <span class="carrier-badge">Three</span>
-                        </td>
                         <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
                         <td>
                             <div class="approval-quick-actions">
                                 <button class="approval-action-btn review" onclick="markInReview('RCS-008')">Review</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {{-- Sample Approved Agents (hidden by default with Awaiting Action filter) --}}
+                    <tr data-item-id="RCS-101" data-status="approved" data-type="conversational" style="display: none;">
+                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-101')"></td>
+                        <td>
+                            <div class="agent-name-cell">
+                                <div>
+                                    <div class="approval-item-name">ShopRight Assistant</div>
+                                    <div class="agent-desc">E-commerce customer support</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
+                        <td>
+                            <div class="approval-item-account">
+                                <div class="account-info">
+                                    <div class="account-name">ShopRight Ltd</div>
+                                    <div class="account-id">ACC-5001</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="submitted-time">
+                                <span class="date">Jan 10, 2026</span><br>
+                                10 days ago
+                            </div>
+                        </td>
+                        <td><span class="approval-status-badge approved"><i class="fas fa-check-circle"></i> Approved</span></td>
+                        <td>
+                            <div class="approval-quick-actions">
+                                <span class="text-muted small">Completed</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-item-id="RCS-102" data-status="approved" data-type="transactional" style="display: none;">
+                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-102')"></td>
+                        <td>
+                            <div class="agent-name-cell">
+                                <div>
+                                    <div class="approval-item-name">PayQuick Alerts</div>
+                                    <div class="agent-desc">Payment notifications and receipts</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
+                        <td>
+                            <div class="approval-item-account">
+                                <div class="account-info">
+                                    <div class="account-name">PayQuick Services</div>
+                                    <div class="account-id">ACC-5002</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="submitted-time">
+                                <span class="date">Jan 8, 2026</span><br>
+                                12 days ago
+                            </div>
+                        </td>
+                        <td><span class="approval-status-badge approved"><i class="fas fa-check-circle"></i> Approved</span></td>
+                        <td>
+                            <div class="approval-quick-actions">
+                                <span class="text-muted small">Completed</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {{-- Sample Rejected Agents (hidden by default with Awaiting Action filter) --}}
+                    <tr data-item-id="RCS-201" data-status="rejected" data-type="promotional" style="display: none;">
+                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-201')"></td>
+                        <td>
+                            <div class="agent-name-cell">
+                                <div>
+                                    <div class="approval-item-name">SpamPromo Bot</div>
+                                    <div class="agent-desc">Mass promotional messaging</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="rcs-agent-type-badge promotional">Promotional</span></td>
+                        <td>
+                            <div class="approval-item-account">
+                                <div class="account-info">
+                                    <div class="account-name">Unknown Corp</div>
+                                    <div class="account-id">ACC-9001</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="submitted-time">
+                                <span class="date">Jan 5, 2026</span><br>
+                                15 days ago
+                            </div>
+                        </td>
+                        <td><span class="approval-status-badge rejected"><i class="fas fa-times-circle"></i> Rejected</span></td>
+                        <td>
+                            <div class="approval-quick-actions">
+                                <span class="text-muted small">Completed</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-item-id="RCS-202" data-status="rejected" data-type="conversational" style="display: none;">
+                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-202')"></td>
+                        <td>
+                            <div class="agent-name-cell">
+                                <div>
+                                    <div class="approval-item-name">FakeBank Helper</div>
+                                    <div class="agent-desc">Unverified banking agent</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
+                        <td>
+                            <div class="approval-item-account">
+                                <div class="account-info">
+                                    <div class="account-name">Suspicious LLC</div>
+                                    <div class="account-id">ACC-9002</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="submitted-time">
+                                <span class="date">Jan 3, 2026</span><br>
+                                17 days ago
+                            </div>
+                        </td>
+                        <td><span class="approval-status-badge rejected"><i class="fas fa-times-circle"></i> Rejected</span></td>
+                        <td>
+                            <div class="approval-quick-actions">
+                                <span class="text-muted small">Completed</span>
                             </div>
                         </td>
                     </tr>
@@ -805,7 +880,39 @@ document.addEventListener('DOMContentLoaded', function() {
     AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-approvals', {
         module: 'messaging_assets'
     });
+
+    initStatCardClicks();
+    applyFilters();
 });
+
+function initStatCardClicks() {
+    document.querySelectorAll('.approval-stat-card').forEach(function(card) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() {
+            var status = this.dataset.status;
+            
+            document.querySelectorAll('.approval-stat-card').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            var filterSelect = document.getElementById('filterStatus');
+            if (status === 'all') {
+                filterSelect.value = 'all';
+            } else if (status === 'submitted') {
+                filterSelect.value = 'submitted';
+            } else if (status === 'in-review') {
+                filterSelect.value = 'in-review';
+            } else if (status === 'approved') {
+                filterSelect.value = 'approved';
+            } else if (status === 'rejected') {
+                filterSelect.value = 'rejected';
+            }
+            
+            applyFilters();
+        });
+    });
+}
 
 var currentRejectItem = null;
 var selectedItems = [];
