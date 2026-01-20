@@ -237,6 +237,77 @@
     font-weight: 600;
     margin-left: 0.5rem;
 }
+
+.external-validation-status {
+    margin-bottom: 0.5rem;
+}
+
+.validation-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.validation-status-pill.not-sent {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.validation-status-pill.in-progress {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.validation-status-pill.in-progress i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.validation-status-pill.passed {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.validation-status-pill.failed {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.validation-status-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+.validation-status-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f8fafc;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+.validation-status-meta .meta-item.ref-id {
+    font-family: monospace;
+    background: #e0e7ff;
+    color: #3730a3;
+}
 </style>
 
 <div class="admin-action-panel">
@@ -266,8 +337,14 @@
 
         <div class="admin-action-group">
             <div class="admin-action-group-title">External Validation</div>
-            <div class="admin-action-buttons">
-                <button class="admin-action-btn validation" onclick="submitToExternalValidation()">
+            <div class="external-validation-status" id="externalValidationStatus">
+                <div class="validation-status-pill not-sent">
+                    <i class="fas fa-circle"></i>
+                    <span>Not Sent</span>
+                </div>
+            </div>
+            <div class="admin-action-buttons" style="margin-top: 0.75rem;">
+                <button class="admin-action-btn validation" onclick="showExternalValidationModal()" id="submitExternalBtn">
                     <i class="fas fa-shield-alt"></i>
                     <span>Submit to {{ $validationProvider ?? 'External Validation' }}</span>
                 </button>
@@ -413,5 +490,264 @@ function sendCustomerMessage() {
     
     document.getElementById('customerMessageText').value = '';
     alert('Message sent to customer.');
+}
+
+var ExternalValidation = (function() {
+    var providerName = '{{ $validationProvider ?? "External Provider" }}';
+    var entityType = '{{ $entityType ?? "unknown" }}';
+    var entityId = '{{ $entityId ?? "" }}';
+    
+    var currentStatus = 'not-sent';
+    var currentRefId = null;
+    var submittedAt = null;
+    
+    function init() {
+        if (typeof UNIFIED_APPROVAL !== 'undefined') {
+            var history = UNIFIED_APPROVAL.getExternalValidationHistory();
+            if (history && history.length > 0) {
+                var latest = history[history.length - 1];
+                updateStatusFromHistory(latest);
+            }
+        }
+    }
+    
+    function updateStatusFromHistory(entry) {
+        currentRefId = entry.externalRequestId;
+        submittedAt = entry.timestamp;
+        
+        var status = (entry.status || '').toUpperCase();
+        
+        if (status === 'SUBMITTED' || status === 'IN_PROGRESS' || status === 'PENDING') {
+            currentStatus = 'in-progress';
+        } else if (status === 'VERIFIED' || status === 'PASSED' || status === 'APPROVED') {
+            currentStatus = 'passed';
+        } else if (status === 'FAILED' || status === 'REJECTED' || status === 'ERROR') {
+            currentStatus = 'failed';
+        } else {
+            currentStatus = 'not-sent';
+        }
+        
+        renderStatus();
+    }
+    
+    function renderStatus() {
+        var container = document.getElementById('externalValidationStatus');
+        if (!container) return;
+        
+        var icons = {
+            'not-sent': 'fa-circle',
+            'in-progress': 'fa-spinner',
+            'passed': 'fa-check-circle',
+            'failed': 'fa-times-circle'
+        };
+        
+        var labels = {
+            'not-sent': 'Not Sent',
+            'in-progress': 'In Progress',
+            'passed': 'Passed',
+            'failed': 'Failed'
+        };
+        
+        var html = '<div class="validation-status-pill ' + currentStatus + '">' +
+            '<i class="fas ' + icons[currentStatus] + '"></i>' +
+            '<span>' + labels[currentStatus] + '</span>' +
+            '</div>';
+        
+        if (currentRefId || submittedAt) {
+            html += '<div class="validation-status-meta">';
+            if (currentRefId) {
+                html += '<span class="meta-item ref-id"><i class="fas fa-hashtag"></i>' + escapeHtml(currentRefId) + '</span>';
+            }
+            if (submittedAt) {
+                html += '<span class="meta-item"><i class="fas fa-clock"></i>' + formatDate(submittedAt) + '</span>';
+            }
+            html += '</div>';
+        }
+        
+        container.innerHTML = html;
+        
+        var submitBtn = document.getElementById('submitExternalBtn');
+        if (submitBtn) {
+            if (currentStatus === 'in-progress') {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Awaiting Response...</span>';
+            } else if (currentStatus === 'passed') {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> <span>Validation Complete</span>';
+            } else if (currentStatus === 'failed') {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-redo"></i> <span>Retry ' + providerName + '</span>';
+            }
+        }
+    }
+    
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(timestamp) {
+        try {
+            var date = new Date(timestamp);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' +
+                   date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return timestamp;
+        }
+    }
+    
+    function showModal() {
+        var modal = document.getElementById('externalValidationModal');
+        if (!modal) {
+            createModal();
+            modal = document.getElementById('externalValidationModal');
+        }
+        
+        document.getElementById('extValProviderName').textContent = providerName;
+        document.getElementById('extValEntityType').textContent = entityType.toUpperCase().replace('_', ' ');
+        document.getElementById('extValEntityId').textContent = entityId;
+        
+        new bootstrap.Modal(modal).show();
+    }
+    
+    function createModal() {
+        var modalHtml = '\
+        <div class="modal fade" id="externalValidationModal" tabindex="-1">\
+            <div class="modal-dialog">\
+                <div class="modal-content">\
+                    <div class="modal-header" style="background: var(--admin-primary, #1e3a5f); color: #fff;">\
+                        <h5 class="modal-title"><i class="fas fa-shield-alt me-2"></i>Submit to External Validation</h5>\
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>\
+                    </div>\
+                    <div class="modal-body">\
+                        <div class="alert alert-info" style="font-size: 0.85rem;">\
+                            <i class="fas fa-info-circle me-2"></i>\
+                            You are about to submit this entity to <strong id="extValProviderName"></strong> for external validation.\
+                        </div>\
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">\
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">\
+                                <span style="color: #64748b; font-size: 0.8rem;">Entity Type:</span>\
+                                <span style="font-weight: 600;" id="extValEntityType"></span>\
+                            </div>\
+                            <div style="display: flex; justify-content: space-between;">\
+                                <span style="color: #64748b; font-size: 0.8rem;">Entity ID:</span>\
+                                <span style="font-weight: 600; font-family: monospace;" id="extValEntityId"></span>\
+                            </div>\
+                        </div>\
+                        <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 0.75rem; font-size: 0.8rem; color: #92400e;">\
+                            <i class="fas fa-exclamation-triangle me-2"></i>\
+                            <strong>Note:</strong> This will create a validation request. The entity status will change to "Validation In Progress" until a response is received.\
+                        </div>\
+                    </div>\
+                    <div class="modal-footer">\
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>\
+                        <button type="button" class="btn btn-primary" onclick="ExternalValidation.confirmSubmit()" style="background: var(--admin-primary, #1e3a5f); border-color: var(--admin-primary, #1e3a5f);">\
+                            <i class="fas fa-paper-plane me-1"></i>Submit for Validation\
+                        </button>\
+                    </div>\
+                </div>\
+            </div>\
+        </div>';
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    
+    function confirmSubmit() {
+        bootstrap.Modal.getInstance(document.getElementById('externalValidationModal')).hide();
+        
+        var payload = collectPayload();
+        var entry = null;
+        
+        if (typeof UNIFIED_APPROVAL !== 'undefined') {
+            entry = UNIFIED_APPROVAL.submitToExternalProvider(payload);
+        }
+        
+        if (entry) {
+            currentRefId = entry.externalRequestId;
+            submittedAt = entry.timestamp;
+        } else {
+            currentRefId = generateRequestId();
+            submittedAt = new Date().toISOString();
+        }
+        
+        currentStatus = 'in-progress';
+        renderStatus();
+        
+        var jobRecord = {
+            id: entry ? entry.id : ('JOB-' + Date.now()),
+            provider: providerName.toLowerCase().replace(/\s+/g, '_'),
+            externalRequestId: currentRefId,
+            entityType: entityType,
+            entityId: entityId,
+            status: 'IN_PROGRESS',
+            payload: payload,
+            submittedAt: submittedAt,
+            submittedBy: 'admin@quicksms.co.uk',
+            responseAt: null,
+            responseCode: null,
+            responseMessage: null
+        };
+        
+        storeValidationJob(jobRecord);
+        
+        if (typeof ADMIN_AUDIT !== 'undefined') {
+            ADMIN_AUDIT.log({
+                eventCode: 'EXTERNAL_VALIDATION_SUBMITTED',
+                module: entityType,
+                entityType: entityType,
+                entityId: entityId,
+                previousValue: null,
+                newValue: { provider: providerName, requestId: currentRefId },
+                severity: 'MEDIUM'
+            });
+        }
+    }
+    
+    function generateRequestId() {
+        var prefix = providerName.toLowerCase().indexOf('brand') !== -1 ? 'BASRQ-' : 'RCSP-';
+        return prefix + Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
+    
+    function collectPayload() {
+        if (typeof UNIFIED_APPROVAL !== 'undefined') {
+            var entity = UNIFIED_APPROVAL.getCurrentEntity();
+            return entity ? entity.data : {};
+        }
+        return {};
+    }
+    
+    function storeValidationJob(job) {
+        try {
+            var jobs = JSON.parse(localStorage.getItem('validationJobs') || '[]');
+            jobs.push(job);
+            localStorage.setItem('validationJobs', JSON.stringify(jobs));
+        } catch (e) {
+            console.warn('[ExternalValidation] Could not store job:', e);
+        }
+    }
+    
+    function getValidationJobs(entityId) {
+        try {
+            var jobs = JSON.parse(localStorage.getItem('validationJobs') || '[]');
+            return jobs.filter(function(j) { return j.entityId === entityId; });
+        } catch (e) {
+            return [];
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', init);
+    
+    return {
+        init: init,
+        showModal: showModal,
+        confirmSubmit: confirmSubmit,
+        renderStatus: renderStatus,
+        getValidationJobs: getValidationJobs
+    };
+})();
+
+function showExternalValidationModal() {
+    ExternalValidation.showModal();
 }
 </script>
