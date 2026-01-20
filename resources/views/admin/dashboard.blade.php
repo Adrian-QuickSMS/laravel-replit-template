@@ -1543,7 +1543,7 @@
             <div class="row">
                 <!-- Volume KPI - Using Fillow widget-stat pattern -->
                 <div class="col-xl-3 col-lg-6 col-sm-6">
-                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="volume" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE billable = true">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs', {billable: 'true'})" data-kpi="volume" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE billable = true">
                         <div class="card-body p-4">
                             <div class="media ai-icon">
                                 <span class="me-3 bgl-primary text-primary">
@@ -1623,7 +1623,7 @@
             <div class="row">
                 <!-- Sent Parts KPI -->
                 <div class="col-xl-3 col-lg-6 col-sm-6">
-                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="sent-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status IN (sent,delivered,failed,rejected)">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs', {status: 'all'})" data-kpi="sent-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status IN (sent,delivered,failed,rejected)">
                         <div class="card-body p-4">
                             <div class="media ai-icon">
                                 <span class="me-3 bgl-primary text-primary">
@@ -1640,7 +1640,7 @@
                 </div>
                 <!-- Delivered Parts KPI -->
                 <div class="col-xl-3 col-lg-6 col-sm-6">
-                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="delivered-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status = delivered">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs', {status: 'delivered'})" data-kpi="delivered-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status = delivered">
                         <div class="card-body p-4">
                             <div class="media ai-icon">
                                 <span class="me-3 bgl-success text-success">
@@ -1657,7 +1657,7 @@
                 </div>
                 <!-- Undelivered Parts KPI -->
                 <div class="col-xl-3 col-lg-6 col-sm-6">
-                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs')" data-kpi="undelivered-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status IN (failed,rejected)">
+                    <div class="widget-stat card admin-kpi-tile cursor-pointer" onclick="drillToReport('message-logs', {status: 'failed,rejected'})" data-kpi="undelivered-parts" data-bs-toggle="tooltip" data-bs-placement="top" title="SUM(parts) WHERE status IN (failed,rejected)">
                         <div class="card-body p-4">
                             <div class="media ai-icon">
                                 <span class="me-3 bgl-warning text-warning">
@@ -2932,30 +2932,61 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Build query params from all applied filters (matches customer drill pattern)
         var queryParams = [];
         
+        // Date filters
         if (appliedFilters.dateRange) {
             queryParams.push('date_range=' + encodeURIComponent(appliedFilters.dateRange));
         }
+        if (appliedFilters.dateStart) {
+            queryParams.push('date_start=' + encodeURIComponent(appliedFilters.dateStart));
+        }
+        if (appliedFilters.dateEnd) {
+            queryParams.push('date_end=' + encodeURIComponent(appliedFilters.dateEnd));
+        }
+        
+        // Client filter
         if (appliedFilters.client) {
             queryParams.push('client=' + encodeURIComponent(appliedFilters.client));
         }
+        
+        // SenderID filter
         if (appliedFilters.senderId) {
             queryParams.push('sender_id=' + encodeURIComponent(appliedFilters.senderId));
         }
-        if (appliedFilters.supplier) {
-            queryParams.push('supplier=' + encodeURIComponent(appliedFilters.supplier));
+        
+        // Channel filter (SMS, RCS, etc.)
+        if (appliedFilters.channel && appliedFilters.channel.length > 0) {
+            queryParams.push('channel=' + encodeURIComponent(appliedFilters.channel.join(',')));
         }
-        if (appliedFilters.product) {
-            queryParams.push('product=' + encodeURIComponent(appliedFilters.product));
+        
+        // Origin filter (UK, International)
+        if (appliedFilters.origin && appliedFilters.origin.length > 0) {
+            queryParams.push('origin=' + encodeURIComponent(appliedFilters.origin.join(',')));
         }
-        if (appliedFilters.ukNetwork) {
-            queryParams.push('uk_network=' + encodeURIComponent(appliedFilters.ukNetwork));
+        
+        // Supplier filter
+        if (appliedFilters.supplier && appliedFilters.supplier.length > 0) {
+            queryParams.push('supplier=' + encodeURIComponent(appliedFilters.supplier.join(',')));
         }
-        if (appliedFilters.country) {
+        
+        // Network filter
+        if (appliedFilters.network && appliedFilters.network.length > 0) {
+            queryParams.push('network=' + encodeURIComponent(appliedFilters.network.join(',')));
+        }
+        
+        // Country filter
+        if (appliedFilters.country && appliedFilters.country.length > 0) {
             queryParams.push('country=' + encodeURIComponent(appliedFilters.country.join(',')));
         }
+        
+        // Porting view
+        if (appliedFilters.portingView && appliedFilters.portingView !== 'original') {
+            queryParams.push('porting_view=' + encodeURIComponent(appliedFilters.portingView));
+        }
 
+        // Add any additional context (e.g., status filter from KPI click)
         for (var key in additionalContext) {
             if (additionalContext.hasOwnProperty(key)) {
                 queryParams.push(key + '=' + encodeURIComponent(additionalContext[key]));
