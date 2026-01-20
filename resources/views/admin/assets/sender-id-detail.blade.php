@@ -521,68 +521,41 @@
 
     <div class="detail-grid">
         <div class="main-content">
+            {{-- CANONICAL REVIEW UI - EXACT SAME as customer registration wizard Step 5 --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <i class="fas fa-id-card"></i> SenderID Information
+                    <i class="fas fa-id-card"></i> Registration Details
+                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Same as Customer View</span>
                 </div>
                 <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">SenderID Value</span>
-                        <span class="detail-value mono">ACMEBANK</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">SenderID Type</span>
-                        <span class="detail-value">Alphanumeric</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Brand / Business Name</span>
-                        <span class="detail-value">Acme Bank Ltd</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Permission Confirmation</span>
-                        <span class="detail-value">
-                            <span class="yes-badge"><i class="fas fa-check"></i> Yes</span>
-                        </span>
-                    </div>
-
-                    <div style="margin-top: 1rem;">
-                        <div class="detail-label" style="margin-bottom: 0.5rem;">Customer Explanation</div>
-                        <div class="explanation-box">
-                            "We are registering ACMEBANK as our official sender ID for transactional banking notifications including balance alerts, payment confirmations, and security notifications to our customers."
-                        </div>
-                    </div>
+                    @php
+                    $senderIdData = [
+                        'type' => 'Alphanumeric',
+                        'senderId' => 'ACMEBANK',
+                        'brand' => 'Acme Bank Ltd',
+                        'country' => 'United Kingdom',
+                        'subaccounts' => 'Marketing Dept',
+                        'users' => '',
+                        'useCase' => 'Transactional Notifications',
+                        'description' => 'Balance alerts, payment confirmations, and security notifications',
+                        'channels' => [
+                            'portal' => true,
+                            'inbox' => true,
+                            'emailToSms' => false,
+                            'api' => true
+                        ],
+                        'explanation' => 'We are registering ACMEBANK as our official sender ID for transactional banking notifications including balance alerts, payment confirmations, and security notifications to our customers.'
+                    ];
+                    @endphp
+                    @include('partials.review.sender-id-review-summary', [
+                        'isAdmin' => true,
+                        'data' => $senderIdData
+                    ])
                 </div>
             </div>
 
-            <div class="detail-card" style="margin-top: 1rem;">
-                <div class="detail-card-header">
-                    <i class="fas fa-broadcast-tower"></i> Enabled Channels
-                </div>
-                <div class="detail-card-body">
-                    <div class="channels-grid">
-                        <div class="channel-item enabled">
-                            <div class="channel-icon"><i class="fas fa-desktop"></i></div>
-                            <span>Portal</span>
-                            <i class="fas fa-check-circle ms-auto" style="color: #22c55e;"></i>
-                        </div>
-                        <div class="channel-item enabled">
-                            <div class="channel-icon"><i class="fas fa-inbox"></i></div>
-                            <span>Inbox</span>
-                            <i class="fas fa-check-circle ms-auto" style="color: #22c55e;"></i>
-                        </div>
-                        <div class="channel-item disabled">
-                            <div class="channel-icon"><i class="fas fa-envelope"></i></div>
-                            <span>Email-to-SMS</span>
-                            <i class="fas fa-times-circle ms-auto" style="color: #dc2626;"></i>
-                        </div>
-                        <div class="channel-item enabled">
-                            <div class="channel-icon"><i class="fas fa-code"></i></div>
-                            <span>API</span>
-                            <i class="fas fa-check-circle ms-auto" style="color: #22c55e;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {{-- ADMIN-ONLY EXTRAS - Channels and Explanation (NOT shown to customers) --}}
+            @include('partials.admin.sender-id-admin-extras', ['data' => $senderIdData])
 
             <div class="detail-card validation-section">
                 <div class="detail-card-header">
@@ -647,67 +620,12 @@
                 </div>
             </div>
 
-            <div class="action-panel">
-                <div class="action-panel-title"><i class="fas fa-gavel me-2"></i>Admin Actions</div>
-                <div class="action-buttons">
-                    <button class="action-btn warning" onclick="returnToCustomer()">
-                        <i class="fas fa-reply"></i> Return to Customer
-                    </button>
-                    <button class="action-btn danger" onclick="showRejectModal()">
-                        <i class="fas fa-times-circle"></i> Reject
-                    </button>
-                    <button class="action-btn success" onclick="approveSenderId()">
-                        <i class="fas fa-check-circle"></i> Approve
-                    </button>
-                    <button class="action-btn primary" onclick="submitToBrandAssure()">
-                        <i class="fas fa-shield-alt"></i> Submit to BrandAssure
-                    </button>
-                    <button class="action-btn outline" onclick="markValidationFailed()">
-                        <i class="fas fa-exclamation-triangle"></i> Mark Validation Failed
-                    </button>
-                    <button class="action-btn enterprise" onclick="forceApprove()">
-                        <i class="fas fa-bolt"></i> Force Approve (Enterprise)
-                    </button>
-                </div>
-            </div>
-
-            <div class="detail-card notes-section">
-                <div class="detail-card-header">
-                    <i class="fas fa-sticky-note"></i> Notes & Communication
-                </div>
-                <div class="detail-card-body">
-                    <div class="notes-tabs">
-                        <button class="notes-tab active" onclick="switchNotesTab('internal')">Internal Notes</button>
-                        <button class="notes-tab" onclick="switchNotesTab('customer')">Customer Message</button>
-                    </div>
-
-                    <div class="notes-content active" id="tab-internal">
-                        <div class="note-entry">
-                            <div class="note-header">
-                                <span class="note-author">Sarah Johnson</span>
-                                <span class="note-time">Jan 20, 2026 11:30 AM</span>
-                            </div>
-                            <div class="note-text">Brand contains "BANK" - flagged for additional verification. Awaiting confirmation from compliance team.</div>
-                        </div>
-                        <textarea class="notes-textarea" placeholder="Add internal note (admin-only, not visible to customer)..."></textarea>
-                        <button class="action-btn primary" style="margin-top: 0.75rem;" onclick="addInternalNote()">
-                            <i class="fas fa-plus"></i> Add Note
-                        </button>
-                    </div>
-
-                    <div class="notes-content" id="tab-customer">
-                        <textarea class="notes-textarea" placeholder="Compose message to customer (will be included in status notification email)..."></textarea>
-                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem;">
-                            <button class="action-btn outline" onclick="previewCustomerMessage()">
-                                <i class="fas fa-eye"></i> Preview
-                            </button>
-                            <button class="action-btn primary" onclick="sendCustomerMessage()">
-                                <i class="fas fa-paper-plane"></i> Send Message
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {{-- SHARED ADMIN ACTION PANEL - Same component used for all entity types --}}
+            @include('partials.admin.approval-action-panel', [
+                'entityType' => 'sender_id',
+                'entityId' => 'SID-001',
+                'validationProvider' => 'BrandAssure'
+            ])
         </div>
 
         <div class="sidebar">

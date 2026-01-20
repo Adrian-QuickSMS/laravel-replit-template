@@ -588,165 +588,53 @@
 
     <div class="detail-grid">
         <div class="main-content">
+            {{-- CANONICAL REVIEW UI - EXACT SAME as customer registration wizard Step 7 --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <i class="fas fa-robot"></i> Agent Identity
+                    <i class="fas fa-robot"></i> Registration Details
+                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Same as Customer View</span>
                 </div>
                 <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Agent Name</span>
-                        <span class="detail-value">Acme Bank Notifications</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Agent Description</span>
-                        <span class="detail-value" style="text-align: left; max-width: 70%;">Official notification service for Acme Bank customers. Receive balance alerts, transaction confirmations, and security notifications.</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Brand Colour</span>
-                        <span class="detail-value">
-                            <div class="brand-color-preview">
-                                <div class="color-swatch" style="background: #1e40af;"></div>
-                                <span class="mono">#1e40af</span>
-                            </div>
-                        </span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Billing Category</span>
-                        <span class="detail-value">Financial Services</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-images"></i> Brand Assets
-                </div>
-                <div class="detail-card-body">
-                    <div class="asset-preview-grid">
-                        <div class="asset-preview-box">
-                            <div class="asset-preview-header">Logo (Circular Crop Preview)</div>
-                            <div class="asset-preview-content">
-                                <div class="logo-preview">AB</div>
-                            </div>
-                            <div class="asset-specs">224x224px | 42 KB | 1:1 aspect</div>
-                        </div>
-                        <div class="asset-preview-box">
-                            <div class="asset-preview-header">Hero/Banner (Overlap Preview)</div>
-                            <div class="asset-preview-content" style="flex-direction: column;">
-                                <div class="hero-preview">
-                                    <div class="logo-overlay"></div>
-                                </div>
-                            </div>
-                            <div class="asset-specs">1440x448px | 128 KB | 45:14 aspect</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-address-card"></i> Handset Contact Details
-                </div>
-                <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Phone Number</span>
-                        <span class="detail-value mono">+44 800 123 4567</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Email</span>
-                        <span class="detail-value">support@acmebank.com</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Website</span>
-                        <span class="detail-value"><a href="#" class="url-link">https://www.acmebank.com</a></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-file-contract"></i> Legal & Compliance
-                </div>
-                <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Privacy Policy URL</span>
-                        <span class="detail-value"><a href="#" class="url-link">https://acmebank.com/privacy</a></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Terms of Service URL</span>
-                        <span class="detail-value"><a href="#" class="url-link">https://acmebank.com/terms</a></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-bullhorn"></i> Use Case & Messaging
-                </div>
-                <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Use Case</span>
-                        <span class="detail-value">Transactional Notifications</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Messaging Behaviour</span>
-                        <span class="detail-value">One-way notifications only</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Monthly Volume Estimate</span>
-                        <span class="detail-value">50,000 - 100,000 messages</span>
-                    </div>
-
-                    <div style="margin-top: 1rem;">
-                        <div class="detail-label" style="margin-bottom: 0.5rem;">Opt-in Explanation</div>
-                        <div class="explanation-box">
-                            "Customers opt-in to receive RCS notifications during their online banking registration process. They confirm their preference to receive transaction alerts and security notifications via SMS/RCS on their mobile device."
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 1rem;">
-                        <div class="detail-label" style="margin-bottom: 0.5rem;">Opt-out Explanation</div>
-                        <div class="explanation-box">
-                            "Customers can opt-out by replying STOP to any message, through their online banking settings, or by calling our customer service line."
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-mobile-alt"></i> Test Numbers
-                </div>
-                <div class="detail-card-body">
-                    <div class="test-numbers-list">
-                        <span class="test-number-pill">+44 7700 900111</span>
-                        <span class="test-number-pill">+44 7700 900222</span>
-                        <span class="test-number-pill">+44 7700 900333</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-building"></i> Company Details (from Account)
-                </div>
-                <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Registered Company Name</span>
-                        <span class="detail-value">Acme Corporation Ltd</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Company Number</span>
-                        <span class="detail-value mono">12345678</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">VAT Number</span>
-                        <span class="detail-value mono">GB123456789</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Registered Address</span>
-                        <span class="detail-value" style="text-align: right;">123 Business Park<br>London EC1A 1BB<br>United Kingdom</span>
-                    </div>
+                    @php
+                    $rcsAgentData = [
+                        'agentName' => 'Acme Bank Notifications',
+                        'description' => 'Official notification service for Acme Bank customers. Receive balance alerts, transaction confirmations, and security notifications.',
+                        'brandColor' => '#1e40af',
+                        'logoUrl' => '',
+                        'heroUrl' => '',
+                        'supportPhone' => '+44 800 123 4567',
+                        'showPhone' => true,
+                        'supportEmail' => 'support@acmebank.com',
+                        'showEmail' => true,
+                        'website' => 'https://www.acmebank.com',
+                        'privacyUrl' => 'https://acmebank.com/privacy',
+                        'termsUrl' => 'https://acmebank.com/terms',
+                        'billingCategory' => 'Financial Services',
+                        'useCase' => 'Transactional Notifications',
+                        'useCaseOverview' => 'Balance alerts, transaction confirmations, security notifications',
+                        'campaignFrequency' => 'As needed (event-driven)',
+                        'userConsent' => 'During online banking registration',
+                        'optOutAvailable' => 'Yes - STOP, settings, or phone',
+                        'monthlyVolume' => '50,000 - 100,000',
+                        'companyName' => 'Acme Corporation Ltd',
+                        'companyNumber' => '12345678',
+                        'companyWebsite' => 'https://www.acmebank.com',
+                        'sector' => 'Financial Services',
+                        'addressLine1' => '123 Business Park',
+                        'addressLine2' => '',
+                        'addressCity' => 'London',
+                        'addressPostCode' => 'EC1A 1BB',
+                        'addressCountry' => 'United Kingdom',
+                        'approverName' => 'James Wilson',
+                        'approverJobTitle' => 'Head of Digital Communications',
+                        'approverEmail' => 'j.wilson@acmebank.com',
+                        'testNumbers' => ['+44 7700 900111', '+44 7700 900222', '+44 7700 900333']
+                    ];
+                    @endphp
+                    @include('partials.review.rcs-agent-review-summary', [
+                        'isAdmin' => true,
+                        'data' => $rcsAgentData
+                    ])
                 </div>
             </div>
 
@@ -843,31 +731,14 @@
                 </div>
             </div>
 
-            <div class="action-panel">
-                <div class="action-panel-title"><i class="fas fa-gavel me-2"></i>Admin Actions</div>
-                <div class="action-buttons">
-                    <button class="action-btn warning" onclick="returnToCustomer()">
-                        <i class="fas fa-reply"></i> Return to Customer
-                    </button>
-                    <button class="action-btn danger" onclick="showRejectModal()">
-                        <i class="fas fa-times-circle"></i> Reject
-                    </button>
-                    <button class="action-btn success" onclick="approveAgent()">
-                        <i class="fas fa-check-circle"></i> Approve
-                    </button>
-                    <button class="action-btn primary" onclick="submitToProvider()">
-                        <i class="fas fa-cloud-upload-alt"></i> Submit to RCS Provider
-                    </button>
-                    <button class="action-btn outline" onclick="markValidationFailed()">
-                        <i class="fas fa-exclamation-triangle"></i> Mark Validation Failed
-                    </button>
-                    <button class="action-btn provision" onclick="provisionAgent()">
-                        <i class="fas fa-rocket"></i> Provision Agent
-                    </button>
-                </div>
-            </div>
+            {{-- SHARED ADMIN ACTION PANEL - Same component used for all entity types --}}
+            @include('partials.admin.approval-action-panel', [
+                'entityType' => 'rcs_agent',
+                'entityId' => 'RCS-001',
+                'validationProvider' => 'RCS Provider'
+            ])
 
-            <div class="external-validation-card">
+            <div class="external-validation-card" style="margin-top: 1.5rem;">
                 <div class="external-validation-header">
                     <i class="fas fa-cloud-upload-alt"></i> RCS Provider Tracking
                 </div>
@@ -876,44 +747,6 @@
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>No RCS Provider submissions yet</p>
                         <small>Click "Submit to RCS Provider" to initiate agent registration</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card notes-section">
-                <div class="detail-card-header">
-                    <i class="fas fa-sticky-note"></i> Notes & Communication
-                </div>
-                <div class="detail-card-body">
-                    <div class="notes-tabs">
-                        <button class="notes-tab active" onclick="switchNotesTab('internal')">Internal Notes</button>
-                        <button class="notes-tab" onclick="switchNotesTab('customer')">Customer Message</button>
-                    </div>
-
-                    <div class="notes-content active" id="tab-internal">
-                        <div class="note-entry">
-                            <div class="note-header">
-                                <span class="note-author">Michael Chen</span>
-                                <span class="note-time">Jan 19, 2026 9:15 AM</span>
-                            </div>
-                            <div class="note-text">Financial Services vertical - verified FCA register, company is authorised. Proceeding with standard review.</div>
-                        </div>
-                        <textarea class="notes-textarea" placeholder="Add internal note (admin-only, not visible to customer)..."></textarea>
-                        <button class="action-btn primary" style="margin-top: 0.75rem;" onclick="addInternalNote()">
-                            <i class="fas fa-plus"></i> Add Note
-                        </button>
-                    </div>
-
-                    <div class="notes-content" id="tab-customer">
-                        <textarea class="notes-textarea" placeholder="Compose message to customer (will be included in status notification email)..."></textarea>
-                        <div style="margin-top: 0.75rem; display: flex; gap: 0.75rem;">
-                            <button class="action-btn outline" onclick="previewCustomerMessage()">
-                                <i class="fas fa-eye"></i> Preview
-                            </button>
-                            <button class="action-btn primary" onclick="sendCustomerMessage()">
-                                <i class="fas fa-paper-plane"></i> Send Message
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
