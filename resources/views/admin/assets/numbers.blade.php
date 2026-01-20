@@ -6,43 +6,148 @@
 <style>
 .admin-page { padding: 1.5rem; }
 
-.admin-filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: flex-end;
+.admin-filter-panel {
     background: #fff;
-    padding: 1rem 1.25rem;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-.admin-filter-bar .filter-group {
+.admin-filter-panel .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
+}
+.admin-filter-panel .filter-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--admin-primary);
+    font-size: 0.9rem;
+}
+.admin-filter-panel .filter-header .toggle-icon {
+    transition: transform 0.2s;
+}
+.admin-filter-panel .filter-header.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+.admin-filter-panel .filter-body {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+}
+.admin-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.admin-filter-panel .filter-group {
     display: flex;
     flex-direction: column;
-    min-width: 140px;
+    min-width: 160px;
+    flex: 1;
+    max-width: 200px;
 }
-.admin-filter-bar .filter-group label {
+.admin-filter-panel .filter-group.wide {
+    min-width: 200px;
+    max-width: 250px;
+}
+.admin-filter-panel .filter-group label {
     font-size: 0.75rem;
     font-weight: 600;
     color: #6c757d;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.375rem;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
-.admin-filter-bar .filter-group.search-group {
-    flex: 1;
-    min-width: 200px;
+.admin-filter-panel .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
 }
+
+.multiselect-dropdown {
+    position: relative;
+}
+.multiselect-dropdown .dropdown-toggle {
+    background: #fff;
+    border: 1px solid #ced4da;
+    color: #495057;
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.multiselect-dropdown .dropdown-toggle:hover {
+    border-color: var(--admin-accent);
+}
+.multiselect-dropdown .dropdown-toggle::after {
+    margin-left: 0.5rem;
+}
+.multiselect-dropdown .dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+    min-width: 100%;
+    padding: 0.5rem;
+}
+.multiselect-dropdown .dropdown-menu .search-box {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.multiselect-dropdown .dropdown-menu .search-box input {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+}
+.multiselect-dropdown .dropdown-menu .select-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+.multiselect-dropdown .dropdown-menu .select-actions a {
+    font-size: 0.75rem;
+    color: var(--admin-accent);
+    text-decoration: none;
+}
+.multiselect-dropdown .dropdown-menu .select-actions a:hover {
+    text-decoration: underline;
+}
+.multiselect-dropdown .form-check {
+    padding: 0.25rem 0 0.25rem 1.75rem;
+}
+.multiselect-dropdown .form-check:hover {
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+}
+.multiselect-dropdown .form-check-label {
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.multiselect-dropdown .selected-count {
+    background: var(--admin-accent);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.75rem;
+    margin-left: 0.5rem;
+}
+
 .admin-btn-apply {
     background: var(--admin-primary);
     color: #fff;
     border: none;
-    padding: 0.375rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.85rem;
     font-weight: 500;
     border-radius: 0.375rem;
-    height: 31px;
 }
 .admin-btn-apply:hover {
     background: var(--admin-secondary);
@@ -52,11 +157,10 @@
     background: transparent;
     color: #6c757d;
     border: 1px solid #dee2e6;
-    padding: 0.375rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
     font-weight: 500;
     border-radius: 0.375rem;
-    height: 31px;
 }
 .admin-btn-reset:hover {
     background: #f8f9fa;
@@ -103,6 +207,19 @@
 .type-vmn { color: var(--admin-primary); font-weight: 500; }
 .type-shortcode-keyword { color: #7c3aed; font-weight: 500; }
 .type-dedicated { color: #059669; font-weight: 500; }
+
+.capability-pill {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    border-radius: 0.75rem;
+    margin-right: 0.2rem;
+}
+.capability-senderid { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
+.capability-inbox { background: rgba(5, 150, 105, 0.15); color: #059669; }
+.capability-optout { background: rgba(124, 58, 237, 0.15); color: #7c3aed; }
+.capability-api { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
 
 .cost-value { font-weight: 500; color: #333; }
 .supplier-value { color: #6c757d; font-size: 0.85rem; }
@@ -152,13 +269,24 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
     margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(74, 144, 217, 0.08);
+    border-radius: 0.5rem;
+    border: 1px solid rgba(74, 144, 217, 0.15);
+}
+.filter-chips-row .chips-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-right: 0.5rem;
 }
 .filter-chip {
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.75rem;
-    background: rgba(74, 144, 217, 0.12);
+    background: #fff;
+    border: 1px solid rgba(74, 144, 217, 0.3);
     color: var(--admin-primary);
     border-radius: 1rem;
     font-size: 0.75rem;
@@ -174,7 +302,14 @@
     opacity: 0.7;
     font-size: 0.7rem;
 }
-.filter-chip .remove-chip:hover { opacity: 1; }
+.filter-chip .remove-chip:hover { opacity: 1; color: #dc2626; }
+.filter-chips-row .clear-all-link {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--admin-accent);
+    text-decoration: none;
+}
+.filter-chips-row .clear-all-link:hover { text-decoration: underline; }
 
 .empty-state {
     text-align: center;
@@ -220,61 +355,199 @@
         </div>
     </div>
 
-    <div class="admin-filter-bar">
-        <div class="filter-group">
-            <label>Country</label>
-            <select class="form-select form-select-sm" id="countryFilter">
-                <option value="">All Countries</option>
-                <option value="UK">United Kingdom</option>
-                <option value="US">United States</option>
-                <option value="DE">Germany</option>
-                <option value="FR">France</option>
-            </select>
+    <div class="admin-filter-panel">
+        <div class="filter-header" onclick="toggleFilterPanel()">
+            <h6><i class="fas fa-filter me-2"></i>Filters</h6>
+            <i class="fas fa-chevron-down toggle-icon"></i>
         </div>
-        <div class="filter-group">
-            <label>Number Type</label>
-            <select class="form-select form-select-sm" id="typeFilter">
-                <option value="">All Types</option>
-                <option value="vmn">VMN</option>
-                <option value="shortcode_keyword">Shared Shortcode Keyword</option>
-                <option value="dedicated">Dedicated Shortcode</option>
-            </select>
+        <div class="filter-body" id="filterBody">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Country</label>
+                    <div class="dropdown multiselect-dropdown" id="countryDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Countries</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('countryDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('countryDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="UK" id="country_UK"><label class="form-check-label" for="country_UK">United Kingdom</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="US" id="country_US"><label class="form-check-label" for="country_US">United States</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="DE" id="country_DE"><label class="form-check-label" for="country_DE">Germany</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="FR" id="country_FR"><label class="form-check-label" for="country_FR">France</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Number Type</label>
+                    <div class="dropdown multiselect-dropdown" id="typeDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Types</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('typeDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('typeDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="vmn" id="type_vmn"><label class="form-check-label" for="type_vmn">VMN</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="shortcode_keyword" id="type_shortcode"><label class="form-check-label" for="type_shortcode">Shared Shortcode Keyword</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="dedicated" id="type_dedicated"><label class="form-check-label" for="type_dedicated">Dedicated Shortcode</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Status</label>
+                    <div class="dropdown multiselect-dropdown" id="statusDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Statuses</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('statusDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('statusDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="active" id="status_active"><label class="form-check-label" for="status_active">Active</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="status_suspended"><label class="form-check-label" for="status_suspended">Suspended</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="pending" id="status_pending"><label class="form-check-label" for="status_pending">Pending</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Mode</label>
+                    <div class="dropdown multiselect-dropdown" id="modeDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Modes</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('modeDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('modeDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="portal" id="mode_portal"><label class="form-check-label" for="mode_portal">Portal</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="api" id="mode_api"><label class="form-check-label" for="mode_api">API</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Capability</label>
+                    <div class="dropdown multiselect-dropdown" id="capabilityDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Capabilities</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('capabilityDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('capabilityDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="senderid" id="cap_senderid"><label class="form-check-label" for="cap_senderid">SenderID</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="inbox" id="cap_inbox"><label class="form-check-label" for="cap_inbox">Inbox</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="optout" id="cap_optout"><label class="form-check-label" for="cap_optout">Opt-out</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="api" id="cap_api"><label class="form-check-label" for="cap_api">API</label></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group wide">
+                    <label>Customer Account</label>
+                    <div class="dropdown multiselect-dropdown" id="accountDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Accounts</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="search-box">
+                                <input type="text" class="form-control form-control-sm" placeholder="Search accounts..." onkeyup="filterDropdownOptions('accountDropdown', this.value)">
+                            </div>
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('accountDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('accountDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="dropdown-options">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Acme Corporation" id="acc_acme"><label class="form-check-label" for="acc_acme">Acme Corporation</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Finance Ltd" id="acc_finance"><label class="form-check-label" for="acc_finance">Finance Ltd</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="TechStart Inc" id="acc_techstart"><label class="form-check-label" for="acc_techstart">TechStart Inc</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Big Enterprise" id="acc_big"><label class="form-check-label" for="acc_big">Big Enterprise</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NewClient" id="acc_new"><label class="form-check-label" for="acc_new">NewClient</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Retail Corp" id="acc_retail"><label class="form-check-label" for="acc_retail">Retail Corp</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Healthcare Plus" id="acc_health"><label class="form-check-label" for="acc_health">Healthcare Plus</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="US Branch Corp" id="acc_usbranch"><label class="form-check-label" for="acc_usbranch">US Branch Corp</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Services" id="acc_support"><label class="form-check-label" for="acc_support">Support Services</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Logistics Ltd" id="acc_logistics"><label class="form-check-label" for="acc_logistics">Logistics Ltd</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Old Account" id="acc_old"><label class="form-check-label" for="acc_old">Old Account</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Media Group" id="acc_media"><label class="form-check-label" for="acc_media">Media Group</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Banking Secure" id="acc_banking"><label class="form-check-label" for="acc_banking">Banking Secure</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Euro Expansion" id="acc_euro"><label class="form-check-label" for="acc_euro">Euro Expansion</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Tech Solutions" id="acc_techsol"><label class="form-check-label" for="acc_techsol">Tech Solutions</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group wide">
+                    <label>Sub-Account</label>
+                    <div class="dropdown multiselect-dropdown" id="subAccountDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Sub-Accounts</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="search-box">
+                                <input type="text" class="form-control form-control-sm" placeholder="Search sub-accounts..." onkeyup="filterDropdownOptions('subAccountDropdown', this.value)">
+                            </div>
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('subAccountDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('subAccountDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="dropdown-options" id="subAccountOptions">
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing" id="sub_marketing"><label class="form-check-label" for="sub_marketing">Marketing</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales" id="sub_sales"><label class="form-check-label" for="sub_sales">Sales</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Retail" id="sub_retail"><label class="form-check-label" for="sub_retail">Retail</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main" id="sub_main"><label class="form-check-label" for="sub_main">Main</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Operations" id="sub_ops"><label class="form-check-label" for="sub_ops">Operations</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Notifications" id="sub_notif"><label class="form-check-label" for="sub_notif">Notifications</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support" id="sub_support"><label class="form-check-label" for="sub_support">Support</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Customer Care" id="sub_care"><label class="form-check-label" for="sub_care">Customer Care</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Dispatch" id="sub_dispatch"><label class="form-check-label" for="sub_dispatch">Dispatch</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Legacy" id="sub_legacy"><label class="form-check-label" for="sub_legacy">Legacy</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="News" id="sub_news"><label class="form-check-label" for="sub_news">News</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Alerts" id="sub_alerts"><label class="form-check-label" for="sub_alerts">Alerts</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Germany" id="sub_germany"><label class="form-check-label" for="sub_germany">Germany</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="France" id="sub_france"><label class="form-check-label" for="sub_france">France</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Promotions" id="sub_promo"><label class="form-check-label" for="sub_promo">Promotions</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="API Team" id="sub_api"><label class="form-check-label" for="sub_api">API Team</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Supplier</label>
+                    <div class="dropdown multiselect-dropdown" id="supplierDropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Suppliers</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="select-actions">
+                                <a href="#" onclick="selectAll('supplierDropdown'); return false;">Select All</a>
+                                <a href="#" onclick="clearAll('supplierDropdown'); return false;">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Sinch" id="sup_sinch"><label class="form-check-label" for="sup_sinch">Sinch</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Twilio" id="sup_twilio"><label class="form-check-label" for="sup_twilio">Twilio</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Vonage" id="sup_vonage"><label class="form-check-label" for="sup_vonage">Vonage</label></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn admin-btn-reset" onclick="resetFilters()"><i class="fas fa-undo me-1"></i> Reset</button>
+                <button class="btn admin-btn-apply" onclick="applyFilters()"><i class="fas fa-check me-1"></i> Apply Filters</button>
+            </div>
         </div>
-        <div class="filter-group">
-            <label>Status</label>
-            <select class="form-select form-select-sm" id="statusFilter">
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-                <option value="pending">Pending</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Mode</label>
-            <select class="form-select form-select-sm" id="modeFilter">
-                <option value="">All Modes</option>
-                <option value="portal">Portal</option>
-                <option value="api">API</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Supplier</label>
-            <select class="form-select form-select-sm" id="supplierFilter">
-                <option value="">All Suppliers</option>
-                <option value="sinch">Sinch</option>
-                <option value="twilio">Twilio</option>
-                <option value="vonage">Vonage</option>
-            </select>
-        </div>
-        <div class="filter-group search-group">
-            <label>Search</label>
-            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Number, keyword, account, sub-account...">
-        </div>
-        <button class="btn admin-btn-apply" onclick="applyFilters()">Apply</button>
-        <button class="btn admin-btn-reset" onclick="resetFilters()">Reset</button>
     </div>
 
     <div class="filter-chips-row" id="activeFiltersRow" style="display: none;">
+        <span class="chips-label">Active filters:</span>
+        <div id="filterChipsContainer"></div>
+        <a href="#" class="clear-all-link" onclick="resetFilters(); return false;">Clear all</a>
     </div>
 
     <div class="card">
@@ -309,9 +582,6 @@
                         <li class="page-item active"><a class="page-link" href="#">1</a></li>
                         <li class="page-item"><a class="page-link" href="#">2</a></li>
                         <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link" href="#">...</a></li>
-                        <li class="page-item"><a class="page-link" href="#">8</a></li>
                         <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a></li>
                     </ul>
                 </nav>
@@ -343,6 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[Admin Numbers] Initializing Global Numbers Library');
     
     initializeSorting();
+    initializeMultiSelectDropdowns();
     loadNumbersData();
     
     if (typeof AdminAudit !== 'undefined') {
@@ -354,26 +625,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 const mockNumbersData = [
-    { id: 'NUM-001', number: '+447700900123', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Marketing', cost: 2.00, supplier: 'Sinch', created: '2025-10-15' },
-    { id: 'NUM-002', number: '+447700900456', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Finance Ltd', subAccount: 'Retail', cost: 2.00, supplier: 'Sinch', created: '2025-09-20' },
-    { id: 'NUM-003', number: 'PROMO', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Sales', cost: 2.00, supplier: 'Sinch', created: '2025-11-01' },
-    { id: 'NUM-004', number: '+447700900789', country: 'UK', type: 'vmn', status: 'suspended', mode: 'portal', account: 'TechStart Inc', subAccount: 'Main', cost: 2.00, supplier: 'Twilio', created: '2025-08-10' },
-    { id: 'NUM-005', number: '82228', country: 'UK', type: 'dedicated', status: 'active', mode: 'portal', account: 'Big Enterprise', subAccount: 'Operations', cost: 500.00, supplier: 'Vonage', created: '2024-06-15' },
-    { id: 'NUM-006', number: '+447700900111', country: 'UK', type: 'vmn', status: 'pending', mode: 'api', account: 'NewClient', subAccount: 'Main', cost: 2.00, supplier: 'Sinch', created: '2026-01-18' },
-    { id: 'NUM-007', number: 'SALE', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Marketing', cost: 2.00, supplier: 'Sinch', created: '2025-12-05' },
-    { id: 'NUM-008', number: '+447700900222', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Healthcare Plus', subAccount: 'Notifications', cost: 2.00, supplier: 'Twilio', created: '2025-07-22' },
-    { id: 'NUM-009', number: '+14155551234', country: 'US', type: 'vmn', status: 'active', mode: 'api', account: 'US Branch Corp', subAccount: 'Sales', cost: 3.50, supplier: 'Twilio', created: '2025-11-10' },
-    { id: 'NUM-010', number: 'HELP', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Support Services', subAccount: 'Customer Care', cost: 2.00, supplier: 'Sinch', created: '2025-10-01' },
-    { id: 'NUM-011', number: '+447700900333', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Logistics Ltd', subAccount: 'Dispatch', cost: 2.00, supplier: 'Vonage', created: '2025-09-15' },
-    { id: 'NUM-012', number: '+447700900444', country: 'UK', type: 'vmn', status: 'suspended', mode: 'api', account: 'Old Account', subAccount: 'Legacy', cost: 2.00, supplier: 'Sinch', created: '2024-03-20' },
-    { id: 'NUM-013', number: 'INFO', country: 'UK', type: 'shortcode_keyword', status: 'pending', mode: 'portal', account: 'Media Group', subAccount: 'News', cost: 2.00, supplier: 'Sinch', created: '2026-01-15' },
-    { id: 'NUM-014', number: '+447700900555', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Banking Secure', subAccount: 'Alerts', cost: 2.00, supplier: 'Twilio', created: '2025-08-30' },
-    { id: 'NUM-015', number: '+49170123456', country: 'DE', type: 'vmn', status: 'active', mode: 'api', account: 'Euro Expansion', subAccount: 'Germany', cost: 4.00, supplier: 'Vonage', created: '2025-11-20' },
-    { id: 'NUM-016', number: '+447700900666', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Support', cost: 2.00, supplier: 'Sinch', created: '2025-10-25' },
-    { id: 'NUM-017', number: 'DEAL', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Promotions', cost: 2.00, supplier: 'Sinch', created: '2025-12-10' },
-    { id: 'NUM-018', number: '+447700900777', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Tech Solutions', subAccount: 'API Team', cost: 2.00, supplier: 'Twilio', created: '2025-09-05' },
-    { id: 'NUM-019', number: '+33612345678', country: 'FR', type: 'vmn', status: 'pending', mode: 'portal', account: 'Euro Expansion', subAccount: 'France', cost: 3.50, supplier: 'Vonage', created: '2026-01-10' },
-    { id: 'NUM-020', number: '+447700900888', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Finance Ltd', subAccount: 'Alerts', cost: 2.00, supplier: 'Sinch', created: '2025-07-15' }
+    { id: 'NUM-001', number: '+447700900123', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Marketing', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', created: '2025-10-15' },
+    { id: 'NUM-002', number: '+447700900456', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Finance Ltd', subAccount: 'Retail', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', created: '2025-09-20' },
+    { id: 'NUM-003', number: 'PROMO', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Sales', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2025-11-01' },
+    { id: 'NUM-004', number: '+447700900789', country: 'UK', type: 'vmn', status: 'suspended', mode: 'portal', account: 'TechStart Inc', subAccount: 'Main', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Twilio', created: '2025-08-10' },
+    { id: 'NUM-005', number: '82228', country: 'UK', type: 'dedicated', status: 'active', mode: 'portal', account: 'Big Enterprise', subAccount: 'Operations', capabilities: ['senderid', 'inbox', 'optout'], cost: 500.00, supplier: 'Vonage', created: '2024-06-15' },
+    { id: 'NUM-006', number: '+447700900111', country: 'UK', type: 'vmn', status: 'pending', mode: 'api', account: 'NewClient', subAccount: 'Main', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', created: '2026-01-18' },
+    { id: 'NUM-007', number: 'SALE', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Marketing', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2025-12-05' },
+    { id: 'NUM-008', number: '+447700900222', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Healthcare Plus', subAccount: 'Notifications', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', created: '2025-07-22' },
+    { id: 'NUM-009', number: '+14155551234', country: 'US', type: 'vmn', status: 'active', mode: 'api', account: 'US Branch Corp', subAccount: 'Sales', capabilities: ['api'], cost: 3.50, supplier: 'Twilio', created: '2025-11-10' },
+    { id: 'NUM-010', number: 'HELP', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Support Services', subAccount: 'Customer Care', capabilities: ['inbox', 'optout'], cost: 2.00, supplier: 'Sinch', created: '2025-10-01' },
+    { id: 'NUM-011', number: '+447700900333', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Logistics Ltd', subAccount: 'Dispatch', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Vonage', created: '2025-09-15' },
+    { id: 'NUM-012', number: '+447700900444', country: 'UK', type: 'vmn', status: 'suspended', mode: 'api', account: 'Old Account', subAccount: 'Legacy', capabilities: ['api'], cost: 2.00, supplier: 'Sinch', created: '2024-03-20' },
+    { id: 'NUM-013', number: 'INFO', country: 'UK', type: 'shortcode_keyword', status: 'pending', mode: 'portal', account: 'Media Group', subAccount: 'News', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2026-01-15' },
+    { id: 'NUM-014', number: '+447700900555', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Banking Secure', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Twilio', created: '2025-08-30' },
+    { id: 'NUM-015', number: '+49170123456', country: 'DE', type: 'vmn', status: 'active', mode: 'api', account: 'Euro Expansion', subAccount: 'Germany', capabilities: ['api'], cost: 4.00, supplier: 'Vonage', created: '2025-11-20' },
+    { id: 'NUM-016', number: '+447700900666', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Acme Corporation', subAccount: 'Support', capabilities: ['senderid', 'inbox'], cost: 2.00, supplier: 'Sinch', created: '2025-10-25' },
+    { id: 'NUM-017', number: 'DEAL', country: 'UK', type: 'shortcode_keyword', status: 'active', mode: 'portal', account: 'Retail Corp', subAccount: 'Promotions', capabilities: ['optout'], cost: 2.00, supplier: 'Sinch', created: '2025-12-10' },
+    { id: 'NUM-018', number: '+447700900777', country: 'UK', type: 'vmn', status: 'active', mode: 'api', account: 'Tech Solutions', subAccount: 'API Team', capabilities: ['api'], cost: 2.00, supplier: 'Twilio', created: '2025-09-05' },
+    { id: 'NUM-019', number: '+33612345678', country: 'FR', type: 'vmn', status: 'pending', mode: 'portal', account: 'Euro Expansion', subAccount: 'France', capabilities: ['senderid'], cost: 3.50, supplier: 'Vonage', created: '2026-01-10' },
+    { id: 'NUM-020', number: '+447700900888', country: 'UK', type: 'vmn', status: 'active', mode: 'portal', account: 'Finance Ltd', subAccount: 'Alerts', capabilities: ['senderid', 'inbox', 'optout'], cost: 2.00, supplier: 'Sinch', created: '2025-07-15' }
 ];
 
 let currentPage = 1;
@@ -381,6 +652,84 @@ const rowsPerPage = 20;
 let filteredData = [...mockNumbersData];
 let sortColumn = 'created';
 let sortDirection = 'desc';
+let appliedFilters = {};
+
+function toggleFilterPanel() {
+    const body = document.getElementById('filterBody');
+    const header = document.querySelector('.filter-header');
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        header.classList.remove('collapsed');
+    } else {
+        body.style.display = 'none';
+        header.classList.add('collapsed');
+    }
+}
+
+function initializeMultiSelectDropdowns() {
+    document.querySelectorAll('.multiselect-dropdown').forEach(dropdown => {
+        dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => updateDropdownLabel(dropdown.id));
+        });
+    });
+}
+
+function updateDropdownLabel(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    const checked = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+    const label = dropdown.querySelector('.dropdown-label');
+    const allLabels = {
+        'countryDropdown': 'All Countries',
+        'typeDropdown': 'All Types',
+        'statusDropdown': 'All Statuses',
+        'modeDropdown': 'All Modes',
+        'capabilityDropdown': 'All Capabilities',
+        'accountDropdown': 'All Accounts',
+        'subAccountDropdown': 'All Sub-Accounts',
+        'supplierDropdown': 'All Suppliers'
+    };
+    
+    if (checked.length === 0) {
+        label.innerHTML = allLabels[dropdownId] || 'All';
+    } else if (checked.length === 1) {
+        label.innerHTML = checked[0].nextElementSibling.textContent;
+    } else {
+        label.innerHTML = `${checked.length} selected <span class="selected-count">${checked.length}</span>`;
+    }
+}
+
+function selectAll(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.querySelectorAll('.dropdown-options input[type="checkbox"], .dropdown-menu > .form-check input[type="checkbox"]').forEach(cb => {
+        if (cb.closest('.form-check').style.display !== 'none') {
+            cb.checked = true;
+        }
+    });
+    updateDropdownLabel(dropdownId);
+}
+
+function clearAll(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    updateDropdownLabel(dropdownId);
+}
+
+function filterDropdownOptions(dropdownId, searchTerm) {
+    const dropdown = document.getElementById(dropdownId);
+    const options = dropdown.querySelectorAll('.dropdown-options .form-check, .dropdown-menu > .form-check');
+    const term = searchTerm.toLowerCase();
+    
+    options.forEach(option => {
+        const label = option.querySelector('label').textContent.toLowerCase();
+        option.style.display = label.includes(term) ? '' : 'none';
+    });
+}
+
+function getSelectedValues(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    const checked = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checked).map(cb => cb.value);
+}
 
 function loadNumbersData() {
     renderTable(filteredData);
@@ -472,23 +821,26 @@ function formatDate(dateStr) {
 }
 
 function applyFilters() {
-    const country = document.getElementById('countryFilter').value;
-    const type = document.getElementById('typeFilter').value;
-    const status = document.getElementById('statusFilter').value;
-    const mode = document.getElementById('modeFilter').value;
-    const supplier = document.getElementById('supplierFilter').value;
-    const search = document.getElementById('searchInput').value.toLowerCase();
+    const countries = getSelectedValues('countryDropdown');
+    const types = getSelectedValues('typeDropdown');
+    const statuses = getSelectedValues('statusDropdown');
+    const modes = getSelectedValues('modeDropdown');
+    const capabilities = getSelectedValues('capabilityDropdown');
+    const accounts = getSelectedValues('accountDropdown');
+    const subAccounts = getSelectedValues('subAccountDropdown');
+    const suppliers = getSelectedValues('supplierDropdown');
+    
+    appliedFilters = { countries, types, statuses, modes, capabilities, accounts, subAccounts, suppliers };
     
     filteredData = mockNumbersData.filter(num => {
-        if (country && num.country !== country) return false;
-        if (type && num.type !== type) return false;
-        if (status && num.status !== status) return false;
-        if (mode && num.mode !== mode) return false;
-        if (supplier && num.supplier.toLowerCase() !== supplier) return false;
-        if (search) {
-            const searchFields = [num.number, num.account, num.subAccount].join(' ').toLowerCase();
-            if (!searchFields.includes(search)) return false;
-        }
+        if (countries.length > 0 && !countries.includes(num.country)) return false;
+        if (types.length > 0 && !types.includes(num.type)) return false;
+        if (statuses.length > 0 && !statuses.includes(num.status)) return false;
+        if (modes.length > 0 && !modes.includes(num.mode)) return false;
+        if (capabilities.length > 0 && !capabilities.some(cap => num.capabilities.includes(cap))) return false;
+        if (accounts.length > 0 && !accounts.includes(num.account)) return false;
+        if (subAccounts.length > 0 && !subAccounts.includes(num.subAccount)) return false;
+        if (suppliers.length > 0 && !suppliers.includes(num.supplier)) return false;
         return true;
     });
     
@@ -500,20 +852,18 @@ function applyFilters() {
     if (typeof AdminAudit !== 'undefined') {
         AdminAudit.log('NUMBERS_FILTERED', {
             module: 'numbers',
-            filters: { country, type, status, mode, supplier, search },
+            filters: appliedFilters,
             resultCount: filteredData.length
         }, 'LOW');
     }
 }
 
 function resetFilters() {
-    document.getElementById('countryFilter').value = '';
-    document.getElementById('typeFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    document.getElementById('modeFilter').value = '';
-    document.getElementById('supplierFilter').value = '';
-    document.getElementById('searchInput').value = '';
+    ['countryDropdown', 'typeDropdown', 'statusDropdown', 'modeDropdown', 'capabilityDropdown', 'accountDropdown', 'subAccountDropdown', 'supplierDropdown'].forEach(id => {
+        clearAll(id);
+    });
     
+    appliedFilters = {};
     filteredData = [...mockNumbersData];
     currentPage = 1;
     renderTable(filteredData);
@@ -522,37 +872,62 @@ function resetFilters() {
 }
 
 function updateFilterChips() {
-    const container = document.getElementById('activeFiltersRow');
+    const container = document.getElementById('filterChipsContainer');
+    const row = document.getElementById('activeFiltersRow');
     const chips = [];
     
-    const country = document.getElementById('countryFilter');
-    const type = document.getElementById('typeFilter');
-    const status = document.getElementById('statusFilter');
-    const mode = document.getElementById('modeFilter');
-    const supplier = document.getElementById('supplierFilter');
+    const filterLabels = {
+        countries: 'Country',
+        types: 'Type',
+        statuses: 'Status',
+        modes: 'Mode',
+        capabilities: 'Capability',
+        accounts: 'Account',
+        subAccounts: 'Sub-Account',
+        suppliers: 'Supplier'
+    };
     
-    if (country.value) chips.push({ label: 'Country', value: country.options[country.selectedIndex].text, filter: 'countryFilter' });
-    if (type.value) chips.push({ label: 'Type', value: type.options[type.selectedIndex].text, filter: 'typeFilter' });
-    if (status.value) chips.push({ label: 'Status', value: status.options[status.selectedIndex].text, filter: 'statusFilter' });
-    if (mode.value) chips.push({ label: 'Mode', value: mode.options[mode.selectedIndex].text, filter: 'modeFilter' });
-    if (supplier.value) chips.push({ label: 'Supplier', value: supplier.options[supplier.selectedIndex].text, filter: 'supplierFilter' });
+    Object.entries(appliedFilters).forEach(([key, values]) => {
+        if (values && values.length > 0) {
+            values.forEach(val => {
+                chips.push({ filterKey: key, value: val, label: filterLabels[key] });
+            });
+        }
+    });
     
     if (chips.length === 0) {
-        container.style.display = 'none';
+        row.style.display = 'none';
         return;
     }
     
-    container.style.display = 'flex';
+    row.style.display = 'flex';
     container.innerHTML = chips.map(chip => `
         <span class="filter-chip">
             <span class="chip-label">${chip.label}:</span> ${chip.value}
-            <i class="fas fa-times remove-chip" onclick="removeFilter('${chip.filter}')"></i>
+            <i class="fas fa-times remove-chip" onclick="removeFilterChip('${chip.filterKey}', '${chip.value}')"></i>
         </span>
     `).join('');
 }
 
-function removeFilter(filterId) {
-    document.getElementById(filterId).value = '';
+function removeFilterChip(filterKey, value) {
+    const dropdownMap = {
+        countries: 'countryDropdown',
+        types: 'typeDropdown',
+        statuses: 'statusDropdown',
+        modes: 'modeDropdown',
+        capabilities: 'capabilityDropdown',
+        accounts: 'accountDropdown',
+        subAccounts: 'subAccountDropdown',
+        suppliers: 'supplierDropdown'
+    };
+    
+    const dropdown = document.getElementById(dropdownMap[filterKey]);
+    const checkbox = dropdown.querySelector(`input[value="${value}"]`);
+    if (checkbox) {
+        checkbox.checked = false;
+        updateDropdownLabel(dropdownMap[filterKey]);
+    }
+    
     applyFilters();
 }
 
@@ -619,6 +994,17 @@ function viewNumberDetails(numberId) {
     const num = mockNumbersData.find(n => n.id === numberId);
     if (!num) return;
     
+    const capBadges = (num.capabilities || []).map(cap => {
+        const classes = {
+            'senderid': 'capability-senderid',
+            'inbox': 'capability-inbox',
+            'optout': 'capability-optout',
+            'api': 'capability-api'
+        };
+        const labels = { 'senderid': 'SenderID', 'inbox': 'Inbox', 'optout': 'Opt-out', 'api': 'API' };
+        return `<span class="capability-pill ${classes[cap]}">${labels[cap]}</span>`;
+    }).join('');
+    
     const content = `
         <div class="row">
             <div class="col-md-6">
@@ -629,6 +1015,7 @@ function viewNumberDetails(numberId) {
                     <tr><td class="text-muted">Type</td><td>${getTypeLabel(num.type)}</td></tr>
                     <tr><td class="text-muted">Status</td><td>${getStatusBadge(num.status)}</td></tr>
                     <tr><td class="text-muted">Mode</td><td>${getModeBadge(num.mode)}</td></tr>
+                    <tr><td class="text-muted">Capabilities</td><td>${capBadges}</td></tr>
                 </table>
             </div>
             <div class="col-md-6">
@@ -645,6 +1032,7 @@ function viewNumberDetails(numberId) {
     `;
     
     document.getElementById('numberDetailsContent').innerHTML = content;
+    document.querySelector('#numberDetailsModal .modal-title').innerHTML = '<i class="fas fa-phone-alt me-2"></i>Number Details';
     new bootstrap.Modal(document.getElementById('numberDetailsModal')).show();
     
     if (typeof AdminAudit !== 'undefined') {
