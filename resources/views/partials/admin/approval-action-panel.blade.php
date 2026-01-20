@@ -353,22 +353,6 @@
 
         <div class="admin-divider"></div>
 
-        <div class="admin-action-group">
-            <div class="admin-action-group-title">Enterprise Override</div>
-            <div class="admin-action-buttons">
-                <button class="admin-action-btn force-approve" onclick="forceApprove()">
-                    <i class="fas fa-bolt"></i>
-                    <span>Force Approve (Enterprise)</span>
-                </button>
-            </div>
-            <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">
-                <i class="fas fa-exclamation-triangle me-1"></i>
-                Bypasses validation. Logged with CRITICAL severity.
-            </small>
-        </div>
-
-        <div class="admin-divider"></div>
-
         <div class="notes-section">
             <div class="notes-tabs">
                 <button class="notes-tab active" onclick="switchNotesTab('internal')">
