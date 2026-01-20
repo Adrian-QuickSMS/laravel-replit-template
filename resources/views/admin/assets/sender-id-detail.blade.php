@@ -722,12 +722,6 @@ html, body {
                 </div>
             </div>
 
-            {{-- SHARED ADMIN ACTION PANEL - Same component used for all entity types --}}
-            @include('partials.admin.approval-action-panel', [
-                'entityType' => 'sender_id',
-                'entityId' => 'SID-001',
-                'validationProvider' => 'BrandAssure'
-            ])
         </div>
 
         <div class="sidebar">
