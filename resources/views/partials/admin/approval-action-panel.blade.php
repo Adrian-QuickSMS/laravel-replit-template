@@ -404,6 +404,303 @@
 </div>
 
 <script>
+var AdminApprovalContext = {
+    entityType: '{{ $entityType ?? "unknown" }}',
+    entityId: '{{ $entityId ?? "" }}',
+    submissionId: '{{ $submissionId ?? "" }}',
+    versionId: '{{ $versionId ?? "1" }}',
+    providerName: '{{ $validationProvider ?? "External Provider" }}'
+};
+
+function getInternalNotesSummary() {
+    var noteText = document.getElementById('internalNoteText');
+    return noteText ? noteText.value.trim().substring(0, 200) : null;
+}
+
+function getCustomerMessage() {
+    var msgText = document.getElementById('customerMessageText');
+    return msgText ? msgText.value.trim() : null;
+}
+
+function approveEntity() {
+    if (!confirm('Are you sure you want to approve this ' + AdminApprovalContext.entityType.replace('_', ' ') + '?')) {
+        return;
+    }
+    
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logApproval(
+            AdminApprovalContext.entityType,
+            AdminApprovalContext.entityId,
+            AdminApprovalContext.submissionId,
+            AdminApprovalContext.versionId,
+            getInternalNotesSummary()
+        );
+    }
+    
+    if (typeof UNIFIED_APPROVAL !== 'undefined') {
+        UNIFIED_APPROVAL.approve();
+    }
+    
+    alert('Entity approved successfully.');
+    location.reload();
+}
+
+function showRejectModal() {
+    var modal = document.getElementById('rejectModal');
+    if (!modal) {
+        createRejectModal();
+        modal = document.getElementById('rejectModal');
+    }
+    new bootstrap.Modal(modal).show();
+}
+
+function createRejectModal() {
+    var html = '\
+    <div class="modal fade" id="rejectModal" tabindex="-1">\
+        <div class="modal-dialog">\
+            <div class="modal-content">\
+                <div class="modal-header" style="background: #991b1b; color: #fff;">\
+                    <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Entity</h5>\
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>\
+                </div>\
+                <div class="modal-body">\
+                    <div class="alert alert-danger" style="font-size: 0.85rem;">\
+                        <i class="fas fa-exclamation-triangle me-2"></i>\
+                        <strong>Warning:</strong> This action is final. The customer will be notified.\
+                    </div>\
+                    <div class="mb-3">\
+                        <label class="form-label fw-semibold">Reason for Rejection <span class="text-danger">*</span></label>\
+                        <select class="form-select" id="rejectReasonCode">\
+                            <option value="">Select reason...</option>\
+                            <option value="INVALID_BUSINESS">Invalid Business Information</option>\
+                            <option value="POLICY_VIOLATION">Policy Violation</option>\
+                            <option value="FRAUDULENT">Suspected Fraudulent Activity</option>\
+                            <option value="DUPLICATE">Duplicate Registration</option>\
+                            <option value="INCOMPLETE">Incomplete Documentation</option>\
+                            <option value="OTHER">Other</option>\
+                        </select>\
+                    </div>\
+                    <div class="mb-3">\
+                        <label class="form-label fw-semibold">Customer Message <span class="text-danger">*</span></label>\
+                        <textarea class="form-control" id="rejectCustomerMessage" rows="4" placeholder="Explain why this was rejected (visible to customer)..." minlength="20"></textarea>\
+                        <div class="form-text">Minimum 20 characters required.</div>\
+                    </div>\
+                </div>\
+                <div class="modal-footer">\
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>\
+                    <button type="button" class="btn btn-danger" onclick="confirmReject()">\
+                        <i class="fas fa-times me-1"></i>Confirm Rejection\
+                    </button>\
+                </div>\
+            </div>\
+        </div>\
+    </div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function confirmReject() {
+    var reasonCode = document.getElementById('rejectReasonCode').value;
+    var customerMessage = document.getElementById('rejectCustomerMessage').value.trim();
+    
+    if (!reasonCode) {
+        alert('Please select a reason for rejection.');
+        return;
+    }
+    if (customerMessage.length < 20) {
+        alert('Customer message must be at least 20 characters.');
+        return;
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+    
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logRejection(
+            AdminApprovalContext.entityType,
+            AdminApprovalContext.entityId,
+            AdminApprovalContext.submissionId,
+            AdminApprovalContext.versionId,
+            customerMessage,
+            getInternalNotesSummary()
+        );
+    }
+    
+    if (typeof UNIFIED_APPROVAL !== 'undefined') {
+        UNIFIED_APPROVAL.reject(reasonCode, customerMessage);
+    }
+    
+    alert('Entity rejected. Customer will be notified.');
+    location.reload();
+}
+
+function returnToCustomer() {
+    var modal = document.getElementById('returnModal');
+    if (!modal) {
+        createReturnModal();
+        modal = document.getElementById('returnModal');
+    }
+    new bootstrap.Modal(modal).show();
+}
+
+function createReturnModal() {
+    var html = '\
+    <div class="modal fade" id="returnModal" tabindex="-1">\
+        <div class="modal-dialog">\
+            <div class="modal-content">\
+                <div class="modal-header" style="background: #92400e; color: #fff;">\
+                    <h5 class="modal-title"><i class="fas fa-undo me-2"></i>Return to Customer</h5>\
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>\
+                </div>\
+                <div class="modal-body">\
+                    <div class="alert alert-warning" style="font-size: 0.85rem;">\
+                        <i class="fas fa-info-circle me-2"></i>\
+                        The customer will be asked to make changes and resubmit.\
+                    </div>\
+                    <div class="mb-3">\
+                        <label class="form-label fw-semibold">Reason Code <span class="text-danger">*</span></label>\
+                        <select class="form-select" id="returnReasonCode">\
+                            <option value="">Select reason...</option>\
+                            <option value="ADDITIONAL_INFO">Additional Information Required</option>\
+                            <option value="CLARIFICATION">Clarification Needed</option>\
+                            <option value="DOCUMENT_UPDATE">Document Update Required</option>\
+                            <option value="FORMATTING">Formatting Issues</option>\
+                            <option value="OTHER">Other</option>\
+                        </select>\
+                    </div>\
+                    <div class="mb-3">\
+                        <label class="form-label fw-semibold">Customer Message <span class="text-danger">*</span></label>\
+                        <textarea class="form-control" id="returnCustomerMessage" rows="4" placeholder="Explain what changes are needed (visible to customer)..." minlength="20"></textarea>\
+                        <div class="form-text">Minimum 20 characters required.</div>\
+                    </div>\
+                </div>\
+                <div class="modal-footer">\
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>\
+                    <button type="button" class="btn btn-warning" onclick="confirmReturn()">\
+                        <i class="fas fa-undo me-1"></i>Return to Customer\
+                    </button>\
+                </div>\
+            </div>\
+        </div>\
+    </div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function confirmReturn() {
+    var reasonCode = document.getElementById('returnReasonCode').value;
+    var customerMessage = document.getElementById('returnCustomerMessage').value.trim();
+    
+    if (!reasonCode) {
+        alert('Please select a reason code.');
+        return;
+    }
+    if (customerMessage.length < 20) {
+        alert('Customer message must be at least 20 characters.');
+        return;
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
+    
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logReturn(
+            AdminApprovalContext.entityType,
+            AdminApprovalContext.entityId,
+            AdminApprovalContext.submissionId,
+            AdminApprovalContext.versionId,
+            customerMessage,
+            reasonCode,
+            getInternalNotesSummary()
+        );
+    }
+    
+    if (typeof UNIFIED_APPROVAL !== 'undefined') {
+        UNIFIED_APPROVAL.returnToCustomer(reasonCode, customerMessage);
+    }
+    
+    alert('Returned to customer. They will be notified to make changes.');
+    location.reload();
+}
+
+function forceApprove() {
+    var modal = document.getElementById('forceApproveModal');
+    if (!modal) {
+        createForceApproveModal();
+        modal = document.getElementById('forceApproveModal');
+    }
+    new bootstrap.Modal(modal).show();
+}
+
+function createForceApproveModal() {
+    var html = '\
+    <div class="modal fade" id="forceApproveModal" tabindex="-1">\
+        <div class="modal-dialog">\
+            <div class="modal-content">\
+                <div class="modal-header" style="background: #dc2626; color: #fff;">\
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Force Approve (Override)</h5>\
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>\
+                </div>\
+                <div class="modal-body">\
+                    <div class="alert alert-danger" style="font-size: 0.85rem;">\
+                        <i class="fas fa-shield-alt me-2"></i>\
+                        <strong>CRITICAL:</strong> Force approval bypasses all validation checks. This action will be logged with CRITICAL severity and reviewed.\
+                    </div>\
+                    <div class="mb-3">\
+                        <label class="form-label fw-semibold">Justification <span class="text-danger">*</span></label>\
+                        <textarea class="form-control" id="forceApproveReason" rows="4" placeholder="Explain why external validation is being bypassed..." minlength="50"></textarea>\
+                        <div class="form-text">Minimum 50 characters required. This will be audited.</div>\
+                    </div>\
+                    <div class="form-check mb-3">\
+                        <input class="form-check-input" type="checkbox" id="forceApproveConfirm">\
+                        <label class="form-check-label" for="forceApproveConfirm">\
+                            I understand this bypasses external validation and accept responsibility\
+                        </label>\
+                    </div>\
+                </div>\
+                <div class="modal-footer">\
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>\
+                    <button type="button" class="btn btn-danger" onclick="confirmForceApprove()">\
+                        <i class="fas fa-bolt me-1"></i>Force Approve\
+                    </button>\
+                </div>\
+            </div>\
+        </div>\
+    </div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function confirmForceApprove() {
+    var reason = document.getElementById('forceApproveReason').value.trim();
+    var confirmed = document.getElementById('forceApproveConfirm').checked;
+    
+    if (reason.length < 50) {
+        alert('Justification must be at least 50 characters.');
+        return;
+    }
+    if (!confirmed) {
+        alert('You must confirm understanding of the override implications.');
+        return;
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('forceApproveModal')).hide();
+    
+    if (typeof ADMIN_AUDIT !== 'undefined') {
+        ADMIN_AUDIT.logForceApprove(
+            AdminApprovalContext.entityType,
+            AdminApprovalContext.entityId,
+            reason,
+            'in_review',
+            AdminApprovalContext.submissionId,
+            AdminApprovalContext.versionId,
+            getInternalNotesSummary()
+        );
+    }
+    
+    if (typeof UNIFIED_APPROVAL !== 'undefined') {
+        UNIFIED_APPROVAL.forceApprove(reason);
+    }
+    
+    alert('Entity force approved. This action has been logged with CRITICAL severity.');
+    location.reload();
+}
+
 function switchNotesTab(tab) {
     document.querySelectorAll('.notes-tab').forEach(function(t) {
         t.classList.remove('active');
@@ -692,15 +989,14 @@ var ExternalValidation = (function() {
         storeValidationJob(jobRecord);
         
         if (typeof ADMIN_AUDIT !== 'undefined') {
-            ADMIN_AUDIT.log({
-                eventCode: 'EXTERNAL_VALIDATION_SUBMITTED',
-                module: entityType,
-                entityType: entityType,
-                entityId: entityId,
-                previousValue: null,
-                newValue: { provider: providerName, requestId: currentRefId },
-                severity: 'MEDIUM'
-            });
+            ADMIN_AUDIT.logSubmitExternal(
+                entityType,
+                entityId,
+                AdminApprovalContext.submissionId,
+                AdminApprovalContext.versionId,
+                providerName,
+                currentRefId
+            );
         }
     }
     

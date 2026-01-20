@@ -43,7 +43,19 @@ var ADMIN_AUDIT = (function() {
         IMPERSONATION_END: 'impersonation_end',
         IMPERSONATION_ACTION: 'impersonation_action',
         CONFIGURATION_CHANGE: 'configuration_change',
-        FORCE_APPROVE: 'force_approve'
+        FORCE_APPROVE: 'force_approve',
+        APPROVE: 'approve',
+        REJECT: 'reject',
+        RETURN_TO_CUSTOMER: 'return_to_customer',
+        SUBMIT_EXTERNAL: 'submit_external'
+    };
+
+    var ADMIN_ACTIONS = {
+        APPROVE: 'APPROVE',
+        REJECT: 'REJECT',
+        RETURN: 'RETURN',
+        SUBMIT_EXTERNAL: 'SUBMIT_EXTERNAL',
+        FORCE_APPROVE: 'FORCE_APPROVE'
     };
 
     var SEVERITY_LEVELS = {
@@ -217,7 +229,7 @@ var ADMIN_AUDIT = (function() {
         return entry;
     }
 
-    function logForceApprove(entityType, entityId, reason, previousStatus) {
+    function logForceApprove(entityType, entityId, reason, previousStatus, submissionId, versionId, notesSummary) {
         var context = getAdminContext();
         
         var entry = createAuditEntry({
@@ -225,6 +237,8 @@ var ADMIN_AUDIT = (function() {
             action: 'FORCE_APPROVE',
             entityType: entityType,
             entityId: entityId,
+            submissionId: submissionId || null,
+            versionId: versionId || null,
             statusTransition: {
                 previousStatus: previousStatus,
                 newStatus: 'approved',
@@ -232,6 +246,7 @@ var ADMIN_AUDIT = (function() {
                 bypassedValidation: true
             },
             reason: reason,
+            notesSummary: notesSummary || null,
             externalReferences: {},
             severity: 'CRITICAL'
         }, context);
@@ -261,12 +276,18 @@ var ADMIN_AUDIT = (function() {
             entityType: data.entityType,
             entityId: data.entityId,
             
+            submissionId: data.submissionId || null,
+            versionId: data.versionId || null,
+            
             statusTransition: data.statusTransition || null,
             externalReferences: data.externalReferences || {},
             externalValidation: data.externalValidation || null,
             dataAccess: data.dataAccess || null,
             impersonation: data.impersonation || null,
             reason: data.reason || null,
+            
+            notesSummary: data.notesSummary || null,
+            customerMessage: data.customerMessage || null,
             
             severity: data.severity || 'LOW',
             
@@ -288,6 +309,104 @@ var ADMIN_AUDIT = (function() {
         entry.integrity.checksum = generateIntegrityHash(entry);
         
         return entry;
+    }
+
+    function log(data) {
+        var context = getAdminContext();
+        
+        var actionToEventType = {
+            'APPROVE': AUDIT_EVENT_TYPES.APPROVE,
+            'REJECT': AUDIT_EVENT_TYPES.REJECT,
+            'RETURN': AUDIT_EVENT_TYPES.RETURN_TO_CUSTOMER,
+            'SUBMIT_EXTERNAL': AUDIT_EVENT_TYPES.SUBMIT_EXTERNAL,
+            'FORCE_APPROVE': AUDIT_EVENT_TYPES.FORCE_APPROVE
+        };
+        
+        var actionToSeverity = {
+            'APPROVE': 'HIGH',
+            'REJECT': 'HIGH',
+            'RETURN': 'MEDIUM',
+            'SUBMIT_EXTERNAL': 'MEDIUM',
+            'FORCE_APPROVE': 'CRITICAL'
+        };
+        
+        var entry = createAuditEntry({
+            eventType: actionToEventType[data.action] || data.eventType || 'admin_action',
+            action: data.action,
+            entityType: data.entityType,
+            entityId: data.entityId,
+            submissionId: data.submissionId,
+            versionId: data.versionId,
+            statusTransition: data.previousStatus || data.newStatus ? {
+                previousStatus: data.previousStatus || null,
+                newStatus: data.newStatus || null,
+                transitionTime: new Date().toISOString()
+            } : null,
+            notesSummary: data.notesSummary || null,
+            customerMessage: data.customerMessage || null,
+            reason: data.reason || null,
+            externalReferences: data.externalReferences || {},
+            severity: data.severity || actionToSeverity[data.action] || 'MEDIUM'
+        }, context);
+
+        appendToLog(entry, context.isImpersonating);
+        return entry;
+    }
+
+    function logApproval(entityType, entityId, submissionId, versionId, notesSummary) {
+        return log({
+            action: ADMIN_ACTIONS.APPROVE,
+            entityType: entityType,
+            entityId: entityId,
+            submissionId: submissionId,
+            versionId: versionId,
+            previousStatus: 'in_review',
+            newStatus: 'approved',
+            notesSummary: notesSummary
+        });
+    }
+
+    function logRejection(entityType, entityId, submissionId, versionId, customerMessage, notesSummary) {
+        return log({
+            action: ADMIN_ACTIONS.REJECT,
+            entityType: entityType,
+            entityId: entityId,
+            submissionId: submissionId,
+            versionId: versionId,
+            previousStatus: 'in_review',
+            newStatus: 'rejected',
+            customerMessage: customerMessage,
+            notesSummary: notesSummary
+        });
+    }
+
+    function logReturn(entityType, entityId, submissionId, versionId, customerMessage, reasonCode, notesSummary) {
+        return log({
+            action: ADMIN_ACTIONS.RETURN,
+            entityType: entityType,
+            entityId: entityId,
+            submissionId: submissionId,
+            versionId: versionId,
+            previousStatus: 'in_review',
+            newStatus: 'returned_to_customer',
+            customerMessage: customerMessage,
+            notesSummary: notesSummary,
+            reason: reasonCode
+        });
+    }
+
+    function logSubmitExternal(entityType, entityId, submissionId, versionId, provider, externalRequestId) {
+        return log({
+            action: ADMIN_ACTIONS.SUBMIT_EXTERNAL,
+            entityType: entityType,
+            entityId: entityId,
+            submissionId: submissionId,
+            versionId: versionId,
+            externalReferences: {
+                provider: provider,
+                externalRequestId: externalRequestId
+            }
+        });
     }
 
     function appendToLog(entry, isImpersonation) {
@@ -479,6 +598,11 @@ var ADMIN_AUDIT = (function() {
 
     return {
         init: init,
+        log: log,
+        logApproval: logApproval,
+        logRejection: logRejection,
+        logReturn: logReturn,
+        logSubmitExternal: logSubmitExternal,
         logStatusTransition: logStatusTransition,
         logExternalValidation: logExternalValidation,
         logDataAccess: logDataAccess,
@@ -495,7 +619,8 @@ var ADMIN_AUDIT = (function() {
         ENTITY_TYPES: ENTITY_TYPES,
         APPROVAL_STATUSES: APPROVAL_STATUSES,
         AUDIT_EVENT_TYPES: AUDIT_EVENT_TYPES,
-        SEVERITY_LEVELS: SEVERITY_LEVELS
+        SEVERITY_LEVELS: SEVERITY_LEVELS,
+        ADMIN_ACTIONS: ADMIN_ACTIONS
     };
 })();
 
