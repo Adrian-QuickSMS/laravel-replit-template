@@ -2144,8 +2144,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Base data (default/unfiltered)
         baseData: {
             volume: { parts: 1247832, revenue: 18492, margin: 6328, marginPct: 34.2 },
-            delivery: { sent: 1247832, delivered: 1231654, undelivered: 16178, deliveryPct: 98.7 },
-            deliveryPie: [1231654, 8234, 3456, 4567, 3377],
+            delivery: { 
+                sent: 1247832, 
+                delivered: 1231654, 
+                pending: 5656,
+                undelivered: 4045,
+                expired: 3556,
+                rejected: 2921,
+                deliveryPct: 98.7 
+            },
             countries: [
                 { x: 'United Kingdom', y: 892145 },
                 { x: 'Ireland', y: 124567 },
@@ -2298,7 +2305,25 @@ document.addEventListener('DOMContentLoaded', function() {
             var granularity = this.getTimeBucketGranularity(filters.dateRange);
             data.volumeChart = this.generateTimeSeriesData(granularity, filters.dateRange, multiplier);
             
-            data.deliveryPie = data.deliveryPie.map(function(v) { return Math.round(v * multiplier); });
+            // Derive delivery pie chart from KPI values to ensure alignment
+            // Status breakdown: Delivered, Pending, Undelivered, Expired, Rejected
+            // Must sum to total sent parts
+            var totalSent = data.delivery.sent;
+            var delivered = data.delivery.delivered;
+            var remaining = totalSent - delivered;
+            
+            // Distribute remaining across other statuses proportionally
+            var pending = Math.round(remaining * 0.35);
+            var undelivered = Math.round(remaining * 0.25);
+            var expired = Math.round(remaining * 0.22);
+            var rejected = remaining - pending - undelivered - expired; // Remainder to ensure sum matches
+            
+            data.deliveryPie = [delivered, pending, undelivered, expired, rejected];
+            
+            // Store individual status values for KPI display
+            data.delivery.pending = pending;
+            data.delivery.expired = expired;
+            data.delivery.rejected = rejected;
             
             data.countries = data.countries.map(function(c) { 
                 return { x: c.x, y: Math.round(c.y * multiplier) }; 
