@@ -229,8 +229,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-001')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-001')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-001')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -260,8 +259,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-002')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-002')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-002')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -291,8 +289,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-003')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-003')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-003')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -322,8 +319,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-004')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-004')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-004')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -353,8 +349,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-005')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-005')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-005')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -384,8 +379,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-006')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-006')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-006')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -415,8 +409,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-007')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-007')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-007')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -446,8 +439,7 @@
                         <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
                         <td>
                             <div class="approval-quick-actions">
-                                <button class="approval-action-btn approve" onclick="quickApprove('SID-008')">Approve</button>
-                                <button class="approval-action-btn reject" onclick="showRejectModal('SID-008')">Reject</button>
+                                <button class="approval-action-btn review" onclick="goToDetail('SID-008')">Review</button>
                             </div>
                         </td>
                     </tr>
@@ -708,6 +700,10 @@ function clearSelection() {
     document.querySelectorAll('.item-checkbox').forEach(function(cb) { cb.checked = false; });
     document.getElementById('selectAllCheckbox').checked = false;
     updateBulkBar();
+}
+
+function goToDetail(itemId) {
+    window.location.href = '/admin/assets/sender-ids/' + itemId;
 }
 
 function quickApprove(itemId) {

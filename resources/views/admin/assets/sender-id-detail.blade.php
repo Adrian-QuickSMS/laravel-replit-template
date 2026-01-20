@@ -7,7 +7,35 @@
 <link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin-notifications.css') }}">
 <style>
-.detail-page { padding: 1.5rem; }
+.detail-page { 
+    padding: 1.5rem; 
+    padding-bottom: 3rem;
+    min-height: auto;
+    overflow: visible;
+}
+
+.header-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.header-action-btn.primary {
+    background: var(--admin-primary, #1e3a5f);
+    color: #fff;
+    border: 1px solid var(--admin-primary, #1e3a5f);
+}
+
+.header-action-btn.primary:hover {
+    background: var(--admin-secondary, #2d5a87);
+    border-color: var(--admin-secondary, #2d5a87);
+}
 
 .page-header {
     display: flex;
@@ -517,6 +545,10 @@
                 'submissionType' => 'sender-id',
                 'versions' => $senderIdVersions
             ])
+            <button class="header-action-btn primary" onclick="showAdminActionsModal()">
+                <i class="fas fa-gavel"></i>
+                Admin Actions
+            </button>
         </div>
     </div>
 
@@ -1030,5 +1062,40 @@ function sendCustomerMessage() {
     document.querySelector('#tab-customer .notes-textarea').value = '';
     alert('Message sent to customer.');
 }
+
+function showAdminActionsModal() {
+    var modal = document.getElementById('adminActionsModal');
+    if (modal) {
+        new bootstrap.Modal(modal).show();
+    }
+}
 </script>
 @endpush
+
+{{-- Admin Actions Modal --}}
+<style>
+#adminActionsModal:not(.show) {
+    display: none !important;
+}
+</style>
+<div class="modal fade" id="adminActionsModal" tabindex="-1" aria-labelledby="adminActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--admin-primary, #1e3a5f) 0%, #2d5a87 100%); color: #fff;">
+                <h5 class="modal-title" id="adminActionsModalLabel">
+                    <i class="fas fa-gavel me-2"></i>Admin Actions
+                    <span class="badge bg-warning text-dark ms-2" style="font-size: 0.65rem;"><i class="fas fa-lock me-1"></i>INTERNAL ONLY</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                @include('partials.admin.approval-action-panel', [
+                    'entityType' => 'sender_id',
+                    'entityId' => 'SID-001',
+                    'validationProvider' => 'BrandAssure',
+                    'isModal' => true
+                ])
+            </div>
+        </div>
+    </div>
+</div>
