@@ -342,28 +342,28 @@
     <div class="admin-filter-bar">
         <div class="filter-group">
             <label>Status</label>
-            <select class="form-select form-select-sm">
-                <option>All Statuses</option>
-                <option>Live</option>
-                <option>Test</option>
-                <option>Suspended</option>
-                <option>Archived</option>
+            <select class="form-select form-select-sm" id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="live">Live</option>
+                <option value="test">Test</option>
+                <option value="suspended">Suspended</option>
+                <option value="archived">Archived</option>
             </select>
         </div>
         <div class="filter-group">
             <label>Account Type</label>
-            <select class="form-select form-select-sm">
-                <option>All Types</option>
-                <option>Enterprise</option>
-                <option>SMB</option>
-                <option>Startup</option>
+            <select class="form-select form-select-sm" id="typeFilter">
+                <option value="">All Types</option>
+                <option value="enterprise">Enterprise</option>
+                <option value="smb">SMB</option>
+                <option value="startup">Startup</option>
             </select>
         </div>
         <div class="filter-group">
             <label>Search</label>
-            <input type="text" class="form-control form-control-sm" placeholder="Account ID or name...">
+            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Account ID or name...">
         </div>
-        <button class="btn admin-btn-apply">Apply</button>
+        <button class="btn admin-btn-apply" onclick="applyTableFilters()">Apply</button>
     </div>
 
     <div class="card">
@@ -2418,6 +2418,81 @@ function filterTable(filter) {
         row.style.display = show ? '' : 'none';
     });
 }
+
+// Apply filters from dropdowns and search input
+window.applyTableFilters = function() {
+    var statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    var typeFilter = document.getElementById('typeFilter').value.toLowerCase();
+    var searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
+    var rows = document.querySelectorAll('#accountsTable tbody tr');
+    
+    // Clear any KPI tile active states when using dropdown filters
+    currentFilter = null;
+    document.querySelectorAll('.kpi-tile-row .widget-stat').forEach(function(tile) {
+        tile.classList.remove('active');
+    });
+    document.querySelectorAll('.kpi-collapsed-strip .kpi-item').forEach(function(item) {
+        item.classList.remove('active');
+    });
+    
+    rows.forEach(function(row) {
+        var show = true;
+        
+        // Status filter
+        if (statusFilter) {
+            var statusBadge = row.querySelector('.badge');
+            var status = statusBadge ? statusBadge.textContent.toLowerCase().trim() : '';
+            if (status !== statusFilter) {
+                show = false;
+            }
+        }
+        
+        // Type filter (based on data attribute or cell content)
+        if (show && typeFilter) {
+            var accountType = row.dataset.type ? row.dataset.type.toLowerCase() : '';
+            if (!accountType) {
+                // Try to infer from row content or default to match
+                var rowText = row.textContent.toLowerCase();
+                if (!rowText.includes(typeFilter)) {
+                    show = false;
+                }
+            } else if (accountType !== typeFilter) {
+                show = false;
+            }
+        }
+        
+        // Search filter (searches account name and ID)
+        if (show && searchInput) {
+            var rowText = row.textContent.toLowerCase();
+            if (!rowText.includes(searchInput)) {
+                show = false;
+            }
+        }
+        
+        row.style.display = show ? '' : 'none';
+    });
+    
+    // Audit log
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('ACCOUNTS_FILTER_APPLIED', 'ACCOUNTS', {
+            status: statusFilter || 'all',
+            type: typeFilter || 'all',
+            search: searchInput || null
+        });
+    }
+};
+
+// Allow Enter key to trigger search
+document.addEventListener('DOMContentLoaded', function() {
+    var searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyTableFilters();
+            }
+        });
+    }
+});
 
 // ========================
 // Billing Service Layer (Xero-Ready)
