@@ -198,15 +198,15 @@
 .sortable.sort-asc::after { content: '\f0de'; color: var(--admin-primary); }
 .sortable.sort-desc::after { content: '\f0dd'; color: var(--admin-primary); }
 
-.badge-admin-active { background: rgba(5, 150, 105, 0.15); color: #059669; }
-.badge-admin-suspended { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
-.badge-admin-pending { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+.badge-admin-active { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
+.badge-admin-suspended { background: rgba(30, 58, 95, 0.08); color: #6c757d; }
+.badge-admin-pending { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
 .badge-admin-portal { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
 .badge-admin-api { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
 
 .type-vmn { color: var(--admin-primary); font-weight: 500; }
-.type-shortcode-keyword { color: #7c3aed; font-weight: 500; }
-.type-dedicated { color: #059669; font-weight: 500; }
+.type-shortcode-keyword { color: var(--admin-secondary); font-weight: 500; }
+.type-dedicated { color: var(--admin-primary); font-weight: 500; }
 
 .capability-pill {
     display: inline-block;
@@ -217,8 +217,8 @@
     margin-right: 0.2rem;
 }
 .capability-senderid { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
-.capability-inbox { background: rgba(5, 150, 105, 0.15); color: #059669; }
-.capability-optout { background: rgba(124, 58, 237, 0.15); color: #7c3aed; }
+.capability-inbox { background: rgba(45, 90, 135, 0.15); color: var(--admin-secondary); }
+.capability-optout { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
 .capability-api { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
 
 .cost-value { font-weight: 500; color: #333; }
@@ -1982,7 +1982,7 @@ function confirmSuspend(numberId) {
     
     pendingAction = { type: 'suspend', numberId, num };
     
-    document.getElementById('confirmModalHeader').style.background = '#d97706';
+    document.getElementById('confirmModalHeader').style.background = 'var(--admin-primary)';
     document.getElementById('confirmModalHeader').style.color = '#fff';
     document.getElementById('confirmModalTitle').textContent = 'Suspend Number';
     document.getElementById('confirmModalBody').innerHTML = `
@@ -2013,7 +2013,7 @@ function confirmReactivate(numberId) {
     
     pendingAction = { type: 'reactivate', numberId, num };
     
-    document.getElementById('confirmModalHeader').style.background = '#059669';
+    document.getElementById('confirmModalHeader').style.background = 'var(--admin-primary)';
     document.getElementById('confirmModalHeader').style.color = '#fff';
     document.getElementById('confirmModalTitle').textContent = 'Reactivate Number';
     document.getElementById('confirmModalBody').innerHTML = `
@@ -2069,7 +2069,7 @@ function confirmDisableKeyword(numberId) {
     
     pendingAction = { type: 'disableKeyword', numberId, num };
     
-    document.getElementById('confirmModalHeader').style.background = '#dc2626';
+    document.getElementById('confirmModalHeader').style.background = 'var(--admin-primary)';
     document.getElementById('confirmModalHeader').style.color = '#fff';
     document.getElementById('confirmModalTitle').textContent = 'Disable Keyword';
     document.getElementById('confirmModalBody').innerHTML = `
