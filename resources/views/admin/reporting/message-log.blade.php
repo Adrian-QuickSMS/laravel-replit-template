@@ -550,6 +550,48 @@
                                     </div>
                                 </div>
                                 
+                                <div class="row g-3 align-items-end mt-2">
+                                    <div class="col-6 col-md-4 col-lg-2">
+                                        <label class="form-label small fw-bold">UK Network Prefix</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="ukNetworkPrefixes">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Networks</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="EE" id="networkEE"><label class="form-check-label small" for="networkEE">EE</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Vodafone" id="networkVodafone"><label class="form-check-label small" for="networkVodafone">Vodafone</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="O2" id="networkO2"><label class="form-check-label small" for="networkO2">O2</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Three" id="networkThree"><label class="form-check-label small" for="networkThree">Three</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="MVNO/Other" id="networkMVNO"><label class="form-check-label small" for="networkMVNO">MVNO/Other</label></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4 col-lg-2">
+                                        <label class="form-label small fw-bold">Ported To</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="portedTo">
+                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                <span class="dropdown-label">All Networks</span>
+                                            </button>
+                                            <div class="dropdown-menu w-100 p-2">
+                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                </div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="EE" id="portedEE"><label class="form-check-label small" for="portedEE">EE</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Vodafone" id="portedVodafone"><label class="form-check-label small" for="portedVodafone">Vodafone</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="O2" id="portedO2"><label class="form-check-label small" for="portedO2">O2</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Three" id="portedThree"><label class="form-check-label small" for="portedThree">Three</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="MVNO/Other" id="portedMVNO"><label class="form-check-label small" for="portedMVNO">MVNO/Other</label></div>
+                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="NOT_PORTED" id="portedNone"><label class="form-check-label small" for="portedNone">Not Ported</label></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="row mt-3">
                                     <div class="col-12 d-flex justify-content-end gap-2">
                                         <button type="button" class="btn btn-sm" id="btnApplyFilters" style="background: var(--admin-primary, #1e3a5f); color: #fff;">
@@ -1373,6 +1415,24 @@ const MockAPI = (function() {
                 });
             }
             
+            if (filters.ukNetworkPrefixes && filters.ukNetworkPrefixes.length > 0) {
+                const networkLower = filters.ukNetworkPrefixes.map(n => n.toLowerCase());
+                results = results.filter(msg => networkLower.includes(msg.ukNetworkPrefix.toLowerCase()));
+            }
+            
+            if (filters.portedTo && filters.portedTo.length > 0) {
+                results = results.filter(msg => {
+                    if (filters.portedTo.includes('NOT_PORTED')) {
+                        if (!msg.portedTo) return true;
+                    }
+                    if (msg.portedTo) {
+                        const portedLower = filters.portedTo.map(p => p.toLowerCase());
+                        return portedLower.includes(msg.portedTo.toLowerCase());
+                    }
+                    return false;
+                });
+            }
+            
             if (search && search.trim()) {
                 const searchTerm = search.toLowerCase().trim();
                 results = results.filter(msg => {
@@ -1475,7 +1535,9 @@ document.addEventListener('DOMContentLoaded', function() {
         statuses: [],
         countries: [],
         messageTypes: [],
-        messageIds: []
+        messageIds: [],
+        ukNetworkPrefixes: [],
+        portedTo: []
     };
     
     let pendingFilters = JSON.parse(JSON.stringify(filterState));
@@ -1762,7 +1824,8 @@ document.addEventListener('DOMContentLoaded', function() {
         origins: { portal: 'Portal', api: 'API', 'email-to-sms': 'Email-to-SMS', integration: 'Integration' },
         statuses: { delivered: 'Delivered', pending: 'Pending', undeliverable: 'Undeliverable', rejected: 'Rejected' },
         countries: { uk: 'United Kingdom', us: 'United States', de: 'Germany', fr: 'France', es: 'Spain', ie: 'Ireland' },
-        messageTypes: { sms: 'SMS', 'rcs-basic': 'RCS Basic', 'rcs-rich': 'RCS Rich' }
+        messageTypes: { sms: 'SMS', 'rcs-basic': 'RCS Basic', 'rcs-rich': 'RCS Rich' },
+        portedTo: { 'NOT_PORTED': 'Not Ported' }
     };
     
     function formatDateInput(date, isEndOfDay = false) {
@@ -1977,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hasFilters = true;
         }
         
-        ['accounts', 'subAccounts', 'users', 'origins', 'statuses', 'countries', 'messageTypes'].forEach(key => {
+        ['accounts', 'subAccounts', 'users', 'origins', 'statuses', 'countries', 'messageTypes', 'ukNetworkPrefixes', 'portedTo'].forEach(key => {
             if (filterState[key] && filterState[key].length > 0) {
                 const labels = filterState[key].map(v => labelMappings[key]?.[v] || v);
                 const displayLabel = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
