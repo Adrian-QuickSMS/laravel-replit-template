@@ -6,6 +6,24 @@
 <style>
 .admin-page { padding: 1.5rem; }
 
+#numbersTableBody .dropdown-menu {
+    z-index: 1050 !important;
+    position: absolute !important;
+}
+#numbersTableBody .dropdown {
+    position: relative;
+}
+.action-dots-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+.action-dots-btn:hover {
+    color: var(--admin-primary, #1e3a5f);
+}
+
 .search-filter-toolbar {
     background: #fff;
     padding: 0.75rem 1rem;
@@ -1386,6 +1404,9 @@ tr.selected-row:hover {
 @push('scripts')
 <script src="{{ asset('js/numbers-admin-service.js') }}"></script>
 <script>
+console.log('[Admin Numbers] Script starting...');
+console.log('[Admin Numbers] NumbersAdminService loaded:', typeof NumbersAdminService !== 'undefined');
+
 let numbersData = [];
 let currentPage = 1;
 const rowsPerPage = 20;
@@ -1479,15 +1500,29 @@ function showLoadingState(loading) {
 }
 
 function toggleFilterPanel() {
+    console.log('[Admin Numbers] toggleFilterPanel called');
     const panel = document.getElementById('filterPanel');
     const btn = document.getElementById('filterPillBtn');
     
-    if (panel.style.display === 'none') {
+    if (!panel) {
+        console.error('[Admin Numbers] Filter panel element not found!');
+        return;
+    }
+    if (!btn) {
+        console.error('[Admin Numbers] Filter button element not found!');
+        return;
+    }
+    
+    console.log('[Admin Numbers] Current panel display:', panel.style.display);
+    
+    if (panel.style.display === 'none' || panel.style.display === '') {
         panel.style.display = 'block';
         btn.classList.add('active');
+        console.log('[Admin Numbers] Filter panel opened');
     } else {
         panel.style.display = 'none';
         btn.classList.remove('active');
+        console.log('[Admin Numbers] Filter panel closed');
     }
 }
 
@@ -1645,6 +1680,64 @@ function renderTable(data) {
     `).join('');
     
     updateSelectAllState();
+    initializeDropdowns();
+}
+
+function initializeDropdowns() {
+    const dropdownButtons = document.querySelectorAll('#numbersTableBody .action-dots-btn[data-bs-toggle="dropdown"]');
+    console.log('[Admin Numbers] Found', dropdownButtons.length, 'dropdown buttons to initialize');
+    console.log('[Admin Numbers] Bootstrap available:', typeof bootstrap !== 'undefined', 'Dropdown:', typeof bootstrap !== 'undefined' && typeof bootstrap.Dropdown !== 'undefined');
+    
+    if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+        dropdownButtons.forEach(btn => {
+            try {
+                if (!bootstrap.Dropdown.getInstance(btn)) {
+                    new bootstrap.Dropdown(btn);
+                }
+            } catch (e) {
+                console.error('[Admin Numbers] Error initializing dropdown:', e);
+            }
+        });
+        console.log('[Admin Numbers] Bootstrap dropdown initialization complete');
+    } else {
+        console.log('[Admin Numbers] Bootstrap Dropdown not available, using manual fallback');
+        setupManualDropdowns();
+    }
+}
+
+let manualDropdownsInitialized = false;
+function setupManualDropdowns() {
+    if (manualDropdownsInitialized) return;
+    manualDropdownsInitialized = true;
+    
+    console.log('[Admin Numbers] Setting up manual dropdown handlers');
+    
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.action-dots-btn');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdown = btn.closest('.dropdown');
+            const menu = dropdown ? dropdown.querySelector('.dropdown-menu') : null;
+            
+            document.querySelectorAll('#numbersTableBody .dropdown-menu.show').forEach(m => {
+                if (m !== menu) m.classList.remove('show');
+            });
+            
+            if (menu) {
+                const isShown = menu.classList.contains('show');
+                menu.classList.toggle('show');
+                console.log('[Admin Numbers] Manual dropdown toggled:', !isShown ? 'opened' : 'closed');
+            }
+            return;
+        }
+        
+        if (!e.target.closest('.dropdown-menu')) {
+            document.querySelectorAll('#numbersTableBody .dropdown-menu.show').forEach(m => {
+                m.classList.remove('show');
+            });
+        }
+    });
 }
 
 function buildContextMenu(num) {
