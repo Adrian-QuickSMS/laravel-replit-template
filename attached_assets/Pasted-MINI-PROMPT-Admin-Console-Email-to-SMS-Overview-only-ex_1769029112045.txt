@@ -1,0 +1,51 @@
+MINI PROMPT — Admin Console: Email-to-SMS (Overview only) = exact copy of Customer Overview (global view)
+
+Context
+Build Admin Console → Email-to-SMS with ONLY the “Overview” tab/page.
+This must be an IDENTICAL copy of the Customer Portal → Management → Email-to-SMS → Overview:
+- Same layout, table styling, filters/search, row actions, modals, status pills, pagination, empty states
+- Same underlying logic and behaviours
+- No new UI patterns or features
+
+Only Differences (Hard Rules)
+1) Global Scope:
+- Admin view shows Email-to-SMS configs across ALL customer accounts (not one account).
+- Add a FIRST column in the table: “Account” (customer account name).
+- Add Account filter (dropdown/searchable) using the same filter component style (Apply Filters pattern).
+
+2) Admin Styling:
+- Replace Fillow purple accents with Admin blue accents ONLY where the theme colour is used.
+- Do NOT change row status colours, warning colours, table row highlights, or any non-theme status colour mapping.
+
+Constraints
+- DO NOT redesign anything.
+- Reuse the existing Customer Overview components and logic. Do not duplicate code.
+- Implement as shared component(s): e.g., EmailToSmsOverviewTable shared between Customer + Admin.
+- Admin version is the same component with props/flags:
+  - scope="GLOBAL"
+  - theme="ADMIN_BLUE"
+  - showAccountColumn=true
+
+Data / Integration (Mock for now)
+- Use a shared mock service/store for Email-to-SMS configs (same unified model as customer):
+  EmailToSmsConfig { id, type (STANDARD|CONTACT_LIST), name, status, createdAt, updatedAt, accountId, accountName, ... }
+- Admin Overview reads from the same store/service but returns results across all accounts.
+- All actions must update the same store so UI updates instantly.
+
+Row Actions (Must be identical)
+- Keep the same three-dot menu actions and behaviour as customer overview:
+  View / Edit / Suspend / Reactivate / Archive (whatever exists today)
+- Action outcomes and confirmations must be the same modals/toasts.
+- Edit/View must route to the correct type flow (STANDARD vs CONTACT_LIST) using existing admin routes (no UI changes).
+
+Filtering / Searching
+- Search bar left, filter/apply controls consistent with existing Overview.
+- Filters do not auto-apply; require Apply Filters button (same as customer).
+- Add Account filter only (plus any existing filters already on Overview).
+
+Acceptance Criteria
+- Admin Email-to-SMS Overview visually matches customer Overview 1:1 (except theme colour + Account column).
+- Table includes Account as first column and supports sorting like other columns.
+- Filters/search behave identically; Account filter works.
+- All row actions work and update status pills immediately.
+- No duplicated UI logic; shared component is reused with minimal admin-specific wrapper.

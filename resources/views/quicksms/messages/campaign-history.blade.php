@@ -799,7 +799,7 @@ $permissions = [
                     <h6 class="text-muted mb-3"><i class="fas fa-eye me-2"></i>Message Preview</h6>
                     
                     <div id="smsPreviewSection" style="display: none;">
-                        <div class="border rounded p-3 bg-light" style="max-width: 280px; margin: 0 auto;">
+                        <div class="border rounded p-3" style="max-width: 280px; margin: 0 auto; background-color: #f0ebf8;">
                             <div class="d-flex align-items-center mb-2">
                                 <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px;">
                                     <i class="fas fa-sms text-white" style="font-size: 12px;"></i>
@@ -813,7 +813,7 @@ $permissions = [
                     </div>
                     
                     <div id="rcsPreviewSection" style="display: none;">
-                        <div class="border rounded overflow-hidden" style="max-width: 280px; margin: 0 auto; background: #f5f5f5;">
+                        <div class="border rounded overflow-hidden" style="max-width: 280px; margin: 0 auto; background-color: #f0ebf8;">
                             <div class="bg-primary text-white p-2 d-flex align-items-center">
                                 <div class="rounded-circle bg-white d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
                                     <i class="fas fa-building text-primary" style="font-size: 10px;"></i>
