@@ -2913,7 +2913,7 @@ $(document).ready(function() {
         $('.clm-action-edit').off('click').on('click', function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            openClmEditModal(id);
+            window.location.href = '/management/email-to-sms/contact-list/' + id + '/edit';
         });
         
         $('.clm-action-archive').off('click').on('click', function(e) {
@@ -3802,18 +3802,8 @@ $(document).ready(function() {
             // Standard Email-to-SMS - navigate to edit page
             window.location.href = '/management/email-to-sms/standard/' + sourceId + '/edit';
         } else if (sourceType === 'contactList') {
-            // Contact List Email-to-SMS - switch tab and open edit modal
-            // Switch to Contact List tab
-            var clTabEl = document.querySelector('button[data-bs-target="#email-to-sms-contact-list"]');
-            if (clTabEl) {
-                var tabInstance = bootstrap.Tab.getOrCreateInstance(clTabEl);
-                tabInstance.show();
-            }
-            
-            // Small delay to allow tab switch, then open edit modal
-            setTimeout(function() {
-                openClmEditModal(sourceId);
-            }, 400);
+            // Contact List Email-to-SMS - navigate to edit wizard
+            window.location.href = '/management/email-to-sms/contact-list/' + sourceId + '/edit';
         } else {
             console.error('Unknown source type:', sourceType, 'Address:', selectedAddress);
             showErrorToast('Unable to determine configuration type');

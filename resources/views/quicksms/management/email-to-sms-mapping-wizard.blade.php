@@ -1,6 +1,6 @@
 @extends('layouts.quicksms')
 
-@section('title', 'Create Email-to-SMS – Contact List')
+@section('title', isset($editMode) && $editMode ? 'Edit Email-to-SMS – Contact List' : 'Create Email-to-SMS – Contact List')
 
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
@@ -350,7 +350,7 @@ button.btn-save-draft:hover {
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0"><i class="fas fa-link me-2 text-primary"></i>Create Email-to-SMS – Contact List</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-link me-2 text-primary"></i>{{ isset($editMode) && $editMode ? 'Edit' : 'Create' }} Email-to-SMS – Contact List</h4>
                     <span class="autosave-indicator saved" id="autosaveIndicator">
                         <i class="fas fa-cloud me-1"></i><span id="autosaveText">Draft saved</span>
                     </span>
@@ -739,7 +739,7 @@ button.btn-save-draft:hover {
                                 Next <i class="fas fa-arrow-right ms-1"></i>
                             </button>
                             <button type="button" class="btn btn-primary" id="btnCreateMapping" style="display: none;">
-                                <i class="fas fa-check-circle me-1"></i> Create Mapping
+                                <i class="fas fa-check-circle me-1"></i> {{ isset($editMode) && $editMode ? 'Save Changes' : 'Create Mapping' }}
                             </button>
                         </div>
                     </div>
@@ -987,6 +987,9 @@ button.btn-save-draft:hover {
 <script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
+    var isEditMode = {{ isset($editMode) && $editMode ? 'true' : 'false' }};
+    var editId = '{{ $id ?? '' }}';
+    
     var contactBookData = {
         contacts: [],
         lists: [],
@@ -1019,6 +1022,70 @@ $(document).ready(function() {
     var accountFlags = {
         dynamic_senderid_allowed: true
     };
+    
+    function loadEditData() {
+        if (!isEditMode || !editId) return;
+        
+        EmailToSmsService.getEmailToSmsContactListSetup(editId).then(function(response) {
+            if (response.success && response.data) {
+                var data = response.data;
+                
+                wizardData.name = data.name || '';
+                wizardData.description = data.description || '';
+                wizardData.subAccount = data.subaccountId || '';
+                wizardData.generatedEmail = (data.originatingEmails && data.originatingEmails[0]) || '';
+                wizardData.allowedSenders = data.allowedSenderEmails || [];
+                wizardData.senderId = data.senderIdTemplateId || '';
+                wizardData.subjectAsSenderId = data.subjectOverridesSenderId || false;
+                wizardData.multipleSms = data.multipleSmsEnabled !== false;
+                wizardData.deliveryReports = data.deliveryReportsEnabled !== false;
+                wizardData.deliveryReportEmail = data.deliveryReportsEmail || '';
+                wizardData.contentFilterPatterns = data.contentFilter || '';
+                
+                $('#mappingName').val(wizardData.name);
+                $('#mappingDescription').val(wizardData.description);
+                $('#subAccount').val(wizardData.subAccount).trigger('change');
+                
+                renderSenderEmails();
+                
+                if (wizardData.generatedEmail) {
+                    $('#generatedEmail').text(wizardData.generatedEmail);
+                    $('#generatedEmailSection').show();
+                }
+                
+                $('#subjectAsSenderId').prop('checked', wizardData.subjectAsSenderId);
+                $('#multipleSms').prop('checked', wizardData.multipleSms);
+                $('#deliveryReports').prop('checked', wizardData.deliveryReports);
+                $('#deliveryReportEmail').val(wizardData.deliveryReportEmail);
+                $('#contentFilterPatterns').val(wizardData.contentFilterPatterns);
+                
+                if (data.contactBookListNames && data.contactBookListNames.length > 0) {
+                    wizardData.selectedLists = data.contactBookListNames.map(function(name, idx) {
+                        return { id: data.contactBookListIds ? data.contactBookListIds[idx] : 'list-' + idx, name: name };
+                    });
+                }
+                
+                if (data.optOutMode === 'NONE' || !data.optOutListNames || data.optOutListNames.length === 0) {
+                    wizardData.optOutLists = ['NO'];
+                    $('#optOutNone').prop('checked', true);
+                } else {
+                    wizardData.optOutLists = data.optOutListNames.map(function(name, idx) {
+                        return { id: data.optOutListIds ? data.optOutListIds[idx] : 'opt-' + idx, name: name };
+                    });
+                }
+                
+                updateSelectionPreview();
+                updateRecipientSummary();
+            }
+        }).catch(function(err) {
+            console.error('Failed to load edit data:', err);
+            showErrorToast('Failed to load configuration data');
+        });
+    }
+    
+    if (isEditMode) {
+        loadEditData();
+    }
     
     function loadContactBookData(subaccountId) {
         EmailToSmsService.getContactBookData(subaccountId).then(function(response) {
@@ -1763,9 +1830,29 @@ $(document).ready(function() {
     
     $('#btnCreateMapping').on('click', function() {
         var btn = $(this);
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Creating...');
+        var actionText = isEditMode ? 'Saving...' : 'Creating...';
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> ' + actionText);
         
         var payload = createMappingPayload('active');
+        
+        if (isEditMode) {
+            EmailToSmsService.updateEmailToSmsContactListSetup(editId, payload).then(function(response) {
+                if (response.success) {
+                    showSuccessToast('Mapping updated successfully!');
+                    setTimeout(function() {
+                        window.location.href = '{{ route("management.email-to-sms") }}?tab=contact-lists';
+                    }, 1000);
+                } else {
+                    showErrorToast(response.error || 'Failed to update mapping');
+                    btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Save Changes');
+                }
+            }).catch(function(err) {
+                console.error('Update error:', err);
+                showErrorToast('An error occurred. Please try again.');
+                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Save Changes');
+            });
+            return;
+        }
         
         var newEntry = {
             id: 'clm-' + Date.now(),

@@ -1748,6 +1748,15 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function emailToSmsContactListEdit($id)
+    {
+        return view('quicksms.management.email-to-sms-mapping-wizard', [
+            'page_title' => 'Edit Email-to-SMS Mapping',
+            'id' => $id,
+            'editMode' => true
+        ]);
+    }
+
     public function numbers()
     {
         return view('quicksms.management.numbers', [
