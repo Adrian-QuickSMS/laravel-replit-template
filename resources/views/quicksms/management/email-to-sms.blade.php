@@ -3018,10 +3018,12 @@ $(document).ready(function() {
             return { value: name.toLowerCase().replace(/\s+/g, '-'), label: name };
         });
         
-        // Update checkboxes for Contact Lists
+        // Update checkboxes for Contact Lists - match by label text (without count)
         $('.clm-contact-list-cb').each(function() {
-            var label = $(this).data('label');
-            if (item.targetLists.indexOf(label) !== -1) {
+            var labelText = $(this).next('label').text();
+            // Extract name without count, e.g., "NHS Patients (1,245)" -> "NHS Patients"
+            var labelName = labelText.replace(/\s*\([^)]*\)\s*$/, '').trim();
+            if (item.targetLists.indexOf(labelName) !== -1) {
                 $(this).prop('checked', true);
             } else {
                 $(this).prop('checked', false);
@@ -3039,9 +3041,11 @@ $(document).ready(function() {
                 return { value: name.toLowerCase().replace(/\s+/g, '-'), label: name };
             });
             $('#clmOptNo').prop('checked', false);
-            $('.clm-optout-cb').each(function() {
-                var label = $(this).data('label');
-                if (item.optOutLists.indexOf(label) !== -1) {
+            // Update checkboxes for Opt-Out Lists - match by label text (without count)
+            $('.clm-optout-cb').not('#clmOptNo').each(function() {
+                var labelText = $(this).next('label').text();
+                var labelName = labelText.replace(/\s*\([^)]*\)\s*$/, '').trim();
+                if (item.optOutLists.indexOf(labelName) !== -1) {
                     $(this).prop('checked', true);
                 } else {
                     $(this).prop('checked', false);
