@@ -2079,8 +2079,13 @@ $(document).ready(function() {
         return str.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
     
-    var overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
-    var reportingGroups = EmailToSmsService.getMockReportingGroups();
+    var overviewAddresses = [];
+    var reportingGroups = [];
+    
+    function loadOverviewData() {
+        overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
+        reportingGroups = EmailToSmsService.getMockReportingGroups();
+    }
     
     // ========================================
     // Standard Email-to-SMS Wizard
@@ -3945,6 +3950,7 @@ $(document).ready(function() {
         });
     })();
     
+    loadOverviewData();
     renderAddressesTable(overviewAddresses);
     renderReportingGroups(reportingGroups);
     loadContactListSetups().then(filterContactListMappings);
