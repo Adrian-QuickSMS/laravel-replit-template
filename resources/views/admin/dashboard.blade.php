@@ -1527,8 +1527,8 @@
                     Clear all
                 </button>
             </div>
-            <div class="filter-summary-text text-muted small">
-                <strong>1,247,832</strong> parts | <strong>892,145</strong> messages | <strong>847</strong> clients
+            <div class="filter-summary-text text-muted small" id="filterSummaryStats">
+                <strong id="summaryTotalParts">1,247,832</strong> parts | <strong id="summaryTotalMessages">892,145</strong> messages | <strong id="summaryFragmentAvg">1.40</strong> parts/msg avg
             </div>
         </div>
     </div>
@@ -2151,6 +2151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 undelivered: 4045,
                 expired: 3556,
                 rejected: 2921,
+                messages: 892145,
                 deliveryPct: 98.7 
             },
             countries: [
@@ -2299,6 +2300,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data.delivery.sent = Math.round(data.delivery.sent * multiplier);
             data.delivery.delivered = Math.round(data.delivery.delivered * multiplier);
             data.delivery.undelivered = Math.round(data.delivery.undelivered * multiplier);
+            data.delivery.messages = Math.round(data.delivery.messages * multiplier);
             data.delivery.deliveryPct = +((data.delivery.delivered / data.delivery.sent) * 100).toFixed(1);
             
             // Generate time-bucketed volume chart data based on date range
@@ -2403,9 +2405,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update sender IDs table
         updateSenderIdsList(data.senderIds);
         
+        // Update filter summary stats (respects active filters)
+        updateFilterSummaryStats(data);
+        
         // Update timestamp
         lastRefreshTime = new Date();
         updateTimeDisplay();
+    }
+    
+    function updateFilterSummaryStats(data) {
+        var totalParts = data.volume.parts || 0;
+        var totalMessages = data.delivery.messages || Math.round(totalParts / 1.4);
+        var fragmentAvg = totalMessages > 0 ? (totalParts / totalMessages).toFixed(2) : '0.00';
+        
+        var partsEl = document.getElementById('summaryTotalParts');
+        var messagesEl = document.getElementById('summaryTotalMessages');
+        var avgEl = document.getElementById('summaryFragmentAvg');
+        
+        if (partsEl) partsEl.textContent = totalParts.toLocaleString();
+        if (messagesEl) messagesEl.textContent = totalMessages.toLocaleString();
+        if (avgEl) avgEl.textContent = fragmentAvg;
+        
+        console.log('[Admin Dashboard] Summary stats updated - Parts:', totalParts, 'Messages:', totalMessages, 'Avg:', fragmentAvg);
     }
     
     function updateKPITiles(data) {
