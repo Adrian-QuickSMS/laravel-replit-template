@@ -1,0 +1,41 @@
+MINI PROMPT — Admin Console: Client Reporting (Global) = Customer “Finance Data” (Identical)
+
+Goal
+Create an Admin Console module called “Client Reporting” that is an IDENTICAL copy of the customer portal module:
+Reporting → Finance Data
+Same functionality, same UI layout, same filters, same table, same exports, same calculations, same statuses, same empty/error states.
+DO NOT redesign anything, do not introduce new UI components, do not change wording or interaction patterns.
+
+Critical Constraints
+- Reuse the existing Finance Data component/code/shared logic. Do NOT create a second implementation.
+- The ONLY UI theme change allowed is swapping Fillow purple accents to Admin Blue accents (admin console theme). 
+- Row colouring, status colours, pastel pills, and all non-theme semantic colours must remain exactly the same.
+- Filtering behaviour must remain “Apply Filters” (no auto-apply) if that is how Finance Data works today.
+
+Admin-Only Differences (Only These Changes)
+1) Global scope (all customers):
+   - Data source/query must return Finance Data across ALL customer accounts (admin permission scope).
+   - Default view = All Accounts.
+
+2) Account drill (required):
+   - Add an “Account” filter control to the existing filter bar (use existing Fillow filter style):
+     - Searchable dropdown (typeahead), single-select.
+     - Default: “All Accounts”.
+   - Selecting an account and clicking “Apply Filters” filters the entire view to that single account.
+   - Add an “Account” column to the table only if the customer Finance Data table does NOT already include it.
+     - If you add it: place it as the first column, and ensure columns still match Finance Data design rules.
+
+3) Drill-through behaviour:
+   - If the Finance Data module supports row click / drill to detail, keep it identical.
+   - Add one extra admin-only action: clicking an Account name (where shown) should navigate to Admin → Accounts → Account Details (if that route exists). If not built yet, stub route but do not change UI.
+
+Non-Functional / Safety
+- Must remain backend-ready: if global endpoints are not available, use mock data but keep the exact same shape as Finance Data.
+- No new metrics, no new definitions. Use the same master warehouse definitions as Finance Data.
+- Ensure exports include Account context when “All Accounts” is selected (either extra column in export or account field embedded per row) without changing the in-app table unless required above.
+
+Acceptance Criteria
+- Visually and behaviourally identical to customer Reporting → Finance Data (apart from Admin Blue accents).
+- “Account” filter works and drives Apply Filters.
+- Global “All Accounts” view works.
+- No new UI patterns introduced.
