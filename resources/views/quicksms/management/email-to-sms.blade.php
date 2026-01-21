@@ -4514,127 +4514,7 @@ $(document).ready(function() {
     })();
     
     // Standard Email-to-SMS tab handlers
-    var mockStandardSms = [
-        {
-            id: 'std-001',
-            name: 'General Notifications',
-            description: 'General purpose notification emails converted to SMS',
-            subaccount: 'main',
-            subaccountName: 'Main Account',
-            allowedSenders: ['admin@company.com', 'system@company.com', 'notifications@company.com'],
-            senderId: 'QuickSMS',
-            subjectAsSenderId: false,
-            multipleSms: true,
-            deliveryReports: true,
-            deliveryEmail: 'reports@company.com',
-            signatureFilter: '--\n.*\nSent from my iPhone',
-            created: '2024-10-20',
-            lastUpdated: '2025-01-09',
-            archived: false
-        },
-        {
-            id: 'std-002',
-            name: 'Urgent Alerts',
-            description: 'High priority alerts requiring immediate attention',
-            subaccount: 'marketing',
-            subaccountName: 'Marketing Team',
-            allowedSenders: ['alerts@marketing.com'],
-            senderId: 'ALERTS',
-            subjectAsSenderId: false,
-            multipleSms: false,
-            deliveryReports: false,
-            deliveryEmail: '',
-            signatureFilter: '',
-            created: '2024-11-05',
-            lastUpdated: '2025-01-08',
-            archived: false
-        },
-        {
-            id: 'std-003',
-            name: 'Patient Communications',
-            description: 'NHS Trust patient communication system',
-            subaccount: 'support',
-            subaccountName: 'Support Team',
-            allowedSenders: ['*@nhstrust.nhs.uk'],
-            senderId: 'NHS',
-            subjectAsSenderId: true,
-            multipleSms: true,
-            deliveryReports: true,
-            deliveryEmail: 'nhs-reports@support.com',
-            signatureFilter: 'Kind regards,\n.*',
-            created: '2024-11-18',
-            lastUpdated: '2025-01-07',
-            archived: false
-        },
-        {
-            id: 'std-004',
-            name: 'Appointment Reminders',
-            description: 'Clinic appointment reminder system',
-            subaccount: 'main',
-            subaccountName: 'Main Account',
-            allowedSenders: ['bookings@clinic.com', 'reception@clinic.com'],
-            senderId: 'Pharmacy',
-            subjectAsSenderId: false,
-            multipleSms: false,
-            deliveryReports: false,
-            deliveryEmail: '',
-            signatureFilter: '',
-            created: '2024-12-01',
-            lastUpdated: '2025-01-06',
-            archived: false
-        },
-        {
-            id: 'std-005',
-            name: 'Delivery Updates',
-            description: 'Shipping and delivery notification emails',
-            subaccount: 'marketing',
-            subaccountName: 'Marketing Team',
-            allowedSenders: [],
-            senderId: 'INFO',
-            subjectAsSenderId: false,
-            multipleSms: true,
-            deliveryReports: false,
-            deliveryEmail: '',
-            signatureFilter: '',
-            created: '2024-12-10',
-            lastUpdated: '2025-01-05',
-            archived: false
-        },
-        {
-            id: 'std-006',
-            name: 'Internal Testing',
-            description: 'Development and QA testing setup',
-            subaccount: 'support',
-            subaccountName: 'Support Team',
-            allowedSenders: ['dev@quicksms.io', 'qa@quicksms.io', 'test@quicksms.io', 'staging@quicksms.io'],
-            senderId: 'QuickSMS',
-            subjectAsSenderId: false,
-            multipleSms: true,
-            deliveryReports: true,
-            deliveryEmail: 'dev-team@quicksms.io',
-            signatureFilter: '',
-            created: '2024-12-15',
-            lastUpdated: '2025-01-04',
-            archived: false
-        },
-        {
-            id: 'std-007',
-            name: 'Legacy Alerts',
-            description: 'Old alerting system - archived',
-            subaccount: 'main',
-            subaccountName: 'Main Account',
-            allowedSenders: ['old-system@company.com'],
-            senderId: 'ALERTS',
-            subjectAsSenderId: false,
-            multipleSms: false,
-            deliveryReports: false,
-            deliveryEmail: '',
-            signatureFilter: '',
-            created: '2024-06-01',
-            lastUpdated: '2024-09-15',
-            archived: true
-        }
-    ];
+    var mockStandardSms = [];
     
     var stdShowArchived = false;
     var stdEditingId = null;
@@ -4947,7 +4827,27 @@ $(document).ready(function() {
         
         EmailToSmsService.listEmailToSmsSetups(options).then(function(response) {
             if (response.success) {
-                mockStandardSms = response.data;
+                mockStandardSms = response.data.map(function(item) {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        description: item.description || '',
+                        subaccount: item.subaccountId,
+                        subaccountName: item.subaccountName,
+                        allowedSenders: item.allowedEmails || [],
+                        originatingEmails: item.originatingEmails || [],
+                        senderId: item.senderId,
+                        subjectAsSenderId: item.subjectOverridesSenderId || false,
+                        multipleSms: item.multipleSmsEnabled || false,
+                        deliveryReports: item.deliveryReportsEnabled || false,
+                        deliveryEmail: item.deliveryReportsEmail || '',
+                        signatureFilter: item.contentFilterRegex || '',
+                        created: item.createdAt ? item.createdAt.split('T')[0] : '',
+                        lastUpdated: item.updatedAt ? item.updatedAt.split('T')[0] : '',
+                        status: item.status || 'active',
+                        archived: item.status === 'archived'
+                    };
+                });
                 
                 var pendingStandard = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
                 if (pendingStandard.length > 0) {
@@ -4959,6 +4859,7 @@ $(document).ready(function() {
                             subaccount: entry.subaccountId,
                             subaccountName: entry.subaccount,
                             allowedSenders: entry.allowedSenderEmails || [],
+                            originatingEmails: entry.originatingEmails || [],
                             senderId: entry.senderId,
                             subjectAsSenderId: entry.subjectAsSenderId,
                             multipleSms: entry.multipleSms,
