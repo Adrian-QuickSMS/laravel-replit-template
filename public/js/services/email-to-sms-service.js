@@ -966,6 +966,7 @@ var EmailToSmsService = (function() {
             description: apiData.description,
             subaccountId: apiData.subaccountId,
             subaccountName: apiData.subaccountName,
+            originatingEmails: apiData.originatingEmails || [],
             allowedSenderEmails: apiData.allowedSenderEmails || [],
             contactBookListIds: apiData.contactBookListIds || [],
             contactBookListNames: apiData.contactBookListNames || [],

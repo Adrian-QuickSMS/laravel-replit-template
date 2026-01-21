@@ -2604,6 +2604,7 @@ $(document).ready(function() {
                         description: item.description,
                         subaccountId: item.subaccountId,
                         subaccountName: item.subaccountName,
+                        originatingEmails: item.originatingEmails || [],
                         allowedSenders: item.allowedSenderEmails || [],
                         targetLists: item.targetLists || item.contactBookListNames || [],
                         optOutLists: item.optOutLists || item.optOutListNames || [],
