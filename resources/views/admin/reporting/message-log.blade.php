@@ -332,34 +332,41 @@
         <span class="separator">/</span>
         <a href="#">Reporting</a>
         <span class="separator">/</span>
-        <span>Message Log (Global)</span>
+        <span>Message Log</span>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h4 class="mb-1" style="color: var(--admin-primary, #1e3a5f); font-weight: 600;">Global Message Log</h4>
+            <p class="text-muted mb-0 small">All message traffic across the platform</p>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+            <i class="fas fa-download me-1"></i> Export
+        </button>
+    </div>
+
+    <div class="card shadow-sm mb-4" style="border: none; border-radius: 0.5rem;">
+        <div class="card-body py-3">
+            <div class="d-flex gap-3 align-items-center">
+                <div class="flex-grow-1" style="max-width: 400px;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search mobile, SenderID, account...">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                    <i class="fas fa-filter me-1"></i> Filters
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="container-fluid message-log-container p-0">
         <div class="row flex-grow-1" style="min-height: 0;">
             <div class="col-12 d-flex flex-column" style="min-height: 0;">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap message-log-fixed-header" style="background: var(--admin-primary, #1e3a5f); color: #fff;">
-                        <h5 class="card-title mb-2 mb-md-0" style="color: #fff;">Global Message Log</h5>
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                                <i class="fas fa-filter me-1"></i> Filters
-                            </button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
-                                <i class="fas fa-download me-1"></i> Export
-                            </button>
-                        </div>
-                    </div>
                     <div class="card-body">
                         <div class="message-log-fixed-header">
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="searchInput" placeholder="Search by mobile number, sender ID, or account...">
-                                    <button class="btn" type="button" id="searchBtn" style="background: var(--admin-primary, #1e3a5f); color: #fff;"><i class="fas fa-search"></i></button>
-                                </div>
-                            </div>
-
                             <div class="collapse mb-3" id="filtersPanel">
                             <div class="card card-body border-0 rounded-3 admin-filter-panel">
                                 <div class="row g-3 align-items-start">
