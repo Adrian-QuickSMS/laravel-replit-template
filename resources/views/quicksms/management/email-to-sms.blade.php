@@ -702,9 +702,10 @@ body > .dropdown-menu.dropdown-menu-end {
                                                 <thead>
                                                     <tr>
                                                         <th>Name</th>
+                                                        <th>Originating Emails</th>
                                                         <th>Target Lists</th>
-                                                        <th>Senders</th>
-                                                        <th>Updated</th>
+                                                        <th>Status</th>
+                                                        <th>Created</th>
                                                         <th class="text-center">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -896,11 +897,10 @@ body > .dropdown-menu.dropdown-menu-end {
                                         <thead>
                                             <tr>
                                                 <th style="width: 18%;">Name</th>
+                                                <th style="width: 26%;">Originating Emails</th>
                                                 <th style="width: 12%;">Subaccount</th>
-                                                <th style="width: 26%;">Allowed Sender Emails</th>
                                                 <th style="width: 10%;">Status</th>
                                                 <th style="width: 10%;">Created</th>
-                                                <th style="width: 10%;">Last Updated</th>
                                                 <th class="text-end" style="width: 14%;">Actions</th>
                                             </tr>
                                         </thead>
@@ -2861,6 +2861,18 @@ $(document).ready(function() {
         $('#emptyStateContactLists').hide();
         
         mappings.forEach(function(mapping) {
+            var originatingEmailsDisplay = '';
+            if (mapping.originatingEmails && mapping.originatingEmails.length > 0) {
+                originatingEmailsDisplay = mapping.originatingEmails.slice(0, 2).map(function(email) {
+                    return '<span class="d-block text-truncate" style="max-width: 250px;"><a href="mailto:' + escapeHtml(email) + '" class="text-primary">' + escapeHtml(email) + '</a></span>';
+                }).join('');
+                if (mapping.originatingEmails.length > 2) {
+                    originatingEmailsDisplay += '<span class="text-muted small">+' + (mapping.originatingEmails.length - 2) + ' more</span>';
+                }
+            } else {
+                originatingEmailsDisplay = '<span class="text-muted">-</span>';
+            }
+            
             var targetDisplay = '';
             if (mapping.targetLists.length === 0) {
                 targetDisplay = '<span class="text-muted">None</span>';
@@ -2870,22 +2882,21 @@ $(document).ready(function() {
                 targetDisplay = escapeHtml(mapping.targetLists[0]) + ' <span class="text-muted">+' + (mapping.targetLists.length - 1) + '</span>';
             }
             
-            var sendersDisplay = mapping.allowedSenders.length === 0 
-                ? '<span class="text-muted">Any</span>' 
-                : mapping.allowedSenders.length + ' allowed';
-            
             var statusBadge = '';
             if (mapping.status === 'Archived') {
-                statusBadge = '<span class="badge bg-secondary ms-1">Arch</span>';
+                statusBadge = '<span class="badge bg-secondary">Archived</span>';
             } else if (mapping.status === 'Draft') {
-                statusBadge = '<span class="badge bg-warning ms-1">Draft</span>';
+                statusBadge = '<span class="badge bg-warning text-dark">Draft</span>';
+            } else {
+                statusBadge = '<span class="badge badge-live-status">Active</span>';
             }
             
             var row = '<tr data-id="' + mapping.id + '">' +
-                '<td><span class="fw-medium">' + escapeHtml(mapping.name) + '</span>' + statusBadge + '<br><small class="text-muted">' + escapeHtml(mapping.subaccountName) + '</small></td>' +
+                '<td><span class="fw-medium">' + escapeHtml(mapping.name) + '</span></td>' +
+                '<td>' + originatingEmailsDisplay + '</td>' +
                 '<td>' + targetDisplay + '</td>' +
-                '<td>' + sendersDisplay + '</td>' +
-                '<td><small>' + mapping.lastUpdated + '</small></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + (mapping.created || '-') + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
@@ -4582,8 +4593,17 @@ $(document).ready(function() {
         $('#emptyStateStandardSms').hide();
         
         filteredItems.forEach(function(item) {
-            var allowedSendersHtml = formatAllowedSenders(item.allowedSenders);
-            var archivedBadge = item.archived ? ' <span class="badge bg-secondary">Archived</span>' : '';
+            var originatingEmailsHtml = '';
+            if (item.originatingEmails && item.originatingEmails.length > 0) {
+                originatingEmailsHtml = item.originatingEmails.slice(0, 2).map(function(email) {
+                    return '<span class="d-block text-truncate" style="max-width: 250px;"><a href="mailto:' + escapeHtml(email) + '" class="text-primary">' + escapeHtml(email) + '</a></span>';
+                }).join('');
+                if (item.originatingEmails.length > 2) {
+                    originatingEmailsHtml += '<span class="text-muted small">+' + (item.originatingEmails.length - 2) + ' more</span>';
+                }
+            } else {
+                originatingEmailsHtml = '<span class="text-muted">-</span>';
+            }
             
             var statusBadge = '';
             if (item.archived) {
@@ -4593,7 +4613,7 @@ $(document).ready(function() {
             } else if (item.status === 'suspended') {
                 statusBadge = '<span class="badge badge-suspended">Suspended</span>';
             } else {
-                statusBadge = '<span class="badge badge-live-status">Live</span>';
+                statusBadge = '<span class="badge badge-live-status">Active</span>';
             }
             
             var suspendReactivateAction = '';
@@ -4607,11 +4627,10 @@ $(document).ready(function() {
             
             var row = '<tr data-id="' + item.id + '"' + (item.archived ? ' class="table-secondary"' : '') + '>' +
                 '<td><span class="email-sms-name">' + escapeHtml(item.name) + '</span></td>' +
+                '<td>' + originatingEmailsHtml + '</td>' +
                 '<td>' + escapeHtml(item.subaccountName) + '</td>' +
-                '<td>' + allowedSendersHtml + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + item.created + '</td>' +
-                '<td>' + item.lastUpdated + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
