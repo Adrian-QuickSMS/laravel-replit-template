@@ -676,7 +676,7 @@ function bindRowActions() {
                 var editUrl = config.sourceType === 'standard' 
                     ? '/admin/assets/email-to-sms/standard/' + config.sourceId + '/edit'
                     : '/admin/assets/email-to-sms/contact-list/' + config.sourceId + '/edit';
-                showInfoToast('Edit functionality - would navigate to: ' + editUrl);
+                window.location.href = editUrl;
             }
         });
     });
@@ -733,6 +733,11 @@ function openDetailsDrawer(id) {
     
     document.getElementById('drawerCreated').textContent = config.created || '-';
     document.getElementById('drawerLastUpdated').textContent = config.lastUsed || '-';
+    
+    var editUrl = config.sourceType === 'standard' 
+        ? '/admin/assets/email-to-sms/standard/' + config.sourceId + '/edit'
+        : '/admin/assets/email-to-sms/contact-list/' + config.sourceId + '/edit';
+    document.getElementById('drawerEditBtn').href = editUrl;
     
     var drawer = new bootstrap.Offcanvas(document.getElementById('detailsDrawer'));
     drawer.show();

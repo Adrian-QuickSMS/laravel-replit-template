@@ -128,6 +128,8 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');
             Route::get('/assets/numbers/{id}/configure', 'assetsNumberConfigure')->name('admin.assets.number.configure');
             Route::get('/assets/email-to-sms', 'assetsEmailToSms')->name('admin.assets.email-to-sms');
+            Route::get('/assets/email-to-sms/standard/{id}/edit', 'assetsEmailToSmsStandardEdit')->name('admin.assets.email-to-sms.standard.edit');
+            Route::get('/assets/email-to-sms/contact-list/{id}/edit', 'assetsEmailToSmsContactListEdit')->name('admin.assets.email-to-sms.contact-list.edit');
             
             Route::get('/api/connections', 'apiConnections')->name('admin.api.connections');
             Route::get('/api/connections/create', 'apiConnectionCreate')->name('admin.api.connections.create');

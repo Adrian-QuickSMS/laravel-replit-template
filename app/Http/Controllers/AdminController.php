@@ -157,6 +157,24 @@ class AdminController extends Controller
         ]);
     }
 
+    public function assetsEmailToSmsStandardEdit($id)
+    {
+        return view('admin.assets.email-to-sms-standard-edit', [
+            'page_title' => 'Edit Standard Email-to-SMS',
+            'id' => $id,
+            'isAdmin' => true
+        ]);
+    }
+
+    public function assetsEmailToSmsContactListEdit($id)
+    {
+        return view('admin.assets.email-to-sms-contact-list-edit', [
+            'page_title' => 'Edit Contact List Email-to-SMS',
+            'id' => $id,
+            'isAdmin' => true
+        ]);
+    }
+
     public function apiConnections()
     {
         return view('admin.api.connections', [
