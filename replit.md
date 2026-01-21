@@ -19,6 +19,7 @@ QuickSMS is built using PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin
 - **Message Templates:** Comprehensive management with a multi-step creation wizard, versioning, and audit trails.
 - **Unified RCS Wizard:** Shared component for creating rich RCS messages.
 - **RCS Preview System:** Schema-driven renderer with an Android-style phone UI for channel-specific previews.
+- **RCS/SMS Preview Toggle:** Shared toggle component for RCS campaigns allowing users to switch between RCS preview and SMS fallback preview (used in Send Message, Campaign Approvals, Campaign History).
 - **Shared Image Editor Component:** Reusable JavaScript component for image manipulation with fixed aspect ratio enforcement.
 - **Branding Asset Audit Trail:** Audit-compliant metadata storage for logo and hero image uploads.
 
@@ -73,6 +74,12 @@ A separate internal interface for QuickSMS employees with a hard security bounda
   - **Account Details Page:** Reuses customer portal content with admin blue styling (#1e3a5f). Includes "View Account Structure" button to open hierarchy modal, breadcrumb navigation, and "Back to Accounts" link.
   - **Account Structure Modal:** Two-panel layout with hierarchy tree (left) and contextual details panel (right). Available via button on Account Details page.
   - **Row Actions:** Add Credit, Change Account Name, Edit Details, Edit Pricing, Suspend/Reactivate - all with confirmation modals and audit logging.
+- **Admin Email-to-SMS Module:**
+  - **Overview Page:** Global view of all Email-to-SMS configurations across customer accounts.
+  - **Reuses Customer Logic:** Uses shared EmailToSmsService for data, same table structure and row actions.
+  - **Admin-Specific Additions:** Account column as first column, Account filter in filters panel, Admin Blue theme (#1e3a5f).
+  - **Row Actions:** View, Edit, Suspend/Reactivate - identical to customer portal with admin styling.
+  - **View Drawer:** Shows configuration details including account name, allowed senders, originating emails.
 - **Impersonation:** Enhanced security controls:
   - Requires reason (min 10 characters)
   - 5-minute session limit with countdown timer
