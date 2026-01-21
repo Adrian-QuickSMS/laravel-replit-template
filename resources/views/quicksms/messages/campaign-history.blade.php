@@ -441,7 +441,7 @@ $permissions = [
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body p-0">
-        <div class="bg-gradient-primary text-white p-4" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
+        <div class="tryal-gradient text-white p-4 rounded-3">
             <h4 id="drawerCampaignName" class="mb-3 fw-semibold">-</h4>
             <div class="d-flex flex-wrap gap-2 mb-3">
                 <span id="drawerStatusBadge" class="badge bg-white text-dark">-</span>
