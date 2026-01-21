@@ -381,57 +381,44 @@
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Account</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="accounts">
+                                        <div class="dropdown searchable-dropdown" data-filter="accounts">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Accounts</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2">
+                                            <div class="dropdown-menu w-100 p-2" style="min-width: 220px;">
+                                                <input type="text" class="form-control form-control-sm mb-2 sender-search-input" placeholder="Type to search...">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-001" id="accAcme"><label class="form-check-label small" for="accAcme">Acme Corporation</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-002" id="accFinance"><label class="form-check-label small" for="accFinance">Finance Ltd</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-003" id="accTech"><label class="form-check-label small" for="accTech">Tech Solutions</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-004" id="accRetail"><label class="form-check-label small" for="accRetail">Retail Group</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-005" id="accHealthcare"><label class="form-check-label small" for="accHealthcare">Healthcare UK</label></div>
+                                                <div class="sender-options" style="max-height: 180px; overflow-y: auto;">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-001" id="accAcme"><label class="form-check-label small" for="accAcme">Acme Corporation</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-002" id="accFinance"><label class="form-check-label small" for="accFinance">Finance Ltd</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-003" id="accTech"><label class="form-check-label small" for="accTech">Tech Solutions</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-004" id="accRetail"><label class="form-check-label small" for="accRetail">Retail Group</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-005" id="accHealthcare"><label class="form-check-label small" for="accHealthcare">Healthcare UK</label></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Sub Account</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="subAccounts">
+                                        <div class="dropdown searchable-dropdown" data-filter="subAccounts">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Sub Accounts</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2">
+                                            <div class="dropdown-menu w-100 p-2" style="min-width: 220px;">
+                                                <input type="text" class="form-control form-control-sm mb-2 sender-search-input" placeholder="Type to search...">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Account</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales Team" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales Team</label></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">User</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="users">
-                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                                <span class="dropdown-label">All Users</span>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-2">
-                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
-                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
-                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                <div class="sender-options" style="max-height: 180px; overflow-y: auto;">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Account</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales Team" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales Team</label></div>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="John Smith" id="user1"><label class="form-check-label small" for="user1">John Smith</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sarah Johnson" id="user2"><label class="form-check-label small" for="user2">Sarah Johnson</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Mike Williams" id="user3"><label class="form-check-label small" for="user3">Mike Williams</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Emma Davis" id="user4"><label class="form-check-label small" for="user4">Emma Davis</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="James Wilson" id="user5"><label class="form-check-label small" for="user5">James Wilson</label></div>
                                             </div>
                                         </div>
                                     </div>
@@ -504,21 +491,24 @@
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Country</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="countries">
+                                        <div class="dropdown searchable-dropdown" data-filter="countries">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
                                                 <span class="dropdown-label">All Countries</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="dropdown-menu w-100 p-2" style="min-width: 220px;">
+                                                <input type="text" class="form-control form-control-sm mb-2 sender-search-input" placeholder="Type to search...">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="UK" id="countryUK"><label class="form-check-label small" for="countryUK">United Kingdom</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="US" id="countryUS"><label class="form-check-label small" for="countryUS">United States</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="DE" id="countryDE"><label class="form-check-label small" for="countryDE">Germany</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="FR" id="countryFR"><label class="form-check-label small" for="countryFR">France</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="ES" id="countryES"><label class="form-check-label small" for="countryES">Spain</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="IE" id="countryIE"><label class="form-check-label small" for="countryIE">Ireland</label></div>
+                                                <div class="sender-options" style="max-height: 180px; overflow-y: auto;">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="UK" id="countryUK"><label class="form-check-label small" for="countryUK">United Kingdom</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="US" id="countryUS"><label class="form-check-label small" for="countryUS">United States</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="DE" id="countryDE"><label class="form-check-label small" for="countryDE">Germany</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="FR" id="countryFR"><label class="form-check-label small" for="countryFR">France</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ES" id="countryES"><label class="form-check-label small" for="countryES">Spain</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="IE" id="countryIE"><label class="form-check-label small" for="countryIE">Ireland</label></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1523,7 +1513,6 @@ document.addEventListener('DOMContentLoaded', function() {
         dateTo: '',
         accounts: [],
         subAccounts: [],
-        users: [],
         origins: [],
         mobileNumbers: [],
         senderIds: [],
@@ -1815,7 +1804,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const labelMappings = {
         accounts: { 'ACC-001': 'Acme Corporation', 'ACC-002': 'Finance Ltd', 'ACC-003': 'Tech Solutions', 'ACC-004': 'Retail Group', 'ACC-005': 'Healthcare UK' },
         subAccounts: { main: 'Main Account', marketing: 'Marketing Team', support: 'Support Team', sales: 'Sales Team' },
-        users: { john: 'John Smith', sarah: 'Sarah Johnson', mike: 'Mike Williams', emma: 'Emma Davis' },
         origins: { portal: 'Portal', api: 'API', 'email-to-sms': 'Email-to-SMS', integration: 'Integration' },
         statuses: { delivered: 'Delivered', pending: 'Pending', undeliverable: 'Undeliverable', rejected: 'Rejected' },
         countries: { uk: 'United Kingdom', us: 'United States', de: 'Germany', fr: 'France', es: 'Spain', ie: 'Ireland' },
@@ -2035,7 +2023,7 @@ document.addEventListener('DOMContentLoaded', function() {
             hasFilters = true;
         }
         
-        ['accounts', 'subAccounts', 'users', 'origins', 'statuses', 'countries', 'messageTypes', 'ukNetworkPrefixes', 'portedTo'].forEach(key => {
+        ['accounts', 'subAccounts', 'origins', 'statuses', 'countries', 'messageTypes', 'ukNetworkPrefixes', 'portedTo'].forEach(key => {
             if (filterState[key] && filterState[key].length > 0) {
                 const labels = filterState[key].map(v => labelMappings[key]?.[v] || v);
                 const displayLabel = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
