@@ -385,13 +385,32 @@
                                     <div class="row g-3 align-items-end mb-3">
                                         <div class="col-12 col-md-6 col-lg-4">
                                             <label class="form-label small fw-bold">Account</label>
-                                            <div class="position-relative" id="accountFilterWrapper">
-                                                <input type="text" class="form-control form-control-sm" id="accountFilter" placeholder="All Accounts" autocomplete="off">
-                                                <input type="hidden" id="selectedAccountId" value="">
-                                                <div class="position-absolute w-100 bg-white border rounded-bottom shadow-sm" id="accountSuggestions" style="display: none; max-height: 200px; overflow-y: auto; z-index: 1050; top: 100%;">
+                                            <div class="dropdown multiselect-dropdown" data-filter="accounts" id="accountDropdown">
+                                                <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                                                    <span class="dropdown-label">All Accounts</span>
+                                                </button>
+                                                <div class="dropdown-menu w-100 p-2" style="max-height: 320px; overflow-y: auto;">
+                                                    <div class="mb-2">
+                                                        <input type="text" class="form-control form-control-sm account-search-input" placeholder="Search accounts..." id="accountSearchInput">
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                                        <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                                        <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                    </div>
+                                                    <div id="accountCheckboxList">
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-001" id="accACC001"><label class="form-check-label small" for="accACC001">Acme Corporation</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-002" id="accACC002"><label class="form-check-label small" for="accACC002">Finance Ltd</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-003" id="accACC003"><label class="form-check-label small" for="accACC003">Tech Solutions</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-004" id="accACC004"><label class="form-check-label small" for="accACC004">Global Retail</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-005" id="accACC005"><label class="form-check-label small" for="accACC005">Healthcare Plus</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-006" id="accACC006"><label class="form-check-label small" for="accACC006">Media Group</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-007" id="accACC007"><label class="form-check-label small" for="accACC007">Logistics Pro</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-008" id="accACC008"><label class="form-check-label small" for="accACC008">Education First</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-009" id="accACC009"><label class="form-check-label small" for="accACC009">Property Services</label></div>
+                                                        <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-010" id="accACC010"><label class="form-check-label small" for="accACC010">Legal Partners</label></div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <small class="text-muted">Type to search or leave empty for all accounts</small>
                                         </div>
                                     </div>
                                     <hr class="my-2">
@@ -1009,67 +1028,55 @@ var allAccounts = [
     { id: 'ACC-008', name: 'Education First' }
 ];
 
-// Admin-only: Initialize Account filter with typeahead
+// Admin-only: Initialize Account filter with multi-select dropdown and search
 function initAccountFilter() {
-    var accountInput = document.getElementById('accountFilter');
-    var suggestionsDiv = document.getElementById('accountSuggestions');
-    var selectedAccountId = document.getElementById('selectedAccountId');
+    var accountDropdown = document.getElementById('accountDropdown');
+    var searchInput = document.getElementById('accountSearchInput');
+    var checkboxList = document.getElementById('accountCheckboxList');
     
-    if (!accountInput || !suggestionsDiv) return;
+    if (!accountDropdown || !searchInput) return;
     
-    accountInput.addEventListener('input', function() {
+    // Search functionality
+    searchInput.addEventListener('input', function() {
         var query = this.value.toLowerCase().trim();
-        selectedAccountId.value = '';
+        var checkboxes = checkboxList.querySelectorAll('.form-check');
         
-        if (query.length === 0) {
-            suggestionsDiv.style.display = 'none';
-            return;
-        }
-        
-        var matches = allAccounts.filter(function(acc) {
-            return acc.name.toLowerCase().includes(query) || acc.id.toLowerCase().includes(query);
+        checkboxes.forEach(function(item) {
+            var label = item.querySelector('label').textContent.toLowerCase();
+            if (query === '' || label.includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
         });
-        
-        if (matches.length === 0) {
-            suggestionsDiv.innerHTML = '<div class="p-2 text-muted small">No accounts found</div>';
-        } else {
-            suggestionsDiv.innerHTML = matches.map(function(acc) {
-                return '<div class="account-suggestion p-2 small" data-id="' + acc.id + '" data-name="' + acc.name + '" style="cursor: pointer;">' +
-                    '<strong>' + acc.name + '</strong> <span class="text-muted">(' + acc.id + ')</span></div>';
-            }).join('');
-        }
-        suggestionsDiv.style.display = 'block';
     });
     
-    suggestionsDiv.addEventListener('click', function(e) {
-        var suggestion = e.target.closest('.account-suggestion');
-        if (suggestion) {
-            accountInput.value = suggestion.dataset.name;
-            selectedAccountId.value = suggestion.dataset.id;
-            suggestionsDiv.style.display = 'none';
-        }
+    // Update label on checkbox change
+    checkboxList.addEventListener('change', function() {
+        updateAccountDropdownLabel();
     });
     
-    accountInput.addEventListener('focus', function() {
-        if (this.value.trim().length > 0) {
-            suggestionsDiv.style.display = 'block';
-        }
+    // Prevent dropdown from closing when clicking inside
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
     });
+}
+
+function updateAccountDropdownLabel() {
+    var accountDropdown = document.getElementById('accountDropdown');
+    if (!accountDropdown) return;
     
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('#accountFilterWrapper')) {
-            suggestionsDiv.style.display = 'none';
-        }
-    });
+    var checked = accountDropdown.querySelectorAll('.form-check-input:checked');
+    var labelSpan = accountDropdown.querySelector('.dropdown-label');
     
-    // Clear button functionality
-    accountInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            this.value = '';
-            selectedAccountId.value = '';
-            suggestionsDiv.style.display = 'none';
-        }
-    });
+    if (checked.length === 0) {
+        labelSpan.textContent = 'All Accounts';
+    } else if (checked.length === 1) {
+        var label = checked[0].closest('.form-check').querySelector('label').textContent;
+        labelSpan.textContent = label;
+    } else {
+        labelSpan.textContent = checked.length + ' Accounts';
+    }
 }
 
 // Admin-only: Handle account name clicks to navigate to Account Details
@@ -1575,11 +1582,17 @@ function initFilterActions() {
 function applyFilters() {
     var activeFilters = [];
     
-    // Admin-only: Account filter
-    var selectedAccountId = document.getElementById('selectedAccountId');
-    var accountFilter = document.getElementById('accountFilter');
-    if (selectedAccountId && selectedAccountId.value) {
-        activeFilters.push({ type: 'Account', value: accountFilter.value, id: selectedAccountId.value });
+    // Admin-only: Account filter (multi-select)
+    var accountDropdown = document.getElementById('accountDropdown');
+    if (accountDropdown) {
+        var checkedAccounts = Array.from(accountDropdown.querySelectorAll('.form-check-input:checked'));
+        var totalAccounts = accountDropdown.querySelectorAll('.form-check-input').length;
+        if (checkedAccounts.length > 0 && checkedAccounts.length < totalAccounts) {
+            checkedAccounts.forEach(function(cb) {
+                var label = cb.closest('.form-check').querySelector('label').textContent;
+                activeFilters.push({ type: 'Account', value: label, id: cb.value });
+            });
+        }
     }
     
     document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
@@ -1769,11 +1782,16 @@ function resetFilters() {
         btn.classList.remove('active');
     });
     
-    // Admin-only: Clear Account filter
-    var accountFilter = document.getElementById('accountFilter');
-    var selectedAccountId = document.getElementById('selectedAccountId');
-    if (accountFilter) accountFilter.value = '';
-    if (selectedAccountId) selectedAccountId.value = '';
+    // Admin-only: Clear Account filter (multi-select)
+    var accountDropdown = document.getElementById('accountDropdown');
+    if (accountDropdown) {
+        accountDropdown.querySelectorAll('.form-check-input').forEach(function(cb) {
+            cb.checked = false;
+        });
+        updateAccountDropdownLabel();
+    }
+    var accountSearchInput = document.getElementById('accountSearchInput');
+    if (accountSearchInput) accountSearchInput.value = '';
     
     document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
         dropdown.querySelectorAll('.form-check-input').forEach(function(cb) {
