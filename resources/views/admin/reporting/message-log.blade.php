@@ -57,7 +57,7 @@
 #tableContainer {
     flex: 1;
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden;
     min-height: 0;
 }
 .message-log-footer {
@@ -69,6 +69,51 @@
 }
 #messageLogTable tbody tr:hover {
     background-color: rgba(30, 58, 95, 0.05);
+}
+
+#messageLogTable {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    table-layout: fixed;
+    width: 100%;
+}
+#messageLogTable th,
+#messageLogTable td {
+    padding: 0.35rem 0.4rem;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#messageLogTable thead th {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#messageLogTable th[data-column="account"] { width: 9%; }
+#messageLogTable th[data-column="mobileNumber"] { width: 11%; }
+#messageLogTable th[data-column="ukNetworkPrefix"] { width: 7%; }
+#messageLogTable th[data-column="senderId"] { width: 10%; }
+#messageLogTable th[data-column="status"] { width: 7%; }
+#messageLogTable th[data-column="sentTime"] { width: 11%; }
+#messageLogTable th[data-column="sentToSupplier"] { width: 11%; }
+#messageLogTable th[data-column="deliveryTime"] { width: 11%; }
+#messageLogTable th[data-column="completeTime"] { width: 11%; }
+#messageLogTable th[data-column="margin"] { width: 6%; }
+#messageLogTable th[data-column="actions"] { width: 3%; min-width: 30px; }
+#messageLogTable .dropdown-toggle {
+    font-size: 0.7rem;
+}
+#messageLogTable .dropdown-toggle i.fa-sort {
+    font-size: 0.6rem;
+}
+#messageLogTable .badge {
+    font-size: 0.65rem;
+    padding: 0.2em 0.45em;
 }
 .filter-chip {
     display: inline-flex;
