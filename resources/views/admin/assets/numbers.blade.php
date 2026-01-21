@@ -7,11 +7,18 @@
 .admin-page { padding: 1.5rem; }
 
 #numbersTableBody .dropdown-menu {
-    z-index: 1050 !important;
-    position: absolute !important;
+    z-index: 9999 !important;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+#numbersTableBody .dropdown-menu.show {
+    display: block !important;
+    position: fixed !important;
 }
 #numbersTableBody .dropdown {
-    position: relative;
+    position: static;
 }
 .action-dots-btn {
     background: transparent;
@@ -19,9 +26,14 @@
     padding: 0.25rem 0.5rem;
     cursor: pointer;
     color: #6c757d;
+    position: relative;
 }
 .action-dots-btn:hover {
     color: var(--admin-primary, #1e3a5f);
+}
+.action-dots-btn:focus {
+    outline: none;
+    box-shadow: none;
 }
 
 .search-filter-toolbar {
@@ -1670,7 +1682,9 @@ function renderTable(data) {
             <td><span class="date-value">${formatDate(num.created)}</span></td>
             <td class="text-center">
                 <div class="dropdown">
-                    <button class="action-dots-btn" type="button" data-bs-toggle="dropdown">
+                    <button class="action-dots-btn" type="button" 
+                            id="dropdown-${num.id}" 
+                            aria-expanded="false">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     ${buildContextMenu(num)}
@@ -1684,58 +1698,86 @@ function renderTable(data) {
 }
 
 function initializeDropdowns() {
-    const dropdownButtons = document.querySelectorAll('#numbersTableBody .action-dots-btn[data-bs-toggle="dropdown"]');
-    console.log('[Admin Numbers] Found', dropdownButtons.length, 'dropdown buttons to initialize');
-    console.log('[Admin Numbers] Bootstrap available:', typeof bootstrap !== 'undefined', 'Dropdown:', typeof bootstrap !== 'undefined' && typeof bootstrap.Dropdown !== 'undefined');
-    
-    if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
-        dropdownButtons.forEach(btn => {
-            try {
-                if (!bootstrap.Dropdown.getInstance(btn)) {
-                    new bootstrap.Dropdown(btn);
-                }
-            } catch (e) {
-                console.error('[Admin Numbers] Error initializing dropdown:', e);
-            }
-        });
-        console.log('[Admin Numbers] Bootstrap dropdown initialization complete');
-    } else {
-        console.log('[Admin Numbers] Bootstrap Dropdown not available, using manual fallback');
-        setupManualDropdowns();
-    }
+    setupActionDropdownHandler();
 }
 
-let manualDropdownsInitialized = false;
-function setupManualDropdowns() {
-    if (manualDropdownsInitialized) return;
-    manualDropdownsInitialized = true;
+let actionDropdownHandlerInitialized = false;
+function setupActionDropdownHandler() {
+    if (actionDropdownHandlerInitialized) return;
+    actionDropdownHandlerInitialized = true;
     
-    console.log('[Admin Numbers] Setting up manual dropdown handlers');
+    console.log('[Admin Numbers] Setting up action dropdown handler');
+    
+    function closeAllDropdowns(except) {
+        document.querySelectorAll('#numbersTableBody .dropdown-menu.show').forEach(m => {
+            if (m !== except) {
+                m.classList.remove('show');
+                const prevBtn = m.previousElementSibling;
+                if (prevBtn) prevBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+    
+    function positionMenu(menu, btn) {
+        const btnRect = btn.getBoundingClientRect();
+        const menuHeight = 200;
+        const viewportHeight = window.innerHeight;
+        
+        let topPos = btnRect.bottom + 2;
+        if (topPos + menuHeight > viewportHeight - 10) {
+            topPos = Math.max(10, btnRect.top - menuHeight - 2);
+        }
+        
+        menu.style.top = topPos + 'px';
+        menu.style.right = (window.innerWidth - btnRect.right) + 'px';
+        menu.style.left = 'auto';
+    }
     
     document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.action-dots-btn');
-        if (btn) {
-            e.preventDefault();
-            e.stopPropagation();
-            const dropdown = btn.closest('.dropdown');
-            const menu = dropdown ? dropdown.querySelector('.dropdown-menu') : null;
-            
-            document.querySelectorAll('#numbersTableBody .dropdown-menu.show').forEach(m => {
-                if (m !== menu) m.classList.remove('show');
-            });
-            
+        const btn = e.target.closest('#numbersTableBody .action-dots-btn');
+        const dropdownItem = e.target.closest('#numbersTableBody .dropdown-menu .dropdown-item');
+        
+        if (dropdownItem) {
+            const menu = dropdownItem.closest('.dropdown-menu');
             if (menu) {
-                const isShown = menu.classList.contains('show');
-                menu.classList.toggle('show');
-                console.log('[Admin Numbers] Manual dropdown toggled:', !isShown ? 'opened' : 'closed');
+                setTimeout(() => {
+                    menu.classList.remove('show');
+                    const prevBtn = menu.previousElementSibling;
+                    if (prevBtn) prevBtn.setAttribute('aria-expanded', 'false');
+                }, 50);
             }
             return;
         }
         
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const menu = btn.nextElementSibling;
+            if (!menu || !menu.classList.contains('dropdown-menu')) {
+                console.error('[Admin Numbers] No dropdown menu found for button');
+                return;
+            }
+            
+            closeAllDropdowns(menu);
+            
+            const isCurrentlyShown = menu.classList.contains('show');
+            
+            if (isCurrentlyShown) {
+                menu.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+            } else {
+                positionMenu(menu, btn);
+                menu.classList.add('show');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+            
+            console.log('[Admin Numbers] Dropdown toggled:', !isCurrentlyShown ? 'opened' : 'closed');
+            return;
+        }
+        
         if (!e.target.closest('.dropdown-menu')) {
-            document.querySelectorAll('#numbersTableBody .dropdown-menu.show').forEach(m => {
-                m.classList.remove('show');
-            });
+            closeAllDropdowns(null);
         }
     });
 }
@@ -1780,7 +1822,7 @@ function buildContextMenu(num) {
         }
     }
     
-    return `<ul class="dropdown-menu dropdown-menu-end">${menuItems.join('')}</ul>`;
+    return `<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-${num.id}">${menuItems.join('')}</ul>`;
 }
 
 function getCountryFlag(country) {
