@@ -442,11 +442,11 @@ $permissions = [
     </div>
     <div class="offcanvas-body p-0">
         <div class="tryal-gradient text-white p-4 rounded-3">
-            <h4 id="drawerCampaignName" class="mb-3 fw-semibold">-</h4>
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                <span id="drawerStatusBadge" class="badge badge-pastel-secondary">-</span>
-                <span id="drawerChannelBadge" class="badge badge-pastel-info">-</span>
-                <span id="drawerLiveStateBadge" class="badge badge-pastel-secondary">-</span>
+            <h4 id="drawerCampaignName" class="mb-3 fw-semibold" style="color: white !important;">-</h4>
+            <div class="d-flex flex-wrap gap-2 mb-3" style="position: relative; z-index: 10;">
+                <span id="drawerStatusBadge" class="badge" style="background: rgba(255,255,255,0.95); color: #333;">-</span>
+                <span id="drawerChannelBadge" class="badge" style="background: rgba(255,255,255,0.95); color: #333;">-</span>
+                <span id="drawerLiveStateBadge" class="badge" style="background: rgba(255,255,255,0.95); color: #333;">-</span>
             </div>
             <div class="d-flex align-items-center small opacity-75">
                 <i class="fas fa-clock me-2"></i>
@@ -488,32 +488,32 @@ $permissions = [
         <div class="p-4">
             <div class="row g-3 mb-4">
                 <div class="col-6">
-                    <div class="border rounded p-3 text-center h-100">
+                    <div class="border rounded p-3 text-center h-100" style="background: #f0ebf8;">
                         <div class="text-muted small mb-1">Total Recipients</div>
                         <div class="fs-4 fw-bold text-primary" id="drawerRecipientsTotal">-</div>
                     </div>
                 </div>
                 <div class="col-6">
-                    <div class="border rounded p-3 text-center h-100">
+                    <div class="border rounded p-3 text-center h-100" style="background: #f0ebf8;">
                         <div class="text-muted small mb-1">Delivered</div>
                         <div class="fs-4 fw-bold text-success" id="drawerRecipientsDelivered">-</div>
                     </div>
                 </div>
                 <div class="col-6">
-                    <div class="border rounded p-3 text-center h-100">
+                    <div class="border rounded p-3 text-center h-100" style="background: #f0ebf8;">
                         <div class="text-muted small mb-1">Failed</div>
                         <div class="fs-4 fw-bold text-danger" id="drawerRecipientsFailed">-</div>
                     </div>
                 </div>
                 <div class="col-6">
-                    <div class="border rounded p-3 text-center h-100">
+                    <div class="border rounded p-3 text-center h-100" style="background: #f0ebf8;">
                         <div class="text-muted small mb-1">Delivery Rate</div>
                         <div class="fs-4 fw-bold" id="drawerDeliveryRate">-</div>
                     </div>
                 </div>
             </div>
 
-            <div class="card mb-3">
+            <div class="card mb-3" style="background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Campaign Details</h6>
                     <div class="row mb-2">
@@ -539,7 +539,7 @@ $permissions = [
                 </div>
             </div>
 
-            <div class="card mb-3" id="channelSplitCard">
+            <div class="card mb-3" id="channelSplitCard" style="background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-random me-2"></i>Channel Split</h6>
                     <div class="row g-2">
@@ -573,7 +573,7 @@ $permissions = [
                 </div>
             </div>
 
-            <div class="card mb-3" id="deliveryOutcomesCard">
+            <div class="card mb-3" id="deliveryOutcomesCard" style="background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-chart-pie me-2"></i>Delivery Outcomes</h6>
                     
@@ -618,7 +618,7 @@ $permissions = [
                 </div>
             </div>
 
-            <div class="card mb-3" id="engagementMetricsCard" style="display: none;">
+            <div class="card mb-3" id="engagementMetricsCard" style="display: none; background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-mouse-pointer me-2"></i>Engagement Metrics</h6>
                     
@@ -665,7 +665,7 @@ $permissions = [
                 </div>
             </div>
 
-            <div class="card mb-3" id="costSummaryCard" style="display: none;">
+            <div class="card mb-3" id="costSummaryCard" style="display: none; background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="text-muted mb-0"><i class="fas fa-pound-sign me-2"></i><span id="costLabel">Cost Summary</span></h6>
@@ -752,7 +752,7 @@ $permissions = [
                 </div>
             </div>
 
-            <div class="card mb-3" id="optoutSummaryCard" style="display: none;">
+            <div class="card mb-3" id="optoutSummaryCard" style="display: none; background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-user-slash me-2"></i>Compliance & Opt-outs</h6>
                     
@@ -794,7 +794,7 @@ $permissions = [
                 </div>
             </div>
 
-            <div class="card mb-3" id="messagePreviewCard">
+            <div class="card mb-3" id="messagePreviewCard" style="background: #f0ebf8; border: none;">
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-eye me-2"></i>Message Preview</h6>
                     
@@ -805,7 +805,7 @@ $permissions = [
                     <div class="text-center mt-2 d-none" id="campaignPreviewToggle">
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-sm py-0 px-3 active" id="campaignPreviewRCSBtn" onclick="toggleCampaignPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
-                            <button type="button" class="btn btn-sm py-0 px-3" id="campaignPreviewSMSBtn" onclick="toggleCampaignPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS Fallback</button>
+                            <button type="button" class="btn btn-sm py-0 px-3" id="campaignPreviewSMSBtn" onclick="toggleCampaignPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
                         </div>
                     </div>
                     
