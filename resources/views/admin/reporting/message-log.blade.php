@@ -347,15 +347,15 @@
 
     <div class="card shadow-sm mb-4" style="border: none; border-radius: 0.5rem;">
         <div class="card-body py-3">
-            <div class="d-flex gap-3 align-items-center">
-                <div class="flex-grow-1" style="max-width: 400px;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div style="max-width: 400px;">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
                         <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search mobile, SenderID, account...">
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                    <i class="fas fa-filter me-1"></i> Filters
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border-color: #dee2e6; color: #495057;">
+                    <i class="fas fa-filter me-1" style="color: var(--admin-primary, #1e3a5f);"></i> Filters
                 </button>
             </div>
         </div>
