@@ -444,9 +444,9 @@ $permissions = [
         <div class="tryal-gradient text-white p-4 rounded-3">
             <h4 id="drawerCampaignName" class="mb-3 fw-semibold">-</h4>
             <div class="d-flex flex-wrap gap-2 mb-3">
-                <span id="drawerStatusBadge" class="badge bg-white text-dark">-</span>
-                <span id="drawerChannelBadge" class="badge bg-white bg-opacity-25">-</span>
-                <span id="drawerLiveStateBadge" class="badge bg-white bg-opacity-25">-</span>
+                <span id="drawerStatusBadge" class="badge badge-pastel-secondary">-</span>
+                <span id="drawerChannelBadge" class="badge badge-pastel-info">-</span>
+                <span id="drawerLiveStateBadge" class="badge badge-pastel-secondary">-</span>
             </div>
             <div class="d-flex align-items-center small opacity-75">
                 <i class="fas fa-clock me-2"></i>
@@ -1200,7 +1200,7 @@ function openCampaignDrawer(campaignId) {
     }
 
     var channelBadge = document.getElementById('drawerChannelBadge');
-    channelBadge.className = 'badge bg-white bg-opacity-25';
+    channelBadge.className = 'badge badge-pastel-info';
     if (channel === 'sms_only') {
         channelBadge.textContent = 'SMS';
     } else if (channel === 'basic_rcs') {
@@ -1210,40 +1210,45 @@ function openCampaignDrawer(campaignId) {
     }
 
     var statusBadge = document.getElementById('drawerStatusBadge');
-    statusBadge.className = 'badge bg-white text-dark';
     if (status === 'scheduled') {
-        statusBadge.innerHTML = '<i class="fas fa-calendar-alt me-1"></i>Scheduled';
+        statusBadge.className = 'badge badge-pastel-warning';
+        statusBadge.textContent = 'Scheduled';
     } else if (status === 'sending') {
-        statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending';
+        statusBadge.className = 'badge badge-pastel-primary';
+        statusBadge.textContent = 'Sending';
     } else {
-        statusBadge.innerHTML = '<i class="fas fa-check me-1"></i>Complete';
+        statusBadge.className = 'badge badge-pastel-success';
+        statusBadge.textContent = 'Complete';
     }
 
     // TODO: Replace with backend validity_window field
     var liveStateBadge = document.getElementById('drawerLiveStateBadge');
-    liveStateBadge.className = 'badge bg-white bg-opacity-25';
     var campaignDate = new Date(sendDate);
     var now = new Date();
     var validityHours = 24;
     var expiryDate = new Date(campaignDate.getTime() + (validityHours * 60 * 60 * 1000));
     
     if (status === 'scheduled') {
-        liveStateBadge.innerHTML = '<i class="fas fa-hourglass-start me-1"></i>Pending';
+        liveStateBadge.className = 'badge badge-pastel-secondary';
+        liveStateBadge.textContent = 'Pending';
     } else if (status === 'sending') {
         if (now < expiryDate) {
-            liveStateBadge.innerHTML = '<i class="fas fa-broadcast-tower me-1"></i>Live';
-            liveStateBadge.className = 'badge bg-success';
+            liveStateBadge.className = 'badge badge-pastel-success';
+            liveStateBadge.textContent = 'Live';
         } else {
-            liveStateBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Expired';
-            liveStateBadge.className = 'badge bg-secondary';
+            liveStateBadge.className = 'badge badge-pastel-secondary';
+            liveStateBadge.textContent = 'Expired';
         }
     } else {
         if (recipientsDelivered !== null && recipientsDelivered >= recipientsTotal) {
-            liveStateBadge.innerHTML = '<i class="fas fa-check-double me-1"></i>Complete';
+            liveStateBadge.className = 'badge badge-pastel-success';
+            liveStateBadge.textContent = 'Complete';
         } else if (now > expiryDate) {
-            liveStateBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Expired';
+            liveStateBadge.className = 'badge badge-pastel-secondary';
+            liveStateBadge.textContent = 'Expired';
         } else {
-            liveStateBadge.innerHTML = '<i class="fas fa-check-double me-1"></i>Complete';
+            liveStateBadge.className = 'badge badge-pastel-success';
+            liveStateBadge.textContent = 'Complete';
         }
     }
 
