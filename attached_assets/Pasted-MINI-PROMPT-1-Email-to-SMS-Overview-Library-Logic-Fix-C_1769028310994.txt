@@ -1,0 +1,111 @@
+MINI PROMPT 1 — Email-to-SMS Overview Library Logic Fix (Customer Portal)
+
+Context for Replit
+You are working in Customer Portal → Management → Email-to-SMS.
+This module already has two working sub-modules:
+
+Email-to-SMS – Standard
+
+Email-to-SMS – Contact List
+
+The Overview tab must be a unified library view that aggregates data from BOTH modules.
+Do not invent new logic — reuse existing data models and behaviour.
+
+❗ Problem
+
+The Overview Library currently:
+
+Does not correctly reflect data from Standard and Contact List setups
+
+Does not show the correct allowed sender email logic
+
+Does not display the generated target email address correctly
+
+Uses a generic view modal, instead of the correct type-specific view
+
+✅ Required Behaviour
+1. Overview Library = Aggregated View
+
+The Overview table must be built by combining records from:
+
+Email-to-SMS – Standard
+
+Email-to-SMS – Contact List
+
+No separate storage or mock data
+
+Same records, same IDs, same state
+
+2. “Allowed Email Addresses” Column (Critical Fix)
+
+This column must show the allowed sender email list, NOT originating addresses.
+
+Standard Email-to-SMS
+
+Customer sends emails to MSISDN@sms.quicksms.com
+
+Example: 447920099278@sms.quicksms.com
+
+The Allowed Email Addresses column must show:
+
+The list of approved sender email addresses configured by the customer
+
+There is no custom domain target for Standard
+
+Contact List Email-to-SMS
+
+Customer sends emails to a generated address
+
+Example: appointments-8472@sms.quicksms.com
+
+The Allowed Email Addresses column must show:
+
+The list of approved sender email addresses
+
+The generated target address is NOT the allowed sender
+
+👉 Use the same logic already implemented inside each respective tab
+👉 Do not duplicate or reinterpret the rules
+
+3. Generated Target Email Address Visibility
+
+When a Contact List Email-to-SMS mapping is created:
+
+The generated email address must be visible in:
+
+Three-dot → View (from Overview)
+
+Three-dot → View (from Contact List tab)
+
+This address already exists — it just needs surfacing consistently.
+
+4. View Modal Must Be Type-Specific
+
+When clicking Three dots → View in the Overview table:
+
+If record type = Standard
+
+Open the Standard Email-to-SMS view layout
+
+If record type = Contact List
+
+Open the Contact List Email-to-SMS view layout
+
+⚠️ Do NOT create a new generic modal
+⚠️ Reuse the exact same components used in each tab
+
+5. Table Presentation Rules
+
+The Overview table row must visually adapt based on type:
+
+Fields shown
+
+Labels
+
+Copy
+
+Behaviour must match what users already see in:
+
+Standard tab
+
+Contact List tab

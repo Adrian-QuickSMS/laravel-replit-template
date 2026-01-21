@@ -597,7 +597,7 @@ body > .dropdown-menu.dropdown-menu-end {
                                         <thead>
                                             <tr>
                                                 <th>Name</th>
-                                                <th>Originating Emails</th>
+                                                <th>Allowed Email Addresses</th>
                                                 <th>Type</th>
                                                 <th>Reporting Group</th>
                                                 <th>Status</th>
@@ -2671,11 +2671,15 @@ $(document).ready(function() {
                 ? '<span class="badge badge-live-status">Active</span>'
                 : '<span class="badge badge-suspended">Suspended</span>';
             
-            var emailsDisplay = addr.originatingEmails.slice(0, 2).map(function(email) {
+            // Display Allowed Sender Emails (who can send to trigger SMS)
+            var allowedEmails = addr.allowedSenders || [];
+            var emailsDisplay = allowedEmails.slice(0, 2).map(function(email) {
                 return '<code class="email-address-display d-block mb-1">' + email + '</code>';
             }).join('');
-            if (addr.originatingEmails.length > 2) {
-                emailsDisplay += '<span class="text-muted small">+' + (addr.originatingEmails.length - 2) + ' more</span>';
+            if (allowedEmails.length > 2) {
+                emailsDisplay += '<span class="text-muted small">+' + (allowedEmails.length - 2) + ' more</span>';
+            } else if (allowedEmails.length === 0) {
+                emailsDisplay = '<span class="text-muted">No allowed senders</span>';
             }
             
             var row = '<tr data-id="' + addr.id + '">' +
@@ -3374,7 +3378,16 @@ $(document).ready(function() {
         e.preventDefault();
         var id = $(this).data('id');
         var address = overviewAddresses.find(function(a) { return a.id === id; });
-        if (address) openDetailsDrawer(address);
+        if (address) {
+            // Open type-specific view drawer
+            if (address.sourceType === 'standard') {
+                openStdViewDrawer(address.sourceId);
+            } else if (address.sourceType === 'contactList') {
+                openClmViewDrawer(address.sourceId);
+            } else {
+                showErrorToast('Unable to determine configuration type');
+            }
+        }
     });
     
     $(document).on('click', '.edit-address', function(e) {
