@@ -3101,8 +3101,8 @@ function initBulkAction(actionType) {
             
         case 'returnToPool':
             title = 'Return Numbers to Pool';
-            compatible = selected.filter(n => n.account !== 'Unassigned Pool');
-            incompatible = selected.filter(n => n.account === 'Unassigned Pool');
+            compatible = selected.filter(n => n.accountId !== null && n.account !== 'Unassigned Pool');
+            incompatible = selected.filter(n => n.accountId === null || n.account === 'Unassigned Pool');
             summary = buildBulkSummaryTable(compatible, 'Account', n => n.account, () => '<span class="text-muted">Unassigned Pool</span>');
             hasBillingImpact = true;
             billingChanges = [
@@ -3399,7 +3399,7 @@ async function executeBulkAction() {
                 break;
                 
             case 'returnToPool':
-                compatible = selected.filter(n => n.account !== 'Unassigned Pool');
+                compatible = selected.filter(n => n.accountId !== null && n.account !== 'Unassigned Pool');
                 const returnReason = document.getElementById('bulkReturnReason')?.value;
                 if (!returnReason || returnReason.trim().length < 5) {
                     showToast('Please provide a reason for returning numbers to pool (min 5 characters)', 'error');

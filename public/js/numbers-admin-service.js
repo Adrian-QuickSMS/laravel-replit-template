@@ -948,6 +948,60 @@ const NumbersAdminService = (function() {
         };
     }
 
+    async function bulkReturnToPool(ids, reason = '') {
+        if (!config.useMockData) {
+            const response = await fetch(`${config.apiBaseUrl}/bulk/return-to-pool`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ ids, reason })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return response.json();
+        }
+
+        await simulateDelay();
+
+        const results = [];
+        for (const id of ids) {
+            const number = mockDatabase.numbers.find(n => n.id === id);
+            if (number) {
+                const previousAccount = number.account;
+                const previousSubAccount = number.subAccount;
+                
+                number.account = 'Unassigned Pool';
+                number.subAccount = 'Available';
+                number.accountId = null;
+                number.subAccountId = null;
+                
+                addAuditEntry(id, 'NUMBER_RETURNED_TO_POOL', {
+                    previousAccount: previousAccount,
+                    previousSubAccount: previousSubAccount,
+                    newAccount: 'Unassigned Pool',
+                    reason: reason || 'Bulk return to pool action'
+                });
+                
+                results.push({ id, success: true });
+            } else {
+                results.push({ id, success: false, error: 'Number not found' });
+            }
+        }
+
+        const successCount = results.filter(r => r.success).length;
+        const failedIds = results.filter(r => !r.success).map(r => r.id);
+
+        return {
+            success: failedIds.length === 0,
+            successCount: successCount,
+            failedCount: failedIds.length,
+            failedIds: failedIds,
+            results: results
+        };
+    }
+
     return {
         config: config,
         _mockDb: mockDatabase,
@@ -972,58 +1026,4 @@ const NumbersAdminService = (function() {
         bulkReturnToPool: bulkReturnToPool,
         exportNumbers: exportNumbers
     };
-
-    async function bulkReturnToPool(ids, reason = '') {
-        if (!config.useMockData) {
-            const response = await fetch(`${config.apiBaseUrl}/bulk/return-to-pool`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({ ids, reason })
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            return response.json();
-        }
-
-        await simulateDelay();
-
-        const results = [];
-        for (const id of ids) {
-            const numIndex = mockData.numbers.findIndex(n => n.id === id);
-            if (numIndex !== -1) {
-                mockData.numbers[numIndex].account = 'Unassigned Pool';
-                mockData.numbers[numIndex].subAccount = 'Available';
-                mockData.numbers[numIndex].accountId = null;
-                mockData.numbers[numIndex].subAccountId = null;
-                mockData.numbers[numIndex].status = 'active';
-                
-                mockData.auditHistory.unshift({
-                    id: 'AUD-' + Date.now() + '-' + id,
-                    numberId: id,
-                    action: 'Returned to Pool',
-                    performedBy: 'Admin User',
-                    timestamp: new Date().toISOString(),
-                    details: reason || 'Bulk return to pool action'
-                });
-                
-                results.push({ id, success: true });
-            } else {
-                results.push({ id, success: false, error: 'Number not found' });
-            }
-        }
-
-        const successCount = results.filter(r => r.success).length;
-        const failedIds = results.filter(r => !r.success).map(r => r.id);
-
-        return {
-            success: failedIds.length === 0,
-            successCount: successCount,
-            failedCount: failedIds.length,
-            failedIds: failedIds,
-            results: results
-        };
-    }
 })();
