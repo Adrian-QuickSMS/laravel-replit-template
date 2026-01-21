@@ -467,13 +467,8 @@ body > .dropdown-menu.dropdown-menu-end {
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Email-to-SMS</h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                            <i class="fas fa-filter me-1"></i> Filters
-                        </button>
-                    </div>
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" id="emailSmsTab" role="tablist">
@@ -583,12 +578,17 @@ body > .dropdown-menu.dropdown-menu-end {
                                 </div>
                             </div>
                             
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="input-group" style="width: 280px;">
-                                    <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                    <div class="input-group" style="width: 280px;">
+                                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="quickSearchInput" placeholder="Quick search by name or email address...">
+                                    </div>
+                                    <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
                                 </div>
-                                <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                                    <i class="fas fa-filter me-1"></i> Filters
+                                </button>
                             </div>
                             
                             <div class="table-container" id="addressesTableContainer">
