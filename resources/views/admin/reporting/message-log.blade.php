@@ -5,23 +5,20 @@
 @push('styles')
 <style>
 .message-log-container {
-    height: calc(100vh - 120px);
+    min-height: calc(100vh - 120px);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 .message-log-container .card {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     margin-bottom: 0 !important;
 }
 .message-log-container > .row > .col-12 > .card > .card-body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     padding-bottom: 0;
 }
 #summaryBar .card-body {
@@ -51,13 +48,11 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     min-height: 0;
 }
 #tableContainer {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
     min-height: 0;
 }
 .message-log-footer {
