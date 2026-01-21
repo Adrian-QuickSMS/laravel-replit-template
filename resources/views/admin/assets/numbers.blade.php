@@ -659,7 +659,7 @@ tr.selected-row:hover {
                     </button>
                 </div>
             </div>
-            <button class="filter-pill-btn" type="button" onclick="toggleFilterPanel()" id="filterPillBtn">
+            <button class="filter-pill-btn" type="button" id="filterPillBtn">
                 <i class="fas fa-filter"></i>
                 <span>Filters</span>
                 <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
@@ -890,66 +890,7 @@ tr.selected-row:hover {
                         </tr>
                     </thead>
                     <tbody id="numbersTableBody">
-                        <tr data-id="NUM-001">
-                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-001"></td>
-                            <td><span class="number-value">+447700900123</span></td>
-                            <td>🇬🇧 UK</td>
-                            <td><span class="type-label type-vmn">VMN</span></td>
-                            <td><span class="badge badge-admin-active">Active</span></td>
-                            <td class="account-cell"><div class="account-name">Acme Corporation</div><div class="sub-account">Marketing</div></td>
-                            <td class="text-end"><span class="cost-value">£2.00</span></td>
-                            <td><span class="supplier-value">Sinch</span></td>
-                            <td><span class="date-value">15 Oct 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-001'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-001'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-001'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Number</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-001'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
-                        </tr>
-                        <tr data-id="NUM-002">
-                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-002"></td>
-                            <td><span class="number-value">+447700900456</span></td>
-                            <td>🇬🇧 UK</td>
-                            <td><span class="type-label type-vmn">VMN</span></td>
-                            <td><span class="badge badge-admin-active">Active</span></td>
-                            <td class="account-cell"><div class="account-name">Finance Ltd</div><div class="sub-account">Retail</div></td>
-                            <td class="text-end"><span class="cost-value">£2.00</span></td>
-                            <td><span class="supplier-value">Sinch</span></td>
-                            <td><span class="date-value">20 Sep 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-002'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-002'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-002'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Number</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-002'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
-                        </tr>
-                        <tr data-id="NUM-003">
-                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-003"></td>
-                            <td><span class="number-value">+447700900789</span></td>
-                            <td>🇬🇧 UK</td>
-                            <td><span class="type-label type-vmn">VMN</span></td>
-                            <td><span class="badge badge-admin-suspended">Suspended</span></td>
-                            <td class="account-cell"><div class="account-name">Tech Solutions</div><div class="sub-account">Support</div></td>
-                            <td class="text-end"><span class="cost-value">£2.00</span></td>
-                            <td><span class="supplier-value">Vonage</span></td>
-                            <td><span class="date-value">10 Aug 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-003'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-003'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-success" href="#" onclick="confirmReactivate('NUM-003'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate Number</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-003'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
-                        </tr>
-                        <tr data-id="NUM-004">
-                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-004"></td>
-                            <td><span class="number-value">OFFER</span></td>
-                            <td>🇬🇧 UK</td>
-                            <td><span class="type-label type-shortcode-keyword">Shortcode Keyword</span></td>
-                            <td><span class="badge badge-admin-active">Active</span></td>
-                            <td class="account-cell"><div class="account-name">Retail Group</div><div class="sub-account">Promotions</div></td>
-                            <td class="text-end"><span class="cost-value">£5.00</span></td>
-                            <td><span class="supplier-value">OpenMarket</span></td>
-                            <td><span class="date-value">01 Jul 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-004'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-004'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-004'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Keyword</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-004'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
-                        </tr>
-                        <tr data-id="NUM-005">
-                            <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox" data-id="NUM-005"></td>
-                            <td><span class="number-value">60123</span></td>
-                            <td>🇬🇧 UK</td>
-                            <td><span class="type-label type-dedicated">Dedicated Shortcode</span></td>
-                            <td><span class="badge badge-admin-active">Active</span></td>
-                            <td class="account-cell"><div class="account-name">Healthcare UK</div><div class="sub-account">Appointments</div></td>
-                            <td class="text-end"><span class="cost-value">£250.00</span></td>
-                            <td><span class="supplier-value">Twilio</span></td>
-                            <td><span class="date-value">20 May 2025</span></td>
-                            <td class="text-center"><div class="dropdown"><button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="viewNumberDetails('NUM-005'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li><li><a class="dropdown-item" href="#" onclick="viewAuditTrail('NUM-005'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('NUM-005'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Shortcode</a></li><li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('NUM-005'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li></ul></div></td>
-                        </tr>
+                        <!-- Dynamic content populated by JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -1419,6 +1360,17 @@ tr.selected-row:hover {
 console.log('[Admin Numbers] Script starting...');
 console.log('[Admin Numbers] NumbersAdminService loaded:', typeof NumbersAdminService !== 'undefined');
 
+window.AdminNumbersDebug = {
+    error: null,
+    init: false
+};
+
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('[Admin Numbers] Global error:', msg, 'at line', lineNo);
+    window.AdminNumbersDebug.error = { msg, lineNo };
+    return false;
+};
+
 let numbersData = [];
 let currentPage = 1;
 const rowsPerPage = 20;
@@ -1884,14 +1836,15 @@ function buildContextMenu(num) {
 }
 
 function getCountryFlag(country) {
-    const flags = { 'UK': '🇬🇧', 'US': '🇺🇸', 'DE': '🇩🇪', 'FR': '🇫🇷' };
+    const flags = { 'UK': '🇬🇧', 'US': '🇺🇸', 'DE': '🇩🇪', 'FR': '🇫🇷', 'IE': '🇮🇪' };
     return flags[country] || '🌍';
 }
 
 function getTypeLabel(type) {
     const types = {
         'vmn': '<span class="type-vmn">VMN</span>',
-        'shortcode_keyword': '<span class="type-shortcode-keyword">Shared Shortcode Keyword</span>',
+        'shortcode_keyword': '<span class="type-shortcode-keyword">Shortcode Keyword</span>',
+        'dedicated_shortcode': '<span class="type-dedicated">Dedicated Shortcode</span>',
         'dedicated': '<span class="type-dedicated">Dedicated Shortcode</span>'
     };
     return types[type] || type;
@@ -2608,9 +2561,6 @@ async function executeConfirmedAction() {
         console.error('[Admin Numbers] Action error:', error);
         showToast('Error executing action: ' + error.message, 'error');
     }
-}
-    
-    showToast('Action completed successfully', 'success');
 }
 
 let currentReassignNumberId = null;
@@ -3490,12 +3440,16 @@ function setupFilterButton() {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Admin Numbers] DOMContentLoaded fired');
         initNumbersPage();
         setupFilterButton();
+        window.AdminNumbersDebug.init = true;
     });
 } else {
+    console.log('[Admin Numbers] Document already ready, init immediately');
     initNumbersPage();
     setupFilterButton();
+    window.AdminNumbersDebug.init = true;
 }
 </script>
 @endpush
