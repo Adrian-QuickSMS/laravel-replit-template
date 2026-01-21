@@ -1841,13 +1841,26 @@ var EmailToSmsService = (function() {
         var aggregated = [];
         var idCounter = 1;
         
+        // Helper function to find reporting group by configuration name
+        function findReportingGroup(configName) {
+            for (var i = 0; i < mockReportingGroups.length; i++) {
+                var group = mockReportingGroups[i];
+                if (group.linkedAddresses && group.linkedAddresses.indexOf(configName) !== -1) {
+                    return group.name;
+                }
+            }
+            return null;
+        }
+        
+        var statusMap = {
+            'active': 'Active',
+            'suspended': 'Suspended',
+            'archived': 'Archived'
+        };
+        
         // Transform Standard Email-to-SMS setups into overview format
         mockSetups.forEach(function(setup) {
-            var statusMap = {
-                'active': 'Active',
-                'suspended': 'Suspended',
-                'archived': 'Archived'
-            };
+            var reportingGroupName = findReportingGroup(setup.name);
             
             aggregated.push({
                 id: 'ovw-std-' + setup.id,
@@ -1860,7 +1873,7 @@ var EmailToSmsService = (function() {
                 senderId: setup.senderId,
                 optOut: null,
                 subAccount: setup.subaccountName,
-                reportingGroup: 'Default',
+                reportingGroup: reportingGroupName,
                 allowedSenders: setup.allowedEmails || [],
                 dailyLimit: 5000,
                 status: statusMap[setup.status] || 'Active',
@@ -1872,11 +1885,7 @@ var EmailToSmsService = (function() {
         
         // Transform Contact List Email-to-SMS setups into overview format
         mockContactListSetups.forEach(function(setup) {
-            var statusMap = {
-                'active': 'Active',
-                'suspended': 'Suspended',
-                'archived': 'Archived'
-            };
+            var reportingGroupName = findReportingGroup(setup.name);
             
             // Map opt-out mode
             var optOutLabel = null;
@@ -1901,9 +1910,7 @@ var EmailToSmsService = (function() {
                 senderId: setup.senderId,
                 optOut: optOutLabel,
                 subAccount: setup.subaccountName,
-                reportingGroup: setup.contactBookListNames && setup.contactBookListNames.length > 0 
-                    ? setup.contactBookListNames[0] 
-                    : 'Default',
+                reportingGroup: reportingGroupName,
                 allowedSenders: setup.allowedSenderEmails || [],
                 dailyLimit: 5000,
                 status: statusMap[setup.status] || 'Active',

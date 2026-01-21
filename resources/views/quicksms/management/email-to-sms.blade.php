@@ -2682,7 +2682,7 @@ $(document).ready(function() {
                 '<td><span class="email-sms-name">' + addr.name + '</span></td>' +
                 '<td>' + emailsDisplay + '</td>' +
                 '<td>' + addr.type + '</td>' +
-                '<td>' + addr.reportingGroup + '</td>' +
+                '<td>' + (addr.reportingGroup ? addr.reportingGroup : '<span class="text-muted">-</span>') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + addr.created + '</td>' +
                 '<td class="text-end">' +
