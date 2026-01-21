@@ -129,6 +129,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/email-to-sms', 'assetsEmailToSms')->name('admin.assets.email-to-sms');
             
             Route::get('/api/connections', 'apiConnections')->name('admin.api.connections');
+            Route::get('/api/connections/create', 'apiConnectionCreate')->name('admin.api.connections.create');
             Route::get('/api/callbacks', 'apiCallbacks')->name('admin.api.callbacks');
             Route::get('/api/health', 'apiHealth')->name('admin.api.health');
             

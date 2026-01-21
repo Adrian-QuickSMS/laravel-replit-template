@@ -1,0 +1,43 @@
+MINI PROMPT 1 — Admin Console: API Connections (Global) = Customer “Management → API Connections” (Identical, Admin Blue)
+
+Goal
+Create an Admin Console module “API Connections” that is an IDENTICAL copy of the customer portal module:
+Management → API Connections
+Same functionality, same UI layout, same filters, same table, same three-dot actions, same modals, same validation, same error/empty states.
+DO NOT redesign anything and DO NOT create a second implementation.
+
+Critical Constraints
+- Reuse the existing customer API Connections components/logic. Do NOT duplicate code.
+- ONLY theme change: swap Fillow purple accents to Admin Blue accents (admin console theme).
+- Keep all semantic colours unchanged (status pills, warnings, row colouring, etc.). Only accent theme shifts to blue.
+- Keep the same filter behaviour as customer (Apply Filters / no auto-filter if that’s how it works there).
+
+Admin-Only Differences (Only These Changes)
+1) Global scope (all customer accounts)
+- Data/query returns API connections across ALL customer accounts (admin scope).
+- Default = “All accounts”.
+
+2) Table: add Account as first column
+- Add a new first column: “Account” (customer account name).
+- All other columns remain identical to customer module and keep the same order AFTER Account.
+- Account column must be sortable and included in search matching if search exists.
+
+3) Create API Connection wizard: add Account selector
+- Wizard must reuse the existing customer Create API Connection wizard (same step flow, same cards, same validation).
+- Add “Account” dropdown at the top of the wizard (earliest step, before Sub-Account).
+  - Searchable dropdown, single-select, required.
+- Sub-Account dropdown remains required and is filtered by selected Account.
+- Everything else unchanged.
+
+Backend-Ready / Mocking
+- If admin endpoints don’t exist yet, mock them but keep payloads aligned with the customer API Connections model + Account field.
+- Row actions must still work with mock services:
+  - Suspend / Reactivate
+  - Convert Test → Live
+  - Regenerate API Key (must display the NEW key once in the final confirm step)
+
+Acceptance Criteria
+- Looks/behaves exactly like customer API Connections (only Admin Blue accent).
+- Account is first column and sortable.
+- Wizard includes Account selector; Sub-Account filtered by Account.
+- No new UI patterns or duplicate module implementations.

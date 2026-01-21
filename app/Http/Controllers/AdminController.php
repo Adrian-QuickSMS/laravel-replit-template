@@ -164,6 +164,13 @@ class AdminController extends Controller
         ]);
     }
 
+    public function apiConnectionCreate()
+    {
+        return view('admin.api.connections-wizard', [
+            'page_title' => 'Create API Connection'
+        ]);
+    }
+
     public function apiCallbacks()
     {
         return view('admin.api.callbacks', [
