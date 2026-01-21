@@ -3721,6 +3721,42 @@ $(document).ready(function() {
         });
     });
     
+    // Edit Configuration from Overview drawer - navigate to correct tab/edit page
+    $('#btnEditFromDrawer').on('click', function(e) {
+        e.preventDefault();
+        
+        if (!selectedAddress) {
+            showErrorToast('No address selected');
+            return;
+        }
+        
+        closeDetailsDrawer();
+        
+        // Check the source type and navigate accordingly
+        if (selectedAddress.sourceType === 'standard') {
+            // Standard Email-to-SMS - navigate to edit page
+            var standardId = selectedAddress.sourceId;
+            window.location.href = '/management/email-to-sms/standard/' + standardId + '/edit';
+        } else if (selectedAddress.sourceType === 'contactList') {
+            // Contact List Email-to-SMS - switch tab and open edit modal
+            var contactListId = selectedAddress.sourceId;
+            
+            // Switch to Contact List tab
+            var clTab = document.querySelector('a[href="#email-to-sms-contact-list"]');
+            if (clTab) {
+                var tabInstance = new bootstrap.Tab(clTab);
+                tabInstance.show();
+            }
+            
+            // Small delay to allow tab switch, then open edit modal
+            setTimeout(function() {
+                openClmEditModal(contactListId);
+            }, 300);
+        } else {
+            showErrorToast('Unable to determine configuration type');
+        }
+    });
+    
     function showSuccessToast(message) {
         var toastHtml = '<div class="toast align-items-center text-bg-success border-0 position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert" aria-live="assertive" aria-atomic="true">' +
             '<div class="d-flex">' +
