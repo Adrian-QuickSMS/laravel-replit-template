@@ -3361,6 +3361,21 @@ $(document).ready(function() {
         if (address) openDetailsDrawer(address);
     });
     
+    $(document).on('click', '.edit-address', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var address = overviewAddresses.find(function(a) { return a.id === id; });
+        if (address) {
+            if (address.sourceType === 'standard') {
+                window.location.href = '/management/email-to-sms/standard/' + address.sourceId + '/edit';
+            } else if (address.sourceType === 'contactList') {
+                window.location.href = '/management/email-to-sms/contact-list/' + address.sourceId + '/edit';
+            } else {
+                showErrorToast('Unable to determine configuration type');
+            }
+        }
+    });
+    
     $(document).on('click', '.suspend-address', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
