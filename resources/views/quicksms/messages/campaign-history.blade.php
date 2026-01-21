@@ -1529,25 +1529,25 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
     
     // TODO: Replace with actual message content from backend (with placeholders, never real data)
     var mockMessages = {
-        'Sale Announcement': { type: 'rich_card', title: 'Flash Sale!', description: 'Hi {{firstName}}, enjoy 30% off today!', buttons: [{label: 'Shop Now', action: {type: 'url'}}, {label: 'View Details', action: {type: 'url'}}] },
-        'Flash Deal': { type: 'rich_card', title: 'Limited Offer', description: '{{firstName}}, this deal expires soon!', buttons: [{label: 'Grab It', action: {type: 'url'}}] },
-        'Reminder': { type: 'text', body: 'Hi {{firstName}}, reminder: your appointment is tomorrow at {{time}}. Reply STOP to opt out.' },
+        'Sale Announcement': { type: 'rich_card', title: 'Flash Sale!', description: 'Hi @{{firstName}}, enjoy 30% off today!', buttons: [{label: 'Shop Now', action: {type: 'url'}}, {label: 'View Details', action: {type: 'url'}}] },
+        'Flash Deal': { type: 'rich_card', title: 'Limited Offer', description: '@{{firstName}}, this deal expires soon!', buttons: [{label: 'Grab It', action: {type: 'url'}}] },
+        'Reminder': { type: 'text', body: 'Hi @{{firstName}}, reminder: your appointment is tomorrow at @{{time}}. Reply STOP to opt out.' },
         'Product Showcase': { type: 'carousel', cards: [
-            { title: 'New Arrivals', description: 'Check out our latest {{category}} collection!', buttons: [{label: 'Browse', action: {type: 'url'}}] },
+            { title: 'New Arrivals', description: 'Check out our latest @{{category}} collection!', buttons: [{label: 'Browse', action: {type: 'url'}}] },
             { title: 'Featured Items', description: 'Handpicked just for you!', buttons: [{label: 'View', action: {type: 'url'}}] },
             { title: 'Best Sellers', description: 'Our most popular products', buttons: [{label: 'Shop', action: {type: 'url'}}] }
         ]},
-        'Weekend Deal': { type: 'text', body: '{{firstName}}, weekend special: use code SAVE20 for 20% off! Shop now: {{link}}' },
-        'VIP Invitation': { type: 'rich_card', title: 'VIP Access', description: 'Exclusive early access for you, {{firstName}}!', buttons: [{label: 'Access Now', action: {type: 'url'}}] },
-        'Shipping Update': { type: 'text', body: 'Your order #{{orderNumber}} has shipped! Track: {{trackingLink}}' },
-        'Survey Request': { type: 'text', body: 'Hi {{firstName}}, we value your feedback! Take our quick survey: {{surveyLink}}' },
-        'Order Confirm': { type: 'text', body: 'Order confirmed! #{{orderNumber}} - Total: {{amount}}. Thank you for shopping!' },
-        'Appointment': { type: 'text', body: 'Reminder: {{firstName}}, your appointment is on {{date}} at {{time}}.' },
-        'Product Launch': { type: 'rich_card', title: 'Introducing {{productName}}', description: 'Be the first to experience our newest innovation!', buttons: [{label: 'Pre-order', action: {type: 'url'}}, {label: 'Learn More', action: {type: 'url'}}] }
+        'Weekend Deal': { type: 'text', body: '@{{firstName}}, weekend special: use code SAVE20 for 20% off! Shop now: @{{link}}' },
+        'VIP Invitation': { type: 'rich_card', title: 'VIP Access', description: 'Exclusive early access for you, @{{firstName}}!', buttons: [{label: 'Access Now', action: {type: 'url'}}] },
+        'Shipping Update': { type: 'text', body: 'Your order #@{{orderNumber}} has shipped! Track: @{{trackingLink}}' },
+        'Survey Request': { type: 'text', body: 'Hi @{{firstName}}, we value your feedback! Take our quick survey: @{{surveyLink}}' },
+        'Order Confirm': { type: 'text', body: 'Order confirmed! #@{{orderNumber}} - Total: @{{amount}}. Thank you for shopping!' },
+        'Appointment': { type: 'text', body: 'Reminder: @{{firstName}}, your appointment is on @{{date}} at @{{time}}.' },
+        'Product Launch': { type: 'rich_card', title: 'Introducing @{{productName}}', description: 'Be the first to experience our newest innovation!', buttons: [{label: 'Pre-order', action: {type: 'url'}}, {label: 'Learn More', action: {type: 'url'}}] }
     };
     
-    var defaultSms = 'Hi {{firstName}}, thank you for being a valued customer! {{message}} Reply STOP to opt out.';
-    var defaultBasic = 'Hi {{firstName}}, {{message}} Tap to learn more: {{link}}';
+    var defaultSms = 'Hi @{{firstName}}, thank you for being a valued customer! @{{message}} Reply STOP to opt out.';
+    var defaultBasic = 'Hi @{{firstName}}, @{{message}} Tap to learn more: @{{link}}';
     
     var previewConfig = {
         senderId: senderId || 'QuickSMS',
@@ -1598,7 +1598,7 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
                 previewConfig.message = {
                     type: 'rich_card',
                     title: 'Special Offer',
-                    description: 'Hi {{firstName}}, check out this exclusive offer!',
+                    description: 'Hi @{{firstName}}, check out this exclusive offer!',
                     buttons: [{label: 'Learn More', action: {type: 'url'}}]
                 };
             }
