@@ -13,6 +13,9 @@
 var EmailToSmsService = (function() {
     'use strict';
     
+    // Email domain constant - used for generating originating emails
+    var EMAIL_DOMAIN = '@sms.quicksms.io';
+    
     // Configuration - easily swappable for real endpoints
     var config = {
         useMockData: true,
@@ -40,6 +43,7 @@ var EmailToSmsService = (function() {
             description: 'General purpose notification emails converted to SMS',
             subaccountId: 'main',
             subaccountName: 'Main Account',
+            originatingEmails: ['general.notify' + EMAIL_DOMAIN, 'notify.main' + EMAIL_DOMAIN],
             allowedEmails: ['admin@company.com', 'system@company.com', 'notifications@company.com'],
             senderIdTemplateId: 'tpl-quicksms-001',
             senderId: 'QuickSMS',
@@ -58,6 +62,7 @@ var EmailToSmsService = (function() {
             description: 'High priority alerts requiring immediate attention',
             subaccountId: 'marketing',
             subaccountName: 'Marketing Team',
+            originatingEmails: ['urgent.alerts' + EMAIL_DOMAIN],
             allowedEmails: ['alerts@marketing.com'],
             senderIdTemplateId: 'tpl-alerts-002',
             senderId: 'ALERTS',
@@ -76,6 +81,7 @@ var EmailToSmsService = (function() {
             description: 'NHS Trust patient communication system',
             subaccountId: 'support',
             subaccountName: 'Support Team',
+            originatingEmails: ['patient.comms' + EMAIL_DOMAIN, 'nhs.comms' + EMAIL_DOMAIN],
             allowedEmails: ['*@nhstrust.nhs.uk'],
             senderIdTemplateId: 'tpl-nhs-003',
             senderId: 'NHS',
@@ -94,6 +100,7 @@ var EmailToSmsService = (function() {
             description: 'Clinic appointment reminder system',
             subaccountId: 'main',
             subaccountName: 'Main Account',
+            originatingEmails: ['appt.remind' + EMAIL_DOMAIN],
             allowedEmails: ['bookings@clinic.com', 'reception@clinic.com'],
             senderIdTemplateId: 'tpl-pharmacy-004',
             senderId: 'Pharmacy',
@@ -112,6 +119,7 @@ var EmailToSmsService = (function() {
             description: 'Shipping and delivery notification emails',
             subaccountId: 'marketing',
             subaccountName: 'Marketing Team',
+            originatingEmails: ['delivery.updates' + EMAIL_DOMAIN, 'shipping.notify' + EMAIL_DOMAIN],
             allowedEmails: [],
             senderIdTemplateId: 'tpl-info-005',
             senderId: 'INFO',
@@ -130,6 +138,7 @@ var EmailToSmsService = (function() {
             description: 'Development and QA testing setup',
             subaccountId: 'support',
             subaccountName: 'Support Team',
+            originatingEmails: ['test.internal' + EMAIL_DOMAIN, 'dev.test' + EMAIL_DOMAIN, 'qa.test' + EMAIL_DOMAIN],
             allowedEmails: ['dev@quicksms.io', 'qa@quicksms.io', 'test@quicksms.io', 'staging@quicksms.io'],
             senderIdTemplateId: 'tpl-quicksms-001',
             senderId: 'QuickSMS',
@@ -148,6 +157,7 @@ var EmailToSmsService = (function() {
             description: 'Old alerting system - archived',
             subaccountId: 'main',
             subaccountName: 'Main Account',
+            originatingEmails: ['legacy.alerts' + EMAIL_DOMAIN],
             allowedEmails: ['old-system@company.com'],
             senderIdTemplateId: 'tpl-alerts-002',
             senderId: 'ALERTS',
@@ -680,6 +690,7 @@ var EmailToSmsService = (function() {
             description: 'Automated notifications to NHS patients',
             subaccountId: 'main',
             subaccountName: 'Main Account',
+            originatingEmails: ['nhs-patient.12abc' + EMAIL_DOMAIN, 'nhs-notify.nhs' + EMAIL_DOMAIN],
             allowedSenderEmails: ['admin@nhstrust.nhs.uk', 'appointments@nhstrust.nhs.uk', 'system@nhstrust.nhs.uk'],
             contactBookListIds: ['cb-001', 'cb-003'],
             contactBookListNames: ['NHS Patients', 'Appointment List'],
@@ -703,6 +714,7 @@ var EmailToSmsService = (function() {
             description: 'Prescription ready and refill reminders',
             subaccountId: 'support',
             subaccountName: 'Support Team',
+            originatingEmails: ['pharmacy.45def' + EMAIL_DOMAIN],
             allowedSenderEmails: ['pharmacy@clinic.com'],
             contactBookListIds: ['cb-002'],
             contactBookListNames: ['Pharmacy Patients'],
@@ -726,6 +738,7 @@ var EmailToSmsService = (function() {
             description: 'Automated appointment confirmation messages',
             subaccountId: 'main',
             subaccountName: 'Main Account',
+            originatingEmails: ['appts.78ghi' + EMAIL_DOMAIN, 'appointments.main' + EMAIL_DOMAIN],
             allowedSenderEmails: [],
             contactBookListIds: ['cb-003', 'cb-001', 'cb-002'],
             contactBookListNames: ['Appointment List', 'NHS Patients', 'Pharmacy Patients'],
@@ -749,6 +762,7 @@ var EmailToSmsService = (function() {
             description: 'Weekly newsletter SMS notifications',
             subaccountId: 'marketing',
             subaccountName: 'Marketing Team',
+            originatingEmails: ['newsletter.91jkl' + EMAIL_DOMAIN],
             allowedSenderEmails: ['marketing@company.com', 'newsletter@company.com'],
             contactBookListIds: ['cb-004'],
             contactBookListNames: ['Newsletter Subscribers'],
@@ -772,6 +786,7 @@ var EmailToSmsService = (function() {
             description: 'Critical emergency notifications',
             subaccountId: 'main',
             subaccountName: 'Main Account',
+            originatingEmails: ['emergency.alert1' + EMAIL_DOMAIN, 'urgent.notify' + EMAIL_DOMAIN],
             allowedSenderEmails: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io', 'emergency@quicksms.io'],
             contactBookListIds: ['cb-005'],
             contactBookListNames: ['Emergency Contacts'],
@@ -795,6 +810,7 @@ var EmailToSmsService = (function() {
             description: 'Daily reminder messages for patients',
             subaccountId: 'support',
             subaccountName: 'Support Team',
+            originatingEmails: ['daily.reminders' + EMAIL_DOMAIN],
             allowedSenderEmails: ['reminders@nhstrust.nhs.uk'],
             contactBookListIds: ['cb-001', 'cb-006'],
             contactBookListNames: ['NHS Patients', 'Active Patients'],
@@ -1473,8 +1489,6 @@ var EmailToSmsService = (function() {
         }
     };
     
-    var EMAIL_DOMAIN = '@sms.quicksms.io';
-    
     var mockOverviewAddresses = [
         {
             id: 'addr-001',
@@ -1834,20 +1848,12 @@ var EmailToSmsService = (function() {
                 'archived': 'Archived'
             };
             
-            // Generate originating emails from allowed emails
-            var originatingEmails = setup.allowedEmails && setup.allowedEmails.length > 0 
-                ? setup.allowedEmails.map(function(email, idx) {
-                    var prefix = setup.name.toLowerCase().replace(/\s+/g, '-').substring(0, 10);
-                    return prefix + '.' + setup.id.replace('std-', '') + EMAIL_DOMAIN;
-                }).slice(0, 2)
-                : [setup.name.toLowerCase().replace(/\s+/g, '-').substring(0, 10) + '.' + setup.id.replace('std-', '') + EMAIL_DOMAIN];
-            
             aggregated.push({
                 id: 'ovw-std-' + setup.id,
                 sourceId: setup.id,
                 sourceType: 'standard',
                 name: setup.name,
-                originatingEmails: originatingEmails,
+                originatingEmails: setup.originatingEmails || [],
                 description: setup.description || '',
                 type: 'Standard',
                 senderId: setup.senderId,
@@ -1871,21 +1877,16 @@ var EmailToSmsService = (function() {
                 'archived': 'Archived'
             };
             
-            // Generate originating emails
-            var prefix = setup.name.toLowerCase().replace(/\s+/g, '-').substring(0, 10);
-            var originatingEmails = [prefix + '.' + setup.id.replace('cls-', '') + EMAIL_DOMAIN];
-            if (setup.allowedSenderEmails && setup.allowedSenderEmails.length > 1) {
-                originatingEmails.push(prefix + '.alt' + EMAIL_DOMAIN);
-            }
-            
             // Map opt-out mode
             var optOutLabel = null;
             if (setup.optOutMode === 'GLOBAL') {
                 optOutLabel = 'Global Opt-Out';
             } else if (setup.optOutMode === 'MARKETING') {
                 optOutLabel = 'Marketing Opt-Out';
-            } else if (setup.optOutMode === 'SPECIFIC' && setup.optOutListIds && setup.optOutListIds.length > 0) {
-                optOutLabel = 'Specific Lists (' + setup.optOutListIds.length + ')';
+            } else if (setup.optOutMode === 'SELECTED' && setup.optOutListIds && setup.optOutListIds.length > 0) {
+                optOutLabel = setup.optOutListNames && setup.optOutListNames.length > 0 
+                    ? setup.optOutListNames.join(', ') 
+                    : 'Specific Lists (' + setup.optOutListIds.length + ')';
             }
             
             aggregated.push({
@@ -1893,7 +1894,7 @@ var EmailToSmsService = (function() {
                 sourceId: setup.id,
                 sourceType: 'contactList',
                 name: setup.name,
-                originatingEmails: originatingEmails,
+                originatingEmails: setup.originatingEmails || [],
                 description: setup.description || '',
                 type: 'Contact List',
                 senderId: setup.senderId,
