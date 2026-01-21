@@ -592,10 +592,11 @@
                                     <tr id="tableHeaderRow">
                                         <th data-column="account">Account</th>
                                         <th data-column="mobileNumber">Mobile Number</th>
+                                        <th data-column="ukNetworkPrefix">UK Network Prefix</th>
                                         <th data-column="senderId">
                                             <div class="dropdown d-inline-block">
                                                 <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
-                                                    SenderID <i class="fas fa-sort ms-1 text-muted" id="sortIconSenderId"></i>
+                                                    SenderID / Agent Name <i class="fas fa-sort ms-1 text-muted" id="sortIconSenderId"></i>
                                                 </span>
                                                 <ul class="dropdown-menu">
                                                     <li><a class="dropdown-item sort-option" href="#!" data-field="senderId" data-direction="asc"><i class="fas fa-sort-alpha-down me-2"></i> A to Z</a></li>
@@ -619,6 +620,19 @@
                                                 </ul>
                                             </div>
                                         </th>
+                                        <th data-column="sentToSupplier">
+                                            <div class="dropdown d-inline-block">
+                                                <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                    Sent to Supplier <i class="fas fa-sort ms-1 text-muted" id="sortIconSentToSupplier"></i>
+                                                </span>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="sentToSupplier" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Newest First</a></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="sentToSupplier" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Oldest First</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="sentToSupplier" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
+                                                </ul>
+                                            </div>
+                                        </th>
                                         <th data-column="deliveryTime">
                                             <div class="dropdown d-inline-block">
                                                 <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
@@ -632,36 +646,41 @@
                                                 </ul>
                                             </div>
                                         </th>
-                                        <th data-column="completedTime">
+                                        <th data-column="completeTime">
                                             <div class="dropdown d-inline-block">
                                                 <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
-                                                    Completed Time <i class="fas fa-sort ms-1 text-muted" id="sortIconCompletedTime"></i>
+                                                    Complete Time <i class="fas fa-sort ms-1 text-muted" id="sortIconCompleteTime"></i>
                                                 </span>
                                                 <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="completedTime" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Newest First</a></li>
-                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="completedTime" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Oldest First</a></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="completeTime" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Newest First</a></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="completeTime" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Oldest First</a></li>
                                                     <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="completedTime" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="completeTime" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
                                                 </ul>
                                             </div>
                                         </th>
-                                        <th data-column="cost">Cost</th>
-                                        <th data-column="revenue" class="d-none">Revenue</th>
+                                        <th data-column="margin">Margin</th>
+                                        <th data-column="supplier" class="d-none">Supplier</th>
+                                        <th data-column="portedTo" class="d-none">Ported To</th>
+                                        <th data-column="gsmErrorCode" class="d-none">GSM Error Code</th>
+                                        <th data-column="supplierCost" class="d-none">Supplier Cost</th>
+                                        <th data-column="customerCost" class="d-none">Customer Cost</th>
+                                        <th data-column="supplierDoneTime" class="d-none">Supplier Done Time</th>
                                         <th data-column="messageType" class="d-none">Message Type</th>
-                                        <th data-column="subAccount" class="d-none">Sub Account</th>
+                                        <th data-column="subAccount" class="d-none">Sub-Account</th>
                                         <th data-column="user" class="d-none">User</th>
                                         <th data-column="origin" class="d-none">Origin</th>
                                         <th data-column="country" class="d-none">Country</th>
-                                        <th data-column="parts" class="d-none">Fragments/Parts</th>
+                                        <th data-column="parts" class="d-none">Fragments / Parts</th>
                                         <th data-column="encoding" class="d-none">Encoding</th>
-                                        <th data-column="messageId" class="d-none">Message ID</th>
-                                        <th data-column="content" class="d-none">Content</th>
+                                        <th data-column="supplierMessageId" class="d-none">Supplier Message ID</th>
+                                        <th data-column="customerMessageId" class="d-none">Customer Message ID</th>
                                         <th data-column="actions" style="width: 50px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="messageLogTableBody">
                                     <tr id="loadingInitialRow">
-                                        <td colspan="19" class="text-center py-5">
+                                        <td colspan="26" class="text-center py-5">
                                             <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
@@ -714,39 +733,68 @@
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-mobileNumber" data-column="mobileNumber" checked>
                         <span>Mobile Number</span>
+                        <span class="badge bg-light text-muted ms-auto small">Unmasked</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-ukNetworkPrefix" data-column="ukNetworkPrefix" checked>
+                        <span>UK Network Prefix</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-senderId" data-column="senderId" checked>
-                        <span>SenderID</span>
+                        <span>SenderID / Agent Name</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-status" data-column="status" checked>
-                        <span>Message Status</span>
+                        <span>Status</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-sentTime" data-column="sentTime" checked>
                         <span>Sent Time</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-sentToSupplier" data-column="sentToSupplier" checked>
+                        <span>Sent to Supplier</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-deliveryTime" data-column="deliveryTime" checked>
                         <span>Delivery Time</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
-                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-completedTime" data-column="completedTime" checked>
-                        <span>Completed Time</span>
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-completeTime" data-column="completeTime" checked>
+                        <span>Complete Time</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
-                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-cost" data-column="cost" checked>
-                        <span>Cost</span>
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-margin" data-column="margin" checked>
+                        <span>Margin</span>
+                        <span class="badge bg-light text-muted ms-auto small">Customer - Supplier Cost</span>
                     </label>
                 </div>
                 
                 <h6 class="text-muted small fw-bold text-uppercase mb-2">Optional Columns</h6>
                 <div class="list-group list-group-flush" id="optionalColumnsList">
                     <label class="list-group-item d-flex align-items-center">
-                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-revenue" data-column="revenue">
-                        <span>Revenue</span>
-                        <span class="badge bg-light text-muted ms-auto small">Admin Only</span>
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-supplier" data-column="supplier">
+                        <span>Supplier</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-portedTo" data-column="portedTo">
+                        <span>Ported To</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-gsmErrorCode" data-column="gsmErrorCode">
+                        <span>GSM Error Code</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-supplierCost" data-column="supplierCost">
+                        <span>Supplier Cost</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-customerCost" data-column="customerCost">
+                        <span>Customer Cost</span>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-supplierDoneTime" data-column="supplierDoneTime">
+                        <span>Supplier Done Time</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-messageType" data-column="messageType">
@@ -755,7 +803,7 @@
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-subAccount" data-column="subAccount">
-                        <span>Sub Account</span>
+                        <span>Sub-Account</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-user" data-column="user">
@@ -764,7 +812,7 @@
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-origin" data-column="origin">
                         <span>Origin</span>
-                        <span class="badge bg-light text-muted ms-auto small">Portal / API / etc.</span>
+                        <span class="badge bg-light text-muted ms-auto small">API / Portal / Email-to-SMS</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-country" data-column="country">
@@ -777,16 +825,15 @@
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-encoding" data-column="encoding">
                         <span>Encoding</span>
-                        <span class="badge bg-light text-muted ms-auto small">GSM-7 / Unicode</span>
+                        <span class="badge bg-light text-muted ms-auto small">GSM / Unicode</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
-                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-messageId" data-column="messageId">
-                        <span>Message ID</span>
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-supplierMessageId" data-column="supplierMessageId">
+                        <span>Supplier Message ID</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
-                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-content" data-column="content">
-                        <span>Content</span>
-                        <span class="badge bg-warning text-dark ms-auto small"><i class="fas fa-lock me-1"></i>Security Controlled</span>
+                        <input class="form-check-input column-toggle me-3" type="checkbox" id="col-customerMessageId" data-column="customerMessageId">
+                        <span>Customer Message ID</span>
                     </label>
                 </div>
             </div>
@@ -801,7 +848,7 @@
 </div>
 
 <div class="modal fade" id="messageDetailsModal" tabindex="-1" aria-labelledby="messageDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header" style="background: var(--admin-primary, #1e3a5f); color: #fff;">
                 <h5 class="modal-title" id="messageDetailsModalLabel">
@@ -811,11 +858,15 @@
             </div>
             <div class="modal-body">
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Message ID</label>
-                        <p class="mb-0 fw-medium" id="detailMessageId">-</p>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Customer Message ID</label>
+                        <p class="mb-0 fw-medium" id="detailCustomerMessageId">-</p>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Supplier Message ID</label>
+                        <p class="mb-0 fw-medium" id="detailSupplierMessageId">-</p>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label text-muted small mb-1">Status</label>
                         <p class="mb-0" id="detailStatus">-</p>
                     </div>
@@ -824,50 +875,86 @@
                         <p class="mb-0" id="detailAccount">-</p>
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Sub-Account</label>
+                        <p class="mb-0" id="detailSubAccount">-</p>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label text-muted small mb-1">Mobile Number</label>
                         <p class="mb-0" id="detailMobile">-</p>
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">UK Network Prefix</label>
+                        <p class="mb-0" id="detailUkNetworkPrefix">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Ported To</label>
+                        <p class="mb-0" id="detailPortedTo">-</p>
+                    </div>
                     <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">SenderID</label>
+                        <label class="form-label text-muted small mb-1">SenderID / Agent Name</label>
                         <p class="mb-0" id="detailSenderId">-</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small mb-1">Message Type</label>
                         <p class="mb-0" id="detailType">-</p>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label text-muted small mb-1">Sent Time</label>
                         <p class="mb-0" id="detailSentTime">-</p>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">Sent to Supplier</label>
+                        <p class="mb-0" id="detailSentToSupplier">-</p>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label text-muted small mb-1">Delivery Time</label>
                         <p class="mb-0" id="detailDeliveryTime">-</p>
                     </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small mb-1">Complete Time</label>
+                        <p class="mb-0" id="detailCompleteTime">-</p>
+                    </div>
                     <div class="col-md-4">
-                        <label class="form-label text-muted small mb-1">Completed Time</label>
-                        <p class="mb-0" id="detailCompletedTime">-</p>
+                        <label class="form-label text-muted small mb-1">Supplier</label>
+                        <p class="mb-0" id="detailSupplier">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Supplier Done Time</label>
+                        <p class="mb-0" id="detailSupplierDoneTime">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">GSM Error Code</label>
+                        <p class="mb-0" id="detailGsmErrorCode">-</p>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label text-muted small mb-1">Encoding</label>
                         <p class="mb-0" id="detailEncoding">-</p>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label text-muted small mb-1">Parts / Cost</label>
-                        <p class="mb-0" id="detailCost">-</p>
+                        <label class="form-label text-muted small mb-1">Fragments / Parts</label>
+                        <p class="mb-0" id="detailParts">-</p>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label text-muted small mb-1">Revenue</label>
-                        <p class="mb-0" id="detailRevenue">-</p>
+                        <label class="form-label text-muted small mb-1">Country</label>
+                        <p class="mb-0" id="detailCountry">-</p>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small mb-1">Sub Account</label>
-                        <p class="mb-0" id="detailSubAccount">-</p>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Supplier Cost</label>
+                        <p class="mb-0" id="detailSupplierCost">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Customer Cost</label>
+                        <p class="mb-0" id="detailCustomerCost">-</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Margin</label>
+                        <p class="mb-0 fw-bold" id="detailMargin">-</p>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label text-muted small mb-1">User</label>
                         <p class="mb-0" id="detailUser">-</p>
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <label class="form-label text-muted small mb-1">Origin</label>
                         <p class="mb-0" id="detailOrigin">-</p>
                     </div>
@@ -971,38 +1058,57 @@ function exportData(format) {
 
 function viewMessageDetails(messageId) {
     const mockMessage = {
-        messageId: messageId,
+        customerMessageId: messageId.replace('MSG-', 'CUST-'),
+        supplierMessageId: messageId.replace('MSG-', 'SUP-'),
         status: 'Delivered',
         account: 'Acme Corporation',
-        mobile: '+44 77** ***456',
-        senderId: 'QuickSMS',
-        sentTime: '30/12/2024 14:23',
-        deliveryTime: '30/12/2024 14:23',
-        completedTime: '30/12/2024 14:23',
-        type: 'SMS',
-        encoding: 'GSM-7',
-        parts: 1,
-        cost: '0.035',
-        revenue: '0.048',
         subAccount: 'Main Account',
+        mobile: '+447712345678',
+        ukNetworkPrefix: 'EE',
+        portedTo: null,
+        senderId: 'QuickSMS',
+        type: 'SMS',
+        sentTime: '21/01/2026 14:23:45',
+        sentToSupplier: '21/01/2026 14:23:46',
+        deliveryTime: '21/01/2026 14:23:52',
+        completeTime: '21/01/2026 14:23:55',
+        supplier: 'Supplier A',
+        supplierDoneTime: '21/01/2026 14:23:50',
+        gsmErrorCode: null,
+        encoding: 'GSM',
+        parts: 1,
+        country: 'UK',
+        supplierCost: '0.025',
+        customerCost: '0.038',
+        margin: '0.013',
         user: 'John Smith',
         origin: 'Portal',
         content: 'Content masked - requires explicit reveal with audit logging'
     };
     
-    document.getElementById('detailMessageId').textContent = mockMessage.messageId;
+    document.getElementById('detailCustomerMessageId').textContent = mockMessage.customerMessageId;
+    document.getElementById('detailSupplierMessageId').textContent = mockMessage.supplierMessageId;
     document.getElementById('detailStatus').innerHTML = `<span class="badge bg-success">Delivered</span>`;
     document.getElementById('detailAccount').textContent = mockMessage.account;
-    document.getElementById('detailMobile').textContent = mockMessage.mobile;
-    document.getElementById('detailSenderId').textContent = mockMessage.senderId;
-    document.getElementById('detailSentTime').textContent = mockMessage.sentTime;
-    document.getElementById('detailDeliveryTime').textContent = mockMessage.deliveryTime;
-    document.getElementById('detailCompletedTime').textContent = mockMessage.completedTime;
-    document.getElementById('detailType').innerHTML = `<span class="badge bg-secondary">SMS</span>`;
-    document.getElementById('detailEncoding').innerHTML = `<span class="badge bg-light text-dark border">GSM-7</span>`;
-    document.getElementById('detailCost').textContent = `${mockMessage.parts} part(s) / £${mockMessage.cost}`;
-    document.getElementById('detailRevenue').textContent = `£${mockMessage.revenue}`;
     document.getElementById('detailSubAccount').textContent = mockMessage.subAccount;
+    document.getElementById('detailMobile').textContent = mockMessage.mobile;
+    document.getElementById('detailUkNetworkPrefix').textContent = mockMessage.ukNetworkPrefix;
+    document.getElementById('detailPortedTo').textContent = mockMessage.portedTo || '—';
+    document.getElementById('detailSenderId').textContent = mockMessage.senderId;
+    document.getElementById('detailType').innerHTML = `<span class="badge bg-secondary">${mockMessage.type}</span>`;
+    document.getElementById('detailSentTime').textContent = mockMessage.sentTime;
+    document.getElementById('detailSentToSupplier').textContent = mockMessage.sentToSupplier;
+    document.getElementById('detailDeliveryTime').textContent = mockMessage.deliveryTime;
+    document.getElementById('detailCompleteTime').textContent = mockMessage.completeTime;
+    document.getElementById('detailSupplier').textContent = mockMessage.supplier;
+    document.getElementById('detailSupplierDoneTime').textContent = mockMessage.supplierDoneTime;
+    document.getElementById('detailGsmErrorCode').textContent = mockMessage.gsmErrorCode || '—';
+    document.getElementById('detailEncoding').innerHTML = `<span class="badge bg-light text-dark border">${mockMessage.encoding}</span>`;
+    document.getElementById('detailParts').textContent = mockMessage.parts;
+    document.getElementById('detailCountry').textContent = mockMessage.country;
+    document.getElementById('detailSupplierCost').textContent = `£${mockMessage.supplierCost}`;
+    document.getElementById('detailCustomerCost').textContent = `£${mockMessage.customerCost}`;
+    document.getElementById('detailMargin').textContent = `£${mockMessage.margin}`;
     document.getElementById('detailUser').textContent = mockMessage.user;
     document.getElementById('detailOrigin').textContent = mockMessage.origin;
     document.getElementById('detailContent').innerHTML = `<span class="text-muted fst-italic">${mockMessage.content}</span>`;
@@ -1036,10 +1142,13 @@ const MockAPI = (function() {
     const subAccounts = ['Main Account', 'Marketing Team', 'Support Team', 'Sales Team'];
     const users = ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emma Davis', 'James Wilson'];
     const encodings = [
-        { text: 'GSM-7', weight: 80 },
+        { text: 'GSM', weight: 80 },
         { text: 'Unicode', weight: 20 }
     ];
     const countries = ['UK', 'US', 'DE', 'FR', 'ES', 'IE'];
+    const ukNetworkPrefixes = ['EE', 'Vodafone', 'O2', 'Three', 'MVNO/Other'];
+    const suppliers = ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D'];
+    const gsmErrorCodes = [null, null, null, null, null, '000', '001', '002', '003', '004', '005', '006', '007', '008'];
     const messages = [
         'Your order has been dispatched and will arrive tomorrow.',
         'Reminder: Your appointment is scheduled for tomorrow at 2pm.',
@@ -1081,33 +1190,50 @@ const MockAPI = (function() {
         const encoding = weightedRandom(encodings);
         const parts = seededRandom() < 0.2 ? Math.floor(seededRandom() * 3) + 2 : 1;
         const account = pickRandom(accounts);
+        const ukNetworkPrefix = pickRandom(ukNetworkPrefixes);
+        const supplier = pickRandom(suppliers);
         
         const sentTime = new Date(baseTime);
         sentTime.setMinutes(sentTime.getMinutes() - i * 5 - Math.floor(seededRandom() * 10));
         
+        const sentToSupplierTime = new Date(sentTime.getTime() + seededRandom() * 2000 + 100);
         const deliveryTime = status.text === 'Delivered' ? new Date(sentTime.getTime() + seededRandom() * 30000 + 5000) : null;
-        const completedTime = status.text !== 'Pending' ? new Date(sentTime.getTime() + seededRandom() * 60000 + 10000) : null;
+        const completeTime = status.text !== 'Pending' ? new Date(sentTime.getTime() + seededRandom() * 60000 + 10000) : null;
+        const supplierDoneTime = status.text !== 'Pending' ? new Date(sentTime.getTime() + seededRandom() * 55000 + 8000) : null;
         
         const phoneDigits = String(Math.floor(seededRandom() * 10000000000)).padStart(10, '0');
-        const phone = `+44 7${phoneDigits.substring(0, 1)}** ***${phoneDigits.substring(7)}`;
-        const phoneRaw = `+447${phoneDigits}`;
+        const phoneUnmasked = `+447${phoneDigits}`;
         
-        const cost = (parts * 0.035).toFixed(3);
-        const revenue = (parts * 0.048).toFixed(3);
+        const supplierCost = (parts * 0.025).toFixed(3);
+        const customerCost = (parts * 0.038).toFixed(3);
+        const margin = (parseFloat(customerCost) - parseFloat(supplierCost)).toFixed(3);
+        
+        const isPorted = seededRandom() < 0.15;
+        const portedTo = isPorted ? pickRandom(ukNetworkPrefixes.filter(n => n !== ukNetworkPrefix)) : null;
+        
+        const gsmErrorCode = ['Rejected', 'Undeliverable', 'Expired'].includes(status.text) ? pickRandom(gsmErrorCodes.filter(c => c !== null)) : null;
         
         dataset.push({
             id: `MSG-${String(i + 1).padStart(9, '0')}`,
+            customerMessageId: `CUST-${String(i + 1).padStart(9, '0')}`,
+            supplierMessageId: `SUP-${String(i + 1).padStart(9, '0')}`,
             account: account.name,
             accountId: account.id,
-            mobileNumber: phone,
-            mobileNumberRaw: phoneRaw,
+            mobileNumber: phoneUnmasked,
+            ukNetworkPrefix: ukNetworkPrefix,
             senderId: pickRandom(senders),
             status: { text: status.text },
             sentTime: sentTime,
+            sentToSupplier: sentToSupplierTime,
             deliveryTime: deliveryTime,
-            completedTime: completedTime,
-            cost: cost,
-            revenue: revenue,
+            completeTime: completeTime,
+            supplierDoneTime: supplierDoneTime,
+            supplierCost: supplierCost,
+            customerCost: customerCost,
+            margin: margin,
+            supplier: supplier,
+            portedTo: portedTo,
+            gsmErrorCode: gsmErrorCode,
             messageType: { text: messageType.text },
             subAccount: pickRandom(subAccounts),
             user: pickRandom(users),
@@ -1193,7 +1319,7 @@ const MockAPI = (function() {
             if (search && search.trim()) {
                 const searchTerm = search.toLowerCase().trim();
                 results = results.filter(msg => {
-                    const mobile = (msg.mobileNumberRaw + ' ' + msg.mobileNumber).toLowerCase();
+                    const mobile = msg.mobileNumber.toLowerCase();
                     const sender = msg.senderId.toLowerCase();
                     const account = msg.account.toLowerCase();
                     return mobile.includes(searchTerm) || sender.includes(searchTerm) || account.includes(searchTerm);
@@ -1213,13 +1339,21 @@ const MockAPI = (function() {
                             aVal = a.sentTime ? a.sentTime.getTime() : 0;
                             bVal = b.sentTime ? b.sentTime.getTime() : 0;
                             break;
+                        case 'sentToSupplier':
+                            aVal = a.sentToSupplier ? a.sentToSupplier.getTime() : 0;
+                            bVal = b.sentToSupplier ? b.sentToSupplier.getTime() : 0;
+                            break;
                         case 'deliveryTime':
                             aVal = a.deliveryTime ? a.deliveryTime.getTime() : 0;
                             bVal = b.deliveryTime ? b.deliveryTime.getTime() : 0;
                             break;
-                        case 'completedTime':
-                            aVal = a.completedTime ? a.completedTime.getTime() : 0;
-                            bVal = b.completedTime ? b.completedTime.getTime() : 0;
+                        case 'completeTime':
+                            aVal = a.completeTime ? a.completeTime.getTime() : 0;
+                            bVal = b.completeTime ? b.completeTime.getTime() : 0;
+                            break;
+                        case 'supplierDoneTime':
+                            aVal = a.supplierDoneTime ? a.supplierDoneTime.getTime() : 0;
+                            bVal = b.supplierDoneTime ? b.supplierDoneTime.getTime() : 0;
                             break;
                         default:
                             return 0;
@@ -1315,8 +1449,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    const allColumnsList = ['account', 'mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost', 'revenue', 'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'messageId', 'content'];
-    const defaultColumns = { visible: ['account', 'mobileNumber', 'senderId', 'status', 'sentTime', 'deliveryTime', 'completedTime', 'cost'], order: allColumnsList };
+    const allColumnsList = ['account', 'mobileNumber', 'ukNetworkPrefix', 'senderId', 'status', 'sentTime', 'sentToSupplier', 'deliveryTime', 'completeTime', 'margin', 'supplier', 'portedTo', 'gsmErrorCode', 'supplierCost', 'customerCost', 'supplierDoneTime', 'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'supplierMessageId', 'customerMessageId'];
+    const defaultColumns = { visible: ['account', 'mobileNumber', 'ukNetworkPrefix', 'senderId', 'status', 'sentTime', 'sentToSupplier', 'deliveryTime', 'completeTime', 'margin'], order: allColumnsList };
     let columnConfig = loadColumnConfig();
     
     function loadColumnConfig() {
@@ -1412,14 +1546,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return `<tr class="${rowClass}">
             <td class="py-2 ${columnConfig.visible.includes('account') ? '' : 'd-none'}" data-column="account">${msg.account}</td>
-            <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber"><span class="mobile-masked">${msg.mobileNumber}</span></td>
+            <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber">${msg.mobileNumber}</td>
+            <td class="py-2 ${columnConfig.visible.includes('ukNetworkPrefix') ? '' : 'd-none'}" data-column="ukNetworkPrefix">${msg.ukNetworkPrefix || '—'}</td>
             <td class="py-2 ${columnConfig.visible.includes('senderId') ? '' : 'd-none'}" data-column="senderId">${msg.senderId}</td>
             <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status">${statusDisplay}</td>
             <td class="py-2 ${columnConfig.visible.includes('sentTime') ? '' : 'd-none'}" data-column="sentTime">${formatDateTime(msg.sentTime)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('sentToSupplier') ? '' : 'd-none'}" data-column="sentToSupplier">${formatDateTime(msg.sentToSupplier)}</td>
             <td class="py-2 ${columnConfig.visible.includes('deliveryTime') ? '' : 'd-none'}" data-column="deliveryTime">${formatDateTime(msg.deliveryTime)}</td>
-            <td class="py-2 ${columnConfig.visible.includes('completedTime') ? '' : 'd-none'}" data-column="completedTime">${formatDateTime(msg.completedTime)}</td>
-            <td class="py-2 ${columnConfig.visible.includes('cost') ? '' : 'd-none'}" data-column="cost">£${msg.cost}</td>
-            <td class="py-2 ${columnConfig.visible.includes('revenue') ? '' : 'd-none'}" data-column="revenue">£${msg.revenue}</td>
+            <td class="py-2 ${columnConfig.visible.includes('completeTime') ? '' : 'd-none'}" data-column="completeTime">${formatDateTime(msg.completeTime)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('margin') ? '' : 'd-none'}" data-column="margin">£${msg.margin}</td>
+            <td class="py-2 ${columnConfig.visible.includes('supplier') ? '' : 'd-none'}" data-column="supplier">${msg.supplier || '—'}</td>
+            <td class="py-2 ${columnConfig.visible.includes('portedTo') ? '' : 'd-none'}" data-column="portedTo">${msg.portedTo || '—'}</td>
+            <td class="py-2 ${columnConfig.visible.includes('gsmErrorCode') ? '' : 'd-none'}" data-column="gsmErrorCode">${msg.gsmErrorCode || '—'}</td>
+            <td class="py-2 ${columnConfig.visible.includes('supplierCost') ? '' : 'd-none'}" data-column="supplierCost">£${msg.supplierCost}</td>
+            <td class="py-2 ${columnConfig.visible.includes('customerCost') ? '' : 'd-none'}" data-column="customerCost">£${msg.customerCost}</td>
+            <td class="py-2 ${columnConfig.visible.includes('supplierDoneTime') ? '' : 'd-none'}" data-column="supplierDoneTime">${formatDateTime(msg.supplierDoneTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('messageType') ? '' : 'd-none'}" data-column="messageType">${typeText}</td>
             <td class="py-2 ${columnConfig.visible.includes('subAccount') ? '' : 'd-none'}" data-column="subAccount">${msg.subAccount}</td>
             <td class="py-2 ${columnConfig.visible.includes('user') ? '' : 'd-none'}" data-column="user">${msg.user}</td>
@@ -1427,8 +1568,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="py-2 ${columnConfig.visible.includes('country') ? '' : 'd-none'}" data-column="country">${msg.country}</td>
             <td class="py-2 ${columnConfig.visible.includes('parts') ? '' : 'd-none'}" data-column="parts">${msg.parts}</td>
             <td class="py-2 ${columnConfig.visible.includes('encoding') ? '' : 'd-none'}" data-column="encoding">${encodingText}</td>
-            <td class="py-2 ${columnConfig.visible.includes('messageId') ? '' : 'd-none'}" data-column="messageId">${msg.id}</td>
-            <td class="py-2 ${columnConfig.visible.includes('content') ? '' : 'd-none'}" data-column="content">${renderMessageContent(msg.content)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('supplierMessageId') ? '' : 'd-none'}" data-column="supplierMessageId">${msg.supplierMessageId || '—'}</td>
+            <td class="py-2 ${columnConfig.visible.includes('customerMessageId') ? '' : 'd-none'}" data-column="customerMessageId">${msg.customerMessageId || '—'}</td>
             <td class="py-2 text-center" data-column="actions">
                 <div class="dropdown">
                     <span class="action-dots" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
@@ -1437,8 +1578,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="dropdown-menu dropdown-menu-end border py-0">
                         <div class="dropdown-content">
                             <a class="dropdown-item" href="#!" onclick="viewMessageDetails('${msg.id}'); return false;"><i class="fas fa-eye me-2 text-info"></i>View Details</a>
-                            <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msg.id}', 'Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Message ID</a>
-                            <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msg.mobileNumberRaw}', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
+                            <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msg.customerMessageId}', 'Customer Message ID'); return false;"><i class="fas fa-copy me-2 text-primary"></i>Copy Customer Message ID</a>
+                            <a class="dropdown-item" href="#!" onclick="copyToClipboard('${msg.mobileNumber}', 'Mobile Number'); return false;"><i class="fas fa-phone me-2 text-success"></i>Copy Mobile Number</a>
                         </div>
                     </div>
                 </div>
@@ -1454,7 +1595,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (reset) {
             currentPage = 1;
-            tableBody.innerHTML = `<tr id="loadingInitialRow"><td colspan="19" class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div><span class="text-muted">Loading messages...</span></td></tr>`;
+            tableBody.innerHTML = `<tr id="loadingInitialRow"><td colspan="26" class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div><span class="text-muted">Loading messages...</span></td></tr>`;
             noResultsState.classList.add('d-none');
         } else {
             loadingMore.classList.remove('d-none');
@@ -1503,7 +1644,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('[Message Log] Error loading messages:', error);
             if (reset) {
-                tableBody.innerHTML = `<tr><td colspan="19" class="text-center py-5 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading messages. Please try again.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="26" class="text-center py-5 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error loading messages. Please try again.</td></tr>`;
             }
         } finally {
             isLoading = false;
