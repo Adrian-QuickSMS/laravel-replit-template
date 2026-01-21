@@ -443,67 +443,54 @@
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Sub Account</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="subSuppliers" id="subSupplierDropdown">
+                                        <label class="form-label small fw-bold">Supplier GW</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="supplierGateways" id="supplierGatewayDropdown">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                                <span class="dropdown-label">All Sub Accounts</span>
+                                                <span class="dropdown-label">All Gateways</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2">
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 280px; overflow-y: auto;">
+                                                <input type="text" class="form-control form-control-sm mb-2" placeholder="Search gateways..." id="supplierGatewaySearch">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Supplier" id="subAcc1"><label class="form-check-label small" for="subAcc1">Main Supplier</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing Team" id="subAcc2"><label class="form-check-label small" for="subAcc2">Marketing Team</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Support Team" id="subAcc3"><label class="form-check-label small" for="subAcc3">Support Team</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Sales Team" id="subAcc4"><label class="form-check-label small" for="subAcc4">Sales Team</label></div>
+                                                <div id="supplierGatewayCheckboxList">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-UK-01" id="gw1"><label class="form-check-label small" for="gw1">UK SMS Direct - GW01</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-UK-02" id="gw2"><label class="form-check-label small" for="gw2">UK SMS Direct - GW02</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-INT-01" id="gw3"><label class="form-check-label small" for="gw3">International Routes - GW01</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-INT-02" id="gw4"><label class="form-check-label small" for="gw4">International Routes - GW02</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-PREM-01" id="gw5"><label class="form-check-label small" for="gw5">Premium Gateway - GW01</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-BULK-01" id="gw6"><label class="form-check-label small" for="gw6">Bulk SMS Provider - GW01</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-ENT-01" id="gw7"><label class="form-check-label small" for="gw7">Enterprise Connect - GW01</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="GW-MOB-01" id="gw8"><label class="form-check-label small" for="gw8">Mobile Networks UK - GW01</label></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">User</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="users" id="userDropdown">
+                                        <label class="form-label small fw-bold">Account</label>
+                                        <div class="dropdown multiselect-dropdown" data-filter="accounts" id="accountDropdown">
                                             <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                                <span class="dropdown-label">All Users</span>
+                                                <span class="dropdown-label">All Accounts</span>
                                             </button>
-                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                            <div class="dropdown-menu w-100 p-2" style="max-height: 280px; overflow-y: auto;">
+                                                <input type="text" class="form-control form-control-sm mb-2" placeholder="Search accounts..." id="accountSearch">
                                                 <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
                                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                                 </div>
-                                                <div class="form-check" data-subsupplier="Main Supplier"><input class="form-check-input" type="checkbox" value="John Smith" id="user1"><label class="form-check-label small" for="user1">John Smith</label></div>
-                                                <div class="form-check" data-subsupplier="Main Supplier"><input class="form-check-input" type="checkbox" value="Sarah Johnson" id="user2"><label class="form-check-label small" for="user2">Sarah Johnson</label></div>
-                                                <div class="form-check" data-subsupplier="Marketing Team"><input class="form-check-input" type="checkbox" value="Mike Williams" id="user3"><label class="form-check-label small" for="user3">Mike Williams</label></div>
-                                                <div class="form-check" data-subsupplier="Marketing Team"><input class="form-check-input" type="checkbox" value="Emma Davis" id="user4"><label class="form-check-label small" for="user4">Emma Davis</label></div>
-                                                <div class="form-check" data-subsupplier="Support Team"><input class="form-check-input" type="checkbox" value="James Wilson" id="user5"><label class="form-check-label small" for="user5">James Wilson</label></div>
-                                                <div class="form-check" data-subsupplier="Support Team"><input class="form-check-input" type="checkbox" value="Lisa Brown" id="user6"><label class="form-check-label small" for="user6">Lisa Brown</label></div>
-                                                <div class="form-check" data-subsupplier="Sales Team"><input class="form-check-input" type="checkbox" value="David Miller" id="user7"><label class="form-check-label small" for="user7">David Miller</label></div>
-                                                <div class="form-check" data-subsupplier="Sales Team"><input class="form-check-input" type="checkbox" value="Amy Garcia" id="user8"><label class="form-check-label small" for="user8">Amy Garcia</label></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Group Name</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="groupNames" id="groupNameDropdown">
-                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                                <span class="dropdown-label">All Groups</span>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
-                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
-                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
-                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                                                <div id="accountCheckboxList">
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-001" id="acc1"><label class="form-check-label small" for="acc1">Acme Corporation</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-002" id="acc2"><label class="form-check-label small" for="acc2">Finance Ltd</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-003" id="acc3"><label class="form-check-label small" for="acc3">Healthcare Plus</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-004" id="acc4"><label class="form-check-label small" for="acc4">Retail Group</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-005" id="acc5"><label class="form-check-label small" for="acc5">Tech Solutions</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-006" id="acc6"><label class="form-check-label small" for="acc6">Media Group</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-007" id="acc7"><label class="form-check-label small" for="acc7">Education First</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-008" id="acc8"><label class="form-check-label small" for="acc8">Logistics Pro</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-009" id="acc9"><label class="form-check-label small" for="acc9">Legal Partners</label></div>
+                                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="ACC-010" id="acc10"><label class="form-check-label small" for="acc10">Energy Corp</label></div>
                                                 </div>
-                                                <div class="optgroup-label">Marketing</div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Newsletter Subscribers" id="group1"><label class="form-check-label small" for="group1">Newsletter Subscribers</label></div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="VIP Customers" id="group2"><label class="form-check-label small" for="group2">VIP Customers</label></div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Promotional Leads" id="group3"><label class="form-check-label small" for="group3">Promotional Leads</label></div>
-                                                <div class="optgroup-label">Transactional</div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Order Notifications" id="group4"><label class="form-check-label small" for="group4">Order Notifications</label></div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Delivery Alerts" id="group5"><label class="form-check-label small" for="group5">Delivery Alerts</label></div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Payment Reminders" id="group6"><label class="form-check-label small" for="group6">Payment Reminders</label></div>
-                                                <div class="optgroup-label">Support</div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Customer Support" id="group7"><label class="form-check-label small" for="group7">Customer Support</label></div>
-                                                <div class="form-check optgroup-item"><input class="form-check-input" type="checkbox" value="Technical Alerts" id="group8"><label class="form-check-label small" for="group8">Technical Alerts</label></div>
                                             </div>
                                         </div>
                                     </div>
@@ -543,31 +530,6 @@
                                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="VERIFY" id="sender6"><label class="form-check-label small" for="sender6">VERIFY</label></div>
                                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="UPDATES" id="sender7"><label class="form-check-label small" for="sender7">UPDATES</label></div>
                                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="NEWS" id="sender8"><label class="form-check-label small" for="sender8">NEWS</label></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row g-3 align-items-end mt-2">
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Invoice Ref</label>
-                                        <input type="text" class="form-control form-control-sm" id="invoiceRefFilter" placeholder="e.g. INV-2025-0001">
-                                    </div>
-                                    <div class="col-6 col-md-4 col-lg-2">
-                                        <label class="form-label small fw-bold">Origin</label>
-                                        <div class="dropdown multiselect-dropdown" data-filter="origins">
-                                            <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                                                <span class="dropdown-label">All Origins</span>
-                                            </button>
-                                            <div class="dropdown-menu w-100 p-2">
-                                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
-                                                    <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
-                                                    <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
-                                                </div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Portal" id="origin1"><label class="form-check-label small" for="origin1">Portal</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="API" id="origin2"><label class="form-check-label small" for="origin2">API</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Email-to-SMS" id="origin3"><label class="form-check-label small" for="origin3">Email-to-SMS</label></div>
-                                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Integration" id="origin4"><label class="form-check-label small" for="origin4">Integration</label></div>
                                             </div>
                                         </div>
                                     </div>
@@ -1007,8 +969,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initFilterActions();
     initSenderIdPredictive();
     handleUrlParameters();
-    initSubSupplierUserFiltering();
     initSupplierFilter();
+    initSupplierGatewayFilter();
+    initAccountFilter();
     initSupplierLinks();
     loadInitialData();
 });
@@ -1073,6 +1036,108 @@ function updateSupplierDropdownLabel() {
         labelSpan.textContent = label;
     } else {
         labelSpan.textContent = checked.length + ' Suppliers';
+    }
+}
+
+// Admin-only: Initialize Supplier GW filter with multi-select dropdown and search
+function initSupplierGatewayFilter() {
+    var gatewayDropdown = document.getElementById('supplierGatewayDropdown');
+    var searchInput = document.getElementById('supplierGatewaySearch');
+    var checkboxList = document.getElementById('supplierGatewayCheckboxList');
+    
+    if (!gatewayDropdown || !searchInput) return;
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var checkboxes = checkboxList.querySelectorAll('.form-check');
+        
+        checkboxes.forEach(function(item) {
+            var label = item.querySelector('label').textContent.toLowerCase();
+            if (query === '' || label.includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+    
+    // Update label on checkbox change
+    checkboxList.addEventListener('change', function() {
+        updateSupplierGatewayDropdownLabel();
+    });
+    
+    // Prevent dropdown from closing when clicking inside
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+}
+
+function updateSupplierGatewayDropdownLabel() {
+    var dropdown = document.getElementById('supplierGatewayDropdown');
+    if (!dropdown) return;
+    
+    var checked = dropdown.querySelectorAll('.form-check-input:checked');
+    var labelSpan = dropdown.querySelector('.dropdown-label');
+    
+    if (checked.length === 0) {
+        labelSpan.textContent = 'All Gateways';
+    } else if (checked.length === 1) {
+        var label = checked[0].closest('.form-check').querySelector('label').textContent;
+        labelSpan.textContent = label;
+    } else {
+        labelSpan.textContent = checked.length + ' Gateways';
+    }
+}
+
+// Admin-only: Initialize Account filter with multi-select dropdown and search
+function initAccountFilter() {
+    var accountDropdown = document.getElementById('accountDropdown');
+    var searchInput = document.getElementById('accountSearch');
+    var checkboxList = document.getElementById('accountCheckboxList');
+    
+    if (!accountDropdown || !searchInput) return;
+    
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var checkboxes = checkboxList.querySelectorAll('.form-check');
+        
+        checkboxes.forEach(function(item) {
+            var label = item.querySelector('label').textContent.toLowerCase();
+            if (query === '' || label.includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+    
+    // Update label on checkbox change
+    checkboxList.addEventListener('change', function() {
+        updateAccountDropdownLabel();
+    });
+    
+    // Prevent dropdown from closing when clicking inside
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+}
+
+function updateAccountDropdownLabel() {
+    var dropdown = document.getElementById('accountDropdown');
+    if (!dropdown) return;
+    
+    var checked = dropdown.querySelectorAll('.form-check-input:checked');
+    var labelSpan = dropdown.querySelector('.dropdown-label');
+    
+    if (checked.length === 0) {
+        labelSpan.textContent = 'All Accounts';
+    } else if (checked.length === 1) {
+        var label = checked[0].closest('.form-check').querySelector('label').textContent;
+        labelSpan.textContent = label;
+    } else {
+        labelSpan.textContent = checked.length + ' Accounts';
     }
 }
 
@@ -1323,11 +1388,14 @@ function updateDropdownLabel(dropdown) {
     
     var defaultLabels = {
         'billingMonths': 'All Months',
-        'subSuppliers': 'All Sub Accounts',
-        'users': 'All Users',
-        'groupNames': 'All Groups',
+        'supplierGateways': 'All Gateways',
+        'accounts': 'All Accounts',
         'productTypes': 'All Products',
-        'messageTypes': 'All Types'
+        'messageTypes': 'All Types',
+        'suppliers': 'All Suppliers',
+        'products': 'All Products',
+        'senderIds': 'All Sender IDs',
+        'countries': 'All Countries'
     };
     
     if (checked.length === 0) {
@@ -1599,11 +1667,12 @@ function applyFilters() {
             var filterName = dropdown.getAttribute('data-filter');
             var filterLabels = {
                 'billingMonths': 'Month',
-                'subSuppliers': 'Sub Account',
-                'users': 'User',
-                'groupNames': 'Group',
-                'productTypes': 'Product',
-                'messageTypes': 'Message Type'
+                'supplierGateways': 'Supplier GW',
+                'accounts': 'Account',
+                'suppliers': 'Supplier',
+                'products': 'Product',
+                'senderIds': 'Sender ID',
+                'countries': 'Country'
             };
             checked.forEach(function(cb) {
                 var label = cb.nextElementSibling ? cb.nextElementSibling.textContent : cb.value;
@@ -1789,6 +1858,28 @@ function resetFilters() {
     }
     var supplierSearchInput = document.getElementById('supplierSearchInput');
     if (supplierSearchInput) supplierSearchInput.value = '';
+    
+    // Admin-only: Clear Supplier GW filter (multi-select)
+    var gatewayDropdown = document.getElementById('supplierGatewayDropdown');
+    if (gatewayDropdown) {
+        gatewayDropdown.querySelectorAll('.form-check-input').forEach(function(cb) {
+            cb.checked = false;
+        });
+        updateSupplierGatewayDropdownLabel();
+    }
+    var gatewaySearchInput = document.getElementById('supplierGatewaySearch');
+    if (gatewaySearchInput) gatewaySearchInput.value = '';
+    
+    // Admin-only: Clear Account filter (multi-select)
+    var accountDropdown = document.getElementById('accountDropdown');
+    if (accountDropdown) {
+        accountDropdown.querySelectorAll('.form-check-input').forEach(function(cb) {
+            cb.checked = false;
+        });
+        updateAccountDropdownLabel();
+    }
+    var accountSearchInput = document.getElementById('accountSearch');
+    if (accountSearchInput) accountSearchInput.value = '';
     
     document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
         dropdown.querySelectorAll('.form-check-input').forEach(function(cb) {
