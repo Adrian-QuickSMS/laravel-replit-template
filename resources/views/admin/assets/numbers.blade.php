@@ -860,6 +860,7 @@ tr.selected-row:hover {
                     <li><h6 class="dropdown-header">Assignment Actions</h6></li>
                     <li><a class="dropdown-item" href="#" onclick="initBulkAction('assignCustomer'); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign to Customer</a></li>
                     <li><a class="dropdown-item" href="#" onclick="initBulkAction('assignSubAccount'); return false;"><i class="fas fa-sitemap me-2 text-muted"></i>Assign to Sub-Account</a></li>
+                    <li><a class="dropdown-item text-danger" href="#" id="bulkReturnToPoolBtn" onclick="initBulkAction('returnToPool'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><h6 class="dropdown-header">Configuration Actions</h6></li>
                     <li><a class="dropdown-item" href="#" id="bulkChangeModeBtn" onclick="initBulkAction('changeMode'); return false;"><i class="fas fa-sync-alt me-2 text-muted"></i>Change Mode</a></li>
@@ -3097,6 +3098,29 @@ function initBulkAction(actionType) {
                 </div>
             `;
             break;
+            
+        case 'returnToPool':
+            title = 'Return Numbers to Pool';
+            compatible = selected.filter(n => n.account !== 'Unassigned Pool');
+            incompatible = selected.filter(n => n.account === 'Unassigned Pool');
+            summary = buildBulkSummaryTable(compatible, 'Account', n => n.account, () => '<span class="text-muted">Unassigned Pool</span>');
+            hasBillingImpact = true;
+            billingChanges = [
+                { label: 'Account Attribution', before: 'Current customer', after: 'Unassigned Pool' },
+                { label: 'Billing Effect', before: 'Customer billed', after: 'Platform inventory (no customer billing)' }
+            ];
+            optionsEl.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Reason for Returning to Pool <span class="text-danger">*</span></label>
+                    <textarea id="bulkReturnReason" class="form-control" rows="2" placeholder="Enter reason for returning numbers to pool..." required></textarea>
+                    <small class="text-muted">This will be recorded in the audit trail</small>
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action will unassign these numbers from their current customers and return them to the available inventory pool.
+                </div>
+            `;
+            break;
     }
     
     titleEl.innerHTML = `<i class="fas fa-tasks me-2"></i>${title}`;
@@ -3373,6 +3397,19 @@ async function executeBulkAction() {
                     'Bulk admin capability update'
                 );
                 break;
+                
+            case 'returnToPool':
+                compatible = selected.filter(n => n.account !== 'Unassigned Pool');
+                const returnReason = document.getElementById('bulkReturnReason')?.value;
+                if (!returnReason || returnReason.trim().length < 5) {
+                    showToast('Please provide a reason for returning numbers to pool (min 5 characters)', 'error');
+                    return;
+                }
+                result = await NumbersAdminService.bulkReturnToPool(
+                    compatible.map(n => n.id),
+                    returnReason
+                );
+                break;
         }
         
         if (result) {
@@ -3383,7 +3420,8 @@ async function executeBulkAction() {
                     'assignCustomer': 'NUMBER_REASSIGNED',
                     'assignSubAccount': 'NUMBER_REASSIGNED',
                     'changeMode': 'NUMBER_MODE_CHANGED',
-                    'capabilities': 'NUMBER_CAPABILITY_CHANGED'
+                    'capabilities': 'NUMBER_CAPABILITY_CHANGED',
+                    'returnToPool': 'NUMBER_RETURNED_TO_POOL'
                 };
                 ADMIN_AUDIT.logBulkNumberAction(
                     eventTypeMap[currentBulkAction] || currentBulkAction.toUpperCase(),
