@@ -1843,17 +1843,24 @@ function getDrillPath() {
 
 var dimensionLabels = {
     'month': 'Billing Month',
+    'account': 'Account',
     'day': 'Day',
     'product': 'Product',
     'sub_account': 'Sub Account',
     'user': 'User',
     'sender_id': 'Sender ID',
     'origin': 'Origin',
-    'country': 'Country',
-    'group_name': 'Group Name'
+    'country': 'Country'
 };
 
 var mockDrillData = {
+    account: [
+        { label: 'Acme Corporation', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
+        { label: 'Finance Ltd', billable: 38500, nonBillable: 650, total: 39150, cost: '£1,230.72', status: 'Finalised' },
+        { label: 'Tech Solutions', billable: 32456, nonBillable: 567, total: 33023, cost: '£1,038.59', status: 'Finalised' },
+        { label: 'Global Retail', billable: 28934, nonBillable: 489, total: 29423, cost: '£925.89', status: 'Finalised' },
+        { label: 'Healthcare Plus', billable: 18765, nonBillable: 312, total: 19077, cost: '£610.48', status: 'Finalised' }
+    ],
     day: [
         { label: '2025-01-01', billable: 4521, nonBillable: 89, total: 4610, cost: '£144.06', status: 'Finalised' },
         { label: '2025-01-02', billable: 4832, nonBillable: 102, total: 4934, cost: '£154.19', status: 'Finalised' },
@@ -1900,13 +1907,6 @@ var mockDrillData = {
         { label: 'Germany', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' },
         { label: 'France', billable: 8765, nonBillable: 167, total: 8932, cost: '£279.13', status: 'Finalised' },
         { label: 'Ireland', billable: 5432, nonBillable: 98, total: 5530, cost: '£172.81', status: 'Finalised' }
-    ],
-    group_name: [
-        { label: 'VIP Customers', billable: 34567, nonBillable: 678, total: 35245, cost: '£1,101.41', status: 'Finalised' },
-        { label: 'Newsletter', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
-        { label: 'Promotions', billable: 18765, nonBillable: 367, total: 19132, cost: '£597.88', status: 'Finalised' },
-        { label: 'Alerts', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
-        { label: 'API Integration', billable: 4321, nonBillable: 87, total: 4408, cost: '£137.75', status: 'Finalised' }
     ]
 };
 
@@ -2037,14 +2037,14 @@ function updateDimensionSelector() {
 
 function getDimensionIcon(dimension) {
     var icons = {
+        'account': 'fas fa-building',
         'day': 'fas fa-calendar-day',
         'product': 'fas fa-box',
-        'sub_account': 'fas fa-building',
+        'sub_account': 'fas fa-sitemap',
         'user': 'fas fa-user',
         'sender_id': 'fas fa-signature',
         'origin': 'fas fa-paper-plane',
-        'country': 'fas fa-globe',
-        'group_name': 'fas fa-users'
+        'country': 'fas fa-globe'
     };
     return icons[dimension] || 'fas fa-layer-group';
 }
