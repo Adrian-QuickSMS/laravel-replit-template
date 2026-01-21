@@ -1,0 +1,43 @@
+MINI PROMPT — Admin Console: Supplier Reporting (Global) = Customer “Finance Data” (Identical, Supplier-Driven)
+
+Goal
+Create an Admin Console module called “Supplier Reporting” that is an IDENTICAL copy of the customer portal module:
+Reporting → Finance Data
+Same functionality, same UI layout, same filters, same table, same exports, same calculations, same statuses, same empty/error states.
+DO NOT redesign anything, do not introduce new UI components, do not change wording or interaction patterns.
+
+Critical Constraints
+- Reuse the existing Finance Data component/code/shared logic. Do NOT create a second implementation.
+- The ONLY UI theme change allowed is swapping Fillow purple accents to Admin Blue accents (admin console theme).
+- Row colouring, status colours, pastel pills, and all non-theme semantic colours must remain exactly the same.
+- Filtering behaviour must remain “Apply Filters” (no auto-apply) if that is how Finance Data works today.
+
+Admin-Only Differences (Only These Changes)
+1) Global scope (all customers), but supplier-driven:
+   - Data source/query must return Finance Data across ALL customer accounts, grouped/filtered by Supplier (admin permission scope).
+   - Default view = All Suppliers.
+
+2) Supplier is the primary filter (required):
+   - Add a “Supplier” filter control to the existing filter bar (use existing Fillow filter style):
+     - Searchable dropdown (typeahead), single-select.
+     - Default: “All Suppliers”.
+   - Selecting a supplier and clicking “Apply Filters” filters the entire view to that supplier.
+
+3) Supplier column visibility:
+   - If the Finance Data table already includes Supplier, keep it in the same place.
+   - If it does NOT include Supplier, add a “Supplier” column as the first column.
+   - Ensure the rest of the table remains identical to Finance Data and columns still match design rules.
+
+4) Optional admin drill (only if route exists, otherwise stub):
+   - Clicking Supplier name (where shown) navigates to Admin → Suppliers/Routes (future). If not built, stub route but do not alter UI design.
+
+Non-Functional / Safety
+- Must remain backend-ready: if supplier/global endpoints are not available, use mock data but keep the exact same shape as Finance Data plus supplier field.
+- No new metrics, no new definitions. Use the same master warehouse definitions as Finance Data.
+- Exports must include Supplier context when “All Suppliers” is selected (either as an export column or per-row field), without changing the in-app table unless required above.
+
+Acceptance Criteria
+- Visually and behaviourally identical to customer Reporting → Finance Data (apart from Admin Blue accents).
+- “Supplier” filter works and drives Apply Filters.
+- Default All Suppliers view works.
+- No new UI patterns introduced.
