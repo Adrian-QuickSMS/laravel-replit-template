@@ -1345,6 +1345,10 @@ body > .dropdown-menu.dropdown-menu-end {
                 <span class="detail-label">Allowed Sender Emails</span>
                 <span class="detail-value" id="clmDrawerAllowedSenders">-</span>
             </div>
+            <div class="detail-row">
+                <span class="detail-label">Originating Emails</span>
+                <span class="detail-value" id="clmDrawerOriginatingEmails">-</span>
+            </div>
         </div>
         
         <div class="mb-4">
@@ -2982,6 +2986,17 @@ $(document).ready(function() {
                 return '<code class="d-block mb-1">' + escapeHtml(email) + '</code>';
             }).join('');
             $('#clmDrawerAllowedSenders').html(sendersHtml);
+        }
+        
+        // Display originating emails (generated target addresses)
+        var originatingEmails = item.originatingEmails || [];
+        if (originatingEmails.length === 0) {
+            $('#clmDrawerOriginatingEmails').html('<span class="text-muted">Not configured</span>');
+        } else {
+            var originatingHtml = originatingEmails.map(function(email) {
+                return '<code class="d-block mb-1">' + escapeHtml(email) + '</code>';
+            }).join('');
+            $('#clmDrawerOriginatingEmails').html(originatingHtml);
         }
         
         if (item.targetLists.length === 0) {
