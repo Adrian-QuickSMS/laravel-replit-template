@@ -1480,9 +1480,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const STORAGE_KEY = 'adminMessageLogColumnConfig';
     const currentUserRole = 'admin';
+    const isAdminContext = true;
     
     function canViewMessageContent() {
         return currentUserRole === 'super_admin';
+    }
+    
+    function canViewUnmaskedMobileNumber() {
+        return isAdminContext === true;
+    }
+    
+    function renderMobileNumber(mobileNumber) {
+        if (canViewUnmaskedMobileNumber()) {
+            return mobileNumber;
+        } else {
+            const masked = mobileNumber.replace(/(\+\d{2}\d{2})\d{5}(\d{3})/, '$1*****$2');
+            return `<span class="mobile-masked">${masked}</span>`;
+        }
     }
     
     function renderMessageContent(plaintext) {
@@ -1591,7 +1605,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return `<tr class="${rowClass}">
             <td class="py-2 ${columnConfig.visible.includes('account') ? '' : 'd-none'}" data-column="account">${msg.account}</td>
-            <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber">${msg.mobileNumber}</td>
+            <td class="py-2 ${columnConfig.visible.includes('mobileNumber') ? '' : 'd-none'}" data-column="mobileNumber">${renderMobileNumber(msg.mobileNumber)}</td>
             <td class="py-2 ${columnConfig.visible.includes('ukNetworkPrefix') ? '' : 'd-none'}" data-column="ukNetworkPrefix">${msg.ukNetworkPrefix || '—'}</td>
             <td class="py-2 ${columnConfig.visible.includes('senderId') ? '' : 'd-none'}" data-column="senderId">${msg.senderId}</td>
             <td class="py-2 ${columnConfig.visible.includes('status') ? '' : 'd-none'}" data-column="status">${statusDisplay}</td>
