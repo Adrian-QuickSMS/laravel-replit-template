@@ -370,22 +370,24 @@
                             <div class="collapse mb-3" id="filtersPanel">
                             <div class="card card-body border-0 rounded-3 admin-filter-panel">
                                 <div class="row g-3 align-items-start">
-                                    <div class="col-12 col-lg-4">
+                                    <!-- Date Range - Full Width Row -->
+                                    <div class="col-12">
                                         <label class="form-label small fw-bold">Date Range</label>
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1">
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateFrom" step="1" style="max-width: 200px;">
                                             <span class="text-muted small">to</span>
-                                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1">
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-1 mt-2">
-                                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="7days">Last 7 Days</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="thismonth">This Month</button>
-                                            <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="lastmonth">Last Month</button>
+                                            <input type="datetime-local" class="form-control form-control-sm" id="filterDateTo" step="1" style="max-width: 200px;">
+                                            <div class="d-flex flex-wrap gap-1 ms-3">
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="today">Today</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="yesterday">Yesterday</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="7days">Last 7 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="30days">Last 30 Days</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="thismonth">This Month</button>
+                                                <button type="button" class="btn btn-outline-primary btn-xs date-preset-btn" data-preset="lastmonth">Last Month</button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <!-- Row 2: Account, Sub Account, Origin -->
                                     <div class="col-6 col-md-4 col-lg-2">
                                         <label class="form-label small fw-bold">Account</label>
                                         <div class="dropdown searchable-dropdown" data-filter="accounts">
