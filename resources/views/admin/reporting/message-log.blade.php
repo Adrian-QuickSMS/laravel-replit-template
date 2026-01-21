@@ -704,7 +704,19 @@
                                                 </ul>
                                             </div>
                                         </th>
-                                        <th data-column="margin">Margin</th>
+                                        <th data-column="margin">
+                                            <div class="dropdown d-inline-block">
+                                                <span class="dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                                                    Margin <i class="fas fa-sort ms-1 text-muted" id="sortIconMargin"></i>
+                                                </span>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="margin" data-direction="desc"><i class="fas fa-arrow-down me-2"></i> Highest First</a></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="margin" data-direction="asc"><i class="fas fa-arrow-up me-2"></i> Lowest First</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item sort-option" href="#!" data-field="margin" data-direction=""><i class="fas fa-times me-2 text-muted"></i> Clear Sort</a></li>
+                                                </ul>
+                                            </div>
+                                        </th>
                                         <th data-column="supplier" class="d-none">Supplier</th>
                                         <th data-column="portedTo" class="d-none">Ported To</th>
                                         <th data-column="gsmErrorCode" class="d-none">GSM Error Code</th>
@@ -1400,6 +1412,13 @@ const MockAPI = (function() {
                             aVal = a.supplierDoneTime ? a.supplierDoneTime.getTime() : 0;
                             bVal = b.supplierDoneTime ? b.supplierDoneTime.getTime() : 0;
                             break;
+                        case 'margin':
+                            aVal = (a.supplierCost !== null && a.customerCost !== null) ? parseFloat(a.margin) : null;
+                            bVal = (b.supplierCost !== null && b.customerCost !== null) ? parseFloat(b.margin) : null;
+                            if (aVal === null && bVal === null) return 0;
+                            if (aVal === null) return 1;
+                            if (bVal === null) return -1;
+                            break;
                         default:
                             return 0;
                     }
@@ -1508,6 +1527,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function renderMargin(supplierCost, customerCost, margin) {
+        if (supplierCost === null || supplierCost === undefined || 
+            customerCost === null || customerCost === undefined) {
+            return '—';
+        }
+        return `£${margin}`;
+    }
+    
+    function renderCost(cost) {
+        if (cost === null || cost === undefined) {
+            return '—';
+        }
+        return `£${cost}`;
+    }
+    
     const allColumnsList = ['account', 'mobileNumber', 'ukNetworkPrefix', 'senderId', 'status', 'sentTime', 'sentToSupplier', 'deliveryTime', 'completeTime', 'margin', 'supplier', 'portedTo', 'gsmErrorCode', 'supplierCost', 'customerCost', 'supplierDoneTime', 'messageType', 'subAccount', 'user', 'origin', 'country', 'parts', 'encoding', 'supplierMessageId', 'customerMessageId'];
     const defaultColumns = { visible: ['account', 'mobileNumber', 'ukNetworkPrefix', 'senderId', 'status', 'sentTime', 'sentToSupplier', 'deliveryTime', 'completeTime', 'margin'], order: allColumnsList };
     let columnConfig = loadColumnConfig();
@@ -1613,12 +1647,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="py-2 ${columnConfig.visible.includes('sentToSupplier') ? '' : 'd-none'}" data-column="sentToSupplier">${formatDateTime(msg.sentToSupplier)}</td>
             <td class="py-2 ${columnConfig.visible.includes('deliveryTime') ? '' : 'd-none'}" data-column="deliveryTime">${formatDateTime(msg.deliveryTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('completeTime') ? '' : 'd-none'}" data-column="completeTime">${formatDateTime(msg.completeTime)}</td>
-            <td class="py-2 ${columnConfig.visible.includes('margin') ? '' : 'd-none'}" data-column="margin">£${msg.margin}</td>
+            <td class="py-2 ${columnConfig.visible.includes('margin') ? '' : 'd-none'}" data-column="margin">${renderMargin(msg.supplierCost, msg.customerCost, msg.margin)}</td>
             <td class="py-2 ${columnConfig.visible.includes('supplier') ? '' : 'd-none'}" data-column="supplier">${msg.supplier || '—'}</td>
             <td class="py-2 ${columnConfig.visible.includes('portedTo') ? '' : 'd-none'}" data-column="portedTo">${msg.portedTo || '—'}</td>
             <td class="py-2 ${columnConfig.visible.includes('gsmErrorCode') ? '' : 'd-none'}" data-column="gsmErrorCode">${msg.gsmErrorCode || '—'}</td>
-            <td class="py-2 ${columnConfig.visible.includes('supplierCost') ? '' : 'd-none'}" data-column="supplierCost">£${msg.supplierCost}</td>
-            <td class="py-2 ${columnConfig.visible.includes('customerCost') ? '' : 'd-none'}" data-column="customerCost">£${msg.customerCost}</td>
+            <td class="py-2 ${columnConfig.visible.includes('supplierCost') ? '' : 'd-none'}" data-column="supplierCost">${renderCost(msg.supplierCost)}</td>
+            <td class="py-2 ${columnConfig.visible.includes('customerCost') ? '' : 'd-none'}" data-column="customerCost">${renderCost(msg.customerCost)}</td>
             <td class="py-2 ${columnConfig.visible.includes('supplierDoneTime') ? '' : 'd-none'}" data-column="supplierDoneTime">${formatDateTime(msg.supplierDoneTime)}</td>
             <td class="py-2 ${columnConfig.visible.includes('messageType') ? '' : 'd-none'}" data-column="messageType">${typeText}</td>
             <td class="py-2 ${columnConfig.visible.includes('subAccount') ? '' : 'd-none'}" data-column="subAccount">${msg.subAccount}</td>
