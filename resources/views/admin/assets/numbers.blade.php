@@ -1360,17 +1360,6 @@ tr.selected-row:hover {
 console.log('[Admin Numbers] Script starting...');
 console.log('[Admin Numbers] NumbersAdminService loaded:', typeof NumbersAdminService !== 'undefined');
 
-window.AdminNumbersDebug = {
-    error: null,
-    init: false
-};
-
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-    console.error('[Admin Numbers] Global error:', msg, 'at line', lineNo);
-    window.AdminNumbersDebug.error = { msg, lineNo };
-    return false;
-};
-
 let numbersData = [];
 let currentPage = 1;
 const rowsPerPage = 20;
@@ -3440,16 +3429,12 @@ function setupFilterButton() {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('[Admin Numbers] DOMContentLoaded fired');
         initNumbersPage();
         setupFilterButton();
-        window.AdminNumbersDebug.init = true;
     });
 } else {
-    console.log('[Admin Numbers] Document already ready, init immediately');
     initNumbersPage();
     setupFilterButton();
-    window.AdminNumbersDebug.init = true;
 }
 </script>
 @endpush
