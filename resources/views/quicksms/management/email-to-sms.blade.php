@@ -3000,7 +3000,11 @@ $(document).ready(function() {
     
     function openClmEditModal(id) {
         var item = findClmById(id);
-        if (!item) return;
+        if (!item) {
+            console.error('Contact List setup not found for ID:', id, 'Available IDs:', contactListSetups.map(function(s) { return s.id; }));
+            showErrorToast('Contact List configuration not found');
+            return;
+        }
         
         clmEditingId = id;
         
@@ -3054,7 +3058,8 @@ $(document).ready(function() {
         }
         updateClmOptOutSelection();
         
-        var modal = new bootstrap.Modal(document.getElementById('createContactListMappingModal'));
+        var modalEl = document.getElementById('createContactListMappingModal');
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
     
@@ -3683,6 +3688,58 @@ $(document).ready(function() {
         });
     });
     
+    // Reporting Groups Edit handler
+    var rgEditingId = null;
+    
+    $(document).on('click', '.edit-rg', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        openRgEditModal(id);
+    });
+    
+    function openRgEditModal(id) {
+        var group = reportingGroups.find(function(g) { return g.id === id; });
+        if (!group) {
+            showErrorToast('Reporting Group not found');
+            return;
+        }
+        
+        rgEditingId = id;
+        
+        // Update modal title and button
+        $('#createReportingGroupModal .modal-title').text('Edit Reporting Group');
+        $('#btnSaveReportingGroup').html('<i class="fas fa-check me-1"></i> Save Changes');
+        
+        // Populate fields
+        $('#rgName').val(group.name);
+        $('#rgDescription').val(group.description || '');
+        
+        // Populate address dropdown and select current
+        var allAddresses = EmailToSmsService.getMockOverviewAddresses();
+        var addressSelect = $('#rgAssignAddress');
+        addressSelect.empty().append('<option value="">Select an address...</option>');
+        allAddresses.forEach(function(addr) {
+            if (addr.status === 'Active') {
+                var selected = group.linkedAddresses && group.linkedAddresses.indexOf(addr.name) !== -1 ? ' selected' : '';
+                addressSelect.append('<option value="' + addr.id + '"' + selected + '>' + addr.name + ' (' + addr.type + ')</option>');
+            }
+        });
+        
+        var modalEl = document.getElementById('createReportingGroupModal');
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+    
+    // Reset modal on close
+    $('#createReportingGroupModal').on('hidden.bs.modal', function() {
+        rgEditingId = null;
+        $('#createReportingGroupModal .modal-title').text('Create Reporting Group');
+        $('#btnSaveReportingGroup').html('<i class="fas fa-check me-1"></i> Create Group');
+        $('#rgName').val('').removeClass('is-invalid');
+        $('#rgDescription').val('');
+        $('#rgAssignAddress').val('').removeClass('is-invalid');
+    });
+    
     $('#btnConfirmSuspend').on('click', function() {
         var id = $('#suspendModal').attr('data-address-id');
         var action = $('#suspendModal').attr('data-action');
@@ -3734,29 +3791,30 @@ $(document).ready(function() {
             return;
         }
         
+        var sourceType = selectedAddress.sourceType;
+        var sourceId = selectedAddress.sourceId;
+        
         closeDetailsDrawer();
         
         // Check the source type and navigate accordingly
-        if (selectedAddress.sourceType === 'standard') {
+        if (sourceType === 'standard') {
             // Standard Email-to-SMS - navigate to edit page
-            var standardId = selectedAddress.sourceId;
-            window.location.href = '/management/email-to-sms/standard/' + standardId + '/edit';
-        } else if (selectedAddress.sourceType === 'contactList') {
+            window.location.href = '/management/email-to-sms/standard/' + sourceId + '/edit';
+        } else if (sourceType === 'contactList') {
             // Contact List Email-to-SMS - switch tab and open edit modal
-            var contactListId = selectedAddress.sourceId;
-            
             // Switch to Contact List tab
-            var clTab = document.querySelector('a[href="#email-to-sms-contact-list"]');
-            if (clTab) {
-                var tabInstance = new bootstrap.Tab(clTab);
+            var clTabEl = document.querySelector('button[data-bs-target="#email-to-sms-contact-list"]');
+            if (clTabEl) {
+                var tabInstance = bootstrap.Tab.getOrCreateInstance(clTabEl);
                 tabInstance.show();
             }
             
             // Small delay to allow tab switch, then open edit modal
             setTimeout(function() {
-                openClmEditModal(contactListId);
-            }, 300);
+                openClmEditModal(sourceId);
+            }, 400);
         } else {
+            console.error('Unknown source type:', sourceType, 'Address:', selectedAddress);
             showErrorToast('Unable to determine configuration type');
         }
     });
