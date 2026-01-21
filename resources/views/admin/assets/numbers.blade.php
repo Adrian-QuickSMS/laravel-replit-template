@@ -1738,14 +1738,22 @@ function setupActionDropdownHandler() {
         const dropdownItem = e.target.closest('#numbersTableBody .dropdown-menu .dropdown-item');
         
         if (dropdownItem) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const action = dropdownItem.dataset.action;
+            const numberId = dropdownItem.dataset.id;
+            
+            console.log('[Admin Numbers] Dropdown item clicked - action:', action, 'id:', numberId);
+            
             const menu = dropdownItem.closest('.dropdown-menu');
             if (menu) {
-                setTimeout(() => {
-                    menu.classList.remove('show');
-                    const prevBtn = menu.previousElementSibling;
-                    if (prevBtn) prevBtn.setAttribute('aria-expanded', 'false');
-                }, 50);
+                menu.classList.remove('show');
+                const prevBtn = menu.previousElementSibling;
+                if (prevBtn) prevBtn.setAttribute('aria-expanded', 'false');
             }
+            
+            handleDropdownAction(action, numberId, dropdownItem.dataset);
             return;
         }
         
@@ -1782,43 +1790,93 @@ function setupActionDropdownHandler() {
     });
 }
 
+function handleDropdownAction(action, numberId, dataset) {
+    console.log('[Admin Numbers] Handling action:', action, 'for number:', numberId);
+    
+    switch (action) {
+        case 'view-config':
+            viewNumberDetails(numberId);
+            break;
+        case 'view-audit':
+            viewAuditTrail(numberId);
+            break;
+        case 'suspend':
+            confirmSuspend(numberId);
+            break;
+        case 'reactivate':
+            confirmReactivate(numberId);
+            break;
+        case 'reassign':
+            openReassignModal(numberId);
+            break;
+        case 'return-to-pool':
+            confirmReturnToPool(numberId);
+            break;
+        case 'change-mode':
+            const targetMode = dataset.targetMode || 'api';
+            confirmChangeMode(numberId, targetMode);
+            break;
+        case 'edit-capabilities':
+            openEditCapabilities(numberId);
+            break;
+        case 'assign-subaccounts':
+            openSubAccountAssign(numberId);
+            break;
+        case 'override-usage':
+            openOverrideUsage(numberId);
+            break;
+        case 'reassign-subaccount':
+            openReassignSubAccountOnly(numberId);
+            break;
+        case 'edit-optout-routing':
+            openOptoutRouting(numberId);
+            break;
+        case 'disable-keyword':
+            confirmDisableKeyword(numberId);
+            break;
+        default:
+            console.warn('[Admin Numbers] Unknown action:', action);
+    }
+}
+
 function buildContextMenu(num) {
     let menuItems = [];
     
-    menuItems.push(`<li><a class="dropdown-item" href="#" onclick="viewNumberDetails('${num.id}'); return false;"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li>`);
-    menuItems.push(`<li><a class="dropdown-item" href="#" onclick="viewAuditTrail('${num.id}'); return false;"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li>`);
+    menuItems.push(`<li><a class="dropdown-item" href="#" data-action="view-config" data-id="${num.id}"><i class="fas fa-cog me-2 text-muted"></i>View Configuration</a></li>`);
+    menuItems.push(`<li><a class="dropdown-item" href="#" data-action="view-audit" data-id="${num.id}"><i class="fas fa-history me-2 text-muted"></i>View Audit History</a></li>`);
     menuItems.push('<li><hr class="dropdown-divider"></li>');
     
     if (num.status === 'active') {
-        menuItems.push(`<li><a class="dropdown-item text-warning" href="#" onclick="confirmSuspend('${num.id}'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Number</a></li>`);
+        menuItems.push(`<li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="${num.id}"><i class="fas fa-pause-circle me-2"></i>Suspend Number</a></li>`);
     } else if (num.status === 'suspended') {
-        menuItems.push(`<li><a class="dropdown-item text-success" href="#" onclick="confirmReactivate('${num.id}'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate Number</a></li>`);
+        menuItems.push(`<li><a class="dropdown-item text-success" href="#" data-action="reactivate" data-id="${num.id}"><i class="fas fa-play-circle me-2"></i>Reactivate Number</a></li>`);
     }
     
-    menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openReassignModal('${num.id}'); return false;"><i class="fas fa-exchange-alt me-2 text-muted"></i>Reassign Customer / Sub-Account</a></li>`);
-    menuItems.push(`<li><a class="dropdown-item text-danger" href="#" onclick="confirmReturnToPool('${num.id}'); return false;"><i class="fas fa-undo me-2"></i>Return to Pool</a></li>`);
+    menuItems.push(`<li><a class="dropdown-item" href="#" data-action="reassign" data-id="${num.id}"><i class="fas fa-exchange-alt me-2 text-muted"></i>Reassign Customer / Sub-Account</a></li>`);
+    menuItems.push(`<li><a class="dropdown-item text-danger" href="#" data-action="return-to-pool" data-id="${num.id}"><i class="fas fa-undo me-2"></i>Return to Pool</a></li>`);
     
-    if (num.type === 'vmn' || num.type === 'dedicated') {
+    if (num.type === 'vmn' || num.type === 'dedicated_shortcode' || num.type === 'dedicated') {
         menuItems.push('<li><hr class="dropdown-divider"></li>');
         
-        const targetMode = num.mode === 'portal' ? 'API' : 'Portal';
-        menuItems.push(`<li><a class="dropdown-item" href="#" onclick="confirmChangeMode('${num.id}', '${targetMode}'); return false;"><i class="fas fa-sync-alt me-2 text-muted"></i>Change Mode to ${targetMode}</a></li>`);
+        const targetMode = num.mode === 'portal' ? 'api' : 'portal';
+        const targetLabel = num.mode === 'portal' ? 'API' : 'Portal';
+        menuItems.push(`<li><a class="dropdown-item" href="#" data-action="change-mode" data-id="${num.id}" data-target-mode="${targetMode}"><i class="fas fa-sync-alt me-2 text-muted"></i>Change Mode to ${targetLabel}</a></li>`);
         
-        menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openEditCapabilities('${num.id}'); return false;"><i class="fas fa-cogs me-2 text-muted"></i>Edit Capabilities</a></li>`);
+        menuItems.push(`<li><a class="dropdown-item" href="#" data-action="edit-capabilities" data-id="${num.id}"><i class="fas fa-cogs me-2 text-muted"></i>Edit Capabilities</a></li>`);
         
         if (num.mode === 'portal') {
-            menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openSubAccountAssign('${num.id}'); return false;"><i class="fas fa-sitemap me-2 text-muted"></i>Assign / Remove Sub-Accounts</a></li>`);
-            menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openOverrideUsage('${num.id}'); return false;"><i class="fas fa-sliders-h me-2 text-muted"></i>Override Default Usage</a></li>`);
+            menuItems.push(`<li><a class="dropdown-item" href="#" data-action="assign-subaccounts" data-id="${num.id}"><i class="fas fa-sitemap me-2 text-muted"></i>Assign / Remove Sub-Accounts</a></li>`);
+            menuItems.push(`<li><a class="dropdown-item" href="#" data-action="override-usage" data-id="${num.id}"><i class="fas fa-sliders-h me-2 text-muted"></i>Override Default Usage</a></li>`);
         }
     }
     
     if (num.type === 'shortcode_keyword') {
         menuItems.push('<li><hr class="dropdown-divider"></li>');
-        menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openReassignSubAccountOnly('${num.id}'); return false;"><i class="fas fa-sitemap me-2 text-muted"></i>Reassign Sub-Account</a></li>`);
-        menuItems.push(`<li><a class="dropdown-item" href="#" onclick="openOptoutRouting('${num.id}'); return false;"><i class="fas fa-route me-2 text-muted"></i>Edit Opt-out Routing</a></li>`);
+        menuItems.push(`<li><a class="dropdown-item" href="#" data-action="reassign-subaccount" data-id="${num.id}"><i class="fas fa-sitemap me-2 text-muted"></i>Reassign Sub-Account</a></li>`);
+        menuItems.push(`<li><a class="dropdown-item" href="#" data-action="edit-optout-routing" data-id="${num.id}"><i class="fas fa-route me-2 text-muted"></i>Edit Opt-out Routing</a></li>`);
         
         if (num.status === 'active') {
-            menuItems.push(`<li><a class="dropdown-item text-danger" href="#" onclick="confirmDisableKeyword('${num.id}'); return false;"><i class="fas fa-ban me-2"></i>Disable Keyword</a></li>`);
+            menuItems.push(`<li><a class="dropdown-item text-danger" href="#" data-action="disable-keyword" data-id="${num.id}"><i class="fas fa-ban me-2"></i>Disable Keyword</a></li>`);
         }
     }
     
@@ -2058,6 +2116,7 @@ let currentConfigNumberId = null;
 let originalMode = null;
 
 function viewNumberDetails(numberId) {
+    console.log('[Admin Numbers] viewNumberDetails called with:', numberId);
     window.location.href = `/admin/assets/numbers/${numberId}/configure`;
 }
 
@@ -3413,10 +3472,30 @@ async function executeBulkAction() {
     }
 }
 
+function setupFilterButton() {
+    const filterBtn = document.getElementById('filterPillBtn');
+    if (filterBtn) {
+        filterBtn.removeAttribute('onclick');
+        filterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[Admin Numbers] Filter button clicked via event listener');
+            toggleFilterPanel();
+        });
+        console.log('[Admin Numbers] Filter button handler attached');
+    } else {
+        console.error('[Admin Numbers] Filter button not found!');
+    }
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initNumbersPage);
+    document.addEventListener('DOMContentLoaded', function() {
+        initNumbersPage();
+        setupFilterButton();
+    });
 } else {
     initNumbersPage();
+    setupFilterButton();
 }
 </script>
 @endpush
