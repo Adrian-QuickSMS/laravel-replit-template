@@ -636,23 +636,20 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="supplier">
                                     <i class="fas fa-building me-1"></i>Supplier
                                 </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="supplier_gw">
+                                    <i class="fas fa-server me-1"></i>Supplier GW
+                                </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="day">
                                     <i class="fas fa-calendar-day me-1"></i>Day
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="product">
                                     <i class="fas fa-box me-1"></i>Product
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sub_account">
-                                    <i class="fas fa-sitemap me-1"></i>Sub Account
-                                </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="user">
-                                    <i class="fas fa-user me-1"></i>User
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="account">
+                                    <i class="fas fa-user-tie me-1"></i>Account
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sender_id">
-                                    <i class="fas fa-signature me-1"></i>Sender ID
-                                </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="origin">
-                                    <i class="fas fa-paper-plane me-1"></i>Origin
+                                    <i class="fas fa-signature me-1"></i>SenderID
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="country">
                                     <i class="fas fa-globe me-1"></i>Country
@@ -1840,7 +1837,7 @@ var drillState = {
     pendingDimension: null
 };
 
-var DRILL_DIMENSIONS = ['supplier', 'day', 'product', 'sub_account', 'user', 'sender_id', 'origin', 'country'];
+var DRILL_DIMENSIONS = ['supplier', 'supplier_gw', 'day', 'product', 'account', 'sender_id', 'country'];
 
 function getAvailableDimensions() {
     return DRILL_DIMENSIONS.filter(function(d) {
@@ -1862,12 +1859,11 @@ function getDrillPath() {
 var dimensionLabels = {
     'month': 'Billing Month',
     'supplier': 'Supplier',
+    'supplier_gw': 'Supplier GW',
     'day': 'Day',
     'product': 'Product',
-    'sub_account': 'Sub Account',
-    'user': 'User',
-    'sender_id': 'Sender ID',
-    'origin': 'Origin',
+    'account': 'Account',
+    'sender_id': 'SenderID',
     'country': 'Country'
 };
 
@@ -1893,18 +1889,20 @@ var mockDrillData = {
         { label: 'RCS Basic', billable: 23456, nonBillable: 456, total: 23912, cost: '£747.25', status: 'Finalised' },
         { label: 'RCS Rich', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' }
     ],
-    sub_account: [
-        { label: 'Main Supplier', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
-        { label: 'Marketing', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
-        { label: 'Operations', billable: 15678, nonBillable: 312, total: 15990, cost: '£499.69', status: 'Finalised' },
-        { label: 'Sales', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
-        { label: 'Support', billable: 6543, nonBillable: 123, total: 6666, cost: '£208.31', status: 'Finalised' }
+    supplier_gw: [
+        { label: 'UK SMS Direct - GW01', billable: 23456, nonBillable: 456, total: 23912, cost: '£747.25', status: 'Finalised' },
+        { label: 'UK SMS Direct - GW02', billable: 22222, nonBillable: 434, total: 22656, cost: '£708.00', status: 'Finalised' },
+        { label: 'International Routes - GW01', billable: 19250, nonBillable: 325, total: 19575, cost: '£615.36', status: 'Finalised' },
+        { label: 'International Routes - GW02', billable: 19250, nonBillable: 325, total: 19575, cost: '£615.36', status: 'Finalised' },
+        { label: 'Premium Gateway - GW01', billable: 32456, nonBillable: 567, total: 33023, cost: '£1,038.59', status: 'Finalised' },
+        { label: 'Bulk SMS Provider - GW01', billable: 28934, nonBillable: 489, total: 29423, cost: '£925.89', status: 'Finalised' }
     ],
-    user: [
-        { label: 'john.smith@company.com', billable: 34567, nonBillable: 678, total: 35245, cost: '£1,101.41', status: 'Finalised' },
-        { label: 'jane.doe@company.com', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
-        { label: 'admin@company.com', billable: 18765, nonBillable: 367, total: 19132, cost: '£597.88', status: 'Finalised' },
-        { label: 'marketing@company.com', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' }
+    account: [
+        { label: 'Acme Corporation', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
+        { label: 'Finance Ltd', billable: 28934, nonBillable: 567, total: 29501, cost: '£922.01', status: 'Finalised' },
+        { label: 'Healthcare Plus', billable: 23456, nonBillable: 456, total: 23912, cost: '£747.25', status: 'Finalised' },
+        { label: 'Retail Group', billable: 18765, nonBillable: 367, total: 19132, cost: '£597.88', status: 'Finalised' },
+        { label: 'Tech Solutions', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' }
     ],
     sender_id: [
         { label: 'QuickSMS', billable: 34567, nonBillable: 678, total: 35245, cost: '£1,101.41', status: 'Finalised' },
@@ -1912,12 +1910,6 @@ var mockDrillData = {
         { label: 'ALERTS', billable: 15678, nonBillable: 312, total: 15990, cost: '£499.69', status: 'Finalised' },
         { label: 'INFO', billable: 9876, nonBillable: 189, total: 10065, cost: '£314.53', status: 'Finalised' },
         { label: 'VERIFY', billable: 6789, nonBillable: 123, total: 6912, cost: '£216.00', status: 'Finalised' }
-    ],
-    origin: [
-        { label: 'Portal', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
-        { label: 'API', billable: 34567, nonBillable: 678, total: 35245, cost: '£1,101.41', status: 'Finalised' },
-        { label: 'Email-to-SMS', billable: 12345, nonBillable: 234, total: 12579, cost: '£393.09', status: 'Finalised' },
-        { label: 'Integration', billable: 8765, nonBillable: 167, total: 8932, cost: '£279.13', status: 'Finalised' }
     ],
     country: [
         { label: 'United Kingdom', billable: 45678, nonBillable: 890, total: 46568, cost: '£1,455.25', status: 'Finalised' },
@@ -2056,12 +2048,11 @@ function updateDimensionSelector() {
 function getDimensionIcon(dimension) {
     var icons = {
         'supplier': 'fas fa-building',
+        'supplier_gw': 'fas fa-server',
         'day': 'fas fa-calendar-day',
         'product': 'fas fa-box',
-        'sub_account': 'fas fa-sitemap',
-        'user': 'fas fa-user',
+        'account': 'fas fa-user-tie',
         'sender_id': 'fas fa-signature',
-        'origin': 'fas fa-paper-plane',
         'country': 'fas fa-globe'
     };
     return icons[dimension] || 'fas fa-layer-group';
