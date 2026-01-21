@@ -1818,11 +1818,107 @@ var EmailToSmsService = (function() {
     }
     
     /**
-     * Get mock addresses data (for direct access during transition)
+     * Get mock addresses data - AGGREGATES from Standard and Contact List setups
+     * This is the SINGLE SOURCE OF TRUTH for the Overview Library
      * @returns {Array}
      */
     function getMockOverviewAddresses() {
-        return mockOverviewAddresses;
+        var aggregated = [];
+        var idCounter = 1;
+        
+        // Transform Standard Email-to-SMS setups into overview format
+        mockSetups.forEach(function(setup) {
+            var statusMap = {
+                'active': 'Active',
+                'suspended': 'Suspended',
+                'archived': 'Archived'
+            };
+            
+            // Generate originating emails from allowed emails
+            var originatingEmails = setup.allowedEmails && setup.allowedEmails.length > 0 
+                ? setup.allowedEmails.map(function(email, idx) {
+                    var prefix = setup.name.toLowerCase().replace(/\s+/g, '-').substring(0, 10);
+                    return prefix + '.' + setup.id.replace('std-', '') + EMAIL_DOMAIN;
+                }).slice(0, 2)
+                : [setup.name.toLowerCase().replace(/\s+/g, '-').substring(0, 10) + '.' + setup.id.replace('std-', '') + EMAIL_DOMAIN];
+            
+            aggregated.push({
+                id: 'ovw-std-' + setup.id,
+                sourceId: setup.id,
+                sourceType: 'standard',
+                name: setup.name,
+                originatingEmails: originatingEmails,
+                description: setup.description || '',
+                type: 'Standard',
+                senderId: setup.senderId,
+                optOut: null,
+                subAccount: setup.subaccountName,
+                reportingGroup: 'Default',
+                allowedSenders: setup.allowedEmails || [],
+                dailyLimit: 5000,
+                status: statusMap[setup.status] || 'Active',
+                created: setup.createdAt ? setup.createdAt.split('T')[0] : '2024-01-01',
+                lastUsed: setup.updatedAt ? setup.updatedAt.replace('T', ' ').substring(0, 16) : null,
+                messagesSent: Math.floor(Math.random() * 10000) + 500
+            });
+        });
+        
+        // Transform Contact List Email-to-SMS setups into overview format
+        mockContactListSetups.forEach(function(setup) {
+            var statusMap = {
+                'active': 'Active',
+                'suspended': 'Suspended',
+                'archived': 'Archived'
+            };
+            
+            // Generate originating emails
+            var prefix = setup.name.toLowerCase().replace(/\s+/g, '-').substring(0, 10);
+            var originatingEmails = [prefix + '.' + setup.id.replace('cls-', '') + EMAIL_DOMAIN];
+            if (setup.allowedSenderEmails && setup.allowedSenderEmails.length > 1) {
+                originatingEmails.push(prefix + '.alt' + EMAIL_DOMAIN);
+            }
+            
+            // Map opt-out mode
+            var optOutLabel = null;
+            if (setup.optOutMode === 'GLOBAL') {
+                optOutLabel = 'Global Opt-Out';
+            } else if (setup.optOutMode === 'MARKETING') {
+                optOutLabel = 'Marketing Opt-Out';
+            } else if (setup.optOutMode === 'SPECIFIC' && setup.optOutListIds && setup.optOutListIds.length > 0) {
+                optOutLabel = 'Specific Lists (' + setup.optOutListIds.length + ')';
+            }
+            
+            aggregated.push({
+                id: 'ovw-cls-' + setup.id,
+                sourceId: setup.id,
+                sourceType: 'contactList',
+                name: setup.name,
+                originatingEmails: originatingEmails,
+                description: setup.description || '',
+                type: 'Contact List',
+                senderId: setup.senderId,
+                optOut: optOutLabel,
+                subAccount: setup.subaccountName,
+                reportingGroup: setup.contactBookListNames && setup.contactBookListNames.length > 0 
+                    ? setup.contactBookListNames[0] 
+                    : 'Default',
+                allowedSenders: setup.allowedSenderEmails || [],
+                dailyLimit: 5000,
+                status: statusMap[setup.status] || 'Active',
+                created: setup.createdAt ? setup.createdAt.split('T')[0] : '2024-01-01',
+                lastUsed: setup.updatedAt ? setup.updatedAt.replace('T', ' ').substring(0, 16) : null,
+                messagesSent: Math.floor(Math.random() * 15000) + 1000
+            });
+        });
+        
+        // Sort by lastUsed descending (most recent first)
+        aggregated.sort(function(a, b) {
+            if (!a.lastUsed) return 1;
+            if (!b.lastUsed) return -1;
+            return b.lastUsed.localeCompare(a.lastUsed);
+        });
+        
+        return aggregated;
     }
     
     /**
