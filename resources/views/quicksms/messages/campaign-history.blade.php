@@ -802,6 +802,13 @@ $permissions = [
                         <div id="campaignPreviewContainer"></div>
                     </div>
                     
+                    <div class="text-center mt-2 d-none" id="campaignPreviewToggle">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-sm py-0 px-3 active" id="campaignPreviewRCSBtn" onclick="toggleCampaignPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                            <button type="button" class="btn btn-sm py-0 px-3" id="campaignPreviewSMSBtn" onclick="toggleCampaignPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS Fallback</button>
+                        </div>
+                    </div>
+                    
                     <div class="text-center mt-2">
                         <small class="text-muted">
                             <i class="fas fa-shield-alt me-1"></i>GDPR: Placeholders shown - no personal data displayed
@@ -1466,11 +1473,58 @@ function updateOptoutSummary(status, total, delivered, hasOptout) {
     document.getElementById('optoutUrl').textContent = urlOptoutCount.toLocaleString();
 }
 
+var campaignPreviewMode = 'rcs';
+var currentCampaignChannel = 'sms_only';
+var currentCampaignSenderId = '';
+var currentCampaignRcsAgent = '';
+var currentCampaignTemplate = '';
+
+function toggleCampaignPreview(mode) {
+    campaignPreviewMode = mode;
+    
+    var rcsBtn = document.getElementById('campaignPreviewRCSBtn');
+    var smsBtn = document.getElementById('campaignPreviewSMSBtn');
+    
+    if (mode === 'rcs') {
+        rcsBtn.classList.add('active');
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.classList.remove('active');
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        smsBtn.classList.add('active');
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+        rcsBtn.classList.remove('active');
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+    }
+    
+    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate);
+}
+
 function updateMessagePreview(channel, senderId, rcsAgent, template) {
     var container = document.getElementById('campaignPreviewContainer');
+    var toggleContainer = document.getElementById('campaignPreviewToggle');
+    
     if (!container || typeof RcsPreviewRenderer === 'undefined') {
         console.warn('Preview container or RcsPreviewRenderer not available');
         return;
+    }
+    
+    // Store current campaign params for toggle use
+    currentCampaignChannel = channel;
+    currentCampaignSenderId = senderId;
+    currentCampaignRcsAgent = rcsAgent;
+    currentCampaignTemplate = template;
+    
+    // Show/hide toggle based on channel (RCS channels have SMS fallback)
+    if (channel === 'basic_rcs' || channel === 'rich_rcs') {
+        toggleContainer.classList.remove('d-none');
+    } else {
+        toggleContainer.classList.add('d-none');
+        campaignPreviewMode = 'rcs'; // Reset to RCS mode for non-RCS campaigns
     }
     
     // TODO: Replace with actual message content from backend (with placeholders, never real data)
@@ -1514,22 +1568,40 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
             body: (msgData && msgData.type === 'text') ? msgData.body : defaultSms
         };
     } else if (channel === 'basic_rcs') {
-        previewConfig.channel = 'basic_rcs';
-        previewConfig.message = {
-            type: 'text',
-            body: (msgData && msgData.type === 'text') ? msgData.body : defaultBasic
-        };
-    } else {
-        previewConfig.channel = 'rich_rcs';
-        if (msgData) {
-            previewConfig.message = msgData;
-        } else {
+        // Check if user toggled to SMS fallback view
+        if (campaignPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
             previewConfig.message = {
-                type: 'rich_card',
-                title: 'Special Offer',
-                description: 'Hi {{firstName}}, check out this exclusive offer!',
-                buttons: [{label: 'Learn More', action: {type: 'url'}}]
+                type: 'text',
+                body: (msgData && msgData.type === 'text') ? msgData.body : defaultSms
             };
+        } else {
+            previewConfig.channel = 'basic_rcs';
+            previewConfig.message = {
+                type: 'text',
+                body: (msgData && msgData.type === 'text') ? msgData.body : defaultBasic
+            };
+        }
+    } else {
+        // Rich RCS - check if user toggled to SMS fallback view
+        if (campaignPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+            previewConfig.message = {
+                type: 'text',
+                body: defaultSms
+            };
+        } else {
+            previewConfig.channel = 'rich_rcs';
+            if (msgData) {
+                previewConfig.message = msgData;
+            } else {
+                previewConfig.message = {
+                    type: 'rich_card',
+                    title: 'Special Offer',
+                    description: 'Hi {{firstName}}, check out this exclusive offer!',
+                    buttons: [{label: 'Learn More', action: {type: 'url'}}]
+                };
+            }
         }
     }
     
