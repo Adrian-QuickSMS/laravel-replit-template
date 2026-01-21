@@ -614,6 +614,9 @@
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span class="text-muted small me-2"><i class="fas fa-layer-group me-1"></i>Drill by:</span>
                             <div class="btn-group flex-wrap" role="group" aria-label="Drill dimension selector" id="dimensionButtons">
+                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="account">
+                                    <i class="fas fa-building me-1"></i>Account
+                                </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="day">
                                     <i class="fas fa-calendar-day me-1"></i>Day
                                 </button>
@@ -621,7 +624,7 @@
                                     <i class="fas fa-box me-1"></i>Product
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="sub_account">
-                                    <i class="fas fa-building me-1"></i>Sub Account
+                                    <i class="fas fa-sitemap me-1"></i>Sub Account
                                 </button>
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="user">
                                     <i class="fas fa-user me-1"></i>User
@@ -635,9 +638,6 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="country">
                                     <i class="fas fa-globe me-1"></i>Country
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm drill-dimension-btn" data-dimension="group_name">
-                                    <i class="fas fa-users me-1"></i>Group Name
-                                </button>
                             </div>
                             <span class="text-muted small ms-2" id="drillInstruction" style="display: none;">
                                 <i class="fas fa-arrow-right me-1"></i>Click a row to drill down
@@ -650,9 +650,6 @@
                             <table class="table display" id="financeDataTable" style="min-width: 900px">
                                 <thead>
                                     <tr>
-                                        <th scope="col" class="sortable" data-sort="account">
-                                            Account <i class="fas fa-sort ms-1 text-muted"></i>
-                                        </th>
                                         <th scope="col" class="sortable" data-sort="billing_month">
                                             Billing Month <i class="fas fa-sort ms-1 text-muted"></i>
                                         </th>
@@ -675,7 +672,7 @@
                                 </thead>
                                 <tbody id="billingTableBody">
                                     <tr class="drill-row" data-status="finalised" data-value="December 2025" data-account="ACC-001">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-001" style="color: var(--admin-primary, #1e3a5f);">Acme Corporation</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">December 2025</span></td>
                                         <td class="text-end">45,230</td>
                                         <td class="text-end">821</td>
@@ -684,7 +681,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="December 2025" data-account="ACC-002">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-002" style="color: var(--admin-primary, #1e3a5f);">Finance Ltd</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">December 2025</span></td>
                                         <td class="text-end">38,500</td>
                                         <td class="text-end">650</td>
@@ -693,7 +690,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="December 2025" data-account="ACC-003">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-003" style="color: var(--admin-primary, #1e3a5f);">Tech Solutions</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">December 2025</span></td>
                                         <td class="text-end">47,000</td>
                                         <td class="text-end">850</td>
@@ -702,7 +699,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="November 2025" data-account="ACC-001">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-001" style="color: var(--admin-primary, #1e3a5f);">Acme Corporation</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">November 2025</span></td>
                                         <td class="text-end">32,157</td>
                                         <td class="text-end">559</td>
@@ -711,7 +708,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="November 2025" data-account="ACC-002">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-002" style="color: var(--admin-primary, #1e3a5f);">Finance Ltd</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">November 2025</span></td>
                                         <td class="text-end">31,000</td>
                                         <td class="text-end">500</td>
@@ -720,7 +717,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="November 2025" data-account="ACC-003">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-003" style="color: var(--admin-primary, #1e3a5f);">Tech Solutions</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">November 2025</span></td>
                                         <td class="text-end">30,000</td>
                                         <td class="text-end">500</td>
@@ -729,7 +726,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="adjusted" data-value="October 2025" data-account="ACC-001">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-001" style="color: var(--admin-primary, #1e3a5f);">Acme Corporation</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">October 2025</span></td>
                                         <td class="text-end">35,439</td>
                                         <td class="text-end">1,829</td>
@@ -738,7 +735,7 @@
                                         <td class="text-center"><span class="badge light badge-warning">Adjusted</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="October 2025" data-account="ACC-002">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-002" style="color: var(--admin-primary, #1e3a5f);">Finance Ltd</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">October 2025</span></td>
                                         <td class="text-end">32,500</td>
                                         <td class="text-end">2,000</td>
@@ -747,7 +744,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="October 2025" data-account="ACC-003">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-003" style="color: var(--admin-primary, #1e3a5f);">Tech Solutions</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">October 2025</span></td>
                                         <td class="text-end">32,500</td>
                                         <td class="text-end">2,000</td>
@@ -756,7 +753,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="provisional" data-value="September 2025" data-account="ACC-004">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-004" style="color: var(--admin-primary, #1e3a5f);">Retail Group</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">September 2025</span></td>
                                         <td class="text-end">45,711</td>
                                         <td class="text-end">705</td>
@@ -765,7 +762,7 @@
                                         <td class="text-center"><span class="badge light badge-info">Provisional</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="provisional" data-value="September 2025" data-account="ACC-005">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-005" style="color: var(--admin-primary, #1e3a5f);">Healthcare UK</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">September 2025</span></td>
                                         <td class="text-end">45,000</td>
                                         <td class="text-end">700</td>
@@ -774,7 +771,7 @@
                                         <td class="text-center"><span class="badge light badge-info">Provisional</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="August 2025" data-account="ACC-001">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-001" style="color: var(--admin-primary, #1e3a5f);">Acme Corporation</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">August 2025</span></td>
                                         <td class="text-end">67,639</td>
                                         <td class="text-end">2,891</td>
@@ -783,7 +780,7 @@
                                         <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="August 2025" data-account="ACC-002">
-                                        <td><a href="#" class="text-decoration-none account-link" data-account-id="ACC-002" style="color: var(--admin-primary, #1e3a5f);">Finance Ltd</a></td>
+                                        
                                         <td><span class="drill-label fw-semibold">August 2025</span></td>
                                         <td class="text-end">67,639</td>
                                         <td class="text-end">2,892</td>
@@ -1655,11 +1652,8 @@ function renderBillingTable(data) {
     data.forEach(function(row) {
         var attrs = getRowAttributes(row.billingStatus);
         var accountId = row.accountId || '';
-        var accountName = row.accountName || '';
         
-        // Admin-only: Include Account column and data-account attribute
         html += '<tr class="' + attrs.classes + '"' + attrs.attrs + ' data-month="' + row.billingMonth + '" data-value="' + row.billingMonthLabel + '" data-status="' + row.billingStatus.toLowerCase() + '" data-account="' + accountId + '">' +
-            '<td><a href="#" class="text-decoration-none account-link" data-account-id="' + accountId + '" style="color: var(--admin-primary, #1e3a5f);">' + accountName + '</a></td>' +
             '<td>' +
                 '<span class="drill-label fw-semibold">' + row.billingMonthLabel + '</span>' +
                 attrs.labelIcon +
@@ -1828,7 +1822,7 @@ var drillState = {
     pendingDimension: null
 };
 
-var DRILL_DIMENSIONS = ['day', 'product', 'sub_account', 'user', 'sender_id', 'origin', 'country', 'group_name'];
+var DRILL_DIMENSIONS = ['account', 'day', 'product', 'sub_account', 'user', 'sender_id', 'origin', 'country'];
 
 function getAvailableDimensions() {
     return DRILL_DIMENSIONS.filter(function(d) {
