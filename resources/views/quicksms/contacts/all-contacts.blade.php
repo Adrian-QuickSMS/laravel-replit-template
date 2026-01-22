@@ -2755,9 +2755,97 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
         </div>
         <button type="button" class="btn-close align-self-start" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body">
-        <div id="timelineEvents">
-            <p class="text-muted text-center py-4">Loading...</p>
+    <div class="offcanvas-body p-0">
+        <!-- Filters Toggle -->
+        <div class="px-3 pt-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="collapse" data-bs-target="#timelineFiltersPanel">
+                <i class="fas fa-filter me-1"></i> Filters
+                <i class="fas fa-chevron-down ms-1 float-end"></i>
+            </button>
+        </div>
+        
+        <!-- Collapsible Filters Panel -->
+        <div class="collapse px-3 pt-2" id="timelineFiltersPanel">
+            <div class="border rounded p-3 bg-light mb-3">
+                <!-- Date Range -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted mb-1">Date Range</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="date" class="form-control form-control-sm" id="timelineDateFrom">
+                        </div>
+                        <div class="col-6">
+                            <input type="date" class="form-control form-control-sm" id="timelineDateTo">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Event Type Multi-select -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted mb-1">Event Type</label>
+                    <div class="dropdown multiselect-dropdown w-100" data-filter="eventTypes">
+                        <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Event Types</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2" style="max-height: 200px; overflow-y: auto;">
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="outbound" id="evtOutbound" checked><label class="form-check-label small" for="evtOutbound">Messaging (Outbound)</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="inbound" id="evtInbound" checked><label class="form-check-label small" for="evtInbound">Messaging (Inbound)</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="delivery" id="evtDelivery" checked><label class="form-check-label small" for="evtDelivery">Delivery/Seen</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="lists" id="evtLists" checked><label class="form-check-label small" for="evtLists">Lists</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="tags" id="evtTags" checked><label class="form-check-label small" for="evtTags">Tags</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="optout" id="evtOptout" checked><label class="form-check-label small" for="evtOptout">Opt-out</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="notes" id="evtNotes" checked><label class="form-check-label small" for="evtNotes">Notes/Contact edits</label></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Channel Multi-select -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted mb-1">Channel</label>
+                    <div class="dropdown multiselect-dropdown w-100" data-filter="channels">
+                        <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Channels</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2">
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="sms" id="chSms" checked><label class="form-check-label small" for="chSms">SMS</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="rcs" id="chRcs" checked><label class="form-check-label small" for="chRcs">RCS</label></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Source Multi-select -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted mb-1">Source</label>
+                    <div class="dropdown multiselect-dropdown w-100" data-filter="sources">
+                        <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <span class="dropdown-label">All Sources</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2">
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="campaign" id="srcCampaign" checked><label class="form-check-label small" for="srcCampaign">Campaign</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="inbox" id="srcInbox" checked><label class="form-check-label small" for="srcInbox">Inbox</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="api" id="srcApi" checked><label class="form-check-label small" for="srcApi">API</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="email-to-sms" id="srcEmailSms" checked><label class="form-check-label small" for="srcEmailSms">Email-to-SMS</label></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetTimelineFilters()">
+                        <i class="fas fa-undo me-1"></i> Reset
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="applyTimelineFilters()">
+                        <i class="fas fa-check me-1"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline Events -->
+        <div class="px-3 pb-3">
+            <div id="timelineEvents">
+                <p class="text-muted text-center py-4">Loading...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -2784,12 +2872,209 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                 </div>
                 <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="timelineEventsModal">
-                    <p class="text-muted text-center py-4">Loading...</p>
+            <div class="modal-body p-0">
+                <!-- Filters Toggle -->
+                <div class="px-3 pt-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="collapse" data-bs-target="#timelineFiltersPanelModal">
+                        <i class="fas fa-filter me-1"></i> Filters
+                        <i class="fas fa-chevron-down ms-1 float-end"></i>
+                    </button>
+                </div>
+                
+                <!-- Collapsible Filters Panel -->
+                <div class="collapse px-3 pt-2" id="timelineFiltersPanelModal">
+                    <div class="border rounded p-3 bg-light mb-3">
+                        <!-- Date Range -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Date Range</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="date" class="form-control form-control-sm" id="timelineDateFromModal">
+                                </div>
+                                <div class="col-6">
+                                    <input type="date" class="form-control form-control-sm" id="timelineDateToModal">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Event Type Multi-select -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Event Type</label>
+                            <div class="dropdown multiselect-dropdown w-100" data-filter="eventTypesModal">
+                                <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                    <span class="dropdown-label">All Event Types</span>
+                                </button>
+                                <div class="dropdown-menu w-100 p-2" style="max-height: 200px; overflow-y: auto;">
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="outbound" id="evtOutboundM" checked><label class="form-check-label small" for="evtOutboundM">Messaging (Outbound)</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="inbound" id="evtInboundM" checked><label class="form-check-label small" for="evtInboundM">Messaging (Inbound)</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="delivery" id="evtDeliveryM" checked><label class="form-check-label small" for="evtDeliveryM">Delivery/Seen</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="lists" id="evtListsM" checked><label class="form-check-label small" for="evtListsM">Lists</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="tags" id="evtTagsM" checked><label class="form-check-label small" for="evtTagsM">Tags</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="optout" id="evtOptoutM" checked><label class="form-check-label small" for="evtOptoutM">Opt-out</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="notes" id="evtNotesM" checked><label class="form-check-label small" for="evtNotesM">Notes/Contact edits</label></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Channel Multi-select -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Channel</label>
+                            <div class="dropdown multiselect-dropdown w-100" data-filter="channelsModal">
+                                <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                    <span class="dropdown-label">All Channels</span>
+                                </button>
+                                <div class="dropdown-menu w-100 p-2">
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="sms" id="chSmsM" checked><label class="form-check-label small" for="chSmsM">SMS</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="rcs" id="chRcsM" checked><label class="form-check-label small" for="chRcsM">RCS</label></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Source Multi-select -->
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Source</label>
+                            <div class="dropdown multiselect-dropdown w-100" data-filter="sourcesModal">
+                                <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                                    <span class="dropdown-label">All Sources</span>
+                                </button>
+                                <div class="dropdown-menu w-100 p-2">
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="campaign" id="srcCampaignM" checked><label class="form-check-label small" for="srcCampaignM">Campaign</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="inbox" id="srcInboxM" checked><label class="form-check-label small" for="srcInboxM">Inbox</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="api" id="srcApiM" checked><label class="form-check-label small" for="srcApiM">API</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="email-to-sms" id="srcEmailSmsM" checked><label class="form-check-label small" for="srcEmailSmsM">Email-to-SMS</label></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetTimelineFilters()">
+                                <i class="fas fa-undo me-1"></i> Reset
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="applyTimelineFilters()">
+                                <i class="fas fa-check me-1"></i> Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Events -->
+                <div class="px-3 pb-3">
+                    <div id="timelineEventsModal">
+                        <p class="text-muted text-center py-4">Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function initTimelineFilters() {
+    var today = new Date();
+    var ninetyDaysAgo = new Date(today.getTime() - (90 * 24 * 60 * 60 * 1000));
+    
+    var toDate = today.toISOString().split('T')[0];
+    var fromDate = ninetyDaysAgo.toISOString().split('T')[0];
+    
+    document.getElementById('timelineDateFrom').value = fromDate;
+    document.getElementById('timelineDateTo').value = toDate;
+    document.getElementById('timelineDateFromModal').value = fromDate;
+    document.getElementById('timelineDateToModal').value = toDate;
+    
+    document.querySelectorAll('.timeline-filter-check, .timeline-filter-check-modal').forEach(function(cb) {
+        cb.checked = true;
+    });
+}
+
+function getTimelineFilters() {
+    var eventTypes = [];
+    document.querySelectorAll('.timeline-filter-check[type="checkbox"]:checked').forEach(function(cb) {
+        if (['outbound', 'inbound', 'delivery', 'lists', 'tags', 'optout', 'notes'].includes(cb.value)) {
+            eventTypes.push(cb.value);
+        }
+    });
+    
+    var channels = [];
+    document.querySelectorAll('#chSms:checked, #chRcs:checked').forEach(function(cb) {
+        channels.push(cb.value);
+    });
+    
+    var sources = [];
+    document.querySelectorAll('#srcCampaign:checked, #srcInbox:checked, #srcApi:checked, #srcEmailSms:checked').forEach(function(cb) {
+        sources.push(cb.value);
+    });
+    
+    return {
+        dateFrom: document.getElementById('timelineDateFrom').value,
+        dateTo: document.getElementById('timelineDateTo').value,
+        eventTypes: eventTypes,
+        channels: channels,
+        sources: sources
+    };
+}
+
+function applyTimelineFilters() {
+    var filters = getTimelineFilters();
+    console.log('[Timeline] Applying filters:', filters);
+    
+    var timelineContainer = document.getElementById('timelineEvents');
+    var timelineContainerModal = document.getElementById('timelineEventsModal');
+    
+    var loadingHtml = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div><p class="text-muted mt-2 mb-0 small">Filtering timeline...</p></div>';
+    timelineContainer.innerHTML = loadingHtml;
+    if (timelineContainerModal) timelineContainerModal.innerHTML = loadingHtml;
+    
+    setTimeout(function() {
+        var mockTimeline = [
+            { type: 'message_sent', eventType: 'outbound', channel: 'sms', source: 'campaign', date: '2026-01-20 14:32', title: 'SMS Sent', description: 'Campaign: Winter Sale Promo', icon: 'fa-paper-plane', color: 'success' },
+            { type: 'message_delivered', eventType: 'delivery', channel: 'sms', source: 'campaign', date: '2026-01-20 14:33', title: 'Message Delivered', description: 'Delivery confirmed', icon: 'fa-check-double', color: 'success' },
+            { type: 'reply_received', eventType: 'inbound', channel: 'sms', source: 'inbox', date: '2026-01-20 15:10', title: 'Reply Received', description: '"Thanks for the offer!"', icon: 'fa-reply', color: 'info' },
+            { type: 'tag_added', eventType: 'tags', channel: null, source: null, date: '2026-01-18 09:15', title: 'Tag Added', description: 'Added tag: VIP Customer', icon: 'fa-tag', color: 'primary' },
+            { type: 'list_added', eventType: 'lists', channel: null, source: null, date: '2026-01-15 11:00', title: 'Added to List', description: 'Added to: Newsletter Subscribers', icon: 'fa-list', color: 'secondary' },
+            { type: 'contact_created', eventType: 'notes', channel: null, source: null, date: '2026-01-10 10:30', title: 'Contact Created', description: 'Imported via CSV upload', icon: 'fa-user-plus', color: 'primary' }
+        ];
+        
+        var filteredEvents = mockTimeline.filter(function(event) {
+            if (!filters.eventTypes.includes(event.eventType)) return false;
+            if (event.channel && !filters.channels.includes(event.channel)) return false;
+            if (event.source && !filters.sources.includes(event.source)) return false;
+            return true;
+        });
+        
+        var html = filteredEvents.map(function(event) {
+            return '<div class="timeline-event d-flex mb-3">' +
+                '<div class="timeline-icon bg-' + event.color + ' text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px; min-width: 36px;">' +
+                    '<i class="fas ' + event.icon + ' fa-sm"></i>' +
+                '</div>' +
+                '<div class="timeline-content flex-grow-1">' +
+                    '<div class="d-flex justify-content-between align-items-start">' +
+                        '<h6 class="mb-1 fs-6">' + event.title + '</h6>' +
+                        '<small class="text-muted">' + event.date + '</small>' +
+                    '</div>' +
+                    '<p class="mb-0 text-muted small">' + event.description + '</p>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+        
+        var resultHtml = html || '<p class="text-muted text-center py-4">No activity found matching the selected filters.</p>';
+        timelineContainer.innerHTML = resultHtml;
+        if (timelineContainerModal) timelineContainerModal.innerHTML = resultHtml;
+        
+        var bsCollapse = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanel'));
+        if (bsCollapse) bsCollapse.hide();
+        var bsCollapseModal = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanelModal'));
+        if (bsCollapseModal) bsCollapseModal.hide();
+    }, 300);
+}
+
+function resetTimelineFilters() {
+    initTimelineFilters();
+    console.log('[Timeline] Filters reset to defaults');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initTimelineFilters();
+});
+</script>
 @endsection
