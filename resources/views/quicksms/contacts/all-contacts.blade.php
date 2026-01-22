@@ -1843,8 +1843,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="modal fade" id="bulkSendMessageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background-color: #f0ebf8;">
-                <h5 class="modal-title"><i class="fas fa-paper-plane me-2 text-primary"></i>Send Message</h5>
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark"><i class="fas fa-paper-plane me-2 text-dark"></i>Send Message</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1853,8 +1853,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <ul class="list-unstyled mb-0 small" id="sendMessageContactList">
                     </ul>
                 </div>
-                <div class="alert alert-info mb-0">
-                    <i class="fas fa-info-circle me-2"></i>
+                <div class="rounded p-3 mb-0" style="background-color: #f0ebf8;">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>
                     This will redirect to the Send Message screen with these contacts pre-selected as recipients.
                 </div>
             </div>
