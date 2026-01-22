@@ -2006,7 +2006,7 @@ function editCampaign(event) {
     sessionStorage.setItem('campaignEditConfig', JSON.stringify(editConfig));
     campaignDrawer.hide();
     
-    window.location.href = '/messages/send-message?edit=' + currentCampaignId;
+    window.location.href = '/messages/send?edit=' + currentCampaignId;
 }
 
 function showCancelConfirmation() {
