@@ -24,19 +24,18 @@
                     <div id="loginStep1">
                         <form id="loginForm" novalidate>
                             <div class="mb-4">
-                                <label class="form-label" for="email">Email Address</label>
-                                <input type="email" class="form-control" id="email" placeholder="you@company.com" required autocomplete="email">
-                                <div class="invalid-feedback" id="emailError">Please enter your email address</div>
+                                <label class="form-label" for="email">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" placeholder="name@company.com" required autocomplete="email">
+                                <div class="invalid-feedback" id="emailError">Please enter a valid email address</div>
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label" for="password">Password</label>
+                                <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
                                 <div class="position-relative">
-                                    <input type="password" class="form-control" id="password" placeholder="Enter your password" required autocomplete="current-password">
-                                    <span class="show-pass eye">
-                                        <i class="fa fa-eye-slash"></i>
-                                        <i class="fa fa-eye"></i>
-                                    </span>
+                                    <input type="password" class="form-control pe-5" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                                    <button type="button" class="show-pass-btn" id="togglePassword" tabindex="-1">
+                                        <i class="fa fa-eye-slash" id="togglePasswordIcon"></i>
+                                    </button>
                                 </div>
                                 <div class="invalid-feedback" id="passwordError">Please enter your password</div>
                             </div>
@@ -206,19 +205,30 @@ a.text-primary:hover {
     color: var(--qs-primary-dark) !important;
 }
 
-.show-pass {
+.show-pass-btn {
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 45px;
+    background: transparent;
+    border: none;
     color: #6c757d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 5;
+    transition: color 0.2s ease;
 }
 
-.show-pass .fa-eye { display: none; }
-.show-pass.active .fa-eye { display: inline; }
-.show-pass.active .fa-eye-slash { display: none; }
+.show-pass-btn:hover {
+    color: var(--qs-primary);
+}
+
+.show-pass-btn:focus {
+    outline: none;
+}
 
 .form-check-input:checked {
     background-color: var(--qs-primary);
@@ -366,11 +376,16 @@ $(document).ready(function() {
         'test@example.com': { password_hash: 'hashed_password', mfa_enabled: true, mobile: '+447700900123', email_verified: true }
     };
     
-    $('.show-pass').on('click', function() {
-        var $input = $(this).siblings('input');
-        var type = $input.attr('type') === 'password' ? 'text' : 'password';
-        $input.attr('type', type);
-        $(this).toggleClass('active');
+    $('#togglePassword').on('click', function() {
+        var $input = $('#password');
+        var $icon = $('#togglePasswordIcon');
+        if ($input.attr('type') === 'password') {
+            $input.attr('type', 'text');
+            $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+            $input.attr('type', 'password');
+            $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        }
     });
     
     $('#loginForm').on('submit', function(e) {
@@ -380,11 +395,27 @@ $(document).ready(function() {
         var password = $('#password').val();
         
         $('#email, #password').removeClass('is-invalid');
+        $('#emailError').text('Please enter a valid email address');
+        $('#passwordError').text('Please enter your password');
         $('#loginStatus').addClass('d-none');
         
         var isValid = true;
-        if (!email) { $('#email').addClass('is-invalid'); isValid = false; }
-        if (!password) { $('#password').addClass('is-invalid'); isValid = false; }
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!email) {
+            $('#emailError').text('Please enter your email address');
+            $('#email').addClass('is-invalid');
+            isValid = false;
+        } else if (!emailRegex.test(email)) {
+            $('#emailError').text('Please enter a valid email address');
+            $('#email').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        if (!password) {
+            $('#password').addClass('is-invalid');
+            isValid = false;
+        }
         
         if (!isValid) return;
         
