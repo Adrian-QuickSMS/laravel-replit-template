@@ -2413,32 +2413,32 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="col-md-3">
                             <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0" style="color: #886CC0;" id="statTotalRows">0</div>
-                                    <div class="small text-muted">Total Rows</div>
+                                    <div class="h3 mb-0 text-dark" id="statTotalRows">0</div>
+                                    <div class="small text-dark">Total Rows</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0" style="color: #886CC0;" id="statUniqueNumbers">0</div>
-                                    <div class="small text-muted">Unique Numbers</div>
+                                    <div class="h3 mb-0 text-dark" id="statUniqueNumbers">0</div>
+                                    <div class="small text-dark">Unique Numbers</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0" style="color: #886CC0;" id="statValidNumbers">0</div>
-                                    <div class="small text-muted">Valid Numbers</div>
+                                    <div class="h3 mb-0 text-dark" id="statValidNumbers">0</div>
+                                    <div class="small text-dark">Valid Numbers</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0" style="color: #886CC0;" id="statInvalidNumbers">0</div>
-                                    <div class="small text-muted">Invalid Numbers</div>
+                                    <div class="h3 mb-0 text-dark" id="statInvalidNumbers">0</div>
+                                    <div class="small text-dark">Invalid Numbers</div>
                                 </div>
                             </div>
                         </div>
@@ -2794,7 +2794,7 @@ function simulateValidation() {
             row.innerHTML = `
                 <td>${Math.floor(Math.random() * totalRows) + 1}</td>
                 <td class="text-muted">123ABC${i}</td>
-                <td><span class="badge bg-danger">${reasons[i % reasons.length]}</span></td>
+                <td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">${reasons[i % reasons.length]}</span></td>
             `;
             tbody.appendChild(row);
         }
