@@ -491,6 +491,7 @@
 </div>
 
 <script src="{{ asset('js/contacts-service.js') }}"></script>
+<script src="{{ asset('js/contact-timeline-service.js') }}"></script>
 <script>
 var contactsData = @json($contacts);
 var customFieldDefinitions = [
@@ -832,6 +833,7 @@ function viewTimeline(id) {
     }
     
     currentTimelineContact = contact;
+    currentTimelineContactId = contact.id;
     msisdnRevealed = false;
     
     var contactFullName = ((contact.firstName || '') + ' ' + (contact.lastName || '')).trim() || 'Unknown contact';
@@ -898,12 +900,18 @@ function revealMsisdn() {
         document.getElementById('revealMsisdnBtnModal').innerHTML = '<i class="fas fa-eye me-1"></i>Reveal';
         msisdnRevealed = false;
     } else {
-        console.log('[AUDIT] MSISDN revealed for contact:', currentTimelineContact.id);
-        document.getElementById('timelineContactPhone').textContent = currentTimelineContact.mobile;
-        document.getElementById('timelineContactPhoneModal').textContent = currentTimelineContact.mobile;
-        document.getElementById('revealMsisdnBtn').innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide';
-        document.getElementById('revealMsisdnBtnModal').innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide';
-        msisdnRevealed = true;
+        ContactTimelineService.revealMsisdn(currentTimelineContactId, 'User requested MSISDN reveal')
+            .then(function(result) {
+                console.log('[AUDIT] MSISDN revealed via service for contact:', currentTimelineContactId, 'at:', result.revealed_at);
+                document.getElementById('timelineContactPhone').textContent = currentTimelineContact.mobile;
+                document.getElementById('timelineContactPhoneModal').textContent = currentTimelineContact.mobile;
+                document.getElementById('revealMsisdnBtn').innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide';
+                document.getElementById('revealMsisdnBtnModal').innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide';
+                msisdnRevealed = true;
+            })
+            .catch(function(error) {
+                console.error('[Timeline] Failed to reveal MSISDN:', error);
+            });
     }
 }
 
@@ -2988,110 +2996,9 @@ function getTimelineFilters() {
 
 var timelineLoadedCount = 0;
 var timelinePageSize = 50;
-var allTimelineEvents = [];
-
-function generateMockTimelineData() {
-    var events = [];
-    var sources = ['campaign', 'inbox', 'api', 'email-to-sms', 'system'];
-    var channels = ['sms', 'rcs'];
-    var eventTypes = [
-        { type: 'message_sent', eventType: 'outbound', title: 'Message Sent', icon: 'fa-paper-plane', color: 'success' },
-        { type: 'message_delivered', eventType: 'delivery', title: 'Delivered', icon: 'fa-check-double', color: 'success' },
-        { type: 'message_seen', eventType: 'delivery', title: 'Message Seen', icon: 'fa-eye', color: 'info' },
-        { type: 'reply_received', eventType: 'inbound', title: 'Reply Received', icon: 'fa-reply', color: 'info' },
-        { type: 'tag_added', eventType: 'tags', title: 'Tag Added', icon: 'fa-tag', color: 'primary' },
-        { type: 'tag_removed', eventType: 'tags', title: 'Tag Removed', icon: 'fa-tag', color: 'secondary' },
-        { type: 'list_added', eventType: 'lists', title: 'Added to List', icon: 'fa-list', color: 'primary' },
-        { type: 'list_removed', eventType: 'lists', title: 'Removed from List', icon: 'fa-list', color: 'secondary' },
-        { type: 'optout', eventType: 'optout', title: 'Opted Out', icon: 'fa-ban', color: 'danger' },
-        { type: 'optin', eventType: 'optout', title: 'Opted In', icon: 'fa-check', color: 'success' },
-        { type: 'contact_edit', eventType: 'notes', title: 'Contact Updated', icon: 'fa-edit', color: 'secondary' },
-        { type: 'note_added', eventType: 'notes', title: 'Note Added', icon: 'fa-sticky-note', color: 'warning' }
-    ];
-    
-    var now = new Date();
-    for (var i = 0; i < 120; i++) {
-        var randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-        var randomSource = sources[Math.floor(Math.random() * sources.length)];
-        var randomChannel = channels[Math.floor(Math.random() * channels.length)];
-        var daysAgo = Math.floor(Math.random() * 90);
-        var hoursAgo = Math.floor(Math.random() * 24);
-        var eventDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000) - (hoursAgo * 60 * 60 * 1000));
-        
-        var details = generateEventDetails(randomEvent.type, randomSource, randomChannel);
-        
-        events.push({
-            id: 'evt-' + i,
-            type: randomEvent.type,
-            eventType: randomEvent.eventType,
-            channel: ['tags', 'lists', 'notes', 'optout'].includes(randomEvent.eventType) ? null : randomChannel,
-            source: ['tags', 'lists', 'notes'].includes(randomEvent.eventType) ? 'system' : randomSource,
-            date: eventDate.toISOString(),
-            dateFormatted: formatEventDate(eventDate),
-            title: randomEvent.title,
-            icon: randomEvent.icon,
-            color: randomEvent.color,
-            summary: details.summary,
-            details: details.details
-        });
-    }
-    
-    return events.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
-}
-
-function generateEventDetails(type, source, channel) {
-    var campaigns = ['Winter Sale Promo', 'New Year Flash Sale', 'Holiday Greetings', 'Boxing Day Deals'];
-    var tags = ['VIP Customer', 'Newsletter', 'Promo Subscriber', 'High Value'];
-    var lists = ['Marketing Contacts', 'Newsletter Subscribers', 'Active Customers', 'Leads'];
-    
-    switch(type) {
-        case 'message_sent':
-            return { 
-                summary: 'Sent via ' + source.replace('-', ' ').toUpperCase(), 
-                details: '<strong>Campaign:</strong> ' + campaigns[Math.floor(Math.random() * campaigns.length)] + '<br><strong>Channel:</strong> ' + channel.toUpperCase() + '<br><strong>Message:</strong> "Hi @{{firstName}}, check out our latest offers!"<br><strong>Sender ID:</strong> QuickSMS'
-            };
-        case 'message_delivered':
-            return { summary: 'Delivery confirmed', details: '<strong>Status:</strong> Delivered<br><strong>Delivered at:</strong> ' + new Date().toLocaleString() + '<br><strong>Network:</strong> Vodafone UK' };
-        case 'message_seen':
-            return { summary: 'Read receipt received', details: '<strong>Seen at:</strong> ' + new Date().toLocaleString() + '<br><strong>Channel:</strong> RCS' };
-        case 'reply_received':
-            return { summary: '"Thanks for the info!"', details: '<strong>Reply text:</strong> "Thanks for the info!"<br><strong>Received:</strong> ' + new Date().toLocaleString() + '<br><strong>Auto-response:</strong> None configured' };
-        case 'tag_added':
-            return { summary: 'Added: ' + tags[Math.floor(Math.random() * tags.length)], details: '<strong>Tag:</strong> ' + tags[Math.floor(Math.random() * tags.length)] + '<br><strong>Added by:</strong> System (Import Rule)' };
-        case 'tag_removed':
-            return { summary: 'Removed: ' + tags[Math.floor(Math.random() * tags.length)], details: '<strong>Tag:</strong> ' + tags[Math.floor(Math.random() * tags.length)] + '<br><strong>Removed by:</strong> admin@example.com' };
-        case 'list_added':
-            return { summary: 'Added to: ' + lists[Math.floor(Math.random() * lists.length)], details: '<strong>List:</strong> ' + lists[Math.floor(Math.random() * lists.length)] + '<br><strong>Added by:</strong> CSV Import' };
-        case 'list_removed':
-            return { summary: 'Removed from: ' + lists[Math.floor(Math.random() * lists.length)], details: '<strong>List:</strong> ' + lists[Math.floor(Math.random() * lists.length)] + '<br><strong>Removed by:</strong> Bulk action' };
-        case 'optout':
-            return { summary: 'STOP received', details: '<strong>Keyword:</strong> STOP<br><strong>Scope:</strong> All Lists<br><strong>Processed:</strong> Automatic' };
-        case 'optin':
-            return { summary: 'Resubscribed', details: '<strong>Method:</strong> Portal Re-subscription<br><strong>Confirmed:</strong> Yes' };
-        case 'contact_edit':
-            return { summary: 'Fields updated', details: '<strong>Changed:</strong> First Name, Email<br><strong>Updated by:</strong> admin@example.com' };
-        case 'note_added':
-            return { summary: 'New note added', details: '<strong>Note:</strong> "Called customer, confirmed interest in premium plan"<br><strong>Added by:</strong> sales@example.com' };
-        default:
-            return { summary: 'Activity recorded', details: 'Event details recorded.' };
-    }
-}
-
-function formatEventDate(date) {
-    var now = new Date();
-    var diff = now - date;
-    var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) {
-        return 'Today ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    } else if (days === 1) {
-        return 'Yesterday ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    } else if (days < 7) {
-        return days + ' days ago';
-    } else {
-        return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-}
+var timelineTotalEvents = 0;
+var timelineNextCursor = null;
+var currentTimelineContactId = null;
 
 function getSourcePillHtml(source) {
     var pillColors = {
@@ -3113,31 +3020,35 @@ function getSourcePillHtml(source) {
     return '<span class="badge ' + colorClass + ' me-2">' + label + '</span>';
 }
 
-function renderTimelineEvents(events, append) {
+function renderTimelineEvents(events) {
     var html = '';
     
-    events.forEach(function(event, index) {
-        var eventId = 'timeline-evt-' + event.id;
+    events.forEach(function(event) {
+        var eventId = 'timeline-evt-' + event.event_id;
+        var ui = event._ui || {};
         html += '<div class="timeline-event-card border-bottom py-2">' +
             '<div class="d-flex align-items-start">' +
-                '<div class="timeline-icon bg-' + event.color + ' text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">' +
-                    '<i class="fas ' + event.icon + '" style="font-size: 0.75rem;"></i>' +
+                '<div class="timeline-icon bg-' + (ui.color || 'secondary') + ' text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">' +
+                    '<i class="fas ' + (ui.icon || 'fa-circle') + '" style="font-size: 0.75rem;"></i>' +
                 '</div>' +
                 '<div class="flex-grow-1 min-width-0">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center flex-wrap gap-1">' +
-                            getSourcePillHtml(event.source) +
-                            '<span class="fw-medium small">' + event.title + '</span>' +
+                            getSourcePillHtml(event.source_module) +
+                            '<span class="fw-medium small">' + (ui.title || event.event_type) + '</span>' +
                         '</div>' +
-                        '<small class="text-muted flex-shrink-0 ms-2">' + event.dateFormatted + '</small>' +
+                        '<small class="text-muted flex-shrink-0 ms-2">' + (ui.formattedDate || '') + '</small>' +
                     '</div>' +
-                    '<p class="mb-0 text-muted small text-truncate">' + event.summary + '</p>' +
+                    '<p class="mb-0 text-muted small text-truncate">' + (ui.summary || '') + '</p>' +
                     '<div class="mt-1">' +
                         '<a class="small text-primary text-decoration-none" data-bs-toggle="collapse" href="#' + eventId + '" role="button" aria-expanded="false">' +
                             '<i class="fas fa-chevron-down me-1" style="font-size: 0.6rem;"></i>Details' +
                         '</a>' +
                         '<div class="collapse mt-2" id="' + eventId + '">' +
-                            '<div class="small text-muted bg-light rounded p-2">' + event.details + '</div>' +
+                            '<div class="small text-muted bg-light rounded p-2">' +
+                                '<div class="mb-1"><strong>Actor:</strong> ' + (event.actor_name || 'System') + ' (' + event.actor_type + ')</div>' +
+                                (ui.details || '') +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -3150,10 +3061,15 @@ function renderTimelineEvents(events, append) {
 
 function applyTimelineFilters() {
     var filters = getTimelineFilters();
-    console.log('[Timeline] Applying filters:', filters);
+    console.log('[Timeline] Applying filters via ContactTimelineService:', filters);
+    
+    if (!currentTimelineContactId) {
+        console.error('[Timeline] No contact ID set');
+        return;
+    }
     
     timelineLoadedCount = 0;
-    allTimelineEvents = generateMockTimelineData();
+    timelineNextCursor = null;
     
     var timelineContainer = document.getElementById('timelineEvents');
     var timelineContainerModal = document.getElementById('timelineEventsModal');
@@ -3162,80 +3078,101 @@ function applyTimelineFilters() {
     timelineContainer.innerHTML = loadingHtml;
     if (timelineContainerModal) timelineContainerModal.innerHTML = loadingHtml;
     
-    setTimeout(function() {
-        var filteredEvents = allTimelineEvents.filter(function(event) {
-            if (!filters.eventTypes.includes(event.eventType)) return false;
-            if (event.channel && !filters.channels.includes(event.channel)) return false;
-            if (event.source && !filters.sources.includes(event.source)) return false;
-            return true;
+    ContactTimelineService.getContactTimeline(currentTimelineContactId, filters, { limit: timelinePageSize })
+        .then(function(response) {
+            timelineLoadedCount = response.returned;
+            timelineTotalEvents = response.total;
+            timelineNextCursor = response.cursor;
+            
+            var html = renderTimelineEvents(response.events);
+            
+            if (response.hasMore) {
+                html += '<div class="text-center py-3" id="loadMoreContainer">' +
+                    '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
+                        '<i class="fas fa-plus me-1"></i> Load More (' + (response.total - timelineLoadedCount) + ' remaining)' +
+                    '</button>' +
+                '</div>';
+            }
+            
+            var resultHtml = html || '<p class="text-muted text-center py-4">No activity found matching the selected filters.</p>';
+            var countHtml = '<div class="small text-muted mb-2">Showing ' + timelineLoadedCount + ' of ' + response.total + ' events</div>';
+            
+            timelineContainer.innerHTML = countHtml + resultHtml;
+            if (timelineContainerModal) timelineContainerModal.innerHTML = countHtml + resultHtml;
+            
+            var bsCollapse = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanel'));
+            if (bsCollapse) bsCollapse.hide();
+            var bsCollapseModal = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanelModal'));
+            if (bsCollapseModal) bsCollapseModal.hide();
+        })
+        .catch(function(error) {
+            console.error('[Timeline] Error loading timeline:', error);
+            var errorHtml = '<p class="text-danger text-center py-4">Failed to load timeline. Please try again.</p>';
+            timelineContainer.innerHTML = errorHtml;
+            if (timelineContainerModal) timelineContainerModal.innerHTML = errorHtml;
         });
-        
-        allTimelineEvents = filteredEvents;
-        var eventsToShow = filteredEvents.slice(0, timelinePageSize);
-        timelineLoadedCount = eventsToShow.length;
-        
-        var html = renderTimelineEvents(eventsToShow, false);
-        
-        if (filteredEvents.length > timelinePageSize) {
-            html += '<div class="text-center py-3" id="loadMoreContainer">' +
-                '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
-                    '<i class="fas fa-plus me-1"></i> Load More (' + (filteredEvents.length - timelineLoadedCount) + ' remaining)' +
-                '</button>' +
-            '</div>';
-        }
-        
-        var resultHtml = html || '<p class="text-muted text-center py-4">No activity found matching the selected filters.</p>';
-        
-        var countHtml = '<div class="small text-muted mb-2">Showing ' + Math.min(timelineLoadedCount, filteredEvents.length) + ' of ' + filteredEvents.length + ' events</div>';
-        
-        timelineContainer.innerHTML = countHtml + resultHtml;
-        if (timelineContainerModal) timelineContainerModal.innerHTML = countHtml + resultHtml;
-        
-        var bsCollapse = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanel'));
-        if (bsCollapse) bsCollapse.hide();
-        var bsCollapseModal = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanelModal'));
-        if (bsCollapseModal) bsCollapseModal.hide();
-    }, 300);
 }
 
 function loadMoreTimelineEvents() {
-    var startIndex = timelineLoadedCount;
-    var endIndex = Math.min(startIndex + timelinePageSize, allTimelineEvents.length);
-    var newEvents = allTimelineEvents.slice(startIndex, endIndex);
+    if (!currentTimelineContactId || !timelineNextCursor) {
+        console.log('[Timeline] No more events to load');
+        return;
+    }
     
-    timelineLoadedCount = endIndex;
+    var filters = getTimelineFilters();
+    var loadMoreBtn = document.querySelector('#loadMoreContainer button');
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
+    }
     
-    var newHtml = renderTimelineEvents(newEvents, true);
-    
-    var loadMoreContainer = document.getElementById('loadMoreContainer');
-    if (loadMoreContainer) {
-        loadMoreContainer.insertAdjacentHTML('beforebegin', newHtml);
+    ContactTimelineService.getContactTimeline(currentTimelineContactId, filters, { 
+        cursor: timelineNextCursor, 
+        limit: timelinePageSize 
+    })
+    .then(function(response) {
+        timelineLoadedCount += response.returned;
+        timelineNextCursor = response.cursor;
         
-        if (timelineLoadedCount >= allTimelineEvents.length) {
-            loadMoreContainer.innerHTML = '<p class="text-muted small mb-0">All events loaded</p>';
-        } else {
-            loadMoreContainer.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
-                '<i class="fas fa-plus me-1"></i> Load More (' + (allTimelineEvents.length - timelineLoadedCount) + ' remaining)' +
-            '</button>';
+        var newHtml = renderTimelineEvents(response.events);
+        
+        var loadMoreContainer = document.getElementById('loadMoreContainer');
+        if (loadMoreContainer) {
+            loadMoreContainer.insertAdjacentHTML('beforebegin', newHtml);
+            
+            if (!response.hasMore) {
+                loadMoreContainer.innerHTML = '<p class="text-muted small mb-0">All events loaded</p>';
+            } else {
+                loadMoreContainer.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
+                    '<i class="fas fa-plus me-1"></i> Load More (' + (timelineTotalEvents - timelineLoadedCount) + ' remaining)' +
+                '</button>';
+            }
         }
-    }
-    
-    var countEl = document.querySelector('#timelineEvents .small.text-muted');
-    if (countEl) {
-        countEl.textContent = 'Showing ' + timelineLoadedCount + ' of ' + allTimelineEvents.length + ' events';
-    }
-    
-    var loadMoreContainerModal = document.querySelector('#timelineEventsModal #loadMoreContainer');
-    if (loadMoreContainerModal) {
-        loadMoreContainerModal.insertAdjacentHTML('beforebegin', newHtml);
-        if (timelineLoadedCount >= allTimelineEvents.length) {
-            loadMoreContainerModal.innerHTML = '<p class="text-muted small mb-0">All events loaded</p>';
-        } else {
-            loadMoreContainerModal.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
-                '<i class="fas fa-plus me-1"></i> Load More (' + (allTimelineEvents.length - timelineLoadedCount) + ' remaining)' +
-            '</button>';
+        
+        var countEl = document.querySelector('#timelineEvents .small.text-muted');
+        if (countEl) {
+            countEl.textContent = 'Showing ' + timelineLoadedCount + ' of ' + timelineTotalEvents + ' events';
         }
-    }
+        
+        var loadMoreContainerModal = document.querySelector('#timelineEventsModal #loadMoreContainer');
+        if (loadMoreContainerModal) {
+            loadMoreContainerModal.insertAdjacentHTML('beforebegin', newHtml);
+            if (!response.hasMore) {
+                loadMoreContainerModal.innerHTML = '<p class="text-muted small mb-0">All events loaded</p>';
+            } else {
+                loadMoreContainerModal.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
+                    '<i class="fas fa-plus me-1"></i> Load More (' + (timelineTotalEvents - timelineLoadedCount) + ' remaining)' +
+                '</button>';
+            }
+        }
+    })
+    .catch(function(error) {
+        console.error('[Timeline] Error loading more events:', error);
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Retry';
+        }
+    });
 }
 
 function resetTimelineFilters() {

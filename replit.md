@@ -45,6 +45,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, leveraging the Fillow SaaS Admin
   - **Non-Functional Requirements:** Designed for full platform traffic, millions of records/day, multi-year historical queries, with performance considerations for heavy queries, indexed aggregations, and query limits (max 365-day date range, pagination).
 
 **Service Layer Architecture:**
+- **ContactTimelineService (`public/js/contact-timeline-service.js`):** Backend-ready abstraction layer for Contact Activity Timeline.
+  - Unified Timeline Event Data Model with fields: event_id, tenant_id, contact_id, msisdn_hash, timestamp, event_type, source_module, actor_type (User/System/API), actor_id, actor_name, metadata (JSON)
+  - Methods: `getContactTimeline(contactId, filters, pagination)`, `revealMsisdn(contactId, reason)`
+  - Cursor-based pagination with configurable page size (default 50, max 100)
+  - Mock data mode for development (configurable via `ContactTimelineService.config.useMockData`)
+  - Clean separation between UI and backend API - swap endpoints only
+  - No PII leakage - MSISDN stored as hash, reveal requires audit-logged API call
 - **NumbersAdminService (`public/js/numbers-admin-service.js`):** Backend-ready abstraction layer for Admin Numbers Management, providing separation between UI and backend API, supporting mock data for development, and handling various operations for numbers, accounts, and audit history with validation and error handling.
 
 ## External Dependencies
