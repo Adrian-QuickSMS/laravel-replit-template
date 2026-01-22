@@ -641,24 +641,24 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-3">
             <div class="table-responsive" id="campaignsTable">
-                <table class="table table-hover mb-0 align-middle">
+                <table class="table table-hover mb-0 align-middle" style="table-layout: fixed; width: 100%;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-3 sortable-header" style="min-width: 150px;" data-sort="account" onclick="toggleSort('account')">
+                            <th class="py-3 px-3 sortable-header" style="width: 12%;" data-sort="account" onclick="toggleSort('account')">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" style="min-width: 200px;" data-sort="name" onclick="toggleSort('name')">
+                            <th class="py-3 px-3 sortable-header" style="width: 22%;" data-sort="name" onclick="toggleSort('name')">
                                 Campaign Name <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3">Channel</th>
-                            <th class="py-3 px-3">Status</th>
-                            <th class="py-3 px-3 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')">
+                            <th class="py-3 px-3" style="width: 10%;">Channel</th>
+                            <th class="py-3 px-3" style="width: 12%;">Status</th>
+                            <th class="py-3 px-3 sortable-header" style="width: 14%;" data-sort="recipients" onclick="toggleSort('recipients')">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" data-sort="date" onclick="toggleSort('date')">
+                            <th class="py-3 px-3 sortable-header" style="width: 14%;" data-sort="date" onclick="toggleSort('date')">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 text-end">Actions</th>
+                            <th class="py-3 px-3 text-end" style="width: 80px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
