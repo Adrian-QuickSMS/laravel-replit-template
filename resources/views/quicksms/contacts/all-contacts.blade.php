@@ -2175,33 +2175,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     <div class="row g-3 mb-4">
                         <div class="col-md-3">
-                            <div class="card bg-light">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0 text-primary" id="statTotalRows">0</div>
+                                    <div class="h3 mb-0" style="color: #886CC0;" id="statTotalRows">0</div>
                                     <div class="small text-muted">Total Rows</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card bg-light">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0 text-info" id="statUniqueNumbers">0</div>
+                                    <div class="h3 mb-0" style="color: #886CC0;" id="statUniqueNumbers">0</div>
                                     <div class="small text-muted">Unique Numbers</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card bg-light">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0 text-success" id="statValidNumbers">0</div>
+                                    <div class="h3 mb-0" style="color: #886CC0;" id="statValidNumbers">0</div>
                                     <div class="small text-muted">Valid Numbers</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card bg-light">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
                                 <div class="card-body text-center py-3">
-                                    <div class="h3 mb-0 text-danger" id="statInvalidNumbers">0</div>
+                                    <div class="h3 mb-0" style="color: #886CC0;" id="statInvalidNumbers">0</div>
                                     <div class="small text-muted">Invalid Numbers</div>
                                 </div>
                             </div>
@@ -2543,9 +2543,9 @@ function simulateValidation() {
     indicators.innerHTML = '';
     
     if (document.getElementById('excelCorrectionApplied').value === 'yes') {
-        indicators.innerHTML += '<span class="badge bg-info me-2"><i class="fas fa-sync-alt me-1"></i> Excel correction applied</span>';
+        indicators.innerHTML += '<span class="badge me-2" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-sync-alt me-1"></i> Excel correction applied</span>';
     }
-    indicators.innerHTML += '<span class="badge bg-secondary"><i class="fas fa-globe me-1"></i> UK format normalized</span>';
+    indicators.innerHTML += '<span class="badge" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-globe me-1"></i> UK format normalized</span>';
     
     if (invalidCount > 0) {
         document.getElementById('invalidRowsSection').classList.remove('d-none');
