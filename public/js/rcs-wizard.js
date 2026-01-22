@@ -2690,6 +2690,95 @@ function getRcsButtonsPayload() {
     });
 }
 
+function serializeRcsButtonForSend(buttonData, cardIndex, buttonIndex) {
+    var payload = {
+        label: buttonData.label || '',
+        type: buttonData.type || 'url'
+    };
+    
+    if (buttonData.type === 'url') {
+        payload.url = buttonData.url || '';
+    } else if (buttonData.type === 'phone') {
+        payload.phone = buttonData.phone || '';
+    } else if (buttonData.type === 'calendar') {
+        payload.calendar = {
+            title: buttonData.eventTitle || '',
+            start: buttonData.eventStart || '',
+            end: buttonData.eventEnd || '',
+            description: buttonData.eventDesc || ''
+        };
+    }
+    
+    var trackingEnabled = buttonData.tracking ? buttonData.tracking.enabled !== false : true;
+    
+    if (trackingEnabled) {
+        var callbackMode = buttonData.callback_data_mode || 'auto';
+        
+        if (callbackMode === 'auto') {
+            payload.callback_data = generateRcsCallbackData(cardIndex, buttonIndex);
+        } else if (callbackMode === 'custom' && buttonData.callback_data) {
+            payload.callback_data = buttonData.callback_data;
+        } else {
+            payload.callback_data = generateRcsCallbackData(cardIndex, buttonIndex);
+        }
+        
+        payload.tracking = {
+            enabled: true,
+            trackingId: buttonData.tracking ? buttonData.tracking.trackingId || '' : '',
+            events: buttonData.tracking ? buttonData.tracking.events : { click: true, conversion: false }
+        };
+        
+        if (buttonData.type === 'url' && buttonData.tracking && buttonData.tracking.utm) {
+            payload.tracking.utm = buttonData.tracking.utm;
+        }
+    } else {
+        payload.tracking = {
+            enabled: false
+        };
+    }
+    
+    return payload;
+}
+
+function serializeRcsButtonsForSend(cardIndex) {
+    cardIndex = cardIndex || rcsCurrentCard;
+    return rcsButtons.map(function(btn, index) {
+        return serializeRcsButtonForSend(btn, cardIndex, index);
+    });
+}
+
+function getRcsSendPayload() {
+    var payload = {
+        messageType: document.querySelector('input[name="rcsMessageType"]:checked')?.value || 'single',
+        cards: []
+    };
+    
+    if (payload.messageType === 'single') {
+        payload.cards.push({
+            cardIndex: 1,
+            title: document.getElementById('rcsCardTitle')?.value || '',
+            description: document.getElementById('rcsCardDescription')?.value || '',
+            media: rcsMediaData.hostedUrl || rcsMediaData.url || null,
+            buttons: serializeRcsButtonsForSend(1)
+        });
+    } else {
+        for (var i = 1; i <= rcsCardCount; i++) {
+            var cardData = rcsCardsData[i] || {};
+            payload.cards.push({
+                cardIndex: i,
+                title: cardData.title || '',
+                description: cardData.description || '',
+                media: cardData.media?.hostedUrl || cardData.media?.url || null,
+                buttons: (cardData.buttons || []).map(function(btn, btnIndex) {
+                    return serializeRcsButtonForSend(btn, i, btnIndex);
+                })
+            });
+        }
+    }
+    
+    return payload;
+}
+
 function generateRcsCallbackData(cardIndex, buttonIndex) {
     var containerId = getRcsContainerId();
     var callbackData = 'qsms:c' + containerId + ':card' + cardIndex + ':btn' + (buttonIndex + 1);
