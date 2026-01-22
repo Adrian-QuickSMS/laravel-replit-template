@@ -2525,15 +2525,48 @@ function saveRcsButton() {
     
     buttonData.tracking = getRcsButtonTrackingData(type);
     
+    var buttonIndex;
     if (rcsEditingButtonIndex >= 0) {
+        buttonIndex = rcsEditingButtonIndex;
         rcsButtons[rcsEditingButtonIndex] = buttonData;
     } else {
+        buttonIndex = rcsButtons.length;
         rcsButtons.push(buttonData);
     }
+    
+    buttonData.callback_data = generateRcsCallbackData(rcsCurrentCard, buttonIndex);
     
     bootstrap.Modal.getInstance(document.getElementById('rcsButtonConfigModal')).hide();
     renderRcsButtons();
     updateRcsButtonsPreview();
+}
+
+function generateRcsCallbackData(cardIndex, buttonIndex) {
+    var containerId = getRcsContainerId();
+    var callbackData = 'qsms:c' + containerId + ':card' + cardIndex + ':btn' + (buttonIndex + 1);
+    
+    if (callbackData.length > 64) {
+        callbackData = callbackData.substring(0, 64);
+    }
+    
+    return callbackData;
+}
+
+function getRcsContainerId() {
+    if (window.rcsContainerId) {
+        return window.rcsContainerId;
+    }
+    
+    if (window.rcsCampaignId) {
+        return window.rcsCampaignId;
+    }
+    
+    if (window.rcsTemplateId) {
+        return 't' + window.rcsTemplateId;
+    }
+    
+    var sessionHash = rcsDraftSession.replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+    return 'd' + sessionHash;
 }
 
 function getRcsButtonTrackingData(buttonType) {
