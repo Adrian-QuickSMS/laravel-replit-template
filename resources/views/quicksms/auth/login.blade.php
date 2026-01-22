@@ -60,25 +60,33 @@
                     </div>
                     
                     <div id="loginStep2" class="d-none">
-                        <div class="text-center mb-4">
-                            <div class="mfa-icon mb-3">
-                                <i class="fas fa-shield-alt"></i>
+                        <h4 class="mb-1">Verify it's you</h4>
+                        <p class="text-muted mb-4">Choose how you want to verify.</p>
+                        
+                        <div class="mfa-method-card active mb-3" id="smsMethodCard">
+                            <div class="d-flex align-items-center">
+                                <div class="mfa-method-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">Text message (SMS)</div>
+                                    <small class="text-muted">Send code to ****<span id="maskedMobile"></span></small>
+                                </div>
+                                <i class="fas fa-check-circle text-primary mfa-method-check"></i>
                             </div>
-                            <h5 class="mb-2">Two-Factor Authentication</h5>
-                            <p class="text-muted small">We've sent a verification code to your mobile number ending in <strong id="maskedMobile"></strong></p>
                         </div>
                         
                         <form id="mfaForm" novalidate>
                             <div class="mb-4">
-                                <label class="form-label" for="otpCode">Verification Code</label>
+                                <label class="form-label" for="otpCode">Verification Code <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control otp-input" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
                                 <div class="invalid-feedback" id="otpError">Please enter the verification code</div>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
-                                    <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-primary" id="resendOtpBtn" disabled>Resend Code</button>
                                 </div>
-                                <div class="alert alert-info small mt-2" id="testOtpCode">
-                                    <strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
+                                <div class="alert alert-info small mt-3" id="testOtpCode">
+                                    <i class="fas fa-info-circle me-2"></i><strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
                                 </div>
                             </div>
                             
@@ -253,6 +261,48 @@ a.text-primary:hover {
     font-weight: 600;
     font-size: 1.25rem;
     text-align: center;
+}
+
+.mfa-method-card {
+    border: 2px solid #e0e6ed;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.mfa-method-card:hover {
+    border-color: var(--qs-primary-light);
+    background: #faf9fc;
+}
+
+.mfa-method-card.active {
+    border-color: var(--qs-primary);
+    background: #f8f5ff;
+}
+
+.mfa-method-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0e6ff 0%, #e6d9ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    color: var(--qs-primary);
+    font-size: 1rem;
+}
+
+.mfa-method-check {
+    font-size: 1.25rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.mfa-method-card.active .mfa-method-check {
+    opacity: 1;
 }
 
 .login-status, .mfa-status {
