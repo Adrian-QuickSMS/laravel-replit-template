@@ -198,9 +198,11 @@ $permissions = [
                                                 <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                             </div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="pending" id="statusPending"><label class="form-check-label small" for="statusPending">Pending</label></div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="scheduled" id="statusScheduled"><label class="form-check-label small" for="statusScheduled">Scheduled</label></div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="sending" id="statusSending"><label class="form-check-label small" for="statusSending">Sending</label></div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="complete" id="statusComplete"><label class="form-check-label small" for="statusComplete">Complete</label></div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="cancelled" id="statusCancelled"><label class="form-check-label small" for="statusCancelled">Cancelled</label></div>
                                         </div>
                                     </div>
                                 </div>
