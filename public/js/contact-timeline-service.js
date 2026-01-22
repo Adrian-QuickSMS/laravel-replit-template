@@ -190,6 +190,40 @@ var ContactTimelineService = (function() {
         EXPIRY: { source: 'expiry', label: 'Opt-Out Expired', icon: 'fa-clock', description: 'Automatic expiry after retention period' }
     };
 
+    var CONTACT_CREATION_SOURCES = {
+        CSV_IMPORT: { source: 'csv_import', label: 'CSV Import', icon: 'fa-file-csv', description: 'Imported from CSV file' },
+        API: { source: 'api', label: 'API', icon: 'fa-code', description: 'Created via API' },
+        MANUAL: { source: 'manual', label: 'Manual Entry', icon: 'fa-keyboard', description: 'Manually entered by user' },
+        FORM: { source: 'form', label: 'Form Submission', icon: 'fa-wpforms', description: 'Submitted via web form' },
+        INBOUND: { source: 'inbound', label: 'Inbound Message', icon: 'fa-inbox', description: 'Auto-created from inbound message' }
+    };
+
+    var CONTACT_FIELDS = [
+        { field: 'first_name', label: 'First Name', sensitive: false },
+        { field: 'last_name', label: 'Last Name', sensitive: false },
+        { field: 'email', label: 'Email', sensitive: true },
+        { field: 'mobile', label: 'Mobile Number', sensitive: true },
+        { field: 'company', label: 'Company', sensitive: false },
+        { field: 'notes', label: 'Notes', sensitive: false },
+        { field: 'custom_field_1', label: 'Custom Field 1', sensitive: false },
+        { field: 'custom_field_2', label: 'Custom Field 2', sensitive: false },
+        { field: 'date_of_birth', label: 'Date of Birth', sensitive: true },
+        { field: 'address', label: 'Address', sensitive: true }
+    ];
+
+    var SAMPLE_FIELD_VALUES = {
+        first_name: ['John', 'Jane', 'Michael', 'Sarah', 'David'],
+        last_name: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones'],
+        email: ['john@example.com', 'jane@company.co.uk', 'info@business.com'],
+        mobile: ['+44 7700 900123', '+44 7700 900456', '+44 7700 900789'],
+        company: ['Acme Ltd', 'Tech Corp', 'Global Industries', 'Local Business'],
+        notes: ['VIP customer', 'Prefers email contact', 'Follow up required'],
+        custom_field_1: ['Value A', 'Value B', 'Value C'],
+        custom_field_2: ['Option 1', 'Option 2', 'Option 3'],
+        date_of_birth: ['1985-03-15', '1990-07-22', '1978-11-08'],
+        address: ['123 Main St, London', '456 High St, Manchester', '789 Oak Ave, Bristol']
+    };
+
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
@@ -787,6 +821,117 @@ var ContactTimelineService = (function() {
         return html;
     }
 
+    function getRandomCreationSource() {
+        var sources = Object.keys(CONTACT_CREATION_SOURCES);
+        var sourceKey = sources[Math.floor(Math.random() * sources.length)];
+        return CONTACT_CREATION_SOURCES[sourceKey];
+    }
+
+    function getRandomFieldChange() {
+        var field = CONTACT_FIELDS[Math.floor(Math.random() * CONTACT_FIELDS.length)];
+        var values = SAMPLE_FIELD_VALUES[field.field] || ['Value 1', 'Value 2', 'Value 3'];
+        var oldValue = values[Math.floor(Math.random() * values.length)];
+        var newValue = values[Math.floor(Math.random() * values.length)];
+        while (newValue === oldValue && values.length > 1) {
+            newValue = values[Math.floor(Math.random() * values.length)];
+        }
+        return {
+            field: field.field,
+            label: field.label,
+            sensitive: field.sensitive,
+            old_value: oldValue,
+            new_value: newValue
+        };
+    }
+
+    function maskSensitiveValue(value) {
+        if (!value) return '***';
+        if (value.length <= 4) return '***';
+        return value.substring(0, 2) + '***' + value.substring(value.length - 2);
+    }
+
+    function buildContactCreatedDetails(sourceInfo, actorName, initialFields, canViewSensitive) {
+        var html = '';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Source:</strong> ' +
+            '<span class="badge badge-pastel-primary">' +
+                '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label +
+            '</span>' +
+        '</div>';
+        
+        if (actorName) {
+            html += '<div class="mb-1"><strong>Created by:</strong> ' + actorName + '</div>';
+        }
+        
+        if (initialFields && initialFields.length > 0) {
+            html += '<div class="mb-2"><strong>Initial Fields:</strong></div>';
+            html += '<table class="table table-sm table-bordered mb-0 small">';
+            html += '<thead class="table-light"><tr><th>Field</th><th>Value</th></tr></thead>';
+            html += '<tbody>';
+            initialFields.forEach(function(f) {
+                var displayValue = f.value;
+                if (f.sensitive && !canViewSensitive) {
+                    displayValue = '<span class="text-muted"><i class="fas fa-lock me-1"></i>' + maskSensitiveValue(f.value) + '</span>';
+                }
+                html += '<tr><td>' + f.label + '</td><td>' + displayValue + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        
+        html += '<div class="mt-2 text-muted small">' +
+            '<i class="fas fa-info-circle me-1"></i>' + sourceInfo.description +
+        '</div>';
+        
+        return html;
+    }
+
+    function buildContactUpdatedDetails(changes, sourceInfo, actorName, canViewSensitive) {
+        var html = '';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Source:</strong> ' +
+            '<span class="badge badge-pastel-secondary">' +
+                '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label +
+            '</span>' +
+        '</div>';
+        
+        if (actorName) {
+            html += '<div class="mb-1"><strong>Updated by:</strong> ' + actorName + '</div>';
+        }
+        
+        html += '<div class="mb-2"><strong>Changes:</strong></div>';
+        html += '<table class="table table-sm table-bordered mb-0 small">';
+        html += '<thead class="table-light"><tr><th>Field</th><th>Old Value</th><th>New Value</th></tr></thead>';
+        html += '<tbody>';
+        
+        changes.forEach(function(change) {
+            var oldDisplay = change.old_value;
+            var newDisplay = change.new_value;
+            
+            if (change.sensitive && !canViewSensitive) {
+                oldDisplay = '<span class="text-muted"><i class="fas fa-lock me-1"></i>' + maskSensitiveValue(change.old_value) + '</span>';
+                newDisplay = '<span class="text-muted"><i class="fas fa-lock me-1"></i>' + maskSensitiveValue(change.new_value) + '</span>';
+            }
+            
+            html += '<tr>' +
+                '<td>' + change.label + (change.sensitive ? ' <i class="fas fa-shield-alt text-warning" title="Sensitive field"></i>' : '') + '</td>' +
+                '<td class="text-danger"><del>' + oldDisplay + '</del></td>' +
+                '<td class="text-success">' + newDisplay + '</td>' +
+            '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        
+        if (!canViewSensitive) {
+            html += '<div class="mt-2 small text-muted">' +
+                '<i class="fas fa-lock me-1"></i>Some values are masked. You need additional permissions to view sensitive data.' +
+            '</div>';
+        }
+        
+        return html;
+    }
+
     function generateInboundMetadata(channel) {
         var messageId = 'inb_' + generateUUID().substring(0, 12);
         var conversationId = 'conv_' + generateUUID().substring(0, 8);
@@ -1120,21 +1265,65 @@ var ContactTimelineService = (function() {
                 };
             
             case EVENT_TYPES.CONTACT_CREATED:
-                var methods = ['CSV Import', 'API', 'Manual Entry', 'Form Submission'];
-                var method = methods[Math.floor(Math.random() * methods.length)];
+                var creationSource = getRandomCreationSource();
+                var creationActorNames = ['Admin User', 'Marketing Team', 'Support Agent', 'System'];
+                var creationActor = creationSource.source === 'manual' 
+                    ? creationActorNames[Math.floor(Math.random() * creationActorNames.length)]
+                    : (creationSource.source === 'api' ? 'API Integration' : null);
+                
+                var initialFieldCount = 2 + Math.floor(Math.random() * 3);
+                var shuffledFields = CONTACT_FIELDS.slice().sort(function() { return 0.5 - Math.random(); });
+                var initialFields = shuffledFields.slice(0, initialFieldCount).map(function(f) {
+                    var values = SAMPLE_FIELD_VALUES[f.field] || ['Sample Value'];
+                    return {
+                        field: f.field,
+                        label: f.label,
+                        sensitive: f.sensitive,
+                        value: values[Math.floor(Math.random() * values.length)]
+                    };
+                });
+                
+                var contactPermissions = getUserPermissions();
+                var canViewSensitiveData = contactPermissions.viewSensitiveData === true;
+                
                 return {
-                    creation_method: method,
-                    summary: 'Created via ' + method,
-                    details: '<strong>Method:</strong> ' + method
+                    source: creationSource.source,
+                    source_label: creationSource.label,
+                    created_by: creationActor,
+                    initial_fields: initialFields,
+                    summary: creationSource.label,
+                    details: buildContactCreatedDetails(creationSource, creationActor, initialFields, canViewSensitiveData)
                 };
             
             case EVENT_TYPES.CONTACT_UPDATED:
-                var fields = ['First Name', 'Last Name', 'Email', 'Custom Field'];
-                var field = fields[Math.floor(Math.random() * fields.length)];
+                var updateSource = getRandomCreationSource();
+                var updateActorNames = ['Admin User', 'Marketing Team', 'Support Agent', 'Compliance Team'];
+                var updateActor = (updateSource.source === 'manual' || updateSource.source === 'csv_import')
+                    ? updateActorNames[Math.floor(Math.random() * updateActorNames.length)]
+                    : (updateSource.source === 'api' ? 'API Integration' : null);
+                
+                var changeCount = 1 + Math.floor(Math.random() * 3);
+                var fieldChanges = [];
+                for (var i = 0; i < changeCount; i++) {
+                    fieldChanges.push(getRandomFieldChange());
+                }
+                
+                var updatePermissions = getUserPermissions();
+                var canViewSensitive = updatePermissions.viewSensitiveData === true;
+                
+                var changedFieldLabels = fieldChanges.map(function(c) { return c.label; });
+                var updateSummary = changedFieldLabels.length === 1 
+                    ? changedFieldLabels[0] + ' changed'
+                    : changedFieldLabels.length + ' fields changed';
+                
                 return {
-                    fields_changed: [field],
-                    summary: field + ' updated',
-                    details: '<strong>Changed:</strong> ' + field
+                    source: updateSource.source,
+                    source_label: updateSource.label,
+                    updated_by: updateActor,
+                    changes: fieldChanges,
+                    fields_changed: changedFieldLabels,
+                    summary: updateSummary,
+                    details: buildContactUpdatedDetails(fieldChanges, updateSource, updateActor, canViewSensitive)
                 };
             
             case EVENT_TYPES.NOTE_ADDED:
