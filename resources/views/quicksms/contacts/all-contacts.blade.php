@@ -1561,9 +1561,9 @@ function bulkDelete() {
                     </div>
                 </div>
                 
-                <div class="mt-4 mb-0 p-3 rounded" style="background-color: #f0ebf8; color: #6c5ce7;">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Activity Timeline:</strong> <span class="text-dark">Campaign history, replies, and opt-out events will appear here when backend is implemented.</span>
+                <div class="mt-4 mb-0 p-3 rounded" style="background-color: #f0ebf8;">
+                    <i class="fas fa-info-circle me-2 text-dark"></i>
+                    <strong class="text-dark">Activity Timeline:</strong> <span class="text-dark">Campaign history, replies, and opt-out events will appear here when backend is implemented.</span>
                 </div>
             </div>
             <div class="modal-footer">
