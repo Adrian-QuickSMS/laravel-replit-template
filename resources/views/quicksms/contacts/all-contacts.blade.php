@@ -205,29 +205,29 @@
                         </div>
                     </div>
 
-                    <div id="bulkActionBar" class="alert alert-light border d-none mb-3">
+                    <div id="bulkActionBar" class="d-none mb-3 rounded p-3" style="background-color: #6b5b95;">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <span><strong id="selectedCount">0</strong> contact(s) selected</span>
+                            <span class="text-white"><strong id="selectedCount">0</strong> contact(s) selected</span>
                             <div class="d-flex gap-2 flex-wrap mt-2 mt-md-0">
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAddToList()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkAddToList()">
                                     <i class="fas fa-plus me-1"></i> Add to List
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkRemoveFromList()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkRemoveFromList()">
                                     <i class="fas fa-minus me-1"></i> Remove from List
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkAddTags()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkAddTags()">
                                     <i class="fas fa-tag me-1"></i> Add Tags
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkRemoveTags()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkRemoveTags()">
                                     <i class="fas fa-times me-1"></i> Remove Tags
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkSendMessage()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkSendMessage()">
                                     <i class="fas fa-paper-plane me-1"></i> Send Message
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="openExportModal()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="openExportModal()">
                                     <i class="fas fa-download me-1"></i> Export
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDelete()">
+                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,200,200,0.7); color: #ffcccc;" onmouseover="this.style.backgroundColor='rgba(255,100,100,0.2)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkDelete()">
                                     <i class="fas fa-trash me-1"></i> Delete
                                 </button>
                             </div>
@@ -983,14 +983,14 @@ function confirmBulkAddToList() {
     ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
         hideProcessingModal();
         if (result.success) {
-            showSuccessModal('Added to List', result.message);
+            showToast(ids.length + ' contact(s) added to list successfully', 'success');
             clearBulkSelection();
         } else {
-            showErrorModal('Error', result.message || 'Failed to add contacts to list.');
+            showToast(result.message || 'Failed to add contacts to list.', 'error');
         }
     }).catch(function(error) {
         hideProcessingModal();
-        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        showToast('An unexpected error occurred. Please try again.', 'error');
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1020,14 +1020,14 @@ function confirmBulkRemoveFromList() {
     ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
         hideProcessingModal();
         if (result.success) {
-            showSuccessModal('Removed from List', result.message);
+            showToast(ids.length + ' contact(s) removed from list successfully', 'success');
             clearBulkSelection();
         } else {
-            showErrorModal('Error', result.message || 'Failed to remove contacts from list.');
+            showToast(result.message || 'Failed to remove contacts from list.', 'error');
         }
     }).catch(function(error) {
         hideProcessingModal();
-        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        showToast('An unexpected error occurred. Please try again.', 'error');
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1057,14 +1057,14 @@ function confirmBulkAddTags() {
     ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
         hideProcessingModal();
         if (result.success) {
-            showSuccessModal('Tags Added', result.message);
+            showToast(selectedTags.length + ' tag(s) added to ' + ids.length + ' contact(s) successfully', 'success');
             clearBulkSelection();
         } else {
-            showErrorModal('Error', result.message || 'Failed to add tags.');
+            showToast(result.message || 'Failed to add tags.', 'error');
         }
     }).catch(function(error) {
         hideProcessingModal();
-        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        showToast('An unexpected error occurred. Please try again.', 'error');
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1094,14 +1094,14 @@ function confirmBulkRemoveTags() {
     ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
         hideProcessingModal();
         if (result.success) {
-            showSuccessModal('Tags Removed', result.message);
+            showToast(selectedTags.length + ' tag(s) removed from ' + ids.length + ' contact(s) successfully', 'success');
             clearBulkSelection();
         } else {
-            showErrorModal('Error', result.message || 'Failed to remove tags.');
+            showToast(result.message || 'Failed to remove tags.', 'error');
         }
     }).catch(function(error) {
         hideProcessingModal();
-        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        showToast('An unexpected error occurred. Please try again.', 'error');
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1174,6 +1174,35 @@ function showSuccessModal(title, message) {
         window.successModal = new bootstrap.Modal(document.getElementById('successModal'));
     }
     window.successModal.show();
+}
+
+function showToast(message, type) {
+    type = type || 'success';
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+    }
+    
+    var bgColor = type === 'success' ? '#6b5b95' : (type === 'error' ? '#dc3545' : '#6c757d');
+    var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+    
+    var toastId = 'toast_' + Date.now();
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + ';">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '</div></div>';
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    
+    setTimeout(function() {
+        var toast = document.getElementById(toastId);
+        if (toast) toast.remove();
+    }, 4000);
 }
 
 function showErrorModal(title, message) {
