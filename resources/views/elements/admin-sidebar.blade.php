@@ -31,7 +31,7 @@
             <li class="{{ request()->routeIs('admin.assets.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-puzzle-piece"></i>
-                    <span class="nav-text">Messaging Assets</span>
+                    <span class="nav-text">Management</span>
                 </a>
                 <ul aria-expanded="false">
                     <li><a href="{{ route('admin.assets.sender-ids') }}" class="{{ request()->routeIs('admin.assets.sender-ids') ? 'mm-active' : '' }}">Sender ID Approvals <span class="badge bg-danger rounded-circle" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; margin-left: 0.25rem;">8</span></a></li>

@@ -192,7 +192,7 @@
     <div class="admin-breadcrumb">
         <a href="{{ route('admin.dashboard') }}">Admin</a>
         <span class="separator">/</span>
-        <a href="#">Messaging Assets</a>
+        <a href="#">Management</a>
         <span class="separator">/</span>
         <span>RCS Agent Approvals</span>
     </div>

@@ -458,7 +458,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none" style="color: #1e3a5f;">Admin</a></li>
-            <li class="breadcrumb-item"><a href="#" class="text-decoration-none" style="color: #1e3a5f;">Messaging Assets</a></li>
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none" style="color: #1e3a5f;">Management</a></li>
             <li class="breadcrumb-item active">Campaign History</li>
         </ol>
     </nav>
