@@ -216,7 +216,7 @@
                 </a>
             </div>
             
-            <!-- View latest Invoice -->
+            <!-- View a Invoice -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
                 <a href="{{ route('reporting.invoices') }}" class="text-decoration-none">
                     <div class="widget-stat card bg-success" id="tile-view-invoice">
@@ -232,7 +232,7 @@
                                     </svg>
                                 </span>
                                 <div class="media-body text-white text-end">
-                                    <p class="mb-1">View latest</p>
+                                    <p class="mb-1">View a</p>
                                     <h4 class="text-white mb-0">Invoice</h4>
                                 </div>
                             </div>
