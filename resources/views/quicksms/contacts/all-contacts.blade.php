@@ -1151,7 +1151,7 @@ function confirmBulkAddToList() {
     console.log('[BulkAction] confirmBulkAddToList called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    console.log('[BulkAction] Selected IDs:', ids);
+    console.log('[BulkAction] Selected IDs:', ids, 'count:', count);
     var listSelect = document.getElementById('bulkListSelect');
     var selectedList = listSelect ? listSelect.value : null;
     console.log('[BulkAction] Selected list:', selectedList);
@@ -1161,44 +1161,53 @@ function confirmBulkAddToList() {
         return;
     }
     
+    // Force close the modal using direct DOM manipulation
     var modalEl = document.getElementById('bulkAddToListModal');
-    var modal = bootstrap.Modal.getInstance(modalEl);
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    modalEl.setAttribute('aria-hidden', 'true');
+    cleanupModalBackdrops();
     
-    // Wait for modal to fully hide before showing processing modal
-    var executeAction = function() {
-        console.log('[BulkAction] Modal hidden, showing processing modal');
+    // Small delay then show processing
+    setTimeout(function() {
+        console.log('[BulkAction] Showing processing modal');
         showProcessingModal('Adding contacts to list...');
         
         ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
             console.log('[BulkAction] Service result:', result);
-            if (result.success) {
-                clearBulkSelection();
-                hideProcessingModal(function() {
+            
+            // Force close processing modal
+            var processingEl = document.getElementById('processingModal');
+            processingEl.classList.remove('show');
+            processingEl.style.display = 'none';
+            processingEl.setAttribute('aria-hidden', 'true');
+            cleanupModalBackdrops();
+            
+            // Small delay then show result modal
+            setTimeout(function() {
+                if (result.success) {
+                    clearBulkSelection();
+                    console.log('[BulkAction] Showing success modal');
                     showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
-                });
-            } else {
-                hideProcessingModal(function() {
+                } else {
+                    console.log('[BulkAction] Showing error modal');
                     showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
-                });
-            }
+                }
+            }, 100);
         }).catch(function(error) {
             console.error('[BulkAction] Error:', error);
-            hideProcessingModal(function() {
+            
+            // Force close processing modal
+            var processingEl = document.getElementById('processingModal');
+            processingEl.classList.remove('show');
+            processingEl.style.display = 'none';
+            cleanupModalBackdrops();
+            
+            setTimeout(function() {
                 showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-            });
+            }, 100);
         });
-    };
-    
-    if (modal) {
-        var handler = function() {
-            modalEl.removeEventListener('hidden.bs.modal', handler);
-            executeAction();
-        };
-        modalEl.addEventListener('hidden.bs.modal', handler);
-        modal.hide();
-    } else {
-        executeAction();
-    }
+    }, 100);
 }
 
 function bulkRemoveFromList() {
