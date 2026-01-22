@@ -23,12 +23,11 @@
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow-x: auto;
+    overflow: hidden;
 }
 .api-table {
     width: 100%;
     margin: 0;
-    min-width: 1200px;
     table-layout: fixed;
 }
 .api-table thead th {
@@ -42,14 +41,14 @@
     white-space: nowrap;
     user-select: none;
 }
-.api-table thead th:first-child { width: 14%; }
-.api-table thead th:nth-child(2) { width: 14%; }
-.api-table thead th:nth-child(3) { width: 20%; }
-.api-table thead th:nth-child(4) { width: 9%; }
-.api-table thead th:nth-child(5) { width: 12%; }
+.api-table thead th:first-child { width: 13%; }
+.api-table thead th:nth-child(2) { width: 13%; }
+.api-table thead th:nth-child(3) { width: 18%; }
+.api-table thead th:nth-child(4) { width: 10%; }
+.api-table thead th:nth-child(5) { width: 14%; }
 .api-table thead th:nth-child(6) { width: 8%; }
 .api-table thead th:nth-child(7) { width: 10%; }
-.api-table thead th:last-child { width: 6%; text-align: right; }
+.api-table thead th:last-child { width: 7%; text-align: right; }
 .api-table thead th:hover {
     background: #e9ecef;
 }
@@ -85,6 +84,15 @@
     padding: 0.15rem 0.4rem;
     border-radius: 0.25rem;
     color: #1e3a5f;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.api-table tbody td {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .badge-live-status {
     background: rgba(28, 187, 140, 0.15);
