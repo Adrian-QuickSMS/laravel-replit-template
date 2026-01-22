@@ -1008,7 +1008,7 @@ span.badge.channel-pill-rcs,
                                 </div>
                                 
                                 <div class="d-grid gap-2 mb-3">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="openViewContactModal()">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="goToContactBook()">
                                         <i class="fas fa-user me-1"></i>View Contact
                                     </button>
                                 </div>
@@ -1871,6 +1871,14 @@ function saveContactLists() {
     // TODO: POST /api/contacts/{id}/lists
     manageListsModal.hide();
     alert('Lists updated successfully!');
+}
+
+function goToContactBook() {
+    var conv = conversationsData.find(function(c) { return c.id === currentConversationId; });
+    if (!conv) return;
+    
+    var contactId = conv.contact_id || conv.id;
+    window.location.href = '/contacts/all?contact=' + encodeURIComponent(contactId);
 }
 
 function openViewContactModal() {
