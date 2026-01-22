@@ -268,10 +268,10 @@
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="py-2">
                                                             <a class="dropdown-item" href="#!" onclick="viewOptOutHistory({{ $optout['id'] }})">
-                                                                <i class="fas fa-history me-2 text-info"></i> View History
+                                                                <i class="fas fa-history me-2 text-dark"></i> View History
                                                             </a>
                                                             <a class="dropdown-item" href="#!" onclick="moveToList({{ $optout['id'] }})">
-                                                                <i class="fas fa-exchange-alt me-2 text-primary"></i> Move to List
+                                                                <i class="fas fa-exchange-alt me-2 text-dark"></i> Move to List
                                                             </a>
                                                             <div class="dropdown-divider"></div>
                                                             <a class="dropdown-item text-danger" href="#!" onclick="removeOptOut({{ $optout['id'] }})">
@@ -680,6 +680,27 @@
     </div>
 </div>
 
+<!-- Remove Opt-Out Confirmation Modal -->
+<div class="modal fade" id="removeOptOutConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark"><i class="fas fa-trash me-2 text-danger"></i>Remove Opt-Out</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                <p class="mb-2" id="removeOptOutMessage">Are you sure you want to remove this opt-out?</p>
+                <p class="text-muted small mb-0">The contact will be able to receive messages again.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirmRemoveOptOutBtn">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -1019,12 +1040,37 @@ function moveToList(optOutId) {
     alert('Move to list dialog for opt-out #' + optOutId + '. TODO: Implement modal.');
 }
 
+var pendingRemoveOptOut = null;
+
 function removeOptOut(optOutId) {
-    // TODO: Connect to API - DELETE /api/opt-outs/{id}
-    if (confirm('Are you sure you want to remove this opt-out? The contact will be able to receive messages again.')) {
-        alert('Opt-out #' + optOutId + ' would be removed. TODO: Connect to backend API.');
-    }
+    pendingRemoveOptOut = { id: optOutId };
+    
+    document.getElementById('removeOptOutMessage').textContent = 'Are you sure you want to remove this opt-out?';
+    
+    var confirmModal = new bootstrap.Modal(document.getElementById('removeOptOutConfirmModal'));
+    confirmModal.show();
 }
+
+function executeRemoveOptOut() {
+    if (!pendingRemoveOptOut) return;
+    
+    // TODO: Connect to API - DELETE /api/opt-outs/{id}
+    console.log('TODO: API call DELETE /api/opt-outs/' + pendingRemoveOptOut.id);
+    
+    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('removeOptOutConfirmModal'));
+    confirmModal.hide();
+    
+    showToast('Opt-out removed successfully', 'success');
+    pendingRemoveOptOut = null;
+}
+
+// Set up confirm remove button click handler
+document.addEventListener('DOMContentLoaded', function() {
+    var confirmRemoveBtn = document.getElementById('confirmRemoveOptOutBtn');
+    if (confirmRemoveBtn) {
+        confirmRemoveBtn.addEventListener('click', executeRemoveOptOut);
+    }
+});
 
 function bulkMoveToList() {
     // TODO: Connect to API - PUT /api/opt-outs/bulk/move
@@ -1040,12 +1086,32 @@ function bulkExport() {
     new bootstrap.Modal(document.getElementById('exportModal')).show();
 }
 
+var pendingBulkRemove = null;
+
 function bulkRemove() {
-    // TODO: Connect to API - DELETE /api/opt-outs/bulk
     const count = document.querySelectorAll('.optout-checkbox:checked').length;
-    if (confirm('Are you sure you want to remove ' + count + ' opt-outs? These contacts will be able to receive messages again.')) {
-        alert(count + ' opt-outs would be removed. TODO: Connect to backend API.');
-    }
+    pendingBulkRemove = { count: count };
+    
+    document.getElementById('removeOptOutMessage').textContent = 'Are you sure you want to remove ' + count + ' opt-out(s)?';
+    
+    // Update button handler for bulk remove
+    var confirmBtn = document.getElementById('confirmRemoveOptOutBtn');
+    confirmBtn.onclick = function() {
+        // TODO: Connect to API - DELETE /api/opt-outs/bulk
+        console.log('TODO: API call DELETE /api/opt-outs/bulk, count:', pendingBulkRemove.count);
+        
+        var confirmModal = bootstrap.Modal.getInstance(document.getElementById('removeOptOutConfirmModal'));
+        confirmModal.hide();
+        
+        showToast(pendingBulkRemove.count + ' opt-out(s) removed successfully', 'success');
+        pendingBulkRemove = null;
+        
+        // Reset button handler
+        confirmBtn.onclick = executeRemoveOptOut;
+    };
+    
+    var confirmModal = new bootstrap.Modal(document.getElementById('removeOptOutConfirmModal'));
+    confirmModal.show();
 }
 
 // Show Excel warning when xlsx/xls file is selected
