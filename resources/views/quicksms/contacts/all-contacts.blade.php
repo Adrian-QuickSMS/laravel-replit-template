@@ -807,10 +807,20 @@ function editContact(id) {
 }
 
 function sendMessage(id) {
-    console.log('TODO: sendMessage - Navigate to Send Message screen');
-    console.log('TODO: Pre-populate recipients section with contact ID: ' + id);
-    console.log('TODO: Integrate with Messages > Send Message module');
-    alert('Send Message\n\nContact ID: ' + id + '\n\nThis feature requires:\n- Navigation to Send Message screen\n- Pre-populate recipient with selected contact\n- Standard campaign flow integration');
+    var contact = contactsData.find(function(c) { return c.id === id; });
+    if (!contact) {
+        alert('Contact not found');
+        return;
+    }
+    
+    sessionStorage.setItem('sendMessageRecipients', JSON.stringify({
+        contactIds: [id],
+        contactNames: [contact.name],
+        contactMobiles: [contact.mobile],
+        source: 'contacts'
+    }));
+    
+    window.location.href = '{{ route("messages.send") }}?from=contacts&count=1';
 }
 
 function viewTimeline(id) {
@@ -966,8 +976,46 @@ function bulkSendMessage() {
     var ids = getSelectedContactIds();
     var names = getSelectedContactNames();
     
-    alert('Send Message to ' + ids.length + ' contact(s):\n\n' + names.join('\n') + '\n\nThis will redirect to the Send Message screen with these contacts pre-selected.\n\nRequires Messages module integration.');
-    console.log('TODO: Navigate to Send Message with contact IDs: ' + ids.join(', '));
+    document.getElementById('sendMessageContactCount').textContent = ids.length;
+    var contactListHtml = names.map(function(name) {
+        return '<li class="py-1">' + name + '</li>';
+    }).join('');
+    document.getElementById('sendMessageContactList').innerHTML = contactListHtml;
+    
+    var modal = new bootstrap.Modal(document.getElementById('bulkSendMessageModal'));
+    modal.show();
+}
+
+function confirmBulkSendMessage() {
+    var ids = getSelectedContactIds();
+    var names = getSelectedContactNames();
+    var mobiles = getSelectedContactMobiles();
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkSendMessageModal'));
+    modal.hide();
+    
+    sessionStorage.setItem('sendMessageRecipients', JSON.stringify({
+        contactIds: ids,
+        contactNames: names,
+        contactMobiles: mobiles,
+        source: 'contacts'
+    }));
+    
+    window.location.href = '{{ route("messages.send") }}?from=contacts&count=' + ids.length;
+}
+
+function getSelectedContactMobiles() {
+    var mobiles = [];
+    document.querySelectorAll('.contact-checkbox:checked').forEach(function(cb) {
+        var row = cb.closest('tr');
+        if (row) {
+            var mobileCell = row.querySelector('td:nth-child(3)');
+            if (mobileCell) {
+                mobiles.push(mobileCell.textContent.trim());
+            }
+        }
+    });
+    return mobiles;
 }
 
 function openExportModal() {
@@ -1566,6 +1614,34 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkRemoveFromList()">Remove from List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkSendMessageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #f0ebf8;">
+                <h5 class="modal-title"><i class="fas fa-paper-plane me-2 text-primary"></i>Send Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Send message to <strong id="sendMessageContactCount">0</strong> contact(s):</p>
+                <div class="border rounded p-2 mb-3" style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa;">
+                    <ul class="list-unstyled mb-0 small" id="sendMessageContactList">
+                    </ul>
+                </div>
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This will redirect to the Send Message screen with these contacts pre-selected as recipients.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkSendMessage()">
+                    <i class="fas fa-paper-plane me-1"></i> Continue to Send Message
+                </button>
             </div>
         </div>
     </div>
