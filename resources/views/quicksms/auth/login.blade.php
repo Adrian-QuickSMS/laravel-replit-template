@@ -91,8 +91,42 @@
                             </div>
                         </div>
                         
+                        <div id="smsChannelOptions" class="mb-3 d-none">
+                            <label class="form-label text-muted small mb-2">Delivery Channel</label>
+                            <div class="d-flex gap-2">
+                                <div class="form-check form-check-inline flex-grow-1">
+                                    <input class="form-check-input" type="radio" name="smsChannel" id="channelSms" value="sms" checked>
+                                    <label class="form-check-label" for="channelSms">
+                                        <i class="fas fa-sms me-1"></i> SMS
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline flex-grow-1" id="rcsChannelOption">
+                                    <input class="form-check-input" type="radio" name="smsChannel" id="channelRcs" value="rcs">
+                                    <label class="form-check-label" for="channelRcs">
+                                        <i class="fas fa-message me-1"></i> RCS
+                                        <span class="badge bg-success-light text-success ms-1" style="font-size: 0.65rem;">Enhanced</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="sendCodeSection" class="mb-4">
+                            <button type="button" class="btn btn-primary w-100" id="sendCodeBtn">
+                                <span class="btn-text"><i class="fas fa-paper-plane me-2"></i>Send Code</span>
+                                <span class="btn-loading d-none">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Sending...
+                                </span>
+                            </button>
+                            <div class="text-center mt-2 d-none" id="resendInfo">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    You can resend in <span id="resendCountdown">15:00</span>
+                                </small>
+                            </div>
+                        </div>
+                        
                         <form id="mfaForm" novalidate>
-                            <div class="mb-4">
+                            <div class="mb-4 d-none" id="otpInputSection">
                                 <label class="form-label" for="otpCode">
                                     <span id="codeLabel">Verification Code</span> <span class="text-danger">*</span>
                                 </label>
@@ -373,7 +407,8 @@ $(document).ready(function() {
         rate_limits: {
             login_per_ip: { max: 10, window_minutes: 15 },
             login_per_email: { max: 5, window_minutes: 15 },
-            otp_verify_attempts: { max: 5, window_minutes: 5 }
+            otp_verify_attempts: { max: 5, window_minutes: 5 },
+            otp_send_attempts: { max: 3, window_minutes: 15 }
         },
         account_lockout: {
             max_failed_attempts: 5,
@@ -439,11 +474,13 @@ $(document).ready(function() {
     };
     
     var MockUsers = {
-        'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true },
-        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '+447700900456', email_verified: true },
-        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '+447700900789', email_verified: false },
-        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true }
+        'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true, rcs_capable: true },
+        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '+447700900456', email_verified: true, rcs_capable: false },
+        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '+447700900789', email_verified: false, rcs_capable: false },
+        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true, rcs_capable: true }
     };
+    
+    var currentUserRcsCapable = false;
     
     function showLoginError(message, type) {
         type = type || 'danger';
@@ -571,39 +608,130 @@ $(document).ready(function() {
             LockoutService.resetOnSuccess(email);
             currentEmail = email;
             currentMobile = user.mobile || '+447700900123';
+            currentUserRcsCapable = user.rcs_capable || false;
             
             AuditService.log('login_password_verified', { email: email });
             
-            showLoginSuccess('Password verified. Sending verification code...');
+            showLoginSuccess('Password verified. Proceeding to verification...');
             
             setTimeout(function() {
-                sendMfaOtp();
-                
                 $('#loginStep1').addClass('d-none');
                 $('#loginStep2').removeClass('d-none');
                 $('#maskedMobile').text(currentMobile.slice(-4));
-                $('#otpCode').focus();
                 
+                if (currentUserRcsCapable) {
+                    $('#rcsChannelOption').removeClass('d-none');
+                } else {
+                    $('#rcsChannelOption').addClass('d-none');
+                    $('#channelSms').prop('checked', true);
+                }
+                
+                updateMfaMethodUI();
                 resetButton($btn);
             }, 500);
             
         }, 1000);
     });
     
+    var resendCooldownMs = 15 * 60 * 1000;
+    var resendUnlockTime = null;
+    var resendCountdownInterval = null;
+    var otpSentThisSession = false;
+    
     function sendMfaOtp() {
+        var channel = $('input[name="smsChannel"]:checked').val() || 'sms';
+        
         currentOtp = String(Math.floor(100000 + Math.random() * 900000));
         otpExpiry = Date.now() + (5 * 60 * 1000);
+        resendUnlockTime = Date.now() + resendCooldownMs;
+        otpSentThisSession = true;
         
-        console.log('[MFA] OTP sent to ' + currentMobile + ': ' + currentOtp);
-        AuditService.log('mfa_otp_sent', { mobile_masked: '****' + currentMobile.slice(-4) });
+        console.log('[MFA] OTP sent via ' + channel.toUpperCase() + ' to ' + currentMobile + ': ' + currentOtp);
+        AuditService.log('mfa_otp_sent', { 
+            mobile_masked: '****' + currentMobile.slice(-4),
+            channel: channel
+        });
         
         $('#displayOtp').text(currentOtp);
-        startCountdown();
+        $('#otpInputSection').removeClass('d-none');
+        $('#sendCodeSection').addClass('d-none');
+        $('#testOtpCode').removeClass('d-none');
+        $('#otpCode').focus();
         
-        var $resend = $('#resendOtpBtn');
-        $resend.prop('disabled', true);
-        setTimeout(function() { $resend.prop('disabled', false); }, resendCooldown * 1000);
+        startCountdown();
+        startResendCooldown();
+        
+        $('#resendOtpBtn').prop('disabled', true);
     }
+    
+    function startResendCooldown() {
+        if (resendCountdownInterval) clearInterval(resendCountdownInterval);
+        
+        resendCountdownInterval = setInterval(function() {
+            var remaining = Math.max(0, resendUnlockTime - Date.now());
+            var minutes = Math.floor(remaining / 60000);
+            var seconds = Math.floor((remaining % 60000) / 1000);
+            
+            if (remaining <= 0) {
+                clearInterval(resendCountdownInterval);
+                $('#resendOtpBtn').prop('disabled', false).text('Resend Code');
+                return;
+            }
+            
+            $('#resendOtpBtn').text('Resend (' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds + ')');
+        }, 1000);
+    }
+    
+    function updateMfaMethodUI() {
+        if (currentMfaMethod === 'sms') {
+            $('#sendCodeSection').removeClass('d-none');
+            $('#smsChannelOptions').removeClass('d-none');
+            $('#smsCodeHelpers').removeClass('d-none');
+            $('#totpCodeHelpers').addClass('d-none');
+            $('#codeLabel').text('Verification Code');
+            
+            if (otpSentThisSession && currentOtp) {
+                $('#otpInputSection').removeClass('d-none');
+                $('#sendCodeSection').addClass('d-none');
+                $('#testOtpCode').removeClass('d-none');
+            } else {
+                $('#otpInputSection').addClass('d-none');
+                $('#sendCodeSection').removeClass('d-none');
+                $('#testOtpCode').addClass('d-none');
+            }
+        } else {
+            $('#sendCodeSection').addClass('d-none');
+            $('#smsChannelOptions').addClass('d-none');
+            $('#otpInputSection').removeClass('d-none');
+            $('#smsCodeHelpers').addClass('d-none');
+            $('#totpCodeHelpers').removeClass('d-none');
+            $('#testOtpCode').addClass('d-none');
+            $('#codeLabel').text('Authenticator Code');
+            $('#otpCode').focus();
+        }
+    }
+    
+    $('#sendCodeBtn').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+        $btn.find('.btn-text').addClass('d-none');
+        $btn.find('.btn-loading').removeClass('d-none');
+        
+        var rateCheck = RateLimitService.checkLimit('otp_send:' + currentEmail, SecurityConfig.rate_limits.otp_send_attempts);
+        if (!rateCheck.allowed) {
+            showMfaError('Too many code requests. Try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
+            resetButton($btn);
+            return;
+        }
+        
+        RateLimitService.recordAttempt('otp_send:' + currentEmail);
+        
+        setTimeout(function() {
+            sendMfaOtp();
+            showMfaSuccess('Verification code sent!');
+            resetButton($btn);
+        }, 800);
+    });
     
     function startCountdown() {
         var remaining = 5 * 60;
@@ -757,33 +885,34 @@ $(document).ready(function() {
         $('#otpCode').val('').removeClass('is-invalid');
         $('#mfaStatus').addClass('d-none');
         
-        if (method === 'sms') {
-            $('#smsCodeHelpers').removeClass('d-none');
-            $('#totpCodeHelpers').addClass('d-none');
-            $('#testOtpCode').removeClass('d-none');
-            $('#codeLabel').text('Verification Code');
-            sendMfaOtp();
-        } else {
-            $('#smsCodeHelpers').addClass('d-none');
-            $('#totpCodeHelpers').removeClass('d-none');
-            $('#testOtpCode').addClass('d-none');
-            $('#codeLabel').text('Authenticator Code');
-            currentOtp = '123456';
-            if (countdownInterval) clearInterval(countdownInterval);
-        }
+        updateMfaMethodUI();
         
-        $('#otpCode').focus();
         AuditService.log('mfa_method_changed', { method: method });
     }
+    
+    $('#resendOtpBtn').on('click', function() {
+        if ($(this).prop('disabled')) return;
+        
+        var rateCheck = RateLimitService.checkLimit('otp_send:' + currentEmail, SecurityConfig.rate_limits.otp_send_attempts);
+        if (!rateCheck.allowed) {
+            showMfaError('Too many code requests. Try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
+            return;
+        }
+        
+        RateLimitService.recordAttempt('otp_send:' + currentEmail);
+        sendMfaOtp();
+        showMfaSuccess('New verification code sent!');
+    });
     
     $('#backToLogin').on('click', function() {
         $('#loginStep2').addClass('d-none');
         $('#loginStep1').removeClass('d-none');
         $('#loginStatus').addClass('d-none');
         clearInterval(countdownInterval);
+        if (resendCountdownInterval) clearInterval(resendCountdownInterval);
         currentOtp = null;
+        otpSentThisSession = false;
         currentMfaMethod = 'sms';
-        selectMfaMethod('sms');
     });
     
     $('#email, #password').on('input', function() {
