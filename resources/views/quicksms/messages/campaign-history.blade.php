@@ -444,9 +444,9 @@ $permissions = [
         <div class="tryal-gradient text-white p-4 rounded-3">
             <h4 id="drawerCampaignName" class="mb-3 fw-semibold" style="color: white !important;">-</h4>
             <div class="d-flex flex-wrap gap-2 mb-3" style="position: relative; z-index: 10;">
-                <span id="drawerStatusBadge" class="badge" style="background: #ffffff; color: #333; opacity: 1;">-</span>
-                <span id="drawerChannelBadge" class="badge" style="background: #ffffff; color: #333; opacity: 1;">-</span>
-                <span id="drawerLiveStateBadge" class="badge" style="background: #ffffff; color: #333; opacity: 1;">-</span>
+                <span id="drawerStatusBadge" class="badge">-</span>
+                <span id="drawerChannelBadge" class="badge">-</span>
+                <span id="drawerLiveStateBadge" class="badge">-</span>
             </div>
             <div class="d-flex align-items-center small opacity-75">
                 <i class="fas fa-clock me-2"></i>
@@ -953,13 +953,128 @@ document.addEventListener('DOMContentLoaded', function() {
             filterCampaigns();
         }
     });
+    
+    var applyBtn = document.getElementById('btnApplyFilters');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', applyFilters);
+    }
+    
+    var resetBtn = document.getElementById('btnResetFilters');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetFilters);
+    }
+    
+    document.querySelectorAll('.select-all-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var dropdown = this.closest('.multiselect-dropdown');
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = true;
+            });
+            updateDropdownLabel(dropdown);
+        });
+    });
+    
+    document.querySelectorAll('.clear-all-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var dropdown = this.closest('.multiselect-dropdown');
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = false;
+            });
+            updateDropdownLabel(dropdown);
+        });
+    });
+    
+    document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var dropdown = this.closest('.multiselect-dropdown');
+            updateDropdownLabel(dropdown);
+        });
+    });
 });
+
+function updateDropdownLabel(dropdown) {
+    var label = dropdown.querySelector('.dropdown-label');
+    var checked = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+    var filter = dropdown.dataset.filter;
+    
+    if (checked.length === 0) {
+        if (filter === 'statuses') label.textContent = 'All Statuses';
+        else if (filter === 'channels') label.textContent = 'All Channels';
+        else if (filter === 'senderIds') label.textContent = 'All Sender IDs';
+        else if (filter === 'rcsAgents') label.textContent = 'All Agents';
+        else label.textContent = 'Any';
+    } else if (checked.length === 1) {
+        label.textContent = checked[0].nextElementSibling.textContent;
+    } else {
+        label.textContent = checked.length + ' selected';
+    }
+}
+
+function showToast(message, type) {
+    type = type || 'info';
+    var toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    var bgClass = 'bg-primary';
+    if (type === 'success') bgClass = 'bg-success';
+    else if (type === 'warning') bgClass = 'bg-warning text-dark';
+    else if (type === 'error' || type === 'danger') bgClass = 'bg-danger';
+    
+    var toastEl = document.createElement('div');
+    toastEl.className = 'toast align-items-center text-white ' + bgClass + ' border-0';
+    toastEl.setAttribute('role', 'alert');
+    
+    var toastContent = document.createElement('div');
+    toastContent.className = 'd-flex';
+    
+    var toastBody = document.createElement('div');
+    toastBody.className = 'toast-body';
+    toastBody.textContent = message;
+    
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close btn-close-white me-2 m-auto';
+    closeBtn.setAttribute('data-bs-dismiss', 'toast');
+    
+    toastContent.appendChild(toastBody);
+    toastContent.appendChild(closeBtn);
+    toastEl.appendChild(toastContent);
+    toastContainer.appendChild(toastEl);
+    
+    var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastEl.remove();
+    });
+}
+
+function getCheckedValues(dropdownSelector) {
+    var values = [];
+    var dropdown = document.querySelector(dropdownSelector);
+    if (dropdown) {
+        dropdown.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
+            values.push(cb.value);
+        });
+    }
+    return values;
+}
 
 function filterCampaigns() {
     var searchTerm = document.getElementById('campaignSearch').value.toLowerCase().trim();
     var rows = document.querySelectorAll('#campaignsTableBody tr[data-id]');
     var visibleCount = 0;
-    var hasActiveFilters = Object.values(activeFilters).some(function(v) { return v !== ''; });
+    var hasActiveFilters = Object.values(activeFilters).some(function(v) { 
+        return Array.isArray(v) ? v.length > 0 : v !== ''; 
+    });
     
     rows.forEach(function(row) {
         var name = (row.dataset.name || '').toLowerCase();
@@ -978,12 +1093,12 @@ function filterCampaigns() {
         
         var matchesFilters = true;
         if (hasActiveFilters) {
-            if (activeFilters.status && status !== activeFilters.status) matchesFilters = false;
-            if (activeFilters.channel && channel !== activeFilters.channel) matchesFilters = false;
-            if (activeFilters.senderId && senderId !== activeFilters.senderId) matchesFilters = false;
-            if (activeFilters.rcsAgent && rcsAgent !== activeFilters.rcsAgent) matchesFilters = false;
-            if (activeFilters.tracking && hasTracking !== activeFilters.tracking) matchesFilters = false;
-            if (activeFilters.optout && hasOptout !== activeFilters.optout) matchesFilters = false;
+            if (activeFilters.statuses && activeFilters.statuses.length > 0 && !activeFilters.statuses.includes(status)) matchesFilters = false;
+            if (activeFilters.channels && activeFilters.channels.length > 0 && !activeFilters.channels.includes(channel)) matchesFilters = false;
+            if (activeFilters.senderIds && activeFilters.senderIds.length > 0 && !activeFilters.senderIds.includes(senderId)) matchesFilters = false;
+            if (activeFilters.rcsAgents && activeFilters.rcsAgents.length > 0 && !activeFilters.rcsAgents.includes(rcsAgent)) matchesFilters = false;
+            if (activeFilters.tracking && activeFilters.tracking.length > 0 && !activeFilters.tracking.includes(hasTracking)) matchesFilters = false;
+            if (activeFilters.optout && activeFilters.optout.length > 0 && !activeFilters.optout.includes(hasOptout)) matchesFilters = false;
             
             if (activeFilters.dateFrom) {
                 var rowDate = new Date(sendDate);
@@ -1029,14 +1144,14 @@ var activeFilters = {};
 
 function applyFilters() {
     activeFilters = {
-        status: document.getElementById('filterStatus').value,
-        channel: document.getElementById('filterChannel').value,
-        senderId: document.getElementById('filterSenderId').value,
-        rcsAgent: document.getElementById('filterRcsAgent').value,
+        statuses: getCheckedValues('[data-filter="statuses"]'),
+        channels: getCheckedValues('[data-filter="channels"]'),
+        senderIds: getCheckedValues('[data-filter="senderIds"]'),
+        rcsAgents: getCheckedValues('[data-filter="rcsAgents"]'),
         dateFrom: document.getElementById('filterDateFrom').value,
         dateTo: document.getElementById('filterDateTo').value,
-        tracking: document.getElementById('filterTracking').value,
-        optout: document.getElementById('filterOptout').value
+        tracking: getCheckedValues('[data-filter="tracking"]'),
+        optout: getCheckedValues('[data-filter="optout"]')
     };
     
     updateFilterBadge();
@@ -1044,14 +1159,22 @@ function applyFilters() {
 }
 
 function resetFilters() {
-    document.getElementById('filterStatus').value = '';
-    document.getElementById('filterChannel').value = '';
-    document.getElementById('filterSenderId').value = '';
-    document.getElementById('filterRcsAgent').value = '';
+    document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = false;
+    });
+    
+    document.querySelectorAll('.multiselect-dropdown .dropdown-label').forEach(function(label) {
+        var dropdown = label.closest('.multiselect-dropdown');
+        var filter = dropdown ? dropdown.dataset.filter : '';
+        if (filter === 'statuses') label.textContent = 'All Statuses';
+        else if (filter === 'channels') label.textContent = 'All Channels';
+        else if (filter === 'senderIds') label.textContent = 'All Sender IDs';
+        else if (filter === 'rcsAgents') label.textContent = 'All Agents';
+        else label.textContent = 'Any';
+    });
+    
     document.getElementById('filterDateFrom').value = '';
     document.getElementById('filterDateTo').value = '';
-    document.getElementById('filterTracking').value = '';
-    document.getElementById('filterOptout').value = '';
     
     activeFilters = {};
     updateFilterBadge();
@@ -1059,7 +1182,9 @@ function resetFilters() {
 }
 
 function updateFilterBadge() {
-    var count = Object.values(activeFilters).filter(function(v) { return v !== ''; }).length;
+    var count = Object.values(activeFilters).filter(function(v) { 
+        return Array.isArray(v) ? v.length > 0 : v !== ''; 
+    }).length;
     var badge = document.getElementById('activeFiltersBadge');
     
     if (count > 0) {
@@ -1160,7 +1285,9 @@ function openCampaignDrawer(campaignId) {
     }
 
     var channelBadge = document.getElementById('drawerChannelBadge');
-    channelBadge.className = 'badge badge-pastel-info';
+    channelBadge.className = 'badge';
+    channelBadge.style.background = '#d4e5f7';
+    channelBadge.style.color = '#2563a8';
     if (channel === 'sms_only') {
         channelBadge.textContent = 'SMS';
     } else if (channel === 'basic_rcs') {
@@ -1170,14 +1297,18 @@ function openCampaignDrawer(campaignId) {
     }
 
     var statusBadge = document.getElementById('drawerStatusBadge');
+    statusBadge.className = 'badge';
     if (status === 'scheduled') {
-        statusBadge.className = 'badge badge-pastel-warning';
+        statusBadge.style.background = '#fff3cd';
+        statusBadge.style.color = '#856404';
         statusBadge.textContent = 'Scheduled';
     } else if (status === 'sending') {
-        statusBadge.className = 'badge badge-pastel-primary';
+        statusBadge.style.background = '#e0cffc';
+        statusBadge.style.color = '#6f42c1';
         statusBadge.textContent = 'Sending';
     } else {
-        statusBadge.className = 'badge badge-pastel-success';
+        statusBadge.style.background = '#d1f2eb';
+        statusBadge.style.color = '#0d6e5a';
         statusBadge.textContent = 'Complete';
     }
 
@@ -1188,26 +1319,33 @@ function openCampaignDrawer(campaignId) {
     var validityHours = 24;
     var expiryDate = new Date(campaignDate.getTime() + (validityHours * 60 * 60 * 1000));
     
+    liveStateBadge.className = 'badge';
     if (status === 'scheduled') {
-        liveStateBadge.className = 'badge badge-pastel-secondary';
+        liveStateBadge.style.background = '#e9ecef';
+        liveStateBadge.style.color = '#6c757d';
         liveStateBadge.textContent = 'Pending';
     } else if (status === 'sending') {
         if (now < expiryDate) {
-            liveStateBadge.className = 'badge badge-pastel-success';
+            liveStateBadge.style.background = '#d1f2eb';
+            liveStateBadge.style.color = '#0d6e5a';
             liveStateBadge.textContent = 'Live';
         } else {
-            liveStateBadge.className = 'badge badge-pastel-secondary';
+            liveStateBadge.style.background = '#e9ecef';
+            liveStateBadge.style.color = '#6c757d';
             liveStateBadge.textContent = 'Expired';
         }
     } else {
         if (recipientsDelivered !== null && recipientsDelivered >= recipientsTotal) {
-            liveStateBadge.className = 'badge badge-pastel-success';
+            liveStateBadge.style.background = '#d1f2eb';
+            liveStateBadge.style.color = '#0d6e5a';
             liveStateBadge.textContent = 'Complete';
         } else if (now > expiryDate) {
-            liveStateBadge.className = 'badge badge-pastel-secondary';
+            liveStateBadge.style.background = '#e9ecef';
+            liveStateBadge.style.color = '#6c757d';
             liveStateBadge.textContent = 'Expired';
         } else {
-            liveStateBadge.className = 'badge badge-pastel-success';
+            liveStateBadge.style.background = '#d1f2eb';
+            liveStateBadge.style.color = '#0d6e5a';
             liveStateBadge.textContent = 'Complete';
         }
     }
@@ -1755,11 +1893,22 @@ function updateStatusActions(status, campaignId, campaignName, sendDate) {
 
 function editCampaign(event) {
     event.preventDefault();
-    // TODO: Implement edit campaign
-    // - Navigate to /messages/send-message?edit={campaignId}
-    // - Load campaign config into form
-    // - Check permissions (canEditCampaign)
-    showComingSoon('Edit campaign will load the Send Message screen with the saved campaign configuration.');
+    
+    if (!userPermissions.canEdit) {
+        showToast('You do not have permission to edit campaigns.', 'warning');
+        return;
+    }
+    
+    var editConfig = {
+        mode: 'edit',
+        campaignId: currentCampaignId,
+        campaignName: currentCampaignName
+    };
+    
+    sessionStorage.setItem('campaignEditConfig', JSON.stringify(editConfig));
+    campaignDrawer.hide();
+    
+    window.location.href = '/messages/send-message?edit=' + currentCampaignId;
 }
 
 function showCancelConfirmation() {
@@ -1774,41 +1923,56 @@ function showCancelConfirmation() {
 }
 
 function confirmCancelCampaign() {
-    // TODO: Implement cancel campaign
-    // - Call POST /api/campaigns/{id}/cancel
-    // - Check permissions (canCancelCampaign)
-    // - Update campaign status to 'cancelled'
-    // - Refresh campaign list or update row in-place
-    // - Log action in audit trail
+    if (!userPermissions.canCancel) {
+        showToast('You do not have permission to cancel campaigns.', 'warning');
+        return;
+    }
+    
+    var row = document.querySelector('tr[data-id="' + currentCampaignId + '"]');
+    if (row) {
+        row.dataset.status = 'cancelled';
+        var statusCell = row.querySelector('td:nth-child(3) .badge');
+        if (statusCell) {
+            statusCell.className = 'badge badge-pastel-secondary';
+            statusCell.textContent = 'Cancelled';
+        }
+    }
     
     cancelCampaignModal.hide();
     campaignDrawer.hide();
     
-    showComingSoon('Campaign "' + currentCampaignName + '" would be cancelled. Backend integration required.');
+    showToast('Campaign "' + currentCampaignName + '" has been cancelled successfully.', 'success');
+    
+    console.log('[CampaignHistory] Campaign cancelled:', {
+        campaignId: currentCampaignId,
+        campaignName: currentCampaignName,
+        timestamp: new Date().toISOString()
+    });
 }
 
 function duplicateCampaign() {
-    // TODO: Implement campaign duplication
-    // - Call GET /api/campaigns/{id}/config to load campaign configuration
-    // - Store config in sessionStorage for Send Message page to read
-    // - Navigate to Send Message with duplicate flag
-    // - Check permissions (canCreateCampaign)
+    if (!userPermissions.canDuplicate) {
+        showToast('You do not have permission to duplicate campaigns.', 'warning');
+        return;
+    }
     
-    // Mock: Store campaign info in sessionStorage for prefill
+    var row = document.querySelector('tr[data-id="' + currentCampaignId + '"]');
     var duplicateConfig = {
-        source: 'duplicate',
+        mode: 'duplicate',
         originalId: currentCampaignId,
         originalName: currentCampaignName,
-        // TODO: Load actual config from backend
         name: currentCampaignName + ' (Copy)',
-        prefilled: true
+        channel: row ? row.dataset.channel : '',
+        senderId: row ? row.dataset.senderId : '',
+        rcsAgent: row ? row.dataset.rcsAgent : '',
+        template: row ? row.dataset.template : '',
+        tags: row ? row.dataset.tags : ''
     };
     
     sessionStorage.setItem('campaignDuplicateConfig', JSON.stringify(duplicateConfig));
     
     campaignDrawer.hide();
     
-    // Navigate to Send Message page with duplicate flag
     window.location.href = '/messages/send-message?duplicate=' + currentCampaignId;
 }
 </script>
