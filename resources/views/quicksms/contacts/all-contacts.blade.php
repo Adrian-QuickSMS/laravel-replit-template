@@ -279,7 +279,7 @@
                             </thead>
                             <tbody id="contactsTableBody">
                                 @foreach($contacts as $index => $contact)
-                                <tr class="btn-reveal-trigger" data-contact-id="{{ $contact['id'] }}" data-first-name="{{ $contact['first_name'] }}" data-last-name="{{ $contact['last_name'] }}" data-mobile="{{ $contact['mobile'] }}">
+                                <tr class="btn-reveal-trigger" data-contact-id="{{ $contact['id'] }}" data-first-name="{{ $contact['first_name'] }}" data-last-name="{{ $contact['last_name'] }}" data-mobile="{{ $contact['mobile'] }}" data-status="{{ $contact['status'] }}" data-list-scope="{{ $contact['list_scope'] ?? '' }}">
                                     <td class="py-2">
                                         <div class="form-check custom-checkbox">
                                             <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox{{ $contact['id'] }}">
@@ -668,7 +668,7 @@ function sortContacts(sortKey, direction) {
 function renderContactsTable(contacts) {
     const tbody = document.getElementById('contactsTableBody');
     tbody.innerHTML = contacts.map(contact => `
-        <tr class="btn-reveal-trigger" data-contact-id="${contact.id}" data-first-name="${contact.firstName || ''}" data-last-name="${contact.lastName || ''}" data-mobile="${contact.mobile || ''}">
+        <tr class="btn-reveal-trigger" data-contact-id="${contact.id}" data-first-name="${contact.firstName || ''}" data-last-name="${contact.lastName || ''}" data-mobile="${contact.mobile || ''}" data-status="${contact.status || 'active'}" data-list-scope="${contact.listScope || ''}">
             <td class="py-2">
                 <div class="form-check custom-checkbox">
                     <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox${contact.id}">
@@ -831,13 +831,22 @@ function viewTimeline(id) {
         return;
     }
     
-    var contactFullName = ((contact.firstName || '') + ' ' + (contact.lastName || '')).trim() || 'Unknown';
-    var contactPhone = contact.mobile || '';
+    currentTimelineContact = contact;
+    msisdnRevealed = false;
+    
+    var contactFullName = ((contact.firstName || '') + ' ' + (contact.lastName || '')).trim() || 'Unknown contact';
+    var maskedPhone = maskMsisdn(contact.mobile);
+    var statusPillHtml = renderStatusPill(contact.status, contact.listScope);
     
     document.getElementById('timelineContactName').textContent = contactFullName;
-    document.getElementById('timelineContactPhone').textContent = contactPhone;
+    document.getElementById('timelineContactPhone').textContent = maskedPhone;
     document.getElementById('timelineContactNameModal').textContent = contactFullName;
-    document.getElementById('timelineContactPhoneModal').textContent = contactPhone;
+    document.getElementById('timelineContactPhoneModal').textContent = maskedPhone;
+    document.getElementById('timelineStatusPill').innerHTML = statusPillHtml;
+    document.getElementById('timelineStatusPillModal').innerHTML = statusPillHtml;
+    
+    document.getElementById('revealMsisdnBtn').innerHTML = '<i class="fas fa-eye me-1"></i>Reveal';
+    document.getElementById('revealMsisdnBtnModal').innerHTML = '<i class="fas fa-eye me-1"></i>Reveal';
     
     var timelineContainer = document.getElementById('timelineEvents');
     timelineContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="text-muted mt-2 mb-0">Loading timeline...</p></div>';
@@ -893,8 +902,52 @@ function getContactById(id) {
         id: id,
         firstName: row.dataset.firstName || row.getAttribute('data-first-name') || '',
         lastName: row.dataset.lastName || row.getAttribute('data-last-name') || '',
-        mobile: row.dataset.mobile || row.getAttribute('data-mobile') || ''
+        mobile: row.dataset.mobile || row.getAttribute('data-mobile') || '',
+        status: row.dataset.status || row.getAttribute('data-status') || 'active',
+        listScope: row.dataset.listScope || row.getAttribute('data-list-scope') || ''
     };
+}
+
+function maskMsisdn(msisdn) {
+    if (!msisdn || msisdn.length < 6) return msisdn || '';
+    var visible = msisdn.slice(0, 6);
+    var hidden = msisdn.slice(6).replace(/\d/g, '*');
+    return visible + hidden;
+}
+
+var currentTimelineContact = null;
+var msisdnRevealed = false;
+
+function revealMsisdn() {
+    if (!currentTimelineContact || !currentTimelineContact.mobile) return;
+    
+    if (msisdnRevealed) {
+        document.getElementById('timelineContactPhone').textContent = maskMsisdn(currentTimelineContact.mobile);
+        document.getElementById('timelineContactPhoneModal').textContent = maskMsisdn(currentTimelineContact.mobile);
+        document.getElementById('revealMsisdnBtn').innerHTML = '<i class="fas fa-eye me-1"></i>Reveal';
+        document.getElementById('revealMsisdnBtnModal').innerHTML = '<i class="fas fa-eye me-1"></i>Reveal';
+        msisdnRevealed = false;
+    } else {
+        console.log('[AUDIT] MSISDN revealed for contact:', currentTimelineContact.id);
+        document.getElementById('timelineContactPhone').textContent = currentTimelineContact.mobile;
+        document.getElementById('timelineContactPhoneModal').textContent = currentTimelineContact.mobile;
+        document.getElementById('revealMsisdnBtn').innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide';
+        document.getElementById('revealMsisdnBtnModal').innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide';
+        msisdnRevealed = true;
+    }
+}
+
+function renderStatusPill(status, listScope) {
+    var pillHtml = '';
+    if (status === 'opted-out' || status === 'opted_out') {
+        pillHtml = '<span class="badge badge-pastel-danger">Opted Out</span>';
+        if (listScope) {
+            pillHtml += ' <span class="badge badge-pastel-secondary ms-1">' + listScope + '</span>';
+        }
+    } else {
+        pillHtml = '<span class="badge badge-pastel-success">Active</span>';
+    }
+    return pillHtml;
 }
 
 function deleteContact(id) {
@@ -2685,12 +2738,22 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
 <!-- Activity Timeline Drawer (Desktop) -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="activityTimelineDrawer" style="width: 420px;">
     <div class="offcanvas-header border-bottom py-3">
-        <div>
-            <h6 class="offcanvas-title mb-1"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
-            <p class="mb-0 small text-muted" id="timelineContactName">-</p>
-            <p class="mb-0 small text-muted" id="timelineContactPhone">-</p>
+        <div class="flex-grow-1">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="offcanvas-title mb-0"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
+            </div>
+            <h5 class="mb-1 fw-semibold" id="timelineContactName">Unknown contact</h5>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="text-muted small" id="timelineContactPhone">+44 7*** ***###</span>
+                <button type="button" class="btn btn-link btn-sm p-0 text-primary" id="revealMsisdnBtn" onclick="revealMsisdn()" style="font-size: 0.75rem;">
+                    <i class="fas fa-eye me-1"></i>Reveal
+                </button>
+            </div>
+            <div id="timelineStatusPill">
+                <span class="badge badge-pastel-success">Active</span>
+            </div>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        <button type="button" class="btn-close align-self-start" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">
         <div id="timelineEvents">
@@ -2704,12 +2767,22 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
     <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header border-bottom py-3">
-                <div>
-                    <h6 class="modal-title mb-1"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
-                    <p class="mb-0 small text-muted" id="timelineContactNameModal">-</p>
-                    <p class="mb-0 small text-muted" id="timelineContactPhoneModal">-</p>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="modal-title mb-0"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
+                    </div>
+                    <h5 class="mb-1 fw-semibold" id="timelineContactNameModal">Unknown contact</h5>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="text-muted small" id="timelineContactPhoneModal">+44 7*** ***###</span>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-primary" id="revealMsisdnBtnModal" onclick="revealMsisdn()" style="font-size: 0.75rem;">
+                            <i class="fas fa-eye me-1"></i>Reveal
+                        </button>
+                    </div>
+                    <div id="timelineStatusPillModal">
+                        <span class="badge badge-pastel-success">Active</span>
+                    </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div id="timelineEventsModal">
