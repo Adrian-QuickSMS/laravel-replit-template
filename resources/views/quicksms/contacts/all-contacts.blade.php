@@ -2132,12 +2132,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div id="importStep2" class="d-none">
                     <h6 class="mb-3">Step 2: Map Columns</h6>
-                    <div class="alert alert-info small">
+                    <div class="small p-3 rounded" style="background-color: #f0ebf8; color: #6c5ce7;">
                         <i class="fas fa-info-circle me-1"></i>
-                        Map your file columns to contact fields. <strong>Mobile Number</strong> is required.
+                        Map your file columns to contact fields. <strong style="color: #886CC0;">Mobile Number</strong> <span class="text-dark">is required.</span>
                     </div>
                     
-                    <div class="table-responsive">
+                    <div class="table-responsive mt-3">
                         <table class="table table-sm table-bordered">
                             <thead class="table-light">
                                 <tr>
@@ -2152,14 +2152,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     
                     <input type="hidden" id="excelCorrectionApplied" value="">
-                    <div id="excelZeroWarning" class="alert alert-warning d-none">
+                    <div id="excelZeroWarning" class="d-none p-3 rounded" style="background-color: #f0ebf8;">
                         <div id="excelZeroWarningContent">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Excel Number Detection</strong>
-                            <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-                            <p class="mb-2">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+                            <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
+                            <strong style="color: #886CC0;">Excel Number Detection</strong>
+                            <p class="mb-2 mt-2 text-dark">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
+                            <p class="mb-2 text-dark">Should these be treated as UK numbers and converted to international format (+447...)?</p>
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm btn-primary" onclick="setExcelCorrection(true)">
+                                <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">
                                     <i class="fas fa-check me-1"></i> Yes, convert to UK format
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
