@@ -1630,7 +1630,7 @@
             <div class="modal-body">
                 <div class="mb-4">
                     <h6 class="mb-3">Current Message</h6>
-                    <div class="border rounded p-3 bg-white" id="tplAiCurrentContent">
+                    <div class="rounded p-3" id="tplAiCurrentContent" style="background-color: #f0ebf8;">
                         <em class="text-muted">No content to improve</em>
                     </div>
                 </div>

@@ -1289,7 +1289,7 @@ span.badge.channel-pill-rcs,
             <div class="modal-body">
                 <div class="mb-4">
                     <h6 class="mb-3">Current Message</h6>
-                    <div class="bg-light p-3 rounded" id="aiCurrentContent">
+                    <div class="p-3 rounded" id="aiCurrentContent" style="background-color: #f0ebf8;">
                         <em class="text-muted">No content to improve</em>
                     </div>
                 </div>
