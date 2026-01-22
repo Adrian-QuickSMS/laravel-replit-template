@@ -1031,8 +1031,23 @@ function deleteOptOutList(listId, name) {
 }
 
 function viewOptOutHistory(optOutId) {
-    // TODO: Connect to API - GET /api/opt-outs/{id}/history
-    alert('Viewing history for opt-out #' + optOutId + '. TODO: Connect to backend API.');
+    // Find the row to get the mobile number
+    var row = document.querySelector('tr[data-id="' + optOutId + '"]');
+    var mobileNumber = '';
+    if (row) {
+        var mobileCell = row.querySelector('td:nth-child(2)');
+        if (mobileCell) {
+            mobileNumber = mobileCell.textContent.trim();
+        }
+    }
+    
+    // Navigate to All Contacts with Activity Timeline filter for opt-out events
+    // The URL includes query params to trigger the timeline view with opt-out filter
+    var url = '/contacts/all-contacts?timeline=open&filter=opt_out';
+    if (mobileNumber) {
+        url += '&search=' + encodeURIComponent(mobileNumber);
+    }
+    window.location.href = url;
 }
 
 function moveToList(optOutId) {
