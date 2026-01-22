@@ -1,0 +1,148 @@
+File: resources/views/quicksms/contacts/all-contacts.blade.php
+Location: confirmBulkAddToList() function (around line 1150)
+
+PROBLEM:
+The success modal never appears after bulk actions because we're manually manipulating the DOM (removing 'show' class, setting display:none) which breaks Bootstrap 5's internal state management. Bootstrap thinks modals are still open and blocks subsequent modals from showing.
+
+ROOT CAUSE:
+- Direct DOM manipulation bypasses Bootstrap's _isShown and _isTransitioning flags
+- Bootstrap has internal guard checks that prevent showing new modals if state is confused
+- cleanupModalBackdrops() is fighting against Bootstrap's automatic backdrop management
+
+SOLUTION:
+Replace all direct DOM manipulation with Bootstrap's proper API using the hidden.bs.modal event.
+
+STEP 1: Replace confirmBulkAddToList() function (line 1150-1211):
+
+function confirmBulkAddToList() {
+    console.log('[BulkAction] confirmBulkAddToList called');
+    var ids = getSelectedContactIds();
+    var count = ids.length;
+    var listSelect = document.getElementById('bulkListSelect');
+    var selectedList = listSelect ? listSelect.value : null;
+    
+    if (!selectedList) {
+        showValidationError('Please select a list.');
+        return;
+    }
+    
+    // Get Bootstrap modal instance (don't create new one)
+    var bulkModalEl = document.getElementById('bulkAddToListModal');
+    var bulkModal = bootstrap.Modal.getInstance(bulkModalEl);
+    
+    // Wait for modal to be fully hidden before showing next modal
+    bulkModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+        // Remove listener to prevent multiple calls
+        bulkModalEl.removeEventListener('hidden.bs.modal', onHidden);
+        
+        console.log('[BulkAction] First modal hidden, showing processing modal');
+        showProcessingModal('Adding contacts to list...');
+        
+        ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
+            console.log('[BulkAction] Service result:', result);
+            
+            // Get processing modal instance
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+            
+            // Wait for processing modal to hide
+            processingEl.addEventListener('hidden.bs.modal', function onProcessingHidden() {
+                processingEl.removeEventListener('hidden.bs.modal', onProcessingHidden);
+                
+                // Now show result modal
+                if (result.success) {
+                    clearBulkSelection();
+                    console.log('[BulkAction] Showing success modal');
+                    showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
+                } else {
+                    console.log('[BulkAction] Showing error modal');
+                    showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
+                }
+            }, { once: true });
+            
+            // Hide processing modal using Bootstrap API
+            if (processingModal) {
+                processingModal.hide();
+            }
+            
+        }).catch(function(error) {
+            console.error('[BulkAction] Error:', error);
+            
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+            
+            processingEl.addEventListener('hidden.bs.modal', function() {
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+            }, { once: true });
+            
+            if (processingModal) {
+                processingModal.hide();
+            }
+        });
+    }, { once: true });
+    
+    // Hide the first modal using Bootstrap API (not manual DOM manipulation)
+    if (bulkModal) {
+        bulkModal.hide();
+    }
+}
+
+STEP 2: Update showSuccessModal() function (line 1524):
+
+function showSuccessModal(title, message) {
+    console.log('[Modal] showSuccessModal called:', title, message);
+    
+    var successModalEl = document.getElementById('successModal');
+    document.getElementById('successModalTitle').innerHTML = '<i class="fas fa-check-circle me-2"></i>' + title;
+    document.getElementById('successModalMessage').textContent = message;
+    
+    // Dispose old instance if exists to ensure clean state
+    var existingInstance = bootstrap.Modal.getInstance(successModalEl);
+    if (existingInstance) {
+        existingInstance.dispose();
+    }
+    
+    // Create fresh instance
+    window.successModal = new bootstrap.Modal(successModalEl);
+    window.successModal.show();
+    console.log('[Modal] Success modal shown');
+}
+
+STEP 3: Update showProcessingModal() function (line 1471):
+
+function showProcessingModal(message) {
+    console.log('[Modal] showProcessingModal called:', message);
+    document.getElementById('processingMessage').textContent = message || 'Processing...';
+    
+    var processingEl = document.getElementById('processingModal');
+    
+    // Dispose old instance if exists
+    var existingInstance = bootstrap.Modal.getInstance(processingEl);
+    if (existingInstance) {
+        existingInstance.dispose();
+    }
+    
+    // Create fresh instance
+    window.processingModal = new bootstrap.Modal(processingEl, { 
+        backdrop: 'static', 
+        keyboard: false 
+    });
+    window.processingModal.show();
+    console.log('[Modal] Processing modal shown');
+}
+
+STEP 4: Remove all cleanupModalBackdrops() calls
+- Remove cleanupModalBackdrops() calls from lines 1169, 1184, 1204, 1526, 1543
+- Bootstrap handles backdrop cleanup automatically when using its API
+- The cleanupModalBackdrops() function can remain for edge cases but shouldn't be called during normal modal transitions
+
+WHY THIS WORKS:
+✅ Uses Bootstrap's .hide() method instead of manual DOM manipulation
+✅ Respects Bootstrap's internal state management (_isShown, _isTransitioning flags)
+✅ Uses hidden.bs.modal event to wait for modal to fully close before opening next one
+✅ Disposes old modal instances to prevent state conflicts
+✅ No setTimeout() needed - proper event-driven flow
+✅ Bootstrap manages backdrops automatically
+
+KEY PRINCIPLE:
+Never bypass Bootstrap's API by manipulating .show class, display style, or backdrops directly. Always use .show(), .hide(), and listen to Bootstrap's lifecycle events (hidden.bs.modal, shown.bs.modal).
