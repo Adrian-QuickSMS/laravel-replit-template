@@ -1089,9 +1089,9 @@
 <div class="modal fade" id="saveDraftModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header py-3" style="background: linear-gradient(135deg, #886CC0 0%, #a88cd4 100%);">
-                <h5 class="modal-title text-white"><i class="fas fa-save me-2"></i>Save Draft</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-save me-2"></i>Save Draft</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
