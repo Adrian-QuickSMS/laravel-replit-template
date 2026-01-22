@@ -1,125 +1,211 @@
 @extends('layouts.fullwidth')
 @section('title', 'Login')
 @section('content')
-<div class="col-lg-5 col-md-7">
-    <div class="card mb-0 h-auto">
-        <div class="card-body">
-            <div class="text-center mb-3">
-                <a href="{{ url('/') }}"><img class="logo-auth" src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 48px;"></a>
-            </div>
-            <h4 class="text-center mb-2">Welcome back</h4>
-            <p class="text-center text-muted mb-4">Sign in to your QuickSMS account</p>
-            
-            <div id="loginStep1">
-                <form id="loginForm" novalidate>
-                    <div class="form-group mb-4">
-                        <label class="form-label" for="email">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" placeholder="you@company.com" required autocomplete="email">
-                        <div class="invalid-feedback" id="emailError">Please enter your email address</div>
+<div class="col-lg-6 col-md-8">
+    <div class="card overflow-hidden">
+        <div class="row g-0">
+            <div class="col-xl-6 d-none d-xl-block">
+                <div class="auth-img-wrap">
+                    <div class="auth-img-content">
+                        <img src="{{ asset('images/quicksms-logo-white.png') }}" alt="QuickSMS" class="auth-logo mb-4" onerror="this.onerror=null; this.src='{{ asset('images/quicksms-logo.png') }}';">
+                        <h3 class="text-white mb-3">Welcome to QuickSMS</h3>
+                        <p class="text-white-50">Your trusted SMS & RCS messaging platform for business communication.</p>
                     </div>
-                    
-                    <div class="form-group mb-4">
-                        <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
-                        <div class="position-relative">
-                            <input type="password" class="form-control" id="password" placeholder="Enter your password" required autocomplete="current-password">
-                            <span class="show-pass eye">
-                                <i class="fa fa-eye-slash"></i>
-                                <i class="fa fa-eye"></i>
-                            </span>
-                        </div>
-                        <div class="invalid-feedback" id="passwordError">Please enter your password</div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">Remember me</label>
-                        </div>
-                        <a href="#" class="text-primary small">Forgot password?</a>
-                    </div>
-                    
-                    <div class="login-status mb-3 d-none" id="loginStatus"></div>
-                    
-                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-                        <span class="btn-text">Sign In</span>
-                        <span class="btn-loading d-none">
-                            <span class="spinner-border spinner-border-sm me-2"></span>Signing in...
-                        </span>
-                    </button>
-                </form>
-            </div>
-            
-            <div id="loginStep2" class="d-none">
-                <div class="text-center mb-4">
-                    <div class="mfa-icon mb-3">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h5 class="mb-2">Two-Factor Authentication</h5>
-                    <p class="text-muted small">We've sent a verification code to your mobile number ending in <strong id="maskedMobile"></strong></p>
                 </div>
-                
-                <form id="mfaForm" novalidate>
-                    <div class="form-group mb-4">
-                        <label class="form-label" for="otpCode">Verification Code <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control otp-input" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
-                        <div class="invalid-feedback" id="otpError">Please enter the verification code</div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
-                            <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
-                        </div>
-                        <div class="alert alert-info small mt-2" id="testOtpCode">
-                            <strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="mfa-status mb-3 d-none" id="mfaStatus"></div>
-                    
-                    <button type="submit" class="btn btn-primary btn-block" id="verifyBtn">
-                        <span class="btn-text">Verify & Continue</span>
-                        <span class="btn-loading d-none">
-                            <span class="spinner-border spinner-border-sm me-2"></span>Verifying...
-                        </span>
-                    </button>
-                    
-                    <div class="text-center mt-3">
-                        <button type="button" class="btn btn-link text-muted" id="backToLogin">
-                            <i class="fas fa-arrow-left me-1"></i> Back to login
-                        </button>
-                    </div>
-                </form>
             </div>
-            
-            <div class="text-center mt-4">
-                <span class="text-muted">Don't have an account?</span>
-                <a class="text-primary ms-1" href="{{ url('/signup') }}">Sign up</a>
+            <div class="col-xl-6">
+                <div class="card-body auth-form p-4 p-lg-5">
+                    <div class="d-xl-none text-center mb-4">
+                        <a href="{{ url('/') }}"><img src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 40px;"></a>
+                    </div>
+                    <h4 class="mb-1">Sign In</h4>
+                    <p class="text-muted mb-4">Enter your credentials to access your account</p>
+                    
+                    <div id="loginStep1">
+                        <form id="loginForm" novalidate>
+                            <div class="mb-4">
+                                <label class="form-label" for="email">Email Address</label>
+                                <input type="email" class="form-control" id="email" placeholder="you@company.com" required autocomplete="email">
+                                <div class="invalid-feedback" id="emailError">Please enter your email address</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" for="password">Password</label>
+                                <div class="position-relative">
+                                    <input type="password" class="form-control" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                                    <span class="show-pass eye">
+                                        <i class="fa fa-eye-slash"></i>
+                                        <i class="fa fa-eye"></i>
+                                    </span>
+                                </div>
+                                <div class="invalid-feedback" id="passwordError">Please enter your password</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                                </div>
+                                <a href="{{ url('/forgot-password') }}" class="text-primary small">Forgot password?</a>
+                            </div>
+                            
+                            <div class="login-status mb-3 d-none" id="loginStatus"></div>
+                            
+                            <button type="submit" class="btn btn-primary d-block w-100" id="loginBtn">
+                                <span class="btn-text">Sign In</span>
+                                <span class="btn-loading d-none">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Signing in...
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div id="loginStep2" class="d-none">
+                        <div class="text-center mb-4">
+                            <div class="mfa-icon mb-3">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h5 class="mb-2">Two-Factor Authentication</h5>
+                            <p class="text-muted small">We've sent a verification code to your mobile number ending in <strong id="maskedMobile"></strong></p>
+                        </div>
+                        
+                        <form id="mfaForm" novalidate>
+                            <div class="mb-4">
+                                <label class="form-label" for="otpCode">Verification Code</label>
+                                <input type="text" class="form-control otp-input" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
+                                <div class="invalid-feedback" id="otpError">Please enter the verification code</div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
+                                    <button type="button" class="btn btn-link btn-sm p-0" id="resendOtpBtn" disabled>Resend Code</button>
+                                </div>
+                                <div class="alert alert-info small mt-2" id="testOtpCode">
+                                    <strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="mfa-status mb-3 d-none" id="mfaStatus"></div>
+                            
+                            <button type="submit" class="btn btn-primary d-block w-100" id="verifyBtn">
+                                <span class="btn-text">Verify & Continue</span>
+                                <span class="btn-loading d-none">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Verifying...
+                                </span>
+                            </button>
+                            
+                            <div class="text-center mt-3">
+                                <button type="button" class="btn btn-link text-muted" id="backToLogin">
+                                    <i class="fas fa-arrow-left me-1"></i> Back to login
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <span class="text-muted">Don't have an account?</span>
+                        <a class="text-primary ms-1 fw-medium" href="{{ url('/signup') }}">Sign up</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.logo-auth {
-    max-height: 48px;
+:root {
+    --qs-primary: #6b5b95;
+    --qs-primary-light: #886CC0;
+    --qs-primary-dark: #5a4a80;
+    --qs-gradient: linear-gradient(135deg, #6b5b95 0%, #886CC0 100%);
 }
-.form-control:focus, .form-select:focus {
-    border-color: rgba(136, 108, 192, 0.5);
-    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.15);
+
+.auth-img-wrap {
+    background: var(--qs-gradient);
+    height: 100%;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
 }
-.btn-primary {
-    background-color: #886CC0;
-    border-color: #886CC0;
+
+.auth-img-wrap::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
 }
-.btn-primary:hover, .btn-primary:focus {
-    background-color: #7358a8;
-    border-color: #7358a8;
+
+.auth-img-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -30%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
 }
-.text-primary {
-    color: #886CC0 !important;
+
+.auth-img-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 280px;
 }
+
+.auth-logo {
+    height: 50px;
+    filter: brightness(0) invert(1);
+}
+
+.auth-form {
+    background: #fff;
+}
+
 .card {
     border: none;
-    box-shadow: 0 0 35px 0 rgba(154, 161, 171, 0.15);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
 }
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e0e6ed;
+}
+
+.form-control:focus {
+    border-color: var(--qs-primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(136, 108, 192, 0.15);
+}
+
+.btn-primary {
+    background: var(--qs-gradient);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background: linear-gradient(135deg, var(--qs-primary-dark) 0%, var(--qs-primary) 100%);
+    box-shadow: 0 4px 15px rgba(107, 91, 149, 0.3);
+}
+
+.text-primary {
+    color: var(--qs-primary) !important;
+}
+
+a.text-primary:hover {
+    color: var(--qs-primary-dark) !important;
+}
+
 .show-pass {
     position: absolute;
     right: 12px;
@@ -127,14 +213,18 @@
     transform: translateY(-50%);
     cursor: pointer;
     color: #6c757d;
+    z-index: 5;
 }
+
 .show-pass .fa-eye { display: none; }
 .show-pass.active .fa-eye { display: inline; }
 .show-pass.active .fa-eye-slash { display: none; }
+
 .form-check-input:checked {
-    background-color: #886CC0;
-    border-color: #886CC0;
+    background-color: var(--qs-primary);
+    border-color: var(--qs-primary);
 }
+
 .mfa-icon {
     width: 64px;
     height: 64px;
@@ -145,30 +235,50 @@
     justify-content: center;
     margin: 0 auto;
     font-size: 1.5rem;
-    color: #886CC0;
+    color: var(--qs-primary);
 }
+
 .otp-input {
     letter-spacing: 0.5rem;
     font-weight: 600;
     font-size: 1.25rem;
     text-align: center;
 }
+
 .login-status, .mfa-status {
     padding: 0.75rem;
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     font-size: 0.875rem;
 }
+
 .login-status.error, .mfa-status.error {
-    background: #f8d7da;
-    color: #842029;
+    background: #fce8e6;
+    color: #c53929;
+    border: 1px solid #f5c6cb;
 }
+
 .login-status.success, .mfa-status.success {
-    background: #d1e7dd;
-    color: #0f5132;
+    background: #e6f4ea;
+    color: #137333;
+    border: 1px solid #b7e1cd;
 }
+
 .login-status.warning {
-    background: #fff3cd;
-    color: #664d03;
+    background: #fef7e0;
+    color: #9a6700;
+    border: 1px solid #ffe08a;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #344054;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1199px) {
+    .auth-form {
+        border-radius: 1rem;
+    }
 }
 </style>
 
@@ -183,7 +293,6 @@ $(document).ready(function() {
     var countdownInterval = null;
     var resendCooldown = 30;
     
-    // Security Configuration
     var SecurityConfig = {
         rate_limits: {
             login_per_ip: { max: 10, window_minutes: 15 },
@@ -196,7 +305,6 @@ $(document).ready(function() {
         }
     };
     
-    // Rate Limiting Service
     var RateLimitService = {
         attempts: {},
         checkLimit: function(key, limitConfig) {
@@ -216,7 +324,6 @@ $(document).ready(function() {
         }
     };
     
-    // Account Lockout Service
     var LockoutService = {
         failedAttempts: {},
         lockedAccounts: {},
@@ -247,30 +354,18 @@ $(document).ready(function() {
         }
     };
     
-    // Audit Service
     var AuditService = {
         log: function(event, details) {
-            var entry = {
-                event: event,
-                timestamp: new Date().toISOString(),
-                details: details
-            };
+            var entry = { event: event, timestamp: new Date().toISOString(), details: details };
             console.log('[AuditService]', event, entry);
             return entry;
         }
     };
     
-    // Mock user database
     var MockUsers = {
-        'test@example.com': {
-            password_hash: 'hashed_password',
-            mfa_enabled: true,
-            mobile: '+447700900123',
-            email_verified: true
-        }
+        'test@example.com': { password_hash: 'hashed_password', mfa_enabled: true, mobile: '+447700900123', email_verified: true }
     };
     
-    // Show/hide password toggle
     $('.show-pass').on('click', function() {
         var $input = $(this).siblings('input');
         var type = $input.attr('type') === 'password' ? 'text' : 'password';
@@ -278,31 +373,21 @@ $(document).ready(function() {
         $(this).toggleClass('active');
     });
     
-    // Login form submission
     $('#loginForm').on('submit', function(e) {
         e.preventDefault();
         
         var email = $('#email').val().trim();
         var password = $('#password').val();
         
-        // Clear previous errors
         $('#email, #password').removeClass('is-invalid');
         $('#loginStatus').addClass('d-none');
         
-        // Validate
         var isValid = true;
-        if (!email) {
-            $('#email').addClass('is-invalid');
-            isValid = false;
-        }
-        if (!password) {
-            $('#password').addClass('is-invalid');
-            isValid = false;
-        }
+        if (!email) { $('#email').addClass('is-invalid'); isValid = false; }
+        if (!password) { $('#password').addClass('is-invalid'); isValid = false; }
         
         if (!isValid) return;
         
-        // Check account lockout
         if (LockoutService.isLocked(email)) {
             $('#loginStatus').removeClass('d-none success warning').addClass('error');
             $('#loginStatus').html('<i class="fas fa-lock me-2"></i>Account locked. Try again in ' + LockoutService.getUnlockMinutes(email) + ' minutes.');
@@ -310,7 +395,6 @@ $(document).ready(function() {
             return;
         }
         
-        // Check rate limit
         var rateCheck = RateLimitService.checkLimit('login:' + email, SecurityConfig.rate_limits.login_per_email);
         if (!rateCheck.allowed) {
             $('#loginStatus').removeClass('d-none success warning').addClass('error');
@@ -328,9 +412,7 @@ $(document).ready(function() {
         
         AuditService.log('login_attempt', { email: email });
         
-        // Mock login validation
         setTimeout(function() {
-            // For demo: accept any email with password "Password123!"
             var validPassword = (password === 'Password123!') || MockUsers[email];
             
             if (!validPassword) {
@@ -352,21 +434,17 @@ $(document).ready(function() {
                 return;
             }
             
-            // Login successful - check MFA
             currentEmail = email;
             currentMobile = MockUsers[email] ? MockUsers[email].mobile : '+447700900123';
             
             AuditService.log('login_password_verified', { email: email });
             
-            // All accounts have MFA enabled
             $('#loginStatus').removeClass('d-none error').addClass('success');
             $('#loginStatus').html('<i class="fas fa-check-circle me-2"></i>Password verified. Sending verification code...');
             
-            // Send OTP
             setTimeout(function() {
                 sendMfaOtp();
                 
-                // Show MFA step
                 $('#loginStep1').addClass('d-none');
                 $('#loginStep2').removeClass('d-none');
                 $('#maskedMobile').text(currentMobile.slice(-4));
@@ -387,16 +465,12 @@ $(document).ready(function() {
         console.log('[MFA] OTP sent to ' + currentMobile + ': ' + currentOtp);
         AuditService.log('mfa_otp_sent', { mobile_masked: '****' + currentMobile.slice(-4) });
         
-        // Show test mode OTP code on page
         $('#displayOtp').text(currentOtp);
-        
         startCountdown();
         
         var $resend = $('#resendOtpBtn');
         $resend.prop('disabled', true);
-        setTimeout(function() {
-            $resend.prop('disabled', false);
-        }, resendCooldown * 1000);
+        setTimeout(function() { $resend.prop('disabled', false); }, resendCooldown * 1000);
     }
     
     function startCountdown() {
@@ -417,20 +491,17 @@ $(document).ready(function() {
         }, 1000);
     }
     
-    // Resend OTP
     $('#resendOtpBtn').on('click', function() {
         sendMfaOtp();
         $('#mfaStatus').removeClass('d-none error').addClass('success');
         $('#mfaStatus').html('<i class="fas fa-check-circle me-2"></i>New verification code sent.');
     });
     
-    // OTP input - numbers only
     $('#otpCode').on('input', function() {
         $(this).val($(this).val().replace(/[^0-9]/g, ''));
         $(this).removeClass('is-invalid');
     });
     
-    // MFA form submission
     $('#mfaForm').on('submit', function(e) {
         e.preventDefault();
         
@@ -441,7 +512,6 @@ $(document).ready(function() {
             return;
         }
         
-        // Check rate limit
         var rateCheck = RateLimitService.checkLimit('otp_verify:' + currentEmail, SecurityConfig.rate_limits.otp_verify_attempts);
         if (!rateCheck.allowed) {
             $('#mfaStatus').removeClass('d-none success').addClass('error');
@@ -477,7 +547,6 @@ $(document).ready(function() {
                 return;
             }
             
-            // MFA verified - complete login
             clearInterval(countdownInterval);
             LockoutService.resetOnSuccess(currentEmail);
             
@@ -487,15 +556,11 @@ $(document).ready(function() {
             $('#mfaStatus').removeClass('d-none error').addClass('success');
             $('#mfaStatus').html('<i class="fas fa-check-circle me-2"></i>Verification successful. Redirecting...');
             
-            // Redirect to dashboard
-            setTimeout(function() {
-                window.location.href = '/dashboard';
-            }, 1000);
+            setTimeout(function() { window.location.href = '/dashboard'; }, 1000);
             
         }, 800);
     });
     
-    // Back to login
     $('#backToLogin').on('click', function() {
         $('#loginStep2').addClass('d-none');
         $('#loginStep1').removeClass('d-none');
@@ -504,7 +569,6 @@ $(document).ready(function() {
         currentOtp = null;
     });
     
-    // Clear validation on input
     $('#email, #password').on('input', function() {
         $(this).removeClass('is-invalid');
         $('#loginStatus').addClass('d-none');
