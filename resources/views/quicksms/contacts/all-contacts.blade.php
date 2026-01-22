@@ -2487,8 +2487,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
                         <h4>Import Complete!</h4>
                         <p class="text-muted" id="importCompleteMessage">Successfully imported 0 contacts.</p>
-                        <div class="small mt-3 p-3 rounded" style="background-color: #f0ebf8; color: #6c5ce7;">
-                            <i class="fas fa-info-circle me-1"></i>
+                        <div class="small mt-3 p-3 rounded" style="background-color: #f0ebf8;">
+                            <i class="fas fa-info-circle me-1 text-dark"></i>
                             <span class="text-dark">Your contacts are now available in the contact list and can be used for messaging.</span>
                         </div>
                     </div>
