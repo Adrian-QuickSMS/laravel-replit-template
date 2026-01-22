@@ -157,8 +157,12 @@
                             </div>
                             
                             <div id="rcsCallbackDataCustomInput" class="d-none">
-                                <input type="text" class="form-control form-control-sm" id="rcsButtonCallbackDataCustom" maxlength="64" placeholder="Enter custom callback data">
-                                <small class="text-muted">This value will be returned by Google when a user taps the button.</small>
+                                <input type="text" class="form-control form-control-sm" id="rcsButtonCallbackDataCustom" maxlength="64" placeholder="Enter custom callback data" oninput="validateRcsCallbackData()">
+                                <small id="rcsCallbackDataCustomHelp" class="text-muted">This value will be returned by Google when a user taps the button.</small>
+                                <small id="rcsCallbackDataCustomError" class="text-danger d-none"></small>
+                                <div class="d-flex justify-content-end mt-1">
+                                    <small class="text-muted"><span id="rcsCallbackDataLength">0</span>/64</small>
+                                </div>
                             </div>
                         </div>
                         

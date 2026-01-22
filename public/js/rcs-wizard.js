@@ -2390,6 +2390,10 @@ function resetRcsButtonTracking() {
     if (callbackDataCustom) callbackDataCustom.value = '';
     if (autoPreview) autoPreview.classList.remove('d-none');
     if (customInput) customInput.classList.add('d-none');
+    clearRcsCallbackDataError();
+    
+    var lengthEl = document.getElementById('rcsCallbackDataLength');
+    if (lengthEl) lengthEl.textContent = '0';
 }
 
 function toggleRcsButtonAdvanced() {
@@ -2419,6 +2423,73 @@ function toggleRcsCallbackDataMode() {
     
     if (isAuto) {
         updateRcsCallbackDataPreview();
+        clearRcsCallbackDataError();
+    } else {
+        validateRcsCallbackData();
+        updateRcsCallbackDataLength();
+    }
+}
+
+function validateRcsCallbackData() {
+    var customInput = document.getElementById('rcsButtonCallbackDataCustom');
+    var errorEl = document.getElementById('rcsCallbackDataCustomError');
+    var helpEl = document.getElementById('rcsCallbackDataCustomHelp');
+    var inputField = customInput;
+    
+    if (!customInput || !errorEl) return true;
+    
+    var value = customInput.value;
+    updateRcsCallbackDataLength();
+    
+    var error = null;
+    
+    if (value.length > 64) {
+        error = 'Maximum 64 characters allowed.';
+    }
+    else if (!/^[\x00-\x7F]*$/.test(value)) {
+        error = 'Only ASCII characters are allowed.';
+    }
+    else if (/\{\{[^}]+\}\}/.test(value)) {
+        error = 'Personalisation placeholders like {{firstName}} are not allowed.';
+    }
+    else if (/%[A-Z_]+%/.test(value)) {
+        error = 'Variable patterns like %VAR% are not allowed.';
+    }
+    else if (/\[\[[^\]]+\]\]/.test(value)) {
+        error = 'Placeholder patterns like [[field]] are not allowed.';
+    }
+    
+    if (error) {
+        errorEl.textContent = error;
+        errorEl.classList.remove('d-none');
+        if (helpEl) helpEl.classList.add('d-none');
+        if (inputField) inputField.classList.add('is-invalid');
+        return false;
+    } else {
+        clearRcsCallbackDataError();
+        return true;
+    }
+}
+
+function clearRcsCallbackDataError() {
+    var errorEl = document.getElementById('rcsCallbackDataCustomError');
+    var helpEl = document.getElementById('rcsCallbackDataCustomHelp');
+    var inputField = document.getElementById('rcsButtonCallbackDataCustom');
+    
+    if (errorEl) {
+        errorEl.textContent = '';
+        errorEl.classList.add('d-none');
+    }
+    if (helpEl) helpEl.classList.remove('d-none');
+    if (inputField) inputField.classList.remove('is-invalid');
+}
+
+function updateRcsCallbackDataLength() {
+    var customInput = document.getElementById('rcsButtonCallbackDataCustom');
+    var lengthEl = document.getElementById('rcsCallbackDataLength');
+    
+    if (customInput && lengthEl) {
+        lengthEl.textContent = customInput.value.length;
     }
 }
 
@@ -2525,6 +2596,12 @@ function validateRcsButton() {
             if (endError) endError.classList.remove('d-none');
             valid = false;
         }
+    }
+    
+    var autoRadio = document.getElementById('rcsCallbackDataAuto');
+    var isAutoCallback = autoRadio ? autoRadio.checked : true;
+    if (!isAutoCallback && !validateRcsCallbackData()) {
+        valid = false;
     }
     
     return valid;
