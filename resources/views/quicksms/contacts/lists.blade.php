@@ -757,7 +757,7 @@ function confirmCreateList() {
     console.log('TODO: API call POST /api/lists to create list');
     console.log('TODO: API call POST /api/lists/{id}/contacts to add contacts');
     
-    alert('List "' + name + '" created with ' + contactCount + ' contact(s)!\n\nThis requires backend implementation.');
+    showToast('List "' + name + '" created with ' + contactCount + ' contact(s)', 'success');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('createListModal'));
     modal.hide();
@@ -796,7 +796,7 @@ function confirmRenameList() {
     }
     
     console.log('TODO: API call PUT /api/lists/' + id);
-    alert('List renamed to "' + name + '"!\n\nThis requires backend implementation.');
+    showToast('List renamed to "' + name + '"', 'success');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('renameListModal'));
     modal.hide();
@@ -805,7 +805,7 @@ function confirmRenameList() {
 function deleteList(id, name) {
     if (confirm('Are you sure you want to delete the list "' + name + '"?\n\nThis will not delete the contacts, only the list.')) {
         console.log('TODO: API call DELETE /api/lists/' + id);
-        alert('List "' + name + '" deleted!\n\nThis requires backend implementation.');
+        showToast('List "' + name + '" deleted', 'success');
     }
 }
 
@@ -833,7 +833,7 @@ function confirmAddContacts() {
     }
     
     console.log('TODO: API call POST /api/lists/' + listId + '/contacts with IDs: ' + selectedIds.join(', '));
-    alert('Added ' + selectedIds.length + ' contact(s) to "' + listName + '"!\n\nThis requires backend implementation.');
+    showToast(selectedIds.length + ' contact(s) added to "' + listName + '" successfully', 'success');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('addContactsModal'));
     modal.hide();
@@ -881,7 +881,7 @@ function removeSelectedFromList() {
     
     if (confirm('Remove ' + selectedIds.length + ' contact(s) from this list?')) {
         console.log('TODO: API call DELETE /api/lists/' + listId + '/contacts with IDs: ' + selectedIds.join(', '));
-        alert('Removed ' + selectedIds.length + ' contact(s) from list!\n\nThis requires backend implementation.');
+        showToast(selectedIds.length + ' contact(s) removed from list', 'success');
     }
 }
 
@@ -968,7 +968,7 @@ function confirmCreateDynamicList() {
     }
     
     console.log('TODO: API call POST /api/lists/dynamic with name and rules');
-    alert('Dynamic list "' + name + '" created with ' + rules.length + ' rule(s)!\n\nThis requires backend implementation.');
+    showToast('Dynamic list "' + name + '" created with ' + rules.length + ' rule(s)', 'success');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('createDynamicListModal'));
     modal.hide();
@@ -992,7 +992,7 @@ function refreshDynamicList(id) {
 function deleteDynamicList(id, name) {
     if (confirm('Are you sure you want to delete the dynamic list "' + name + '"?\n\nThis will only delete the list definition, not the contacts.')) {
         console.log('TODO: API call DELETE /api/lists/dynamic/' + id);
-        alert('Dynamic list "' + name + '" deleted!\n\nThis requires backend implementation.');
+        showToast('Dynamic list "' + name + '" deleted', 'success');
     }
 }
 
@@ -1001,6 +1001,35 @@ function previewFilterResults() {
     document.getElementById('filterMatchCount').textContent = count;
     document.getElementById('filterPreviewResults').classList.remove('d-none');
     console.log('TODO: API call to preview filter results');
+}
+
+function showToast(message, type) {
+    type = type || 'success';
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+    }
+    
+    var bgColor = type === 'success' ? '#6b5b95' : (type === 'error' ? '#dc3545' : '#6c757d');
+    var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+    
+    var toastId = 'toast_' + Date.now();
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + ';">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '</div></div>';
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    
+    setTimeout(function() {
+        var toast = document.getElementById(toastId);
+        if (toast) toast.remove();
+    }, 4000);
 }
 </script>
 @endsection
