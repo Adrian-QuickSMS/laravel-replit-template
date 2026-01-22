@@ -148,6 +148,26 @@ var ContactTimelineService = (function() {
         { id: 'list_008', name: 'Seasonal Promos', description: 'Holiday and seasonal offers', contact_count: 4100 }
     ];
 
+    var TAG_CHANGE_METHODS = {
+        MANUAL: { method: 'manual', label: 'Manual', icon: 'fa-hand-pointer', description: 'Manually applied by user' },
+        IMPORT: { method: 'import', label: 'Import', icon: 'fa-file-import', description: 'Applied via contact import' },
+        API: { method: 'api', label: 'API', icon: 'fa-code', description: 'Applied via API integration' },
+        AUTOMATION: { method: 'automation', label: 'Automation', icon: 'fa-robot', description: 'Applied by automation rule' }
+    };
+
+    var CONTACT_BOOK_TAGS = [
+        { id: 'tag_001', name: 'VIP', color: 'warning' },
+        { id: 'tag_002', name: 'Newsletter', color: 'info' },
+        { id: 'tag_003', name: 'Customer', color: 'success' },
+        { id: 'tag_004', name: 'Promotions', color: 'primary' },
+        { id: 'tag_005', name: 'High Value', color: 'danger' },
+        { id: 'tag_006', name: 'New Lead', color: 'secondary' },
+        { id: 'tag_007', name: 'Partner', color: 'info' },
+        { id: 'tag_008', name: 'Inactive', color: 'secondary' },
+        { id: 'tag_009', name: 'Priority', color: 'warning' },
+        { id: 'tag_010', name: 'Verified', color: 'success' }
+    ];
+
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
@@ -584,6 +604,53 @@ var ContactTimelineService = (function() {
         return html;
     }
 
+    function getRandomTag() {
+        return CONTACT_BOOK_TAGS[Math.floor(Math.random() * CONTACT_BOOK_TAGS.length)];
+    }
+
+    function getRandomTagMethod() {
+        var methods = Object.keys(TAG_CHANGE_METHODS);
+        var methodKey = methods[Math.floor(Math.random() * methods.length)];
+        return TAG_CHANGE_METHODS[methodKey];
+    }
+
+    function buildTagPill(tagInfo) {
+        return '<span class="badge badge-pastel-' + tagInfo.color + '">' +
+            '<i class="fas fa-tag me-1"></i>' + tagInfo.name +
+        '</span>';
+    }
+
+    function buildTagChangeDetails(tagInfo, methodInfo, operation) {
+        var html = '';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Operation:</strong> ' +
+            '<span class="badge bg-' + (operation === 'add' ? 'success' : 'secondary') + '">' +
+            '<i class="fas ' + (operation === 'add' ? 'fa-plus' : 'fa-minus') + ' me-1"></i>' +
+            (operation === 'add' ? 'Added' : 'Removed') +
+            '</span>' +
+        '</div>';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Tag:</strong> ' + buildTagPill(tagInfo) +
+        '</div>';
+        
+        html += '<div class="mb-1"><strong>Tag ID:</strong> <code class="small">' + tagInfo.id + '</code></div>';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Method:</strong> ' +
+            '<span class="badge badge-pastel-primary">' +
+            '<i class="fas ' + methodInfo.icon + ' me-1"></i>' + methodInfo.label +
+            '</span>' +
+        '</div>';
+        
+        html += '<div class="mb-1 text-muted small">' +
+            '<i class="fas fa-info-circle me-1"></i>' + methodInfo.description +
+        '</div>';
+        
+        return html;
+    }
+
     function generateInboundMetadata(channel) {
         var messageId = 'inb_' + generateUUID().substring(0, 12);
         var conversationId = 'conv_' + generateUUID().substring(0, 8);
@@ -808,21 +875,31 @@ var ContactTimelineService = (function() {
                 });
             
             case EVENT_TYPES.TAG_ADDED:
-                var tag = tags[Math.floor(Math.random() * tags.length)];
+                var addedTag = getRandomTag();
+                var addTagMethod = getRandomTagMethod();
                 return {
-                    tag_id: 'tag_' + Math.floor(Math.random() * 100),
-                    tag_name: tag,
-                    summary: 'Added: ' + tag,
-                    details: '<strong>Tag:</strong> ' + tag + '<br><strong>Action:</strong> Added'
+                    tag_id: addedTag.id,
+                    tag_name: addedTag.name,
+                    tag_color: addedTag.color,
+                    operation: 'add',
+                    method: addTagMethod.method,
+                    method_label: addTagMethod.label,
+                    summary: addedTag.name,
+                    details: buildTagChangeDetails(addedTag, addTagMethod, 'add')
                 };
             
             case EVENT_TYPES.TAG_REMOVED:
-                var tagRemoved = tags[Math.floor(Math.random() * tags.length)];
+                var removedTag = getRandomTag();
+                var removeTagMethod = getRandomTagMethod();
                 return {
-                    tag_id: 'tag_' + Math.floor(Math.random() * 100),
-                    tag_name: tagRemoved,
-                    summary: 'Removed: ' + tagRemoved,
-                    details: '<strong>Tag:</strong> ' + tagRemoved + '<br><strong>Action:</strong> Removed'
+                    tag_id: removedTag.id,
+                    tag_name: removedTag.name,
+                    tag_color: removedTag.color,
+                    operation: 'remove',
+                    method: removeTagMethod.method,
+                    method_label: removeTagMethod.label,
+                    summary: removedTag.name,
+                    details: buildTagChangeDetails(removedTag, removeTagMethod, 'remove')
                 };
             
             case EVENT_TYPES.LIST_ADDED:
