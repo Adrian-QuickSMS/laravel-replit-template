@@ -178,6 +178,19 @@
                                     <i class="fas fa-arrow-left me-1"></i> Back to login
                                 </button>
                             </div>
+                            
+                            <div class="text-center mt-3 d-none" id="devBypassSection">
+                                <div class="border-top pt-3">
+                                    <span class="badge bg-warning text-dark mb-2">
+                                        <i class="fas fa-flask me-1"></i>Development Mode
+                                    </span>
+                                    <br>
+                                    <a href="javascript:void(0)" class="text-warning small" id="skipMfaDev">
+                                        <i class="fas fa-forward me-1"></i>Skip MFA (Dev)
+                                    </a>
+                                    <div class="small text-muted mt-1">Test OTP: <code>000000</code></div>
+                                </div>
+                            </div>
                         </form>
                     </div>
                     
@@ -419,6 +432,16 @@ $(document).ready(function() {
     var countdownInterval = null;
     var resendCooldown = 30;
     
+    var EnvironmentConfig = {
+        APP_ENV: '{{ config("app.env", "local") }}',
+        isProduction: function() {
+            return this.APP_ENV === 'production';
+        },
+        isDevelopment: function() {
+            return !this.isProduction();
+        }
+    };
+    
     var SecurityConfig = {
         rate_limits: {
             login_per_ip: { max: 10, window_minutes: 15 },
@@ -430,8 +453,155 @@ $(document).ready(function() {
         account_lockout: {
             max_failed_attempts: 5,
             lockout_duration_minutes: 30
+        },
+        session: {
+            idle_timeout_minutes: 30,
+            absolute_timeout_hours: 12,
+            cookie_secure: true,
+            cookie_httponly: true,
+            cookie_samesite: 'Lax'
+        },
+        dev_bypass: {
+            enabled: true,
+            test_otp: '000000',
+            allowed_groups: ['internal_testers', 'developers', 'qa_team']
         }
     };
+    
+    var SessionManager = {
+        lastActivity: Date.now(),
+        sessionStart: Date.now(),
+        timeoutWarningShown: false,
+        
+        init: function() {
+            var self = this;
+            
+            $(document).on('mousemove keypress click scroll', function() {
+                self.updateActivity();
+            });
+            
+            setInterval(function() {
+                self.checkTimeout();
+            }, 60000);
+            
+            this.setSecureCookieDefaults();
+        },
+        
+        updateActivity: function() {
+            this.lastActivity = Date.now();
+            this.timeoutWarningShown = false;
+        },
+        
+        checkTimeout: function() {
+            var idleMs = Date.now() - this.lastActivity;
+            var idleMinutes = idleMs / 60000;
+            var timeoutMinutes = SecurityConfig.session.idle_timeout_minutes;
+            
+            if (idleMinutes >= timeoutMinutes) {
+                this.handleTimeout();
+            } else if (idleMinutes >= timeoutMinutes - 5 && !this.timeoutWarningShown) {
+                this.showTimeoutWarning(Math.ceil(timeoutMinutes - idleMinutes));
+                this.timeoutWarningShown = true;
+            }
+        },
+        
+        handleTimeout: function() {
+            AuditService.log('session_timeout', { email: currentEmail, idle_minutes: SecurityConfig.session.idle_timeout_minutes });
+            alert('Your session has expired due to inactivity. Please log in again.');
+            window.location.href = '/login';
+        },
+        
+        showTimeoutWarning: function(minutesRemaining) {
+            console.log('[Session] Warning: Session will expire in ' + minutesRemaining + ' minutes due to inactivity');
+        },
+        
+        setSecureCookieDefaults: function() {
+            console.log('[Session] Cookie settings: Secure=' + SecurityConfig.session.cookie_secure + 
+                ', HttpOnly=' + SecurityConfig.session.cookie_httponly + 
+                ', SameSite=' + SecurityConfig.session.cookie_samesite);
+        }
+    };
+    
+    var IPService = {
+        currentIP: null,
+        
+        init: function() {
+            this.currentIP = this.getClientIP();
+        },
+        
+        getClientIP: function() {
+            return '{{ request()->ip() ?? "127.0.0.1" }}';
+        },
+        
+        logLoginAttempt: function(email, success, details) {
+            var logEntry = {
+                ip: this.currentIP,
+                email: email,
+                success: success,
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent,
+                details: details || {}
+            };
+            console.log('[IPService] Login attempt:', logEntry);
+            return logEntry;
+        }
+    };
+    
+    var DevBypassService = {
+        canBypass: function(user) {
+            if (EnvironmentConfig.isProduction()) {
+                return { allowed: false, reason: 'production_environment' };
+            }
+            
+            if (!SecurityConfig.dev_bypass.enabled) {
+                return { allowed: false, reason: 'bypass_disabled' };
+            }
+            
+            var userGroups = user.groups || [];
+            var allowedGroups = SecurityConfig.dev_bypass.allowed_groups;
+            var hasAllowedGroup = userGroups.some(function(g) {
+                return allowedGroups.includes(g);
+            });
+            
+            if (user.dev_bypass_enabled === true || hasAllowedGroup) {
+                return { allowed: true };
+            }
+            
+            return { allowed: false, reason: 'user_not_authorized' };
+        },
+        
+        isTestOtp: function(code) {
+            if (EnvironmentConfig.isProduction()) {
+                return false;
+            }
+            return code === SecurityConfig.dev_bypass.test_otp;
+        },
+        
+        performBypass: function(email) {
+            if (EnvironmentConfig.isProduction()) {
+                AuditService.log('dev_bypass_blocked', { 
+                    email: email, 
+                    reason: 'production_environment',
+                    ip: IPService.currentIP
+                });
+                return { success: false, error: 'Bypass not available' };
+            }
+            
+            AuditService.log('mfa_bypassed', { 
+                email: email,
+                mfa_bypassed: true,
+                ip: IPService.currentIP,
+                timestamp: new Date().toISOString(),
+                environment: EnvironmentConfig.APP_ENV,
+                method: 'dev_skip_link'
+            });
+            
+            return { success: true };
+        }
+    };
+    
+    SessionManager.init();
+    IPService.init();
     
     var OtpThrottleService = {
         lastSendTime: {},
@@ -625,18 +795,20 @@ $(document).ready(function() {
     };
     
     var MockUsers = {
-        'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true, rcs_capable: true },
-        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '447700900456', email_verified: true, rcs_capable: false },
-        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '07700900789', email_verified: false, rcs_capable: false },
-        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '07712345678', email_verified: true, rcs_capable: true },
-        'nomobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: null, email_verified: true, rcs_capable: false },
-        'nomfa@example.com': { password: 'Password123!', status: 'active', mfa_enabled: false, mobile: '+447700900555', email_verified: true, rcs_capable: false },
-        'badmobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '12025551234', email_verified: true, rcs_capable: false }
+        'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true, rcs_capable: true, dev_bypass_enabled: true, groups: ['internal_testers'] },
+        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '447700900456', email_verified: true, rcs_capable: false, groups: [] },
+        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '07700900789', email_verified: false, rcs_capable: false, groups: [] },
+        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '07712345678', email_verified: true, rcs_capable: true, dev_bypass_enabled: false, groups: ['developers'] },
+        'nomobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: null, email_verified: true, rcs_capable: false, groups: [] },
+        'nomfa@example.com': { password: 'Password123!', status: 'active', mfa_enabled: false, mobile: '+447700900555', email_verified: true, rcs_capable: false, groups: [] },
+        'badmobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '12025551234', email_verified: true, rcs_capable: false, groups: [] },
+        'regular@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900111', email_verified: true, rcs_capable: false, dev_bypass_enabled: false, groups: [] }
     };
     
     var canUpdateAccountDetails = true;
     var currentUserHasMobile = true;
     var currentUserRcsCapable = false;
+    var currentUserData = null;
     
     function showLoginError(message, type) {
         type = type || 'danger';
@@ -766,12 +938,14 @@ $(document).ready(function() {
             currentMobile = user.mobile || null;
             currentUserHasMobile = !!user.mobile;
             currentUserRcsCapable = user.rcs_capable || false;
+            currentUserData = user;
             
-            AuditService.log('login_password_verified', { email: email });
+            IPService.logLoginAttempt(email, true, { status: user.status });
+            AuditService.log('login_password_verified', { email: email, ip: IPService.currentIP });
             
             if (!user.mfa_enabled) {
                 showLoginSuccess('Login successful. Redirecting...');
-                AuditService.log('login_success', { email: email, mfa_required: false, mfa_skipped_reason: 'security_settings_disabled' });
+                AuditService.log('login_success', { email: email, mfa_required: false, mfa_skipped_reason: 'security_settings_disabled', ip: IPService.currentIP });
                 
                 setTimeout(function() {
                     window.location.href = '/dashboard';
@@ -789,6 +963,13 @@ $(document).ready(function() {
                     $('#maskedMobile').text(currentMobile.slice(-4));
                 } else {
                     $('#maskedMobile').text('----');
+                }
+                
+                var bypassCheck = DevBypassService.canBypass(user);
+                if (bypassCheck.allowed) {
+                    $('#devBypassSection').removeClass('d-none');
+                } else {
+                    $('#devBypassSection').addClass('d-none');
                 }
                 
                 if (currentUserRcsCapable) {
@@ -1043,6 +1224,44 @@ $(document).ready(function() {
         }
     });
     
+    $('#skipMfaDev').on('click', function() {
+        if (EnvironmentConfig.isProduction()) {
+            showMfaError('Bypass not available in production.');
+            AuditService.log('dev_bypass_blocked', { 
+                email: currentEmail, 
+                reason: 'production_environment',
+                ip: IPService.currentIP
+            });
+            return;
+        }
+        
+        if (!currentUserData) {
+            showMfaError('Session error. Please try again.');
+            return;
+        }
+        
+        var bypassCheck = DevBypassService.canBypass(currentUserData);
+        if (!bypassCheck.allowed) {
+            showMfaError('You are not authorized to use dev bypass.');
+            AuditService.log('dev_bypass_unauthorized', { 
+                email: currentEmail, 
+                reason: bypassCheck.reason,
+                ip: IPService.currentIP
+            });
+            return;
+        }
+        
+        var result = DevBypassService.performBypass(currentEmail);
+        if (result.success) {
+            showMfaSuccess('MFA bypassed (Dev). Redirecting...');
+            setTimeout(function() {
+                window.location.href = '/dashboard';
+            }, 1000);
+        } else {
+            showMfaError(result.error);
+        }
+    });
+    
     $('#otpCode').on('input', function() {
         var val = $(this).val();
         var cleaned = val.replace(/[^0-9]/g, '');
@@ -1091,7 +1310,16 @@ $(document).ready(function() {
         $btn.find('.btn-loading').removeClass('d-none');
         
         setTimeout(function() {
-            if (isTotpMethod) {
+            if (DevBypassService.isTestOtp(enteredOtp)) {
+                AuditService.log('mfa_bypassed', { 
+                    email: currentEmail, 
+                    mfa_bypassed: true,
+                    method: 'test_otp_000000',
+                    ip: IPService.currentIP,
+                    timestamp: new Date().toISOString(),
+                    environment: EnvironmentConfig.APP_ENV
+                });
+            } else if (isTotpMethod) {
                 var validTotpCodes = ['123456', '654321', '111111'];
                 var totpTimeWindow = 30;
                 var currentTimeSlot = Math.floor(Date.now() / 1000 / totpTimeWindow);
@@ -1100,16 +1328,16 @@ $(document).ready(function() {
                     $('#otpCode').addClass('is-invalid');
                     $('#otpError').text('Invalid authenticator code');
                     resetButton($btn);
-                    AuditService.log('mfa_totp_failed', { email: currentEmail });
+                    AuditService.log('mfa_totp_failed', { email: currentEmail, ip: IPService.currentIP });
                     return;
                 }
                 
-                AuditService.log('mfa_totp_verified', { email: currentEmail, time_slot: currentTimeSlot });
+                AuditService.log('mfa_totp_verified', { email: currentEmail, time_slot: currentTimeSlot, ip: IPService.currentIP });
             } else {
                 if (!currentOtp || Date.now() > otpExpiry) {
                     showMfaError('Code expired. Please request a new code.');
                     resetButton($btn);
-                    AuditService.log('mfa_sms_expired', { email: currentEmail });
+                    AuditService.log('mfa_sms_expired', { email: currentEmail, ip: IPService.currentIP });
                     return;
                 }
                 
@@ -1117,11 +1345,11 @@ $(document).ready(function() {
                     $('#otpCode').addClass('is-invalid');
                     $('#otpError').text('Invalid verification code');
                     resetButton($btn);
-                    AuditService.log('mfa_sms_failed', { email: currentEmail });
+                    AuditService.log('mfa_sms_failed', { email: currentEmail, ip: IPService.currentIP });
                     return;
                 }
                 
-                AuditService.log('mfa_sms_verified', { email: currentEmail });
+                AuditService.log('mfa_sms_verified', { email: currentEmail, ip: IPService.currentIP });
             }
             
             clearInterval(countdownInterval);
