@@ -152,6 +152,28 @@
     user-select: none;
     white-space: nowrap;
 }
+
+/* =========================================
+   Table Cell Text Overflow
+   ========================================= */
+#campaignsTableBody td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
+}
+#campaignsTableBody td h6 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 0;
+}
+#campaignsTableBody td .text-muted {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
 .sortable-header:hover {
     background-color: rgba(30, 58, 95, 0.05);
 }
@@ -640,25 +662,25 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <!-- Campaigns Table -->
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-3">
-            <div class="table-responsive" id="campaignsTable">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: auto;">
+            <div class="table-responsive" id="campaignsTable" style="overflow-x: hidden;">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-2 sortable-header" data-sort="account" onclick="toggleSort('account')" style="white-space: nowrap;">
+                            <th class="py-3 px-2 sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 12%;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2 sortable-header" data-sort="name" onclick="toggleSort('name')" style="white-space: nowrap;">
+                            <th class="py-3 px-2 sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 25%;">
                                 Campaign Name <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2" style="white-space: nowrap;">Channel</th>
-                            <th class="py-3 px-2" style="white-space: nowrap;">Status</th>
-                            <th class="py-3 px-2 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="white-space: nowrap;">
+                            <th class="py-3 px-2" style="width: 10%;">Channel</th>
+                            <th class="py-3 px-2" style="width: 12%;">Status</th>
+                            <th class="py-3 px-2 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 14%;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2 sortable-header" data-sort="date" onclick="toggleSort('date')" style="white-space: nowrap;">
+                            <th class="py-3 px-2 sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2 text-end" style="white-space: nowrap; width: 50px;">Actions</th>
+                            <th class="py-3 px-2 text-end" style="width: 8%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
@@ -732,7 +754,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 {{ \Carbon\Carbon::parse($campaign['send_date'])->format('d M Y') }}
                                 <br><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small>
                             </td>
-                            <td class="py-2 px-2 text-end" onclick="event.stopPropagation()">
+                            <td class="py-2 px-2 text-end actions-cell" onclick="event.stopPropagation()">
                                 <div class="dropdown" style="position: relative;">
                                     <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="fas fa-ellipsis-v"></i>
@@ -1861,6 +1883,8 @@ function executeCampaignAction() {
     var row = document.querySelector('tr[data-id="' + campaign.id + '"]');
     if (row) {
         var statusCell = row.querySelector('.status-cell');
+        var actionsCell = row.querySelector('.actions-cell');
+        
         if (statusCell) {
             if (action === 'cancel') {
                 row.dataset.status = 'cancelled';
@@ -1872,6 +1896,30 @@ function executeCampaignAction() {
                 row.dataset.status = 'sending';
                 statusCell.innerHTML = '<span class="badge badge-pastel-primary"><i class="fas fa-paper-plane me-1"></i>Sending</span>';
             }
+        }
+        
+        if (actionsCell) {
+            var newStatus = row.dataset.status;
+            var campaignId = campaign.id;
+            var actionsHtml = '<div class="dropdown">' +
+                '<button class="action-dots-btn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">' +
+                '<i class="fas fa-ellipsis-v"></i></button>' +
+                '<ul class="dropdown-menu dropdown-menu-end">' +
+                '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, \'view\', \'' + campaignId + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>' +
+                '<li><hr class="dropdown-divider"></li>';
+            
+            if (newStatus === 'scheduled' || newStatus === 'sending') {
+                actionsHtml += '<li><a class="dropdown-item text-warning" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, \'suspend\', \'' + campaignId + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>';
+                if (newStatus === 'scheduled') {
+                    actionsHtml += '<li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, \'cancel\', \'' + campaignId + '\'); return false;"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>';
+                }
+            } else if (newStatus === 'suspended') {
+                actionsHtml += '<li><a class="dropdown-item text-success" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, \'resume\', \'' + campaignId + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>';
+                actionsHtml += '<li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, \'cancel\', \'' + campaignId + '\'); return false;"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>';
+            }
+            
+            actionsHtml += '</ul></div>';
+            actionsCell.innerHTML = actionsHtml;
         }
     }
     
