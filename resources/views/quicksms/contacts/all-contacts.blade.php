@@ -4,6 +4,13 @@
 
 @push('styles')
 <style>
+/* Success and Error modals must appear on top of everything */
+#successModal, #errorModal {
+    z-index: 10060 !important;
+}
+#successModal + .modal-backdrop, #errorModal + .modal-backdrop {
+    z-index: 10055 !important;
+}
 .table thead th {
     background: #f8f9fa !important;
     border-bottom: 1px solid #e9ecef !important;
@@ -1442,37 +1449,101 @@ function clearBulkSelection() {
     document.getElementById('selectedCount').textContent = '0';
 }
 
+function cleanupModalBackdrops() {
+    console.log('[Modal] Cleaning up backdrops...');
+    document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+        backdrop.remove();
+    });
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
+
 function showProcessingModal(message) {
+    console.log('[Modal] showProcessingModal called:', message);
+    cleanupModalBackdrops();
     document.getElementById('processingMessage').textContent = message || 'Processing...';
     if (!window.processingModal) {
         window.processingModal = new bootstrap.Modal(document.getElementById('processingModal'), { backdrop: 'static', keyboard: false });
     }
     window.processingModal.show();
+    console.log('[Modal] Processing modal shown');
 }
 
 function hideProcessingModal(callback) {
+    console.log('[Modal] hideProcessingModal called, has callback:', !!callback);
+    
     if (window.processingModal) {
+        var modalEl = document.getElementById('processingModal');
+        var callbackFired = false;
+        
+        var executeCallback = function() {
+            if (callbackFired) return;
+            callbackFired = true;
+            console.log('[Modal] Processing modal hidden, executing callback');
+            cleanupModalBackdrops();
+            if (callback) {
+                setTimeout(function() {
+                    callback();
+                }, 50);
+            }
+        };
+        
         if (callback) {
-            var modalEl = document.getElementById('processingModal');
             var handler = function() {
                 modalEl.removeEventListener('hidden.bs.modal', handler);
-                callback();
+                executeCallback();
             };
             modalEl.addEventListener('hidden.bs.modal', handler);
+            
+            setTimeout(function() {
+                if (!callbackFired) {
+                    console.log('[Modal] Timeout fallback - forcing callback');
+                    executeCallback();
+                }
+            }, 500);
         }
+        
         window.processingModal.hide();
-    } else if (callback) {
-        callback();
+    } else {
+        console.log('[Modal] No processing modal instance, calling callback directly');
+        cleanupModalBackdrops();
+        if (callback) callback();
     }
 }
 
 function showSuccessModal(title, message) {
-    document.getElementById('successModalTitle').textContent = title;
+    console.log('[Modal] showSuccessModal called:', title, message);
+    cleanupModalBackdrops();
+    
+    var successModalEl = document.getElementById('successModal');
+    successModalEl.style.zIndex = '10060';
+    
+    document.getElementById('successModalTitle').innerHTML = '<i class="fas fa-check-circle me-2"></i>' + title;
     document.getElementById('successModalMessage').textContent = message;
+    
     if (!window.successModal) {
-        window.successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        window.successModal = new bootstrap.Modal(successModalEl);
     }
     window.successModal.show();
+    console.log('[Modal] Success modal shown');
+}
+
+function showErrorModal(title, message) {
+    console.log('[Modal] showErrorModal called:', title, message);
+    cleanupModalBackdrops();
+    
+    var errorModalEl = document.getElementById('errorModal');
+    errorModalEl.style.zIndex = '10060';
+    
+    document.getElementById('errorModalTitle').innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + title;
+    document.getElementById('errorModalMessage').textContent = message;
+    
+    if (!window.errorModal) {
+        window.errorModal = new bootstrap.Modal(errorModalEl);
+    }
+    window.errorModal.show();
+    console.log('[Modal] Error modal shown');
 }
 
 function showToast(message, type) {
@@ -1513,15 +1584,6 @@ function showToast(message, type) {
             }, 300);
         }
     }, 5000);
-}
-
-function showErrorModal(title, message) {
-    document.getElementById('errorModalTitle').textContent = title;
-    document.getElementById('errorModalMessage').textContent = message;
-    if (!window.errorModal) {
-        window.errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-    }
-    window.errorModal.show();
 }
 
 function showValidationError(message) {
