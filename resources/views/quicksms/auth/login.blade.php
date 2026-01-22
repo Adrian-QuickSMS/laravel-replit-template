@@ -110,6 +110,22 @@
                             </div>
                         </div>
                         
+                        <div id="noMobileWarning" class="alert alert-warning d-none mb-4">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-exclamation-triangle me-3 mt-1"></i>
+                                <div>
+                                    <strong>Mobile number required</strong>
+                                    <p class="mb-2 small">You need a mobile number on your account to receive a code.</p>
+                                    <a href="/account/details" class="btn btn-sm btn-outline-primary" id="updateAccountLink">
+                                        <i class="fas fa-user-edit me-1"></i>Update account details
+                                    </a>
+                                    <a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary d-none" id="contactAdminLink">
+                                        <i class="fas fa-headset me-1"></i>Contact admin
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div id="sendCodeSection" class="mb-4">
                             <button type="button" class="btn btn-primary w-100" id="sendCodeBtn">
                                 <span class="btn-text"><i class="fas fa-paper-plane me-2"></i>Send Code</span>
@@ -477,9 +493,12 @@ $(document).ready(function() {
         'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true, rcs_capable: true },
         'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '+447700900456', email_verified: true, rcs_capable: false },
         'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '+447700900789', email_verified: false, rcs_capable: false },
-        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true, rcs_capable: true }
+        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true, rcs_capable: true },
+        'nomobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: null, email_verified: true, rcs_capable: false }
     };
     
+    var canUpdateAccountDetails = true;
+    var currentUserHasMobile = true;
     var currentUserRcsCapable = false;
     
     function showLoginError(message, type) {
@@ -607,7 +626,8 @@ $(document).ready(function() {
             
             LockoutService.resetOnSuccess(email);
             currentEmail = email;
-            currentMobile = user.mobile || '+447700900123';
+            currentMobile = user.mobile || null;
+            currentUserHasMobile = !!user.mobile;
             currentUserRcsCapable = user.rcs_capable || false;
             
             AuditService.log('login_password_verified', { email: email });
@@ -617,13 +637,26 @@ $(document).ready(function() {
             setTimeout(function() {
                 $('#loginStep1').addClass('d-none');
                 $('#loginStep2').removeClass('d-none');
-                $('#maskedMobile').text(currentMobile.slice(-4));
+                
+                if (currentUserHasMobile) {
+                    $('#maskedMobile').text(currentMobile.slice(-4));
+                } else {
+                    $('#maskedMobile').text('----');
+                }
                 
                 if (currentUserRcsCapable) {
                     $('#rcsChannelOption').removeClass('d-none');
                 } else {
                     $('#rcsChannelOption').addClass('d-none');
                     $('#channelSms').prop('checked', true);
+                }
+                
+                if (canUpdateAccountDetails) {
+                    $('#updateAccountLink').removeClass('d-none');
+                    $('#contactAdminLink').addClass('d-none');
+                } else {
+                    $('#updateAccountLink').addClass('d-none');
+                    $('#contactAdminLink').removeClass('d-none');
                 }
                 
                 updateMfaMethodUI();
@@ -683,7 +716,20 @@ $(document).ready(function() {
     }
     
     function updateMfaMethodUI() {
+        $('#noMobileWarning').addClass('d-none');
+        
         if (currentMfaMethod === 'sms') {
+            if (!currentUserHasMobile) {
+                $('#noMobileWarning').removeClass('d-none');
+                $('#sendCodeSection').addClass('d-none');
+                $('#smsChannelOptions').addClass('d-none');
+                $('#otpInputSection').addClass('d-none');
+                $('#testOtpCode').addClass('d-none');
+                $('#verifyBtn').prop('disabled', true);
+                return;
+            }
+            
+            $('#verifyBtn').prop('disabled', false);
             $('#sendCodeSection').removeClass('d-none');
             $('#smsChannelOptions').removeClass('d-none');
             $('#smsCodeHelpers').removeClass('d-none');
@@ -700,6 +746,7 @@ $(document).ready(function() {
                 $('#testOtpCode').addClass('d-none');
             }
         } else {
+            $('#verifyBtn').prop('disabled', false);
             $('#sendCodeSection').addClass('d-none');
             $('#smsChannelOptions').addClass('d-none');
             $('#otpInputSection').removeClass('d-none');
