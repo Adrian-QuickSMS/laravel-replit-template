@@ -8,8 +8,13 @@
 
 @push('styles')
 <style>
-/* Admin Blue Palette: Primary #1e3a5f, Secondary #2d5a87, Accent #4a90d9 */
+/* =========================================
+   Admin Blue Palette (Fillow Admin Console)
+   Primary: #1e3a5f | Secondary: #2d5a87 | Accent: #4a90d9
+   ========================================= */
 .admin-page { padding: 1.5rem; }
+
+/* Status Pill Colors - DO NOT CHANGE (semantic) */
 .badge-pastel-success { background-color: #d1e7dd; color: #0f5132; }
 .badge-pastel-primary { background-color: #cfe2ff; color: #084298; }
 .badge-pastel-secondary { background-color: #e9ecef; color: #6c757d; }
@@ -17,18 +22,120 @@
 .badge-pastel-info { background-color: #cff4fc; color: #055160; }
 .badge-pastel-danger { background-color: #f8d7da; color: #842029; }
 
+/* =========================================
+   Admin Blue Button Styles
+   ========================================= */
+.btn-admin-primary { 
+    background-color: #1e3a5f; 
+    color: white; 
+    border: none; 
+}
+.btn-admin-primary:hover, 
+.btn-admin-primary:focus { 
+    background-color: #2d5a87; 
+    color: white; 
+}
+.btn-admin-primary:active,
+.btn-admin-primary.active { 
+    background-color: #4a90d9; 
+    color: white; 
+}
+
+.btn-admin-secondary { 
+    background-color: #2d5a87; 
+    color: white; 
+    border: none; 
+}
+.btn-admin-secondary:hover,
+.btn-admin-secondary:focus { 
+    background-color: #4a90d9; 
+    color: white; 
+}
+
+.btn-admin-outline {
+    background-color: transparent;
+    color: #1e3a5f;
+    border: 1px solid #1e3a5f;
+}
+.btn-admin-outline:hover,
+.btn-admin-outline:focus {
+    background-color: #1e3a5f;
+    color: white;
+}
+
+/* =========================================
+   Admin Blue Text & Background Utilities
+   ========================================= */
+.text-admin-primary { color: #1e3a5f !important; }
+.text-admin-secondary { color: #2d5a87 !important; }
+.text-admin-accent { color: #4a90d9 !important; }
+.bg-admin-light { background-color: rgba(30, 58, 95, 0.05); }
+.bg-admin-primary { background-color: #1e3a5f; }
+
+/* =========================================
+   Section Headers - Admin Blue
+   ========================================= */
+.admin-section-header {
+    color: #1e3a5f;
+    font-weight: 600;
+    border-bottom: 2px solid #1e3a5f;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Page title styling */
+.admin-page h4 { color: #1e3a5f; }
+
+/* =========================================
+   Form Controls - Focus States (Admin Blue)
+   ========================================= */
+.form-control:focus,
+.form-select:focus {
+    border-color: #4a90d9;
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 217, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
+}
+
+.form-check-input:focus {
+    border-color: #4a90d9;
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 217, 0.25);
+}
+
+/* =========================================
+   Multiselect Dropdown Styling
+   ========================================= */
 .multiselect-dropdown .dropdown-toggle {
     background-color: #fff;
     border: 1px solid #ced4da;
     color: #495057;
     text-align: left;
 }
+.multiselect-dropdown .dropdown-toggle:focus {
+    border-color: #4a90d9;
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 217, 0.25);
+}
 .multiselect-dropdown .dropdown-menu {
     padding: 0.5rem;
     min-width: 200px;
 }
+
+/* =========================================
+   Table Row Hover (Admin Blue tint)
+   ========================================= */
 .campaign-row { cursor: pointer; }
-.campaign-row:hover { background-color: rgba(30, 58, 95, 0.03); }
+.campaign-row:hover { background-color: rgba(30, 58, 95, 0.04); }
+.campaign-row:focus { 
+    outline: 2px solid #4a90d9;
+    outline-offset: -2px;
+}
+
+/* =========================================
+   Account Link Styling
+   ========================================= */
 .account-link { 
     color: #1e3a5f; 
     font-weight: 500; 
@@ -39,36 +146,74 @@
     text-overflow: ellipsis;
 }
 .account-link:hover { text-decoration: underline; color: #2d5a87; }
+.account-link:focus { 
+    outline: 2px solid #4a90d9;
+    outline-offset: 2px;
+}
 
-/* Admin Blue Accents */
-.btn-admin-primary { background-color: #1e3a5f; color: white; border: none; }
-.btn-admin-primary:hover { background-color: #2d5a87; color: white; }
-.btn-admin-secondary { background-color: #2d5a87; color: white; border: none; }
-.btn-admin-secondary:hover { background-color: #4a90d9; color: white; }
-.text-admin-primary { color: #1e3a5f; }
-.text-admin-secondary { color: #2d5a87; }
-.text-admin-accent { color: #4a90d9; }
-.bg-admin-light { background-color: rgba(30, 58, 95, 0.05); }
-
-/* Filter panel styling */
-#filterPanel .form-label { color: #1e3a5f; font-weight: 600; }
+/* =========================================
+   Filter Panel - Admin Blue
+   ========================================= */
+#filterPanel .form-label { 
+    color: #1e3a5f; 
+    font-weight: 600; 
+}
 #filterPanel .select-all-btn { color: #4a90d9; }
 #filterPanel .select-all-btn:hover { color: #2d5a87; }
+#filterPanel .clear-all-btn:hover { color: #1e3a5f; }
 
 /* Active filter badge */
 #activeFiltersBadge { background-color: #4a90d9 !important; }
 
-/* Drawer account link */
+/* Filters button active state */
+.btn-outline-primary:not(:disabled):not(.disabled).active,
+.btn-outline-primary:not(:disabled):not(.disabled):active {
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
+}
+
+/* =========================================
+   Drawer / Offcanvas - Admin Blue
+   ========================================= */
 #drawerAccountLink { color: #2d5a87; }
 #drawerAccountLink:hover { color: #4a90d9; }
+
+.offcanvas-header { border-bottom: 1px solid rgba(30, 58, 95, 0.1); }
+.offcanvas .btn-outline-secondary:hover { 
+    border-color: #2d5a87; 
+    color: #2d5a87; 
+}
+
+/* Drawer section headers */
+.offcanvas h6 { color: #1e3a5f; }
 
 /* Progress bar accents */
 .progress-bar.bg-admin { background-color: #2d5a87; }
 
-/* Admin Action buttons */
-.offcanvas .btn-outline-secondary:hover { 
-    border-color: #2d5a87; 
-    color: #2d5a87; 
+/* =========================================
+   Links - Admin Blue
+   ========================================= */
+a.text-primary { color: #1e3a5f !important; }
+a.text-primary:hover { color: #2d5a87 !important; }
+
+/* Dropdown items hover */
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(30, 58, 95, 0.08);
+    color: #1e3a5f;
+}
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: #1e3a5f;
+    color: white;
+}
+
+/* =========================================
+   Sort dropdown active indicator
+   ========================================= */
+.dropdown-menu .dropdown-item.active-sort {
+    background-color: rgba(30, 58, 95, 0.1);
+    font-weight: 600;
 }
 </style>
 @endpush
