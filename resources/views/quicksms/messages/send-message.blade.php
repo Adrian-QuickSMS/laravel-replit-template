@@ -2984,10 +2984,10 @@ function renderContactBookChips() {
     var tags = recipientState.contactBook.tags.length;
     
     var chipsHtml = '';
-    if (contacts) chipsHtml += '<span class="badge bg-primary me-1 mb-1">' + contacts + ' Contacts <button class="btn-close btn-close-white ms-1" style="font-size:8px;" onclick="removeContactBookItem(\'contacts\')"></button></span>';
-    if (lists) chipsHtml += '<span class="badge bg-success me-1 mb-1">' + lists + ' Lists <button class="btn-close btn-close-white ms-1" style="font-size:8px;" onclick="removeContactBookItem(\'lists\')"></button></span>';
-    if (dynamic) chipsHtml += '<span class="badge bg-info me-1 mb-1">' + dynamic + ' Dynamic Lists <button class="btn-close btn-close-white ms-1" style="font-size:8px;" onclick="removeContactBookItem(\'dynamicLists\')"></button></span>';
-    if (tags) chipsHtml += '<span class="badge bg-warning me-1 mb-1">' + tags + ' Tags <button class="btn-close btn-close-white ms-1" style="font-size:8px;" onclick="removeContactBookItem(\'tags\')"></button></span>';
+    if (contacts) chipsHtml += '<span class="badge me-1 mb-1" style="background-color: #f0ebf8; color: #6b5b95;">' + contacts + ' Contacts <button class="btn-close ms-1" style="font-size:8px; filter: none;" onclick="removeContactBookItem(\'contacts\')"></button></span>';
+    if (lists) chipsHtml += '<span class="badge me-1 mb-1" style="background-color: #f0ebf8; color: #6b5b95;">' + lists + ' Lists <button class="btn-close ms-1" style="font-size:8px; filter: none;" onclick="removeContactBookItem(\'lists\')"></button></span>';
+    if (dynamic) chipsHtml += '<span class="badge me-1 mb-1" style="background-color: #f0ebf8; color: #6b5b95;">' + dynamic + ' Dynamic Lists <button class="btn-close ms-1" style="font-size:8px; filter: none;" onclick="removeContactBookItem(\'dynamicLists\')"></button></span>';
+    if (tags) chipsHtml += '<span class="badge me-1 mb-1" style="background-color: #f0ebf8; color: #6b5b95;">' + tags + ' Tags <button class="btn-close ms-1" style="font-size:8px; filter: none;" onclick="removeContactBookItem(\'tags\')"></button></span>';
     
     document.getElementById('contactBookChips').innerHTML = chipsHtml;
     document.getElementById('contactBookSelection').classList.toggle('d-none', !chipsHtml);
