@@ -798,7 +798,7 @@ $permissions = [
                 <div class="card-body p-3">
                     <h6 class="text-muted mb-3"><i class="fas fa-eye me-2"></i>Message Preview</h6>
                     
-                    <div class="d-flex justify-content-center" style="background-color: #f0ebf8; border-radius: 0.5rem; padding: 1rem;">
+                    <div class="d-flex justify-content-center" style="background-color: #ffffff; border-radius: 0.5rem; padding: 1rem;">
                         <div id="campaignPreviewContainer"></div>
                     </div>
                     
