@@ -1258,7 +1258,7 @@ function showToast(message, type) {
         container = document.createElement('div');
         container.id = 'toastContainer';
         container.className = 'position-fixed bottom-0 end-0 p-3';
-        container.style.zIndex = '1100';
+        container.style.zIndex = '9999';
         document.body.appendChild(container);
     }
     
@@ -1266,13 +1266,16 @@ function showToast(message, type) {
     var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
     
     var toastId = 'toast_' + Date.now();
-    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + ';">' +
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + '; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">' +
         '<div class="d-flex">' +
         '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
         '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
         '</div></div>';
     
     container.insertAdjacentHTML('beforeend', toastHtml);
+    
+    // Log to console for debugging
+    console.log('[Toast] ' + type + ': ' + message);
     
     setTimeout(function() {
         var toast = document.getElementById(toastId);
