@@ -498,6 +498,7 @@ var ContactTimelineService = (function() {
 
     function buildOutboundActions(metadata, sourceModule) {
         var actions = [];
+        var permissions = getUserPermissions();
         
         if (metadata.is_blocked) {
             return actions;
@@ -523,8 +524,60 @@ var ContactTimelineService = (function() {
             });
         }
         
+        if (metadata.message_id_warehouse && permissions.viewMessageLog) {
+            actions.push({
+                type: 'link',
+                label: 'View Message Log',
+                icon: 'fa-file-alt',
+                url: '/reporting/message-log/' + metadata.message_id_warehouse,
+                target: '_self'
+            });
+        }
+        
         return actions;
     }
+
+    var AuditLogger = {
+        emit: function(eventType, payload) {
+            var auditEvent = {
+                event_type: eventType,
+                timestamp: new Date().toISOString(),
+                user_id: window.currentUserId || null,
+                user_name: window.currentUserName || 'Unknown',
+                tenant_id: window.currentTenantId || null,
+                session_id: window.sessionId || null,
+                ip_address: null,
+                user_agent: navigator.userAgent,
+                payload: payload
+            };
+            
+            if (config.useMockData) {
+                console.log('[AuditLogger] Event emitted:', eventType, auditEvent);
+                return Promise.resolve({ success: true, event_id: generateUUID() });
+            }
+            
+            return fetch('/api/audit/emit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(auditEvent)
+            }).then(function(response) {
+                return response.json();
+            }).catch(function(error) {
+                console.error('[AuditLogger] Failed to emit event:', error);
+                return { success: false, error: error.message };
+            });
+        },
+        
+        EVENTS: {
+            TIMELINE_VIEWED: 'contact.timeline.viewed',
+            MSISDN_REVEALED: 'contact.msisdn.revealed',
+            MESSAGE_CONTENT_REVEALED: 'message.content.revealed',
+            TIMELINE_EXPORTED: 'contact.timeline.exported'
+        }
+    };
 
     function generateDeliveryTimestamps(baseTimestamp) {
         var base = new Date(baseTimestamp);
@@ -612,10 +665,148 @@ var ContactTimelineService = (function() {
 
     function getUserPermissions() {
         return window.timelinePermissions || {
-            viewCost: true,
-            viewSnippet: true,
-            viewPersonalised: false
+            viewCost: false,
+            viewSnippet: false,
+            viewPersonalised: false,
+            viewSensitiveData: false,
+            viewMessageLog: false,
+            revealMsisdn: false,
+            revealContent: false,
+            exportTimeline: false
         };
+    }
+
+    function maskMsisdn(msisdn) {
+        if (!msisdn) return '***';
+        var cleaned = msisdn.replace(/\s/g, '');
+        if (cleaned.length <= 6) return '***' + cleaned.slice(-2);
+        return cleaned.slice(0, 4) + ' **** ' + cleaned.slice(-3);
+    }
+
+    function maskContent(content, maxLength) {
+        maxLength = maxLength || 20;
+        if (!content) return '[Content hidden]';
+        return '[Message content hidden - ' + content.length + ' characters]';
+    }
+
+    function logTimelineViewed(contactId) {
+        return AuditLogger.emit(AuditLogger.EVENTS.TIMELINE_VIEWED, {
+            contact_id: contactId,
+            action: 'view'
+        });
+    }
+
+    function revealMsisdnWithAudit(contactId, reason) {
+        var permissions = getUserPermissions();
+        if (!permissions.revealMsisdn) {
+            return Promise.reject(new Error('Permission denied: revealMsisdn'));
+        }
+        
+        return AuditLogger.emit(AuditLogger.EVENTS.MSISDN_REVEALED, {
+            contact_id: contactId,
+            reason: reason || 'User requested reveal'
+        }).then(function() {
+            if (config.useMockData) {
+                return simulateDelay(200, 400).then(function() {
+                    return {
+                        success: true,
+                        msisdn: '+44 7700 900' + Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+                    };
+                });
+            }
+            
+            return fetch('/api/contacts/' + contactId + '/reveal-msisdn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ reason: reason })
+            }).then(function(response) {
+                return response.json();
+            });
+        });
+    }
+
+    function revealMessageContentWithAudit(messageId, contactId, reason) {
+        var permissions = getUserPermissions();
+        if (!permissions.revealContent) {
+            return Promise.reject(new Error('Permission denied: revealContent'));
+        }
+        
+        return AuditLogger.emit(AuditLogger.EVENTS.MESSAGE_CONTENT_REVEALED, {
+            message_id: messageId,
+            contact_id: contactId,
+            reason: reason || 'User requested reveal'
+        }).then(function() {
+            if (config.useMockData) {
+                return simulateDelay(200, 400).then(function() {
+                    var sampleMessages = [
+                        'Hi {{firstName}}, your order #12345 has been dispatched!',
+                        'Reminder: Your appointment is tomorrow at 2pm.',
+                        'Thank you for your purchase! Use code SAVE10 for 10% off.',
+                        'Your verification code is 847291. Valid for 5 minutes.'
+                    ];
+                    return {
+                        success: true,
+                        content: sampleMessages[Math.floor(Math.random() * sampleMessages.length)]
+                    };
+                });
+            }
+            
+            return fetch('/api/messages/' + messageId + '/reveal-content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ reason: reason, contact_id: contactId })
+            }).then(function(response) {
+                return response.json();
+            });
+        });
+    }
+
+    function exportTimelineWithAudit(contactId, filters, format) {
+        var permissions = getUserPermissions();
+        if (!permissions.exportTimeline) {
+            return Promise.reject(new Error('Permission denied: exportTimeline'));
+        }
+        
+        format = format || 'csv';
+        
+        return AuditLogger.emit(AuditLogger.EVENTS.TIMELINE_EXPORTED, {
+            contact_id: contactId,
+            format: format,
+            filters: filters,
+            masked: true
+        }).then(function() {
+            if (config.useMockData) {
+                console.log('[Timeline] Export requested for contact:', contactId, 'Format:', format);
+                return Promise.resolve({
+                    success: true,
+                    download_url: '/api/contacts/' + contactId + '/timeline/export?format=' + format + '&token=mock_' + generateUUID()
+                });
+            }
+            
+            return fetch('/api/contacts/' + contactId + '/timeline/export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ format: format, filters: filters })
+            }).then(function(response) {
+                return response.json();
+            });
+        });
+    }
+
+    function simulateDelay(min, max) {
+        var delay = min + Math.floor(Math.random() * (max - min));
+        return new Promise(function(resolve) {
+            setTimeout(resolve, delay);
+        });
     }
 
     function getRandomList() {
@@ -1407,13 +1598,6 @@ var ContactTimelineService = (function() {
         return mockEventCache[cacheKey];
     }
 
-    function simulateDelay(min, max) {
-        var delay = min + Math.floor(Math.random() * (max - min));
-        return new Promise(function(resolve) {
-            setTimeout(resolve, delay);
-        });
-    }
-
     /**
      * Get timeline events for a contact
      * @param {string} contactId - Contact identifier
@@ -1429,6 +1613,10 @@ var ContactTimelineService = (function() {
         
         var limit = Math.min(pagination.limit || config.defaultPageSize, config.maxPageSize);
         var cursor = pagination.cursor || null;
+        
+        if (!cursor) {
+            logTimelineViewed(contactId);
+        }
         
         if (config.useMockData) {
             return simulateDelay(200, 500).then(function() {
@@ -1535,9 +1723,15 @@ var ContactTimelineService = (function() {
         ACTOR_TYPES: ACTOR_TYPES,
         EVENT_METADATA: EVENT_METADATA,
         getContactTimeline: getContactTimeline,
-        revealMsisdn: revealMsisdn,
+        revealMsisdn: revealMsisdnWithAudit,
+        revealMessageContent: revealMessageContentWithAudit,
+        exportTimeline: exportTimelineWithAudit,
         clearCache: clearCache,
-        formatEventDate: formatEventDate
+        formatEventDate: formatEventDate,
+        maskMsisdn: maskMsisdn,
+        maskContent: maskContent,
+        AuditLogger: AuditLogger,
+        getPermissions: getUserPermissions
     };
 })();
 
