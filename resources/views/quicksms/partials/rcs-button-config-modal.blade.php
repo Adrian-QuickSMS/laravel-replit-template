@@ -114,22 +114,21 @@
                     </div>
                 </div>
                 
-                <hr class="my-3">
+                <input type="hidden" id="rcsButtonTrackingEnabled" value="1">
                 
-                <div id="rcsButtonTrackingSection">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div>
-                            <label class="form-label small mb-0">Click Tracking</label>
-                            <small class="d-block text-muted">Track button interactions for analytics</small>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="rcsButtonTrackingEnabled" onchange="toggleRcsButtonTracking()">
-                        </div>
-                    </div>
+                <div id="rcsButtonAdvancedSection" class="d-none">
+                    <hr class="my-3">
+                    <a href="javascript:void(0)" class="small text-muted" onclick="toggleRcsButtonAdvanced()">
+                        <i class="fas fa-cog me-1"></i>Advanced tracking options <i class="fas fa-chevron-down ms-1" id="rcsAdvancedChevron"></i>
+                    </a>
                     
-                    <div id="rcsButtonTrackingConfig" class="d-none">
+                    <div id="rcsButtonTrackingConfig" class="d-none mt-3">
+                        <div class="alert alert-light py-2 px-3 small mb-3">
+                            <i class="fas fa-chart-line me-1 text-success"></i>Click tracking is <strong>enabled by default</strong> for all buttons.
+                        </div>
+                        
                         <div class="mb-3">
-                            <label class="form-label small">Tracking ID</label>
+                            <label class="form-label small">Tracking ID <span class="text-muted">(optional)</span></label>
                             <input type="text" class="form-control form-control-sm" id="rcsButtonTrackingId" maxlength="50" placeholder="e.g., promo_cta_jan26">
                             <small class="text-muted">Custom identifier for this button (alphanumeric, underscores)</small>
                         </div>
@@ -154,17 +153,11 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label small">Tracking Events</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="rcsButtonTrackClick" checked disabled>
-                                <label class="form-check-label small" for="rcsButtonTrackClick">
-                                    <i class="fas fa-mouse-pointer me-1 text-muted"></i>Button Click
-                                </label>
-                            </div>
+                            <label class="form-label small">Additional Events</label>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="rcsButtonTrackConversion">
                                 <label class="form-check-label small" for="rcsButtonTrackConversion">
-                                    <i class="fas fa-check-circle me-1 text-muted"></i>Conversion (requires pixel)
+                                    <i class="fas fa-check-circle me-1 text-muted"></i>Conversion tracking (requires pixel)
                                 </label>
                             </div>
                         </div>

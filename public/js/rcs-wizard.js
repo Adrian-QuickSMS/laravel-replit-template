@@ -2360,8 +2360,8 @@ function resetRcsButtonForm() {
 }
 
 function resetRcsButtonTracking() {
-    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
     var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
+    var chevron = document.getElementById('rcsAdvancedChevron');
     var trackingId = document.getElementById('rcsButtonTrackingId');
     var utmSource = document.getElementById('rcsButtonUtmSource');
     var utmMedium = document.getElementById('rcsButtonUtmMedium');
@@ -2369,8 +2369,11 @@ function resetRcsButtonTracking() {
     var utmContent = document.getElementById('rcsButtonUtmContent');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
     
-    if (trackingEnabled) trackingEnabled.checked = false;
     if (trackingConfig) trackingConfig.classList.add('d-none');
+    if (chevron) {
+        chevron.classList.add('fa-chevron-down');
+        chevron.classList.remove('fa-chevron-up');
+    }
     if (trackingId) trackingId.value = '';
     if (utmSource) utmSource.value = '';
     if (utmMedium) utmMedium.value = '';
@@ -2379,12 +2382,17 @@ function resetRcsButtonTracking() {
     if (trackConversion) trackConversion.checked = false;
 }
 
-function toggleRcsButtonTracking() {
-    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
+function toggleRcsButtonAdvanced() {
     var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
+    var chevron = document.getElementById('rcsAdvancedChevron');
     
-    if (trackingEnabled && trackingConfig) {
-        trackingConfig.classList.toggle('d-none', !trackingEnabled.checked);
+    if (trackingConfig) {
+        var isHidden = trackingConfig.classList.contains('d-none');
+        trackingConfig.classList.toggle('d-none', !isHidden);
+        if (chevron) {
+            chevron.classList.toggle('fa-chevron-down', !isHidden);
+            chevron.classList.toggle('fa-chevron-up', isHidden);
+        }
     }
     updateRcsButtonUtmVisibility();
 }
@@ -2529,12 +2537,6 @@ function saveRcsButton() {
 }
 
 function getRcsButtonTrackingData(buttonType) {
-    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
-    
-    if (!trackingEnabled || !trackingEnabled.checked) {
-        return null;
-    }
-    
     var trackingId = document.getElementById('rcsButtonTrackingId');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
     
@@ -2565,8 +2567,8 @@ function getRcsButtonTrackingData(buttonType) {
 }
 
 function setRcsButtonTrackingData(tracking) {
-    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
     var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
+    var chevron = document.getElementById('rcsAdvancedChevron');
     var trackingId = document.getElementById('rcsButtonTrackingId');
     var utmSource = document.getElementById('rcsButtonUtmSource');
     var utmMedium = document.getElementById('rcsButtonUtmMedium');
@@ -2574,17 +2576,10 @@ function setRcsButtonTrackingData(tracking) {
     var utmContent = document.getElementById('rcsButtonUtmContent');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
     
-    if (!tracking || !tracking.enabled) {
-        resetRcsButtonTracking();
-        return;
-    }
+    resetRcsButtonTracking();
     
-    if (trackingEnabled) {
-        trackingEnabled.checked = true;
-    }
-    if (trackingConfig) {
-        trackingConfig.classList.remove('d-none');
-    }
+    if (!tracking) return;
+    
     if (trackingId) {
         trackingId.value = tracking.trackingId || '';
     }
