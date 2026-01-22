@@ -772,18 +772,18 @@ function viewContact(id) {
     document.getElementById('viewContactMobile').textContent = contact.mobile;
     document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
     document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
-        ? '<span class="badge bg-success">Active</span>' 
-        : '<span class="badge bg-danger">Opted Out</span>';
+        ? '<span class="badge" style="background-color: #d4edda; color: #155724;">Active</span>' 
+        : '<span class="badge" style="background-color: #f8d7da; color: #721c24;">Opted Out</span>';
     document.getElementById('viewContactSource').textContent = contact.source;
     document.getElementById('viewContactCreated').textContent = contact.created_at;
     
     var tagsHtml = contact.tags.length > 0 
-        ? contact.tags.map(t => '<span class="badge bg-light text-dark border me-1">' + t + '</span>').join('') 
+        ? contact.tags.map(t => '<span class="badge me-1" style="background-color: #e8f4fd; color: #0c5460; border: 1px solid #bee5eb;">' + t + '</span>').join('') 
         : '<span class="text-muted">No tags</span>';
     document.getElementById('viewContactTags').innerHTML = tagsHtml;
     
     var listsHtml = contact.lists.length > 0 
-        ? contact.lists.map(l => '<span class="badge bg-info text-white me-1">' + l + '</span>').join('') 
+        ? contact.lists.map(l => '<span class="badge me-1" style="background-color: #f0ebf8; color: #6c5ce7;">' + l + '</span>').join('') 
         : '<span class="text-muted">No lists</span>';
     document.getElementById('viewContactLists').innerHTML = listsHtml;
     
@@ -1386,39 +1386,39 @@ function bulkDelete() {
                 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="card bg-light border-0">
+                        <div class="card border-0" style="background-color: #f8f9fa;">
                             <div class="card-body">
                                 <small class="text-muted d-block">Mobile Number</small>
-                                <strong id="viewContactMobile"></strong>
+                                <strong class="text-dark" id="viewContactMobile"></strong>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card bg-light border-0">
+                        <div class="card border-0" style="background-color: #f8f9fa;">
                             <div class="card-body">
                                 <small class="text-muted d-block">Email</small>
-                                <strong id="viewContactEmail"></strong>
+                                <strong class="text-dark" id="viewContactEmail"></strong>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card bg-light border-0">
+                        <div class="card border-0" style="background-color: #f8f9fa;">
                             <div class="card-body">
                                 <small class="text-muted d-block">Source</small>
-                                <strong id="viewContactSource"></strong>
+                                <strong class="text-dark" id="viewContactSource"></strong>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card bg-light border-0">
+                        <div class="card border-0" style="background-color: #f8f9fa;">
                             <div class="card-body">
                                 <small class="text-muted d-block">Created Date</small>
-                                <strong id="viewContactCreated"></strong>
+                                <strong class="text-dark" id="viewContactCreated"></strong>
                             </div>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="card bg-light border-0">
+                        <div class="card border-0" style="background-color: #f8f9fa;">
                             <div class="card-body">
                                 <small class="text-muted d-block mb-2">Tags</small>
                                 <div id="viewContactTags"></div>
@@ -1426,7 +1426,7 @@ function bulkDelete() {
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="card bg-light border-0">
+                        <div class="card border-0" style="background-color: #f8f9fa;">
                             <div class="card-body">
                                 <small class="text-muted d-block mb-2">Lists</small>
                                 <div id="viewContactLists"></div>
@@ -1435,9 +1435,9 @@ function bulkDelete() {
                     </div>
                 </div>
                 
-                <div class="alert alert-info mt-4 mb-0">
+                <div class="mt-4 mb-0 p-3 rounded" style="background-color: #f0ebf8; color: #6c5ce7;">
                     <i class="fas fa-info-circle me-2"></i>
-                    <strong>Activity Timeline:</strong> Campaign history, replies, and opt-out events will appear here when backend is implemented.
+                    <strong>Activity Timeline:</strong> <span class="text-dark">Campaign history, replies, and opt-out events will appear here when backend is implemented.</span>
                 </div>
             </div>
             <div class="modal-footer">
