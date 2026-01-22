@@ -1021,7 +1021,7 @@ function loadDraftsFromStorage() {
             '<td class="py-2">' + formattedDate + '<br><small class="text-muted">' + formattedTime + '</small></td>' +
             '<td class="py-2 text-end">' +
             '<div class="d-flex gap-1 justify-content-end flex-nowrap">' +
-            '<a href="/messages/send-message?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();" title="Edit Draft">' +
+            '<a href="/messages/send?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();" title="Edit Draft">' +
             '<i class="fas fa-edit"></i>' +
             '</a>' +
             '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showDeleteDraftModal(\'' + draft.id + '\', \'' + escapeHtml(draft.name) + '\');" title="Delete Draft">' +
