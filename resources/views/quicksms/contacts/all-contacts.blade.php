@@ -861,38 +861,8 @@ function viewTimeline(id) {
         offcanvas.show();
     }
     
-    setTimeout(function() {
-        var mockTimeline = [
-            { type: 'message_sent', date: '2026-01-20 14:32', title: 'SMS Sent', description: 'Campaign: Winter Sale Promo', icon: 'fa-paper-plane', color: 'success' },
-            { type: 'message_delivered', date: '2026-01-20 14:33', title: 'Message Delivered', description: 'Delivery confirmed', icon: 'fa-check-double', color: 'success' },
-            { type: 'reply_received', date: '2026-01-20 15:10', title: 'Reply Received', description: '"Thanks for the offer!"', icon: 'fa-reply', color: 'info' },
-            { type: 'tag_added', date: '2026-01-18 09:15', title: 'Tag Added', description: 'Added tag: VIP Customer', icon: 'fa-tag', color: 'primary' },
-            { type: 'list_added', date: '2026-01-15 11:00', title: 'Added to List', description: 'Added to: Newsletter Subscribers', icon: 'fa-list', color: 'secondary' },
-            { type: 'contact_created', date: '2026-01-10 10:30', title: 'Contact Created', description: 'Imported via CSV upload', icon: 'fa-user-plus', color: 'primary' }
-        ];
-        
-        var html = mockTimeline.map(function(event) {
-            return '<div class="timeline-event d-flex mb-3">' +
-                '<div class="timeline-icon bg-' + event.color + ' text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px; min-width: 36px;">' +
-                    '<i class="fas ' + event.icon + ' fa-sm"></i>' +
-                '</div>' +
-                '<div class="timeline-content flex-grow-1">' +
-                    '<div class="d-flex justify-content-between align-items-start">' +
-                        '<h6 class="mb-1 fs-6">' + event.title + '</h6>' +
-                        '<small class="text-muted">' + event.date + '</small>' +
-                    '</div>' +
-                    '<p class="mb-0 text-muted small">' + event.description + '</p>' +
-                '</div>' +
-            '</div>';
-        }).join('');
-        
-        timelineContainer.innerHTML = html || '<p class="text-muted text-center py-4">No activity recorded yet.</p>';
-        
-        var modalContainer = document.getElementById('timelineEventsModal');
-        if (modalContainer) {
-            modalContainer.innerHTML = timelineContainer.innerHTML;
-        }
-    }, 500);
+    initTimelineFilters();
+    applyTimelineFilters();
 }
 
 function getContactById(id) {
@@ -2825,6 +2795,7 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                             <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="inbox" id="srcInbox" checked><label class="form-check-label small" for="srcInbox">Inbox</label></div>
                             <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="api" id="srcApi" checked><label class="form-check-label small" for="srcApi">API</label></div>
                             <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="email-to-sms" id="srcEmailSms" checked><label class="form-check-label small" for="srcEmailSms">Email-to-SMS</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="system" id="srcSystem" checked><label class="form-check-label small" for="srcSystem">System</label></div>
                         </div>
                     </div>
                 </div>
@@ -2942,6 +2913,7 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                                     <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="inbox" id="srcInboxM" checked><label class="form-check-label small" for="srcInboxM">Inbox</label></div>
                                     <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="api" id="srcApiM" checked><label class="form-check-label small" for="srcApiM">API</label></div>
                                     <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="email-to-sms" id="srcEmailSmsM" checked><label class="form-check-label small" for="srcEmailSmsM">Email-to-SMS</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="system" id="srcSystemM" checked><label class="form-check-label small" for="srcSystemM">System</label></div>
                                 </div>
                             </div>
                         </div>
@@ -3001,7 +2973,7 @@ function getTimelineFilters() {
     });
     
     var sources = [];
-    document.querySelectorAll('#srcCampaign:checked, #srcInbox:checked, #srcApi:checked, #srcEmailSms:checked').forEach(function(cb) {
+    document.querySelectorAll('#srcCampaign:checked, #srcInbox:checked, #srcApi:checked, #srcEmailSms:checked, #srcSystem:checked').forEach(function(cb) {
         sources.push(cb.value);
     });
     
@@ -3014,58 +2986,256 @@ function getTimelineFilters() {
     };
 }
 
+var timelineLoadedCount = 0;
+var timelinePageSize = 50;
+var allTimelineEvents = [];
+
+function generateMockTimelineData() {
+    var events = [];
+    var sources = ['campaign', 'inbox', 'api', 'email-to-sms', 'system'];
+    var channels = ['sms', 'rcs'];
+    var eventTypes = [
+        { type: 'message_sent', eventType: 'outbound', title: 'Message Sent', icon: 'fa-paper-plane', color: 'success' },
+        { type: 'message_delivered', eventType: 'delivery', title: 'Delivered', icon: 'fa-check-double', color: 'success' },
+        { type: 'message_seen', eventType: 'delivery', title: 'Message Seen', icon: 'fa-eye', color: 'info' },
+        { type: 'reply_received', eventType: 'inbound', title: 'Reply Received', icon: 'fa-reply', color: 'info' },
+        { type: 'tag_added', eventType: 'tags', title: 'Tag Added', icon: 'fa-tag', color: 'primary' },
+        { type: 'tag_removed', eventType: 'tags', title: 'Tag Removed', icon: 'fa-tag', color: 'secondary' },
+        { type: 'list_added', eventType: 'lists', title: 'Added to List', icon: 'fa-list', color: 'primary' },
+        { type: 'list_removed', eventType: 'lists', title: 'Removed from List', icon: 'fa-list', color: 'secondary' },
+        { type: 'optout', eventType: 'optout', title: 'Opted Out', icon: 'fa-ban', color: 'danger' },
+        { type: 'optin', eventType: 'optout', title: 'Opted In', icon: 'fa-check', color: 'success' },
+        { type: 'contact_edit', eventType: 'notes', title: 'Contact Updated', icon: 'fa-edit', color: 'secondary' },
+        { type: 'note_added', eventType: 'notes', title: 'Note Added', icon: 'fa-sticky-note', color: 'warning' }
+    ];
+    
+    var now = new Date();
+    for (var i = 0; i < 120; i++) {
+        var randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+        var randomSource = sources[Math.floor(Math.random() * sources.length)];
+        var randomChannel = channels[Math.floor(Math.random() * channels.length)];
+        var daysAgo = Math.floor(Math.random() * 90);
+        var hoursAgo = Math.floor(Math.random() * 24);
+        var eventDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000) - (hoursAgo * 60 * 60 * 1000));
+        
+        var details = generateEventDetails(randomEvent.type, randomSource, randomChannel);
+        
+        events.push({
+            id: 'evt-' + i,
+            type: randomEvent.type,
+            eventType: randomEvent.eventType,
+            channel: ['tags', 'lists', 'notes', 'optout'].includes(randomEvent.eventType) ? null : randomChannel,
+            source: ['tags', 'lists', 'notes'].includes(randomEvent.eventType) ? 'system' : randomSource,
+            date: eventDate.toISOString(),
+            dateFormatted: formatEventDate(eventDate),
+            title: randomEvent.title,
+            icon: randomEvent.icon,
+            color: randomEvent.color,
+            summary: details.summary,
+            details: details.details
+        });
+    }
+    
+    return events.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+}
+
+function generateEventDetails(type, source, channel) {
+    var campaigns = ['Winter Sale Promo', 'New Year Flash Sale', 'Holiday Greetings', 'Boxing Day Deals'];
+    var tags = ['VIP Customer', 'Newsletter', 'Promo Subscriber', 'High Value'];
+    var lists = ['Marketing Contacts', 'Newsletter Subscribers', 'Active Customers', 'Leads'];
+    
+    switch(type) {
+        case 'message_sent':
+            return { 
+                summary: 'Sent via ' + source.replace('-', ' ').toUpperCase(), 
+                details: '<strong>Campaign:</strong> ' + campaigns[Math.floor(Math.random() * campaigns.length)] + '<br><strong>Channel:</strong> ' + channel.toUpperCase() + '<br><strong>Message:</strong> "Hi @{{firstName}}, check out our latest offers!"<br><strong>Sender ID:</strong> QuickSMS'
+            };
+        case 'message_delivered':
+            return { summary: 'Delivery confirmed', details: '<strong>Status:</strong> Delivered<br><strong>Delivered at:</strong> ' + new Date().toLocaleString() + '<br><strong>Network:</strong> Vodafone UK' };
+        case 'message_seen':
+            return { summary: 'Read receipt received', details: '<strong>Seen at:</strong> ' + new Date().toLocaleString() + '<br><strong>Channel:</strong> RCS' };
+        case 'reply_received':
+            return { summary: '"Thanks for the info!"', details: '<strong>Reply text:</strong> "Thanks for the info!"<br><strong>Received:</strong> ' + new Date().toLocaleString() + '<br><strong>Auto-response:</strong> None configured' };
+        case 'tag_added':
+            return { summary: 'Added: ' + tags[Math.floor(Math.random() * tags.length)], details: '<strong>Tag:</strong> ' + tags[Math.floor(Math.random() * tags.length)] + '<br><strong>Added by:</strong> System (Import Rule)' };
+        case 'tag_removed':
+            return { summary: 'Removed: ' + tags[Math.floor(Math.random() * tags.length)], details: '<strong>Tag:</strong> ' + tags[Math.floor(Math.random() * tags.length)] + '<br><strong>Removed by:</strong> admin@example.com' };
+        case 'list_added':
+            return { summary: 'Added to: ' + lists[Math.floor(Math.random() * lists.length)], details: '<strong>List:</strong> ' + lists[Math.floor(Math.random() * lists.length)] + '<br><strong>Added by:</strong> CSV Import' };
+        case 'list_removed':
+            return { summary: 'Removed from: ' + lists[Math.floor(Math.random() * lists.length)], details: '<strong>List:</strong> ' + lists[Math.floor(Math.random() * lists.length)] + '<br><strong>Removed by:</strong> Bulk action' };
+        case 'optout':
+            return { summary: 'STOP received', details: '<strong>Keyword:</strong> STOP<br><strong>Scope:</strong> All Lists<br><strong>Processed:</strong> Automatic' };
+        case 'optin':
+            return { summary: 'Resubscribed', details: '<strong>Method:</strong> Portal Re-subscription<br><strong>Confirmed:</strong> Yes' };
+        case 'contact_edit':
+            return { summary: 'Fields updated', details: '<strong>Changed:</strong> First Name, Email<br><strong>Updated by:</strong> admin@example.com' };
+        case 'note_added':
+            return { summary: 'New note added', details: '<strong>Note:</strong> "Called customer, confirmed interest in premium plan"<br><strong>Added by:</strong> sales@example.com' };
+        default:
+            return { summary: 'Activity recorded', details: 'Event details recorded.' };
+    }
+}
+
+function formatEventDate(date) {
+    var now = new Date();
+    var diff = now - date;
+    var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) {
+        return 'Today ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    } else if (days === 1) {
+        return 'Yesterday ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    } else if (days < 7) {
+        return days + ' days ago';
+    } else {
+        return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+}
+
+function getSourcePillHtml(source) {
+    var pillColors = {
+        'campaign': 'badge-pastel-primary',
+        'inbox': 'badge-pastel-info',
+        'api': 'badge-pastel-warning',
+        'email-to-sms': 'badge-pastel-success',
+        'system': 'badge-pastel-secondary'
+    };
+    var pillLabels = {
+        'campaign': 'Campaign',
+        'inbox': 'Inbox',
+        'api': 'API',
+        'email-to-sms': 'Email-to-SMS',
+        'system': 'System'
+    };
+    var colorClass = pillColors[source] || 'badge-pastel-secondary';
+    var label = pillLabels[source] || 'System';
+    return '<span class="badge ' + colorClass + ' me-2">' + label + '</span>';
+}
+
+function renderTimelineEvents(events, append) {
+    var html = '';
+    
+    events.forEach(function(event, index) {
+        var eventId = 'timeline-evt-' + event.id;
+        html += '<div class="timeline-event-card border-bottom py-2">' +
+            '<div class="d-flex align-items-start">' +
+                '<div class="timeline-icon bg-' + event.color + ' text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">' +
+                    '<i class="fas ' + event.icon + '" style="font-size: 0.75rem;"></i>' +
+                '</div>' +
+                '<div class="flex-grow-1 min-width-0">' +
+                    '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                        '<div class="d-flex align-items-center flex-wrap gap-1">' +
+                            getSourcePillHtml(event.source) +
+                            '<span class="fw-medium small">' + event.title + '</span>' +
+                        '</div>' +
+                        '<small class="text-muted flex-shrink-0 ms-2">' + event.dateFormatted + '</small>' +
+                    '</div>' +
+                    '<p class="mb-0 text-muted small text-truncate">' + event.summary + '</p>' +
+                    '<div class="mt-1">' +
+                        '<a class="small text-primary text-decoration-none" data-bs-toggle="collapse" href="#' + eventId + '" role="button" aria-expanded="false">' +
+                            '<i class="fas fa-chevron-down me-1" style="font-size: 0.6rem;"></i>Details' +
+                        '</a>' +
+                        '<div class="collapse mt-2" id="' + eventId + '">' +
+                            '<div class="small text-muted bg-light rounded p-2">' + event.details + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    });
+    
+    return html;
+}
+
 function applyTimelineFilters() {
     var filters = getTimelineFilters();
     console.log('[Timeline] Applying filters:', filters);
     
+    timelineLoadedCount = 0;
+    allTimelineEvents = generateMockTimelineData();
+    
     var timelineContainer = document.getElementById('timelineEvents');
     var timelineContainerModal = document.getElementById('timelineEventsModal');
     
-    var loadingHtml = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div><p class="text-muted mt-2 mb-0 small">Filtering timeline...</p></div>';
+    var loadingHtml = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div><p class="text-muted mt-2 mb-0 small">Loading timeline...</p></div>';
     timelineContainer.innerHTML = loadingHtml;
     if (timelineContainerModal) timelineContainerModal.innerHTML = loadingHtml;
     
     setTimeout(function() {
-        var mockTimeline = [
-            { type: 'message_sent', eventType: 'outbound', channel: 'sms', source: 'campaign', date: '2026-01-20 14:32', title: 'SMS Sent', description: 'Campaign: Winter Sale Promo', icon: 'fa-paper-plane', color: 'success' },
-            { type: 'message_delivered', eventType: 'delivery', channel: 'sms', source: 'campaign', date: '2026-01-20 14:33', title: 'Message Delivered', description: 'Delivery confirmed', icon: 'fa-check-double', color: 'success' },
-            { type: 'reply_received', eventType: 'inbound', channel: 'sms', source: 'inbox', date: '2026-01-20 15:10', title: 'Reply Received', description: '"Thanks for the offer!"', icon: 'fa-reply', color: 'info' },
-            { type: 'tag_added', eventType: 'tags', channel: null, source: null, date: '2026-01-18 09:15', title: 'Tag Added', description: 'Added tag: VIP Customer', icon: 'fa-tag', color: 'primary' },
-            { type: 'list_added', eventType: 'lists', channel: null, source: null, date: '2026-01-15 11:00', title: 'Added to List', description: 'Added to: Newsletter Subscribers', icon: 'fa-list', color: 'secondary' },
-            { type: 'contact_created', eventType: 'notes', channel: null, source: null, date: '2026-01-10 10:30', title: 'Contact Created', description: 'Imported via CSV upload', icon: 'fa-user-plus', color: 'primary' }
-        ];
-        
-        var filteredEvents = mockTimeline.filter(function(event) {
+        var filteredEvents = allTimelineEvents.filter(function(event) {
             if (!filters.eventTypes.includes(event.eventType)) return false;
             if (event.channel && !filters.channels.includes(event.channel)) return false;
             if (event.source && !filters.sources.includes(event.source)) return false;
             return true;
         });
         
-        var html = filteredEvents.map(function(event) {
-            return '<div class="timeline-event d-flex mb-3">' +
-                '<div class="timeline-icon bg-' + event.color + ' text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px; min-width: 36px;">' +
-                    '<i class="fas ' + event.icon + ' fa-sm"></i>' +
-                '</div>' +
-                '<div class="timeline-content flex-grow-1">' +
-                    '<div class="d-flex justify-content-between align-items-start">' +
-                        '<h6 class="mb-1 fs-6">' + event.title + '</h6>' +
-                        '<small class="text-muted">' + event.date + '</small>' +
-                    '</div>' +
-                    '<p class="mb-0 text-muted small">' + event.description + '</p>' +
-                '</div>' +
+        allTimelineEvents = filteredEvents;
+        var eventsToShow = filteredEvents.slice(0, timelinePageSize);
+        timelineLoadedCount = eventsToShow.length;
+        
+        var html = renderTimelineEvents(eventsToShow, false);
+        
+        if (filteredEvents.length > timelinePageSize) {
+            html += '<div class="text-center py-3" id="loadMoreContainer">' +
+                '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
+                    '<i class="fas fa-plus me-1"></i> Load More (' + (filteredEvents.length - timelineLoadedCount) + ' remaining)' +
+                '</button>' +
             '</div>';
-        }).join('');
+        }
         
         var resultHtml = html || '<p class="text-muted text-center py-4">No activity found matching the selected filters.</p>';
-        timelineContainer.innerHTML = resultHtml;
-        if (timelineContainerModal) timelineContainerModal.innerHTML = resultHtml;
+        
+        var countHtml = '<div class="small text-muted mb-2">Showing ' + Math.min(timelineLoadedCount, filteredEvents.length) + ' of ' + filteredEvents.length + ' events</div>';
+        
+        timelineContainer.innerHTML = countHtml + resultHtml;
+        if (timelineContainerModal) timelineContainerModal.innerHTML = countHtml + resultHtml;
         
         var bsCollapse = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanel'));
         if (bsCollapse) bsCollapse.hide();
         var bsCollapseModal = bootstrap.Collapse.getInstance(document.getElementById('timelineFiltersPanelModal'));
         if (bsCollapseModal) bsCollapseModal.hide();
     }, 300);
+}
+
+function loadMoreTimelineEvents() {
+    var startIndex = timelineLoadedCount;
+    var endIndex = Math.min(startIndex + timelinePageSize, allTimelineEvents.length);
+    var newEvents = allTimelineEvents.slice(startIndex, endIndex);
+    
+    timelineLoadedCount = endIndex;
+    
+    var newHtml = renderTimelineEvents(newEvents, true);
+    
+    var loadMoreContainer = document.getElementById('loadMoreContainer');
+    if (loadMoreContainer) {
+        loadMoreContainer.insertAdjacentHTML('beforebegin', newHtml);
+        
+        if (timelineLoadedCount >= allTimelineEvents.length) {
+            loadMoreContainer.innerHTML = '<p class="text-muted small mb-0">All events loaded</p>';
+        } else {
+            loadMoreContainer.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
+                '<i class="fas fa-plus me-1"></i> Load More (' + (allTimelineEvents.length - timelineLoadedCount) + ' remaining)' +
+            '</button>';
+        }
+    }
+    
+    var countEl = document.querySelector('#timelineEvents .small.text-muted');
+    if (countEl) {
+        countEl.textContent = 'Showing ' + timelineLoadedCount + ' of ' + allTimelineEvents.length + ' events';
+    }
+    
+    var loadMoreContainerModal = document.querySelector('#timelineEventsModal #loadMoreContainer');
+    if (loadMoreContainerModal) {
+        loadMoreContainerModal.insertAdjacentHTML('beforebegin', newHtml);
+        if (timelineLoadedCount >= allTimelineEvents.length) {
+            loadMoreContainerModal.innerHTML = '<p class="text-muted small mb-0">All events loaded</p>';
+        } else {
+            loadMoreContainerModal.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadMoreTimelineEvents()">' +
+                '<i class="fas fa-plus me-1"></i> Load More (' + (allTimelineEvents.length - timelineLoadedCount) + ' remaining)' +
+            '</button>';
+        }
+    }
 }
 
 function resetTimelineFilters() {
