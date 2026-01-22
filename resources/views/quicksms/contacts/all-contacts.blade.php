@@ -1143,6 +1143,7 @@ function bulkAddToList() {
 function confirmBulkAddToList() {
     console.log('[BulkAction] confirmBulkAddToList called');
     var ids = getSelectedContactIds();
+    var count = ids.length;
     console.log('[BulkAction] Selected IDs:', ids);
     var listSelect = document.getElementById('bulkListSelect');
     var selectedList = listSelect ? listSelect.value : null;
@@ -1162,21 +1163,22 @@ function confirmBulkAddToList() {
     ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
         console.log('[BulkAction] Service result:', result);
         hideProcessingModal();
-        setTimeout(function() {
-            console.log('[BulkAction] Showing toast now...');
-            if (result.success) {
-                showToast(ids.length + ' contact(s) added to list "' + selectedList + '" successfully', 'success');
-                clearBulkSelection();
-            } else {
-                showToast(result.message || 'Failed to add contacts to list.', 'error');
-            }
-        }, 400);
+        if (result.success) {
+            clearBulkSelection();
+            setTimeout(function() {
+                showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
+            }, 350);
+        } else {
+            setTimeout(function() {
+                showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
+            }, 350);
+        }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
-            showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 400);
+            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        }, 350);
     });
 }
 
@@ -1190,6 +1192,7 @@ function bulkRemoveFromList() {
 function confirmBulkRemoveFromList() {
     console.log('[BulkAction] confirmBulkRemoveFromList called');
     var ids = getSelectedContactIds();
+    var count = ids.length;
     var listSelect = document.getElementById('bulkRemoveListSelect');
     var selectedList = listSelect ? listSelect.value : null;
     
@@ -1207,20 +1210,22 @@ function confirmBulkRemoveFromList() {
     ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
         console.log('[BulkAction] Remove from list result:', result);
         hideProcessingModal();
-        setTimeout(function() {
-            if (result.success) {
-                showToast(ids.length + ' contact(s) removed from list "' + selectedList + '" successfully', 'success');
-                clearBulkSelection();
-            } else {
-                showToast(result.message || 'Failed to remove contacts from list.', 'error');
-            }
-        }, 400);
+        if (result.success) {
+            clearBulkSelection();
+            setTimeout(function() {
+                showSuccessModal('Contacts Removed', count + ' contact(s) have been removed from "' + selectedList + '" successfully.');
+            }, 350);
+        } else {
+            setTimeout(function() {
+                showErrorModal('Action Failed', result.message || 'Failed to remove contacts from list.');
+            }, 350);
+        }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
-            showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 400);
+            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        }, 350);
     });
 }
 
@@ -1234,8 +1239,10 @@ function bulkAddTags() {
 function confirmBulkAddTags() {
     console.log('[BulkAction] confirmBulkAddTags called');
     var ids = getSelectedContactIds();
+    var count = ids.length;
     var tagSelect = document.getElementById('bulkTagSelect');
     var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags:', selectedTags);
     
     if (selectedTags.length === 0) {
@@ -1252,20 +1259,22 @@ function confirmBulkAddTags() {
     ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
         console.log('[BulkAction] Add tags result:', result);
         hideProcessingModal();
-        setTimeout(function() {
-            if (result.success) {
-                showToast(selectedTags.length + ' tag(s) added to ' + ids.length + ' contact(s) successfully', 'success');
-                clearBulkSelection();
-            } else {
-                showToast(result.message || 'Failed to add tags.', 'error');
-            }
-        }, 400);
+        if (result.success) {
+            clearBulkSelection();
+            setTimeout(function() {
+                showSuccessModal('Tags Added', tagCount + ' tag(s) have been added to ' + count + ' contact(s) successfully.');
+            }, 350);
+        } else {
+            setTimeout(function() {
+                showErrorModal('Action Failed', result.message || 'Failed to add tags.');
+            }, 350);
+        }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
-            showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 400);
+            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        }, 350);
     });
 }
 
@@ -1279,8 +1288,10 @@ function bulkRemoveTags() {
 function confirmBulkRemoveTags() {
     console.log('[BulkAction] confirmBulkRemoveTags called');
     var ids = getSelectedContactIds();
+    var count = ids.length;
     var tagSelect = document.getElementById('bulkRemoveTagSelect');
     var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags to remove:', selectedTags);
     
     if (selectedTags.length === 0) {
@@ -1297,20 +1308,22 @@ function confirmBulkRemoveTags() {
     ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
         console.log('[BulkAction] Remove tags result:', result);
         hideProcessingModal();
-        setTimeout(function() {
-            if (result.success) {
-                showToast(selectedTags.length + ' tag(s) removed from ' + ids.length + ' contact(s) successfully', 'success');
-                clearBulkSelection();
-            } else {
-                showToast(result.message || 'Failed to remove tags.', 'error');
-            }
-        }, 400);
+        if (result.success) {
+            clearBulkSelection();
+            setTimeout(function() {
+                showSuccessModal('Tags Removed', tagCount + ' tag(s) have been removed from ' + count + ' contact(s) successfully.');
+            }, 350);
+        } else {
+            setTimeout(function() {
+                showErrorModal('Action Failed', result.message || 'Failed to remove tags.');
+            }, 350);
+        }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
-            showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 400);
+            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        }, 350);
     });
 }
 
