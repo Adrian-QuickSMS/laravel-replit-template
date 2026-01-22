@@ -187,64 +187,313 @@ var ContactTimelineService = (function() {
         };
     }
 
+    var CHANNEL_TYPES = {
+        SMS: 'sms',
+        RCS_BASIC: 'rcs_basic',
+        RCS_SINGLE: 'rcs_single',
+        RCS_RICH: 'rcs_rich'
+    };
+
+    var CHANNEL_LABELS = {
+        'sms': 'SMS',
+        'rcs_basic': 'RCS Basic',
+        'rcs_single': 'RCS Single',
+        'rcs_rich': 'Rich RCS'
+    };
+
+    var SENDER_TYPES = {
+        SENDER_ID: 'sender_id',
+        VMN: 'vmn',
+        RCS_AGENT: 'rcs_agent'
+    };
+
+    var ORIGIN_TYPES = {
+        PORTAL: 'Portal',
+        API: 'API',
+        EMAIL_TO_SMS: 'Email-to-SMS',
+        INTEGRATION: 'Integration'
+    };
+
+    function generateOutboundMetadata(sourceModule) {
+        var campaigns = ['Winter Sale 2026', 'New Year Promo', 'Holiday Greetings', 'Boxing Day Deals', 'January Clearance'];
+        var senderIds = ['QuickSMS', 'MyBrand', 'AlertSvc', 'NotifySys'];
+        var vmns = ['+447700900001', '+447700900002', '+447700900003'];
+        var rcsAgents = ['QuickSMS Business', 'My Brand Agent', 'Support Bot'];
+        
+        var channelKeys = Object.keys(CHANNEL_TYPES);
+        var channelKey = channelKeys[Math.floor(Math.random() * channelKeys.length)];
+        var channel = CHANNEL_TYPES[channelKey];
+        var channelLabel = CHANNEL_LABELS[channel];
+        
+        var isRcs = channel.startsWith('rcs');
+        var senderType, senderValue;
+        if (isRcs) {
+            senderType = SENDER_TYPES.RCS_AGENT;
+            senderValue = rcsAgents[Math.floor(Math.random() * rcsAgents.length)];
+        } else {
+            senderType = Math.random() > 0.7 ? SENDER_TYPES.VMN : SENDER_TYPES.SENDER_ID;
+            senderValue = senderType === SENDER_TYPES.VMN 
+                ? vmns[Math.floor(Math.random() * vmns.length)]
+                : senderIds[Math.floor(Math.random() * senderIds.length)];
+        }
+        
+        var origin;
+        switch(sourceModule) {
+            case SOURCE_MODULES.CAMPAIGN: origin = ORIGIN_TYPES.PORTAL; break;
+            case SOURCE_MODULES.INBOX: origin = ORIGIN_TYPES.PORTAL; break;
+            case SOURCE_MODULES.API: origin = ORIGIN_TYPES.API; break;
+            case SOURCE_MODULES.EMAIL_TO_SMS: origin = ORIGIN_TYPES.EMAIL_TO_SMS; break;
+            default: origin = ORIGIN_TYPES.INTEGRATION;
+        }
+        
+        var hasCampaign = sourceModule === SOURCE_MODULES.CAMPAIGN;
+        var campaignId = hasCampaign ? 'camp_' + Math.floor(Math.random() * 10000) : null;
+        var campaignName = hasCampaign ? campaigns[Math.floor(Math.random() * campaigns.length)] : null;
+        
+        var messageIdWarehouse = 'wh_' + generateUUID().substring(0, 12);
+        var messageIdProvider = 'prov_' + generateUUID().substring(0, 8);
+        var threadId = 'thread_' + generateUUID().substring(0, 8);
+        
+        var parts = channel === CHANNEL_TYPES.SMS ? (Math.random() > 0.7 ? Math.floor(Math.random() * 3) + 2 : 1) : 1;
+        
+        var costCredits = channel === CHANNEL_TYPES.SMS 
+            ? (parts * 0.035).toFixed(3)
+            : (channel === CHANNEL_TYPES.RCS_RICH ? '0.12' : '0.08');
+        
+        var snippetRaw = hasCampaign 
+            ? 'Hi {{firstName}}, check out our exclusive {{campaignName}} deals!'
+            : (sourceModule === SOURCE_MODULES.INBOX 
+                ? 'Thank you for your message. We will respond shortly.'
+                : 'Your verification code is: 123456');
+        
+        return {
+            channel: channel,
+            channel_label: channelLabel,
+            sender_type: senderType,
+            sender_value: senderValue,
+            origin: origin,
+            campaign_id: campaignId,
+            campaign_name: campaignName,
+            message_id_warehouse: messageIdWarehouse,
+            message_id_provider: messageIdProvider,
+            thread_id: threadId,
+            parts: parts,
+            cost_credits: costCredits,
+            snippet_raw: snippetRaw,
+            has_personalisation: snippetRaw.includes('{{'),
+            is_blocked: false
+        };
+    }
+
+    function generateBlockedOutboundMetadata() {
+        var blockReasons = ['Opted out', 'Blacklisted number', 'Rate limit exceeded', 'Account suspended'];
+        var reason = blockReasons[Math.floor(Math.random() * blockReasons.length)];
+        
+        return {
+            channel: CHANNEL_TYPES.SMS,
+            channel_label: 'SMS',
+            is_blocked: true,
+            block_reason: reason,
+            origin: ORIGIN_TYPES.PORTAL
+        };
+    }
+
+    function buildOutboundSummary(metadata, sourceModule) {
+        if (metadata.is_blocked) {
+            return 'Message blocked: ' + metadata.block_reason;
+        }
+        
+        var channelLabel = metadata.channel_label || 'SMS';
+        var sourceLabel = '';
+        
+        switch(sourceModule) {
+            case SOURCE_MODULES.CAMPAIGN:
+                sourceLabel = 'Campaign: ' + (metadata.campaign_name || 'Unknown');
+                break;
+            case SOURCE_MODULES.INBOX:
+                sourceLabel = 'Inbox reply';
+                break;
+            case SOURCE_MODULES.API:
+                sourceLabel = 'API';
+                break;
+            case SOURCE_MODULES.EMAIL_TO_SMS:
+                sourceLabel = 'Email-to-SMS';
+                break;
+            default:
+                sourceLabel = 'Integration';
+        }
+        
+        return channelLabel + ' sent via ' + sourceLabel;
+    }
+
+    function buildOutboundDetails(metadata, permissions) {
+        permissions = permissions || { viewCost: true, viewSnippet: true, viewPersonalised: false };
+        
+        if (metadata.is_blocked) {
+            return '<div class="text-danger"><strong>Status:</strong> Blocked</div>' +
+                '<div><strong>Reason:</strong> ' + metadata.block_reason + '</div>';
+        }
+        
+        var html = '';
+        
+        html += '<div class="mb-1"><strong>Channel:</strong> ' + metadata.channel_label + '</div>';
+        
+        var senderLabel = metadata.sender_type === SENDER_TYPES.VMN ? 'VMN' 
+            : (metadata.sender_type === SENDER_TYPES.RCS_AGENT ? 'RCS Agent' : 'Sender ID');
+        html += '<div class="mb-1"><strong>' + senderLabel + ':</strong> ' + metadata.sender_value + '</div>';
+        
+        html += '<div class="mb-1"><strong>Origin:</strong> ' + metadata.origin + '</div>';
+        
+        if (metadata.campaign_id) {
+            html += '<div class="mb-1"><strong>Campaign:</strong> ' + metadata.campaign_name + ' <span class="text-muted small">(' + metadata.campaign_id + ')</span></div>';
+        }
+        
+        html += '<div class="mb-1"><strong>Message ID:</strong> ' + metadata.message_id_warehouse + '</div>';
+        html += '<div class="mb-1"><strong>Provider Ref:</strong> ' + metadata.message_id_provider + '</div>';
+        
+        if (metadata.parts > 1) {
+            html += '<div class="mb-1"><strong>Parts/Fragments:</strong> ' + metadata.parts + '</div>';
+        }
+        
+        if (permissions.viewCost && metadata.cost_credits) {
+            html += '<div class="mb-1"><strong>Cost:</strong> ' + metadata.cost_credits + ' credits</div>';
+        }
+        
+        if (permissions.viewSnippet && metadata.snippet_raw) {
+            var snippet = metadata.snippet_raw;
+            if (metadata.has_personalisation && !permissions.viewPersonalised) {
+                snippet = snippet.replace(/\{\{[^}]+\}\}/g, '<span class="badge bg-secondary">{{...}}</span>');
+            }
+            html += '<div class="mb-2"><strong>Message:</strong><div class="bg-white border rounded p-2 mt-1 small">' + snippet + '</div></div>';
+        }
+        
+        return html;
+    }
+
+    function buildOutboundActions(metadata, sourceModule) {
+        var actions = [];
+        
+        if (metadata.is_blocked) {
+            return actions;
+        }
+        
+        if (sourceModule === SOURCE_MODULES.CAMPAIGN && metadata.campaign_id) {
+            actions.push({
+                type: 'link',
+                label: 'View Campaign',
+                icon: 'fa-bullhorn',
+                url: '/messages/campaign-history/' + metadata.campaign_id,
+                target: '_self'
+            });
+        }
+        
+        if (sourceModule === SOURCE_MODULES.INBOX && metadata.thread_id) {
+            actions.push({
+                type: 'link',
+                label: 'Open Conversation',
+                icon: 'fa-comments',
+                url: '/messages/inbox?thread=' + metadata.thread_id,
+                target: '_self'
+            });
+        }
+        
+        return actions;
+    }
+
+    function getUserPermissions() {
+        return window.timelinePermissions || {
+            viewCost: true,
+            viewSnippet: true,
+            viewPersonalised: false
+        };
+    }
+
     function generateEventMetadata(eventType, sourceModule) {
         var campaigns = ['Winter Sale 2026', 'New Year Promo', 'Holiday Greetings', 'Boxing Day Deals', 'January Clearance'];
         var tags = ['VIP Customer', 'Newsletter', 'Promo Subscriber', 'High Value', 'New Lead'];
         var lists = ['Marketing Contacts', 'Newsletter Subscribers', 'Active Customers', 'Leads', 'Premium Members'];
-        var channels = ['sms', 'rcs'];
+        var channels = ['sms', 'rcs_basic', 'rcs_single', 'rcs_rich'];
         var channel = channels[Math.floor(Math.random() * channels.length)];
         
         switch(eventType) {
             case EVENT_TYPES.MESSAGE_SENT:
-                var campaign = campaigns[Math.floor(Math.random() * campaigns.length)];
-                return {
-                    channel: channel,
-                    campaign_id: 'camp_' + Math.floor(Math.random() * 10000),
-                    campaign_name: campaign,
-                    sender_id: 'QuickSMS',
-                    message_id: 'msg_' + generateUUID().substring(0, 8),
-                    summary: 'Sent via ' + sourceModule.replace('-', ' ').toUpperCase(),
-                    details: '<strong>Campaign:</strong> ' + campaign + '<br><strong>Channel:</strong> ' + channel.toUpperCase() + '<br><strong>Sender ID:</strong> QuickSMS'
-                };
+                var isBlocked = Math.random() < 0.1;
+                var outboundMeta = isBlocked ? generateBlockedOutboundMetadata() : generateOutboundMetadata(sourceModule);
+                var permissions = getUserPermissions();
+                var summary = buildOutboundSummary(outboundMeta, sourceModule);
+                var details = buildOutboundDetails(outboundMeta, permissions);
+                var actions = buildOutboundActions(outboundMeta, sourceModule);
+                
+                return Object.assign({}, outboundMeta, {
+                    summary: summary,
+                    details: details,
+                    actions: actions
+                });
             
             case EVENT_TYPES.MESSAGE_DELIVERED:
-                return {
-                    channel: channel,
-                    message_id: 'msg_' + generateUUID().substring(0, 8),
-                    network: ['Vodafone UK', 'EE', 'O2', 'Three'][Math.floor(Math.random() * 4)],
-                    summary: 'Delivery confirmed',
-                    details: '<strong>Status:</strong> Delivered<br><strong>Network:</strong> ' + ['Vodafone UK', 'EE', 'O2', 'Three'][Math.floor(Math.random() * 4)]
-                };
+                var deliveredMeta = generateOutboundMetadata(sourceModule);
+                var network = ['Vodafone UK', 'EE', 'O2', 'Three'][Math.floor(Math.random() * 4)];
+                return Object.assign({}, deliveredMeta, {
+                    network: network,
+                    summary: 'Delivery confirmed - ' + deliveredMeta.channel_label,
+                    details: '<strong>Status:</strong> Delivered<br>' +
+                        '<strong>Channel:</strong> ' + deliveredMeta.channel_label + '<br>' +
+                        '<strong>Network:</strong> ' + network + '<br>' +
+                        '<strong>Message ID:</strong> ' + deliveredMeta.message_id_warehouse + '<br>' +
+                        (deliveredMeta.campaign_id ? '<strong>Campaign:</strong> ' + deliveredMeta.campaign_name + '<br>' : '') +
+                        '<strong>Sender:</strong> ' + deliveredMeta.sender_value,
+                    actions: buildOutboundActions(deliveredMeta, sourceModule)
+                });
             
             case EVENT_TYPES.MESSAGE_FAILED:
+                var failedMeta = generateOutboundMetadata(sourceModule);
                 var reasons = ['Number not in service', 'Carrier rejected', 'Invalid number format', 'Temporary network failure'];
                 var reason = reasons[Math.floor(Math.random() * reasons.length)];
-                return {
-                    channel: channel,
-                    message_id: 'msg_' + generateUUID().substring(0, 8),
-                    error_code: 'ERR_' + Math.floor(Math.random() * 100),
+                var errorCode = 'ERR_' + Math.floor(Math.random() * 100);
+                return Object.assign({}, failedMeta, {
+                    error_code: errorCode,
                     error_message: reason,
                     summary: reason,
-                    details: '<strong>Status:</strong> Failed<br><strong>Reason:</strong> ' + reason
-                };
+                    details: '<strong>Status:</strong> <span class="text-danger">Failed</span><br>' +
+                        '<strong>Error:</strong> ' + errorCode + ' - ' + reason + '<br>' +
+                        '<strong>Channel:</strong> ' + failedMeta.channel_label + '<br>' +
+                        '<strong>Message ID:</strong> ' + failedMeta.message_id_warehouse + '<br>' +
+                        (failedMeta.campaign_id ? '<strong>Campaign:</strong> ' + failedMeta.campaign_name + '<br>' : '') +
+                        '<strong>Sender:</strong> ' + failedMeta.sender_value,
+                    actions: buildOutboundActions(failedMeta, sourceModule)
+                });
             
             case EVENT_TYPES.MESSAGE_SEEN:
-                return {
-                    channel: 'rcs',
-                    message_id: 'msg_' + generateUUID().substring(0, 8),
+                var seenMeta = generateOutboundMetadata(sourceModule);
+                seenMeta.channel = 'rcs_rich';
+                seenMeta.channel_label = 'Rich RCS';
+                return Object.assign({}, seenMeta, {
                     summary: 'Read receipt received',
-                    details: '<strong>Channel:</strong> RCS<br><strong>Status:</strong> Seen'
-                };
+                    details: '<strong>Channel:</strong> Rich RCS<br>' +
+                        '<strong>Status:</strong> Seen<br>' +
+                        '<strong>Message ID:</strong> ' + seenMeta.message_id_warehouse +
+                        (seenMeta.campaign_id ? '<br><strong>Campaign:</strong> ' + seenMeta.campaign_name : ''),
+                    actions: buildOutboundActions(seenMeta, sourceModule)
+                });
             
             case EVENT_TYPES.REPLY_RECEIVED:
+                var replyMeta = generateOutboundMetadata(sourceModule);
                 var replies = ['Thanks!', 'Yes please', 'Not interested', 'More info?', 'Great offer'];
-                return {
-                    channel: channel,
-                    message_id: 'msg_' + generateUUID().substring(0, 8),
-                    reply_preview: replies[Math.floor(Math.random() * replies.length)],
-                    summary: '"' + replies[Math.floor(Math.random() * replies.length)] + '"',
-                    details: '<strong>Reply:</strong> "' + replies[Math.floor(Math.random() * replies.length)] + '"<br><strong>Channel:</strong> ' + channel.toUpperCase()
-                };
+                var reply = replies[Math.floor(Math.random() * replies.length)];
+                return Object.assign({}, replyMeta, {
+                    reply_preview: reply,
+                    summary: '"' + reply + '"',
+                    details: '<strong>Reply:</strong> "' + reply + '"<br>' +
+                        '<strong>Channel:</strong> ' + replyMeta.channel_label + '<br>' +
+                        '<strong>Message ID:</strong> ' + replyMeta.message_id_warehouse,
+                    actions: [{
+                        type: 'link',
+                        label: 'Open Conversation',
+                        icon: 'fa-comments',
+                        url: '/messages/inbox?thread=' + replyMeta.thread_id,
+                        target: '_self'
+                    }]
+                });
             
             case EVENT_TYPES.TAG_ADDED:
                 var tag = tags[Math.floor(Math.random() * tags.length)];

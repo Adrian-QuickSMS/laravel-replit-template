@@ -3020,34 +3020,57 @@ function getSourcePillHtml(source) {
     return '<span class="badge ' + colorClass + ' me-2">' + label + '</span>';
 }
 
+function renderTimelineActions(actions) {
+    if (!actions || actions.length === 0) return '';
+    
+    var html = '<div class="mt-2 pt-2 border-top">';
+    actions.forEach(function(action) {
+        if (action.type === 'link') {
+            html += '<a href="' + action.url + '" class="btn btn-sm btn-outline-primary me-1" target="' + (action.target || '_self') + '">' +
+                '<i class="fas ' + action.icon + ' me-1"></i>' + action.label +
+            '</a>';
+        }
+    });
+    html += '</div>';
+    return html;
+}
+
 function renderTimelineEvents(events) {
     var html = '';
     
     events.forEach(function(event) {
         var eventId = 'timeline-evt-' + event.event_id;
         var ui = event._ui || {};
+        var metadata = event.metadata || {};
+        var actions = metadata.actions || [];
+        
+        var isBlocked = metadata.is_blocked === true;
+        var iconColorClass = isBlocked ? 'danger' : (ui.color || 'secondary');
+        
         html += '<div class="timeline-event-card border-bottom py-2">' +
             '<div class="d-flex align-items-start">' +
-                '<div class="timeline-icon bg-' + (ui.color || 'secondary') + ' text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">' +
-                    '<i class="fas ' + (ui.icon || 'fa-circle') + '" style="font-size: 0.75rem;"></i>' +
+                '<div class="timeline-icon bg-' + iconColorClass + ' text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">' +
+                    '<i class="fas ' + (isBlocked ? 'fa-ban' : (ui.icon || 'fa-circle')) + '" style="font-size: 0.75rem;"></i>' +
                 '</div>' +
                 '<div class="flex-grow-1 min-width-0">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center flex-wrap gap-1">' +
                             getSourcePillHtml(event.source_module) +
+                            (metadata.channel_label ? '<span class="badge badge-pastel-secondary me-1">' + metadata.channel_label + '</span>' : '') +
                             '<span class="fw-medium small">' + (ui.title || event.event_type) + '</span>' +
                         '</div>' +
                         '<small class="text-muted flex-shrink-0 ms-2">' + (ui.formattedDate || '') + '</small>' +
                     '</div>' +
-                    '<p class="mb-0 text-muted small text-truncate">' + (ui.summary || '') + '</p>' +
+                    '<p class="mb-0 text-muted small text-truncate' + (isBlocked ? ' text-danger' : '') + '">' + (ui.summary || '') + '</p>' +
                     '<div class="mt-1">' +
                         '<a class="small text-primary text-decoration-none" data-bs-toggle="collapse" href="#' + eventId + '" role="button" aria-expanded="false">' +
                             '<i class="fas fa-chevron-down me-1" style="font-size: 0.6rem;"></i>Details' +
                         '</a>' +
                         '<div class="collapse mt-2" id="' + eventId + '">' +
-                            '<div class="small text-muted bg-light rounded p-2">' +
-                                '<div class="mb-1"><strong>Actor:</strong> ' + (event.actor_name || 'System') + ' (' + event.actor_type + ')</div>' +
+                            '<div class="small bg-light rounded p-2">' +
+                                '<div class="mb-1 text-muted"><strong>Actor:</strong> ' + (event.actor_name || 'System') + ' (' + event.actor_type + ')</div>' +
                                 (ui.details || '') +
+                                renderTimelineActions(actions) +
                             '</div>' +
                         '</div>' +
                     '</div>' +
