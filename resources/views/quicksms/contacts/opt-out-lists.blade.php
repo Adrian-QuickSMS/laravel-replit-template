@@ -131,17 +131,17 @@
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="py-2">
                                                             <a class="dropdown-item" href="#!" onclick="viewOptOuts({{ $list['id'] }}, '{{ $list['name'] }}')">
-                                                                <i class="fas fa-eye me-2 text-info"></i> View Opt-Outs
+                                                                <i class="fas fa-eye me-2 text-dark"></i> View Opt-Outs
                                                             </a>
                                                             <a class="dropdown-item" href="#!" onclick="exportOptOuts({{ $list['id'] }}, '{{ $list['name'] }}')">
-                                                                <i class="fas fa-file-export me-2 text-success"></i> Export
+                                                                <i class="fas fa-file-export me-2 text-dark"></i> Export
                                                             </a>
                                                             <a class="dropdown-item" href="#!" onclick="importOptOuts({{ $list['id'] }}, '{{ $list['name'] }}')">
-                                                                <i class="fas fa-file-import me-2 text-primary"></i> Import
+                                                                <i class="fas fa-file-import me-2 text-dark"></i> Import
                                                             </a>
                                                             @if(!$list['is_master'])
                                                             <a class="dropdown-item" href="#!" onclick="renameOptOutList({{ $list['id'] }}, '{{ $list['name'] }}', '{{ $list['description'] }}')">
-                                                                <i class="fas fa-edit me-2 text-warning"></i> Rename
+                                                                <i class="fas fa-edit me-2 text-dark"></i> Rename
                                                             </a>
                                                             <div class="dropdown-divider"></div>
                                                             <a class="dropdown-item text-danger" href="#!" onclick="deleteOptOutList({{ $list['id'] }}, '{{ $list['name'] }}')">
