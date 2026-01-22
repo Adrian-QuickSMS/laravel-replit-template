@@ -871,6 +871,28 @@ $permissions = [
         </div>
     </div>
 </div>
+
+<!-- Delete Draft Confirmation Modal -->
+<div class="modal fade" id="deleteDraftModal" tabindex="-1" aria-labelledby="deleteDraftModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white">
+                <h5 class="modal-title" id="deleteDraftModalLabel"><i class="fas fa-trash-alt me-2 text-danger"></i>Delete Draft</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteDraftName">this draft</strong>?</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteDraft()">
+                    <i class="fas fa-trash me-1"></i>Delete Draft
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -998,12 +1020,14 @@ function loadDraftsFromStorage() {
             '<td class="py-2">' + draft.recipients + '</td>' +
             '<td class="py-2">' + formattedDate + '<br><small class="text-muted">' + formattedTime + '</small></td>' +
             '<td class="py-2 text-end">' +
-            '<a href="/messages/send-message?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();" title="Edit Draft">' +
+            '<div class="d-flex gap-1 justify-content-end flex-nowrap">' +
+            '<a href="/messages/send-message?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();" title="Edit Draft">' +
             '<i class="fas fa-edit"></i>' +
             '</a>' +
-            '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteDraft(\'' + draft.id + '\');" title="Delete Draft">' +
+            '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showDeleteDraftModal(\'' + draft.id + '\', \'' + escapeHtml(draft.name) + '\');" title="Delete Draft">' +
             '<i class="fas fa-trash"></i>' +
             '</button>' +
+            '</div>' +
             '</td>';
         
         tbody.insertBefore(row, tbody.firstChild);
@@ -1024,15 +1048,27 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function deleteDraft(draftId) {
-    if (!confirm('Are you sure you want to delete this draft?')) return;
+var pendingDeleteDraftId = null;
+
+function showDeleteDraftModal(draftId, draftName) {
+    pendingDeleteDraftId = draftId;
+    document.getElementById('deleteDraftName').textContent = draftName || 'this draft';
+    var modal = new bootstrap.Modal(document.getElementById('deleteDraftModal'));
+    modal.show();
+}
+
+function confirmDeleteDraft() {
+    if (!pendingDeleteDraftId) return;
     
     var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
-    drafts = drafts.filter(function(d) { return d.id !== draftId; });
+    drafts = drafts.filter(function(d) { return d.id !== pendingDeleteDraftId; });
     localStorage.setItem('quicksms_drafts', JSON.stringify(drafts));
     
-    var row = document.querySelector('tr[data-id="' + draftId + '"]');
+    var row = document.querySelector('tr[data-id="' + pendingDeleteDraftId + '"]');
     if (row) row.remove();
+    
+    bootstrap.Modal.getInstance(document.getElementById('deleteDraftModal')).hide();
+    pendingDeleteDraftId = null;
     
     showToast('Draft deleted', 'success');
     
