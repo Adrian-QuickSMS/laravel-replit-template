@@ -339,7 +339,7 @@
             <div class="col-xl-6 col-lg-6 mb-3">
                 <div class="card dashboard-tile h-100" id="tile-rcs-calculator">
                     <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0"><i class="fas fa-calculator me-2 text-success"></i>RCS vs SMS Savings Calculator</h5>
+                        <h5 class="card-title mb-0"><i class="fas fa-calculator me-2" style="color: #886CC0;"></i>RCS vs SMS Savings Calculator</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-2 mb-3">
@@ -391,7 +391,7 @@
             <div class="col-xl-6 col-lg-6 mb-3">
                 <div class="card dashboard-tile h-100" id="tile-test-rcs">
                     <div class="card-header border-0 pb-0">
-                        <h5 class="card-title mb-0"><i class="fas fa-mobile-alt me-2 text-info"></i>Test RCS Message</h5>
+                        <h5 class="card-title mb-0"><i class="fas fa-mobile-alt me-2" style="color: #886CC0;"></i>Test RCS Message</h5>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small mb-3">Send a test RCS message to your mobile to see it in action.</p>
@@ -410,7 +410,7 @@
                             <div class="invalid-feedback" id="testRcsFeedback">Please enter a valid UK mobile number</div>
                         </div>
                         <div class="mb-3">
-                            <button class="btn btn-info btn-rounded" id="btnSendTestRcs" onclick="sendTestRcs()">Send Test</button>
+                            <button class="btn btn-primary btn-rounded" id="btnSendTestRcs" onclick="sendTestRcs()">Send Test</button>
                         </div>
                         <div class="d-none" id="testRcsResult">
                             <div class="alert alert-success mb-0 py-2" id="testRcsSuccess">
@@ -430,7 +430,7 @@
                         <div class="col-xl-7 col-sm-7">
                             <h2 class="mb-0">Register for RCS</h2>
                             <span>Get your brand verified and start sending rich, interactive messages to your customers.</span>
-                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-rounded" id="btnRegisterRcs">Register Now</a>
+                            <a href="{{ route('management.rcs-agent') }}" class="btn btn-rounded" id="btnRegisterRcs" style="background: transparent; border: 2px solid rgba(255,255,255,0.8); color: #fff;">Register Now</a>
                         </div>
                         <div class="col-xl-5 col-sm-5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="sd-shape">
