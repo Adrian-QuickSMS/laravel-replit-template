@@ -2466,21 +2466,21 @@ function setExcelCorrection(apply) {
     document.getElementById('excelCorrectionApplied').value = apply ? 'yes' : 'no';
     var content = document.getElementById('excelZeroWarningContent');
     content.innerHTML = `
-        <i class="fas fa-check-circle text-success me-2"></i>
-        <strong>${apply ? 'UK number conversion will be applied' : 'Numbers will be left as-is'}</strong>
-        <button type="button" class="btn btn-sm btn-link" onclick="resetExcelCorrection()">Change</button>
+        <i class="fas fa-check-circle me-2" style="color: #886CC0;"></i>
+        <strong style="color: #886CC0;">${apply ? 'UK number conversion will be applied' : 'Numbers will be left as-is'}</strong>
+        <button type="button" class="btn btn-sm btn-link" style="color: #886CC0;" onclick="resetExcelCorrection()">Change</button>
     `;
 }
 
 function resetExcelCorrection() {
     document.getElementById('excelCorrectionApplied').value = '';
     document.getElementById('excelZeroWarningContent').innerHTML = `
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>Excel Number Detection</strong>
-        <p class="mb-2 mt-2">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-        <p class="mb-2">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+        <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
+        <strong style="color: #886CC0;">Excel Number Detection</strong>
+        <p class="mb-2 mt-2 text-dark">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
+        <p class="mb-2 text-dark">Should these be treated as UK numbers and converted to international format (+447...)?</p>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-primary" onclick="setExcelCorrection(true)">
+            <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">
                 <i class="fas fa-check me-1"></i> Yes, convert to UK format
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
