@@ -198,7 +198,7 @@
                     
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                         <span class="fw-medium">Total Recipients</span>
-                        <span class="badge bg-primary" id="recipientCount">0</span>
+                        <span class="badge" id="recipientCount" style="background-color: #f0ebf8; color: #6b5b95;">0</span>
                     </div>
                 </div>
             </div>
