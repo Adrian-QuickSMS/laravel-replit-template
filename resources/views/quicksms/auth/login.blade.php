@@ -494,7 +494,8 @@ $(document).ready(function() {
         'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '+447700900456', email_verified: true, rcs_capable: false },
         'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '+447700900789', email_verified: false, rcs_capable: false },
         'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true, rcs_capable: true },
-        'nomobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: null, email_verified: true, rcs_capable: false }
+        'nomobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: null, email_verified: true, rcs_capable: false },
+        'nomfa@example.com': { password: 'Password123!', status: 'active', mfa_enabled: false, mobile: '+447700900555', email_verified: true, rcs_capable: false }
     };
     
     var canUpdateAccountDetails = true;
@@ -631,6 +632,16 @@ $(document).ready(function() {
             currentUserRcsCapable = user.rcs_capable || false;
             
             AuditService.log('login_password_verified', { email: email });
+            
+            if (!user.mfa_enabled) {
+                showLoginSuccess('Login successful. Redirecting...');
+                AuditService.log('login_success', { email: email, mfa_required: false, mfa_skipped_reason: 'security_settings_disabled' });
+                
+                setTimeout(function() {
+                    window.location.href = '/dashboard';
+                }, 1000);
+                return;
+            }
             
             showLoginSuccess('Password verified. Proceeding to verification...');
             
