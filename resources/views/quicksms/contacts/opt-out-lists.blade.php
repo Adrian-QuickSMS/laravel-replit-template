@@ -680,6 +680,41 @@
     </div>
 </div>
 
+<!-- Move to List Modal -->
+<div class="modal fade" id="moveToListModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark"><i class="fas fa-exchange-alt me-2"></i>Move to Opt-Out List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="moveOptOutId">
+                <p class="mb-3">Move this number to a different opt-out list:</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Current Number</label>
+                    <input type="text" class="form-control" id="moveOptOutNumber" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Target List <span class="text-danger">*</span></label>
+                    <select class="form-select" id="moveTargetList">
+                        <option value="">Select target list...</option>
+                        @foreach($lists as $list)
+                        <option value="{{ $list['id'] }}">{{ $list['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background-color: #6b5b95; color: white;" onclick="confirmMoveToList()">
+                    <i class="fas fa-exchange-alt me-1"></i> Move
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Remove Opt-Out Confirmation Modal -->
 <div class="modal fade" id="removeOptOutConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1051,8 +1086,41 @@ function viewOptOutHistory(optOutId) {
 }
 
 function moveToList(optOutId) {
+    // Find the row to get the mobile number
+    var row = document.querySelector('tr[data-id="' + optOutId + '"]');
+    var mobileNumber = '';
+    if (row) {
+        var mobileCell = row.querySelector('td:nth-child(2)');
+        if (mobileCell) {
+            mobileNumber = mobileCell.textContent.trim();
+        }
+    }
+    
+    document.getElementById('moveOptOutId').value = optOutId;
+    document.getElementById('moveOptOutNumber').value = mobileNumber;
+    document.getElementById('moveTargetList').value = '';
+    
+    var modal = new bootstrap.Modal(document.getElementById('moveToListModal'));
+    modal.show();
+}
+
+function confirmMoveToList() {
+    var optOutId = document.getElementById('moveOptOutId').value;
+    var targetListId = document.getElementById('moveTargetList').value;
+    var targetListName = document.getElementById('moveTargetList').options[document.getElementById('moveTargetList').selectedIndex].text;
+    
+    if (!targetListId) {
+        showToast('Please select a target list.', 'warning');
+        return;
+    }
+    
     // TODO: Connect to API - PUT /api/opt-outs/{id}/move
-    alert('Move to list dialog for opt-out #' + optOutId + '. TODO: Implement modal.');
+    console.log('TODO: API call PUT /api/opt-outs/' + optOutId + '/move to list ' + targetListId);
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('moveToListModal'));
+    modal.hide();
+    
+    showToast('Opt-out moved to "' + targetListName + '" successfully', 'success');
 }
 
 var pendingRemoveOptOut = null;
