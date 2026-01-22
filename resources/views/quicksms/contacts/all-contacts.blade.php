@@ -2905,13 +2905,11 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                             <span class="dropdown-label" style="color: #6b5b95;">All Event Types</span>
                         </button>
                         <div class="dropdown-menu w-100 p-2" style="max-height: 200px; overflow-y: auto;">
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="outbound" id="evtOutbound" checked><label class="form-check-label small" for="evtOutbound">Messaging (Outbound)</label></div>
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="inbound" id="evtInbound" checked><label class="form-check-label small" for="evtInbound">Messaging (Inbound)</label></div>
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="delivery" id="evtDelivery" checked><label class="form-check-label small" for="evtDelivery">Delivery/Seen</label></div>
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="lists" id="evtLists" checked><label class="form-check-label small" for="evtLists">Lists</label></div>
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="tags" id="evtTags" checked><label class="form-check-label small" for="evtTags">Tags</label></div>
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="optout" id="evtOptout" checked><label class="form-check-label small" for="evtOptout">Opt-out</label></div>
-                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="notes" id="evtNotes" checked><label class="form-check-label small" for="evtNotes">Notes/Contact edits</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="outbound" id="evtOutbound" checked><label class="form-check-label small" for="evtOutbound">Sent Message</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="inbound" id="evtInbound" checked><label class="form-check-label small" for="evtInbound">Received Message</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="lists" id="evtLists" checked><label class="form-check-label small" for="evtLists">Added/Removed from List</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="tags" id="evtTags" checked><label class="form-check-label small" for="evtTags">Added/Removed from Tag</label></div>
+                            <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="optout" id="evtOptout" checked><label class="form-check-label small" for="evtOptout">Added/Removed from Optout</label></div>
                         </div>
                     </div>
                 </div>
@@ -3023,13 +3021,11 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                                     <span class="dropdown-label" style="color: #6b5b95;">All Event Types</span>
                                 </button>
                                 <div class="dropdown-menu w-100 p-2" style="max-height: 200px; overflow-y: auto;">
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="outbound" id="evtOutboundM" checked><label class="form-check-label small" for="evtOutboundM">Messaging (Outbound)</label></div>
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="inbound" id="evtInboundM" checked><label class="form-check-label small" for="evtInboundM">Messaging (Inbound)</label></div>
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="delivery" id="evtDeliveryM" checked><label class="form-check-label small" for="evtDeliveryM">Delivery/Seen</label></div>
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="lists" id="evtListsM" checked><label class="form-check-label small" for="evtListsM">Lists</label></div>
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="tags" id="evtTagsM" checked><label class="form-check-label small" for="evtTagsM">Tags</label></div>
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="optout" id="evtOptoutM" checked><label class="form-check-label small" for="evtOptoutM">Opt-out</label></div>
-                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="notes" id="evtNotesM" checked><label class="form-check-label small" for="evtNotesM">Notes/Contact edits</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="outbound" id="evtOutboundM" checked><label class="form-check-label small" for="evtOutboundM">Sent Message</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="inbound" id="evtInboundM" checked><label class="form-check-label small" for="evtInboundM">Received Message</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="lists" id="evtListsM" checked><label class="form-check-label small" for="evtListsM">Added/Removed from List</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="tags" id="evtTagsM" checked><label class="form-check-label small" for="evtTagsM">Added/Removed from Tag</label></div>
+                                    <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="optout" id="evtOptoutM" checked><label class="form-check-label small" for="evtOptoutM">Added/Removed from Optout</label></div>
                                 </div>
                             </div>
                         </div>

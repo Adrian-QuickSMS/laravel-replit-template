@@ -56,22 +56,13 @@ var ContactTimelineService = (function() {
 
     var EVENT_TYPES = {
         MESSAGE_SENT: 'message_sent',
-        MESSAGE_DELIVERED: 'message_delivered',
-        MESSAGE_FAILED: 'message_failed',
-        MESSAGE_SEEN: 'message_seen',
-        REPLY_RECEIVED: 'reply_received',
-        INBOUND_SMS: 'inbound_sms',
-        INBOUND_RCS: 'inbound_rcs',
-        RCS_BUTTON_CLICK: 'rcs_button_click',
+        MESSAGE_RECEIVED: 'message_received',
         TAG_ADDED: 'tag_added',
         TAG_REMOVED: 'tag_removed',
         LIST_ADDED: 'list_added',
         LIST_REMOVED: 'list_removed',
         OPTOUT: 'optout',
-        OPTIN: 'optin',
-        CONTACT_CREATED: 'contact_created',
-        CONTACT_UPDATED: 'contact_updated',
-        NOTE_ADDED: 'note_added'
+        OPTIN: 'optin'
     };
 
     var SOURCE_MODULES = {
@@ -89,23 +80,14 @@ var ContactTimelineService = (function() {
     };
 
     var EVENT_METADATA = {
-        message_sent: { icon: 'fa-paper-plane', color: 'success', category: 'outbound', title: 'Message Sent' },
-        message_delivered: { icon: 'fa-check-double', color: 'success', category: 'delivery', title: 'Delivered' },
-        message_failed: { icon: 'fa-times-circle', color: 'danger', category: 'delivery', title: 'Delivery Failed' },
-        message_seen: { icon: 'fa-eye', color: 'info', category: 'delivery', title: 'Message Seen' },
-        reply_received: { icon: 'fa-reply', color: 'info', category: 'inbound', title: 'Reply Received' },
-        inbound_sms: { icon: 'fa-inbox', color: 'info', category: 'inbound', title: 'Inbound SMS received' },
-        inbound_rcs: { icon: 'fa-inbox', color: 'info', category: 'inbound', title: 'Inbound RCS received' },
-        rcs_button_click: { icon: 'fa-hand-pointer', color: 'primary', category: 'inbound', title: 'RCS button clicked' },
-        tag_added: { icon: 'fa-tag', color: 'primary', category: 'tags', title: 'Tag Added' },
-        tag_removed: { icon: 'fa-tag', color: 'secondary', category: 'tags', title: 'Tag Removed' },
+        message_sent: { icon: 'fa-paper-plane', color: 'success', category: 'outbound', title: 'Sent Message' },
+        message_received: { icon: 'fa-inbox', color: 'info', category: 'inbound', title: 'Received Message' },
+        tag_added: { icon: 'fa-tag', color: 'primary', category: 'tags', title: 'Added to Tag' },
+        tag_removed: { icon: 'fa-tag', color: 'secondary', category: 'tags', title: 'Removed from Tag' },
         list_added: { icon: 'fa-list', color: 'primary', category: 'lists', title: 'Added to List' },
         list_removed: { icon: 'fa-list', color: 'secondary', category: 'lists', title: 'Removed from List' },
-        optout: { icon: 'fa-ban', color: 'danger', category: 'optout', title: 'Opted Out' },
-        optin: { icon: 'fa-check', color: 'success', category: 'optout', title: 'Opted In' },
-        contact_created: { icon: 'fa-user-plus', color: 'primary', category: 'notes', title: 'Contact Created' },
-        contact_updated: { icon: 'fa-edit', color: 'secondary', category: 'notes', title: 'Contact Updated' },
-        note_added: { icon: 'fa-sticky-note', color: 'warning', category: 'notes', title: 'Note Added' }
+        optout: { icon: 'fa-ban', color: 'danger', category: 'optout', title: 'Added to Optout' },
+        optin: { icon: 'fa-check', color: 'success', category: 'optout', title: 'Removed from Optout' }
     };
 
     var DELIVERY_STATUSES = {
@@ -1243,8 +1225,7 @@ var ContactTimelineService = (function() {
         
         switch(eventType) {
             case EVENT_TYPES.MESSAGE_SENT:
-                var isBlocked = Math.random() < 0.1;
-                var outboundMeta = isBlocked ? generateBlockedOutboundMetadata() : generateOutboundMetadata(sourceModule);
+                var outboundMeta = generateOutboundMetadata(sourceModule);
                 var permissions = getUserPermissions();
                 var summary = buildOutboundSummary(outboundMeta, sourceModule);
                 var details = buildOutboundDetails(outboundMeta, permissions);
@@ -1256,103 +1237,12 @@ var ContactTimelineService = (function() {
                     actions: actions
                 });
             
-            case EVENT_TYPES.MESSAGE_DELIVERED:
-                var deliveredMeta = generateOutboundMetadata(sourceModule);
-                deliveredMeta.related_message_id = deliveredMeta.message_id_warehouse;
-                var deliveredTimestamps = generateDeliveryTimestamps(new Date().toISOString());
-                var deliveredStatus = DELIVERY_STATUSES.DELIVERED;
-                var deliveredSummary = 'Delivery confirmed - ' + deliveredMeta.channel_label;
-                var deliveredDetails = buildDeliveryDetails(deliveredMeta, deliveredStatus, deliveredTimestamps, null);
-                return Object.assign({}, deliveredMeta, {
-                    delivery_status: deliveredStatus.status,
-                    timestamps: deliveredTimestamps,
-                    summary: deliveredSummary,
-                    details: deliveredDetails,
-                    actions: buildOutboundActions(deliveredMeta, sourceModule)
-                });
-            
-            case EVENT_TYPES.MESSAGE_FAILED:
-                var failedMeta = generateOutboundMetadata(sourceModule);
-                failedMeta.related_message_id = failedMeta.message_id_warehouse;
-                var failedTimestamps = generateDeliveryTimestamps(new Date().toISOString());
-                var isRejected = Math.random() < 0.3;
-                var failedStatus = isRejected ? DELIVERY_STATUSES.REJECTED : DELIVERY_STATUSES.UNDELIVERABLE;
-                var errorCodes = Object.keys(DELIVERY_ERROR_CODES);
-                var randomErrorCode = errorCodes[Math.floor(Math.random() * errorCodes.length)];
-                var errorInfo = {
-                    code: randomErrorCode,
-                    description: DELIVERY_ERROR_CODES[randomErrorCode]
-                };
-                var failedSummary = failedStatus.status + ' - ' + errorInfo.description;
-                var failedDetails = buildDeliveryDetails(failedMeta, failedStatus, failedTimestamps, errorInfo);
-                return Object.assign({}, failedMeta, {
-                    delivery_status: failedStatus.status,
-                    timestamps: failedTimestamps,
-                    error_code: errorInfo.code,
-                    error_message: errorInfo.description,
-                    summary: failedSummary,
-                    details: failedDetails,
-                    actions: buildOutboundActions(failedMeta, sourceModule)
-                });
-            
-            case EVENT_TYPES.MESSAGE_SEEN:
-                var seenMeta = generateOutboundMetadata(sourceModule);
-                seenMeta.channel = 'rcs_rich';
-                seenMeta.channel_label = 'Rich RCS';
-                seenMeta.related_message_id = seenMeta.message_id_warehouse;
-                var seenTimestamps = generateDeliveryTimestamps(new Date().toISOString());
-                var seenStatus = DELIVERY_STATUSES.SEEN;
-                var seenSummary = 'Read receipt received - Rich RCS';
-                var seenDetails = buildDeliveryDetails(seenMeta, seenStatus, seenTimestamps, null);
-                return Object.assign({}, seenMeta, {
-                    delivery_status: seenStatus.status,
-                    timestamps: seenTimestamps,
-                    summary: seenSummary,
-                    details: seenDetails,
-                    actions: buildOutboundActions(seenMeta, sourceModule)
-                });
-            
-            case EVENT_TYPES.REPLY_RECEIVED:
-                var replyMeta = generateOutboundMetadata(sourceModule);
-                var replies = ['Thanks!', 'Yes please', 'Not interested', 'More info?', 'Great offer'];
-                var reply = replies[Math.floor(Math.random() * replies.length)];
-                return Object.assign({}, replyMeta, {
-                    reply_preview: reply,
-                    summary: '"' + reply + '"',
-                    details: '<strong>Reply:</strong> "' + reply + '"<br>' +
-                        '<strong>Channel:</strong> ' + replyMeta.channel_label + '<br>' +
-                        '<strong>Message ID:</strong> ' + replyMeta.message_id_warehouse,
-                    actions: [{
-                        type: 'link',
-                        label: 'Open Conversation',
-                        icon: 'fa-comments',
-                        url: '/messages/inbox?thread=' + replyMeta.thread_id,
-                        target: '_self'
-                    }]
-                });
-            
-            case EVENT_TYPES.INBOUND_SMS:
-                var inboundSmsMeta = generateInboundMetadata('sms');
-                return Object.assign({}, inboundSmsMeta, {
-                    summary: buildInboundSummary(inboundSmsMeta, eventType),
-                    details: buildInboundDetails(inboundSmsMeta, eventType),
-                    actions: buildInboundActions(inboundSmsMeta)
-                });
-            
-            case EVENT_TYPES.INBOUND_RCS:
-                var inboundRcsMeta = generateInboundMetadata(channels[Math.floor(Math.random() * 3) + 1]);
-                return Object.assign({}, inboundRcsMeta, {
-                    summary: buildInboundSummary(inboundRcsMeta, eventType),
-                    details: buildInboundDetails(inboundRcsMeta, eventType),
-                    actions: buildInboundActions(inboundRcsMeta)
-                });
-            
-            case EVENT_TYPES.RCS_BUTTON_CLICK:
-                var buttonClickMeta = generateRcsButtonClickMetadata();
-                return Object.assign({}, buttonClickMeta, {
-                    summary: buildInboundSummary(buttonClickMeta, eventType),
-                    details: buildInboundDetails(buttonClickMeta, eventType),
-                    actions: buildInboundActions(buttonClickMeta)
+            case EVENT_TYPES.MESSAGE_RECEIVED:
+                var inboundMeta = generateInboundMetadata('sms');
+                return Object.assign({}, inboundMeta, {
+                    summary: buildInboundSummary(inboundMeta, 'message_received'),
+                    details: buildInboundDetails(inboundMeta, 'message_received'),
+                    actions: buildInboundActions(inboundMeta)
                 });
             
             case EVENT_TYPES.TAG_ADDED:
@@ -1462,77 +1352,6 @@ var ContactTimelineService = (function() {
                     removed_by: optinActor,
                     summary: optinSummary,
                     details: buildOptinDetails(optinSource, optinScope, optinActor)
-                };
-            
-            case EVENT_TYPES.CONTACT_CREATED:
-                var creationSource = getRandomCreationSource();
-                var creationActorNames = ['Admin User', 'Marketing Team', 'Support Agent', 'System'];
-                var creationActor = creationSource.source === 'manual' 
-                    ? creationActorNames[Math.floor(Math.random() * creationActorNames.length)]
-                    : (creationSource.source === 'api' ? 'API Integration' : null);
-                
-                var initialFieldCount = 2 + Math.floor(Math.random() * 3);
-                var shuffledFields = CONTACT_FIELDS.slice().sort(function() { return 0.5 - Math.random(); });
-                var initialFields = shuffledFields.slice(0, initialFieldCount).map(function(f) {
-                    var values = SAMPLE_FIELD_VALUES[f.field] || ['Sample Value'];
-                    return {
-                        field: f.field,
-                        label: f.label,
-                        sensitive: f.sensitive,
-                        value: values[Math.floor(Math.random() * values.length)]
-                    };
-                });
-                
-                var contactPermissions = getUserPermissions();
-                var canViewSensitiveData = contactPermissions.viewSensitiveData === true;
-                
-                return {
-                    source: creationSource.source,
-                    source_label: creationSource.label,
-                    created_by: creationActor,
-                    initial_fields: initialFields,
-                    summary: creationSource.label,
-                    details: buildContactCreatedDetails(creationSource, creationActor, initialFields, canViewSensitiveData)
-                };
-            
-            case EVENT_TYPES.CONTACT_UPDATED:
-                var updateSource = getRandomCreationSource();
-                var updateActorNames = ['Admin User', 'Marketing Team', 'Support Agent', 'Compliance Team'];
-                var updateActor = (updateSource.source === 'manual' || updateSource.source === 'csv_import')
-                    ? updateActorNames[Math.floor(Math.random() * updateActorNames.length)]
-                    : (updateSource.source === 'api' ? 'API Integration' : null);
-                
-                var changeCount = 1 + Math.floor(Math.random() * 3);
-                var fieldChanges = [];
-                for (var i = 0; i < changeCount; i++) {
-                    fieldChanges.push(getRandomFieldChange());
-                }
-                
-                var updatePermissions = getUserPermissions();
-                var canViewSensitive = updatePermissions.viewSensitiveData === true;
-                
-                var changedFieldLabels = fieldChanges.map(function(c) { return c.label; });
-                var updateSummary = changedFieldLabels.length === 1 
-                    ? changedFieldLabels[0] + ' changed'
-                    : changedFieldLabels.length + ' fields changed';
-                
-                return {
-                    source: updateSource.source,
-                    source_label: updateSource.label,
-                    updated_by: updateActor,
-                    changes: fieldChanges,
-                    fields_changed: changedFieldLabels,
-                    summary: updateSummary,
-                    details: buildContactUpdatedDetails(fieldChanges, updateSource, updateActor, canViewSensitive)
-                };
-            
-            case EVENT_TYPES.NOTE_ADDED:
-                var notes = ['Customer requested callback', 'Interested in premium plan', 'Follow up next week', 'Confirmed order details'];
-                var note = notes[Math.floor(Math.random() * notes.length)];
-                return {
-                    note_preview: note,
-                    summary: 'New note added',
-                    details: '<strong>Note:</strong> "' + note + '"'
                 };
             
             default:
