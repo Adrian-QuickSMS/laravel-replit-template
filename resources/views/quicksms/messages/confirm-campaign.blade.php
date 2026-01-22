@@ -86,18 +86,18 @@
                         </div>
                     </div>
                     @endif
+                    @if($channel['type'] !== 'sms_only')
                     <div class="py-2 mb-0 mt-2 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                         <i class="fas fa-info-circle me-2"></i>
                         <small>
-                            @if($channel['type'] === 'sms_only')
-                                Messages will be sent via SMS only.
-                            @elseif($channel['type'] === 'basic_rcs')
+                            @if($channel['type'] === 'basic_rcs')
                                 Messages over 160 characters will be delivered as a single RCS message where supported. SMS fallback for non-RCS devices.
                             @else
                                 Rich RCS will be delivered where supported. SMS will be used as a fallback.
                             @endif
                         </small>
                     </div>
+                    @endif
                 </div>
             </div>
 

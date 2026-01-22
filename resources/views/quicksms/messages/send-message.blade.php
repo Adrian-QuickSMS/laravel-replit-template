@@ -2651,7 +2651,11 @@ function continueToConfirmation() {
     var optoutConfig = getOptoutConfiguration();
     
     var channel = document.querySelector('input[name="channel"]:checked');
-    var channelValue = channel ? channel.value : 'sms_only';
+    var channelValue = channel ? channel.value : 'sms';
+    if (channelValue === 'sms') channelValue = 'sms_only';
+    
+    var senderIdSelect = document.getElementById('senderId');
+    var senderIdText = senderIdSelect && senderIdSelect.selectedIndex > 0 ? senderIdSelect.options[senderIdSelect.selectedIndex].text : senderId;
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgentName = rcsAgentSelect && rcsAgentSelect.selectedIndex > 0 ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : null;
@@ -2687,7 +2691,7 @@ function continueToConfirmation() {
     var campaignConfig = {
         campaign_name: campaignName,
         channel: channelValue,
-        sender_id: senderId,
+        sender_id: senderIdText,
         rcs_agent: rcsAgentName,
         message_content: smsContent,
         recipient_count: recipientCount,
