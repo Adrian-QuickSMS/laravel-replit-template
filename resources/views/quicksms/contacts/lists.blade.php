@@ -111,9 +111,9 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="dropdown-content">
-                                                            <a class="dropdown-item" href="#!" onclick="viewListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-info"></i>View Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="addContactsToList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-success"></i>Add Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="renameList({{ $list['id'] }}, '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-primary"></i>Rename</a>
+                                                            <a class="dropdown-item" href="#!" onclick="viewListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="addContactsToList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-dark"></i>Add Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="renameList({{ $list['id'] }}, '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-dark"></i>Rename</a>
                                                             <div class="dropdown-divider"></div>
                                                             <a class="dropdown-item text-danger" href="#!" onclick="deleteList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
                                                         </div>
@@ -192,9 +192,9 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="dropdown-content">
-                                                            <a class="dropdown-item" href="#!" onclick="viewDynamicListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-info"></i>View Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="editDynamicListRules({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-primary"></i>Edit Rules</a>
-                                                            <a class="dropdown-item" href="#!" onclick="refreshDynamicList({{ $list['id'] }})"><i class="fas fa-sync-alt me-2 text-success"></i>Refresh Now</a>
+                                                            <a class="dropdown-item" href="#!" onclick="viewDynamicListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="editDynamicListRules({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-dark"></i>Edit Rules</a>
+                                                            <a class="dropdown-item" href="#!" onclick="refreshDynamicList({{ $list['id'] }})"><i class="fas fa-sync-alt me-2 text-dark"></i>Refresh Now</a>
                                                             <div class="dropdown-divider"></div>
                                                             <a class="dropdown-item text-danger" href="#!" onclick="deleteDynamicList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
                                                         </div>
