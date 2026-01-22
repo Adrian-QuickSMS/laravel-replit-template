@@ -852,12 +852,12 @@ $permissions = [
             </div>
             <div class="modal-body">
                 <p class="mb-3">Are you sure you want to cancel this scheduled campaign?</p>
-                <div class="alert alert-light border mb-0">
+                <div class="rounded p-3 mb-0" style="background-color: #f0ebf8;">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-bullhorn text-muted me-2"></i>
+                        <i class="fas fa-bullhorn me-2" style="color: #886CC0;"></i>
                         <div>
-                            <strong id="cancelCampaignName">-</strong>
-                            <div class="small text-muted">Scheduled for <span id="cancelCampaignTime">-</span></div>
+                            <strong id="cancelCampaignName" style="color: #6b5b95;">-</strong>
+                            <div class="small" style="color: #8a7ca8;">Scheduled for <span id="cancelCampaignTime">-</span></div>
                         </div>
                     </div>
                 </div>
