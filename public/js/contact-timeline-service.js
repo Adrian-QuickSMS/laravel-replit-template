@@ -488,7 +488,7 @@ var ContactTimelineService = (function() {
         if (permissions.viewSnippet && metadata.snippet_raw) {
             var snippet = metadata.snippet_raw;
             if (metadata.has_personalisation && !permissions.viewPersonalised) {
-                snippet = snippet.replace(/\{\{[^}]+\}\}/g, '<span class="badge bg-secondary">{{...}}</span>');
+                snippet = snippet.replace(/\{\{[^}]+\}\}/g, '<span class="badge badge-pastel-secondary">{{...}}</span>');
             }
             html += '<div class="mb-2"><strong>Message:</strong><div class="bg-white border rounded p-2 mt-1 small">' + snippet + '</div></div>';
         }
@@ -606,7 +606,16 @@ var ContactTimelineService = (function() {
     }
 
     function buildStatusPill(statusInfo) {
-        return '<span class="badge bg-' + statusInfo.color + '">' +
+        var pastelColors = {
+            'success': 'badge-pastel-success',
+            'danger': 'badge-pastel-danger',
+            'warning': 'badge-pastel-warning',
+            'info': 'badge-pastel-info',
+            'secondary': 'badge-pastel-secondary',
+            'primary': 'badge-pastel-primary'
+        };
+        var badgeClass = pastelColors[statusInfo.color] || 'badge-pastel-secondary';
+        return '<span class="badge ' + badgeClass + '">' +
             '<i class="fas ' + statusInfo.icon + ' me-1"></i>' + statusInfo.status +
         '</span>';
     }
@@ -824,7 +833,7 @@ var ContactTimelineService = (function() {
         
         html += '<div class="mb-2">' +
             '<strong>Operation:</strong> ' +
-            '<span class="badge bg-' + (operation === 'add' ? 'success' : 'secondary') + '">' +
+            '<span class="badge ' + (operation === 'add' ? 'badge-pastel-success' : 'badge-pastel-secondary') + '">' +
             '<i class="fas ' + (operation === 'add' ? 'fa-plus' : 'fa-minus') + ' me-1"></i>' +
             (operation === 'add' ? 'Added' : 'Removed') +
             '</span>' +
@@ -872,7 +881,7 @@ var ContactTimelineService = (function() {
         
         html += '<div class="mb-2">' +
             '<strong>Operation:</strong> ' +
-            '<span class="badge bg-' + (operation === 'add' ? 'success' : 'secondary') + '">' +
+            '<span class="badge ' + (operation === 'add' ? 'badge-pastel-success' : 'badge-pastel-secondary') + '">' +
             '<i class="fas ' + (operation === 'add' ? 'fa-plus' : 'fa-minus') + ' me-1"></i>' +
             (operation === 'add' ? 'Added' : 'Removed') +
             '</span>' +

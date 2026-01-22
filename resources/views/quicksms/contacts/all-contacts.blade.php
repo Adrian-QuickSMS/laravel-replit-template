@@ -3206,8 +3206,8 @@ function renderTimelineEvents(events) {
                             '<i class="fas fa-chevron-down me-1" style="font-size: 0.6rem;"></i>Details' +
                         '</a>' +
                         '<div class="collapse mt-2" id="' + eventId + '">' +
-                            '<div class="small bg-light rounded p-2">' +
-                                '<div class="mb-1 text-muted"><strong>Actor:</strong> ' + (event.actor_name || 'System') + ' (' + event.actor_type + ')</div>' +
+                            '<div class="small rounded p-2" style="background-color: #f0ebf8;">' +
+                                '<div class="mb-1" style="color: #000;"><strong>Actor:</strong> ' + (event.actor_name || 'System') + ' (' + event.actor_type + ')</div>' +
                                 (ui.details || '') +
                                 renderTimelineActions(actions) +
                             '</div>' +
