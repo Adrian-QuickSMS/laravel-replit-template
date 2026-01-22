@@ -622,7 +622,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info py-2" style="font-size: 12px;">
+                <div class="py-2 rounded" style="font-size: 12px; background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                     <i class="fas fa-info-circle me-1"></i>Map your file columns to the required fields. Mobile Number is required.
                 </div>
                 <div class="mb-3">
@@ -639,7 +639,7 @@
                         <tr><td>Column C</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile">Mobile Number *</option><option value="firstname">First Name</option><option value="lastname" selected>Last Name</option><option value="email">Email</option></select></td><td class="text-muted">Smith</td></tr>
                     </tbody>
                 </table>
-                <div class="alert alert-warning py-2 d-none" id="excelZeroWarning" style="font-size: 12px;">
+                <div class="py-2 d-none rounded" id="excelZeroWarning" style="font-size: 12px; background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                     <i class="fas fa-exclamation-triangle me-1"></i>
                     <strong>Excel formatting detected:</strong> Numbers starting with '7' may have had leading zeros removed. 
                     <div class="form-check mt-1">
