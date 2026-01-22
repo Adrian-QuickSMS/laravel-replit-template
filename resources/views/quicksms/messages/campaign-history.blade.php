@@ -153,6 +153,7 @@ $permissions = [
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
+                            <span id="activeFiltersBadge" class="badge bg-primary ms-1 d-none">0</span>
                         </button>
                         <a href="{{ route('messages.send') }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus me-1"></i> Create Campaign
@@ -934,24 +935,39 @@ var userPermissions = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    campaignDrawer = new bootstrap.Offcanvas(document.getElementById('campaignDrawer'));
+    console.log('[CampaignHistory] DOMContentLoaded - initializing event listeners');
+    
+    var drawerEl = document.getElementById('campaignDrawer');
+    if (drawerEl) {
+        campaignDrawer = new bootstrap.Offcanvas(drawerEl);
+    }
     
     var searchInput = document.getElementById('campaignSearch');
-    searchInput.addEventListener('input', filterCampaigns);
-    searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            filterCampaigns();
-        }
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', filterCampaigns);
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                filterCampaigns();
+            }
+        });
+    }
     
     var applyBtn = document.getElementById('btnApplyFilters');
+    console.log('[CampaignHistory] Apply button found:', !!applyBtn);
     if (applyBtn) {
-        applyBtn.addEventListener('click', function() { window.applyFilters(); });
+        applyBtn.addEventListener('click', function() { 
+            console.log('[CampaignHistory] Apply button clicked');
+            window.applyFilters(); 
+        });
     }
     
     var resetBtn = document.getElementById('btnResetFilters');
+    console.log('[CampaignHistory] Reset button found:', !!resetBtn);
     if (resetBtn) {
-        resetBtn.addEventListener('click', function() { window.resetFilters(); });
+        resetBtn.addEventListener('click', function() { 
+            console.log('[CampaignHistory] Reset button clicked');
+            window.resetFilters(); 
+        });
     }
     
     document.querySelectorAll('.select-all-btn').forEach(function(btn) {
@@ -1288,6 +1304,11 @@ function updateFilterBadge() {
         return Array.isArray(v) ? v.length > 0 : v !== ''; 
     }).length;
     var badge = document.getElementById('activeFiltersBadge');
+    
+    if (!badge) {
+        console.warn('[CampaignHistory] activeFiltersBadge element not found');
+        return;
+    }
     
     if (count > 0) {
         badge.textContent = count;
