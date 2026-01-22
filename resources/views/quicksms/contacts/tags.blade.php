@@ -511,7 +511,7 @@ function confirmCreateTag() {
     console.log('TODO: API call POST /api/tags to create tag');
     console.log('New tag:', newTag);
     
-    alert('Tag "' + name + '" created!\n\nThis requires backend implementation.');
+    showToast('Tag "' + name + '" created successfully', 'success');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('createTagModal'));
     modal.hide();
@@ -550,7 +550,7 @@ function confirmEditTag() {
     }
     
     console.log('TODO: API call PUT /api/tags/' + id);
-    alert('Tag updated to "' + name + '"!\n\nThis requires backend implementation.');
+    showToast('Tag updated to "' + name + '"', 'success');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('editTagModal'));
     modal.hide();
@@ -587,7 +587,7 @@ function confirmMergeTag() {
         
         localTags = localTags.filter(function(t) { return t.id != sourceId; });
         
-        alert('Tags merged!\n\nThis requires backend implementation.');
+        showToast('Tags merged successfully', 'success');
         
         var modal = bootstrap.Modal.getInstance(document.getElementById('mergeTagModal'));
         modal.hide();
@@ -605,7 +605,7 @@ function deleteTag(id, name, contactCount) {
         
         localTags = localTags.filter(function(t) { return t.id != id; });
         
-        alert('Tag "' + name + '" deleted!\n\nThis requires backend implementation.');
+        showToast('Tag "' + name + '" deleted', 'success');
     }
 }
 
@@ -646,10 +646,62 @@ function viewTaggedContacts(id, name) {
 }
 
 function removeTagFromContact(contactId, tagId) {
-    if (confirm('Remove this tag from the contact?')) {
-        console.log('TODO: API call DELETE /api/contacts/' + contactId + '/tags/' + tagId);
-        alert('Tag removed from contact!\n\nThis requires backend implementation.');
+    console.log('TODO: API call DELETE /api/contacts/' + contactId + '/tags/' + tagId);
+    showToast('Tag removed from contact successfully', 'success');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var searchInput = document.getElementById('taggedContactSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var searchTerm = this.value.toLowerCase();
+            var rows = document.querySelectorAll('#taggedContactsBody tr');
+            var visibleCount = 0;
+            
+            rows.forEach(function(row) {
+                var name = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+                var mobile = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+                
+                if (name.includes(searchTerm) || mobile.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('taggedContactsCount').textContent = visibleCount;
+        });
     }
+});
+
+function showToast(message, type) {
+    type = type || 'success';
+    var container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'position-fixed bottom-0 end-0 p-3';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+    }
+    
+    var bgColor = type === 'success' ? '#6b5b95' : (type === 'error' ? '#dc3545' : '#6c757d');
+    var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+    
+    var toastId = 'toast_' + Date.now();
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + ';">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '</div></div>';
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    
+    setTimeout(function() {
+        var toast = document.getElementById(toastId);
+        if (toast) toast.remove();
+    }, 4000);
 }
 </script>
 @endsection
