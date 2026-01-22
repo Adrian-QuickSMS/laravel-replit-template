@@ -946,12 +946,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var applyBtn = document.getElementById('btnApplyFilters');
     if (applyBtn) {
-        applyBtn.addEventListener('click', applyFilters);
+        applyBtn.addEventListener('click', function() { window.applyFilters(); });
     }
     
     var resetBtn = document.getElementById('btnResetFilters');
     if (resetBtn) {
-        resetBtn.addEventListener('click', resetFilters);
+        resetBtn.addEventListener('click', function() { window.resetFilters(); });
     }
     
     document.querySelectorAll('.select-all-btn').forEach(function(btn) {
@@ -1161,16 +1161,19 @@ function getCheckedValues(dropdownSelector) {
             values.push(cb.value);
         });
     }
+    console.log('[CampaignHistory] getCheckedValues:', dropdownSelector, '=', values);
     return values;
 }
 
 function filterCampaigns() {
+    console.log('[CampaignHistory] filterCampaigns called');
     var searchTerm = document.getElementById('campaignSearch').value.toLowerCase().trim();
     var rows = document.querySelectorAll('#campaignsTableBody tr[data-id]');
     var visibleCount = 0;
     var hasActiveFilters = Object.values(activeFilters).some(function(v) { 
         return Array.isArray(v) ? v.length > 0 : v !== ''; 
     });
+    console.log('[CampaignHistory] Search term:', searchTerm, 'Has active filters:', hasActiveFilters, 'Rows found:', rows.length);
     
     rows.forEach(function(row) {
         var name = (row.dataset.name || '').toLowerCase();
@@ -1238,7 +1241,7 @@ function clearSearch() {
 
 var activeFilters = {};
 
-function applyFilters() {
+window.applyFilters = function() {
     console.log('[CampaignHistory] Apply Filters clicked');
     activeFilters = {
         statuses: getCheckedValues('[data-filter="statuses"]'),
@@ -1254,9 +1257,10 @@ function applyFilters() {
     
     updateFilterBadge();
     filterCampaigns();
-}
+};
 
-function resetFilters() {
+window.resetFilters = function() {
+    console.log('[CampaignHistory] Reset Filters clicked');
     document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
         cb.checked = false;
     });
