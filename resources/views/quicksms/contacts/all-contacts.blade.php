@@ -1151,40 +1151,38 @@ function confirmBulkAddToList() {
     console.log('[BulkAction] confirmBulkAddToList called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    console.log('[BulkAction] Selected IDs:', ids, 'count:', count);
     var listSelect = document.getElementById('bulkListSelect');
     var selectedList = listSelect ? listSelect.value : null;
-    console.log('[BulkAction] Selected list:', selectedList);
     
     if (!selectedList) {
         showValidationError('Please select a list.');
         return;
     }
     
-    // Force close the modal using direct DOM manipulation
-    var modalEl = document.getElementById('bulkAddToListModal');
-    modalEl.classList.remove('show');
-    modalEl.style.display = 'none';
-    modalEl.setAttribute('aria-hidden', 'true');
-    cleanupModalBackdrops();
+    // Get Bootstrap modal instance (don't create new one)
+    var bulkModalEl = document.getElementById('bulkAddToListModal');
+    var bulkModal = bootstrap.Modal.getInstance(bulkModalEl);
     
-    // Small delay then show processing
-    setTimeout(function() {
-        console.log('[BulkAction] Showing processing modal');
+    // Wait for modal to be fully hidden before showing next modal
+    bulkModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+        // Remove listener to prevent multiple calls
+        bulkModalEl.removeEventListener('hidden.bs.modal', onHidden);
+        
+        console.log('[BulkAction] First modal hidden, showing processing modal');
         showProcessingModal('Adding contacts to list...');
         
         ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
             console.log('[BulkAction] Service result:', result);
             
-            // Force close processing modal
+            // Get processing modal instance
             var processingEl = document.getElementById('processingModal');
-            processingEl.classList.remove('show');
-            processingEl.style.display = 'none';
-            processingEl.setAttribute('aria-hidden', 'true');
-            cleanupModalBackdrops();
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
             
-            // Small delay then show result modal
-            setTimeout(function() {
+            // Wait for processing modal to hide
+            processingEl.addEventListener('hidden.bs.modal', function onProcessingHidden() {
+                processingEl.removeEventListener('hidden.bs.modal', onProcessingHidden);
+                
+                // Now show result modal
                 if (result.success) {
                     clearBulkSelection();
                     console.log('[BulkAction] Showing success modal');
@@ -1193,21 +1191,33 @@ function confirmBulkAddToList() {
                     console.log('[BulkAction] Showing error modal');
                     showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
                 }
-            }, 100);
+            }, { once: true });
+            
+            // Hide processing modal using Bootstrap API
+            if (processingModal) {
+                processingModal.hide();
+            }
+            
         }).catch(function(error) {
             console.error('[BulkAction] Error:', error);
             
-            // Force close processing modal
             var processingEl = document.getElementById('processingModal');
-            processingEl.classList.remove('show');
-            processingEl.style.display = 'none';
-            cleanupModalBackdrops();
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
             
-            setTimeout(function() {
+            processingEl.addEventListener('hidden.bs.modal', function() {
                 showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-            }, 100);
+            }, { once: true });
+            
+            if (processingModal) {
+                processingModal.hide();
+            }
         });
-    }, 100);
+    }, { once: true });
+    
+    // Hide the first modal using Bootstrap API (not manual DOM manipulation)
+    if (bulkModal) {
+        bulkModal.hide();
+    }
 }
 
 function bulkRemoveFromList() {
@@ -1470,11 +1480,21 @@ function cleanupModalBackdrops() {
 
 function showProcessingModal(message) {
     console.log('[Modal] showProcessingModal called:', message);
-    cleanupModalBackdrops();
     document.getElementById('processingMessage').textContent = message || 'Processing...';
-    if (!window.processingModal) {
-        window.processingModal = new bootstrap.Modal(document.getElementById('processingModal'), { backdrop: 'static', keyboard: false });
+    
+    var processingEl = document.getElementById('processingModal');
+    
+    // Dispose old instance if exists to ensure clean state
+    var existingInstance = bootstrap.Modal.getInstance(processingEl);
+    if (existingInstance) {
+        existingInstance.dispose();
     }
+    
+    // Create fresh instance
+    window.processingModal = new bootstrap.Modal(processingEl, { 
+        backdrop: 'static', 
+        keyboard: false 
+    });
     window.processingModal.show();
     console.log('[Modal] Processing modal shown');
 }
@@ -1482,75 +1502,59 @@ function showProcessingModal(message) {
 function hideProcessingModal(callback) {
     console.log('[Modal] hideProcessingModal called, has callback:', !!callback);
     
-    if (window.processingModal) {
-        var modalEl = document.getElementById('processingModal');
-        var callbackFired = false;
-        
-        var executeCallback = function() {
-            if (callbackFired) return;
-            callbackFired = true;
-            console.log('[Modal] Processing modal hidden, executing callback');
-            cleanupModalBackdrops();
-            if (callback) {
-                setTimeout(function() {
-                    callback();
-                }, 50);
-            }
-        };
-        
+    var processingEl = document.getElementById('processingModal');
+    var processingModal = bootstrap.Modal.getInstance(processingEl);
+    
+    if (processingModal) {
         if (callback) {
-            var handler = function() {
-                modalEl.removeEventListener('hidden.bs.modal', handler);
-                executeCallback();
-            };
-            modalEl.addEventListener('hidden.bs.modal', handler);
-            
-            setTimeout(function() {
-                if (!callbackFired) {
-                    console.log('[Modal] Timeout fallback - forcing callback');
-                    executeCallback();
-                }
-            }, 500);
+            // Wait for modal to fully hide before calling callback
+            processingEl.addEventListener('hidden.bs.modal', function onHidden() {
+                processingEl.removeEventListener('hidden.bs.modal', onHidden);
+                console.log('[Modal] Processing modal hidden, executing callback');
+                callback();
+            }, { once: true });
         }
-        
-        window.processingModal.hide();
+        processingModal.hide();
     } else {
         console.log('[Modal] No processing modal instance, calling callback directly');
-        cleanupModalBackdrops();
         if (callback) callback();
     }
 }
 
 function showSuccessModal(title, message) {
     console.log('[Modal] showSuccessModal called:', title, message);
-    cleanupModalBackdrops();
     
     var successModalEl = document.getElementById('successModal');
-    successModalEl.style.zIndex = '10060';
-    
     document.getElementById('successModalTitle').innerHTML = '<i class="fas fa-check-circle me-2"></i>' + title;
     document.getElementById('successModalMessage').textContent = message;
     
-    if (!window.successModal) {
-        window.successModal = new bootstrap.Modal(successModalEl);
+    // Dispose old instance if exists to ensure clean state
+    var existingInstance = bootstrap.Modal.getInstance(successModalEl);
+    if (existingInstance) {
+        existingInstance.dispose();
     }
+    
+    // Create fresh instance
+    window.successModal = new bootstrap.Modal(successModalEl);
     window.successModal.show();
     console.log('[Modal] Success modal shown');
 }
 
 function showErrorModal(title, message) {
     console.log('[Modal] showErrorModal called:', title, message);
-    cleanupModalBackdrops();
     
     var errorModalEl = document.getElementById('errorModal');
-    errorModalEl.style.zIndex = '10060';
-    
     document.getElementById('errorModalTitle').innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + title;
     document.getElementById('errorModalMessage').textContent = message;
     
-    if (!window.errorModal) {
-        window.errorModal = new bootstrap.Modal(errorModalEl);
+    // Dispose old instance if exists to ensure clean state
+    var existingInstance = bootstrap.Modal.getInstance(errorModalEl);
+    if (existingInstance) {
+        existingInstance.dispose();
     }
+    
+    // Create fresh instance
+    window.errorModal = new bootstrap.Modal(errorModalEl);
     window.errorModal.show();
     console.log('[Modal] Error modal shown');
 }
