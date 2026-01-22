@@ -592,6 +592,34 @@ document.addEventListener('DOMContentLoaded', function() {
     filterLists.addEventListener('change', applyFilters);
     filterSource.addEventListener('change', applyFilters);
     
+    // Apply Filters button click handler
+    var btnApplyFilters = document.getElementById('btnApplyFilters');
+    if (btnApplyFilters) {
+        btnApplyFilters.addEventListener('click', function() {
+            applyFilters();
+            showToast('Filters applied successfully', 'success');
+        });
+    }
+    
+    // Reset Filters button click handler
+    var btnResetFilters = document.getElementById('btnResetFilters');
+    if (btnResetFilters) {
+        btnResetFilters.addEventListener('click', function() {
+            filterStatus.value = '';
+            filterTags.value = '';
+            filterLists.value = '';
+            filterSource.value = '';
+            searchInput.value = '';
+            document.getElementById('filterCreatedDate').value = '';
+            // Reset checkboxes
+            document.querySelectorAll('#filtersCollapse input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = false;
+            });
+            applyFilters();
+            showToast('Filters reset', 'success');
+        });
+    }
+    
     function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase();
         const statusFilter = filterStatus.value;
