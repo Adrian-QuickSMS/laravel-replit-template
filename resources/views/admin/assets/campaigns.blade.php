@@ -641,21 +641,21 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-3">
             <div class="table-responsive" id="campaignsTable">
-                <table class="table table-hover mb-0 align-middle" style="table-layout: fixed; width: 100%;">
+                <table class="table table-hover mb-0 align-middle" style="min-width: 1000px; width: 100%;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-3 sortable-header" style="width: 12%;" data-sort="account" onclick="toggleSort('account')">
+                            <th class="py-3 px-3 sortable-header" style="width: 120px;" data-sort="account" onclick="toggleSort('account')">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" style="width: 22%;" data-sort="name" onclick="toggleSort('name')">
+                            <th class="py-3 px-3 sortable-header" style="width: 220px;" data-sort="name" onclick="toggleSort('name')">
                                 Campaign Name <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3" style="width: 10%;">Channel</th>
-                            <th class="py-3 px-3" style="width: 12%;">Status</th>
-                            <th class="py-3 px-3 sortable-header" style="width: 14%;" data-sort="recipients" onclick="toggleSort('recipients')">
+                            <th class="py-3 px-3" style="width: 100px;">Channel</th>
+                            <th class="py-3 px-3" style="width: 110px;">Status</th>
+                            <th class="py-3 px-3 sortable-header" style="width: 130px;" data-sort="recipients" onclick="toggleSort('recipients')">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" style="width: 14%;" data-sort="date" onclick="toggleSort('date')">
+                            <th class="py-3 px-3 sortable-header" style="width: 120px;" data-sort="date" onclick="toggleSort('date')">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
                             <th class="py-3 px-3 text-end" style="width: 80px;">Actions</th>
@@ -1638,20 +1638,33 @@ function handleCampaignAction(event, action, campaignId) {
     event.preventDefault();
     event.stopPropagation();
     
-    switch(action) {
-        case 'view':
-            openCampaignDrawer(campaignId);
-            break;
-        case 'suspend':
-            confirmSuspendCampaign(campaignId);
-            break;
-        case 'resume':
-            confirmResumeCampaign(campaignId);
-            break;
-        case 'cancel':
-            confirmCancelCampaign(campaignId);
-            break;
-    }
+    // Close any open dropdowns first
+    var openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+    openDropdowns.forEach(function(dropdown) {
+        dropdown.classList.remove('show');
+    });
+    var openButtons = document.querySelectorAll('[data-bs-toggle="dropdown"][aria-expanded="true"]');
+    openButtons.forEach(function(btn) {
+        btn.setAttribute('aria-expanded', 'false');
+    });
+    
+    // Small delay to ensure dropdown is closed before modal opens
+    setTimeout(function() {
+        switch(action) {
+            case 'view':
+                openCampaignDrawer(campaignId);
+                break;
+            case 'suspend':
+                confirmSuspendCampaign(campaignId);
+                break;
+            case 'resume':
+                confirmResumeCampaign(campaignId);
+                break;
+            case 'cancel':
+                confirmCancelCampaign(campaignId);
+                break;
+        }
+    }, 50);
 }
 
 document.getElementById('campaignsTableBody').addEventListener('click', function(e) {
