@@ -2658,6 +2658,38 @@ function saveRcsButton() {
     updateRcsButtonsPreview();
 }
 
+function normalizeRcsButtonData(buttonData) {
+    var normalized = {
+        label: buttonData.label || '',
+        type: buttonData.type || 'url',
+        
+        tracking_enabled: buttonData.tracking ? buttonData.tracking.enabled !== false : true,
+        callback_mode: buttonData.callback_data_mode || 'auto',
+        callback_data: buttonData.callback_data || null,
+        
+        tracking: buttonData.tracking || null
+    };
+    
+    if (buttonData.type === 'url') {
+        normalized.url = buttonData.url || '';
+    } else if (buttonData.type === 'phone') {
+        normalized.phone = buttonData.phone || '';
+    } else if (buttonData.type === 'calendar') {
+        normalized.eventTitle = buttonData.eventTitle || '';
+        normalized.eventStart = buttonData.eventStart || '';
+        normalized.eventEnd = buttonData.eventEnd || '';
+        normalized.eventDesc = buttonData.eventDesc || '';
+    }
+    
+    return normalized;
+}
+
+function getRcsButtonsPayload() {
+    return rcsButtons.map(function(btn) {
+        return normalizeRcsButtonData(btn);
+    });
+}
+
 function generateRcsCallbackData(cardIndex, buttonIndex) {
     var containerId = getRcsContainerId();
     var callbackData = 'qsms:c' + containerId + ':card' + cardIndex + ':btn' + (buttonIndex + 1);
