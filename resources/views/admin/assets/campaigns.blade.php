@@ -640,25 +640,25 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <!-- Campaigns Table -->
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-3">
-            <div class="table-responsive" id="campaignsTable">
-                <table class="table table-hover mb-0 align-middle" style="min-width: 1000px; width: 100%;">
+            <div class="table-responsive" id="campaignsTable" style="overflow-x: auto;">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%; min-width: 900px;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-3 sortable-header" style="width: 120px;" data-sort="account" onclick="toggleSort('account')">
+                            <th class="py-3 px-3 sortable-header" data-sort="account" onclick="toggleSort('account')" style="white-space: nowrap;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" style="width: 220px;" data-sort="name" onclick="toggleSort('name')">
+                            <th class="py-3 px-3 sortable-header" data-sort="name" onclick="toggleSort('name')" style="white-space: nowrap;">
                                 Campaign Name <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3" style="width: 100px;">Channel</th>
-                            <th class="py-3 px-3" style="width: 110px;">Status</th>
-                            <th class="py-3 px-3 sortable-header" style="width: 130px;" data-sort="recipients" onclick="toggleSort('recipients')">
+                            <th class="py-3 px-3" style="white-space: nowrap;">Channel</th>
+                            <th class="py-3 px-3" style="white-space: nowrap;">Status</th>
+                            <th class="py-3 px-3 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="white-space: nowrap;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" style="width: 120px;" data-sort="date" onclick="toggleSort('date')">
+                            <th class="py-3 px-3 sortable-header" data-sort="date" onclick="toggleSort('date')" style="white-space: nowrap;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 text-end" style="width: 80px;">Actions</th>
+                            <th class="py-3 px-3 text-end" style="white-space: nowrap; width: 80px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
@@ -734,23 +734,20 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                             </td>
                             <td class="py-2 px-3 text-end">
                                 <div class="dropdown">
-                                    <button class="action-dots-btn" type="button" 
-                                            data-bs-toggle="dropdown" 
-                                            data-bs-auto-close="true"
-                                            onclick="event.stopPropagation();">
+                                    <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" onclick="event.stopPropagation();">
-                                        <li><a class="dropdown-item" href="#" data-action="view" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'view', '{{ $campaign['id'] }}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="z-index: 1050;">
+                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="handleCampaignAction(event, 'view', '{{ $campaign['id'] }}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         @if($campaign['status'] === 'scheduled')
-                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        <li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
                                         @elseif($campaign['status'] === 'sending')
-                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
                                         @elseif($campaign['status'] === 'suspended')
-                                        <li><a class="dropdown-item text-success" href="#" data-action="resume" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'resume', '{{ $campaign['id'] }}')"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        <li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="handleCampaignAction(event, 'resume', '{{ $campaign['id'] }}')"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
                                         @endif
                                     </ul>
                                 </div>
@@ -1635,6 +1632,7 @@ function validateActionReason() {
 }
 
 function handleCampaignAction(event, action, campaignId) {
+    console.log('[CampaignAction] Triggered:', action, campaignId);
     event.preventDefault();
     event.stopPropagation();
     
@@ -1650,55 +1648,55 @@ function handleCampaignAction(event, action, campaignId) {
     
     // Small delay to ensure dropdown is closed before modal opens
     setTimeout(function() {
+        console.log('[CampaignAction] Executing:', action);
         switch(action) {
             case 'view':
                 openCampaignDrawer(campaignId);
                 break;
             case 'suspend':
+                console.log('[CampaignAction] Calling confirmSuspendCampaign');
                 confirmSuspendCampaign(campaignId);
                 break;
             case 'resume':
+                console.log('[CampaignAction] Calling confirmResumeCampaign');
                 confirmResumeCampaign(campaignId);
                 break;
             case 'cancel':
+                console.log('[CampaignAction] Calling confirmCancelCampaign');
                 confirmCancelCampaign(campaignId);
                 break;
         }
     }, 50);
 }
 
-document.getElementById('campaignsTableBody').addEventListener('click', function(e) {
-    const actionItem = e.target.closest('[data-action]');
-    if (!actionItem) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const action = actionItem.dataset.action;
-    const campaignId = actionItem.dataset.id;
-    
-    handleCampaignAction(e, action, campaignId);
-});
-
 var campaignActionModal = null;
 var pendingCampaignAction = null;
 
 function getCampaignData(campaignId) {
+    console.log('[getCampaignData] Looking for row with data-id:', campaignId);
     var row = document.querySelector('tr[data-id="' + campaignId + '"]');
+    console.log('[getCampaignData] Row found:', row ? 'yes' : 'no');
     if (!row) return null;
     var nameCell = row.querySelector('h6');
-    return {
+    var data = {
         id: campaignId,
         name: nameCell ? nameCell.textContent.trim() : row.dataset.name || 'Unknown',
         accountName: row.querySelector('.account-link')?.textContent?.trim() || 'Unknown',
         status: row.dataset.status || 'unknown',
         recipientsTotal: row.dataset.recipientsTotal || '0'
     };
+    console.log('[getCampaignData] Data:', data);
+    return data;
 }
 
 function confirmSuspendCampaign(campaignId) {
+    console.log('[confirmSuspendCampaign] Called with:', campaignId);
     var campaign = getCampaignData(campaignId);
-    if (!campaign) return;
+    console.log('[confirmSuspendCampaign] Campaign data:', campaign);
+    if (!campaign) {
+        console.error('[confirmSuspendCampaign] No campaign data found for:', campaignId);
+        return;
+    }
     
     pendingCampaignAction = { action: 'suspend', campaignId: campaignId, campaign: campaign };
     
@@ -1725,10 +1723,18 @@ function confirmSuspendCampaign(campaignId) {
     document.getElementById('actionModalConfirmBtn').className = 'btn btn-warning';
     document.getElementById('actionModalConfirmBtn').disabled = true;
     
-    if (!campaignActionModal) {
-        campaignActionModal = new bootstrap.Modal(document.getElementById('campaignActionModal'));
+    try {
+        var modalEl = document.getElementById('campaignActionModal');
+        console.log('[confirmSuspendCampaign] Modal element found:', modalEl ? 'yes' : 'no');
+        if (!campaignActionModal) {
+            campaignActionModal = new bootstrap.Modal(modalEl);
+        }
+        console.log('[confirmSuspendCampaign] Showing modal...');
+        campaignActionModal.show();
+        console.log('[confirmSuspendCampaign] Modal shown successfully');
+    } catch (e) {
+        console.error('[confirmSuspendCampaign] Error showing modal:', e);
     }
-    campaignActionModal.show();
 }
 
 function confirmResumeCampaign(campaignId) {
@@ -1762,8 +1768,13 @@ function confirmResumeCampaign(campaignId) {
 }
 
 function confirmCancelCampaign(campaignId) {
+    console.log('[confirmCancelCampaign] Called with:', campaignId);
     var campaign = getCampaignData(campaignId);
-    if (!campaign) return;
+    console.log('[confirmCancelCampaign] Campaign data:', campaign);
+    if (!campaign) {
+        console.error('[confirmCancelCampaign] No campaign data found for:', campaignId);
+        return;
+    }
     
     pendingCampaignAction = { action: 'cancel', campaignId: campaignId, campaign: campaign };
     
@@ -1790,10 +1801,18 @@ function confirmCancelCampaign(campaignId) {
     document.getElementById('actionModalConfirmBtn').className = 'btn btn-danger';
     document.getElementById('actionModalConfirmBtn').disabled = true;
     
-    if (!campaignActionModal) {
-        campaignActionModal = new bootstrap.Modal(document.getElementById('campaignActionModal'));
+    try {
+        var modalEl = document.getElementById('campaignActionModal');
+        console.log('[confirmCancelCampaign] Modal element found:', modalEl ? 'yes' : 'no');
+        if (!campaignActionModal) {
+            campaignActionModal = new bootstrap.Modal(modalEl);
+        }
+        console.log('[confirmCancelCampaign] Showing modal...');
+        campaignActionModal.show();
+        console.log('[confirmCancelCampaign] Modal shown successfully');
+    } catch (e) {
+        console.error('[confirmCancelCampaign] Error showing modal:', e);
     }
-    campaignActionModal.show();
 }
 
 function executeCampaignAction() {
