@@ -174,7 +174,7 @@
         <div class="row">
             <!-- Make a Payment -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
-                <a href="{{ route('purchase') }}" class="text-decoration-none">
+                <a href="{{ route('purchase.messages') }}" class="text-decoration-none">
                     <div class="widget-stat card bg-primary" id="tile-make-payment">
                         <div class="card-body p-4">
                             <div class="media">
@@ -196,7 +196,7 @@
             
             <!-- Buy a Number -->
             <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-3">
-                <a href="{{ route('management.numbers') }}" class="text-decoration-none">
+                <a href="{{ route('purchase.numbers') }}" class="text-decoration-none">
                     <div class="widget-stat card bg-warning" id="tile-buy-number">
                         <div class="card-body p-4">
                             <div class="media">
