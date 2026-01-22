@@ -641,24 +641,24 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-3">
             <div class="table-responsive" id="campaignsTable" style="overflow-x: auto;">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%; min-width: 900px;">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%; min-width: 900px; table-layout: fixed;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-3 sortable-header" data-sort="account" onclick="toggleSort('account')" style="white-space: nowrap;">
+                            <th class="py-3 px-3 sortable-header" data-sort="account" onclick="toggleSort('account')" style="white-space: nowrap; width: 14%;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" data-sort="name" onclick="toggleSort('name')" style="white-space: nowrap;">
+                            <th class="py-3 px-3 sortable-header" data-sort="name" onclick="toggleSort('name')" style="white-space: nowrap; width: 25%;">
                                 Campaign Name <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3" style="white-space: nowrap;">Channel</th>
-                            <th class="py-3 px-3" style="white-space: nowrap;">Status</th>
-                            <th class="py-3 px-3 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="white-space: nowrap;">
+                            <th class="py-3 px-3" style="white-space: nowrap; width: 10%;">Channel</th>
+                            <th class="py-3 px-3" style="white-space: nowrap; width: 12%;">Status</th>
+                            <th class="py-3 px-3 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="white-space: nowrap; width: 13%;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" data-sort="date" onclick="toggleSort('date')" style="white-space: nowrap;">
+                            <th class="py-3 px-3 sortable-header" data-sort="date" onclick="toggleSort('date')" style="white-space: nowrap; width: 14%;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 text-end" style="white-space: nowrap; width: 80px;">Actions</th>
+                            <th class="py-3 px-3 text-end" style="white-space: nowrap; width: 60px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
@@ -732,12 +732,12 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 {{ \Carbon\Carbon::parse($campaign['send_date'])->format('d M Y') }}
                                 <br><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small>
                             </td>
-                            <td class="py-2 px-3 text-end">
+                            <td class="py-2 px-3 text-end" onclick="event.stopPropagation()">
                                 <div class="dropdown">
-                                    <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="z-index: 1050;">
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="z-index: 1050;" onclick="event.stopPropagation()">
                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="handleCampaignAction(event, 'view', '{{ $campaign['id'] }}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         @if($campaign['status'] === 'scheduled')
