@@ -1691,17 +1691,18 @@ function handleCampaignAction(event, action, campaignId) {
     event.preventDefault();
     event.stopPropagation();
     
-    // Close any open dropdowns first
-    var openDropdowns = document.querySelectorAll('.dropdown-menu.show');
-    openDropdowns.forEach(function(dropdown) {
-        dropdown.classList.remove('show');
-    });
-    var openButtons = document.querySelectorAll('[data-bs-toggle="dropdown"][aria-expanded="true"]');
-    openButtons.forEach(function(btn) {
-        btn.setAttribute('aria-expanded', 'false');
+    // Close all dropdowns properly using Bootstrap API
+    document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+        var toggle = menu.previousElementSibling;
+        if (toggle) {
+            var dropdown = bootstrap.Dropdown.getInstance(toggle);
+            if (dropdown) {
+                dropdown.hide();
+            }
+        }
     });
     
-    // Small delay to ensure dropdown is closed before modal opens
+    // Small delay to let dropdown close properly
     setTimeout(function() {
         console.log('[CampaignAction] Executing:', action);
         switch(action) {
@@ -1721,7 +1722,7 @@ function handleCampaignAction(event, action, campaignId) {
                 confirmCancelCampaign(campaignId);
                 break;
         }
-    }, 50);
+    }, 150);
 }
 
 var campaignActionModal = null;
@@ -1781,9 +1782,15 @@ function confirmSuspendCampaign(campaignId) {
     try {
         var modalEl = document.getElementById('campaignActionModal');
         console.log('[confirmSuspendCampaign] Modal element found:', modalEl ? 'yes' : 'no');
-        if (!campaignActionModal) {
-            campaignActionModal = new bootstrap.Modal(modalEl);
+        
+        // Dispose existing instance to ensure clean state
+        if (campaignActionModal) {
+            campaignActionModal.dispose();
+            campaignActionModal = null;
         }
+        
+        // Create fresh modal instance
+        campaignActionModal = new bootstrap.Modal(modalEl);
         console.log('[confirmSuspendCampaign] Showing modal...');
         campaignActionModal.show();
         console.log('[confirmSuspendCampaign] Modal shown successfully');
@@ -1815,10 +1822,18 @@ function confirmResumeCampaign(campaignId) {
     `;
     document.getElementById('actionModalConfirmBtn').textContent = 'Resume Campaign';
     document.getElementById('actionModalConfirmBtn').className = 'btn btn-success';
+    document.getElementById('actionModalConfirmBtn').disabled = false;
     
-    if (!campaignActionModal) {
-        campaignActionModal = new bootstrap.Modal(document.getElementById('campaignActionModal'));
+    var modalEl = document.getElementById('campaignActionModal');
+    
+    // Dispose existing instance to ensure clean state
+    if (campaignActionModal) {
+        campaignActionModal.dispose();
+        campaignActionModal = null;
     }
+    
+    // Create fresh modal instance
+    campaignActionModal = new bootstrap.Modal(modalEl);
     campaignActionModal.show();
 }
 
@@ -1859,9 +1874,15 @@ function confirmCancelCampaign(campaignId) {
     try {
         var modalEl = document.getElementById('campaignActionModal');
         console.log('[confirmCancelCampaign] Modal element found:', modalEl ? 'yes' : 'no');
-        if (!campaignActionModal) {
-            campaignActionModal = new bootstrap.Modal(modalEl);
+        
+        // Dispose existing instance to ensure clean state
+        if (campaignActionModal) {
+            campaignActionModal.dispose();
+            campaignActionModal = null;
         }
+        
+        // Create fresh modal instance
+        campaignActionModal = new bootstrap.Modal(modalEl);
         console.log('[confirmCancelCampaign] Showing modal...');
         campaignActionModal.show();
         console.log('[confirmCancelCampaign] Modal shown successfully');
