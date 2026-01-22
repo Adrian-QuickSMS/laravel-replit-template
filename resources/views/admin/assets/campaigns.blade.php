@@ -17,7 +17,31 @@
     --admin-secondary: #2d5a87;
     --admin-accent: #4a90d9;
 }
-.admin-page { padding: 1rem; max-width: 100%; overflow-x: hidden; box-sizing: border-box; }
+.admin-page { padding: 0; max-width: 100%; box-sizing: border-box; }
+
+/* =========================================
+   Table Container Fixes
+   ========================================= */
+.admin-page .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.admin-page .table {
+    width: 100%;
+    margin-bottom: 0;
+}
+.admin-page .card-body.p-0 {
+    padding: 0 !important;
+}
+.admin-page .table thead th,
+.admin-page .table tbody td {
+    padding: 0.5rem 0.75rem;
+    vertical-align: middle;
+}
+.admin-page .table .actions-cell {
+    text-align: center;
+    white-space: nowrap;
+}
 
 /* =========================================
    Search & Filter Toolbar (Numbers-style)
@@ -667,27 +691,27 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="card" style="border: 1px solid #e0e6ed; overflow: hidden;">
-        <div class="card-body p-2" style="overflow: hidden;">
-            <div class="table-responsive" id="campaignsTable" style="overflow-x: auto; max-width: 100%;">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed; min-width: 700px;">
+    <div class="card" style="border: 1px solid #e0e6ed;">
+        <div class="card-body p-0">
+            <div class="table-responsive" id="campaignsTable">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-2 px-1 sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%;">
+                            <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%; min-width: 100px;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-2 px-1 sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 22%;">
+                            <th class="sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 22%; min-width: 180px;">
                                 Campaign <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-2 px-1" style="width: 10%;">Channel</th>
-                            <th class="py-2 px-1" style="width: 12%;">Status</th>
-                            <th class="py-2 px-1 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 15%;">
+                            <th style="width: 10%; min-width: 90px;">Channel</th>
+                            <th style="width: 12%; min-width: 100px;">Status</th>
+                            <th class="sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 15%; min-width: 120px;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-2 px-1 sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%;">
+                            <th class="sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%; min-width: 110px;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-2 px-1 text-center" style="width: 10%;">Actions</th>
+                            <th class="text-center" style="width: 10%; min-width: 80px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">

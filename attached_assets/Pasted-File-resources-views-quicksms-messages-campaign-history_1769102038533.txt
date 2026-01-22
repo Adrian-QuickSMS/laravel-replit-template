@@ -1,0 +1,87 @@
+File: resources/views/quicksms/messages/campaign-history.blade.php (or wherever the Campaign History admin page is located)
+
+PROBLEM:
+The campaign history table extends beyond its container on both sides, cutting off the Actions column on the right. The green markup in the screenshot shows the table overflowing the viewport.
+
+ROOT CAUSE:
+Multiple layers of padding are accumulating (.admin-page has padding, .card-body has padding), and overflow-x: hidden is masking the problem rather than fixing it. The percentage column widths don't account for cell padding and borders.
+
+SOLUTION:
+
+STEP 1: Update the container structure - remove padding layers
+Find the outer container (likely has class="admin-page" or similar wrapper) and change to:
+
+<div class="admin-page" style="padding: 0; max-width: 100%;">
+    <div class="card" style="border: 1px solid #e0e6ed;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+
+Remove these inline styles from the table:
+- table-layout: fixed
+- min-width: 700px
+Keep width: 100%
+
+STEP 2: Add min-width to each column header for better responsiveness
+Update the <thead> column widths:
+
+<th style="width: 11%; min-width: 100px;">Account</th>
+<th style="width: 22%; min-width: 180px;">Campaign</th>
+<th style="width: 10%; min-width: 90px;">Channel</th>
+<th style="width: 12%; min-width: 100px;">Status</th>
+<th style="width: 15%; min-width: 120px;">Recipients</th>
+<th style="width: 14%; min-width: 110px;">Send Date</th>
+<th style="width: 10%; min-width: 80px; text-align: right;">Actions</th>
+
+STEP 3: Add CSS to properly handle table spacing
+Add this CSS to the page's <style> section or global CSS:
+
+.admin-page .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-page .table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.admin-page .card-body {
+    padding: 0 !important;
+}
+
+/* Add padding to cells instead of card-body */
+.admin-page .table thead th,
+.admin-page .table tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+/* Ensure Actions column stays visible and right-aligned */
+.admin-page .table .actions-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.admin-page .table .action-dots-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.admin-page .table .action-dots-btn:hover {
+    color: #495057;
+}
+
+WHY THIS WORKS:
+✅ Removes competing padding layers that cause overflow
+✅ Lets .qsms-content-wrap (parent container) handle page padding
+✅ Adds min-width to columns so they remain readable when viewport narrows
+✅ Uses .table-responsive properly to enable horizontal scrolling when needed
+✅ Moves padding from container to cells for proper spacing
+✅ Right-aligns Actions column so three-dot menu is always visible
+
+RESULT:
+The table will fit perfectly within its container with no overflow. On narrow screens, it will scroll horizontally within the table-responsive wrapper.
