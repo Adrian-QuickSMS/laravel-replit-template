@@ -1056,7 +1056,7 @@
                 </div>
                 
                 <div class="mb-3 d-none" id="testMessageChannelInfo">
-                    <div class="alert alert-light py-2 mb-0">
+                    <div class="py-2 mb-0 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                         <small>
                             <i class="fas fa-info-circle me-1"></i>
                             <span id="testChannelDescription">SMS message will be sent</span>
