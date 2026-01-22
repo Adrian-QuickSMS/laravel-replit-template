@@ -581,18 +581,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchInput.addEventListener('input', applyFilters);
 
-    // Filter elements
-    const filterStatus = document.getElementById('filterStatus');
-    const filterTags = document.getElementById('filterTags');
-    const filterLists = document.getElementById('filterLists');
-    const filterSource = document.getElementById('filterSource');
+    function getFilterDropdown(filterName) {
+        return document.querySelector('.multiselect-dropdown[data-filter="' + filterName + '"]');
+    }
     
-    filterStatus.addEventListener('change', applyFilters);
-    filterTags.addEventListener('change', applyFilters);
-    filterLists.addEventListener('change', applyFilters);
-    filterSource.addEventListener('change', applyFilters);
+    function getSelectedValues(filterName) {
+        var dropdown = getFilterDropdown(filterName);
+        if (!dropdown) return [];
+        var checkboxes = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+        return Array.from(checkboxes).map(function(cb) { return cb.value; });
+    }
     
-    // Apply Filters button click handler
+    function updateDropdownLabel(filterName) {
+        var dropdown = getFilterDropdown(filterName);
+        if (!dropdown) return;
+        var selected = getSelectedValues(filterName);
+        var label = dropdown.querySelector('.dropdown-label');
+        var defaultLabels = { statuses: 'All Statuses', tags: 'All Tags', lists: 'All Lists', sources: 'All Sources' };
+        if (selected.length === 0) {
+            label.textContent = defaultLabels[filterName] || 'All';
+        } else if (selected.length === 1) {
+            label.textContent = selected[0];
+        } else {
+            label.textContent = selected.length + ' selected';
+        }
+    }
+    
+    document.querySelectorAll('.multiselect-dropdown').forEach(function(dropdown) {
+        dropdown.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox') {
+                var filterName = dropdown.getAttribute('data-filter');
+                updateDropdownLabel(filterName);
+            }
+        });
+        
+        var selectAllBtn = dropdown.querySelector('.select-all-btn');
+        var clearAllBtn = dropdown.querySelector('.clear-all-btn');
+        
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.checked = true; });
+                var filterName = dropdown.getAttribute('data-filter');
+                updateDropdownLabel(filterName);
+            });
+        }
+        
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdown.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+                var filterName = dropdown.getAttribute('data-filter');
+                updateDropdownLabel(filterName);
+            });
+        }
+    });
+    
     var btnApplyFilters = document.getElementById('btnApplyFilters');
     if (btnApplyFilters) {
         btnApplyFilters.addEventListener('click', function() {
@@ -601,106 +645,158 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Reset Filters button click handler
     var btnResetFilters = document.getElementById('btnResetFilters');
     if (btnResetFilters) {
         btnResetFilters.addEventListener('click', function() {
-            filterStatus.value = '';
-            filterTags.value = '';
-            filterLists.value = '';
-            filterSource.value = '';
             searchInput.value = '';
             document.getElementById('filterCreatedDate').value = '';
-            // Reset checkboxes
-            document.querySelectorAll('#filtersCollapse input[type="checkbox"]').forEach(function(cb) {
+            document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
                 cb.checked = false;
             });
+            ['statuses', 'tags', 'lists', 'sources'].forEach(updateDropdownLabel);
             applyFilters();
+            updateActiveFiltersDisplay();
             showToast('Filters reset', 'success');
         });
     }
     
+    var btnClearAllFilters = document.getElementById('btnClearAllFilters');
+    if (btnClearAllFilters) {
+        btnClearAllFilters.addEventListener('click', function() {
+            searchInput.value = '';
+            document.getElementById('filterCreatedDate').value = '';
+            document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = false;
+            });
+            ['statuses', 'tags', 'lists', 'sources'].forEach(updateDropdownLabel);
+            applyFilters();
+            updateActiveFiltersDisplay();
+        });
+    }
+    
     function applyFilters() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const statusFilter = filterStatus.value;
-        const tagsFilter = filterTags.value;
-        const listsFilter = filterLists.value;
-        const sourceFilter = filterSource.value;
+        var searchTerm = searchInput.value.toLowerCase();
+        var selectedStatuses = getSelectedValues('statuses');
+        var selectedTags = getSelectedValues('tags');
+        var selectedLists = getSelectedValues('lists');
+        var selectedSources = getSelectedValues('sources');
+        var createdDateFilter = document.getElementById('filterCreatedDate').value;
         
-        var filteredContacts = contactsData.filter(contact => {
-            // Search filter
-            const searchMatch = searchTerm === '' || 
+        var filteredContacts = contactsData.filter(function(contact) {
+            var searchMatch = searchTerm === '' || 
                 (contact.first_name + ' ' + contact.last_name).toLowerCase().includes(searchTerm) ||
                 contact.mobile.includes(searchTerm) ||
-                contact.tags.some(t => t.toLowerCase().includes(searchTerm)) ||
-                contact.lists.some(l => l.toLowerCase().includes(searchTerm));
+                contact.tags.some(function(t) { return t.toLowerCase().includes(searchTerm); }) ||
+                contact.lists.some(function(l) { return l.toLowerCase().includes(searchTerm); });
             
-            // Status filter
-            const statusMatch = statusFilter === '' || contact.status === statusFilter;
+            var statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(contact.status);
             
-            // Tags filter
-            const tagsMatch = tagsFilter === '' || contact.tags.includes(tagsFilter);
+            var tagsMatch = selectedTags.length === 0 || selectedTags.some(function(tag) {
+                return contact.tags.includes(tag);
+            });
             
-            // Lists filter
-            const listsMatch = listsFilter === '' || contact.lists.includes(listsFilter);
+            var listsMatch = selectedLists.length === 0 || selectedLists.some(function(list) {
+                return contact.lists.includes(list);
+            });
             
-            // Source filter
-            const sourceMatch = sourceFilter === '' || contact.source === sourceFilter;
+            var sourceMatch = selectedSources.length === 0 || selectedSources.includes(contact.source);
             
-            return searchMatch && statusMatch && tagsMatch && listsMatch && sourceMatch;
+            var dateMatch = true;
+            if (createdDateFilter && contact.created_at) {
+                dateMatch = contact.created_at.startsWith(createdDateFilter);
+            }
+            
+            return searchMatch && statusMatch && tagsMatch && listsMatch && sourceMatch && dateMatch;
         });
         
         renderContactsTable(filteredContacts);
-        updateActiveFilters();
+        updateActiveFiltersDisplay();
     }
     
-    function updateActiveFilters() {
-        const activeFiltersDiv = document.getElementById('activeFilters');
-        let badges = [];
+    function updateActiveFiltersDisplay() {
+        var container = document.getElementById('activeFiltersContainer');
+        var chipsDiv = document.getElementById('activeFiltersChips');
+        var chips = [];
         
-        if (filterStatus.value) {
-            badges.push(`<span class="badge bg-primary me-1">Status: ${filterStatus.options[filterStatus.selectedIndex].text} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterStatus')"></i></span>`);
-        }
-        if (filterTags.value) {
-            badges.push(`<span class="badge bg-primary me-1">Tag: ${filterTags.value} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterTags')"></i></span>`);
-        }
-        if (filterLists.value) {
-            badges.push(`<span class="badge bg-primary me-1">List: ${filterLists.value} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterLists')"></i></span>`);
-        }
-        if (filterSource.value) {
-            badges.push(`<span class="badge bg-primary me-1">Source: ${filterSource.value} <i class="fas fa-times ms-1" style="cursor:pointer" onclick="clearFilter('filterSource')"></i></span>`);
-        }
+        var selectedStatuses = getSelectedValues('statuses');
+        var selectedTags = getSelectedValues('tags');
+        var selectedLists = getSelectedValues('lists');
+        var selectedSources = getSelectedValues('sources');
         
-        if (badges.length > 0) {
-            badges.push(`<a href="#!" class="small text-danger ms-2" onclick="clearAllFilters(); return false;"><i class="fas fa-times-circle me-1"></i>Clear All</a>`);
-        }
+        selectedStatuses.forEach(function(val) {
+            chips.push('<span class="filter-chip">Status: ' + val + ' <span class="remove-chip" data-filter="statuses" data-value="' + val + '">&times;</span></span>');
+        });
+        selectedTags.forEach(function(val) {
+            chips.push('<span class="filter-chip">Tag: ' + val + ' <span class="remove-chip" data-filter="tags" data-value="' + val + '">&times;</span></span>');
+        });
+        selectedLists.forEach(function(val) {
+            chips.push('<span class="filter-chip">List: ' + val + ' <span class="remove-chip" data-filter="lists" data-value="' + val + '">&times;</span></span>');
+        });
+        selectedSources.forEach(function(val) {
+            chips.push('<span class="filter-chip">Source: ' + val + ' <span class="remove-chip" data-filter="sources" data-value="' + val + '">&times;</span></span>');
+        });
         
-        activeFiltersDiv.innerHTML = badges.join('');
+        if (chips.length > 0) {
+            chipsDiv.innerHTML = chips.join('');
+            container.style.display = 'block';
+            
+            chipsDiv.querySelectorAll('.remove-chip').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    var filterName = this.getAttribute('data-filter');
+                    var value = this.getAttribute('data-value');
+                    var dropdown = getFilterDropdown(filterName);
+                    if (dropdown) {
+                        var checkbox = dropdown.querySelector('input[type="checkbox"][value="' + value + '"]');
+                        if (checkbox) {
+                            checkbox.checked = false;
+                            updateDropdownLabel(filterName);
+                            applyFilters();
+                        }
+                    }
+                });
+            });
+        } else {
+            container.style.display = 'none';
+            chipsDiv.innerHTML = '';
+        }
     }
 
-    document.querySelectorAll('.mobile-number').forEach(el => {
+    document.querySelectorAll('.mobile-number').forEach(function(el) {
         el.style.cursor = 'pointer';
         el.title = 'Click to toggle masking';
         el.addEventListener('click', function() {
-            const full = this.dataset.full;
-            const masked = this.dataset.masked;
+            var full = this.dataset.full;
+            var masked = this.dataset.masked;
             this.textContent = this.textContent === masked ? full : masked;
         });
     });
 });
 
-function clearFilter(filterId) {
-    document.getElementById(filterId).value = '';
-    document.getElementById(filterId).dispatchEvent(new Event('change'));
+function clearFilterByName(filterName, value) {
+    var dropdown = document.querySelector('.multiselect-dropdown[data-filter="' + filterName + '"]');
+    if (dropdown) {
+        var checkbox = dropdown.querySelector('input[type="checkbox"][value="' + value + '"]');
+        if (checkbox) checkbox.checked = false;
+    }
 }
 
 function clearAllFilters() {
-    document.getElementById('filterStatus').value = '';
-    document.getElementById('filterTags').value = '';
-    document.getElementById('filterLists').value = '';
-    document.getElementById('filterSource').value = '';
+    document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
     document.getElementById('contactSearch').value = '';
-    document.getElementById('filterStatus').dispatchEvent(new Event('change'));
+    var createdDate = document.getElementById('filterCreatedDate');
+    if (createdDate) createdDate.value = '';
+    ['statuses', 'tags', 'lists', 'sources'].forEach(function(filterName) {
+        var dropdown = document.querySelector('.multiselect-dropdown[data-filter="' + filterName + '"]');
+        if (dropdown) {
+            var label = dropdown.querySelector('.dropdown-label');
+            var defaults = { statuses: 'All Statuses', tags: 'All Tags', lists: 'All Lists', sources: 'All Sources' };
+            if (label) label.textContent = defaults[filterName] || 'All';
+        }
+    });
+    var container = document.getElementById('activeFiltersContainer');
+    if (container) container.style.display = 'none';
+    var chipsDiv = document.getElementById('activeFiltersChips');
+    if (chipsDiv) chipsDiv.innerHTML = '';
 }
 
 function sortContacts(sortKey, direction) {
