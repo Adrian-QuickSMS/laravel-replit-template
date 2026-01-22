@@ -373,6 +373,7 @@ $permissions = [
                                             </ul>
                                         </div>
                                     </th>
+                                    <th style="width: 90px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="campaignsTableBody">
@@ -420,10 +421,11 @@ $permissions = [
                                         @endif
                                     </td>
                                     <td class="py-2">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
+                                    <td class="py-2"></td>
                                 </tr>
                                 @empty
                                 <tr id="emptyStateRow">
-                                    <td colspan="5" class="text-center py-5 text-muted">
+                                    <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>
                                         <p class="mb-2">No campaigns to display yet.</p>
                                         <a href="{{ route('messages.send') }}" class="btn btn-outline-primary btn-sm">
@@ -965,7 +967,7 @@ function loadDraftsFromStorage() {
         if (existingRow) return;
         
         var channelLabel = draft.channel === 'sms_only' ? 'SMS' : (draft.channel === 'basic_rcs' ? 'Basic RCS' : 'Rich RCS');
-        var channelBadgeClass = draft.channel === 'sms_only' ? 'badge-channel-sms' : 'badge-channel-rcs';
+        var channelBadgeClass = draft.channel === 'sms_only' ? 'badge-pastel-success' : 'badge-pastel-primary';
         
         var createdDate = new Date(draft.created_at);
         var formattedDate = createdDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -988,21 +990,14 @@ function loadDraftsFromStorage() {
         row.style.cursor = 'pointer';
         row.onclick = function() { openCampaignDrawer(draft.id); };
         
-        row.innerHTML = '<td>' +
-            '<div class="fw-medium">' + escapeHtml(draft.name) + '</div>' +
-            '<small class="text-muted"><span class="badge ' + channelBadgeClass + ' me-1">' + channelLabel + '</span>' +
-            (draft.sender_id ? '<span class="text-muted">' + escapeHtml(draft.sender_id) + '</span>' : '') + '</small>' +
+        row.innerHTML = '<td class="py-2">' +
+            '<h6 class="mb-0 fs-6">' + escapeHtml(draft.name) + '</h6>' +
             '</td>' +
-            '<td><span class="badge badge-status-draft"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
-            '<td>' +
-            '<div>' + draft.recipients + '</div>' +
-            '<small class="text-muted">-</small>' +
-            '</td>' +
-            '<td>' +
-            '<div>' + formattedDate + '</div>' +
-            '<small class="text-muted">' + formattedTime + '</small>' +
-            '</td>' +
-            '<td class="text-end">' +
+            '<td class="py-2"><span class="badge ' + channelBadgeClass + '">' + channelLabel + '</span></td>' +
+            '<td class="py-2"><span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
+            '<td class="py-2">' + draft.recipients + '</td>' +
+            '<td class="py-2">' + formattedDate + '<br><small class="text-muted">' + formattedTime + '</small></td>' +
+            '<td class="py-2 text-end">' +
             '<a href="/messages/send-message?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();" title="Edit Draft">' +
             '<i class="fas fa-edit"></i>' +
             '</a>' +
