@@ -113,6 +113,63 @@
                         </div>
                     </div>
                 </div>
+                
+                <hr class="my-3">
+                
+                <div id="rcsButtonTrackingSection">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <label class="form-label small mb-0">Click Tracking</label>
+                            <small class="d-block text-muted">Track button interactions for analytics</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="rcsButtonTrackingEnabled" onchange="toggleRcsButtonTracking()">
+                        </div>
+                    </div>
+                    
+                    <div id="rcsButtonTrackingConfig" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label small">Tracking ID</label>
+                            <input type="text" class="form-control form-control-sm" id="rcsButtonTrackingId" maxlength="50" placeholder="e.g., promo_cta_jan26">
+                            <small class="text-muted">Custom identifier for this button (alphanumeric, underscores)</small>
+                        </div>
+                        
+                        <div class="mb-3" id="rcsButtonUtmSection">
+                            <label class="form-label small">UTM Parameters <span class="badge bg-light text-dark">URL buttons only</span></label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmSource" placeholder="utm_source" maxlength="100">
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmMedium" placeholder="utm_medium" maxlength="100">
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmCampaign" placeholder="utm_campaign" maxlength="100">
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmContent" placeholder="utm_content" maxlength="100">
+                                </div>
+                            </div>
+                            <small class="text-muted">Auto-appended to URL when clicked</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small">Tracking Events</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rcsButtonTrackClick" checked disabled>
+                                <label class="form-check-label small" for="rcsButtonTrackClick">
+                                    <i class="fas fa-mouse-pointer me-1 text-muted"></i>Button Click
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rcsButtonTrackConversion">
+                                <label class="form-check-label small" for="rcsButtonTrackConversion">
+                                    <i class="fas fa-check-circle me-1 text-muted"></i>Conversion (requires pixel)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>

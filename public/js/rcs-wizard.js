@@ -2322,6 +2322,9 @@ function editRcsButton(index) {
         if (descEl) descEl.value = btn.eventDesc || '';
     }
     
+    setRcsButtonTrackingData(btn.tracking);
+    updateRcsButtonUtmVisibility();
+    
     var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
     modal.show();
 }
@@ -2353,6 +2356,47 @@ function resetRcsButtonForm() {
     if (endEl) endEl.value = '';
     if (descEl) descEl.value = '';
     hideAllRcsButtonErrors();
+    resetRcsButtonTracking();
+}
+
+function resetRcsButtonTracking() {
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
+    var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
+    var trackingId = document.getElementById('rcsButtonTrackingId');
+    var utmSource = document.getElementById('rcsButtonUtmSource');
+    var utmMedium = document.getElementById('rcsButtonUtmMedium');
+    var utmCampaign = document.getElementById('rcsButtonUtmCampaign');
+    var utmContent = document.getElementById('rcsButtonUtmContent');
+    var trackConversion = document.getElementById('rcsButtonTrackConversion');
+    
+    if (trackingEnabled) trackingEnabled.checked = false;
+    if (trackingConfig) trackingConfig.classList.add('d-none');
+    if (trackingId) trackingId.value = '';
+    if (utmSource) utmSource.value = '';
+    if (utmMedium) utmMedium.value = '';
+    if (utmCampaign) utmCampaign.value = '';
+    if (utmContent) utmContent.value = '';
+    if (trackConversion) trackConversion.checked = false;
+}
+
+function toggleRcsButtonTracking() {
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
+    var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
+    
+    if (trackingEnabled && trackingConfig) {
+        trackingConfig.classList.toggle('d-none', !trackingEnabled.checked);
+    }
+    updateRcsButtonUtmVisibility();
+}
+
+function updateRcsButtonUtmVisibility() {
+    var checkedType = document.querySelector('input[name="rcsButtonType"]:checked');
+    var type = checkedType ? checkedType.value : 'url';
+    var utmSection = document.getElementById('rcsButtonUtmSection');
+    
+    if (utmSection) {
+        utmSection.classList.toggle('d-none', type !== 'url');
+    }
 }
 
 function hideAllRcsButtonErrors() {
@@ -2373,6 +2417,7 @@ function toggleRcsButtonType() {
     if (phoneConfig) phoneConfig.classList.toggle('d-none', type !== 'phone');
     if (calendarConfig) calendarConfig.classList.toggle('d-none', type !== 'calendar');
     hideAllRcsButtonErrors();
+    updateRcsButtonUtmVisibility();
 }
 
 function updateRcsButtonLabelCount() {
@@ -2470,6 +2515,8 @@ function saveRcsButton() {
         buttonData.eventDesc = descEl ? descEl.value.trim() : '';
     }
     
+    buttonData.tracking = getRcsButtonTrackingData(type);
+    
     if (rcsEditingButtonIndex >= 0) {
         rcsButtons[rcsEditingButtonIndex] = buttonData;
     } else {
@@ -2481,6 +2528,77 @@ function saveRcsButton() {
     updateRcsButtonsPreview();
 }
 
+function getRcsButtonTrackingData(buttonType) {
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
+    
+    if (!trackingEnabled || !trackingEnabled.checked) {
+        return null;
+    }
+    
+    var trackingId = document.getElementById('rcsButtonTrackingId');
+    var trackConversion = document.getElementById('rcsButtonTrackConversion');
+    
+    var trackingData = {
+        enabled: true,
+        trackingId: trackingId ? trackingId.value.trim() : '',
+        events: {
+            click: true,
+            conversion: trackConversion ? trackConversion.checked : false
+        }
+    };
+    
+    if (buttonType === 'url') {
+        var utmSource = document.getElementById('rcsButtonUtmSource');
+        var utmMedium = document.getElementById('rcsButtonUtmMedium');
+        var utmCampaign = document.getElementById('rcsButtonUtmCampaign');
+        var utmContent = document.getElementById('rcsButtonUtmContent');
+        
+        trackingData.utm = {
+            source: utmSource ? utmSource.value.trim() : '',
+            medium: utmMedium ? utmMedium.value.trim() : '',
+            campaign: utmCampaign ? utmCampaign.value.trim() : '',
+            content: utmContent ? utmContent.value.trim() : ''
+        };
+    }
+    
+    return trackingData;
+}
+
+function setRcsButtonTrackingData(tracking) {
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
+    var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
+    var trackingId = document.getElementById('rcsButtonTrackingId');
+    var utmSource = document.getElementById('rcsButtonUtmSource');
+    var utmMedium = document.getElementById('rcsButtonUtmMedium');
+    var utmCampaign = document.getElementById('rcsButtonUtmCampaign');
+    var utmContent = document.getElementById('rcsButtonUtmContent');
+    var trackConversion = document.getElementById('rcsButtonTrackConversion');
+    
+    if (!tracking || !tracking.enabled) {
+        resetRcsButtonTracking();
+        return;
+    }
+    
+    if (trackingEnabled) {
+        trackingEnabled.checked = true;
+    }
+    if (trackingConfig) {
+        trackingConfig.classList.remove('d-none');
+    }
+    if (trackingId) {
+        trackingId.value = tracking.trackingId || '';
+    }
+    if (tracking.utm) {
+        if (utmSource) utmSource.value = tracking.utm.source || '';
+        if (utmMedium) utmMedium.value = tracking.utm.medium || '';
+        if (utmCampaign) utmCampaign.value = tracking.utm.campaign || '';
+        if (utmContent) utmContent.value = tracking.utm.content || '';
+    }
+    if (trackConversion && tracking.events) {
+        trackConversion.checked = tracking.events.conversion || false;
+    }
+}
+
 function renderRcsButtons() {
     var container = document.getElementById('rcsButtonsList');
     if (!container) return;
@@ -2489,12 +2607,16 @@ function renderRcsButtons() {
     rcsButtons.forEach(function(btn, index) {
         var typeIcon = btn.type === 'url' ? 'fa-link' : btn.type === 'phone' ? 'fa-phone' : 'fa-calendar-plus';
         var typeLabel = btn.type === 'url' ? 'URL' : btn.type === 'phone' ? 'Call' : 'Calendar';
+        var hasTracking = btn.tracking && btn.tracking.enabled;
         
         var html = '<div class="d-flex align-items-center justify-content-between p-2 border rounded mb-2" style="background: rgba(136, 108, 192, 0.15);">';
-        html += '<div class="d-flex align-items-center">';
+        html += '<div class="d-flex align-items-center flex-wrap gap-1">';
         html += '<span class="me-2" style="color: #6c5b9e;"><i class="fas ' + typeIcon + '"></i></span>';
         html += '<span class="small fw-medium" style="color: #6c5b9e;">' + escapeHtmlRcs(btn.label) + '</span>';
-        html += '<span class="badge ms-2 small" style="background: rgba(136, 108, 192, 0.25); color: #6c5b9e;">' + typeLabel + '</span>';
+        html += '<span class="badge small" style="background: rgba(136, 108, 192, 0.25); color: #6c5b9e;">' + typeLabel + '</span>';
+        if (hasTracking) {
+            html += '<span class="badge small" style="background: rgba(40, 167, 69, 0.2); color: #28a745;" title="Click tracking enabled"><i class="fas fa-chart-line me-1"></i>Tracked</span>';
+        }
         html += '</div>';
         html += '<div class="btn-group btn-group-sm">';
         html += '<button type="button" class="btn btn-outline-secondary" onclick="editRcsButton(' + index + ')"><i class="fas fa-edit"></i></button>';
