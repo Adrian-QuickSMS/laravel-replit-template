@@ -822,62 +822,7 @@ $permissions = [
                         </div>
                     </div>
                     
-                    <div class="text-center mt-2">
-                        <small class="text-muted">
-                            <i class="fas fa-shield-alt me-1"></i>GDPR: Placeholders shown - no personal data displayed
-                        </small>
                     </div>
-                </div>
-            </div>
-
-            <div class="card mb-3" id="logsExportsCard">
-                <div class="card-body p-3">
-                    <h6 class="text-muted mb-3"><i class="fas fa-file-export me-2"></i>Logs & Exports</h6>
-                    
-                    <div class="d-grid gap-2">
-                        @if($permissions['can_export_delivery'])
-                        <button class="btn btn-outline-primary btn-sm text-start" onclick="exportDeliveryReport()">
-                            <i class="fas fa-file-csv me-2"></i>Export Delivery Report
-                            <span class="float-end text-muted small">CSV / Excel</span>
-                        </button>
-                        @endif
-                        
-                        @if($permissions['can_export_messages'])
-                        <button class="btn btn-outline-primary btn-sm text-start" onclick="exportMessageLog()">
-                            <i class="fas fa-list-alt me-2"></i>Export Message Log
-                            <span class="float-end text-muted small">Per recipient (PII)</span>
-                        </button>
-                        @else
-                        <button class="btn btn-outline-secondary btn-sm text-start" disabled title="Admin access required for PII exports">
-                            <i class="fas fa-lock me-2"></i>Export Message Log
-                            <span class="float-end text-muted small">Admin only</span>
-                        </button>
-                        @endif
-                        
-                        @if($permissions['can_view_audit'])
-                        <button class="btn btn-outline-secondary btn-sm text-start" onclick="viewAuditLog()">
-                            <i class="fas fa-history me-2"></i>View Audit Log
-                            <span class="float-end text-muted small">Activity trail</span>
-                        </button>
-                        @else
-                        <button class="btn btn-outline-secondary btn-sm text-start" disabled title="Admin access required">
-                            <i class="fas fa-lock me-2"></i>View Audit Log
-                            <span class="float-end text-muted small">Admin only</span>
-                        </button>
-                        @endif
-                    </div>
-                    
-                    <div class="small text-muted mt-2">
-                        <i class="fas fa-shield-alt me-1"></i>Access controlled by role permissions
-                    </div>
-                </div>
-            </div>
-
-            <div class="card bg-light border-0">
-                <div class="card-body p-3 text-center text-muted">
-                    <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
-                    <p class="mb-0 small">Detailed analytics coming soon</p>
-                </div>
             </div>
         </div>
     </div>
