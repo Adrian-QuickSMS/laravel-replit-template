@@ -1035,16 +1035,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var rateEl = document.getElementById('delivery-rate-value');
         if (!rateEl) return;
         
-        var rate = parseFloat(rateEl.dataset.rate) || 0;
         rateEl.classList.remove('delivery-rate-green', 'delivery-rate-amber', 'delivery-rate-red');
-        
-        if (rate > 95) {
-            rateEl.classList.add('delivery-rate-green');
-        } else if (rate >= 90) {
-            rateEl.classList.add('delivery-rate-amber');
-        } else {
-            rateEl.classList.add('delivery-rate-red');
-        }
+        rateEl.style.color = '#000';
     }
     
     function setTileLoading(tileId, isLoading) {
