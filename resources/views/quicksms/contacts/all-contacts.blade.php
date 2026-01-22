@@ -2875,34 +2875,34 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
     <div class="offcanvas-body p-0">
         <!-- Filters Toggle -->
         <div class="px-3 pt-3">
-            <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="collapse" data-bs-target="#timelineFiltersPanel">
+            <button type="button" class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#timelineFiltersPanel" style="background-color: #fff; border-color: #6b5b95; color: #6b5b95;">
                 <i class="fas fa-filter me-1"></i> Filters
-                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                <i class="fas fa-chevron-down ms-2"></i>
             </button>
         </div>
         
         <!-- Collapsible Filters Panel -->
         <div class="collapse px-3 pt-2" id="timelineFiltersPanel">
-            <div class="border rounded p-3 bg-light mb-3">
+            <div class="border rounded p-3 mb-3" style="background-color: #fff; border-color: #e0e0e0 !important;">
                 <!-- Date Range -->
                 <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">Date Range</label>
+                    <label class="form-label small mb-1" style="color: #000;">Date Range</label>
                     <div class="row g-2">
                         <div class="col-6">
-                            <input type="date" class="form-control form-control-sm" id="timelineDateFrom">
+                            <input type="date" class="form-control form-control-sm" id="timelineDateFrom" style="border: 1px solid #ced4da;">
                         </div>
                         <div class="col-6">
-                            <input type="date" class="form-control form-control-sm" id="timelineDateTo">
+                            <input type="date" class="form-control form-control-sm" id="timelineDateTo" style="border: 1px solid #ced4da;">
                         </div>
                     </div>
                 </div>
                 
                 <!-- Event Type Multi-select -->
                 <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">Event Type</label>
+                    <label class="form-label small mb-1" style="color: #000;">Event Type</label>
                     <div class="dropdown multiselect-dropdown w-100" data-filter="eventTypes">
-                        <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                            <span class="dropdown-label">All Event Types</span>
+                        <button class="btn btn-sm w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border: 1px solid #ced4da; background-color: #fff;">
+                            <span class="dropdown-label" style="color: #6b5b95;">All Event Types</span>
                         </button>
                         <div class="dropdown-menu w-100 p-2" style="max-height: 200px; overflow-y: auto;">
                             <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="outbound" id="evtOutbound" checked><label class="form-check-label small" for="evtOutbound">Messaging (Outbound)</label></div>
@@ -2918,10 +2918,10 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                 
                 <!-- Channel Multi-select -->
                 <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">Channel</label>
+                    <label class="form-label small mb-1" style="color: #000;">Channel</label>
                     <div class="dropdown multiselect-dropdown w-100" data-filter="channels">
-                        <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                            <span class="dropdown-label">All Channels</span>
+                        <button class="btn btn-sm w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border: 1px solid #ced4da; background-color: #fff;">
+                            <span class="dropdown-label" style="color: #6b5b95;">All Channels</span>
                         </button>
                         <div class="dropdown-menu w-100 p-2">
                             <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="sms" id="chSms" checked><label class="form-check-label small" for="chSms">SMS</label></div>
@@ -2932,10 +2932,10 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                 
                 <!-- Source Multi-select -->
                 <div class="mb-3">
-                    <label class="form-label small text-muted mb-1">Source</label>
+                    <label class="form-label small mb-1" style="color: #000;">Source</label>
                     <div class="dropdown multiselect-dropdown w-100" data-filter="sources">
-                        <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                            <span class="dropdown-label">All Sources</span>
+                        <button class="btn btn-sm w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border: 1px solid #ced4da; background-color: #fff;">
+                            <span class="dropdown-label" style="color: #6b5b95;">All Sources</span>
                         </button>
                         <div class="dropdown-menu w-100 p-2">
                             <div class="form-check"><input class="form-check-input timeline-filter-check" type="checkbox" value="campaign" id="srcCampaign" checked><label class="form-check-label small" for="srcCampaign">Campaign</label></div>
@@ -2952,7 +2952,7 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetTimelineFilters()">
                         <i class="fas fa-undo me-1"></i> Reset
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="applyTimelineFilters()">
+                    <button type="button" class="btn btn-sm" onclick="applyTimelineFilters()" style="background-color: #6b5b95; color: #fff; border-color: #6b5b95;">
                         <i class="fas fa-check me-1"></i> Apply Filters
                     </button>
                 </div>
@@ -2993,34 +2993,34 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
             <div class="modal-body p-0">
                 <!-- Filters Toggle -->
                 <div class="px-3 pt-3">
-                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="collapse" data-bs-target="#timelineFiltersPanelModal">
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#timelineFiltersPanelModal" style="background-color: #fff; border-color: #6b5b95; color: #6b5b95;">
                         <i class="fas fa-filter me-1"></i> Filters
-                        <i class="fas fa-chevron-down ms-1 float-end"></i>
+                        <i class="fas fa-chevron-down ms-2"></i>
                     </button>
                 </div>
                 
                 <!-- Collapsible Filters Panel -->
                 <div class="collapse px-3 pt-2" id="timelineFiltersPanelModal">
-                    <div class="border rounded p-3 bg-light mb-3">
+                    <div class="border rounded p-3 mb-3" style="background-color: #fff; border-color: #e0e0e0 !important;">
                         <!-- Date Range -->
                         <div class="mb-3">
-                            <label class="form-label small text-muted mb-1">Date Range</label>
+                            <label class="form-label small mb-1" style="color: #000;">Date Range</label>
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <input type="date" class="form-control form-control-sm" id="timelineDateFromModal">
+                                    <input type="date" class="form-control form-control-sm" id="timelineDateFromModal" style="border: 1px solid #ced4da;">
                                 </div>
                                 <div class="col-6">
-                                    <input type="date" class="form-control form-control-sm" id="timelineDateToModal">
+                                    <input type="date" class="form-control form-control-sm" id="timelineDateToModal" style="border: 1px solid #ced4da;">
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Event Type Multi-select -->
                         <div class="mb-3">
-                            <label class="form-label small text-muted mb-1">Event Type</label>
+                            <label class="form-label small mb-1" style="color: #000;">Event Type</label>
                             <div class="dropdown multiselect-dropdown w-100" data-filter="eventTypesModal">
-                                <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                                    <span class="dropdown-label">All Event Types</span>
+                                <button class="btn btn-sm w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border: 1px solid #ced4da; background-color: #fff;">
+                                    <span class="dropdown-label" style="color: #6b5b95;">All Event Types</span>
                                 </button>
                                 <div class="dropdown-menu w-100 p-2" style="max-height: 200px; overflow-y: auto;">
                                     <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="outbound" id="evtOutboundM" checked><label class="form-check-label small" for="evtOutboundM">Messaging (Outbound)</label></div>
@@ -3036,10 +3036,10 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                         
                         <!-- Channel Multi-select -->
                         <div class="mb-3">
-                            <label class="form-label small text-muted mb-1">Channel</label>
+                            <label class="form-label small mb-1" style="color: #000;">Channel</label>
                             <div class="dropdown multiselect-dropdown w-100" data-filter="channelsModal">
-                                <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                                    <span class="dropdown-label">All Channels</span>
+                                <button class="btn btn-sm w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border: 1px solid #ced4da; background-color: #fff;">
+                                    <span class="dropdown-label" style="color: #6b5b95;">All Channels</span>
                                 </button>
                                 <div class="dropdown-menu w-100 p-2">
                                     <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="sms" id="chSmsM" checked><label class="form-check-label small" for="chSmsM">SMS</label></div>
@@ -3050,10 +3050,10 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                         
                         <!-- Source Multi-select -->
                         <div class="mb-3">
-                            <label class="form-label small text-muted mb-1">Source</label>
+                            <label class="form-label small mb-1" style="color: #000;">Source</label>
                             <div class="dropdown multiselect-dropdown w-100" data-filter="sourcesModal">
-                                <button class="btn btn-sm btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                                    <span class="dropdown-label">All Sources</span>
+                                <button class="btn btn-sm w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="border: 1px solid #ced4da; background-color: #fff;">
+                                    <span class="dropdown-label" style="color: #6b5b95;">All Sources</span>
                                 </button>
                                 <div class="dropdown-menu w-100 p-2">
                                     <div class="form-check"><input class="form-check-input timeline-filter-check-modal" type="checkbox" value="campaign" id="srcCampaignM" checked><label class="form-check-label small" for="srcCampaignM">Campaign</label></div>
@@ -3070,7 +3070,7 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetTimelineFilters()">
                                 <i class="fas fa-undo me-1"></i> Reset
                             </button>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="applyTimelineFilters()">
+                            <button type="button" class="btn btn-sm" onclick="applyTimelineFilters()" style="background-color: #6b5b95; color: #fff; border-color: #6b5b95;">
                                 <i class="fas fa-check me-1"></i> Apply Filters
                             </button>
                         </div>
