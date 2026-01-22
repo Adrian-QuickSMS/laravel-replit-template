@@ -2645,8 +2645,13 @@ function saveRcsButton() {
         rcsButtons.push(buttonData);
     }
     
-    buttonData.callback_data = getRcsButtonCallbackData(rcsCurrentCard, buttonIndex);
-    buttonData.callback_data_mode = document.getElementById('rcsCallbackDataAuto').checked ? 'auto' : 'custom';
+    if (buttonData.tracking && buttonData.tracking.enabled) {
+        buttonData.callback_data = getRcsButtonCallbackData(rcsCurrentCard, buttonIndex);
+        buttonData.callback_data_mode = document.getElementById('rcsCallbackDataAuto').checked ? 'auto' : 'custom';
+    } else {
+        buttonData.callback_data = null;
+        buttonData.callback_data_mode = null;
+    }
     
     bootstrap.Modal.getInstance(document.getElementById('rcsButtonConfigModal')).hide();
     renderRcsButtons();
@@ -2784,6 +2789,7 @@ function renderRcsButtons() {
         var typeIcon = btn.type === 'url' ? 'fa-link' : btn.type === 'phone' ? 'fa-phone' : 'fa-calendar-plus';
         var typeLabel = btn.type === 'url' ? 'URL' : btn.type === 'phone' ? 'Call' : 'Calendar';
         var hasTracking = btn.tracking && btn.tracking.enabled;
+        var trackingDisabled = btn.tracking && btn.tracking.enabled === false;
         
         var html = '<div class="d-flex align-items-center justify-content-between p-2 border rounded mb-2" style="background: rgba(136, 108, 192, 0.15);">';
         html += '<div class="d-flex align-items-center flex-wrap gap-1">';
@@ -2792,6 +2798,8 @@ function renderRcsButtons() {
         html += '<span class="badge small" style="background: rgba(136, 108, 192, 0.25); color: #6c5b9e;">' + typeLabel + '</span>';
         if (hasTracking) {
             html += '<span class="badge small" style="background: rgba(40, 167, 69, 0.2); color: #28a745;" title="Click tracking enabled"><i class="fas fa-chart-line me-1"></i>Tracked</span>';
+        } else if (trackingDisabled) {
+            html += '<span class="badge small" style="background: rgba(108, 117, 125, 0.15); color: #6c757d;" title="Tracking disabled"><i class="fas fa-chart-line me-1"></i>No tracking</span>';
         }
         html += '</div>';
         html += '<div class="btn-group btn-group-sm">';
