@@ -2779,6 +2779,63 @@ function getRcsSendPayload() {
     return payload;
 }
 
+function getRcsReportingMetadata(containerId, containerType) {
+    containerType = containerType || 'campaign';
+    var metadata = {
+        container_id: containerId || getRcsContainerId(),
+        container_type: containerType,
+        created_at: new Date().toISOString(),
+        buttons: []
+    };
+    
+    var messageType = document.querySelector('input[name="rcsMessageType"]:checked')?.value || 'single';
+    
+    if (messageType === 'single') {
+        rcsButtons.forEach(function(btn, btnIndex) {
+            metadata.buttons.push({
+                card_index: 1,
+                button_index: btnIndex + 1,
+                button_label: btn.label || '',
+                button_type: btn.type || 'url',
+                tracking_enabled: btn.tracking ? btn.tracking.enabled !== false : true,
+                callback_data: btn.callback_data || null
+            });
+        });
+    } else {
+        for (var i = 1; i <= rcsCardCount; i++) {
+            var cardData = rcsCardsData[i] || {};
+            (cardData.buttons || []).forEach(function(btn, btnIndex) {
+                metadata.buttons.push({
+                    card_index: i,
+                    button_index: btnIndex + 1,
+                    button_label: btn.label || '',
+                    button_type: btn.type || 'url',
+                    tracking_enabled: btn.tracking ? btn.tracking.enabled !== false : true,
+                    callback_data: btn.callback_data || null
+                });
+            });
+        }
+    }
+    
+    metadata.total_buttons = metadata.buttons.length;
+    metadata.tracked_buttons = metadata.buttons.filter(function(b) { return b.tracking_enabled; }).length;
+    
+    return metadata;
+}
+
+function getButtonClickReportingPayload(containerId, cardIndex, buttonIndex, buttonData) {
+    return {
+        container_id: containerId || getRcsContainerId(),
+        card_index: cardIndex,
+        button_index: buttonIndex,
+        button_label: buttonData.label || '',
+        button_type: buttonData.type || 'url',
+        tracking_enabled: buttonData.tracking ? buttonData.tracking.enabled !== false : true,
+        callback_data: buttonData.callback_data || null,
+        tracking_id: buttonData.tracking ? buttonData.tracking.trackingId || null : null
+    };
+}
+
 function generateRcsCallbackData(cardIndex, buttonIndex) {
     var containerId = getRcsContainerId();
     var callbackData = 'qsms:c' + containerId + ':card' + cardIndex + ':btn' + (buttonIndex + 1);
