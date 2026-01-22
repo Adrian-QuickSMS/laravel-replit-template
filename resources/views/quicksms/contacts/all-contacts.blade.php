@@ -490,6 +490,7 @@
     </div>
 </div>
 
+<script src="{{ asset('js/contacts-service.js') }}"></script>
 <script>
 var contactsData = @json($contacts);
 var customFieldDefinitions = [
@@ -873,19 +874,28 @@ function confirmBulkAddToList() {
     var selectedList = listSelect.value;
     
     if (!selectedList) {
-        alert('Please select a list.');
+        showValidationError('Please select a list.');
         return;
     }
-    
-    console.log('TODO: Add contacts ' + ids.join(', ') + ' to list: ' + selectedList);
-    alert('Added ' + ids.length + ' contact(s) to "' + selectedList + '"!\n\nThis requires backend implementation.');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddToListModal'));
     modal.hide();
     
-    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
-    document.getElementById('checkAll').checked = false;
-    document.getElementById('bulkActionBar').classList.add('d-none');
+    showProcessingModal('Adding contacts to list...');
+    
+    ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
+        hideProcessingModal();
+        if (result.success) {
+            showSuccessModal('Added to List', result.message);
+            clearBulkSelection();
+        } else {
+            showErrorModal('Error', result.message || 'Failed to add contacts to list.');
+        }
+    }).catch(function(error) {
+        hideProcessingModal();
+        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        console.error('[ContactsService] Error:', error);
+    });
 }
 
 function bulkRemoveFromList() {
@@ -901,19 +911,28 @@ function confirmBulkRemoveFromList() {
     var selectedList = listSelect.value;
     
     if (!selectedList) {
-        alert('Please select a list.');
+        showValidationError('Please select a list.');
         return;
     }
-    
-    console.log('TODO: Remove contacts ' + ids.join(', ') + ' from list: ' + selectedList);
-    alert('Removed ' + ids.length + ' contact(s) from "' + selectedList + '"!\n\nThis requires backend implementation.');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('bulkRemoveFromListModal'));
     modal.hide();
     
-    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
-    document.getElementById('checkAll').checked = false;
-    document.getElementById('bulkActionBar').classList.add('d-none');
+    showProcessingModal('Removing contacts from list...');
+    
+    ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
+        hideProcessingModal();
+        if (result.success) {
+            showSuccessModal('Removed from List', result.message);
+            clearBulkSelection();
+        } else {
+            showErrorModal('Error', result.message || 'Failed to remove contacts from list.');
+        }
+    }).catch(function(error) {
+        hideProcessingModal();
+        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        console.error('[ContactsService] Error:', error);
+    });
 }
 
 function bulkAddTags() {
@@ -929,19 +948,28 @@ function confirmBulkAddTags() {
     var selectedTags = Array.from(tagSelect.selectedOptions).map(o => o.value);
     
     if (selectedTags.length === 0) {
-        alert('Please select at least one tag.');
+        showValidationError('Please select at least one tag.');
         return;
     }
-    
-    console.log('TODO: Add tags ' + selectedTags.join(', ') + ' to contacts: ' + ids.join(', '));
-    alert('Added tags "' + selectedTags.join(', ') + '" to ' + ids.length + ' contact(s)!\n\nThis requires backend implementation.');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddTagsModal'));
     modal.hide();
     
-    document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
-    document.getElementById('checkAll').checked = false;
-    document.getElementById('bulkActionBar').classList.add('d-none');
+    showProcessingModal('Adding tags to contacts...');
+    
+    ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
+        hideProcessingModal();
+        if (result.success) {
+            showSuccessModal('Tags Added', result.message);
+            clearBulkSelection();
+        } else {
+            showErrorModal('Error', result.message || 'Failed to add tags.');
+        }
+    }).catch(function(error) {
+        hideProcessingModal();
+        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        console.error('[ContactsService] Error:', error);
+    });
 }
 
 function bulkRemoveTags() {
@@ -957,19 +985,115 @@ function confirmBulkRemoveTags() {
     var selectedTags = Array.from(tagSelect.selectedOptions).map(o => o.value);
     
     if (selectedTags.length === 0) {
-        alert('Please select at least one tag.');
+        showValidationError('Please select at least one tag.');
         return;
     }
-    
-    console.log('TODO: Remove tags ' + selectedTags.join(', ') + ' from contacts: ' + ids.join(', '));
-    alert('Removed tags "' + selectedTags.join(', ') + '" from ' + ids.length + ' contact(s)!\n\nThis requires backend implementation.');
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('bulkRemoveTagsModal'));
     modal.hide();
     
+    showProcessingModal('Removing tags from contacts...');
+    
+    ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
+        hideProcessingModal();
+        if (result.success) {
+            showSuccessModal('Tags Removed', result.message);
+            clearBulkSelection();
+        } else {
+            showErrorModal('Error', result.message || 'Failed to remove tags.');
+        }
+    }).catch(function(error) {
+        hideProcessingModal();
+        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        console.error('[ContactsService] Error:', error);
+    });
+}
+
+function bulkDelete() {
+    var ids = getSelectedContactIds();
+    var names = getSelectedContactNames();
+    
+    document.getElementById('bulkDeleteCount').textContent = ids.length;
+    var contactListHtml = names.slice(0, 10).map(function(name) {
+        return '<li class="py-1">' + name + '</li>';
+    }).join('');
+    if (names.length > 10) {
+        contactListHtml += '<li class="py-1 text-muted">...and ' + (names.length - 10) + ' more</li>';
+    }
+    document.getElementById('bulkDeleteContactList').innerHTML = contactListHtml;
+    
+    var modal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+    modal.show();
+}
+
+function confirmBulkDelete() {
+    var ids = getSelectedContactIds();
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkDeleteModal'));
+    modal.hide();
+    
+    showProcessingModal('Deleting contacts...');
+    
+    ContactsService.bulkDelete(ids).then(function(result) {
+        hideProcessingModal();
+        if (result.success) {
+            showSuccessModal('Contacts Deleted', result.message);
+            clearBulkSelection();
+        } else {
+            showErrorModal('Error', result.message || 'Failed to delete contacts.');
+        }
+    }).catch(function(error) {
+        hideProcessingModal();
+        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+        console.error('[ContactsService] Error:', error);
+    });
+}
+
+function clearBulkSelection() {
     document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
     document.getElementById('checkAll').checked = false;
     document.getElementById('bulkActionBar').classList.add('d-none');
+    document.getElementById('selectedCount').textContent = '0';
+}
+
+function showProcessingModal(message) {
+    document.getElementById('processingMessage').textContent = message || 'Processing...';
+    if (!window.processingModal) {
+        window.processingModal = new bootstrap.Modal(document.getElementById('processingModal'), { backdrop: 'static', keyboard: false });
+    }
+    window.processingModal.show();
+}
+
+function hideProcessingModal() {
+    if (window.processingModal) {
+        window.processingModal.hide();
+    }
+}
+
+function showSuccessModal(title, message) {
+    document.getElementById('successModalTitle').textContent = title;
+    document.getElementById('successModalMessage').textContent = message;
+    if (!window.successModal) {
+        window.successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    }
+    window.successModal.show();
+}
+
+function showErrorModal(title, message) {
+    document.getElementById('errorModalTitle').textContent = title;
+    document.getElementById('errorModalMessage').textContent = message;
+    if (!window.errorModal) {
+        window.errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    }
+    window.errorModal.show();
+}
+
+function showValidationError(message) {
+    document.getElementById('validationErrorMessage').textContent = message;
+    if (!window.validationModal) {
+        window.validationModal = new bootstrap.Modal(document.getElementById('validationModal'));
+    }
+    window.validationModal.show();
 }
 
 function bulkSendMessage() {
@@ -1690,6 +1814,101 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkRemoveTags()">Remove Tags</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-trash me-2"></i>Delete Contacts</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                <p>You are about to delete <strong id="bulkDeleteCount">0</strong> contact(s):</p>
+                <div class="border rounded p-2 mb-3" style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa;">
+                    <ul class="list-unstyled mb-0 small" id="bulkDeleteContactList">
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkDelete()">
+                    <i class="fas fa-trash me-1"></i> Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="processingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mb-0" id="processingMessage">Processing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalTitle"><i class="fas fa-check-circle me-2"></i>Success</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <p class="mb-0" id="successModalMessage">Operation completed successfully.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-success btn-sm" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalTitle"><i class="fas fa-times-circle me-2"></i>Error</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-times-circle text-danger fa-3x mb-3"></i>
+                <p class="mb-0" id="errorModalMessage">An error occurred.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="validationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Validation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                <p class="mb-0" id="validationErrorMessage">Please check your input.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-warning btn-sm" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
