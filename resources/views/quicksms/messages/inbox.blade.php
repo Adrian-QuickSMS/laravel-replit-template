@@ -1966,7 +1966,7 @@ function toggleReplyChannel(channel) {
         rcsAgentSection.classList.remove('d-none');
         smsFallbackSection.classList.remove('d-none');
         rcsRichSection.classList.remove('d-none');
-        contentLabel.textContent = 'RCS Content (Optional Fallback Text)';
+        contentLabel.textContent = 'SMS Fallback Content';
         segmentDisplay.classList.add('d-none');
         if (composerBody) {
             composerBody.style.overflowY = 'auto';
