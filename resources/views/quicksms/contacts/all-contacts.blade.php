@@ -279,7 +279,7 @@
                             </thead>
                             <tbody id="contactsTableBody">
                                 @foreach($contacts as $index => $contact)
-                                <tr class="btn-reveal-trigger" data-contact-id="{{ $contact['id'] }}">
+                                <tr class="btn-reveal-trigger" data-contact-id="{{ $contact['id'] }}" data-first-name="{{ $contact['first_name'] }}" data-last-name="{{ $contact['last_name'] }}" data-mobile="{{ $contact['mobile'] }}">
                                     <td class="py-2">
                                         <div class="form-check custom-checkbox">
                                             <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox{{ $contact['id'] }}">
@@ -668,7 +668,7 @@ function sortContacts(sortKey, direction) {
 function renderContactsTable(contacts) {
     const tbody = document.getElementById('contactsTableBody');
     tbody.innerHTML = contacts.map(contact => `
-        <tr class="btn-reveal-trigger" data-contact-id="${contact.id}">
+        <tr class="btn-reveal-trigger" data-contact-id="${contact.id}" data-first-name="${contact.firstName || ''}" data-last-name="${contact.lastName || ''}" data-mobile="${contact.mobile || ''}">
             <td class="py-2">
                 <div class="form-check custom-checkbox">
                     <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox${contact.id}">
@@ -825,10 +825,76 @@ function sendMessage(id) {
 }
 
 function viewTimeline(id) {
-    console.log('TODO: viewTimeline - Display activity timeline');
-    console.log('TODO: Fetch activity history from API: GET /api/contacts/' + id + '/timeline');
-    console.log('TODO: Show campaigns sent, replies received, opt-out events, tag/list changes');
-    alert('Activity Timeline\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- API endpoint: GET /api/contacts/{id}/timeline\n- Activity log database table\n- Timeline UI component');
+    var contact = getContactById(id);
+    if (!contact) {
+        console.error('Contact not found:', id);
+        return;
+    }
+    
+    var contactFullName = ((contact.firstName || '') + ' ' + (contact.lastName || '')).trim() || 'Unknown';
+    var contactPhone = contact.mobile || '';
+    
+    document.getElementById('timelineContactName').textContent = contactFullName;
+    document.getElementById('timelineContactPhone').textContent = contactPhone;
+    document.getElementById('timelineContactNameModal').textContent = contactFullName;
+    document.getElementById('timelineContactPhoneModal').textContent = contactPhone;
+    
+    var timelineContainer = document.getElementById('timelineEvents');
+    timelineContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="text-muted mt-2 mb-0">Loading timeline...</p></div>';
+    
+    var isMobile = window.innerWidth < 768;
+    
+    if (isMobile) {
+        var modal = new bootstrap.Modal(document.getElementById('activityTimelineModal'));
+        modal.show();
+    } else {
+        var offcanvas = new bootstrap.Offcanvas(document.getElementById('activityTimelineDrawer'));
+        offcanvas.show();
+    }
+    
+    setTimeout(function() {
+        var mockTimeline = [
+            { type: 'message_sent', date: '2026-01-20 14:32', title: 'SMS Sent', description: 'Campaign: Winter Sale Promo', icon: 'fa-paper-plane', color: 'success' },
+            { type: 'message_delivered', date: '2026-01-20 14:33', title: 'Message Delivered', description: 'Delivery confirmed', icon: 'fa-check-double', color: 'success' },
+            { type: 'reply_received', date: '2026-01-20 15:10', title: 'Reply Received', description: '"Thanks for the offer!"', icon: 'fa-reply', color: 'info' },
+            { type: 'tag_added', date: '2026-01-18 09:15', title: 'Tag Added', description: 'Added tag: VIP Customer', icon: 'fa-tag', color: 'primary' },
+            { type: 'list_added', date: '2026-01-15 11:00', title: 'Added to List', description: 'Added to: Newsletter Subscribers', icon: 'fa-list', color: 'secondary' },
+            { type: 'contact_created', date: '2026-01-10 10:30', title: 'Contact Created', description: 'Imported via CSV upload', icon: 'fa-user-plus', color: 'primary' }
+        ];
+        
+        var html = mockTimeline.map(function(event) {
+            return '<div class="timeline-event d-flex mb-3">' +
+                '<div class="timeline-icon bg-' + event.color + ' text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px; min-width: 36px;">' +
+                    '<i class="fas ' + event.icon + ' fa-sm"></i>' +
+                '</div>' +
+                '<div class="timeline-content flex-grow-1">' +
+                    '<div class="d-flex justify-content-between align-items-start">' +
+                        '<h6 class="mb-1 fs-6">' + event.title + '</h6>' +
+                        '<small class="text-muted">' + event.date + '</small>' +
+                    '</div>' +
+                    '<p class="mb-0 text-muted small">' + event.description + '</p>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+        
+        timelineContainer.innerHTML = html || '<p class="text-muted text-center py-4">No activity recorded yet.</p>';
+        
+        var modalContainer = document.getElementById('timelineEventsModal');
+        if (modalContainer) {
+            modalContainer.innerHTML = timelineContainer.innerHTML;
+        }
+    }, 500);
+}
+
+function getContactById(id) {
+    var row = document.querySelector('tr[data-contact-id="' + id + '"]');
+    if (!row) return null;
+    return {
+        id: id,
+        firstName: row.dataset.firstName || row.getAttribute('data-first-name') || '',
+        lastName: row.dataset.lastName || row.getAttribute('data-last-name') || '',
+        mobile: row.dataset.mobile || row.getAttribute('data-mobile') || ''
+    };
 }
 
 function deleteContact(id) {
@@ -2615,4 +2681,42 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
     document.getElementById('confirmRules').checked = true;
 });
 </script>
+
+<!-- Activity Timeline Drawer (Desktop) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="activityTimelineDrawer" style="width: 420px;">
+    <div class="offcanvas-header border-bottom py-3">
+        <div>
+            <h6 class="offcanvas-title mb-1"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
+            <p class="mb-0 small text-muted" id="timelineContactName">-</p>
+            <p class="mb-0 small text-muted" id="timelineContactPhone">-</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div id="timelineEvents">
+            <p class="text-muted text-center py-4">Loading...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Timeline Modal (Mobile) -->
+<div class="modal fade" id="activityTimelineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header border-bottom py-3">
+                <div>
+                    <h6 class="modal-title mb-1"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
+                    <p class="mb-0 small text-muted" id="timelineContactNameModal">-</p>
+                    <p class="mb-0 small text-muted" id="timelineContactPhoneModal">-</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="timelineEventsModal">
+                    <p class="text-muted text-center py-4">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
