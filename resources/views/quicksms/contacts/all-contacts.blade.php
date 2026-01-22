@@ -50,6 +50,10 @@
     font-size: 0.7rem;
     line-height: 1.4;
 }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(100px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 </style>
 @endpush
 
@@ -1137,36 +1141,42 @@ function bulkAddToList() {
 }
 
 function confirmBulkAddToList() {
+    console.log('[BulkAction] confirmBulkAddToList called');
     var ids = getSelectedContactIds();
+    console.log('[BulkAction] Selected IDs:', ids);
     var listSelect = document.getElementById('bulkListSelect');
-    var selectedList = listSelect.value;
+    var selectedList = listSelect ? listSelect.value : null;
+    console.log('[BulkAction] Selected list:', selectedList);
     
     if (!selectedList) {
         showValidationError('Please select a list.');
         return;
     }
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddToListModal'));
-    modal.hide();
+    var modalEl = document.getElementById('bulkAddToListModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
     
     showProcessingModal('Adding contacts to list...');
     
     ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
+        console.log('[BulkAction] Service result:', result);
         hideProcessingModal();
         setTimeout(function() {
+            console.log('[BulkAction] Showing toast now...');
             if (result.success) {
-                showToast(ids.length + ' contact(s) added to list successfully', 'success');
+                showToast(ids.length + ' contact(s) added to list "' + selectedList + '" successfully', 'success');
                 clearBulkSelection();
             } else {
                 showToast(result.message || 'Failed to add contacts to list.', 'error');
             }
-        }, 350);
+        }, 400);
     }).catch(function(error) {
+        console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
             showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 350);
-        console.error('[ContactsService] Error:', error);
+        }, 400);
     });
 }
 
@@ -1178,36 +1188,39 @@ function bulkRemoveFromList() {
 }
 
 function confirmBulkRemoveFromList() {
+    console.log('[BulkAction] confirmBulkRemoveFromList called');
     var ids = getSelectedContactIds();
     var listSelect = document.getElementById('bulkRemoveListSelect');
-    var selectedList = listSelect.value;
+    var selectedList = listSelect ? listSelect.value : null;
     
     if (!selectedList) {
         showValidationError('Please select a list.');
         return;
     }
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkRemoveFromListModal'));
-    modal.hide();
+    var modalEl = document.getElementById('bulkRemoveFromListModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
     
     showProcessingModal('Removing contacts from list...');
     
     ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
+        console.log('[BulkAction] Remove from list result:', result);
         hideProcessingModal();
         setTimeout(function() {
             if (result.success) {
-                showToast(ids.length + ' contact(s) removed from list successfully', 'success');
+                showToast(ids.length + ' contact(s) removed from list "' + selectedList + '" successfully', 'success');
                 clearBulkSelection();
             } else {
                 showToast(result.message || 'Failed to remove contacts from list.', 'error');
             }
-        }, 350);
+        }, 400);
     }).catch(function(error) {
+        console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
             showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 350);
-        console.error('[ContactsService] Error:', error);
+        }, 400);
     });
 }
 
@@ -1219,21 +1232,25 @@ function bulkAddTags() {
 }
 
 function confirmBulkAddTags() {
+    console.log('[BulkAction] confirmBulkAddTags called');
     var ids = getSelectedContactIds();
     var tagSelect = document.getElementById('bulkTagSelect');
-    var selectedTags = Array.from(tagSelect.selectedOptions).map(o => o.value);
+    var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    console.log('[BulkAction] Selected tags:', selectedTags);
     
     if (selectedTags.length === 0) {
         showValidationError('Please select at least one tag.');
         return;
     }
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddTagsModal'));
-    modal.hide();
+    var modalEl = document.getElementById('bulkAddTagsModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
     
     showProcessingModal('Adding tags to contacts...');
     
     ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
+        console.log('[BulkAction] Add tags result:', result);
         hideProcessingModal();
         setTimeout(function() {
             if (result.success) {
@@ -1242,13 +1259,13 @@ function confirmBulkAddTags() {
             } else {
                 showToast(result.message || 'Failed to add tags.', 'error');
             }
-        }, 350);
+        }, 400);
     }).catch(function(error) {
+        console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
             showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 350);
-        console.error('[ContactsService] Error:', error);
+        }, 400);
     });
 }
 
@@ -1260,21 +1277,25 @@ function bulkRemoveTags() {
 }
 
 function confirmBulkRemoveTags() {
+    console.log('[BulkAction] confirmBulkRemoveTags called');
     var ids = getSelectedContactIds();
     var tagSelect = document.getElementById('bulkRemoveTagSelect');
-    var selectedTags = Array.from(tagSelect.selectedOptions).map(o => o.value);
+    var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    console.log('[BulkAction] Selected tags to remove:', selectedTags);
     
     if (selectedTags.length === 0) {
         showValidationError('Please select at least one tag.');
         return;
     }
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkRemoveTagsModal'));
-    modal.hide();
+    var modalEl = document.getElementById('bulkRemoveTagsModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
     
     showProcessingModal('Removing tags from contacts...');
     
     ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
+        console.log('[BulkAction] Remove tags result:', result);
         hideProcessingModal();
         setTimeout(function() {
             if (result.success) {
@@ -1283,13 +1304,13 @@ function confirmBulkRemoveTags() {
             } else {
                 showToast(result.message || 'Failed to remove tags.', 'error');
             }
-        }, 350);
+        }, 400);
     }).catch(function(error) {
+        console.error('[BulkAction] Error:', error);
         hideProcessingModal();
         setTimeout(function() {
             showToast('An unexpected error occurred. Please try again.', 'error');
-        }, 350);
-        console.error('[ContactsService] Error:', error);
+        }, 400);
     });
 }
 
@@ -1365,25 +1386,26 @@ function showSuccessModal(title, message) {
 
 function showToast(message, type) {
     type = type || 'success';
-    var container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'position-fixed top-0 end-0 p-3';
-        container.style.zIndex = '99999';
-        document.body.appendChild(container);
+    
+    var existingContainer = document.getElementById('toastContainer');
+    if (existingContainer) {
+        existingContainer.remove();
     }
-    container.style.zIndex = '99999';
+    
+    var container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 999999; pointer-events: auto;';
+    document.body.appendChild(container);
     
     var bgColor = type === 'success' ? '#6b5b95' : (type === 'error' ? '#dc3545' : '#6c757d');
     var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
     
     var toastId = 'toast_' + Date.now();
-    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + '; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 0.5rem;">' +
-        '<div class="d-flex">' +
-        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest(\'.toast\').remove()"></button>' +
-        '</div></div>';
+    var toastHtml = '<div id="' + toastId + '" style="background-color: ' + bgColor + '; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 10px; min-width: 280px; animation: slideIn 0.3s ease;">' +
+        '<i class="fas ' + icon + '"></i>' +
+        '<span style="flex: 1;">' + message + '</span>' +
+        '<span style="cursor: pointer; opacity: 0.8;" onclick="this.parentElement.remove()">&times;</span>' +
+        '</div>';
     
     container.insertAdjacentHTML('beforeend', toastHtml);
     
@@ -1392,11 +1414,14 @@ function showToast(message, type) {
     setTimeout(function() {
         var toast = document.getElementById(toastId);
         if (toast) {
-            toast.style.transition = 'opacity 0.3s';
+            toast.style.transition = 'opacity 0.3s, transform 0.3s';
             toast.style.opacity = '0';
-            setTimeout(function() { toast.remove(); }, 300);
+            toast.style.transform = 'translateX(100px)';
+            setTimeout(function() { 
+                if (toast.parentElement) toast.parentElement.remove();
+            }, 300);
         }
-    }, 4000);
+    }, 5000);
 }
 
 function showErrorModal(title, message) {
