@@ -1170,6 +1170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     populateTemplateSelector();
     checkForDuplicatePrefill();
     updatePreview();
+    loadPreselectedContacts();
 });
 
 function checkForDuplicatePrefill() {
@@ -2906,6 +2907,37 @@ var recipientState = {
     ukMode: true,
     convert07: true
 };
+
+function loadPreselectedContacts() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('from') !== 'contacts') return;
+    
+    var storedData = sessionStorage.getItem('sendMessageRecipients');
+    if (!storedData) return;
+    
+    try {
+        var data = JSON.parse(storedData);
+        if (data.source !== 'contacts' || !data.contactIds || data.contactIds.length === 0) return;
+        
+        for (var i = 0; i < data.contactIds.length; i++) {
+            recipientState.contactBook.contacts.push({
+                id: data.contactIds[i],
+                name: data.contactNames[i] || 'Contact',
+                mobile: data.contactMobiles[i] || '',
+                count: 1
+            });
+        }
+        
+        updateContactBookDisplay();
+        updateRecipientSummary();
+        
+        sessionStorage.removeItem('sendMessageRecipients');
+        
+        console.log('Loaded ' + data.contactIds.length + ' contacts from contact book');
+    } catch (e) {
+        console.error('Error loading preselected contacts:', e);
+    }
+}
 
 function toggleUkMode() {
     var ukMode = document.getElementById('ukNumbersOnly').checked;
