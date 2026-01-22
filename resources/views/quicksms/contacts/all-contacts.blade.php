@@ -2066,19 +2066,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="mb-4">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="text-center flex-fill">
-                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center import-step-circle active" style="width: 32px; height: 32px;" id="stepCircle1">1</div>
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center import-step-circle active" style="width: 32px; height: 32px; background-color: #886CC0; color: #fff;" id="stepCircle1">1</div>
                             <div class="small mt-1">Upload</div>
                         </div>
                         <div class="text-center flex-fill">
-                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px;" id="stepCircle2">2</div>
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="stepCircle2">2</div>
                             <div class="small mt-1">Map Columns</div>
                         </div>
                         <div class="text-center flex-fill">
-                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px;" id="stepCircle3">3</div>
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="stepCircle3">3</div>
                             <div class="small mt-1">Review</div>
                         </div>
                         <div class="text-center flex-fill">
-                            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px;" id="stepCircle4">4</div>
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center import-step-circle" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="stepCircle4">4</div>
                             <div class="small mt-1">Complete</div>
                         </div>
                     </div>
@@ -2086,7 +2086,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div id="importStep1">
                     <h6 class="mb-3">Step 1: Upload File</h6>
-                    <div class="border rounded p-4 text-center bg-light" id="dropZone" style="border-style: dashed !important;">
+                    <div class="border rounded p-4 text-center" id="dropZone" style="border-style: dashed !important; background-color: #f0ebf8; border-color: #886CC0 !important;">
                         <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                         <p class="mb-2">Drag and drop your file here, or click to browse</p>
                         <input type="file" class="d-none" id="importFileInput" accept=".csv,.xlsx">
@@ -2372,14 +2372,18 @@ function showStep(step) {
     
     for (var i = 1; i <= 4; i++) {
         document.getElementById('importStep' + i).classList.add('d-none');
-        document.getElementById('stepCircle' + i).classList.remove('bg-primary');
-        document.getElementById('stepCircle' + i).classList.add('bg-secondary');
+        var circle = document.getElementById('stepCircle' + i);
+        circle.style.backgroundColor = '#fff';
+        circle.style.color = '#886CC0';
+        circle.style.border = '2px solid #886CC0';
     }
     
     document.getElementById('importStep' + step).classList.remove('d-none');
     for (var i = 1; i <= step; i++) {
-        document.getElementById('stepCircle' + i).classList.remove('bg-secondary');
-        document.getElementById('stepCircle' + i).classList.add('bg-primary');
+        var circle = document.getElementById('stepCircle' + i);
+        circle.style.backgroundColor = '#886CC0';
+        circle.style.color = '#fff';
+        circle.style.border = 'none';
     }
     
     document.getElementById('importBackBtn').classList.toggle('d-none', step === 1 || step === 4);
