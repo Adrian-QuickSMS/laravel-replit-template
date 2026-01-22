@@ -424,13 +424,148 @@ $(document).ready(function() {
             login_per_ip: { max: 10, window_minutes: 15 },
             login_per_email: { max: 5, window_minutes: 15 },
             otp_verify_attempts: { max: 5, window_minutes: 5 },
-            otp_send_attempts: { max: 3, window_minutes: 15 }
+            otp_send_cooldown: { cooldown_minutes: 15 },
+            otp_send_daily: { max: 4, window_minutes: 1440 }
         },
         account_lockout: {
             max_failed_attempts: 5,
             lockout_duration_minutes: 30
         }
     };
+    
+    var OtpThrottleService = {
+        lastSendTime: {},
+        dailyAttempts: {},
+        
+        init: function() {
+            var stored = localStorage.getItem('otp_throttle_data');
+            if (stored) {
+                try {
+                    var data = JSON.parse(stored);
+                    this.lastSendTime = data.lastSendTime || {};
+                    this.dailyAttempts = data.dailyAttempts || {};
+                    this.cleanupExpired();
+                } catch (e) {
+                    this.reset();
+                }
+            }
+        },
+        
+        save: function() {
+            localStorage.setItem('otp_throttle_data', JSON.stringify({
+                lastSendTime: this.lastSendTime,
+                dailyAttempts: this.dailyAttempts
+            }));
+        },
+        
+        cleanupExpired: function() {
+            var now = Date.now();
+            var dayMs = 24 * 60 * 60 * 1000;
+            
+            for (var key in this.dailyAttempts) {
+                this.dailyAttempts[key] = this.dailyAttempts[key].filter(function(t) {
+                    return now - t < dayMs;
+                });
+                if (this.dailyAttempts[key].length === 0) {
+                    delete this.dailyAttempts[key];
+                }
+            }
+            this.save();
+        },
+        
+        canSendOtp: function(userId, mobileNormalized) {
+            var now = Date.now();
+            var cooldownMs = SecurityConfig.rate_limits.otp_send_cooldown.cooldown_minutes * 60 * 1000;
+            var dayMs = SecurityConfig.rate_limits.otp_send_daily.window_minutes * 60 * 1000;
+            var maxDaily = SecurityConfig.rate_limits.otp_send_daily.max;
+            
+            var userKey = 'user:' + userId;
+            var mobileKey = 'mobile:' + mobileNormalized;
+            
+            if (this.lastSendTime[userKey] && (now - this.lastSendTime[userKey]) < cooldownMs) {
+                var remainingMs = cooldownMs - (now - this.lastSendTime[userKey]);
+                return { 
+                    allowed: false, 
+                    reason: 'cooldown',
+                    retryAfterMs: remainingMs,
+                    message: "You've requested too many codes. Try again later."
+                };
+            }
+            
+            this.dailyAttempts[userKey] = (this.dailyAttempts[userKey] || []).filter(function(t) {
+                return now - t < dayMs;
+            });
+            this.dailyAttempts[mobileKey] = (this.dailyAttempts[mobileKey] || []).filter(function(t) {
+                return now - t < dayMs;
+            });
+            
+            if (this.dailyAttempts[userKey].length >= maxDaily) {
+                return { 
+                    allowed: false, 
+                    reason: 'daily_limit_user',
+                    message: "You've requested too many codes. Try again later."
+                };
+            }
+            
+            if (this.dailyAttempts[mobileKey].length >= maxDaily) {
+                return { 
+                    allowed: false, 
+                    reason: 'daily_limit_mobile',
+                    message: "You've requested too many codes. Try again later."
+                };
+            }
+            
+            return { allowed: true };
+        },
+        
+        recordSend: function(userId, mobileNormalized) {
+            var now = Date.now();
+            var userKey = 'user:' + userId;
+            var mobileKey = 'mobile:' + mobileNormalized;
+            
+            this.lastSendTime[userKey] = now;
+            
+            if (!this.dailyAttempts[userKey]) this.dailyAttempts[userKey] = [];
+            if (!this.dailyAttempts[mobileKey]) this.dailyAttempts[mobileKey] = [];
+            
+            this.dailyAttempts[userKey].push(now);
+            this.dailyAttempts[mobileKey].push(now);
+            
+            this.save();
+        },
+        
+        reset: function() {
+            this.lastSendTime = {};
+            this.dailyAttempts = {};
+            localStorage.removeItem('otp_throttle_data');
+        },
+        
+        getRemainingCooldown: function(userId) {
+            var userKey = 'user:' + userId;
+            var cooldownMs = SecurityConfig.rate_limits.otp_send_cooldown.cooldown_minutes * 60 * 1000;
+            var lastSend = this.lastSendTime[userKey];
+            
+            if (!lastSend) return 0;
+            
+            var remaining = cooldownMs - (Date.now() - lastSend);
+            return Math.max(0, remaining);
+        },
+        
+        getDailyRemaining: function(userId) {
+            var userKey = 'user:' + userId;
+            var maxDaily = SecurityConfig.rate_limits.otp_send_daily.max;
+            var dayMs = SecurityConfig.rate_limits.otp_send_daily.window_minutes * 60 * 1000;
+            var now = Date.now();
+            
+            var attempts = (this.dailyAttempts[userKey] || []).filter(function(t) {
+                return now - t < dayMs;
+            });
+            
+            return Math.max(0, maxDaily - attempts.length);
+        }
+    };
+    
+    OtpThrottleService.init();
     
     var RateLimitService = {
         attempts: {},
@@ -741,6 +876,8 @@ $(document).ready(function() {
         
         var normalizedMobile = mobileResult.normalized;
         
+        OtpThrottleService.recordSend(currentEmail, normalizedMobile);
+        
         currentOtp = String(Math.floor(100000 + Math.random() * 900000));
         otpExpiry = Date.now() + (5 * 60 * 1000);
         resendUnlockTime = Date.now() + resendCooldownMs;
@@ -833,9 +970,21 @@ $(document).ready(function() {
         $btn.find('.btn-text').addClass('d-none');
         $btn.find('.btn-loading').removeClass('d-none');
         
-        var rateCheck = RateLimitService.checkLimit('otp_send:' + currentEmail, SecurityConfig.rate_limits.otp_send_attempts);
-        if (!rateCheck.allowed) {
-            showMfaError('Too many code requests. Try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
+        var mobileResult = UKMobileService.normalize(currentMobile);
+        if (!mobileResult.valid) {
+            showMfaError(mobileResult.error);
+            resetButton($btn);
+            return;
+        }
+        
+        var throttleCheck = OtpThrottleService.canSendOtp(currentEmail, mobileResult.normalized);
+        if (!throttleCheck.allowed) {
+            showMfaError(throttleCheck.message);
+            AuditService.log('otp_send_throttled', { 
+                email: currentEmail, 
+                reason: throttleCheck.reason,
+                mobile_masked: mobileResult.masked
+            });
             resetButton($btn);
             return;
         }
@@ -870,9 +1019,28 @@ $(document).ready(function() {
     }
     
     $('#resendOtpBtn').on('click', function() {
-        sendMfaOtp();
-        $('#mfaStatus').removeClass('d-none error').addClass('success');
-        $('#mfaStatus').html('<i class="fas fa-check-circle me-2"></i>New verification code sent.');
+        if ($(this).prop('disabled')) return;
+        
+        var mobileResult = UKMobileService.normalize(currentMobile);
+        if (!mobileResult.valid) {
+            showMfaError(mobileResult.error);
+            return;
+        }
+        
+        var throttleCheck = OtpThrottleService.canSendOtp(currentEmail, mobileResult.normalized);
+        if (!throttleCheck.allowed) {
+            showMfaError(throttleCheck.message);
+            AuditService.log('otp_resend_throttled', { 
+                email: currentEmail, 
+                reason: throttleCheck.reason 
+            });
+            return;
+        }
+        
+        var success = sendMfaOtp();
+        if (success) {
+            showMfaSuccess('New verification code sent!');
+        }
     });
     
     $('#otpCode').on('input', function() {
@@ -1007,20 +1175,6 @@ $(document).ready(function() {
         
         AuditService.log('mfa_method_changed', { method: method });
     }
-    
-    $('#resendOtpBtn').on('click', function() {
-        if ($(this).prop('disabled')) return;
-        
-        var rateCheck = RateLimitService.checkLimit('otp_send:' + currentEmail, SecurityConfig.rate_limits.otp_send_attempts);
-        if (!rateCheck.allowed) {
-            showMfaError('Too many code requests. Try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
-            return;
-        }
-        
-        RateLimitService.recordAttempt('otp_send:' + currentEmail);
-        sendMfaOtp();
-        showMfaSuccess('New verification code sent!');
-    });
     
     $('#backToLogin').on('click', function() {
         $('#loginStep2').addClass('d-none');
