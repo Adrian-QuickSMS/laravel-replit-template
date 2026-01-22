@@ -407,10 +407,16 @@ $permissions = [
                                         @endif
                                     </td>
                                     <td class="py-2">
-                                        @if($campaign['status'] === 'scheduled')
+                                        @if($campaign['status'] === 'draft')
+                                            <span class="badge badge-pastel-secondary">Draft</span>
+                                        @elseif($campaign['status'] === 'pending')
+                                            <span class="badge badge-pastel-warning">Pending</span>
+                                        @elseif($campaign['status'] === 'scheduled')
                                             <span class="badge badge-pastel-pink">Scheduled</span>
                                         @elseif($campaign['status'] === 'sending')
-                                            <span class="badge badge-pastel-warning">Sending</span>
+                                            <span class="badge badge-pastel-primary">Sending</span>
+                                        @elseif($campaign['status'] === 'cancelled')
+                                            <span class="badge badge-pastel-secondary">Cancelled</span>
                                         @else
                                             <span class="badge badge-pastel-success">Complete</span>
                                         @endif
