@@ -108,6 +108,27 @@ var ContactTimelineService = (function() {
         note_added: { icon: 'fa-sticky-note', color: 'warning', category: 'notes', title: 'Note Added' }
     };
 
+    var DELIVERY_STATUSES = {
+        PENDING: { status: 'Pending', color: 'warning', icon: 'fa-clock' },
+        DELIVERED: { status: 'Delivered', color: 'success', icon: 'fa-check-double' },
+        UNDELIVERABLE: { status: 'Undeliverable', color: 'danger', icon: 'fa-times-circle' },
+        REJECTED: { status: 'Rejected', color: 'danger', icon: 'fa-ban' },
+        SEEN: { status: 'Seen', color: 'info', icon: 'fa-eye' }
+    };
+
+    var DELIVERY_ERROR_CODES = {
+        'DLR_001': 'Number not in service',
+        'DLR_002': 'Carrier rejected message',
+        'DLR_003': 'Invalid number format',
+        'DLR_004': 'Temporary network failure',
+        'DLR_005': 'Message expired before delivery',
+        'DLR_006': 'Handset not reachable',
+        'DLR_007': 'Subscriber barred',
+        'DLR_008': 'Content blocked by carrier',
+        'DLR_009': 'Insufficient credit',
+        'DLR_010': 'Unknown error'
+    };
+
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
@@ -410,6 +431,90 @@ var ContactTimelineService = (function() {
         return actions;
     }
 
+    function generateDeliveryTimestamps(baseTimestamp) {
+        var base = new Date(baseTimestamp);
+        var submitOffset = Math.floor(Math.random() * 5) * 1000;
+        var deliveryOffset = (5 + Math.floor(Math.random() * 30)) * 1000;
+        
+        return {
+            submitted_at: new Date(base.getTime() - deliveryOffset - submitOffset).toISOString(),
+            sent_at: new Date(base.getTime() - deliveryOffset).toISOString(),
+            delivered_at: base.toISOString(),
+            latency_ms: deliveryOffset
+        };
+    }
+
+    function formatTimestamp(isoString) {
+        if (!isoString) return 'N/A';
+        var d = new Date(isoString);
+        return d.toLocaleString('en-GB', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric',
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit'
+        });
+    }
+
+    function buildStatusPill(statusInfo) {
+        return '<span class="badge bg-' + statusInfo.color + '">' +
+            '<i class="fas ' + statusInfo.icon + ' me-1"></i>' + statusInfo.status +
+        '</span>';
+    }
+
+    function buildDeliveryDetails(metadata, statusInfo, timestamps, errorInfo) {
+        var html = '';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Status:</strong> ' + buildStatusPill(statusInfo) +
+        '</div>';
+        
+        if (metadata.related_message_id) {
+            html += '<div class="mb-1 p-2 bg-white border-start border-3 border-primary">' +
+                '<small class="text-muted"><i class="fas fa-link me-1"></i>Related to Message ID:</small> ' +
+                '<code class="small">' + metadata.related_message_id + '</code>' +
+            '</div>';
+        }
+        
+        html += '<div class="mb-1"><strong>Channel:</strong> ' + metadata.channel_label + '</div>';
+        
+        if (timestamps) {
+            if (timestamps.submitted_at) {
+                html += '<div class="mb-1"><strong>Submitted:</strong> ' + formatTimestamp(timestamps.submitted_at) + '</div>';
+            }
+            if (timestamps.sent_at) {
+                html += '<div class="mb-1"><strong>Sent:</strong> ' + formatTimestamp(timestamps.sent_at) + '</div>';
+            }
+            if (timestamps.delivered_at && (statusInfo.status === 'Delivered' || statusInfo.status === 'Seen')) {
+                html += '<div class="mb-1"><strong>Delivered:</strong> ' + formatTimestamp(timestamps.delivered_at) + '</div>';
+            }
+            if (timestamps.latency_ms && (statusInfo.status === 'Delivered' || statusInfo.status === 'Seen')) {
+                var latencySec = (timestamps.latency_ms / 1000).toFixed(1);
+                html += '<div class="mb-1"><strong>Delivery Time:</strong> ' + latencySec + 's</div>';
+            }
+        }
+        
+        if (errorInfo && errorInfo.code) {
+            html += '<div class="mb-1 text-danger">' +
+                '<strong>Error Code:</strong> ' + errorInfo.code +
+            '</div>';
+            html += '<div class="mb-1 text-danger">' +
+                '<strong>Error Description:</strong> ' + errorInfo.description +
+            '</div>';
+        }
+        
+        html += '<div class="mb-1"><strong>Message ID:</strong> ' + metadata.message_id_warehouse + '</div>';
+        
+        if (metadata.campaign_id) {
+            html += '<div class="mb-1"><strong>Campaign:</strong> ' + metadata.campaign_name + '</div>';
+        }
+        
+        html += '<div class="mb-1"><strong>Sender:</strong> ' + metadata.sender_value + '</div>';
+        
+        return html;
+    }
+
     function getUserPermissions() {
         return window.timelinePermissions || {
             viewCost: true,
@@ -544,34 +649,40 @@ var ContactTimelineService = (function() {
             
             case EVENT_TYPES.MESSAGE_DELIVERED:
                 var deliveredMeta = generateOutboundMetadata(sourceModule);
-                var network = ['Vodafone UK', 'EE', 'O2', 'Three'][Math.floor(Math.random() * 4)];
+                deliveredMeta.related_message_id = deliveredMeta.message_id_warehouse;
+                var deliveredTimestamps = generateDeliveryTimestamps(new Date().toISOString());
+                var deliveredStatus = DELIVERY_STATUSES.DELIVERED;
+                var deliveredSummary = 'Delivery confirmed - ' + deliveredMeta.channel_label;
+                var deliveredDetails = buildDeliveryDetails(deliveredMeta, deliveredStatus, deliveredTimestamps, null);
                 return Object.assign({}, deliveredMeta, {
-                    network: network,
-                    summary: 'Delivery confirmed - ' + deliveredMeta.channel_label,
-                    details: '<strong>Status:</strong> Delivered<br>' +
-                        '<strong>Channel:</strong> ' + deliveredMeta.channel_label + '<br>' +
-                        '<strong>Network:</strong> ' + network + '<br>' +
-                        '<strong>Message ID:</strong> ' + deliveredMeta.message_id_warehouse + '<br>' +
-                        (deliveredMeta.campaign_id ? '<strong>Campaign:</strong> ' + deliveredMeta.campaign_name + '<br>' : '') +
-                        '<strong>Sender:</strong> ' + deliveredMeta.sender_value,
+                    delivery_status: deliveredStatus.status,
+                    timestamps: deliveredTimestamps,
+                    summary: deliveredSummary,
+                    details: deliveredDetails,
                     actions: buildOutboundActions(deliveredMeta, sourceModule)
                 });
             
             case EVENT_TYPES.MESSAGE_FAILED:
                 var failedMeta = generateOutboundMetadata(sourceModule);
-                var reasons = ['Number not in service', 'Carrier rejected', 'Invalid number format', 'Temporary network failure'];
-                var reason = reasons[Math.floor(Math.random() * reasons.length)];
-                var errorCode = 'ERR_' + Math.floor(Math.random() * 100);
+                failedMeta.related_message_id = failedMeta.message_id_warehouse;
+                var failedTimestamps = generateDeliveryTimestamps(new Date().toISOString());
+                var isRejected = Math.random() < 0.3;
+                var failedStatus = isRejected ? DELIVERY_STATUSES.REJECTED : DELIVERY_STATUSES.UNDELIVERABLE;
+                var errorCodes = Object.keys(DELIVERY_ERROR_CODES);
+                var randomErrorCode = errorCodes[Math.floor(Math.random() * errorCodes.length)];
+                var errorInfo = {
+                    code: randomErrorCode,
+                    description: DELIVERY_ERROR_CODES[randomErrorCode]
+                };
+                var failedSummary = failedStatus.status + ' - ' + errorInfo.description;
+                var failedDetails = buildDeliveryDetails(failedMeta, failedStatus, failedTimestamps, errorInfo);
                 return Object.assign({}, failedMeta, {
-                    error_code: errorCode,
-                    error_message: reason,
-                    summary: reason,
-                    details: '<strong>Status:</strong> <span class="text-danger">Failed</span><br>' +
-                        '<strong>Error:</strong> ' + errorCode + ' - ' + reason + '<br>' +
-                        '<strong>Channel:</strong> ' + failedMeta.channel_label + '<br>' +
-                        '<strong>Message ID:</strong> ' + failedMeta.message_id_warehouse + '<br>' +
-                        (failedMeta.campaign_id ? '<strong>Campaign:</strong> ' + failedMeta.campaign_name + '<br>' : '') +
-                        '<strong>Sender:</strong> ' + failedMeta.sender_value,
+                    delivery_status: failedStatus.status,
+                    timestamps: failedTimestamps,
+                    error_code: errorInfo.code,
+                    error_message: errorInfo.description,
+                    summary: failedSummary,
+                    details: failedDetails,
                     actions: buildOutboundActions(failedMeta, sourceModule)
                 });
             
@@ -579,12 +690,16 @@ var ContactTimelineService = (function() {
                 var seenMeta = generateOutboundMetadata(sourceModule);
                 seenMeta.channel = 'rcs_rich';
                 seenMeta.channel_label = 'Rich RCS';
+                seenMeta.related_message_id = seenMeta.message_id_warehouse;
+                var seenTimestamps = generateDeliveryTimestamps(new Date().toISOString());
+                var seenStatus = DELIVERY_STATUSES.SEEN;
+                var seenSummary = 'Read receipt received - Rich RCS';
+                var seenDetails = buildDeliveryDetails(seenMeta, seenStatus, seenTimestamps, null);
                 return Object.assign({}, seenMeta, {
-                    summary: 'Read receipt received',
-                    details: '<strong>Channel:</strong> Rich RCS<br>' +
-                        '<strong>Status:</strong> Seen<br>' +
-                        '<strong>Message ID:</strong> ' + seenMeta.message_id_warehouse +
-                        (seenMeta.campaign_id ? '<br><strong>Campaign:</strong> ' + seenMeta.campaign_name : ''),
+                    delivery_status: seenStatus.status,
+                    timestamps: seenTimestamps,
+                    summary: seenSummary,
+                    details: seenDetails,
                     actions: buildOutboundActions(seenMeta, sourceModule)
                 });
             
