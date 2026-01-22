@@ -699,7 +699,7 @@
                     <label class="form-label fw-bold">Target List <span class="text-danger">*</span></label>
                     <select class="form-select" id="moveTargetList">
                         <option value="">Select target list...</option>
-                        @foreach($lists as $list)
+                        @foreach($opt_out_lists as $list)
                         <option value="{{ $list['id'] }}">{{ $list['name'] }}</option>
                         @endforeach
                     </select>
