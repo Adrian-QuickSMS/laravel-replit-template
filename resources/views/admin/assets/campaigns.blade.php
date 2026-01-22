@@ -740,17 +740,17 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                             onclick="event.stopPropagation();">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" data-action="view" data-id="{{ $campaign['id'] }}"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end" onclick="event.stopPropagation();">
+                                        <li><a class="dropdown-item" href="#" data-action="view" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'view', '{{ $campaign['id'] }}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         @if($campaign['status'] === 'scheduled')
-                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
                                         @elseif($campaign['status'] === 'sending')
-                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
                                         @elseif($campaign['status'] === 'suspended')
-                                        <li><a class="dropdown-item text-success" href="#" data-action="resume" data-id="{{ $campaign['id'] }}"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
-                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        <li><a class="dropdown-item text-success" href="#" data-action="resume" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'resume', '{{ $campaign['id'] }}')"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
                                         @endif
                                     </ul>
                                 </div>
@@ -1634,15 +1634,9 @@ function validateActionReason() {
     }
 }
 
-document.getElementById('campaignsTableBody').addEventListener('click', function(e) {
-    const actionItem = e.target.closest('[data-action]');
-    if (!actionItem) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const action = actionItem.dataset.action;
-    const campaignId = actionItem.dataset.id;
+function handleCampaignAction(event, action, campaignId) {
+    event.preventDefault();
+    event.stopPropagation();
     
     switch(action) {
         case 'view':
@@ -1658,6 +1652,19 @@ document.getElementById('campaignsTableBody').addEventListener('click', function
             confirmCancelCampaign(campaignId);
             break;
     }
+}
+
+document.getElementById('campaignsTableBody').addEventListener('click', function(e) {
+    const actionItem = e.target.closest('[data-action]');
+    if (!actionItem) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const action = actionItem.dataset.action;
+    const campaignId = actionItem.dataset.id;
+    
+    handleCampaignAction(e, action, campaignId);
 });
 
 var campaignActionModal = null;
