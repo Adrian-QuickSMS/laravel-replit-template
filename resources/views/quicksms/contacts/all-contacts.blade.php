@@ -1162,23 +1162,21 @@ function confirmBulkAddToList() {
     
     ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
         console.log('[BulkAction] Service result:', result);
-        hideProcessingModal();
         if (result.success) {
             clearBulkSelection();
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
-            }, 350);
+            });
         } else {
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
-            }, 350);
+            });
         }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
-        hideProcessingModal();
-        setTimeout(function() {
+        hideProcessingModal(function() {
             showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-        }, 350);
+        });
     });
 }
 
@@ -1209,23 +1207,21 @@ function confirmBulkRemoveFromList() {
     
     ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
         console.log('[BulkAction] Remove from list result:', result);
-        hideProcessingModal();
         if (result.success) {
             clearBulkSelection();
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showSuccessModal('Contacts Removed', count + ' contact(s) have been removed from "' + selectedList + '" successfully.');
-            }, 350);
+            });
         } else {
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showErrorModal('Action Failed', result.message || 'Failed to remove contacts from list.');
-            }, 350);
+            });
         }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
-        hideProcessingModal();
-        setTimeout(function() {
+        hideProcessingModal(function() {
             showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-        }, 350);
+        });
     });
 }
 
@@ -1258,23 +1254,21 @@ function confirmBulkAddTags() {
     
     ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
         console.log('[BulkAction] Add tags result:', result);
-        hideProcessingModal();
         if (result.success) {
             clearBulkSelection();
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showSuccessModal('Tags Added', tagCount + ' tag(s) have been added to ' + count + ' contact(s) successfully.');
-            }, 350);
+            });
         } else {
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showErrorModal('Action Failed', result.message || 'Failed to add tags.');
-            }, 350);
+            });
         }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
-        hideProcessingModal();
-        setTimeout(function() {
+        hideProcessingModal(function() {
             showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-        }, 350);
+        });
     });
 }
 
@@ -1307,23 +1301,21 @@ function confirmBulkRemoveTags() {
     
     ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
         console.log('[BulkAction] Remove tags result:', result);
-        hideProcessingModal();
         if (result.success) {
             clearBulkSelection();
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showSuccessModal('Tags Removed', tagCount + ' tag(s) have been removed from ' + count + ' contact(s) successfully.');
-            }, 350);
+            });
         } else {
-            setTimeout(function() {
+            hideProcessingModal(function() {
                 showErrorModal('Action Failed', result.message || 'Failed to remove tags.');
-            }, 350);
+            });
         }
     }).catch(function(error) {
         console.error('[BulkAction] Error:', error);
-        hideProcessingModal();
-        setTimeout(function() {
+        hideProcessingModal(function() {
             showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-        }, 350);
+        });
     });
 }
 
@@ -1382,9 +1374,19 @@ function showProcessingModal(message) {
     window.processingModal.show();
 }
 
-function hideProcessingModal() {
+function hideProcessingModal(callback) {
     if (window.processingModal) {
+        if (callback) {
+            var modalEl = document.getElementById('processingModal');
+            var handler = function() {
+                modalEl.removeEventListener('hidden.bs.modal', handler);
+                callback();
+            };
+            modalEl.addEventListener('hidden.bs.modal', handler);
+        }
         window.processingModal.hide();
+    } else if (callback) {
+        callback();
     }
 }
 
