@@ -1153,15 +1153,19 @@ function confirmBulkAddToList() {
     
     ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
         hideProcessingModal();
-        if (result.success) {
-            showToast(ids.length + ' contact(s) added to list successfully', 'success');
-            clearBulkSelection();
-        } else {
-            showToast(result.message || 'Failed to add contacts to list.', 'error');
-        }
+        setTimeout(function() {
+            if (result.success) {
+                showToast(ids.length + ' contact(s) added to list successfully', 'success');
+                clearBulkSelection();
+            } else {
+                showToast(result.message || 'Failed to add contacts to list.', 'error');
+            }
+        }, 350);
     }).catch(function(error) {
         hideProcessingModal();
-        showToast('An unexpected error occurred. Please try again.', 'error');
+        setTimeout(function() {
+            showToast('An unexpected error occurred. Please try again.', 'error');
+        }, 350);
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1190,15 +1194,19 @@ function confirmBulkRemoveFromList() {
     
     ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
         hideProcessingModal();
-        if (result.success) {
-            showToast(ids.length + ' contact(s) removed from list successfully', 'success');
-            clearBulkSelection();
-        } else {
-            showToast(result.message || 'Failed to remove contacts from list.', 'error');
-        }
+        setTimeout(function() {
+            if (result.success) {
+                showToast(ids.length + ' contact(s) removed from list successfully', 'success');
+                clearBulkSelection();
+            } else {
+                showToast(result.message || 'Failed to remove contacts from list.', 'error');
+            }
+        }, 350);
     }).catch(function(error) {
         hideProcessingModal();
-        showToast('An unexpected error occurred. Please try again.', 'error');
+        setTimeout(function() {
+            showToast('An unexpected error occurred. Please try again.', 'error');
+        }, 350);
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1227,15 +1235,19 @@ function confirmBulkAddTags() {
     
     ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
         hideProcessingModal();
-        if (result.success) {
-            showToast(selectedTags.length + ' tag(s) added to ' + ids.length + ' contact(s) successfully', 'success');
-            clearBulkSelection();
-        } else {
-            showToast(result.message || 'Failed to add tags.', 'error');
-        }
+        setTimeout(function() {
+            if (result.success) {
+                showToast(selectedTags.length + ' tag(s) added to ' + ids.length + ' contact(s) successfully', 'success');
+                clearBulkSelection();
+            } else {
+                showToast(result.message || 'Failed to add tags.', 'error');
+            }
+        }, 350);
     }).catch(function(error) {
         hideProcessingModal();
-        showToast('An unexpected error occurred. Please try again.', 'error');
+        setTimeout(function() {
+            showToast('An unexpected error occurred. Please try again.', 'error');
+        }, 350);
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1264,15 +1276,19 @@ function confirmBulkRemoveTags() {
     
     ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
         hideProcessingModal();
-        if (result.success) {
-            showToast(selectedTags.length + ' tag(s) removed from ' + ids.length + ' contact(s) successfully', 'success');
-            clearBulkSelection();
-        } else {
-            showToast(result.message || 'Failed to remove tags.', 'error');
-        }
+        setTimeout(function() {
+            if (result.success) {
+                showToast(selectedTags.length + ' tag(s) removed from ' + ids.length + ' contact(s) successfully', 'success');
+                clearBulkSelection();
+            } else {
+                showToast(result.message || 'Failed to remove tags.', 'error');
+            }
+        }, 350);
     }).catch(function(error) {
         hideProcessingModal();
-        showToast('An unexpected error occurred. Please try again.', 'error');
+        setTimeout(function() {
+            showToast('An unexpected error occurred. Please try again.', 'error');
+        }, 350);
         console.error('[ContactsService] Error:', error);
     });
 }
@@ -1353,29 +1369,33 @@ function showToast(message, type) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toastContainer';
-        container.className = 'position-fixed bottom-0 end-0 p-3';
-        container.style.zIndex = '9999';
+        container.className = 'position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '99999';
         document.body.appendChild(container);
     }
+    container.style.zIndex = '99999';
     
     var bgColor = type === 'success' ? '#6b5b95' : (type === 'error' ? '#dc3545' : '#6c757d');
     var icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
     
     var toastId = 'toast_' + Date.now();
-    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + '; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">' +
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + '; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 0.5rem;">' +
         '<div class="d-flex">' +
         '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest(\'.toast\').remove()"></button>' +
         '</div></div>';
     
     container.insertAdjacentHTML('beforeend', toastHtml);
     
-    // Log to console for debugging
     console.log('[Toast] ' + type + ': ' + message);
     
     setTimeout(function() {
         var toast = document.getElementById(toastId);
-        if (toast) toast.remove();
+        if (toast) {
+            toast.style.transition = 'opacity 0.3s';
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 300);
+        }
     }, 4000);
 }
 
