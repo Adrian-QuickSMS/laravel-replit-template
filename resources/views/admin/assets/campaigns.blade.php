@@ -215,6 +215,87 @@ a.text-primary:hover { color: #2d5a87 !important; }
     background-color: rgba(30, 58, 95, 0.1);
     font-weight: 600;
 }
+
+/* =========================================
+   Informational Box - Pastel Purple with Transparent Buttons
+   (Consistent across portal per design spec)
+   ========================================= */
+.info-box-pastel {
+    background-color: #f0ebf8;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.info-box-pastel .btn-transparent {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    color: #495057;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+}
+.info-box-pastel .btn-transparent:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 1);
+}
+.info-box-pastel .btn-transparent:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.5);
+}
+
+.info-box-pastel .btn-transparent-danger {
+    background-color: transparent;
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    color: #dc3545;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+}
+.info-box-pastel .btn-transparent-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+/* Bulk Action Bar (when items selected) */
+.bulk-action-bar {
+    background-color: #f0ebf8;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bulk-action-bar .selected-count {
+    font-weight: 600;
+    color: #495057;
+    margin-right: 0.5rem;
+}
+
+.bulk-action-bar .btn-action {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    color: #495057;
+    font-size: 0.8125rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.bulk-action-bar .btn-action:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+.bulk-action-bar .btn-action i {
+    font-size: 0.75rem;
+}
+
+.bulk-action-bar .btn-action-danger {
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+}
+.bulk-action-bar .btn-action-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
 </style>
 @endpush
 
