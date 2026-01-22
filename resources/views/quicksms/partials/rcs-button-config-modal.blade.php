@@ -114,27 +114,58 @@
                     </div>
                 </div>
                 
-                <input type="hidden" id="rcsButtonTrackingEnabled" value="1">
+                <hr class="my-3">
                 
-                <div id="rcsButtonAdvancedSection" class="d-none">
-                    <hr class="my-3">
-                    <a href="javascript:void(0)" class="small text-muted" onclick="toggleRcsButtonAdvanced()">
-                        <i class="fas fa-cog me-1"></i>Advanced tracking options <i class="fas fa-chevron-down ms-1" id="rcsAdvancedChevron"></i>
+                <div id="rcsButtonAdvancedSection">
+                    <a href="javascript:void(0)" class="d-flex align-items-center text-decoration-none" onclick="toggleRcsButtonAdvanced()">
+                        <i class="fas fa-chevron-right me-2 text-muted small" id="rcsAdvancedChevron" style="transition: transform 0.2s;"></i>
+                        <span class="small text-muted">Advanced tracking options</span>
                     </a>
                     
-                    <div id="rcsButtonTrackingConfig" class="d-none mt-3">
-                        <div class="alert alert-light py-2 px-3 small mb-3">
-                            <i class="fas fa-chart-line me-1 text-success"></i>Click tracking is <strong>enabled by default</strong> for all buttons.
+                    <div id="rcsButtonTrackingConfig" class="d-none mt-3 ps-3 border-start" style="border-color: rgba(107, 91, 149, 0.2) !important;">
+                        
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <label class="form-label small mb-0">Button interaction tracking</label>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" id="rcsButtonTrackingEnabled" checked>
+                                </div>
+                            </div>
+                            <small class="text-muted">Track when users tap this button</small>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label small">Tracking ID <span class="text-muted">(optional)</span></label>
-                            <input type="text" class="form-control form-control-sm" id="rcsButtonTrackingId" maxlength="50" placeholder="e.g., promo_cta_jan26">
-                            <small class="text-muted">Custom identifier for this button (alphanumeric, underscores)</small>
+                            <label class="form-label small">Callback data</label>
+                            <div class="mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rcsCallbackDataMode" id="rcsCallbackDataAuto" value="auto" checked onchange="toggleRcsCallbackDataMode()">
+                                    <label class="form-check-label small" for="rcsCallbackDataAuto">
+                                        Auto-generated <span class="text-muted">(recommended)</span>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rcsCallbackDataMode" id="rcsCallbackDataCustom" value="custom" onchange="toggleRcsCallbackDataMode()">
+                                    <label class="form-check-label small" for="rcsCallbackDataCustom">
+                                        Custom value
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="rcsCallbackDataAutoPreview" class="small text-muted p-2 rounded" style="background: rgba(107, 91, 149, 0.08);">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <code id="rcsButtonCallbackDataPreview" class="text-dark">qsms:c...:card1:btn1</code>
+                            </div>
+                            
+                            <div id="rcsCallbackDataCustomInput" class="d-none">
+                                <input type="text" class="form-control form-control-sm" id="rcsButtonCallbackDataCustom" maxlength="64" placeholder="Enter custom callback data">
+                                <small class="text-muted">This value will be returned by Google when a user taps the button.</small>
+                            </div>
                         </div>
                         
+                        <input type="hidden" id="rcsButtonCallbackData">
+                        
                         <div class="mb-3" id="rcsButtonUtmSection">
-                            <label class="form-label small">UTM Parameters <span class="badge bg-light text-dark">URL buttons only</span></label>
+                            <label class="form-label small">UTM Parameters <span class="badge bg-light text-dark small">URL buttons only</span></label>
                             <div class="row g-2">
                                 <div class="col-6">
                                     <input type="text" class="form-control form-control-sm" id="rcsButtonUtmSource" placeholder="utm_source" maxlength="100">
@@ -153,19 +184,18 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label small">Additional Events</label>
+                            <label class="form-label small">Tracking ID <span class="text-muted">(optional)</span></label>
+                            <input type="text" class="form-control form-control-sm" id="rcsButtonTrackingId" maxlength="50" placeholder="e.g., promo_cta_jan26">
+                            <small class="text-muted">Custom identifier for analytics</small>
+                        </div>
+                        
+                        <div class="mb-0">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="rcsButtonTrackConversion">
                                 <label class="form-check-label small" for="rcsButtonTrackConversion">
-                                    <i class="fas fa-check-circle me-1 text-muted"></i>Conversion tracking (requires pixel)
+                                    Enable conversion tracking <span class="text-muted">(requires pixel)</span>
                                 </label>
                             </div>
-                        </div>
-                        
-                        <div class="mb-0" id="rcsButtonCallbackDataSection">
-                            <label class="form-label small text-muted">Callback Data <span class="badge bg-light text-muted">auto-generated</span></label>
-                            <input type="text" class="form-control form-control-sm bg-light" id="rcsButtonCallbackData" readonly placeholder="Generated on save">
-                            <small class="text-muted">Unique identifier for webhook callbacks (read-only)</small>
                         </div>
                     </div>
                 </div>

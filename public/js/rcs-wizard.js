@@ -2322,8 +2322,9 @@ function editRcsButton(index) {
         if (descEl) descEl.value = btn.eventDesc || '';
     }
     
-    setRcsButtonTrackingData(btn.tracking, btn.callback_data);
+    setRcsButtonTrackingData(btn.tracking, btn.callback_data, btn.callback_data_mode);
     updateRcsButtonUtmVisibility();
+    updateRcsCallbackDataPreview();
     
     var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
     modal.show();
@@ -2362,6 +2363,7 @@ function resetRcsButtonForm() {
 function resetRcsButtonTracking() {
     var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
     var chevron = document.getElementById('rcsAdvancedChevron');
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
     var trackingId = document.getElementById('rcsButtonTrackingId');
     var utmSource = document.getElementById('rcsButtonUtmSource');
     var utmMedium = document.getElementById('rcsButtonUtmMedium');
@@ -2369,12 +2371,14 @@ function resetRcsButtonTracking() {
     var utmContent = document.getElementById('rcsButtonUtmContent');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
     var callbackDataEl = document.getElementById('rcsButtonCallbackData');
+    var callbackDataAuto = document.getElementById('rcsCallbackDataAuto');
+    var callbackDataCustom = document.getElementById('rcsButtonCallbackDataCustom');
+    var autoPreview = document.getElementById('rcsCallbackDataAutoPreview');
+    var customInput = document.getElementById('rcsCallbackDataCustomInput');
     
     if (trackingConfig) trackingConfig.classList.add('d-none');
-    if (chevron) {
-        chevron.classList.add('fa-chevron-down');
-        chevron.classList.remove('fa-chevron-up');
-    }
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+    if (trackingEnabled) trackingEnabled.checked = true;
     if (trackingId) trackingId.value = '';
     if (utmSource) utmSource.value = '';
     if (utmMedium) utmMedium.value = '';
@@ -2382,6 +2386,10 @@ function resetRcsButtonTracking() {
     if (utmContent) utmContent.value = '';
     if (trackConversion) trackConversion.checked = false;
     if (callbackDataEl) callbackDataEl.value = '';
+    if (callbackDataAuto) callbackDataAuto.checked = true;
+    if (callbackDataCustom) callbackDataCustom.value = '';
+    if (autoPreview) autoPreview.classList.remove('d-none');
+    if (customInput) customInput.classList.add('d-none');
 }
 
 function toggleRcsButtonAdvanced() {
@@ -2392,11 +2400,35 @@ function toggleRcsButtonAdvanced() {
         var isHidden = trackingConfig.classList.contains('d-none');
         trackingConfig.classList.toggle('d-none', !isHidden);
         if (chevron) {
-            chevron.classList.toggle('fa-chevron-down', !isHidden);
-            chevron.classList.toggle('fa-chevron-up', isHidden);
+            chevron.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
         }
     }
     updateRcsButtonUtmVisibility();
+    updateRcsCallbackDataPreview();
+}
+
+function toggleRcsCallbackDataMode() {
+    var autoRadio = document.getElementById('rcsCallbackDataAuto');
+    var autoPreview = document.getElementById('rcsCallbackDataAutoPreview');
+    var customInput = document.getElementById('rcsCallbackDataCustomInput');
+    
+    var isAuto = autoRadio && autoRadio.checked;
+    
+    if (autoPreview) autoPreview.classList.toggle('d-none', !isAuto);
+    if (customInput) customInput.classList.toggle('d-none', isAuto);
+    
+    if (isAuto) {
+        updateRcsCallbackDataPreview();
+    }
+}
+
+function updateRcsCallbackDataPreview() {
+    var previewEl = document.getElementById('rcsButtonCallbackDataPreview');
+    if (!previewEl) return;
+    
+    var buttonIndex = rcsEditingButtonIndex >= 0 ? rcsEditingButtonIndex : rcsButtons.length;
+    var callbackData = generateRcsCallbackData(rcsCurrentCard, buttonIndex);
+    previewEl.textContent = callbackData;
 }
 
 function updateRcsButtonUtmVisibility() {
@@ -2536,7 +2568,8 @@ function saveRcsButton() {
         rcsButtons.push(buttonData);
     }
     
-    buttonData.callback_data = generateRcsCallbackData(rcsCurrentCard, buttonIndex);
+    buttonData.callback_data = getRcsButtonCallbackData(rcsCurrentCard, buttonIndex);
+    buttonData.callback_data_mode = document.getElementById('rcsCallbackDataAuto').checked ? 'auto' : 'custom';
     
     bootstrap.Modal.getInstance(document.getElementById('rcsButtonConfigModal')).hide();
     renderRcsButtons();
@@ -2572,14 +2605,17 @@ function getRcsContainerId() {
 }
 
 function getRcsButtonTrackingData(buttonType) {
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
     var trackingId = document.getElementById('rcsButtonTrackingId');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
     
+    var isEnabled = trackingEnabled ? trackingEnabled.checked : true;
+    
     var trackingData = {
-        enabled: true,
+        enabled: isEnabled,
         trackingId: trackingId ? trackingId.value.trim() : '',
         events: {
-            click: true,
+            click: isEnabled,
             conversion: trackConversion ? trackConversion.checked : false
         }
     };
@@ -2601,25 +2637,53 @@ function getRcsButtonTrackingData(buttonType) {
     return trackingData;
 }
 
-function setRcsButtonTrackingData(tracking, callbackData) {
+function getRcsButtonCallbackData(cardIndex, buttonIndex) {
+    var autoRadio = document.getElementById('rcsCallbackDataAuto');
+    var customInput = document.getElementById('rcsButtonCallbackDataCustom');
+    
+    var isAuto = autoRadio ? autoRadio.checked : true;
+    
+    if (isAuto) {
+        return generateRcsCallbackData(cardIndex, buttonIndex);
+    } else {
+        var customValue = customInput ? customInput.value.trim() : '';
+        return customValue || generateRcsCallbackData(cardIndex, buttonIndex);
+    }
+}
+
+function setRcsButtonTrackingData(tracking, callbackData, callbackDataMode) {
     var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
     var chevron = document.getElementById('rcsAdvancedChevron');
+    var trackingEnabled = document.getElementById('rcsButtonTrackingEnabled');
     var trackingId = document.getElementById('rcsButtonTrackingId');
     var utmSource = document.getElementById('rcsButtonUtmSource');
     var utmMedium = document.getElementById('rcsButtonUtmMedium');
     var utmCampaign = document.getElementById('rcsButtonUtmCampaign');
     var utmContent = document.getElementById('rcsButtonUtmContent');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
-    var callbackDataEl = document.getElementById('rcsButtonCallbackData');
+    var callbackDataAuto = document.getElementById('rcsCallbackDataAuto');
+    var callbackDataCustomRadio = document.getElementById('rcsCallbackDataCustom');
+    var callbackDataCustomInput = document.getElementById('rcsButtonCallbackDataCustom');
+    var autoPreview = document.getElementById('rcsCallbackDataAutoPreview');
+    var customInput = document.getElementById('rcsCallbackDataCustomInput');
+    var previewEl = document.getElementById('rcsButtonCallbackDataPreview');
     
     resetRcsButtonTracking();
     
-    if (callbackDataEl) {
-        callbackDataEl.value = callbackData || '';
+    if (callbackDataMode === 'custom' && callbackData) {
+        if (callbackDataCustomRadio) callbackDataCustomRadio.checked = true;
+        if (callbackDataCustomInput) callbackDataCustomInput.value = callbackData;
+        if (autoPreview) autoPreview.classList.add('d-none');
+        if (customInput) customInput.classList.remove('d-none');
+    } else if (previewEl && callbackData) {
+        previewEl.textContent = callbackData;
     }
     
     if (!tracking) return;
     
+    if (trackingEnabled) {
+        trackingEnabled.checked = tracking.enabled !== false;
+    }
     if (trackingId) {
         trackingId.value = tracking.trackingId || '';
     }
