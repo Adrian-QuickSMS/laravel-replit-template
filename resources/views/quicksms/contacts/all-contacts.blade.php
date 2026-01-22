@@ -502,6 +502,50 @@ var customFieldDefinitions = [
     { id: 2, name: 'Job Title', slug: 'job_title', type: 'text', defaultValue: '' }
 ];
 
+// TODO: Backend integration - Replace with actual API calls
+var ContactsService = {
+    bulkAddToList: function(contactIds, listId) {
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                console.log('[ContactsService] bulkAddToList:', contactIds, listId);
+                resolve({ success: true });
+            }, 500);
+        });
+    },
+    bulkRemoveFromList: function(contactIds, listId) {
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                console.log('[ContactsService] bulkRemoveFromList:', contactIds, listId);
+                resolve({ success: true });
+            }, 500);
+        });
+    },
+    bulkAddTags: function(contactIds, tagIds) {
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                console.log('[ContactsService] bulkAddTags:', contactIds, tagIds);
+                resolve({ success: true });
+            }, 500);
+        });
+    },
+    bulkRemoveTags: function(contactIds, tagIds) {
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                console.log('[ContactsService] bulkRemoveTags:', contactIds, tagIds);
+                resolve({ success: true });
+            }, 500);
+        });
+    },
+    bulkDelete: function(contactIds) {
+        return new Promise(function(resolve) {
+            setTimeout(function() {
+                console.log('[ContactsService] bulkDelete:', contactIds);
+                resolve({ success: true });
+            }, 500);
+        });
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const checkAll = document.getElementById('checkAll');
     const bulkActionBar = document.getElementById('bulkActionBar');
